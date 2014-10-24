@@ -1,0 +1,1651 @@
+2014-10-24  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- updated for mongo-c-driver 1.0.2 and MongoDB 2.6.5
+	- minor changes were necessary: MongogDB does not allow to delete a
+	  capped collection, one has to use drop
+	- white-space changes
+	- move variable declaration to the front
+
+2014-10-23  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- Fixing listings in shell-wrapper manpages
+	- Fix a typo reported by lintian
+	- Fix two more wordings lintian complained about
+	- Revise manpages; add copyright notes
+
+2014-10-22  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- reduce number of unused symbols
+	- fix a possible double refcount increment for argument converter (e.g.
+	  for normalizing input values). This could lead to small memory leaks.
+
+2014-10-22  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- Continue man corrections
+	- Work on corrections for Object.man & friends, based on Thorsten's
+	  proof-reading
+	- Remove an nxdoc artifact
+	- Remove unneeded make variables
+	- Revive nsfConfig.sh: The paths expanded during a configure run were
+	  broken, partly due to substituting obsolete variables
+
+2014-10-21  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- Use revised interpreter directive throughout
+
+2014-10-21  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- fix final refcounting bug: it was possible that classes contained in
+	Tcl_Objs of type mixinreg were not freed, although their
+	reference-counter became 0; now all test cases free all tcl_objs and
+	referenced data structures allocated from nsf
+
+2014-10-21  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- First solution to provide a multi-step resolution of a Tcl interpreter
+	in our shell wrappers. Uses some bash scripting to walk a list of
+	candidates: 1) interp in build directory, 2) interp in install
+	directory, 3) tcl interp in PATH. Where appropriate (cases 2 & 3),
+	restricts search to a specific tinterp version. By relying on a generic
+	shebang line (/bin/sh) we do not run into package-dependency
+	restrictions on Debian. So a win-win?
+
+2014-10-21  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- fix (probably quite old) memory leak when parameter passing fails to
+	  reclaim temporary Tcl_Objs
+	- fix memory leak with virtual parameters (resolved via args) with
+	  ref-counting
+
+2014-10-21  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- Adding man pages for shell wrappers
+	- Adjust file extension for nroff files to reflect manpage section
+
+2014-10-20  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- Fix the remaining shebangs
+	- Fix shebang lines
+	- Remove any nxdoc artifacts from repo, to ease Debian packaging (incl.
+	  binary js is not accepted by lintian
+
+2014-10-20  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- fix execution with --enable-memcount=yes: second argument of
+	  NsfMemCountAlloc() and NsfMemCountFree() may be empty
+	- don't put macro arguments between parens when these are used for
+	  concatenation
+	- remove // comments
+
+2014-10-19  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	build system:
+	- don't call genstubs from configure, since Debian does not seem to
+	  have genstubs.tcl installed. Now, we pre-generate the stub files for
+	  tcl8.5 and tcl8.6 and copy the "right" version depending on the
+	  configured version.
+	- avoid old-style prototypes
+
+2014-10-15  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- Done with basic princexml integration, improve Makefile integration
+	- Provide first stylesheet based on HTML markup by doctools HTML backend
+	- Integrating manpages into build setup
+
+2014-10-14  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- Improve wording
+	- Add a draft section on self-references
+	- Improve wording in overview diagram of Class doc item
+	- Working on overview diagram for Class doc item
+	- Add to the overview diagram
+	- Adding overview diagram to Object doc item
+	- Cleanup namespace export statement
+	- Reflect plural reform in all doc items
+
+2014-10-10  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- Doc item on nx::configure
+	- Doc item on nx::current
+	- Doc item for nx::next
+
+2014-10-10  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- minor cleanup of "//"-comments
+
+2014-10-07  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- Add some documentation on 'info info'
+	- Make 'info info' behaving as expected again
+
+2014-10-06  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- Minuscule refactoring, have DispatchUnknownMethod() reset the interp
+	  unknown-state directly, rather than its clients.
+
+2014-10-06  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	nsf.c:
+	- make types for bit operations unsigned (mostly flags)
+
+2014-10-05  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	nx.tcl:
+	- simplify the info ensembles on nx::Object or nx::Class
+	  significantly, by making use if ensemble-next.
+	- delete "info unknown", since this is not called.
+	- extend regression test
+
+	nsf.c:
+	- implement a new approach to error reporting in ensembles: instead of
+	trying to find the "right" place to report the best "error", compute
+	the longest valid ensemble prefix from all the stack frames.
+
+2014-09-29  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- make compilation clean again
+	- improve safety of macro arguments
+
+2014-09-29  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- Adding a test showing the yet to solve unknown-handling issue in info
+	  ensembles
+
+2014-09-28  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- Work-in-progress on sanitizing unknown handling in ensembles
+
+2014-09-28  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- remove useless distinction from the past
+	- revise sanity check for tcl _objs in 8.6 once one: length field might
+	  be garbage
+	- add alternative test for sanity checking of tcl_objs: when bytes not
+	  NULL, length must be 0 or higher
+
+2014-09-27  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	nsf.c:
+	- remove redundant definition
+	- reduce variable scope
+	- make sure to follow nonnull assumptions
+	- improve cppcheck flags
+
+	nsf.h
+	- In Tcl 8.6.1 it might be that a Tcl_Obj has length > 0 but bytes ==
+	NULL. We have to relax out tcl_obj-sanity test for this case to avoid
+	false-positives from assertions()
+
+2014-09-22  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- documentation update to reflect recent changes
+
+2014-09-17  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	documentation:
+	- add current args to migration guide
+	- fix cut&paste error: replace "current currentclass" by "current
+	  calledclass"
+
+	nsf.c:
+	- remove redundant null check for object and add assertion
+	- remove duplicate entry for returns_nonnull
+	- serializer: keep parameter properties in xotcl parameter lists
+
+2014-08-08  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- Revise Object documentation, align with output from quant.tcl helper
+	- Reflect recent parameter syntax change in corresponding test
+	- Revise Class documentation, align with output from quant.tcl helper
+	- Provide corrections for some syntax strings
+
+2014-07-09  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- no need to "set nodashalnum for int types"
+	- extended regression test
+
+2014-06-23  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	nsf.c:
+	- provide error messages for ambiguous abbreviations
+	- extend regression test (now 5460 tests)
+
+2014-06-23  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	Revised life-cycle section further
+
+2014-06-23  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	nsf.c:
+	- dropped unused object::info::is
+	- renamed ::nsf::methods::class::info::filtermethods ->
+	::nsf::methods::class::info::filters
+	::nsf::methods::object::info::filtermethods ->
+	::nsf::methods::object::info::filters
+	::nsf::methods::class::info::mixinclasses ->
+	::nsf::methods::class::info::mixins
+	::nsf::methods::object::info::mixinclasses ->
+	::nsf::methods::object::info::mixins
+
+2014-06-23  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- Change overview illustration on object life cycle in Class.man
+	- Adjust for changes in plural reform
+
+2014-06-22  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	nx.tcl: pluralism reform part 3
+	- introduced simple plural form "mixins" and "filters" for
+	  introspection
+	- moved differentiated interface into slot methods. the
+	  slot methods "get" stay symmetrically to "set", but
+	  additional methods "classes" or "methods" are used like
+	  "guard" to obtain partial results of the mixin and filter
+	  specs
+	- changed info methods /cls/ info mixin classes -> /cls/
+	  info mixins /cls/ info filter methods -> /cls/ info
+	  filters /obj/ info object mixin classes -> /obj/ info
+	  object mixins /obj/ info object filter methods -> /obj/
+	  info object filters
+	- dropped /cls/ info mixin guard /cls/ info filter guard
+	  /obj/ info object mixin guard /obj/ info object filter
+	  guard
+	- added /cls/ mixin classes /cls/ filter methods /obj/ object filter
+	  methods /obj/ object mixin classes
+
+2014-06-21  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	nx.tcl:
+	- make all __* system methods in nx redefine-protected
+	- let "nsf::configure objectsystem" return handles and protections as
+	  well
+
+2014-06-20  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	nx.tcl: pluralism reform part 2
+	- changed methods /cls/ info subclass -> /cls/ info
+	  subclasses /cls/ info superclass -> /cls/ info
+	  superclasses /cls/ mixin ... -> /cls/ mixins /cls/ filter
+	  ... -> /cls/ filters /cls/ object mixin ... -> /cls/
+	  object mixins /cls/ object filter ... -> /cls/ object
+	  filters
+	- changed configure parameters /cls/ configure -mixin ->
+	  /cls/ configure -mixins /cls/ configure -filter -> /cls/
+	  configure -filters /obj/ configure -object-mixin -> /obj/
+	  configure -object-mixins /obj/ configure -object-filter
+	  -> /obj/ configure -object-filters
+	- added handling for calling relation slot with unknown sub method
+
+2014-06-20  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- Revising lifecycle section; adding TODOs
+	- Restructuring __* doc fragments to an life-cycle section
+
+2014-06-19  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	nsf.c:
+	- allow abbreviated nonpos args
+	- change name of relation slot "superclass" to "superclasses". (part of
+	  a planned change to use plural for setvalued parameters, "info
+	  superclasses" and similar changes for mixins/filters will probably
+	  follow)
+
+2014-06-18  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	nsf.c:
+	- define means to protect "undefined" internally-directly
+	  called methods __alloc and __dealloc in nx. This is
+	  achieved mostly via a an additional value in a method
+	  declaration in ::nsf::objectsystem::create. Example:
+	  -class.dealloc {__dealloc ::nsf::methods::class::dealloc
+	  1}
+	- extend regression test
+
+2014-06-18  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- Adding missing doc fragments on __* methods for Object and Class
+
+2014-06-17  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	nsf.c:
+	- relax the meaning of noleadingdash to allow negative
+	  numbers
+	- rename noleadingdash to e.g. nodashalnum
+
+2014-06-16  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- extend regression test
+	- update parse context
+	- remove debugging output
+	- improve argument name
+
+2014-06-15  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- extended regression test
+	- cleanup, reduce verbosity
+	- minor cleanup
+	- allow to configure verbosity in test sets
+
+	genttclAPI.tcl:
+	- added option "-flags", which can be used for every
+	  parameter. example: .... -flags NSF_ARG_NOLEADINGDASH ....
+	- experimental: use NSF_ARG_NOLEADINGDASH for pattern "info subclass"
+	  to improve error messages.
+
+	nsf.c:
+	- checked, that all CallDirectly() cases, where method is
+	  dispatched (no direct call) are covered by the regression
+	  tests
+	- avoid double memcpy() in dispatch recreate by using
+	  ObjectDispatch() rather than CallMethod()
+	- removed memcpy() in call-directy for "create"
+	- some more cleanup
+
+2014-06-14  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	nsf.c: parameter passing reform
+	- don't pass full argument list for filtering methods calle
+	  further methods from C (such as new/create/... ) to allow
+	  processing of e.g. "--" in "new" to separate arguments to
+	  "new" cleanly from arguments passed to "create". Now we
+	  can use e.g. "C new -- -childof 123" in case class C has
+	  a property "childof".
+	- extend c-generator to accept option "-objv0" to pass the
+	  original "objv[0]" to the called command. Since we had
+	  previously "allargs", we have to pass the objv[0] now
+	  differently
+	- more thorough checking ISOBJ(someObj) macro for asserts
+	  (use "assert(ISOBJ(someObj))" instead of just
+	  "assert(someObj)")
+	- extend regression test
+
+2014-06-13  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- fix parse context initialization
+
+2014-06-12  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- collecting arguments
+
+2014-06-11  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- fix shutdown comparison
+	- don't invalidate class-level param caches during shutdown
+	- add assertions for class colorings
+
+2014-06-11  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- Clarify usage of 'current methodpath' in defaultmethod of ensembles
+	- Editing TODO
+	- Add doc fragment on new
+	- Adding missing info sub-method docs for Class, document -dependent flag,
+	  and method create
+
+2014-06-11  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- simplify test
+	- use 3-argument version of NsfMethodNamePath()
+
+2014-06-11  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- Add basic test for unexpected-#-args error in ensembles
+	- Adding to the state of the method-path introspection reform;
+	  introducing CallStackGetFrame() which can also be used to implement
+	  CallStackGetTopFrame
+
+2014-06-10  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+        nsf.c:
+	- fix name paths in error messages triggered from ArgumentParse()
+	- move NsfMethodNamePath() out of NsfUnexpectedArgumentError() and
+	  NsfUnexpectedNonposArgumentError()
+	- no need to call NsfMethodNamePath in NsfArgumentError()
+	- move NsfMethodNamePath() out of NsfUnexpectedArgumentError() and
+	  NsfUnexpectedNonposArgumentError()
+	- move NsfMethodNamePath() out of NsfObjWrongArgs()
+	- added option "-dependent" to "info subclass"
+	- extended regression test
+
+2014-06-10  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- Working on info sub-methods for Class
+
+2014-06-09  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- white-space change
+
+	nsf.c
+	- base MixinInvalidateObjOrders() on DependentSubClasses()
+	  and avoid the need of using a separate hash table for
+	  class-mixin handling. The new implementation is several
+	  times faster and improves the speed of the functions
+	  CleanupDestroyClass(), SuperclassAdd() and
+	  NsfRelationClassMixinsSet(). Adding a class-mixin to
+	  ::xotcl::Object in OpenACS is more than 4x faster.
+	- remove obsolete function MixinResetOrderForInstances()
+	- rename ResetOrderOfClassesUsedAsMixins() to
+	  ResetOrderOfObjectsUsingThisClassAsObjectMixin()
+	- used consistently DependentSubClasses() instead of
+	  TransitiveSubClasses() for invalidations.
+	- extend regression test
+
+2014-06-08  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- fix a few more cases, where required accessor method "get" was missing
+	- omit warnings, when value of "expected" looks like a non-positional
+	  parameter
+
+2014-06-07  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	nsf.c:
+	- improve performance of MixinInvalidateObjOrders() by
+	  about 30% by recompiling the list of the dependent classes
+	  over and over again, since MixinInvalidateObjOrders()
+	  iterates over the full list already.
+	- Document NsfRelationClassMixinsSet() and add nonnull declarations and
+	  the usual assertions()
+
+2014-06-06  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- added experimental code feature CYCLIC_MIXIN_ERROR
+
+2014-06-05  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	nsf.c:
+	- new function DependentSubClasses() to determine all
+	  classes that inherit from a given class. The result
+	  extend TransitiveSubClasses() by including class mixin
+	  relationships.
+	- simplify NsfParameterCacheClassInvalidateCmd() by using the new
+	  function DependentSubClasses(). With the new implementation,
+	  NsfParameterCacheClassInvalidateCmd() is as efficient as before without
+	  to MostGeneralSuperclass optimization (but being complete now) when
+	  working on the root classes (an more efficient on subclasses).
+
+2014-06-04  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- fixed error message for forward ... onerror and method paths. The
+	  command "C object mixin" returns now "::C object mixin
+	  add|clear|delete|get|guard|set" and not "::C mixin
+	  add|clear|delete|get|guard|set" as before.
+
+2014-06-03  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- add ".add" file for mongodb interface
+	- use cget interface
+	- rename nsf::parameter:invalidate::classcache ->
+	         nsf::parameter::cache::classinvalidate
+	  nsf::parameter:invalidate::objectcache ->
+	        nsf::parameter::cache::objectinvalidate 
+          reasons: (a) remove single colon inside the name, 
+          (b) put verb to the end
+
+	- use functions IsRootClass(), IsRootMetaClass() and
+	  IsBaseClass() to access object/class properties
+	- add gcc attribute "pure"
+
+	nsf.c:
+	- cleanup of NsfParameterInvalidateClassCacheCmd(): performance
+	  improvements. After the fixing of indirect mixin validation,
+	  performance of invalidation went up by a factor of 5. At least, in some
+	  important cases (invalidation of rootclasses like nx::Object /
+	  xotcl::Object), we are again on the same level as before (actually
+	  slightly faster).
+
+2014-06-02  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- reduce variable scopes
+	- fix error message
+	- add target for cppcheck with same arguments as for compilation
+
+2014-06-02  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- Removing traces of nxdoc
+
+2014-06-01  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- Fixing an example script for changes in getter/setter reform
+
+2014-06-01  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- updated migration guide and tutorial to reflect recent changes
+	- minor cleanup
+	- improve spelling
+	- update of TODO and regression test
+	- adapt mixinof.test to the additional information
+	- transform mixinof.test to newer style regression test with automated
+	  object deletion
+	- add test file nsf-cmd.test
+	- ignore generated .txt files
+
+	nx.tcl:
+	- removed /cls/ info configure parameters /cls/ info configure /cls/
+	  info syntax Use e.g. "/cls/ info lookup parameters create" instead
+
+2014-06-01  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- nsf.c:
+	- Let "/cls/ info mixinof -closure" return as well implicit mixin
+	  classes to make it easier to determine class dependencies.
+	 Example:
+	 nx::Class create M0
+	 nx::Class create M1 -superclass M0
+	 nx::Class create M2 -superclass M1
+	 nx::Class create C
+	 nx::Class create D -superclass C
+	 C mixin add M2
+	 # M2 is mixed into C, and implicitly into D
+	 #
+	 # Since M2 is a subclass of M1, classes C and D depend as well
+	 # on M1 and M0, as seen in the heritage:
+	 ? {C info heritage} ":M2 ::M1 ::M0 ::nx::Object"
+	 ? {D info heritage} ":M2 ::M1 ::M0 ::C ::nx::Object"
+	 # previously, only "M2 info mixinof -closure" showed the
+	 # mixin relations, even with "-closure", while M1 and M0 did not.
+	 ? {M2 info mixinof -closure} "::C ::D"
+	 # now these show the same relations (in this example).
+	 ? {M1 info mixinof -closure} "::C ::D"
+	 ? {M0 info mixinof -closure} "::C ::D"
+
+2014-06-01  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- handle ensembles in info nx::help
+	- harden code
+
+	mongodb:
+	- upgrade to the newly released version 0.96 of the c-driver
+	- replace deprecated function mongoc_collection_delete by
+	  mongoc_collection_remove
+	- tested with MongoDB v2.6.1
+
+2014-05-31  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- provide a minimal nx::help
+	- provide contextObj when required argument is missing
+
+	nsf.c:
+	- added options to filter output from ::nsf::cmd::info
+	  parameter options (args, syntax, parameter)
+	- deleted:
+	- "/obj/ info lookup configure parameters ?pattern?"
+	- "/obj/ info lookup configure syntax"
+	- added:
+	- "/obj/ info lookup parameters /methodName/ ?pattern?"
+	- "/obj/ info lookup syntax /methodName/ ?pattern?" This
+	  covers as well
+	- "/obj/ info lookup parameters configure|create|new|...
+	  ?pattern?"
+
+	- extend regression test
+	- remove dead code
+	- white-space change
+	- improve error message
+
+	nsf.c, gentclAPI.tcl:
+	- new argument types "virtualobjectargs" and
+	  "virtualclassargs" for context-specific argument
+	  resolutions: when a context object is provided, arguments
+	  of type "virtualobjectargs" are determined based on the
+	  slots applicable for the object (like "... lookup ..."),
+	  arguments of type "virtualclassargs" are resolved against
+	  a class. These types are used as follows: /obj/ configure
+	  /virtualobjectargs/ /cls/ create /name/
+	  /virtualclassargs/ /cls/ recreate /name/
+	  /virtualclassargs/ /cls/ new ?-childof /obj/?
+	  /virtualclassargs/ This new feature allows us to provide
+	  better error messages and to make much of the "... info
+	  ... configure parameter ..." infrastructure much less
+	  important.
+	- For "virtualclassargs" we need the functionality to
+	  obtain from the C-Code based on a class the configure
+	  parameters applicable to objects of this class.
+	- add argument "-context ..." to "cmd::info" to pass the
+	  context object (so far the only place where the
+	  context-object is used)
+	- object system configuration parameters changes: new:
+  	  -class.configureparameter new: -object.configureparameter removed:
+	  -class.objectparameter
+
+2014-05-30  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	nsf.c
+	- renamed parameter::get -> parameter::info
+	- renamed method::get -> cmd::info
+
+	gentclAPI.tcl:
+	- handle duplicated domains by folding these to a single definition
+
+	nsf.c:
+	- added command nsf::method::get.
+	  Rationale: provide a central place to obtain information
+	  about all kind of method handles, which might be
+	 - scripted and c-based methods
+	 - nsf::procs
+	 - plain tcl procs
+	 - cmds (with and without parameter definitions)
+	- make results of ListMethod() robust against missing
+	 information (e.g. plain tcl cmds, missing object registrations,
+	 etc.)
+	- factor out common code for ListMethod call sites
+	 for per-object methods, instance methods and procs/cmds
+	 to ListMethodResolve()
+	- return errors from failing converter registrations
+	- extend regression test (new test set nsf-method.test)
+
+2014-05-30  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- Done with first version of Class.man
+
+2014-05-29  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- also drop class level "info configure"
+
+	nx.tcl
+	- drop short form "/obj/ info configure" for now
+	- make output of "/obj/ info lookup configure syntax" equivalent to
+	  "/obj/ info configure"
+	- updated TODOs
+	- updated documentation
+	- simplify slot parameter settings for object-mixins and object-filter
+	  lightly by omitting redundant method name
+	- minor cleanup
+
+2014-05-29  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- Some polishing of Object.man
+	- Done with 'info method *' ensemble
+	- Working on 'info object *' ensemble
+
+2014-05-28  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- make error-checks as unlikely to succeed
+	- we must replace ::get command with ::set commands for reestablishing
+	  relationships
+	- return class of desired object in nsf::parameter::get when provided
+
+	nsf.c:
+	- extend nsf::parameter::get to obtained more detailed
+	  information for objects/classes/metaclasses/baseclasses
+	  and specified types
+	- extend regression test
+
+2014-05-28  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- Add doc fragment about 'info variable *'
+
+2014-05-28  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	nx.tcl
+	- switch from "/obj/ info parameter" -> "nsf::parameter::get" to reduce
+	  potential semantic confusion of info options. "info parameter" was
+	  not object/class specific at all, but is just a syntax extractor
+
+	nsf.c
+	- force again literal "-guard" in a "mixinreg" type to
+	  avoid potential confusions
+	- Base nsfRelationSet for mixins on cmds rather than
+	  TclObjs to avoid confusions and duplication of guard
+	  detection logic
+	- Add interp to NsfMixinregGet() and NsfFilterregGet() to
+	  be able to return error messages
+	- return more error message from mixinreg converter
+	- provide at least minimal support for "funny class names"
+	  (i.e. containing spaces)
+	- FinalObjectDeletion: don't enforce namespace = 1 for
+	  cases with weird namespace deletion order
+	- extended regression test
+
+2014-05-28  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- Amend doc of filter|mixin clear, re-instate -guard in filter|mixin set
+	- Adding doc for the two new lookup sub-methods
+
+2014-05-27  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- added methods "info lookup filters ?-guards? ?/pattern/?"
+	  and "info lookup methods *-guards? ?/pattern/?"
+	- extended regression test
+	- have "filter|mixin clear" return the list of former|removed
+	  filters|mixins.
+	- disallow arguments for "... info configure"
+
+2014-05-27  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- Complete info lookup doc
+	- Adjust filter|mixin method for recent changes; working on info ensemble
+	  doc
+
+2014-05-27  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- improve handling of space in object names
+
+	nsfObj.c:
+	- allow to omit "-guard" within arguments to flag
+	  definition of a filter/mixin guard
+	- extended regression test
+
+	- name parameter option "slotset" instead of "slotassign"
+	- use "mixin|filter clear" instead of "mixin|filter unset"
+
+2014-05-26  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	nsf.c:
+	- fixed unary argument passing notation for "-nocomplain" of nsf::var
+	  and for 42 other options of other commands
+
+	nx.tcl:
+	- added flag -nocomplain to "/obj/ /prop/ unset ?-nocomplain?"
+	- renamed nsf::relation to nsf::relation::set and added
+	  nsf::relation::get in accordance with nsf::var::get
+
+	nsf.c:
+	- added nsf::var::get and "::nx::var get" to provide selector based
+	  interface for variable reading (used in slot-method get of
+	  nx::VariableSlot)
+	- cleanup of nx.tcl and TODO
+
+2014-05-26  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- Updated doc fragments to reflect recent changes
+
+2014-05-26  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	nsf.c:
+	- finish implementation of NsfForwardPrintError()
+	- use NsfForwardPrintError() in ForwardArg() for all error messages
+
+	traits:
+	- define simple setter methods "requiredMethods" and
+	  "requiredVariables" to avoid to "set" these explicitly
+	- fix compilation for OpenSolaris (e.g. OmniOS)
+
+2014-05-25  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- fix compilation for OpenSolaris (e.g. OmniOS)
+
+2014-05-23  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- cleaned up relation slot mixin variants
+
+	nx.tcl:
+	- reworked error message generation of slot-forwarder (list all
+	  available slot methods with prefix value=)
+
+	xotcl2:
+	- use xotcl::RelationSlot instead of nx::Relationslot in xotcl2
+	 (we can more value=assign here).
+	- fix load paths for sub-libs (e.g. mongodb) in regression test
+
+	nx.tcl:
+	- add slot method value=unset to nx::RelationSlot and
+	  nx::VariableSlot
+	- extended regression test
+	- added likely/unlikely to result == TCL_OK etc.
+
+	xotcl2:
+	- use value=set instead of value=assign
+	- simplify "-parameter" implementation
+	- add setters for "name", "domain", and "default" to xotcl::Attribute
+	  for backward compatibility
+
+	mongodb:
+	- by directing calls to the setter, it is now more complex
+	  to determine the true calling object for an converter,
+	  since the set operation might be routed though the slot
+	  object. It would be nice to have framework support for
+	  this.
+	- fix 2 error messages
+	- provide shorter tracebacks by using "return -code error ..." rather
+	  than "error ..."
+
+	nsf.c:
+	- fix one more subtle case of an error being swallowed: for xotcl, the
+	  constructor returns the list of residual arguments. In case there was
+	  an error, it was possible that the returned residual arguments
+	  overwrote the error message in the interp result
+
+2014-05-23  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- Adjust variable doc for recent changes
+	- Extending mixin/filter doc to cover guards
+	- Adding filter doc fragment
+	- Adjust mixin doc for recent changes
+	- Adjusting property doc to reflect recent changes
+
+2014-05-22  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- don't delete system slot ::xotcl::Attribute on cleanup
+
+	nx.tcl, xotcl2.tcl:
+	  - use value=* as names for internally called and
+	  forwarder-called accessor methods
+	- disallow "assign" for nx::variableSlots
+
+	nsf.c:
+	- rename default slot methods add/get to value=add/value=get
+	- provide an error message, when referring to a non-existing slot object
+
+2014-05-21  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	nx.tcl:
+	- use set/get/add as slot methods for
+	  get/configure/incremental operations
+	- demangle slots for nx/xotcl2 further
+
+	xotcl2:
+	- use assign/get/add as slot methods for get/configure/incremental
+	  operations
+	- use object system configuration for -slot.get and -slot.set
+	- allow configuration of internally called "slot.get" and "slot.assign"
+	  methods via objectsystem::create
+
+2014-05-20  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- enforce usage of "get" for all slots in nx
+	- TODO: check, what in detail "parameter" in xtocl2 inherit from
+	  nx::variableslot (e.g. needsForwarder?)
+	- enforce using "set" for filter/object-filter in slot operations (same
+	  as for mixins)
+
+	nx.tcl:
+	- remove setter methods from BootstrapVariableSlots
+	- reducing interface of BootstrapVariableSlots by setting methods
+	  protected
+
+2014-05-18  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- put test cases for all kind of mix setter / getter together in one
+	  test case
+	- reduce verbosity
+
+	nx.tcl:
+	- add "set" as a method name for relation slots
+	- implemented relation slot "mixin" and "object-mixin" via
+	  "slotassign" to disallow "/obj/ mixin /value/" and "/obj/
+	  object mixin /value/" to use instead "/obj/ mixin set
+	  /value/" and "/obj/ object mixin set /value/" while
+	  keeping "configure" and "cget" working. This has the
+	  advantage that "/obj/ mixin set" does not try to replace
+	  the mixin chain by "set"
+	- adapted regression test
+	- TODO: check, if we need the explicit "slotassign"? isn't
+	  the presence of the slotObj sufficient? maybe
+	  "-forwardToSlot" in relationSlots?
+	- TODO: demangle "slotassign" in "ObjectParameterSlot
+	  protected method getParameterOptions" and check
+	  interactions
+	- TODO: to the same as -mixin and -object-mixin to -filter
+	  and -object-filter
+	- TODO: clean up relation slot mixin variants
+	- TODO: do we really like the fact that we have to write
+	  now "B mixin set M2" instead of "B mixin M2"?
+	- TODO: should we disallow "B mixin" and enforce instead of
+	  "B mixin get" ?
+	- TODO: we could as well allow "B mixin clear" instead of
+	  "B mixin set {}"
+	- TODO: allow "set" for variable slots as well. Do we need "assign"?
+
+	nsf.c:
+	- allow parameter option "method=" for slotassign as well.
+	  rationale: this allows to use the parameter
+	  "forwardername" to specify a different forwarder target
+	  method (e.g. in case of object-mixins). The method is
+	  used both in "configure" and "cget".
+	- allow method name to consist of max tow words in relation slots (e.g.
+	  "-methodname {mixin set}"}
+
+2014-05-17  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- extend bagel example slightly
+	- finalize dropping of setter methods for nx
+	- show info line for every test case
+
+2014-05-16  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- add flag "-onerror" to nsf::forward::method to handle
+	  errors during dispatch of a forwarder (not all error
+	  messages of forwarder are already transformed)
+	- added log-level Info which prints always, e.g. for
+	  "-verbose" flag of forwarder
+	- drop setter-rule from properties (use always forwarder)
+
+	- drop "/obj/ /prop/" and "/obj/ /prop/ /value/" in favor of 
+          "/obj/ /prop/ get" and "/obj/ /prop/ assign /value/" 
+          to achieve better orthogonality with e.g. incremental properties
+
+2014-05-14  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- replace empty-named arrays by dicts
+
+2014-05-13  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- fix change of semantics when default multiplicity (1..1) is combined
+	  with lower bound preserving incremental (results in 1..n instead of
+	  0..n previously)
+
+2014-05-12  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- make sure that nsfDtrace.h has a newer timestamp than nsfDtrace.d
+	- preserve lower bound of multiplicity when incremental is
+	  added
+	- extend regression test
+	- added more test cases for multiplicity and incremental
+
+	nx.tcl:
+	- Define method "value" as a slot forwarder to allow for
+	  calling value-less slot methods like e.g. "get" despite
+	  of the arity-based forward dispatcher.
+	- extend regression test
+
+2014-05-12  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- Adding doc fragment on mixin method
+
+2014-05-12  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- remove over-eager nonnull declaration
+	- remove done entries from TODO
+
+2014-05-11  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- add fixes for tcl 8.6
+	- finish non-null handling for tcl 8.5
+	- continuing with nonnull assertions, various small cleanups
+
+2014-05-10  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- complete nonnull assertion cleanup to 80% of nsf.c
+	- complete nonnull assertion cleanup to 33% of nsf.c
+	- improve source code documentation
+	- simplify SuperclassAdd()
+	- improve code documentation
+	- complete nonnull assertion cleanup to 50% of nsf.c
+	- simplify FilterInvalidateObjOrders() and
+	  FilterRemoveDependentFilterCmds()
+	- complete nonnull assertion cleanup to 33% of nsf.c
+
+2014-05-09  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- Add argument to last discussion item
+	- Add another incremental TODO
+	- Adding discussion items
+
+2014-05-09  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- finishing checking of first 25% of of nonnull assertions in nsf.c
+	- added still more nonnull assertions
+
+2014-05-09  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- Drafted a variable doc fragment, and revised the property's one to make
+	  the (subtle) difference clear
+
+2014-05-09  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- added shortcut for MixinSearchProc when mixinOrder is NULL
+	- work on nonnull
+
+2014-05-08  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- let the c-code generator produce as well nonnull assertions
+	- commenting item
+	- made nsf::is using the "-strict" option when tcl's "string is" is
+	  called.
+
+2014-05-08  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- Adding incremental doc to property doc fragment
+
+2014-05-08  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- complete nonnull+assert adding in .c-files other than nsf.c
+
+2014-05-08  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- Adding todo on multiplicities
+
+2014-05-08  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- add asserts to nsfError.c
+	- fixed all over-eager nonnull cases for optimizing with gcc and clang
+	  (works up to -O3 except gcc 4.9.0)
+
+2014-05-07  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- added nonnull for args of type Tcl_Command and ClientData
+	- add asserts for nonnull
+
+2014-05-07  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- Starting documenting info ensemble
+
+2014-05-06  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- provide nonnull statements for all functions in nsf.c
+	- some more code cleanup
+	- complete asserts due to nonnull
+
+2014-05-05  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- update more copyright notices
+	- update copyright notices
+	- update copyright notice
+
+	nsf.c:
+	- simplify few inner code pieces based on assertions
+	- add several more assertions based on nonnull specifications.
+	- use nx rather than xotcl2 terminology in nsf::method::forward
+
+2014-05-04  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- renamed "-methodprefix" to "-prefix" in nx, since the prefix can be
+	  applied as well applied to a cmd.
+
+2014-05-04  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- Adding doc fragment about require method
+
+2014-05-03  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- Adding a todo
+	- nsf.c, NsfForwardMethod(): Make sure that a 2nd argument
+	  is available for prepending the methodprefix. Earlier,
+	  NSF crashed in case of a missing 2nd arg.
+	- Added some basic tests on -methodprefix.
+
+2014-05-03  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- use nonnull variable attributes for prototypes (nsf.h, nsfInt.h,
+	  nsf.c)
+
+	nsf.c:
+	- de-spaghetti precedence computations for multiple
+	  inheritance and improve documentation
+	- get rid of // comments
+	- stubsPtr can't be NULL there
+
+2014-05-02  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- remove false alarm
+	- deactivated "-onerror", since its semantics are expressible via
+	  try/catch, and there are no regression tests for xotcl and nx, and we
+	  could not find any script that uses this
+
+2014-05-01  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- Adjusting forward doc, adding TODO
+	- forward.test: Adding some tests
+
+2014-05-01  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- use in forwarders "-frame object" instead of "-objframe" in nx for
+	  consistency with other calls (e.g. dispatch). Other values for
+	  "-frame" are not allowed. (btw, XOTcl has "-objscope")
+	- move "checkalways for forwarders and aliases" to RFEs and comment it
+
+	forwarders:
+	- use for output of forward ... -verbose NsfLog(...NSF_LOG_NOTICE...)
+	  instead of fprintf() to make it redirect-able
+	- RFE "provide %method" as keyword like %proc" was already
+	  implemented. Dropping %proc would break XOTcl2
+	  compatibility.
+	- adding a test case
+
+2014-04-30  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- Continue working on forward doc, adding some tests
+	- Adding some todos
+	- Working on Object.man, in particular forward
+	- library/nx/nx.tcl: Pulling out method contracts (pre- and
+	  postconditions) from NX for the time being. Corresponding tests have
+	  been commented out or, if applicable, turned into XOTcl2-specific tests.
+
+2014-04-30  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- finalize autoconf quoting
+
+2014-04-29  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- fix configure.ac quoting
+	- stick closer to TEA conventions (keep tclconfig-sh in
+	  tclconfig directory)
+	- remove obsolete version of install-sh, copy manifested
+	  version to mongodb library
+	- fix more configure quoting
+
+2014-04-18  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- Adding doc fragment on 'method'
+
+2014-04-14  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- doc/Object.man: Adding documentation on alias (doc/alias.man.inc) and
+	  delete (doc/delete.man.inc)
+
+2014-04-14  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	small introspection reform:
+	- Introspection for commands and arguments did not work for
+	  cmds defined in sub-packages (such as mongodb). We keep
+	  now this information in hash tables and maintain a slim
+	  interface for this.
+	- fix generation of pkgIndex.tcl for mongodb
+
+2014-04-08  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- Some more refactoring
+	- Refactor the include file slightly, so that Object/Class-specific
+	  parameters etc. of a shared method documentation can be provided in the
+	  respective Object.man/Class.man files
+	- Continue working in man pages, introducing a first shared section using
+	  [include] and [vset]
+
+2014-04-06  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- tested with MongoDB v2.4.10 and J mongodb-c-driver 0.94.1
+	- moving .m4 files to subdirectory as recommended
+	- update generated configure files
+	- replace obsolete autoconf macros
+	- replace obsolete autoconf macros
+	- update to must recent build files (tcl.m4 and install-sh) from tcl
+	  source repository
+
+2014-04-05  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	build-process:
+	- replace make.tcl by the much simpler mkIndex.tcl:
+	  * Does not use pkg_mkIndex
+	  * Does not load binary files (problem for cross compiling)
+	  * Requires package provide with constant in one line.
+
+2014-04-03  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- reduce variable scope
+	- remove redundant NULL tests
+	- improve safety mof macro ObjStr()
+
+2014-03-31  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- improve code documentation
+	- add some more tests to the regression test suite
+
+2014-03-29  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- generic/nsf.c: Avoiding excessive allocation/deallocation of
+	  temporary hash tables when invalidating per-class objparam caches in
+	  NsfParameterInvalidateClassCacheCmd().
+
+2014-03-29  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- extend regression test
+
+2014-03-29  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- generic/nsf.c: Use GetAllClassMixinsOf() instead of
+	  TransitiveSubClasses() when invalidating per-class caches. Added two
+	  tests.
+
+2014-03-28  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	nsf.c:
+	- remove obsolete code
+	- invalidate parameter caches of subclasses on
+	  NsfParameterInvalidateClassCacheCmd unless during
+	  shutdown. Otherwise some classes might not become aware
+	  of properties added later to superclasses.
+	- extended regression test
+
+2014-03-25  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- Adding to Object.man: cget, configure, move, copy, ...
+
+2014-03-23  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	nx-mongo:
+	- added command "::mongo::status /mongoConn/"
+	- extended regression test
+
+2014-03-22  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	nsf.c:
+	- fix case, where NsfDStringPrintf() failed (when print
+	  llength including \0 was 1 byte longer than print buffer)
+	- make sure, that the list kept for the cached parameter is just built
+	  from unshared objects; otherwise Tcl append will abort
+
+	nx.tcl:
+	- new package "nx::volatile"
+	- don't define configure parameter "-volatile" per default;
+	  use "package req nx::volatile" instead
+	- don't define per method "volatile" per default;
+	  use "::nsf::method::require ::nx::Object volatile" instead
+	- get rid of -volatile in nx.tcl and serializer
+	- update/extend regression test
+
+	nsf.c:
+	- fix case, where NsfDStringPrintf() failed (when print llength
+	  including \0 was 1 byte longer than print buffer)
+	- added mongo::cursor::aggregate
+
+2014-03-21  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- added mongo::collection::stats
+	- extended regression test
+
+2014-03-19  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	nx-mongo:
+	- fixed surprising compiler message "alignment of array
+	  elements is greater than element size" when using e.g.
+	  "bson_iter_t i[1]"
+	- some c-code cleanup
+	- tested with mongodb-c-driver 0.92.3
+
+2014-03-17  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- Started working on an authoritative man page for nx::Object, still
+	  cleaning up and still tweaking the doctools markup
+
+2014-03-15  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- mongodb's c-driver changed version number from 0.93.0 to 0.92.1;
+	  followed the change in README
+
+2014-03-14  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- tested with mongodb-c-driver 0.93.0
+
+2014-03-12  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- since mongoc_gridfs_get_files is supported since today by the
+	  mongo-c-driver, we do not need it private implementation any more.
+	  all dependencies on private header files are removed by now.
+
+2014-03-09  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- adjust to newest version of mongo-c-driver
+	- remove one dependency for private header file
+
+2014-03-07  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- move close of the pseudo comment for syntax highlighter out of quoted
+	  block
+
+2014-03-04  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	xotcl2:
+	- prevent strange error messages, when "abstract" is called with quotes
+	  in the argument list.
+
+2014-03-02  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- represent BSON_TYPE_REGEX as pairs (regexp + options) in
+	  the Tcl representation to preserve regular expression
+	  options
+	- update to newest version of mongo-c-driver and libbson from Github
+
+	nx-mongo:
+	- optional support for mongodb connection pools (compile
+	  time macro USE_CLIENT_POOL controls this, per default,
+	  this is on)
+	- allow to pass "-metadata" to gridfile::create to ease
+	  metadata attachment to grid-files
+	- some convenience improvements in nx-mongo.tcl (ability to
+	  ignore attributes in "bson encode", ability to unset
+	  attributes in gridfs, ...)
+	- bump version numbers of nsfmongo to 0.3 and nx-monogo to 0.5
+
+2014-02-26  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	nsf.c:
+	- let [current methodpath] return full path (similar to
+	  -path option in "info methods"
+	- handle collateral damage in regression test due to changed result of
+	  "current methodpath"
+	- add traits.test to the regression tests
+
+	nx::traits:
+	- handle ensemble methods correctly (use full method path
+	  for resolution)
+	- add new regression tests for traits
+
+	nsf.c:
+	- fix small memory leak in multiple inheritance code.
+	- all regression tests rerun cleanly with --enable-memcount=yes
+
+2014-02-25  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- raise an error, when an ensemble methods redefined a plain method
+	- add incr/decr refcount for callInfoObj in unknown handling
+	- deactivated suspicious assert() in NsfMethodNamePath()
+
+	nsf.c:
+	- change name of enumeratorConverterEntry to
+	  Nsf_EnumeratorConverterEntry, move it with NSF_ARG_*
+	  flags to tcl.h to make it available in derived modules
+	  using the converter
+	- Added editor hints for a more uniform appearance
+
+	- change configure flags from --with-mongodb to --with-mongoc=... and
+	  --with-bson
+
+	nx-monogo:
+	- Updated the mongo-c-driver and libbson to the actual tip
+	  version from Github (this is a significant change, since
+	  10gen essentially changed the officially supported
+	  c-driver of MongoDB)
+	- mongo-c-driver was more or less new-implementation, since
+	  structure and names changed in the mongo-c-driver
+	  substantially, several functions were added, several
+	  were dropped. The new interface supports now e.g. mongo
+	  URIs, and should be faster (by using collection objects
+	  instead of connection handles)
+	- Although the low-level nsf interface changed
+	  significantly, the high level (nx level) interface
+	  remained unaffected.
+	- Configure has now --with-mongoc=... and --with-bson
+	  instead of --with-mongodb
+	- New commands: mongo::collection::open /mongoConn/
+	  /dbName/ /collectionName/ mongo::collection::close
+	  /collection/ mongo::gridfs::store_string /content/ /name/
+	  /contentType/
+	- Make use of the new collection handle mongo::count
+	  /mongoConn/ /ns/ ... -> mongo::collection::count
+	  /collection/ ... mongo::index /mongoConn/ /ns/ ... ->
+	  mongo::collection::index /collection/ ... mongo::insert
+	  /mongoConn/ /ns/ ... -> mongo::collection::insert
+	  /collection/ ... mongo::query /mongoConn/ /ns/ ... ->
+	  mongo::collection::query /collection/ ... mongo::remove
+	  /mongoConn/ /ns/ ... -> mongo::collection::delete
+	  /collection/ ... mongo::update /mongoConn/ /ns/ ... ->
+	  mongo::collection::update /collection/ ...
+	  mongo::cursor::find /mongoConn/ /ns/ ... ->
+	  mongo::cursor::find /collection/ ...
+	- nsf::mongo::connect receives now a mongoc_uri
+	  https://github.com/mongodb/mongo-c-driver/blob/master/doc/mongoc_uri.txt
+	- The gridfs interface allows now to store multiple
+	  revisions of a file
+	- The gridfs interface allows now upload files from a string
+	- The gridfs interface allows to refer to files by other
+	  attributes than just the filename (e.g. the mongo id).
+	- Modified/new grid-file functions mongo::gridfile::create
+	  ?-source file|string? /gridfs/ /value/ /name/
+	  /contentType/ mongo::gridfile::delete /gridfs/ /query/
+	  mongo::gridfile::open /gridfs/ /query/
+	- Updated README
+	- Updated regression test
+	- Added editor hints for a more uniform appearance
+
+2014-02-20  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- nx.tcl: Throw error exceptions using "return -code error", to exclude
+	  the unevaluated error cmd statement from the trace message
+	- At two or three locations, we used to compute the method path using
+	  different helpers (CallStackMethodPath, NsfMethodNamePath) etc. I
+	  tried to unify this by revising NsfMethodNamePath to accomodate the
+	  different uses.
+	- Besides, for required-argument checks, I included the method path
+	 (for ensemble invocations) into the error messages.
+
+2014-02-17  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- improve performance of mongo->tcl conversion by using predefined
+	  global strings
+
+	nx-mongo:
+	- updated documentation (switch back to mongo-c-driver, but
+	  comment usage of tagged version v0.8.1)
+	- added support for rep types (allow for mappings between
+	  certain instance variables such as arrays or dicts to
+	  customizable representations in MongoDB)
+	- added nx-serialize to test cases (simple state
+	  persistance for nx objects)
+	- added nx-rep to test cases (rep types for "array" and "dict")
+	- provide datarootdir to get rid of warning during configure
+
+2014-02-14  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- fix bug in interaction between up-level method from tcl procs
+
+	-nsf.c:
+	- fix bug in interaction between uplevel method and
+	  interceptor transparency
+	- extend regression test
+
+2014-02-07  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- in case of multiple inheritance, make sure that all supporting
+	  classes haver already a precedence order defined
+
+2014-02-04  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- implement simple persistent handle management based on per-thread
+	  objects
+	- reduce verbosity for FreeUnsetTraceVariable
+	- return TCL_OK, even when FreeUnsetTraceVariable() fails (warning
+	  stays)
+	- improve worrying in comments
+	- fix stub provisioning for Tcl 8.6.*
+	- change macro name from XOTCL to NSF
+
+2014-01-26  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	nx:
+	- allow copy of objects with required arguments
+	- use ::nsf::object::alloc in "copy" method
+	- don't depend on method "trace", use directdispatch instead
+	- remove method "-noinit" (nsf::object::alloc makes it
+	  obsolete)
+	- extend regression test
+	- restore traces after object-serialize
+
+	nsf.c:
+	- when ::nsf::object::alloc is passed an empty name (2nd argument),
+	  behave like "new" method
+
+2014-01-25  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- don't rely on the existence of a "trace" method
+
+	nsf.c:
+	- new command ::nsf::object::alloc /class/ /obj/ ?/script/? alloc an
+	  object and execute script in the context. Can be used to regenerate
+	  an object in a old state.
+	  serializer:
+	- fixed loading of objects with required data in the blueprint
+	  (many thanks for david hopfmueller for reporting this)
+	- make use of nsf::object::alloc (1 command instead of 1 create + 2
+	  evals)
+	- these changes improved loading time of blueprint by about 25%
+	  for OpenACS+xowiki
+
+2014-01-21  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- make test for retrieving parsed parameters more safe
+
+2014-01-08  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- update hint at end of build for NaviServer
+	- strip trailing spaces
+	- silence cppcheck
+
+2014-01-07  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	mongodb:
+	- add flag "-puts" to method "show" of nx::mongo::Class to
+	  turnoff output to stdout
+	- handle empty find operations for "find first"
+	- added method pretty_variables to output available
+	  variables of a class in a similar style as in the
+	  definition
+	- added low-level method "close" to nx::mongo
+
+2014-01-01  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- Tcl's "package present" raises an error if the package is not present
+
+2013-12-26  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- add more assertions
+	- ensure computation of requires orders for recursive merges
+	- make test more robust
+	- strip trailing spaces
+	- get rid of potentially uninitialized variables
+	- make compilation more clean
+	- add assertion for validity checking of precedence lists
+	- improve error message
+	- remove trailing space
+
+2013-12-23  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- Fixing a mini-typo in nsf.c: unlinkely -> unlikely
+
+2013-12-23  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- made linearization monotonic (for multiple inheritance)
+	  via single-inheritance linearization merging while
+	  preserving overall linearization rules
+	- added flag NSF_LINEARIZER_TRACE
+	- extended regression test
+	- upgrade to mongo-c-driver to 0.8.1
+	- added new flag "-ttl" to mongo::index
+	- there seems to be now a different mongo-c-driver to be the
+	  preferred one, the old one is renamed to
+	  mongo-c-driver-legacy
+	- link against nsf-stublib
+	- bump version number to 0.2
+	- don't try to load nx when building pkgindex for a binary package (.so
+	  or dylib)
+
+	generic/nsfPointer.c:
+	- add reference counter to avoid double-inits and double-frees in case
+	  the table of converters is used from multiple interpreters
+
+2013-12-22  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- change base stub table from XOTcl to NSF.
+	- improve wording of error messages.
+	- add parameter parser and converter to stub tables
+	- make converter usable from c-based packages compiled with subs
+	  activated
+
+2013-11-12  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	xotcl2:
+	- fixed "... info defaults ..." and "... info instdefaults
+	  ..." emulation in XOTcl 2
+	- fixed error message
+	- extended regression test
+	- bumped revision of nsf/xotcl/nx to 2.0b6
+
+2013-10-22  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- nsf: added switch "-checkalways" to nsf::method::create
+	- nx: added switch "checkalways" to "method" and "object
+	  method"
+	- extended regression test
+
+2013-10-19  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- minor cleanup:
+	  * reduce variable scope
+	  * remove uncalled static function
+
+	- added flag -checkalways to nsf::proc and nsf::asm::proc (for the
+	  latter just a placeholder for now). If the flag is used, it will cause
+	  argument testing independently from the "configure checkarguments"
+	  setting. To force argument checking always is useful e.g. for checking
+	  external values (e.g. in a web server)
+
+2013-09-15  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- fix object method serializeExportedMethod: targetName might have been
+	  uninitialized
+
+2013-08-27  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- Explored assertion support from an NX perspective, by reviewing the
+	  current implementation against Eiffel's RAC; along the way, I made
+	  ::nsf::current more robust when being used in assertions
+
+2013-08-08  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- don't call postcondition, when the command/invariant have returned
+	  already an error
+
+	nsf.c
+	- fixed a bug where turning on assertions could swallow
+	  result-codes
+	- extended regression test
+	- fix potential crash when preconditions are empty
+	- fix typo
+
+2013-08-03  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- added sample script doc/example-scripts/tk-geo.tcl
+	- minor cleanup of configure script
+	- bump version number of mongo support to 0.2
+
+2013-08-01  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	mongodb:
+	- integrated configuration of mongodb into toplevel
+	  configfile option:
+	  --with-mongodb=MONGO_INCLUDE_DIR,MONGO_LIB_DIR
+	- added regression test files for mongodb support (low level
+	  (tcl-only) and high level (nx based oo support))
+	- integrated mongodb-testfiles with "make test"
+	- reduced verbosity of nx-mongo.tcl (added verbosity variable)
+
+2013-07-31  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- added example scripts rosetta-sudoku.{tcl,html} and tk-ludo.{tcl,html}
+
+	mongodb:
+	- don't call NsfLog() in Nsfmongo_Exit, since interp-data might be
+	  already cleaned up
+	- improve robustness
+	- added flag for verbosity
+
+2013-07-30  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	mongodb:
+	- updated to most recent version of c-driver (0.7.1)
+	- adapted to nx 2.0b5 (use everywhere cget interface)
+	- tested with mongodb 2.4.5
+
+	- updated locomotive example to use nx::callback
+
+2013-07-16  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- updated TODO
+
+2013-07-15  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- prepare for providing nx as a tcl module (.tm file). this is just a
+	  preparation, since for testing, one cannot set up a path that prefers
+	  a local copy over a global installed one (the global tcl-site is
+	  preferred over the one specified in e.g. TCL8_5_TM_PATH)
+
+2013-07-08  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- explore the usage of dict instead of anonymous array
+
+	nsf.c:
+	- dont't use the default of a invocation parameter in
+	  "configure" when the object is already initialized. The
+	  default is in general only used when the parameter is not
+	  specified. We do not want e.g. superclass to be reset to
+	  ::nx::Object, when configure is called on a class without
+	  arguments.
+	- extended regression test
+
+2013-07-02  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- remove debug statement
+
+2013-06-24  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- keep this single pkgIndex.tcl
+	- keep packages versions from 2.0 and 1.0 disjoint
+
