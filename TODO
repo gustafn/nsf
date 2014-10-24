@@ -5551,7 +5551,7 @@ build system:
      make "DTPLITE=/usr/local/ns/bin/tclsh8.5 /usr/local/ns/bin/dtplite" man
 
 - regenerate documentation
-- bump verison number to 2.0 (also in .man files)
+- bump verison number to 2.0.0 (also in .man files)
 
 ========================================================================
 TODO:

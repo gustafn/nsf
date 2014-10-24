@@ -1,5 +1,5 @@
 [comment {-*- tcl -*- nx::Class manpage}]
-[manpage_begin nx::Class 3 2.0]
+[manpage_begin nx::Class 3 2.0.0]
 
 [comment {For the time being, we do not render keywords & terms; and
 the corresponding reverse index}] 
