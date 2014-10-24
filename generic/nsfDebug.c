@@ -165,11 +165,11 @@ void  NsfPrintObjv(char *string, int objc, Tcl_Obj *CONST objv[]) nonnull(1) non
 
 void 
 NsfPrintObjv(char *string, int objc, Tcl_Obj *CONST objv[]) {
+  int j;
 
   assert(string);
   assert(objv);
 
-  int j; 
   fprintf(stderr, "%s", string);
   for (j = 0; j < objc; j++) {
     /*fprintf(stderr, "  objv[%d]=%s, ", j, objv[j] ? ObjStr(objv[j]) : "NULL");*/
