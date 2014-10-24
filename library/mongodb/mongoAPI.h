@@ -251,6 +251,7 @@ NsfCollectionCloseStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
     return NsfCollectionClose(interp, collectionPtr,pc.objv[0]);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -272,6 +273,7 @@ NsfCollectionOpenStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
     return NsfCollectionOpen(interp, connPtr, dbname, collectionname);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -291,6 +293,7 @@ NsfMongoCloseStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
     return NsfMongoClose(interp, connPtr,pc.objv[0]);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -311,6 +314,7 @@ NsfMongoCollectionCountStub(ClientData clientData, Tcl_Interp *interp, int objc,
     return NsfMongoCollectionCount(interp, collectionPtr, query);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -331,6 +335,7 @@ NsfMongoCollectionDeleteStub(ClientData clientData, Tcl_Interp *interp, int objc
     return NsfMongoCollectionDelete(interp, collectionPtr, condition);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -357,6 +362,7 @@ NsfMongoCollectionIndexStub(ClientData clientData, Tcl_Interp *interp, int objc,
     return NsfMongoCollectionIndex(interp, collectionPtr, attributes, withName, withBackground, withDropdups, withSparse, withTtl, withUnique);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -377,6 +383,7 @@ NsfMongoCollectionInsertStub(ClientData clientData, Tcl_Interp *interp, int objc
     return NsfMongoCollectionInsert(interp, collectionPtr, values);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -400,6 +407,7 @@ NsfMongoCollectionQueryStub(ClientData clientData, Tcl_Interp *interp, int objc,
     return NsfMongoCollectionQuery(interp, collectionPtr, query, withAtts, withLimit, withSkip);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -420,6 +428,7 @@ NsfMongoCollectionStatsStub(ClientData clientData, Tcl_Interp *interp, int objc,
     return NsfMongoCollectionStats(interp, collectionPtr, withOptions);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -443,6 +452,7 @@ NsfMongoCollectionUpdateStub(ClientData clientData, Tcl_Interp *interp, int objc
     return NsfMongoCollectionUpdate(interp, collectionPtr, cond, values, withUpsert, withAll);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -462,6 +472,7 @@ NsfMongoConnectStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
     return NsfMongoConnect(interp, withUri);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -485,6 +496,7 @@ NsfMongoCursorAggregateStub(ClientData clientData, Tcl_Interp *interp, int objc,
     return NsfMongoCursorAggregate(interp, collectionPtr, pipeline, options, withTailable, withAwaitdata);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -504,6 +516,7 @@ NsfMongoCursorCloseStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
     return NsfMongoCursorClose(interp, cursorPtr,pc.objv[0]);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -529,6 +542,7 @@ NsfMongoCursorFindStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
     return NsfMongoCursorFind(interp, collectionPtr, query, withAtts, withLimit, withSkip, withTailable, withAwaitdata);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -548,6 +562,7 @@ NsfMongoCursorNextStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
     return NsfMongoCursorNext(interp, cursorPtr);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -567,6 +582,7 @@ NsfMongoGridFSCloseStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
     return NsfMongoGridFSClose(interp, gfsPtr,pc.objv[0]);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -588,6 +604,7 @@ NsfMongoGridFSOpenStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
     return NsfMongoGridFSOpen(interp, connPtr, dbname, prefix);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -607,6 +624,7 @@ NsfMongoGridFileCloseStub(ClientData clientData, Tcl_Interp *interp, int objc, T
     return NsfMongoGridFileClose(interp, gridfilePtr,pc.objv[0]);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -631,6 +649,7 @@ NsfMongoGridFileCreateStub(ClientData clientData, Tcl_Interp *interp, int objc, 
     return NsfMongoGridFileCreate(interp, withSource, gfsPtr, value, name, contenttype, withMetadata);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -651,6 +670,7 @@ NsfMongoGridFileDeleteStub(ClientData clientData, Tcl_Interp *interp, int objc, 
     return NsfMongoGridFileDelete(interp, gfsPtr, query);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -670,6 +690,7 @@ NsfMongoGridFileGetContentTypeStub(ClientData clientData, Tcl_Interp *interp, in
     return NsfMongoGridFileGetContentType(interp, gridfilePtr);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -689,6 +710,7 @@ NsfMongoGridFileGetContentlengthStub(ClientData clientData, Tcl_Interp *interp, 
     return NsfMongoGridFileGetContentlength(interp, gridfilePtr);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -708,6 +730,7 @@ NsfMongoGridFileGetMetaDataStub(ClientData clientData, Tcl_Interp *interp, int o
     return NsfMongoGridFileGetMetaData(interp, gridfilePtr);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -728,6 +751,7 @@ NsfMongoGridFileOpenStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
     return NsfMongoGridFileOpen(interp, gfsPtr, query);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -748,6 +772,7 @@ NsfMongoGridFileReadStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
     return NsfMongoGridFileRead(interp, gridfilePtr, size);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -768,6 +793,7 @@ NsfMongoGridFileSeekStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
     return NsfMongoGridFileSeek(interp, gridfilePtr, offset);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -790,6 +816,7 @@ NsfMongoRunCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
     return NsfMongoRunCmd(interp, withNocomplain, connPtr, db, cmd);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -809,6 +836,7 @@ NsfMongoStatusStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
     return NsfMongoStatus(interp, connPtr,pc.objv[0]);
 
   } else {
+    
     return TCL_ERROR;
   }
 }

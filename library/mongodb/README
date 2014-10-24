@@ -1,17 +1,22 @@
 
+
 Interface between mongoDB and the Next Scripting Framework
 
 Ingredients:
   https://github.com/mongodb/mongo
   https://github.com/mongodb/mongo-c-driver
 
-The current version is tested with 
-- MongoDB v2.6.1
-- mongodb-c-driver 0.96
+The current version is tested with
+- Tcl 8.5 and Tcl 8.6
+- MongoDB v2.6.5 (released Aug 10, 2014)
+- mongodb-c-driver 1.0.2 (released Oct 9, 2014)
 
-Compile or obtain mongodb (the database).
+Follow the following steps to get MongoDB up and running
+and to compile the MongoDB driver for nx:
 
-Compile or obtain the mongo-c-driver (client interface)
+- Compile or obtain mongodb (the database).
+
+- Compile or obtain the mongo-c-driver (client interface)
 
       cd /usr/local/src
       git clone https://github.com/mongodb/mongo-c-driver
@@ -20,28 +25,28 @@ Compile or obtain the mongo-c-driver (client interface)
       make
       sudo make install
 
-If you experience errors during autogen on debian, you might have to 
+If you experience errors during autogen on debian, you might have to
    apt-get install libtool
 
 If configure complains about not finding bson, you might have to do
    export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
 
 
-Assume the following installation directories 
+Assume the following installation directories
 
   - Tcl:             /usr/local/ns/lib/
   - mongo-c-driver: /usr/local/src/mongo-c-driver/
 
-configure the mongodb nsf interface via the following 
-command in the directory nsf*/library/mongodb/  
+configure the mongodb nsf interface via the following
+command in the directory nsf*/library/mongodb/
+You will probably have to adjust the paths.
 
-   ./configure --with-tcl=/usr/local/ns/lib/ --with-nsf=../../ \
+   ./configure --with-tcl=/usr/local/ns/lib/ --prefix=/usr/local/ns --with-nsf=../../ \
    	       --with-mongoc=/usr/local/src/mongo-c-driver/src/mongoc/,/usr/local/src/mongo-c-driver/.libs \
 	       --with-bson=/usr/local/src/mongo-c-driver/src/libbson/src/bson \
-	       --enable-threads --enable-symbols --prefix=/usr/local/ns
+	       --enable-threads --enable-symbols
 
-
-In order to run the sample script, 
+In order to run the sample script,
   * first start the mongdb (eg. mongod)
 
   * go to your nsf source directory
@@ -51,18 +56,18 @@ In order to run the sample script,
 
     export DYLD_LIBRARY_PATH=/usr/local/lib:`pwd`
 
-  * run 
+  * run
 
     ./nxsh library/mongodb/tests/nsf-mongo.test
- 
+
     The script is using the low level interface (nsf::mongo) and has a
     few insert, query and delete statements, some of these are
     commented out.
 
- * run 
+ * run
 
     ./nxsh library/mongodb/example-nx-mongo.tcl
- 
+
     This example script is using the higher level object oriented
     interface for nx (nx::mongo).
 
@@ -70,7 +75,7 @@ In order to run the sample script,
     check the content in MongoDB:
 
     % mongo
-    MongoDB shell version: 2.6.1
+    MongoDB shell version: 2.6.5
     connecting to: test
     > use tutorial
     switched to db tutorial
@@ -81,7 +86,7 @@ In order to run the sample script,
    { "_id" : ObjectId("530c6e4649686ad16e261f84"), "name" : "Joe", "projects" : "abc", "age" : 23, "classes" : [  DBRef("courses", ObjectId("100000000000000000000000")) ] }
    { "_id" : ObjectId("530c6e4649686ad16e261f85"), "name" : "Franz", "info" : { "x" : 203, "y" : 102 }, "age" : 29, "projects" : "gtat" }
    { "_id" : ObjectId("530c6e4649686ad16e261f86"), "name" : "Selim", "ts" : Timestamp(1302945037, 1), "d" : ISODate("2011-04-16T09:53:39.279Z") }
-   > 
+   >
 
 
 * Further sample-scripts:

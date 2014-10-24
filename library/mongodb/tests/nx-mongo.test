@@ -13,10 +13,6 @@ package require nx::test
 # Establish connection to the database
 ? {::nx::mongo::db connect -db "tutorial"} mongoc_client_t:0
 
-# Make sure, we start always from scratch
-
-nx::mongo::db delete tutorial.persons {}
-
 #
 # Create or lookup collection handle; the first operation is a create,
 # the second a lookup.
@@ -24,10 +20,15 @@ nx::mongo::db delete tutorial.persons {}
 ? {::nx::mongo::db collection tutorial.persons} "mongoc_collection_t:0"
 ? {::nx::mongo::db collection tutorial.persons} "mongoc_collection_t:0"
 
-if {[::mongo::collection::count [::nx::mongo::db collection tutorial.persons] {}] > 0} {
-  # when we create a capped colletion, we have to use "drop collection" to get rid of it.
-  nx::mongo::db drop collection persons
-}
+#
+# When we create a capped colletion, we cannot use
+#
+#  nx::mongo::db delete tutorial.persons {}
+#
+# but have to use "drop collection" to get rid of it (this is enforced
+# by MongoDB 2.6.3 or newer).
+
+nx::mongo::db drop collection persons
 
 #
 # Create the application class "Person"
@@ -35,7 +36,7 @@ if {[::mongo::collection::count [::nx::mongo::db collection tutorial.persons] {}
 ? {
   nx::mongo::Class create Person {
     :index name
-    
+
     :property name:required
     :property projects:0..n {set :incremental 1}
     :property age:integer
@@ -49,7 +50,7 @@ if {[::mongo::collection::count [::nx::mongo::db collection tutorial.persons] {}
 ? { nsf::is object [set p [Person new -name Gustaf -projects {nsf nx nxmongo} -age 53]]} 1
 ? { nx::mongo::db is_oid [$p save]} 1
 ? { $p destroy; nsf::is object $p} 0
-  
+
 
 #
 # The insert operation of above can be achieved with less typing via
