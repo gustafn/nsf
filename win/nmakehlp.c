@@ -4,8 +4,8 @@
  *
  *	This is used to fix limitations within nmake and the environment.
  *
- * Copyright (C) 2002 by David Gravereaux.
- * Copyright (C) 2006 by Pat Thoyts
+ * Copyright (c) 2002 by David Gravereaux.
+ * Copyright (c) 2006 by Pat Thoyts
  *
  * See the file "license.terms" for information on usage and redistribution of
  * this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -482,12 +482,12 @@ GetVersionFromFile(
     const char *match,
     int numdots)
 {
+    size_t cbBuffer = 100;
     static char szBuffer[100];
     char *szResult = NULL;
     FILE *fp = fopen(filename, "rt");
 
     if (fp != NULL) {
-	size_t cbBuffer = 100;
 	/*
 	 * Read data until we see our match string.
 	 */
@@ -558,11 +558,9 @@ list_insert(list_item_t **listPtrPtr, const char *key, const char *value)
 static void
 list_free(list_item_t **listPtrPtr)
 {
-    list_item_t *listPtr = *listPtrPtr;
-
+    list_item_t *tmpPtr, *listPtr = *listPtrPtr;
     while (listPtr) {
-	list_item_t *tmpPtr = listPtr;
-
+	tmpPtr = listPtr;
 	listPtr = listPtr->nextPtr;
 	free(tmpPtr->key);
 	free(tmpPtr->value);
@@ -592,13 +590,14 @@ SubstituteFile(
     const char *substitutions,
     const char *filename)
 {
+    size_t cbBuffer = 1024;
     static char szBuffer[1024], szCopy[1024];
+    char *szResult = NULL;
     list_item_t *substPtr = NULL;
-    FILE *fp;
+    FILE *fp, *sp;
 
     fp = fopen(filename, "rt");
     if (fp != NULL) {
-	FILE *sp;
 
 	/*
 	 * Build a list of substutitions from the first filename
@@ -606,18 +605,16 @@ SubstituteFile(
 
 	sp = fopen(substitutions, "rt");
 	if (sp != NULL) {
-	    size_t cbBuffer = 1024;
-
 	    while (fgets(szBuffer, cbBuffer, sp) != NULL) {
 		char *ks, *ke, *vs, *ve;
 		ks = szBuffer;
-		while (*ks && isspace(*ks)) ++ks;
+		while (ks && *ks && isspace(*ks)) ++ks;
 		ke = ks;
-		while (*ke && !isspace(*ke)) ++ke;
+		while (ke && *ke && !isspace(*ke)) ++ke;
 		vs = ke;
-		while (*vs && isspace(*vs)) ++vs;
+		while (vs && *vs && isspace(*vs)) ++vs;
 		ve = vs;
-		while (*ve && !(*ve == '\r' || *ve == '\n')) ++ve;
+		while (ve && *ve && !(*ve == '\r' || *ve == '\n')) ++ve;
 		*ke = 0, *ve = 0;
 		list_insert(&substPtr, ks, vs);
 	    }
@@ -660,9 +657,8 @@ SubstituteFile(
 	}
 
 	list_free(&substPtr);
-	fclose(fp);
     }
-
+    fclose(fp);
     return 0;
 }
 
@@ -691,10 +687,11 @@ QualifyPath(
 }
 
 /*
- * Local Variables:
- * mode: c
- * c-basic-offset: 2
- * fill-column: 78
- * indent-tabs-mode: nil
+ * Local variables:
+ *   mode: c
+ *   c-basic-offset: 4
+ *   fill-column: 78
+ *   indent-tabs-mode: t
+ *   tab-width: 8
  * End:
  */
