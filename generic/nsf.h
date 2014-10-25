@@ -288,7 +288,7 @@ typedef struct {
   CONST char *domain;
 } Nsf_EnumeratorConverterEntry;
 
-Nsf_TypeConverter Nsf_ConvertToBoolean, Nsf_ConvertToClass,
+EXTERN Nsf_TypeConverter Nsf_ConvertToBoolean, Nsf_ConvertToClass,
   Nsf_ConvertToInteger, Nsf_ConvertToInt32,
   Nsf_ConvertToObject, Nsf_ConvertToParameter,
   Nsf_ConvertToString, Nsf_ConvertToSwitch,

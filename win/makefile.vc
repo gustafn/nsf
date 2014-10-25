@@ -201,7 +201,8 @@ DLLOBJS = \
 	$(TMP_DIR)\nsfShadow.obj \
 	$(TMP_DIR)\nsfCompile.obj \
 	$(TMP_DIR)\aolstub.obj \
-	$(TMP_DIR)\nsfStubInit.obj
+	$(TMP_DIR)\nsfStubInit.obj \
+	$(TMP_DIR)\nsfEnumerationType.c
 
 PRJTESTS = \
 	$(ROOT)\tests\object-system.test \
