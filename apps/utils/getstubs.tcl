@@ -5,4 +5,4 @@
 #
 puts "Using stubs for Tcl [set tcl_version]"
 set generic [lindex $argv 0]
-file copy -force {*}[glob $generic/stubs[set tcl_version]/*.*] $generic
+file copy -force {*}[glob [file join $generic stubs[set tcl_version] "*.*"]] $generic
