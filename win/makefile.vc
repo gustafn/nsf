@@ -499,7 +499,8 @@ $(OUT_DIR)\pkgIndex.tcl:
 	    [list load [file join $$dir $(PRJLIBNAME)] $(PROJECT)] > $@
 
 	for %l in ($(NXLIBS)) do \
-		(cd %l && $(TCLSH) $(LIBDIR)\lib\mkIndex.tcl -dir $(LIBDIR))
+		cd %l; \
+		$(TCLSH) $(MAKEDIR)\$(LIBDIR)\lib\mkIndex.tcl -dir $(MAKEDIR)\$(LIBDIR);
 
 
 #---------------------------------------------------------------------
