@@ -497,9 +497,9 @@ $(OUT_DIR)\pkgIndex.tcl:
 	    [list load [file join $$dir $(PRJLIBNAME)] $(PROJECT)] > $@
 
 	@for /d %d in ($(LIBDIR)\*) do \
-		pushd %d &\
-		$(TCLSH) $(MAKEDIR)\$(LIBDIR)\lib\mkIndex.tcl -dir $(MAKEDIR)\$(LIBDIR) &\
-		popd
+		@pushd %d &\
+		@$(TCLSH) $(MAKEDIR)\$(LIBDIR)\lib\mkIndex.tcl -dir $(MAKEDIR)\$(LIBDIR) &\
+		@popd
 
 #---------------------------------------------------------------------
 # Installation. (EDIT)
@@ -531,7 +531,7 @@ install-libraries:
 	@if not exist "$(SCRIPT_INSTALL_DIR)\xotcl" mkdir "$(SCRIPT_INSTALL_DIR)\xotcl" 
 	@$(CPY) $(LIBDIR)\xotcl\apps "$(SCRIPT_INSTALL_DIR)\xotcl\apps" /e
 	@$(CPY) $(LIBDIR)\xotcl\library "$(SCRIPT_INSTALL_DIR)\xotcl\library" /e
-	@$(CPY) $(LIBDIR)\xotcl\xo* "$(SCRIPT_INSTALL_DIR)\xotcl"
+# @$(CPY) $(LIBDIR)\xotcl\xo* "$(SCRIPT_INSTALL_DIR)\xotcl"
 	@echo Installing NX libs
 	@if not exist "$(SCRIPT_INSTALL_DIR)\lib" mkdir "$(SCRIPT_INSTALL_DIR)\lib" 
 	@$(CPY) $(LIBDIR)\lib\*.tcl "$(SCRIPT_INSTALL_DIR)\lib"
