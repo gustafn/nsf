@@ -232,15 +232,13 @@ PRJTESTS = \
 	$(ROOT)\tests\protected.test \
 	$(ROOT)\tests\parameters.test \
 	$(ROOT)\tests\plain-object-method.test \
-	$(ROOT)\tests\class-method.test
+	$(ROOT)\tests\class-method.test \
+	$(ROOT)\tests\nsf-cmd.test \
+	$(ROOT)\tests\accessor.test \
+	$(ROOT)\tests\linearization.test \
+	$(ROOT)\tests\traits.test
 
 PRJHEADERS =
-
-NXLIBS = \
-	$(LIBDIR)\nx \
-	$(LIBDIR)\serialize \
-	$(LIBDIR)\xotcl \
-	$(LIBDIR)\lib	
 
 #-------------------------------------------------------------------------
 # Target names and paths ( shouldn't need changing )
@@ -498,9 +496,9 @@ $(OUT_DIR)\pkgIndex.tcl:
 	@echo package ifneeded $(PROJECT) $(DOTVERSION) \
 	    [list load [file join $$dir $(PRJLIBNAME)] $(PROJECT)] > $@
 
-	@for /d %d in ($(LIBDIR)\*) in do \
+	@for /d %d in ($(LIBDIR)\*) do \
 		pushd %d &\
-		$(TCLSH) $(LIBDIR)\lib\mkIndex.tcl -dir $(LIBDIR) &\
+		$(TCLSH) $(MAKEDIR)\$(LIBDIR)\lib\mkIndex.tcl -dir $(MAKEDIR)\$(LIBDIR) &\
 		popd
 
 #---------------------------------------------------------------------
