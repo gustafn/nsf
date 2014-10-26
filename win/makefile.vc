@@ -239,7 +239,7 @@ PRJHEADERS =
 NXLIBS = \
 	$(LIBDIR)\nx \
 	$(LIBDIR)\serialize \
-	$(LIBDIR)\xotcl2 \
+	$(LIBDIR)\xotcl \
 	$(LIBDIR)\lib	
 
 #-------------------------------------------------------------------------
@@ -402,7 +402,7 @@ test: setup $(PROJECT)
 !else
 	@set PATH=$(_TCLDIR)\win\$(BUILDDIRTOP);$(PATH)
 !endif
-	@echo lappend auto_path $(ROOT); set argv [lassign $$argv __src]; source $$__src; > nsftest.tcl
+	@echo lappend auto_path $(ROOT) .; puts $$auto_path; set argv [lassign $$argv __src]; source $$__src; > nsftest.tcl
 
 !if "$(OS)" == "Windows_NT"  || "$(MSVCDIR)" == "IDE"
 	for %i in ($(PRJTESTS)) do \
@@ -499,7 +499,7 @@ $(OUT_DIR)\pkgIndex.tcl:
 	    [list load [file join $$dir $(PRJLIBNAME)] $(PROJECT)] > $@
 
 	for %l in ($(NXLIBS)) do \
-		(cd %l && $(TCLSH) $(LIBDIR)/lib/mkIndex.tcl -dir $(LIBDIR))
+		(cd %l && $(TCLSH) $(LIBDIR)\lib\mkIndex.tcl -dir $(LIBDIR))
 
 
 #---------------------------------------------------------------------
