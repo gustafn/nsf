@@ -236,6 +236,12 @@ PRJTESTS = \
 
 PRJHEADERS =
 
+NXLIBS = \
+	$(LIBDIR)\nx \
+	$(LIBDIR)\serialize \
+	$(LIBDIR)\xotcl2 \
+	$(LIBDIR)\lib	
+
 #-------------------------------------------------------------------------
 # Target names and paths ( shouldn't need changing )
 #-------------------------------------------------------------------------
@@ -491,6 +497,10 @@ $<
 $(OUT_DIR)\pkgIndex.tcl:
 	@echo package ifneeded $(PROJECT) $(DOTVERSION) \
 	    [list load [file join $$dir $(PRJLIBNAME)] $(PROJECT)] > $@
+
+	for %l in ($(NXLIBS)) do \
+		(cd %l && $(TCLSH) $(LIBDIR)/lib/mkIndex.tcl -dir $(LIBDIR))
+
 
 #---------------------------------------------------------------------
 # Installation. (EDIT)
