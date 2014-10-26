@@ -498,10 +498,10 @@ $(OUT_DIR)\pkgIndex.tcl:
 	@echo package ifneeded $(PROJECT) $(DOTVERSION) \
 	    [list load [file join $$dir $(PRJLIBNAME)] $(PROJECT)] > $@
 
-	for %l in ($(NXLIBS)) do \
-		cd %l; \
-		$(TCLSH) $(MAKEDIR)\$(LIBDIR)\lib\mkIndex.tcl -dir $(MAKEDIR)\$(LIBDIR);
-
+	@for /d %d in ($(LIBDIR)\*) in do \
+		pushd %d &\
+		$(TCLSH) $(LIBDIR)\lib\mkIndex.tcl -dir $(LIBDIR) &\
+		popd
 
 #---------------------------------------------------------------------
 # Installation. (EDIT)
