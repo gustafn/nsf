@@ -1,5 +1,63 @@
+2014-10-27  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- use newest versions, re-generated stub files
+	- adjust genstubs target to subdir logic
+	- handle nsfUtil.c from version-specific subdirectory
+	- binor polishing
+
+2014-10-27  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- NsfDStringPrintf(): Fix vargs processing under VC 12
+
+2014-10-27  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- get rid of getstubs
+	- provide actual pkgIndex files
+	- keep an internal list of Tcl_Objs of type mixinrefs for classes used
+	  as mixins. This list is used for avoiding stale entries in cases the
+	  mixin class is destroyed.
+	- remove redundant and different prototype
+
+2014-10-27  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- Bump version numbers in nx.tcl and xotcl2.tcl; adjust license statements
+	- Rearrange 'make getstubs' slightly, so that we do not require the stub
+	  files present in generic/* for the build machinery to work properly
+	- Done revising license statements in generic/*
+
+2014-10-27  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- fix a heisenbug probably showing sometimes up due to more aggressive
+	  Tcl_Obj sharing in newer versions of tcl 8.6
+
+2014-10-27  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- Correct and unify licensing statements in header files
+	- Fix copyright statements in stubs* files
+	- Fix copyright dates
+
+2014-10-26  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- Silence instructions, do not install xowish.in/ xotclsh.in
+	- Bump version number in win build files
+	- Trigger generation of pgk index scripts
+	- Add EXTERN to calm VC12, add missing C files from makefile.vc
+
+2014-10-25  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- Use correct slashing
+	- Render file paths in a platform-independent manner
+	- Make sure genstub.tcl is called in makefile.vc
+	- Update nmakehlp (required for VC 12+)
+
 2014-10-24  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
+	- set the right version number to 2.0.0
+	- Make dtplite configurable in Makefile, e.g. make
+	  "DTPLITE=/usr/local/ns/bin/tclsh8.5 /usr/local/ns/bin/dtplite" man
+	- regenerate documentation
+	- bump version number to 2.0 (also in .man files)
+	- add Changelog for 2.0 release
 	- updated for mongo-c-driver 1.0.2 and MongoDB 2.6.5
 	- minor changes were necessary: MongogDB does not allow to delete a
 	  capped collection, one has to use drop
