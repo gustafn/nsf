@@ -31,6 +31,7 @@ src_man_dir		= ${srcdir}/man
 TCL_LIB_SPEC		= @TCL_LIB_SPEC@
 subdirs			= @subdirs@
 aol_prefix		= @aol_prefix@
+stubdir                 = stubs${TCL_MAJOR_VERSION}.${TCL_MINOR_VERSION}
 
 # Requires native paths
 PLATFORM_DIR	= `@CYGPATH@ $(srcdir)/@TEA_PLATFORM@`
@@ -697,7 +698,7 @@ nsfPointer.$(OBJEXT): $(src_generic_dir)/nsfPointer.c $(PKG_HEADERS)
 nsfEnumerationType.$(OBJEXT): $(src_generic_dir)/nsfEnumerationType.c $(PKG_HEADERS)
 nsfProfile.$(OBJEXT): $(src_generic_dir)/nsfProfile.c $(PKG_HEADERS)
 nsfShadow.$(OBJEXT): $(src_generic_dir)/nsfShadow.c $(PKG_HEADERS)
-nsfStubInit.$(OBJEXT): $(PKG_HEADERS)
+$(stubdir)/nsfStubInit.$(OBJEXT): $(PKG_HEADERS)
 nsfStubLib.$(OBJEXT): $(src_generic_dir)/nsfStubLib.c $(PKG_HEADERS)
 nsfUtil.$(OBJEXT): $(src_generic_dir)/nsfUtil.c $(PKG_HEADERS)
 
@@ -712,11 +713,11 @@ genstubs:
 	tclsh8.5 $(TCL_SRC_DIR_85)/tools/genStubs.tcl $(src_generic_dir) \
 		$(src_generic_dir)/nsf.decls $(src_generic_dir)/nsfInt.decls
 	mkdir -p $(src_generic_dir)/stubs8.5
-	cp $(src_generic_dir)/nsfDecls.h $(src_generic_dir)/nsfIntDecls.h $(src_generic_dir)/nsfStubInit.c $(src_generic_dir)/stubs8.5
+	mv $(src_generic_dir)/nsfDecls.h $(src_generic_dir)/nsfIntDecls.h $(src_generic_dir)/nsfStubInit.c $(src_generic_dir)/stubs8.5
 	tclsh8.6 $(TCL_SRC_DIR_86)/tools/genStubs.tcl $(src_generic_dir) \
 		$(src_generic_dir)/nsf.decls $(src_generic_dir)/nsfInt.decls
 	mkdir -p $(src_generic_dir)/stubs8.6
-	cp $(src_generic_dir)/nsfDecls.h $(src_generic_dir)/nsfIntDecls.h $(src_generic_dir)/nsfStubInit.c $(src_generic_dir)/stubs8.6
+	mv $(src_generic_dir)/nsfDecls.h $(src_generic_dir)/nsfIntDecls.h $(src_generic_dir)/nsfStubInit.c $(src_generic_dir)/stubs8.6
 
 getstubs:
 	$(TCLSH) $(src_app_dir_native)/utils/getstubs.tcl $(src_generic_dir)
