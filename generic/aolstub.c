@@ -1,16 +1,22 @@
 /*
-   This file provides the stubs needed for the AOLserver, to load nsf.
-   Please note, that if you have an ancient version of the AOLserver, you
-   might have to have to apply a small patch to the AOLserver as well
-   (available from www.xotcl.org) in order to get it working.
-
-   Originally developed by
-
-      Zoran Vasiljevic
-      Archiware Inc.
+ * aolstub.c --
  *
- * Copyright (C) 2006-2013 Zoran Vasiljevic
- * Copyright (C) 2006-2014 Gustaf Neumann
+ * 	This file provides the stubs needed for the AOLserver, to load NSF.
+ *  	Please note, that if you have an ancient version of the AOLserver, you
+ *  	might have to have to apply a small patch to the AOLserver as well
+ *  	(available from www.xotcl.org) in order to get it working.
+ *
+ * Copyright (C) 2006-2013 Zoran Vasiljevic (a)
+ * Copyright (C) 2006-2014 Gustaf Neumann (b)
+ *
+ * (a) Archiware Inc.
+ *
+ * (b) Vienna University of Economics and Business
+ *     Institute of Information Systems and New Media
+ *     A-1020, Welthandelsplatz 1
+ *     Vienna, Austria
+ *
+ * This work is licensed under the MIT License http://www.opensource.org/licenses/MIT
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,7 +35,8 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
-*/
+ *
+ */
 #ifdef AOL_SERVER
 
 
