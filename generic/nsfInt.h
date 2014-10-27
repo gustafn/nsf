@@ -4,9 +4,24 @@
  *      Declarations of the internally used API Functions of the Next
  *      Scripting Framework.
  *
- *  Copyright (C) 1999-2014 Gustaf Neumann
- *  Copyright (C) 1999-2007 Uwe Zdun
- *  Copyright (C) 2011 Stefan Sobernig
+ *  Copyright (C) 1999-2014 Gustaf Neumann (a, b)
+ *  Copyright (C) 1999-2007 Uwe Zdun (a, b)
+ *  Copyright (C) 2011 Stefan Sobernig (b)
+ *
+ * (a) University of Essen
+ *     Specification of Software Systems
+ *     Altendorferstrasse 97-101
+ *     D-45143 Essen, Germany
+ *
+ * (b) Vienna University of Economics and Business
+ *     Institute of Information Systems and New Media
+ *     A-1090, Augasse 2-6
+ *     Vienna, Austria
+ *
+ * This work is licensed under the MIT License
+ * http://www.opensource.org/licenses/MIT
+ *
+ * Copyright:
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -25,6 +40,7 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
+ *
  */
 
 #ifndef _nsf_int_h_

@@ -15,7 +15,7 @@
 # Copyright (c) 2001-2005 ActiveState Corporation.
 # Copyright (c) 2001-2004 David Gravereaux.
 # Copyright (c) 2003-2008 Pat Thoyts.
-# Copyright (c) 2013      Stefan Sobernig
+# Copyright (c) 2013-2014 Stefan Sobernig
 #------------------------------------------------------------------------------
 
 # Check to see we are configured to build with MSVC (MSDEVDIR, MSVCDIR or
@@ -497,9 +497,9 @@ $(OUT_DIR)\pkgIndex.tcl:
 	    [list load [file join $$dir $(PRJLIBNAME)] $(PROJECT)] > $@
 
 	@for /d %d in ($(LIBDIR)\*) do \
-		pushd %d &\
-		$(TCLSH) $(MAKEDIR)\$(LIBDIR)\lib\mkIndex.tcl -dir $(MAKEDIR)\$(LIBDIR) &\
-		popd
+		@pushd %d &\
+		@$(TCLSH) $(MAKEDIR)\$(LIBDIR)\lib\mkIndex.tcl -dir $(MAKEDIR)\$(LIBDIR) &\
+		@popd
 
 #---------------------------------------------------------------------
 # Installation. (EDIT)
@@ -531,7 +531,7 @@ install-libraries:
 	@if not exist "$(SCRIPT_INSTALL_DIR)\xotcl" mkdir "$(SCRIPT_INSTALL_DIR)\xotcl" 
 	@$(CPY) $(LIBDIR)\xotcl\apps "$(SCRIPT_INSTALL_DIR)\xotcl\apps" /e
 	@$(CPY) $(LIBDIR)\xotcl\library "$(SCRIPT_INSTALL_DIR)\xotcl\library" /e
-	@$(CPY) $(LIBDIR)\xotcl\xo* "$(SCRIPT_INSTALL_DIR)\xotcl"
+# @$(CPY) $(LIBDIR)\xotcl\xo* "$(SCRIPT_INSTALL_DIR)\xotcl"
 	@echo Installing NX libs
 	@if not exist "$(SCRIPT_INSTALL_DIR)\lib" mkdir "$(SCRIPT_INSTALL_DIR)\lib" 
 	@$(CPY) $(LIBDIR)\lib\*.tcl "$(SCRIPT_INSTALL_DIR)\lib"
