@@ -53,6 +53,10 @@
 
 /* !BEGIN!: Do not edit below this line. */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*
  * Exported function declarations:
  */
@@ -244,10 +248,8 @@ typedef struct NsfStubs {
     int (*nsf_CmdDefinitionRegister) (Tcl_Interp *interp, Nsf_methodDefinition *definitionRecords); /* 39 */
 } NsfStubs;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 extern const NsfStubs *nsfStubsPtr;
+
 #ifdef __cplusplus
 }
 #endif

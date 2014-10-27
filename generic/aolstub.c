@@ -2,9 +2,10 @@
  * aolstub.c --
  *
  * 	This file provides the stubs needed for the AOLserver, to load NSF.
- *  	Please note, that if you have an ancient version of the AOLserver, you
- *  	might have to have to apply a small patch to the AOLserver as well
- *  	(available from www.xotcl.org) in order to get it working.
+ *  	Please note that at least AOLserver 4.* or NaviServer 4.99.4 or newer
+ *  	are required.  might have to have to apply a small patch to the
+ *  	AOLserver as well (available from www.xotcl.org) in order to get it
+ *  	working.
  *
  * Copyright (C) 2006-2013 Zoran Vasiljevic (a)
  * Copyright (C) 2006-2014 Gustaf Neumann (b)
@@ -79,14 +80,12 @@ NsNsf_Init (Tcl_Interp *interp, void *context)
      Ns_Log(Warning, "can't load module %s: %s", (char *)context,
 	    Tcl_GetStringResult(interp));
    } else {
-     Ns_Log(Notice, "%s module version %s%s", (char*)context,
-	    XOTCLVERSION,XOTCLPATCHLEVEL);
+     Ns_Log(Notice, "%s module version %s", (char*)context, NSF_PATCHLEVELL);
      /*
       * Import the Nsf namespace only for the shell after
       * predefined is through
       */
-     Tcl_Import(interp, Tcl_GetGlobalNamespace(interp),
-		"nsf::*", 0);
+     Tcl_Import(interp, Tcl_GetGlobalNamespace(interp), "nsf::*", 0);
    }
    firsttime = 0;
  }

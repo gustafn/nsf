@@ -5562,7 +5562,7 @@ stubdir=stubs${TCL_MAJOR_VERSION}.${TCL_MINOR_VERSION}
 
     vars="nsf.c nsfError.c nsfObjectData.c nsfProfile.c \
 	nsfDebug.c nsfUtil.c nsfObj.c nsfPointer.c nsfEnumerationType.c \
-        nsfCmdDefinitions.c nsfShadow.c nsfCompile.c aolstub.c nsfStubInit.c"
+        nsfCmdDefinitions.c nsfShadow.c nsfCompile.c aolstub.c \${srcdir}/generic/${stubdir}/nsfStubInit.${OBJEXT}"
     for i in $vars; do
 	case $i in
 	    \$*)
