@@ -710,14 +710,12 @@ TCL_SRC_DIR_85=/usr/local/src/tcl8.5.16
 TCL_SRC_DIR_86=/usr/local/src/tcl8.6.1
 
 genstubs:
-	tclsh8.5 $(TCL_SRC_DIR_85)/tools/genStubs.tcl $(src_generic_dir) \
-		$(src_generic_dir)/nsf.decls $(src_generic_dir)/nsfInt.decls
 	mkdir -p $(src_generic_dir)/stubs8.5
-	mv $(src_generic_dir)/nsfDecls.h $(src_generic_dir)/nsfIntDecls.h $(src_generic_dir)/nsfStubInit.c $(src_generic_dir)/stubs8.5
-	tclsh8.6 $(TCL_SRC_DIR_86)/tools/genStubs.tcl $(src_generic_dir) \
+	tclsh8.5 $(TCL_SRC_DIR_85)/tools/genStubs.tcl $(src_generic_dir)/stubs8.5 \
 		$(src_generic_dir)/nsf.decls $(src_generic_dir)/nsfInt.decls
 	mkdir -p $(src_generic_dir)/stubs8.6
-	mv $(src_generic_dir)/nsfDecls.h $(src_generic_dir)/nsfIntDecls.h $(src_generic_dir)/nsfStubInit.c $(src_generic_dir)/stubs8.6
+	tclsh8.6 $(TCL_SRC_DIR_86)/tools/genStubs.tcl $(src_generic_dir)/stubs8.6 \
+		$(src_generic_dir)/nsf.decls $(src_generic_dir)/nsfInt.decls
 
 getstubs:
 	$(TCLSH) $(src_app_dir_native)/utils/getstubs.tcl $(src_generic_dir)
