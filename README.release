@@ -52,7 +52,7 @@ Steps for a beta release:
    - tag version in git and commit
        git tag -a 2.0b5 -m 2.0b5
        git push --tags
-       git push : 2.0b5
+       git push : 2.0.0
        # git push --follow-tags
        # git push commit
 

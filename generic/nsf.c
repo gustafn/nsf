@@ -26169,7 +26169,7 @@ NsfRelationClassMixinsSet(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *valueObj, i
       CmdListAddSorted(&nclopt->isClassMixinOf, cl->object.id, NULL);
     } else {
       NsfLog(interp, NSF_LOG_WARN,
-             "Problem registering %s as a mixin of %s\n",
+             "Problem registering %s as a class mixin of %s\n",
              ObjStr(valueObj), ClassName(cl));
     }
   }
@@ -26357,13 +26357,14 @@ NsfRelationSetCmd(Tcl_Interp *interp, NsfObject *object,
 
       for (cmds = newMixinCmdList; cmds; cmds = cmds->nextPtr) {
         NsfObject *nObject = NsfGetObjectFromCmdPtr(cmds->cmdPtr);
+
         if (nObject) {
           nclopt = NsfRequireClassOpt((NsfClass *) nObject);
           CmdListAddSorted(&nclopt->isObjectMixinOf, object->id, NULL);
         } else {
           NsfLog(interp, NSF_LOG_WARN,
-                 "Problem registering %s as a mixin of %s\n",
-                 ObjStr(valueObj), ClassName(cl));
+                 "Problem registering %s as a object mixin of %s\n",
+                 ObjStr(valueObj), ObjectName(object));
         }
       }
 
