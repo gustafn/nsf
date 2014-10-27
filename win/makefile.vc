@@ -15,7 +15,7 @@
 # Copyright (c) 2001-2005 ActiveState Corporation.
 # Copyright (c) 2001-2004 David Gravereaux.
 # Copyright (c) 2003-2008 Pat Thoyts.
-# Copyright (c) 2013      Stefan Sobernig
+# Copyright (c) 2013-2014 Stefan Sobernig
 #------------------------------------------------------------------------------
 
 # Check to see we are configured to build with MSVC (MSDEVDIR, MSVCDIR or
