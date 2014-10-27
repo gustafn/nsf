@@ -42,9 +42,6 @@
  *
  */
 
- *
- */
-
 #ifndef _NSFDECLS
 #define _NSFDECLS
 
