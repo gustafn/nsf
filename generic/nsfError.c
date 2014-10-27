@@ -92,7 +92,7 @@ NsfDStringPrintf(Tcl_DString *dsPtr, CONST char *fmt, va_list vargs) {
    */
 
 #if defined(_MSC_VER)
-  failure = (result == -1 && errno == ERANGE);
+  failure = (result == -1 && errno == ERANGE) || (result == avail) /* VC 12 */;
 #else
   assert(result > -1);
   failure = (result >= avail);
