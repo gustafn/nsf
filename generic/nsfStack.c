@@ -449,7 +449,6 @@ static Tcl_CallFrame* CallStackGetTclFrame(Tcl_Interp *interp,
  *
  *----------------------------------------------------------------------
  */
-static NsfCallStackContent *CallStackGetTopFrame(Tcl_Interp *interp, Tcl_CallFrame **framePtrPtr) nonnull(1);
 NSF_INLINE static NsfCallStackContent *CallStackGetTopFrame0(Tcl_Interp *interp) nonnull(1);
 
 static NsfCallStackContent*

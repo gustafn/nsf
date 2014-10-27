@@ -968,7 +968,7 @@ EXTERN void NsfProfileClearData(Tcl_Interp *interp) nonnull(1);
 EXTERN void NsfProfileGetData(Tcl_Interp *interp) nonnull(1);
 
 EXTERN NsfCallStackContent *NsfCallStackGetTopFrame(Tcl_Interp *interp, Tcl_CallFrame **framePtrPtr)
-  nonnull(1) nonnull(2);
+  nonnull(1);
 #endif
 
 /*
