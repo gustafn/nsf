@@ -508,12 +508,16 @@ NsfMixinregGet(Tcl_Interp *interp, Tcl_Obj *obj, NsfClass **clPtr, Tcl_Obj **gua
     Mixinreg *mixinRegPtr = obj->internalRep.twoPtrValue.ptr1;
 
     /*
-     * We got a cmd, but this might be already deleted.
+     * We got a mixin with an included cmd, but both might be already deleted.
      */
-    if ((Tcl_Command_flags(mixinRegPtr->mixin->object.id) & CMD_IS_DELETED)) {
+    if ((mixinRegPtr->mixin->object.flags & NSF_DELETED) != 0U
+        || (Tcl_Command_flags(mixinRegPtr->mixin->object.id) & CMD_IS_DELETED) != 0U) {
+
       /*
        * The cmd is deleted. retry to refetch it.
        */
+      /*fprintf(stderr, "... we have to refetch \n");*/
+
       if (MixinregSetFromAny(interp, obj) == TCL_OK) {
 	mixinRegPtr = obj->internalRep.twoPtrValue.ptr1;
       } else {
@@ -523,6 +527,7 @@ NsfMixinregGet(Tcl_Interp *interp, Tcl_Obj *obj, NsfClass **clPtr, Tcl_Obj **gua
 
     *guardObj = mixinRegPtr->guardObj;
     *clPtr = mixinRegPtr->mixin;
+
     return TCL_OK;
   }
 
