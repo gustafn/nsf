@@ -431,8 +431,6 @@ setup:
 	@if not exist $(OUT_DIR)\nul mkdir $(OUT_DIR)
 	@if not exist $(TMP_DIR)\nul mkdir $(TMP_DIR)
 
-	$(TCLSH) $(UTILDIR)\getstubs.tcl $(GENERICDIR)
-
 # See <tcl>/win/coffbase.txt for extension base addresses.
 $(PRJLIB): $(DLLOBJS)
 !if $(STATIC_BUILD)
