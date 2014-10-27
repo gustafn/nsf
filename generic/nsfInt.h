@@ -564,6 +564,7 @@ typedef struct NsfClassOpt {
   NsfCmdList *isObjectMixinOf;
   NsfCmdList *isClassMixinOf;
   NsfAssertionStore *assertions;
+  Tcl_Obj *mixinRegObjs;
 #ifdef NSF_OBJECTDATA
   Tcl_HashTable *objectdata;
 #endif
@@ -716,12 +717,17 @@ char *NsfGlobalStrings[] = {
 
 /* obj types */
 EXTERN Tcl_ObjType NsfMixinregObjType;
-int NsfMixinregGet(Tcl_Interp *interp, Tcl_Obj *obj, NsfClass **clPtr, Tcl_Obj **guardObj)
+EXTERN int NsfMixinregGet(Tcl_Interp *interp, Tcl_Obj *obj, NsfClass **clPtr, Tcl_Obj **guardObj)
   nonnull(1) nonnull(2) nonnull(3) nonnull(4);
+EXTERN int NsfMixinregInvalidate(Tcl_Interp *interp, Tcl_Obj *obj) 
+  nonnull(1) nonnull(2);
 
 EXTERN Tcl_ObjType NsfFilterregObjType;
-int NsfFilterregGet(Tcl_Interp *interp, Tcl_Obj *obj, Tcl_Obj **filterObj, Tcl_Obj **guardObj)
+EXTERN int NsfFilterregGet(Tcl_Interp *interp, Tcl_Obj *obj, Tcl_Obj **filterObj, Tcl_Obj **guardObj)
   nonnull(1) nonnull(2) nonnull(3) nonnull(4);
+
+EXTERN NsfClassOpt *NsfRequireClassOpt(/*@notnull@*/ NsfClass *cl) nonnull(1) returns_nonnull;
+
 
 /* Next Scripting ShadowTclCommands */
 typedef struct NsfShadowTclCommandInfo {
@@ -947,11 +953,14 @@ EXTERN void NsfCleanupObject_(NsfObject *object) nonnull(1);
 
 /*
  *
- *  internally used API functions
+ *  Internally used API functions
  *
  */
-
-#include "nsfIntDecls.h"
+#if defined(NRE)
+# include "stubs8.6/nsfIntDecls.h"
+#else
+# include "stubs8.5/nsfIntDecls.h"
+#endif
 
 /*
  * Profiling functions
@@ -968,7 +977,7 @@ EXTERN void NsfProfileClearData(Tcl_Interp *interp) nonnull(1);
 EXTERN void NsfProfileGetData(Tcl_Interp *interp) nonnull(1);
 
 EXTERN NsfCallStackContent *NsfCallStackGetTopFrame(Tcl_Interp *interp, Tcl_CallFrame **framePtrPtr)
-  nonnull(1) nonnull(2);
+  nonnull(1);
 #endif
 
 /*

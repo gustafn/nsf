@@ -466,7 +466,11 @@ EXTERN int  Nsf_CmdDefinitionRegister(Tcl_Interp *interp, Nsf_methodDefinition *
  * Include the public function declarations that are accessible via
  * the stubs table.
  */
-#include "nsfDecls.h"
+#if defined(NRE)
+# include "stubs8.6/nsfDecls.h"
+#else
+# include "stubs8.5/nsfDecls.h"
+#endif
 
 /*
  * Nsf_InitStubs is used by extensions  that can be linked

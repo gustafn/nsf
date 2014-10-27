@@ -359,7 +359,7 @@ MixinregFreeInternalRep(
 {
   Mixinreg *mixinRegPtr = (Mixinreg *)objPtr->internalRep.twoPtrValue.ptr1;
 
-  assert(mixinRegPtr);
+  assert(mixinRegPtr != NULL);
   /*fprintf(stderr, "MixinregFreeInternalRep freeing mixinReg %p class %p guard %p refcount before decr %d\n",
     mixinRegPtr, mixinRegPtr->mixin, mixinRegPtr->guardObj, (&(mixinRegPtr->mixin)->object)->refCount);*/
 
@@ -374,6 +374,8 @@ MixinregFreeInternalRep(
    * ... and free structure
    */
   FREE(Mixinreg, mixinRegPtr);
+  objPtr->internalRep.twoPtrValue.ptr1 = NULL;
+  objPtr->typePtr = NULL;
 }
 
 /*
@@ -414,8 +416,8 @@ MixinregDupInternalRep(
  */
 static int
 MixinregSetFromAny(
-    Tcl_Interp *interp,		/* Used for error reporting if not NULL. */
-    register Tcl_Obj *objPtr)	/* The object to convert. */
+    Tcl_Interp *interp,	/* Used for error reporting if not NULL. */
+    Tcl_Obj *objPtr)	/* The object to convert. */
 {
   NsfClass *mixin = NULL;
   Tcl_Obj *guardObj = NULL, *nameObj = NULL;
@@ -463,6 +465,18 @@ MixinregSetFromAny(
    */
   NsfObjectRefCountIncr((&mixin->object));
   if (guardObj) {INCR_REF_COUNT2("mixinRegPtr->guardObj", guardObj);}
+
+  /*
+   * Build list of tcl-objs per mixin class for invalidation.
+   */
+  { NsfClassOpt *clOpt = NsfRequireClassOpt(mixin);
+    if (clOpt->mixinRegObjs == NULL) {
+      clOpt->mixinRegObjs = Tcl_NewListObj(1, &objPtr);
+      INCR_REF_COUNT2("mixinRegObjs", clOpt->mixinRegObjs);
+    } else {
+      Tcl_ListObjAppendElement(interp, clOpt->mixinRegObjs, objPtr);
+    }
+  }
 
   /*fprintf(stderr, "MixinregSetFromAny alloc mixinReg %p class %p guard %p object->refCount %d\n",
     mixinRegPtr, mixinRegPtr->mixin, mixinRegPtr->guardObj, ((&mixin->object)->refCount));*/
@@ -516,7 +530,8 @@ NsfMixinregGet(Tcl_Interp *interp, Tcl_Obj *obj, NsfClass **clPtr, Tcl_Obj **gua
       /*
        * The cmd is deleted. retry to refetch it.
        */
-      /*fprintf(stderr, "... we have to refetch \n");*/
+      /*fprintf(stderr, "### we have to refetch internal rep of obj %p refCount %d\n",
+        obj, obj->refCount);*/
 
       if (MixinregSetFromAny(interp, obj) == TCL_OK) {
 	mixinRegPtr = obj->internalRep.twoPtrValue.ptr1;
@@ -533,6 +548,41 @@ NsfMixinregGet(Tcl_Interp *interp, Tcl_Obj *obj, NsfClass **clPtr, Tcl_Obj **gua
 
   return TCL_ERROR;
 }
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * NsfMixinregInvalidate --
+ *
+ *      MixinClasses keep a list of Tcl_Objs of type mixinReg.
+ *      When a class is deleted, this call makes sure, that
+ *      non-of these have th chance to point to a stale entry.
+ *
+ * Results:
+ *      Tcl result code
+ *
+ * Side effects:
+ *      Freeing internal rep of Tcl_Objs.
+ *
+ *----------------------------------------------------------------------
+ */
+
+int
+NsfMixinregInvalidate(Tcl_Interp *interp, Tcl_Obj *obj) {
+  int i, result, oc = 0;
+  Tcl_Obj **objv;
+
+  result = Tcl_ListObjGetElements(interp, obj, &oc, &objv);
+
+  for (i= 0; i < oc; i++) {
+    if (objv[i]->typePtr == &NsfMixinregObjType) {
+      MixinregFreeInternalRep((objv[i]));
+    }
+  }
+
+  return result;
+}
+
 
 /*
  *----------------------------------------------------------------------
@@ -593,6 +643,8 @@ FilterregFreeInternalRep(
    * ... and free structure
    */
   FREE(Filterreg, filterregPtr);
+  objPtr->internalRep.twoPtrValue.ptr1 = NULL;
+  objPtr->typePtr = NULL;
 }
 
 /*

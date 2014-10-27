@@ -427,7 +427,6 @@ EXTERN void NsfDStringArgv(Tcl_DString *dsPtr, int objc, Tcl_Obj *CONST objv[])
 static int MethodSourceMatches(int withSource, NsfClass *cl, NsfObject *object);
 
 static NsfObjectOpt *NsfRequireObjectOpt(NsfObject *object) nonnull(1) returns_nonnull;
-static NsfClassOpt * NsfRequireClassOpt(/*@notnull@*/ NsfClass *cl) nonnull(1) returns_nonnull;
 
 static int ObjectSystemsCheckSystemMethod(Tcl_Interp *interp, CONST char *methodName,
                                           NsfObject *object, unsigned int flags)
@@ -4148,7 +4147,7 @@ NsfRequireObjectOpt(NsfObject *object) {
 }
 
 
-static NsfClassOpt *
+NsfClassOpt *
 NsfRequireClassOpt(/*@notnull@*/ NsfClass *cl) {
 
   assert(cl);
@@ -18724,15 +18723,23 @@ CleanupDestroyClass(Tcl_Interp *interp, NsfClass *cl, int softrecreate, int recr
     }
   }
 
-  if (clopt) {
+  if (clopt != NULL) {
     /*
      *  Remove this class from all isClassMixinOf lists and clear the
      *  class mixin list
      */
-    if (clopt->classMixins) RemoveFromClassMixinsOf(clopt->id, clopt->classMixins);
+    if (clopt->classMixins) {
+      RemoveFromClassMixinsOf(clopt->id, clopt->classMixins);
+    }
 
     CmdListFree(&clopt->classMixins, GuardDel);
     CmdListFree(&clopt->classFilters, GuardDel);
+
+    if (clopt->mixinRegObjs != NULL) {
+      NsfMixinregInvalidate(interp, clopt->mixinRegObjs);
+      DECR_REF_COUNT2("mixinRegObjs", clopt->mixinRegObjs);
+      clopt->mixinRegObjs = NULL;
+    }
 
     if (!recreate) {
       /*
@@ -18805,9 +18812,9 @@ CleanupDestroyClass(Tcl_Interp *interp, NsfClass *cl, int softrecreate, int recr
     MEM_COUNT_FREE("Tcl_InitHashTable", &cl->instances);
   }
 
-  if ((clopt) && (!recreate)) {
+  if (clopt != NULL && recreate == 0) {
     FREE(NsfClassOpt, clopt);
-    cl->opt = 0;
+    cl->opt = NULL;
   }
 
   if (subClasses) {
@@ -26770,8 +26777,8 @@ typedef struct NsfParamWrapper {
   int canFree;
 } NsfParamWrapper;
 
-static Tcl_DupInternalRepProc        ParamDupInteralRep;
-static Tcl_FreeInternalRepProc        ParamFreeInternalRep;
+static Tcl_DupInternalRepProc      ParamDupInteralRep;
+static Tcl_FreeInternalRepProc     ParamFreeInternalRep;
 static Tcl_UpdateStringProc        ParamUpdateString;
 
 static void ParamUpdateString(Tcl_Obj *objPtr) nonnull(1);
