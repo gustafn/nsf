@@ -1,12 +1,21 @@
 # -*- tcl -*-
 ############################################################
-# nx.tcl -
+# nx.tcl --
 #
-#      Implementation of the NX object system, based
-#      on the Next Scripting Framework
+#      Implementation of the Next Scripting Language (NX) object
+#      system, based on the Next Scripting Framework (NSF).
 #
 # Copyright (C) 2010-2014 Gustaf Neumann
 # Copyright (C) 2010-2014 Stefan Sobernig
+#
+# Vienna University of Economics and Business
+# Institute of Information Systems and New Media
+# A-1020, Welthandelsplatz 1
+# Vienna, Austria
+# 
+# This work is licensed under the MIT License http://www.opensource.org/licenses/MIT
+#
+# Copyright:
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation files
@@ -29,7 +38,7 @@
 # SOFTWARE.
 #
 package require nsf
-package provide nx 2.0b6
+package provide nx 2.0.0
 
 namespace eval ::nx {
 

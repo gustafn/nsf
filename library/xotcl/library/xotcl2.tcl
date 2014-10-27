@@ -1,11 +1,21 @@
+# -*- tcl -*-
 ############################################################
-# xotcl2.tcl -
+# xotcl2.tcl --
 #
-#      Implementation of the XOTcl 2 object systen, based
-#      on the Next Scripting Framework
+#      Implementation of the XOTcl 2 object system, based
+#      on the Next Scripting Framework (NSF).
 #
 # Copyright (C) 2010-2014 Gustaf Neumann
 # Copyright (C) 2010-2014 Stefan Sobernig
+#
+# Vienna University of Economics and Business
+# Institute of Information Systems and New Media
+# A-1020, Welthandelsplatz 1
+# Vienna, Austria
+# 
+# This work is licensed under the MIT License http://www.opensource.org/licenses/MIT
+#
+# Copyright:
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation files
@@ -28,7 +38,7 @@
 # SOFTWARE.
 #
 
-package provide XOTcl 2.0b6
+package provide XOTcl 2.0.0
 package require nx
 
 #######################################################
