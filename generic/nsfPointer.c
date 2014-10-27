@@ -1,10 +1,19 @@
 /*
- *  nsfPointer.c --
+ * nsfPointer.c --
  *
  *      Provide API for accessing mallocated data via Tcl.
- *      this is used e.q. via the MongoDB interface.
+ *      This is used e.g. via the MongoDB interface.
  *
- *  Copyright (C) 2011-2014 Gustaf Neumann
+ * Copyright (C) 2011-2014 Gustaf Neumann
+ *
+ * Vienna University of Economics and Business
+ * Institute of Information Systems and New Media
+ * A-1020, Welthandelsplatz 1
+ * Vienna, Austria
+ *
+ * This work is licensed under the MIT License http://www.opensource.org/licenses/MIT
+ *
+ * Copyright:
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),

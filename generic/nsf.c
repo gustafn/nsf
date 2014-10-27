@@ -1,9 +1,9 @@
 /*
  *  nsf.c --
  *
- *      Basic Machinery of the Next Scripting Framework, a Tcl based framework
- *      for supporting language oriented programming.  For Details, see
- *      http://next-scripting.org/
+ *      Basic Machinery of the Next Scripting Framework, a Tcl-based framework
+ *      for supporting language-oriented programming.  For details, see
+ *      http://next-scripting.org/.
  *
  * Copyright (C) 1999-2014 Gustaf Neumann (a) (b)
  * Copyright (C) 1999-2007 Uwe Zdun (a) (b)
@@ -18,7 +18,7 @@
  *
  * (b) Vienna University of Economics and Business
  *     Institute of Information Systems and New Media
- *     A-1090, Augasse 2-6
+ *     A-1020, Welthandelsplatz 1
  *     Vienna, Austria
  *
  * This work is licensed under the MIT License

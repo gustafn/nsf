@@ -15,7 +15,7 @@
  *
  * (b) Vienna University of Economics and Business
  *     Institute of Information Systems and New Media
- *     A-1090, Augasse 2-6
+ *     A-1020, Welthandelsplatz 1
  *     Vienna, Austria
  *
  * This work is licensed under the MIT License

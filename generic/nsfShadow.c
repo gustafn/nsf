@@ -1,10 +1,19 @@
 /*
- *  nsfShadow.c --
+ * nsfShadow.c --
  *
  *      API support for shadowing (overloading) and accessing C-implemented
  *      Tcl obj-commands.
  *
- *  Copyright (C) 1999-2014 Gustaf Neumann
+ * Copyright (C) 1999-2014 Gustaf Neumann
+ *
+ * Vienna University of Economics and Business
+ * Institute of Information Systems and New Media
+ * A-1020, Welthandelsplatz 1
+ * Vienna, Austria
+ *
+ * This work is licensed under the MIT License http://www.opensource.org/licenses/MIT
+ *
+ * Copyright:
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -23,6 +32,7 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
+ *
  */
 
 #include "nsfInt.h"

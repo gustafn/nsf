@@ -1,9 +1,18 @@
 /*
- *  nsfError.c --
+ * nsfError.c --
  *
  *      Tcl_Obj types provided by the Next Scripting Framework.
  *
- *  Copyright (C) 1999-2014 Gustaf Neumann
+ * Copyright (C) 1999-2014 Gustaf Neumann
+ *
+ * Vienna University of Economics and Business
+ * Institute of Information Systems and New Media
+ * A-1020, Welthandelsplatz 1
+ * Vienna, Austria
+ *
+ * This work is licensed under the MIT License http://www.opensource.org/licenses/MIT
+ *
+ * Copyright:
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),

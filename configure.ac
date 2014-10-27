@@ -219,6 +219,10 @@ AC_SUBST([DTRACE_OBJ])
 # and PKG_TCL_SOURCES.
 #-----------------------------------------------------------------------
 
+echo "==================== put version-specific stub files in place (needed for Tcl 8.6)"
+make getstubs
+echo "==================== getstubs done"
+
 TEA_ADD_SOURCES([nsf.c nsfError.c nsfObjectData.c nsfProfile.c \
 	nsfDebug.c nsfUtil.c nsfObj.c nsfPointer.c nsfEnumerationType.c \
         nsfCmdDefinitions.c nsfShadow.c nsfCompile.c aolstub.c nsfStubInit.c])
@@ -455,9 +459,6 @@ AC_CONFIG_FILES(CONFIG_OUTPUT_FILES)
 AC_OUTPUT
 
 chmod +x nxsh nxwish library/xotcl/xotclsh library/xotcl/xowish
-echo "==================== building genstubs (needed for Tcl 8.6)"
-make getstubs
-echo "==================== genstubs built"
 
 here=${PWD}
 
