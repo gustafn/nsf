@@ -218,15 +218,11 @@ AC_SUBST([DTRACE_OBJ])
 # This defines PKG(_STUB)_SOURCES, PKG(_STUB)_OBJECTS, PKG_HEADERS
 # and PKG_TCL_SOURCES.
 #-----------------------------------------------------------------------
-
-echo "==================== put version-specific stub files in place (needed for Tcl 8.6)"
-make getstubs
-echo "==================== getstubs done"
-
+stubdir=stubs${TCL_MAJOR_VERSION}.${TCL_MINOR_VERSION}
 TEA_ADD_SOURCES([nsf.c nsfError.c nsfObjectData.c nsfProfile.c \
 	nsfDebug.c nsfUtil.c nsfObj.c nsfPointer.c nsfEnumerationType.c \
         nsfCmdDefinitions.c nsfShadow.c nsfCompile.c aolstub.c nsfStubInit.c])
-TEA_ADD_HEADERS([generic/nsf.h generic/nsfInt.h generic/nsfDecls.h generic/nsfIntDecls.h])
+TEA_ADD_HEADERS([generic/nsf.h generic/nsfInt.h generic/${stubdir}/nsfDecls.h generic/${stubdir}/nsfIntDecls.h])
 TEA_ADD_INCLUDES([])
 TEA_ADD_LIBS([])
 TEA_ADD_CFLAGS([-DNSF_VERSION=\\\"$NSF_VERSION\\\" -DNSF_PATCHLEVEL=\\\"$NSF_PATCH_LEVEL\\\" \

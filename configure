@@ -5558,11 +5558,7 @@ fi
 # This defines PKG(_STUB)_SOURCES, PKG(_STUB)_OBJECTS, PKG_HEADERS
 # and PKG_TCL_SOURCES.
 #-----------------------------------------------------------------------
-
-echo "==================== put version-specific stub files in place (needed for Tcl 8.6)"
-make getstubs
-echo "==================== getstubs done"
-
+stubdir=stubs${TCL_MAJOR_VERSION}.${TCL_MINOR_VERSION}
 
     vars="nsf.c nsfError.c nsfObjectData.c nsfProfile.c \
 	nsfDebug.c nsfUtil.c nsfObj.c nsfPointer.c nsfEnumerationType.c \
@@ -5601,7 +5597,7 @@ echo "==================== getstubs done"
 
 
 
-    vars="generic/nsf.h generic/nsfInt.h generic/nsfDecls.h generic/nsfIntDecls.h"
+    vars="generic/nsf.h generic/nsfInt.h generic/${stubdir}/nsfDecls.h generic/${stubdir}/nsfIntDecls.h"
     for i in $vars; do
 	# check for existence, be strict because it is installed
 	if test ! -f "${srcdir}/$i" ; then

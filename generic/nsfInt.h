@@ -953,11 +953,14 @@ EXTERN void NsfCleanupObject_(NsfObject *object) nonnull(1);
 
 /*
  *
- *  internally used API functions
+ *  Internally used API functions
  *
  */
-
-#include "nsfIntDecls.h"
+#if defined(NRE)
+# include "stubs8.6/nsfIntDecls.h"
+#else
+# include "stubs8.5/nsfIntDecls.h"
+#endif
 
 /*
  * Profiling functions
