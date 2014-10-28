@@ -1,3 +1,14 @@
+2014-10-28  Gustaf Neumann  <neumann@wu-wien.ac.at>
+	- Don't complain at final ObjectDeletion about object refcounts unless
+	  we are in development mode
+	- adding .3 man pages to ease installation
+	- adding .1 man pages to ease installation
+
+2014-10-28  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- Effectively remove getstubs from makefile.vc
+	- Apply stubs* resolution without getstubs to makefile.vc
+
 2014-10-27  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
 	- use newest versions, re-generated stub files
