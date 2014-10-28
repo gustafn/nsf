@@ -30159,6 +30159,7 @@ FinalObjectDeletion(Tcl_Interp *interp, NsfObject *object) {
    * physical destroy round, we can set the counter to an appropriate
    * value to ensure deletion.
    */
+#if defined(NSF_DEVELOPMENT)
   if (unlikely(object->refCount != 1)) {
     if (object->refCount > 1) {
       NsfLog(interp, NSF_LOG_WARN,  "RefCount for obj %p %d (name %s) > 1",
@@ -30169,6 +30170,7 @@ FinalObjectDeletion(Tcl_Interp *interp, NsfObject *object) {
     }
     /*object->refCount = 1;*/
   }
+#endif
 
 #if !defined(NDEBUG)
   if (unlikely(object->activationCount != 0)) {
