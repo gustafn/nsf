@@ -1,0 +1,1438 @@
+'\"
+'\" Generated from file 'Object.man' by tcllib/doctools with format 'nroff'
+'\" Copyright (c) 2014 Stefan Sobernig <stefan.sobernig@wu.ac.at>, Gustaf Neumann <gustaf.neumann@wu.ac.at>; available under the Creative Commons Attribution 3.0 Austria license (CC BY 3.0 AT).
+'\"
+'\" The definitions below are for supplemental macros used in Tcl/Tk
+'\" manual entries.
+'\"
+'\" .AP type name in/out ?indent?
+'\"	Start paragraph describing an argument to a library procedure.
+'\"	type is type of argument (int, etc.), in/out is either "in", "out",
+'\"	or "in/out" to describe whether procedure reads or modifies arg,
+'\"	and indent is equivalent to second arg of .IP (shouldn't ever be
+'\"	needed;  use .AS below instead)
+'\"
+'\" .AS ?type? ?name?
+'\"	Give maximum sizes of arguments for setting tab stops.  Type and
+'\"	name are examples of largest possible arguments that will be passed
+'\"	to .AP later.  If args are omitted, default tab stops are used.
+'\"
+'\" .BS
+'\"	Start box enclosure.  From here until next .BE, everything will be
+'\"	enclosed in one large box.
+'\"
+'\" .BE
+'\"	End of box enclosure.
+'\"
+'\" .CS
+'\"	Begin code excerpt.
+'\"
+'\" .CE
+'\"	End code excerpt.
+'\"
+'\" .VS ?version? ?br?
+'\"	Begin vertical sidebar, for use in marking newly-changed parts
+'\"	of man pages.  The first argument is ignored and used for recording
+'\"	the version when the .VS was added, so that the sidebars can be
+'\"	found and removed when they reach a certain age.  If another argument
+'\"	is present, then a line break is forced before starting the sidebar.
+'\"
+'\" .VE
+'\"	End of vertical sidebar.
+'\"
+'\" .DS
+'\"	Begin an indented unfilled display.
+'\"
+'\" .DE
+'\"	End of indented unfilled display.
+'\"
+'\" .SO
+'\"	Start of list of standard options for a Tk widget.  The
+'\"	options follow on successive lines, in four columns separated
+'\"	by tabs.
+'\"
+'\" .SE
+'\"	End of list of standard options for a Tk widget.
+'\"
+'\" .OP cmdName dbName dbClass
+'\"	Start of description of a specific option.  cmdName gives the
+'\"	option's name as specified in the class command, dbName gives
+'\"	the option's name in the option database, and dbClass gives
+'\"	the option's class in the option database.
+'\"
+'\" .UL arg1 arg2
+'\"	Print arg1 underlined, then print arg2 normally.
+'\"
+'\" RCS: @(#) $Id: man.macros,v 1.1 2009/01/30 04:56:47 andreas_kupries Exp $
+'\"
+'\"	# Set up traps and other miscellaneous stuff for Tcl/Tk man pages.
+.if t .wh -1.3i ^B
+.nr ^l \n(.l
+.ad b
+'\"	# Start an argument description
+.de AP
+.ie !"\\$4"" .TP \\$4
+.el \{\
+.   ie !"\\$2"" .TP \\n()Cu
+.   el          .TP 15
+.\}
+.ta \\n()Au \\n()Bu
+.ie !"\\$3"" \{\
+\&\\$1	\\fI\\$2\\fP	(\\$3)
+.\".b
+.\}
+.el \{\
+.br
+.ie !"\\$2"" \{\
+\&\\$1	\\fI\\$2\\fP
+.\}
+.el \{\
+\&\\fI\\$1\\fP
+.\}
+.\}
+..
+'\"	# define tabbing values for .AP
+.de AS
+.nr )A 10n
+.if !"\\$1"" .nr )A \\w'\\$1'u+3n
+.nr )B \\n()Au+15n
+.\"
+.if !"\\$2"" .nr )B \\w'\\$2'u+\\n()Au+3n
+.nr )C \\n()Bu+\\w'(in/out)'u+2n
+..
+.AS Tcl_Interp Tcl_CreateInterp in/out
+'\"	# BS - start boxed text
+'\"	# ^y = starting y location
+'\"	# ^b = 1
+.de BS
+.br
+.mk ^y
+.nr ^b 1u
+.if n .nf
+.if n .ti 0
+.if n \l'\\n(.lu\(ul'
+.if n .fi
+..
+'\"	# BE - end boxed text (draw box now)
+.de BE
+.nf
+.ti 0
+.mk ^t
+.ie n \l'\\n(^lu\(ul'
+.el \{\
+.\"	Draw four-sided box normally, but don't draw top of
+.\"	box if the box started on an earlier page.
+.ie !\\n(^b-1 \{\
+\h'-1.5n'\L'|\\n(^yu-1v'\l'\\n(^lu+3n\(ul'\L'\\n(^tu+1v-\\n(^yu'\l'|0u-1.5n\(ul'
+.\}
+.el \}\
+\h'-1.5n'\L'|\\n(^yu-1v'\h'\\n(^lu+3n'\L'\\n(^tu+1v-\\n(^yu'\l'|0u-1.5n\(ul'
+.\}
+.\}
+.fi
+.br
+.nr ^b 0
+..
+'\"	# VS - start vertical sidebar
+'\"	# ^Y = starting y location
+'\"	# ^v = 1 (for troff;  for nroff this doesn't matter)
+.de VS
+.if !"\\$2"" .br
+.mk ^Y
+.ie n 'mc \s12\(br\s0
+.el .nr ^v 1u
+..
+'\"	# VE - end of vertical sidebar
+.de VE
+.ie n 'mc
+.el \{\
+.ev 2
+.nf
+.ti 0
+.mk ^t
+\h'|\\n(^lu+3n'\L'|\\n(^Yu-1v\(bv'\v'\\n(^tu+1v-\\n(^Yu'\h'-|\\n(^lu+3n'
+.sp -1
+.fi
+.ev
+.\}
+.nr ^v 0
+..
+'\"	# Special macro to handle page bottom:  finish off current
+'\"	# box/sidebar if in box/sidebar mode, then invoked standard
+'\"	# page bottom macro.
+.de ^B
+.ev 2
+'ti 0
+'nf
+.mk ^t
+.if \\n(^b \{\
+.\"	Draw three-sided box if this is the box's first page,
+.\"	draw two sides but no top otherwise.
+.ie !\\n(^b-1 \h'-1.5n'\L'|\\n(^yu-1v'\l'\\n(^lu+3n\(ul'\L'\\n(^tu+1v-\\n(^yu'\h'|0u'\c
+.el \h'-1.5n'\L'|\\n(^yu-1v'\h'\\n(^lu+3n'\L'\\n(^tu+1v-\\n(^yu'\h'|0u'\c
+.\}
+.if \\n(^v \{\
+.nr ^x \\n(^tu+1v-\\n(^Yu
+\kx\h'-\\nxu'\h'|\\n(^lu+3n'\ky\L'-\\n(^xu'\v'\\n(^xu'\h'|0u'\c
+.\}
+.bp
+'fi
+.ev
+.if \\n(^b \{\
+.mk ^y
+.nr ^b 2
+.\}
+.if \\n(^v \{\
+.mk ^Y
+.\}
+..
+'\"	# DS - begin display
+.de DS
+.RS
+.nf
+.sp
+..
+'\"	# DE - end display
+.de DE
+.fi
+.RE
+.sp
+..
+'\"	# SO - start of list of standard options
+.de SO
+.SH "STANDARD OPTIONS"
+.LP
+.nf
+.ta 4c 8c 12c
+.ft B
+..
+'\"	# SE - end of list of standard options
+.de SE
+.fi
+.ft R
+.LP
+See the \\fBoptions\\fR manual entry for details on the standard options.
+..
+'\"	# OP - start of full description for a single option
+.de OP
+.LP
+.nf
+.ta 4c
+Command-Line Name:	\\fB\\$1\\fR
+Database Name:	\\fB\\$2\\fR
+Database Class:	\\fB\\$3\\fR
+.fi
+..
+'\"	# CS - begin code excerpt
+.de CS
+.RS
+.nf
+.ta .25i .5i .75i 1i
+..
+'\"	# CE - end code excerpt
+.de CE
+.fi
+.RE
+..
+.de UL
+\\$1\l'|0\(ul'\\$2
+..
+.TH "nx::Object" 3 2.0 Object ""
+.BS
+.SH NAME
+nx::Object \- API reference of the base class in the NX object system
+.SH SYNOPSIS
+\fBnx::Object\fR \fBcreate\fR \fIobj\fR ?\fB-object-mixins\fR \fImixinSpec\fR? ?\fB-class\fR \fInewClassName\fR? ?\fB-object-filters\fR \fIfilterSpec\fR? ?\fIinitBlock\fR?
+.sp
+\fBnx::Object\fR \fBnew\fR ?\fB-object-mixins\fR \fImixinSpec\fR? ?\fB-class\fR \fInewClassName\fR? ?\fB-object-filters\fR \fIfilterSpec\fR? ?\fIinitBlock\fR?
+.sp
+\fIobj\fR ?\fBpublic\fR | \fBprivate\fR | \fBprotected\fR? \fBobject alias\fR \fImethodName\fR ?\fB-returns\fR \fIvalueChecker\fR? ?\fB-frame\fR \fBobject\fR | \fBmethod\fR? \fIcmdName\fR
+.sp
+\fIobj\fR \fBcget\fR \fIconfigurationOption\fR
+.sp
+\fIobj\fR \fBconfigure\fR ?\fIconfigurationOption\fR \fIvalue\fR ...?
+.sp
+\fIobj\fR \fBcontains\fR ?-withnew \fItrueFalse\fR? ?-object \fIobjectName\fR? ?-class \fIclassName\fR? \fIcmds\fR
+.sp
+\fIobj\fR \fBcopy\fR \fInewObjectName\fR
+.sp
+\fIobj\fR \fBdelete object\fR \fIfeature\fR \fIarg\fR
+.sp
+\fIobj\fR \fBdestroy\fR
+.sp
+\fIobj\fR \fBeval\fR \fIarg\fR ?\fIarg\fR ...?
+.sp
+\fIobj\fR \fBobject\fR \fBfilters\fR \fIsubmethod\fR ?\fIarg\fR ...?
+.sp
+\fIobj\fR ?\fBpublic\fR | \fBprotected\fR | \fBprivate\fR? \fBobject forward\fR \fImethodName\fR ?\fB-prefix\fR \fIprefixName\fR? ?\fB-frame\fR \fBobject\fR? ?\fB-returns\fR \fIvalueChecker\fR? ?\fB-verbose\fR? ?\fItarget\fR? ?\fIarg\fR ...?
+.sp
+\fIobj\fR \fBinfo children\fR ?\fB-type\fR \fIclassName\fR? ?\fIpattern\fR?
+.sp
+\fIobj\fR \fBinfo class\fR
+.sp
+\fIobj\fR \fBinfo has\fR ?\fBmixin\fR | \fBnamespace\fR | \fBtype\fR? ?\fIarg\fR ...?
+.sp
+\fIobj\fR \fBinfo lookup\fR \fIsubmethod\fR ?\fIarg\fR ...?
+.sp
+\fIobj\fR \fBinfo name\fR
+.sp
+\fIobj\fR \fBinfo info\fR ?\fB-asList\fR?
+.sp
+\fIobj\fR \fBinfo object filters\fR ?\fB-guards\fR? ?\fIpattern\fR?
+.sp
+\fIobj\fR \fBinfo object method\fR \fIoption\fR \fImethodName\fR
+.sp
+\fIobj\fR \fBinfo object methods\fR ?\fB-callprotection\fR \fIlevel\fR? ?\fB-type\fR \fImethodType\fR? ?\fB-path\fR? ?\fInamePattern\fR?
+.sp
+\fIobj\fR \fBinfo object mixins\fR ?\fB-guards\fR? ?\fIpattern\fR?
+.sp
+\fIobj\fR \fBinfo object slots\fR ?\fB-type\fR \fIclassName\fR? ?\fIpattern\fR?
+.sp
+\fIobj\fR \fBinfo object variables\fR ?\fIpattern\fR?
+.sp
+\fIobj\fR \fBinfo parent\fR
+.sp
+\fIobj\fR \fBinfo precedence\fR ?\fB-intrinsic\fR? ?\fIpattern\fR?
+.sp
+\fIobj\fR \fBinfo variable\fR \fIoption\fR \fIhandle\fR
+.sp
+\fIobj\fR \fBinfo vars\fR ?\fIpattern\fR?
+.sp
+\fIobj\fR ?\fBpublic\fR | \fBprotected\fR | \fBprivate\fR? \fBobject method\fR \fIname\fR \fIparameters\fR ?\fB-checkalways\fR? ?\fB-returns\fR \fIvalueChecker\fR? \fIbody\fR
+.sp
+\fIobj\fR \fBmove\fR \fInewObjectName\fR
+.sp
+\fIobj\fR \fBobject mixins\fR \fIsubmethod\fR ?\fIarg\fR ...?
+.sp
+\fIobj\fR \fBobject property\fR ?\fB-accessor\fR \fBpublic\fR | \fBprotected\fR | \fBprivate\fR? ?\fB-configurable\fR \fItrueFalse\fR? ?\fB-incremental\fR? ?\fB-class\fR \fIclassName\fR? ?\fB-nocomplain\fR? \fIspec\fR ?\fIinitBlock\fR?
+.sp
+\fIobj\fR \fBrequire namespace\fR
+.sp
+\fIobj\fR \fBrequire\fR ?\fBpublic\fR | \fBprotected\fR | \fBprivate\fR? \fBobject method\fR \fImethodName\fR
+.sp
+\fIobj\fR \fBunknown\fR \fIunknownMethodName\fR ?\fIarg\fR ...?
+.sp
+\fIobj\fR \fBobject variable\fR ?\fB-accessor\fR \fBpublic\fR | \fBprotected\fR | \fBprivate\fR? ?\fB-incremental\fR? ?\fB-class\fR \fIclassName\fR? ?\fB-configurable\fR \fItrueFalse\fR? ?\fB-initblock\fR \fIscript\fR? ?\fB-nocomplain\fR? \fIspec\fR ?\fIdefaultValue\fR?
+.sp
+.BE
+.SH DESCRIPTION
+.PP
+\fBnx::Object\fR is the base class of the NX object system. All
+objects defined in NX are (direct or indirect) instances of this
+base class. The methods provided by the \fBnx::Object\fR
+base class are available to all objects and to all classes defined in
+NX.
+.CS
++---------+
+| ::nx::* |
++---------+--------------------------------------Y
+|                                                |
+|  +---------+     instance of     +----------+  |
+|  |         |<....................|          |  |
+|  |  Class  |                     |  Object  |  |
+|  |         |....................>|          |  |
+|  +----+----+     subclass of     +-----+----+  |
+|       ^                           ^    ^       |
+instance.|...........................|....|......./
+of |                           |    |
++-----+-----+    subclass of      |    | instance
+|           |.....................|    | of
+|   /cls/   |    (by default)          |
+|           |                          |
++-----------+                          |
+^                                |
+instance |.............(xor)..............|
+of |         +-----------+          |
+|.........|           |..........|
+|   /obj/   |
+|           |
++-----------+
+.CE
+NX allows for creating and for using objects (e.g. \fIobj\fR) which are
+instantiated from the base class \fBnx::Object\fR
+directly. Typical use cases are singletons and anonymous, inline
+objects. In such use cases, NX does not require creating an
+intermediate application class (e.g. \fIcls\fR), which specializes the base class
+\fBnx::Object\fR by default, beforehand.
+.PP
+Objects (e.g. \fIobj\fR) which are creating by instantiating a
+previously defined application class (e.g. \fIcls\fR) are indirect
+instances of \fBnx::Object\fR.
+.PP
+Direct instances of \fBnx::Object\fR can be created as follows:
+.TP
+\fBnx::Object\fR \fBcreate\fR \fIobj\fR ?\fB-object-mixins\fR \fImixinSpec\fR? ?\fB-class\fR \fInewClassName\fR? ?\fB-object-filters\fR \fIfilterSpec\fR? ?\fIinitBlock\fR?
+.sp
+To create a direct instance of \fBnx::Object\fR having an explicit name
+\fIobj\fR, use \fBcreate\fR on \fBnx::Object\fR. Note that
+\fBcreate\fR is defined by \fBnx::Class\fR and is available to \fBnx::Object\fR being
+an instance of \fBnx::Class\fR. This way, singleton objects can be
+created, for example.
+.TP
+\fBnx::Object\fR \fBnew\fR ?\fB-object-mixins\fR \fImixinSpec\fR? ?\fB-class\fR \fInewClassName\fR? ?\fB-object-filters\fR \fIfilterSpec\fR? ?\fIinitBlock\fR?
+To create a direct instance of \fBnx::Object\fR having an
+automatically assigned, implict object name, use \fBnew\fR on \fBnx::Object\fR. Note
+that \fBnew\fR is defined by \fBnx::Class\fR and is available to
+\fBnx::Object\fR being an instance of \fBnx::Class\fR. Using \fBnew\fR allows
+for creating anonymous, inline objects, for example.
+.PP
+The configuration options for direct and indirect instances of \fBnx::Object\fR, which
+can be passed when calling \fBcreate\fR and \fBnew\fR, are
+documented in the subsequent section.
+.SH "CONFIGURATION OPTIONS FOR INSTANCES OF NX::OBJECT"
+.PP
+Configuration options can be used for configuring objects
+during their creation by passing the options as non-positional
+arguments into calls of \fBnew\fR and \fBcreate\fR (see \fBnx::Class\fR). An
+existing object can be queried for its current configuration using
+\fBcget\fR and it can be re-configured using \fBconfigure\fR. Legal
+configuration options are:
+.TP
+\fB-class\fR ?\fIclassName\fR?
+Retrieves the current class of the object or sets the object's class to \fIclassName\fR, if provided.
+.TP
+\fB-object-filters\fR ?\fIfilterMethods\fR?
+Retrieves the list of currently active per-object filter methods or sets
+a list of per-object filter methods, if \fIfilterMethods\fR is
+provided.
+.TP
+\fB-object-mixins\fR ?\fImixinSpecs\fR?
+If \fImixinSpecs\fR is not specified, retrieves the list of currently
+active per-object mixin specifications. If \fImixinSpecs\fR is
+specified, sets a list of per-object mixin specifications to become
+active. mixin classes are returned or set in terms of a list
+of mixin specifications.
+.PP
+.SH "METHODS FOR INSTANCES OF NX::OBJECT"
+.TP
+\fBalias\fR
+.RS
+.TP
+\fIobj\fR ?\fBpublic\fR | \fBprivate\fR | \fBprotected\fR? \fBobject alias\fR \fImethodName\fR ?\fB-returns\fR \fIvalueChecker\fR? ?\fB-frame\fR \fBobject\fR | \fBmethod\fR? \fIcmdName\fR
+Define an alias method for the given object. The
+resulting method registers a pre-existing Tcl command \fIcmdName\fR
+under the (alias) name \fImethodName\fR with the object. If \fIcmdName\fR refers
+to another \fBmethod\fR, the corresponding argument
+should be a valid method handle. If a Tcl command (e.g., a
+\fBproc\fR), the argument should be a fully qualified Tcl command
+name. If aliasing a subcommand (e.g., \fBarray exists\fR) of a Tcl namespace ensemble (e.g., \fBarray\fR), \fIcmdName\fR must hold the fully qualified subcommand name (and not the ensemble name of
+the subcommand).
+.sp
+As for a regular \fBobject method\fR, \fB-returns\fR
+allows for setting a value checker on the values returned by
+the aliased command \fIcmdName\fR.
+.sp
+When creating an alias method for
+a \fIC-implemented\fR Tcl command (i.e., command defined using the
+Tcl/NX C-API), \fB-frame\fR sets the scope
+for variable references used in the aliased command. If the provided
+value is \fBobject\fR, then variable references will be resolved in the
+context of the called object, i.e., the object upon which the alias method is
+invoked, as if they were object variables. There is no need for using
+the colon-prefix notation for identifying object variables. If the
+value is \fBmethod\fR, then the aliased command will be executed as a regular method call. The command is aware of its called-object context; i.e., it can resolve \fB::nx::self\fR. In addition, the alias method has access to the method-call context (e.g., \fBnx::next\fR). If \fB-frame\fR is omitted, and by default, the variable references will resolve in the context of the caller of the alias method.
+.RE
+.TP
+\fBcget\fR
+.RS
+.TP
+\fIobj\fR \fBcget\fR \fIconfigurationOption\fR
+The method is used to obtain the current value of \fIconfigurationOption\fR for
+\fIobj\fR. The configuration options
+available for querying through \fBcget\fR are determined by the
+configurable properties defined by the class hierarchy of \fIobj\fR. The
+queriable configuration options for \fIobj\fR can be
+obtained by calling \fBinfo configure\fR. The \fIconfigurationOption\fR can
+be set and modified using \fBconfigure\fR.
+.CS
+% nx::Object create obj
+::obj
+% ::obj info configure
+?-object-mixins /mixinreg .../? ?-class /class/? ?-object-filters /filterreg .../? ?/__initblock/?
+% ::obj cget -class
+::nx::Object
+.CE
+.RE
+.TP
+\fBconfigure\fR
+.RS
+.TP
+\fIobj\fR \fBconfigure\fR ?\fIconfigurationOption\fR \fIvalue\fR ...?
+This method sets configuration options on an object. The configuration
+options available for setting on \fIobj\fR are determined by the
+configurable properties defined by the class hierarchy of \fIobj\fR. The
+settable configuration options for \fIobj\fR can be
+obtained by calling \fBinfo configure\fR. Furthermore, \fBconfigure\fR is
+also called during object construction. Under object construction, it receives
+the arguments passed into calls of \fBcreate\fR and \fBnew\fR. Options
+set using \fBconfigure\fR can be retrieved using \fBcget\fR.
+.CS
+% nx::Class create Foo {:property x}
+::Foo
+% Foo create f1 -x 101
+::f1
+% f1 cget -x
+101
+% f1 configure -x 200
+% f1 cget -x
+200
+.CE
+.RE
+.TP
+\fBcontains\fR
+.RS
+.TP
+\fIobj\fR \fBcontains\fR ?-withnew \fItrueFalse\fR? ?-object \fIobjectName\fR? ?-class \fIclassName\fR? \fIcmds\fR
+This method acts as a builder for nested object structures. Object
+and class construction statements passed to this method as its last
+argument \fIcmds\fR are evaluated in a way so that the receiver object
+\fIobj\fR becomes the parent of the newly constructed objects and
+classes. This is realized by setting explicitly the namespace for
+constructing relatively named objects. Fully qualified object names in
+\fIcmds\fR evade the nesting.
+.sp
+\fB-withnew\fR requests the automatic rescoping of
+objects created using \fBnew\fR so that they become nested into the
+receiver object \fIobj\fR, rather than being created in the default
+namespace for autonamed objects (i.e., ::nsf). If turned off,
+autonamed objects do not become children of \fIobj\fR.
+.sp
+The parent object \fIobjectName\fR to be used instead of \fIobj\fR can be specified
+using \fB-object\fR. If this explicitly set parent
+object does not exist prior to calling \fBcontains\fR, it will be
+created on the fly as a direct instance of \fBnx::Object\fR. Alternatively,
+using \fB-class\fR, a class \fIclassName\fR other
+than \fBnx::Object\fR for the on-the-fly creation of \fIobjectName\fR
+can be provided.
+.CS
+% nx::Class create Window {
+:contains {
+#
+# Become children of Window, implicitly
+#
+nx::Class create Header; # Window::Header
+nx::Object create Panel; # Window::Panel
+}
+#
+# Explicitly declared a child of Window using [self]
+#
+nx::Class create [self]::Slider; # Window::Slider
+#
+# Fully-qualified objects do not become nested
+#
+nx::Class create ::Door; # ::Door
+}
+::Window
+% ::Window info children
+::Window::Panel ::Window::Header ::Window::Slider
+.CE
+.RE
+.TP
+\fBcopy\fR
+.RS
+.TP
+\fIobj\fR \fBcopy\fR \fInewObjectName\fR
+Creates a full and deep copy of a source object \fIobj\fR. The
+object's copy \fInewObjectName\fR features all structural and
+behavioral properties of the source object, including object
+variables, per-object methods, nested objects, slot objects,
+namespaces, filters, mixins, and traces.
+.RE
+.TP
+\fBdelete\fR
+.RS
+.TP
+\fIobj\fR \fBdelete object\fR \fIfeature\fR \fIarg\fR
+This method serves as the equivalent to Tcl's \fBrename\fR for
+removing structural (properties, variables) and behavioral features
+(methods) of the object:
+.TP
+\fIobj\fR \fBdelete object property\fR \fIpropertyName\fR
+.TP
+\fIobj\fR \fBdelete object variable\fR \fIvariableName\fR
+.TP
+\fIobj\fR \fBdelete object method\fR \fImethodName\fR
+Removes a property \fIpropertyName\fR, variable \fIvariableName\fR,
+and method \fImethodName\fR, respectively, previously defined for the
+scope of the object.
+.sp
+\fBdelete object method\fR can be equally used for removing regular methods (see \fBobject method\fR), an alias method (see \fBobject alias\fR), and a forwarder method (see \fBobject forward\fR).
+.RE
+.TP
+\fBdestroy\fR
+.RS
+.TP
+\fIobj\fR \fBdestroy\fR
+This method allows for explicitly destructing an object \fIobj\fR,
+potentially prior to \fIobj\fR being destroyed by the object system
+(e.g. during the shutdown of the object system upon calling \fBexit\fR):
+.CS
+[nx::Object new] destroy
+.CE
+.IP
+By providing a custom implementation of \fBdestroy\fR, the
+destruction procedure of \fIobj\fR can be customized. Typically, once
+the application-specific destruction logic has completed, a custom
+\fBdestroy\fR will trigger the actual, physical object destruction
+via \fBnext\fR.
+.CS
+% [nx::Object create obj {
+:public method destroy {} {
+puts "destroying [self]"
+next; # physical destruction
+}
+}] destroy
+destroying ::obj
+.CE
+.IP
+A customized object-desctruction scheme can be made shared between the instances
+of a class, by defining the custom \fBdestroy\fR for an
+application class:
+.CS
+% nx::Class create Foo {
+:method destroy {} {
+puts "destroying [self]"
+next; # physical destruction
+}
+}
+::Foo
+% Foo create f1
+::f1
+% f1 destroy
+destroying ::f1
+.CE
+.IP
+Physical destruction is performed by clearing the in-memory object
+storage of \fIobj\fR. This is achieved by passing \fIobj\fR into a
+call to \fBdealloc\fR provided by \fBnx::Class\fR. A near, scripted
+equivalent to the C-implemented \fBdestroy\fR provided by \fBnx::Object\fR would look
+as follows:
+.CS
+% Object method destroy {} {
+[:info class] dealloc [self]
+}
+.CE
+.IP
+Note, however, that \fBdestroy\fR is protected against
+application-level redefinition. Trying to evaluate the above script snippet yields:
+.CS
+refuse to overwrite protected method 'destroy'; derive e.g. a sub-class!
+.CE
+.IP
+A custom \fBdestroy\fR must be provided as a refinement in a
+subclass of \fBnx::Object\fR or in a mixin class.
+.RE
+.TP
+\fBeval\fR
+.RS
+.TP
+\fIobj\fR \fBeval\fR \fIarg\fR ?\fIarg\fR ...?
+Evaluates a special Tcl script for the scope of \fIobj\fR in the style
+of Tcl's \fBeval\fR. There are, however, notable differences to the
+standard \fBeval\fR: In this script, the colon-prefix notation is available to
+dispatch to methods and to access variables of \fIobj\fR. Script-local
+variables, which are thrown away once the evaluation of the script has
+completed, can be defined to store intermediate results.
+.CS
+% nx::Object create obj {
+:object property {bar 1}
+:public object method foo {x} { return $x }
+}
+::obj
+% ::obj eval {
+set y [:foo ${:bar}]
+}
+1
+.CE
+.RE
+.TP
+\fBfilters\fR
+.RS
+.TP
+\fIobj\fR \fBobject\fR \fBfilters\fR \fIsubmethod\fR ?\fIarg\fR ...?
+Accesses and modifies the list of methods which are registered as
+filters with \fIobj\fR using a specific setter or getter
+\fIsubmethod\fR:
+.RS
+.TP
+\fIobj\fR \fBobject\fR \fBfilters add\fR \fIspec\fR ?\fIindex\fR?
+Inserts a single filter into the current list of filters of \fIobj\fR. Using \fIindex\fR, a position in the existing list of filters for inserting the new filter can be set. If
+omitted, \fIindex\fR defaults to the list head (0).
+.TP
+\fIobj\fR \fBobject\fR \fBfilters clear\fR
+Removes all filters from \fIobj\fR and returns the list of removed filters. Clearing
+is equivalent to passing an empty list for \fIfilterSpecList\fR to
+\fBobject\fR \fBfilter set\fR.
+.TP
+\fIobj\fR \fBobject\fR \fBfilters delete\fR ?\fB-nocomplain\fR? \fIspecPattern\fR
+Removes a single filter from the current list of filters of
+\fIobj\fR whose spec matches \fIspecPattern\fR. \fIspecPattern\fR can
+contain special matching chars (see \fBstring match\fR). \fBobject\fR \fBfilters delete\fR will
+throw an error if there is no matching filter, unless
+\fB-nocomplain\fR is set.
+.TP
+\fIobj\fR \fBobject\fR \fBfilters get\fR
+Returns the list of current filter specifications registered for \fIobj\fR.
+.TP
+\fIobj\fR \fBobject\fR \fBfilters guard\fR \fImethodName\fR ?\fIexpr\fR?
+If \fIexpr\fR is specified, registers a guard expression \fIexpr\fR with a filter \fImethodName\fR. This requires that the filter \fImethodName\fR has been previously set using \fBobject\fR \fBfilters set\fR or added using
+\fBobject\fR \fBfilters add\fR. \fIexpr\fR must be a valid Tcl expression (see
+\fBexpr\fR). An empty string for \fIexpr\fR will clear the currently registered
+guard expression for filter \fImethodName\fR.
+.sp
+If \fIexpr\fR is omitted, returns the guard expression set on the
+filter \fImethodName\fR defined for \fIobj\fR. If none
+is available, an empty string will be returned.
+.TP
+\fIobj\fR \fBobject\fR \fBfilters methods\fR ?\fIpattern\fR?
+If \fIpattern\fR is omitted, returns all filter names which are
+defined by \fIobj\fR. By specifying \fIpattern\fR, the returned
+filters can be limited to those whose names match \fIpatterns\fR (see
+\fBstring match\fR).
+.TP
+\fIobj\fR \fBobject\fR \fBfilters set\fR \fIfilterSpecList\fR
+\fIfilterSpecList\fR takes a list of filter specs, with each spec being itself either a
+one-element or a two-element list: \fImethodName\fR ?-guard \fIguardExpr\fR?. \fImethodName\fR identifies
+an existing method of \fIobj\fR which becomes
+registered as a filter. If having three elements, the third
+element \fIguardExpr\fR will be stored as a guard expression of the
+filter. This guard expression must be a valid Tcl expression
+(see \fBexpr\fR). \fIexpr\fR is evaluated when \fIobj\fR receives a message to determine whether the
+filter should intercept the message. Guard expressions
+allow for realizing context-dependent or conditional filter
+composition.
+.RE
+.IP
+Every \fImethodName\fR in a \fIspec\fR must resolve to an existing method in
+the scope of the object. To
+access and to manipulate the list of filters of \fIobj\fR,
+\fBcget\fR|\fBconfigure\fR \fB-object-filters\fR can also be used.
+.RE
+.TP
+\fBforward\fR
+.RS
+.TP
+\fIobj\fR ?\fBpublic\fR | \fBprotected\fR | \fBprivate\fR? \fBobject forward\fR \fImethodName\fR ?\fB-prefix\fR \fIprefixName\fR? ?\fB-frame\fR \fBobject\fR? ?\fB-returns\fR \fIvalueChecker\fR? ?\fB-verbose\fR? ?\fItarget\fR? ?\fIarg\fR ...?
+Define a forward method for the given object. The
+definition of a forward method registers a predefined, but
+changeable list of forwarder arguments under the (forwarder) name \fImethodName\fR. Upon
+calling the forward method, the forwarder
+arguments are evaluated as a Tcl command call. That is, if present, \fItarget\fR
+is interpreted as a Tcl command (e.g., a Tcl \fBproc\fR or an object)
+and the remainder of the forwarder arguments \fIarg\fR as arguments passed into
+this command. The actual method arguments to the invocation of the
+forward method itself are appended to the list of forwarder
+arguments.
+If \fItarget\fR is omitted, the value of \fImethodName\fR is
+implicitly set and used as \fItarget\fR. This way, when providing a
+fully-qualified Tcl command name as \fImethodName\fR without \fItarget\fR, the
+unqualified \fImethodName\fR (\fBnamespace tail\fR) is used as the
+forwarder name; while the fully-qualified one serves as the \fItarget\fR.
+.sp
+As for a regular \fBobject method\fR, \fB-returns\fR allows
+for setting a value checker on the values returned by the
+resulting Tcl command call. When passing \fBobject\fR to \fB-frame\fR, the
+resulting Tcl command is evaluated in the context of the object
+receiving the forward method call. This way, variable names
+used in the resulting execution of a command become resolved as
+object variables.
+.sp
+The list of forwarder arguments \fIarg\fR can contain as its elements
+a mix of literal values and placeholders. Placeholders are prefixed
+with a percent symbol (%) and substituted for concrete values upon
+calling the forward method. These placeholders allow for
+constructing and for manipulating the arguments to be passed into the
+resulting command call on the fly:
+.RS
+.IP \(bu
+\fB%method\fR becomes substituted for the name of the forward method, i.e. \fImethodName\fR.
+.IP \(bu
+\fB%self\fR becomes substituted for the name of the object receiving the call of the forward method.
+.IP \(bu
+\fB%1\fR becomes substituted for the first method argument passed to the call of forward method. This requires, in turn, that \fIat least\fR one argument is passed along with the method call.
+.sp
+Alternatively, \fB%1\fR accepts an optional argument \fIdefaults\fR: {\fB%1\fR \fIdefaults\fR}.
+\fIdefaults\fR must be a valid Tcl list of two elements. For the first
+element, \fB%1\fR is substituted when there is no first method
+argument which can be consumed by \fB%1\fR. The second element is
+inserted upon availability of a first method argument with the
+consumed argument being appended right after the second list
+element. This placeholder is typically used to define a pair of
+getter/setter methods.
+.IP \(bu
+{\fB%@\fR\fIindex\fR \fIvalue\fR} becomes substituted for the
+specified \fIvalue\fR at position \fIindex\fR in the
+forwarder-arguments list, with \fIindex\fR being either a positive
+integer, a negative integer, or the literal value \fBend\fR (such as
+in Tcl's \fBlindex\fR). Positive integers specify a list position
+relative to the list head, negative integers give a position relative
+to the list tail. Indexes for positioning placeholders in the definition of a
+forward method are evaluated from left to right and should be
+used in ascending order.
+.sp
+Note that \fIvalue\fR can be a literal or any of the placeholders
+(e.g., \fB%method\fR, \fB%self\fR). Position prefixes are
+exempted, they are evaluated as \fB%\fR\fIcmdName\fR-placeholders in this context.
+.IP \(bu
+{\fB%argclindex\fR \fIlist\fR} becomes substituted for the
+\fIn\fRth element of the provided \fIlist\fR , with \fIn\fR
+corresponding to the number of method arguments passed to the forward method call.
+.IP \(bu
+\fB%%\fR is substituted for a single, literal percent symbol (%).
+.IP \(bu
+\fB%\fR\fIcmdName\fR is substituted for the value returned
+from executing the Tcl command \fIcmdName\fR. To pass arguments to \fIcmdName\fR, the placeholder should be wrapped into a Tcl \fBlist\fR: {\fB%\fR\fIcmdName\fR ?\fIarg\fR ...?}.
+.sp
+Consider using fully-qualified Tcl command names for \fIcmdName\fR to
+avoid possible name conflicts with the predefined placeholders, e.g.,
+\fB%self\fR vs. %\fB::nx::self\fR.
+.RE
+.sp
+To disambiguate the names of subcommands or methods, which potentially
+become called by a forward method, a prefix \fIprefixName\fR
+can be set using \fB-prefix\fR. This prefix is prepended
+automatically to the argument following \fItarget\fR (i.e., a second
+argument), if present. If missing, \fB-prefix\fR has no
+effect on the forward method call.
+.sp
+To inspect and to debug the conversions performed by the above
+placeholders, setting the switch \fB-verbose\fR
+will have the command list to be executed (i.e., after substitution)
+printed using \fB::nsf::log\fR (debugging level: \fBnotice\fR) upon
+calling the forward method.
+.RE
+.TP
+\fBinfo\fR
+.RS
+.TP
+\fIobj\fR \fBinfo children\fR ?\fB-type\fR \fIclassName\fR? ?\fIpattern\fR?
+Retrieves the list of nested (or aggregated) objects of \fIobj\fR. The
+resulting list contains the fully qualified names of the nested
+objects. If \fB-type\fR is set, only nested objects which are
+direct or indirect instances of class \fIclassName\fR are
+returned. Using \fIpattern\fR, only nested objects whose names match
+\fIpattern\fR are returned. The \fIpattern\fR string can contain
+special matching characters (see \fBstring match\fR). This method
+allows for introspecting on \fBcontains\fR.
+.TP
+\fIobj\fR \fBinfo class\fR
+Returns the fully qualified name of the current \fBnx::Class\fR of
+\fIobj\fR. In case of re-classification (see \fBconfigure\fR), the
+returned class will be different from the \fBnx::Class\fR from which \fIobj\fR was
+originally instantiated using \fBcreate\fR or \fBnew\fR.
+.TP
+\fIobj\fR \fBinfo has\fR ?\fBmixin\fR | \fBnamespace\fR | \fBtype\fR? ?\fIarg\fR ...?
+.RS
+.TP
+\fIobj\fR \fBinfo method has mixin\fR \fIclassName\fR
+Verifies whether \fIobj\fR has a given \fBnx::Class\fR \fIclassName\fR registered as a mixin class (returns: \fBtrue\fR) or not (returns: \fBfalse\fR).
+.TP
+\fIobj\fR \fBinfo has namespace\fR
+Checks whether the object has a companion Tcl namespace (returns:
+\fBtrue\fR) or not (returns: \fBfalse\fR). The namespace could
+have been created using, for example, \fBobject require namespace\fR.
+.TP
+\fIobj\fR \fBinfo has type\fR \fIclassName\fR
+Tests whether the \fBnx::Class\fR \fIclassName\fR is a type of the
+object (returns: \fBtrue\fR) or not (returns: \fBfalse\fR). That
+is, the method checks whether the object is a direct instance of \fIclassName\fR or
+an indirect instance of one of the superclasses of \fIclassName\fR.
+.RE
+.TP
+\fIobj\fR \fBinfo lookup\fR \fIsubmethod\fR ?\fIarg\fR ...?
+A collection of submethods to retrieve structural features (e.g.
+configuration options, slot objects) and behavioral
+features (e.g. methods, filters) available for \fIobj\fR from the perspective of a client to \fIobj\fR. Features provided by \fIobj\fR itself and by the classes in its current linearisation list are considered.
+.RS
+.TP
+\fIobj\fR \fBinfo lookup configure parameters\fR ?\fInamePattern\fR?
+Returns all configuration options available for \fIobj\fR as a list of
+method-parameter definitions. They can be used, for example, to
+define a custom method refinement for \fBconfigure\fR. The returned
+configuration options can be limited to those whose names match \fIpattern\fR
+(see \fBstring match\fR).
+.TP
+\fIobj\fR \fBinfo lookup configure syntax\fR
+Returns all configuration options available for \fIobj\fR as a
+concrete-syntax description to be used in human-understandable
+messages (e.g. errors or warnings, documentation strings).
+.TP
+\fIobj\fR \fBinfo lookup filter\fR \fIname\fR
+Returns the method handle for the filter method \fIname\fR, if
+currently registered. If there is no filter \fIname\fR registered, an
+empty string is returned.
+.TP
+\fIobj\fR \fBinfo lookup filters\fR ?\fB-guards\fR? ?\fInamePattern\fR?
+Returns the method handles of all filters which are active on \fIobj\fR. By
+turning on the switch \fB-guards\fR, the corresponding guard
+expressions, if any, are also reported for each filter as a three-element list: \fImethodHandle\fR -guard \fIguardExpr\fR. The returned filters can be limited to
+those whose names match \fInamePattern\fR (see \fBstring match\fR).
+.TP
+\fIobj\fR \fBinfo lookup method\fR \fIname\fR
+Returns the method handle for a method \fIname\fR if a
+so-named method can be invoked on \fIobj\fR. If there is no method
+\fIname\fR, an empty string is returned.
+.TP
+\fIobj\fR \fBinfo lookup methods\fR ?\fInamePattern\fR?
+Returns the names of all methods (including aliases and forwarders)
+which can be invoked on \fIobj\fR. The returned methods can be limited
+to those whose names match \fInamePattern\fR (see \fBstring match\fR).
+.TP
+\fIobj\fR \fBinfo lookup mixins\fR ?\fB-guards\fR? ?\fInamePattern\fR?
+Returns the object names of all mixin classes which are
+currently active on \fIobj\fR. By turning on the switch \fB-guards\fR, the corresponding guard expressions, if any, are also reported as a
+three-element list for each mixin class: \fIclassName\fR
+-guard \fIguardExpr\fR. The returned mixin classes can be
+limited to those whose names match \fInamePattern\fR (see \fBstring match\fR).
+.TP
+\fIobj\fR \fBinfo lookup slots\fR ?\fB-type\fR \fIclassName\fR? ?\fB-source\fR all | application | system? ?\fInamePattern\fR?
+Returns the command names of all slot objects responsible for
+managing properties, variables, and relations of \fIobj\fR. The
+returned slot objects can be limited according to any or a
+combination of the following criteria: First, slot objects
+can be filtered based on their command names matching \fInamePattern\fR (see \fBstring
+match\fR). Second, \fB-type\fR allows one to select
+slot objects which are instantiated from a subclass \fIclassName\fR of \fBnx::Slot\fR (default: \fBnx::Slot\fR) . Third, \fB-source\fR restricts slot objects returned according to their provenance in either the NX \fIsystem\fR classes or the \fIapplication\fR classes present in the linearisation list of \fIobj\fR (default: \fIall\fR).
+.sp
+To extract details of each slot object, use the \fBinfo\fR
+submethods available for each slot object.
+.TP
+\fIobj\fR \fBinfo lookup variables\fR
+Returns the command names of all slot objects responsible for
+managing properties and variables of \fIobj\fR, if provided by \fIobj\fR or the classes in the linearisation list of \fIobj\fR.
+.sp
+This is equivalent to calling: \fIobj\fR \fBinfo lookup slots\fR -type ::nx::VariableSlot -source all ?\fInamePattern\fR?.
+.sp
+To extract details of each slot object, use the \fBinfo\fR
+submethods available for each slot object.
+.RE
+.TP
+\fIobj\fR \fBinfo name\fR
+Returns the unqualified name of an object, i.e., the object name
+without any namespace qualifiers.
+.TP
+\fIobj\fR \fBinfo info\fR ?\fB-asList\fR?
+Returns the available submethods of the \fBinfo\fR method ensemble for
+\fIobj\fR, either as a pretty-printed string or as a
+Tcl list (if the switch \fB-asList\fR is set) for further
+processing.
+.TP
+\fIobj\fR \fBinfo object filters\fR ?\fB-guards\fR? ?\fIpattern\fR?
+If \fIpattern\fR is omitted, returns all filter names which are
+defined by \fIobj\fR. By turning on the switch \fB-guards\fR, the
+corresponding guard expressions, if any, are also
+reported along with each filter as a three-element list: \fIfilterName\fR -guard
+\fIguardExpr\fR. By specifying \fIpattern\fR, the
+returned filters can be limited to those whose names match \fIpatterns\fR (see
+\fBstring match\fR).
+.TP
+\fIobj\fR \fBinfo object method\fR \fIoption\fR \fImethodName\fR
+This introspection submethod provides access to the details
+of \fImethodName\fR provided by \fIobj\fR. Permitted values for
+\fIoption\fR are:
+.RS
+.IP \(bu
+\fBargs\fR returns a list containing the parameter names of
+\fImethodName\fR, in order of the method-parameter specification.
+.IP \(bu
+\fBbody\fR returns the body script of \fImethodName\fR.
+.IP \(bu
+\fBdefinition\fR returns a canonical command list which allows for (re-)define \fImethodName\fR.
+.IP \(bu
+\fBdefinitionhandle\fR returns the method handle for a submethod in a method ensemble from the perspective of \fIobj\fR as method provider. \fImethodName\fR must contain a complete method path.
+.IP \(bu
+\fBexists\fR returns 1 if there is a \fImethodName\fR provided by \fIobj\fR, returns 0 otherwise.
+.IP \(bu
+\fBhandle\fR returns the method handle for \fImethodName\fR.
+.IP \(bu
+\fBorigin\fR returns the aliased command if \fImethodName\fR is an alias method, or an empty string otherwise.
+.IP \(bu
+\fBparameters\fR returns the parameter specification of \fImethodName\fR as
+a list of parameter names and type specifications.
+.IP \(bu
+\fBregistrationhandle\fR returns the method handle for a submethod in a method ensemble from the perspective of the method caller. \fImethodName\fR must contain a complete method path.
+.IP \(bu
+\fBreturns\fR gives the type specification defined
+for the return value of \fImethodName\fR.
+.IP \(bu
+\fBsubmethods\fR returns the names of all submethods of \fImethodName\fR, if \fImethodName\fR is a method ensemble. Otherwise, an empty string is returned.
+.IP \(bu
+\fBsyntax\fR returns the method parameters of \fImethodName\fR as a
+concrete-syntax description to be used in human-understandable
+messages (e.g., errors or warnings, documentation strings).
+.IP \(bu
+\fBtype\fR returns whether \fImethodName\fR is a \fIscripted\fR method, an \fIalias\fR method, a \fIforwarder\fR method, or a \fIsetter\fR method.
+.RE
+.TP
+\fIobj\fR \fBinfo object methods\fR ?\fB-callprotection\fR \fIlevel\fR? ?\fB-type\fR \fImethodType\fR? ?\fB-path\fR? ?\fInamePattern\fR?
+Returns the names of all methods defined by \fIobj\fR. Methods
+covered include those defined using \fBobject alias\fR
+and \fBobject forward\fR. The returned methods can be limited
+to those whose names match \fInamePattern\fR (see \fBstring match\fR).
+.sp
+By setting \fB-callprotection\fR, only methods of a certain call protection \fIlevel\fR (\fBpublic\fR, \fBprotected\fR, or \fBprivate\fR) will be returned. Methods of a specific type can be requested using \fB-type\fR. The recognized values for \fImethodType\fR are:
+.RS
+.IP \(bu
+\fBscripted\fR denotes methods defined using \fBobject\fR \fBmethod\fR;
+.IP \(bu
+\fBalias\fR denotes alias methods defined using \fBobject\fR \fBalias\fR;
+.IP \(bu
+\fBforwarder\fR denotes forwarder methods defined using \fBobject\fR \fBforward\fR;
+.IP \(bu
+\fBsetter\fR denotes methods defined using \fB::nsf::setter\fR;
+.IP \(bu
+\fBall\fR returns methods of any type, without restrictions (also the default value);
+.RE
+.TP
+\fIobj\fR \fBinfo object mixins\fR ?\fB-guards\fR? ?\fIpattern\fR?
+If \fIpattern\fR is omitted, returns the object names of the mixin classes which
+extend \fIobj\fR directly. By turning on the switch \fB-guards\fR,
+the corresponding guard expressions, if any, are also
+reported along with each mixin as a three-element list: \fIclassName\fR
+-guard \fIguardExpr\fR. The returned mixin classes can be limited to those whose names
+match \fIpatterns\fR (see \fBstring match\fR).
+.TP
+\fIobj\fR \fBinfo object slots\fR ?\fB-type\fR \fIclassName\fR? ?\fIpattern\fR?
+If \fIpattern\fR is not specified, returns the object names of all slot objects defined by \fIobj\fR. The returned slot objects can be limited according to any or a
+combination of the following criteria: First, slot objects
+can be filtered based on their command names matching \fIpattern\fR (see \fBstring
+match\fR). Second, \fB-type\fR allows one to select
+slot objects which are instantiated from a subclass \fIclassName\fR of \fBnx::Slot\fR (default: \fBnx::Slot\fR).
+.TP
+\fIobj\fR \fBinfo object variables\fR ?\fIpattern\fR?
+If \fIpattern\fR is omitted, returns the object names of all slot objects provided
+by \fIobj\fR which are responsible for managing properties and variables of \fIobj\fR. Otherwise,
+only slot objects whose names match \fIpattern\fR are
+returned.
+.sp
+This is equivalent to calling: \fIobj\fR \fBinfo object slots\fR \fB-type\fR \fB::nx::VariableSlot\fR \fIpattern\fR.
+.sp
+To extract details of each slot object, use the \fBinfo\fR
+submethods available for each slot object.
+.TP
+\fIobj\fR \fBinfo parent\fR
+Returns the fully qualified name of the parent object of \fIobj\fR, if
+any. If there is no parent object, the name of the Tcl
+namespace containing \fIobj\fR (e.g. "::") will be reported.
+.TP
+\fIobj\fR \fBinfo precedence\fR ?\fB-intrinsic\fR? ?\fIpattern\fR?
+Lists the classes from which \fIobj\fR inherits structural (e.g.
+properties) and behavioral features (e.g. methods) and methods, in
+order of the linearisation scheme in NX. By setting the
+switch \fB-intrinsic\fR, only classes which participate in
+superclass/subclass relationships (i.e., intrinsic classes) are
+returned. If a \fIpattern\fR is provided only classes whose
+names match \fIpattern\fR are returned. The \fIpattern\fR string can
+contain special matching characters (see \fBstring match\fR).
+.TP
+\fIobj\fR \fBinfo variable\fR \fIoption\fR \fIhandle\fR
+Retrieves selected details about a variable represented by the given
+\fIhandle\fR. A \fIhandle\fR can be obtained by querying \fIobj\fR using
+\fBinfo object variables\fR and \fBinfo lookup variables\fR.
+Valid values for \fIoption\fR are:
+.RS
+.IP \(bu
+\fBname\fR returns the variable name.
+.IP \(bu
+\fBparameter\fR returns a canonical parameter specification
+eligible to (re-)define the given variable (e.g. using \fBobject variable\fR) in a new context.
+.IP \(bu
+\fBdefinition\fR returns a canonical representation of the definition command used to create the variable in its current configuration.
+.RE
+.TP
+\fIobj\fR \fBinfo vars\fR ?\fIpattern\fR?
+Yields a list of Tcl variable names created and defined for the scope of
+\fIobj\fR, i.e., object variables. The list can be limited to object variables whose names
+match \fIpattern\fR. The \fIpattern\fR string can contain special
+matching characters (see \fBstring match\fR).
+.RE
+.TP
+\fBmethod\fR
+.RS
+.TP
+\fIobj\fR ?\fBpublic\fR | \fBprotected\fR | \fBprivate\fR? \fBobject method\fR \fIname\fR \fIparameters\fR ?\fB-checkalways\fR? ?\fB-returns\fR \fIvalueChecker\fR? \fIbody\fR
+Defines a scripted method \fImethodName\fR for the scope of the object. The
+method becomes part of the object's signature interface. Besides
+a \fImethodName\fR, the method definition specifies
+the method \fIparameters\fR and a method \fIbody\fR.
+.sp
+\fIparameters\fR accepts a Tcl \fBlist\fR containing an arbitrary
+number of non-positional and positional parameter definitions. Each parameter
+definition comprises a parameter name, a parameter-specific value checker, and
+parameter options.
+.sp
+The \fIbody\fR contains the method implementation as a script block. In this body script, the
+colon-prefix notation is available to denote an object variable and
+a self call. In addition, the context of the object receiving the
+method call (i.e., the message) can be accessed (e.g., using \fBnx::self\fR) and
+the call stack can be introspected (e.g., using \fBnx::current\fR).
+.sp
+Optionally, \fB-returns\fR allows for setting a value checker on
+values returned by the method implementation. By setting
+the switch \fB-checkalways\fR, value checking on
+arguments and return value is guaranteed to be performed, even if
+value checking is temporarily disabled; see \fBnx::configure\fR).
+.sp
+A method closely resembles a Tcl \fBproc\fR, but it differs in some
+important aspects: First, a method can define non-positional
+parameters and value checkers on arguments. Second, the script
+implementing the method body can contain object-specific notation and
+commands (see above). Third, method calls \fIcannot\fR be intercepted
+using Tcl \fBtrace\fR. Note that an existing Tcl \fBproc\fR can be registered as
+an alias method with the object (see \fBobject alias\fR).
+.RE
+.TP
+\fBmove\fR
+.RS
+.TP
+\fIobj\fR \fBmove\fR \fInewObjectName\fR
+Effectively renames an object. First, the source object \fIobj\fR is
+cloned into a target object \fInewObjectName\fR using \fBcopy\fR. Second,
+the source object \fIobj\fR is destroyed by invoking \fBdestroy\fR.
+\fBmove\fR is also called internally when \fBrename\fR is
+performed for a Tcl command representing an object.
+.RE
+.TP
+\fBmixins\fR
+.RS
+.TP
+\fIobj\fR \fBobject mixins\fR \fIsubmethod\fR ?\fIarg\fR ...?
+Accesses and modifies the list of mixin classes of
+\fIobj\fR using a specific setter or getter \fIsubmethod\fR:
+.RS
+.TP
+\fIobj\fR \fBobject\fR \fBmixins add\fR \fIspec\fR ?\fIindex\fR?
+Inserts a single mixin class into the current list of mixin classes of \fIobj\fR. Using \fIindex\fR, a position in the existing list of mixin classes for inserting the new mixin class can be set. If
+omitted, \fIindex\fR defaults to the list head (0).
+.TP
+\fIobj\fR \fBobject\fR \fBmixins classes\fR ?\fIpattern\fR?
+If \fIpattern\fR is omitted, returns the object names of the mixin classes which
+extend \fIobj\fR directly. By specifying \fIpattern\fR, the returned mixin classes can
+be limited to those whose names match \fIpattern\fR (see \fBstring match\fR).
+.TP
+\fIobj\fR \fBobject\fR \fBmixins clear\fR
+Removes all mixin classes from \fIobj\fR and returns the list of removed mixin classes. Clearing is equivalent to passing an empty list for \fImixinSpecList\fR to
+\fBobject\fR \fBmixins set\fR.
+.TP
+\fIobj\fR \fBobject\fR \fBmixins delete\fR ?\fB-nocomplain\fR? \fIspecPattern\fR
+Removes a mixin class from a current list of mixin classes of \fIobj\fR whose spec matches \fIspecPattern\fR. \fIspecPattern\fR can contain special matching chars (see \fBstring match\fR). \fBobject\fR \fBmixins delete\fR will throw an error if there is no matching mixin class, unless \fB-nocomplain\fR is set.
+.TP
+\fIobj\fR \fBobject\fR \fBmixins get\fR
+Returns the list of current mixin specifications.
+.TP
+\fIobj\fR \fBobject\fR \fBmixins guard\fR \fIclassName\fR ?\fIexpr\fR?
+If \fIexpr\fR is specified, a guard expression \fIexpr\fR is registered with the mixin class \fIclassName\fR. This requires that the corresponding mixin class \fIclassName\fR has been previously set using \fBobject\fR \fBmixins set\fR or added using \fBobject\fR \fBmixins add\fR. \fIexpr\fR must be a valid Tcl expression (see
+\fBexpr\fR). An empty string for \fIexpr\fR will clear the currently registered
+guard expression for the mixin class \fIclassName\fR.
+.sp
+If \fIexpr\fR is not specified, returns the active guard
+expression. If none is available, an empty string will be returned.
+.TP
+\fIobj\fR \fBobject\fR \fBmixins set\fR \fImixinSpecList\fR
+\fImixinSpecList\fR represents a list of mixin class specs, with each spec being itself either a one-element or a three-element list: \fIclassName\fR ?-guard \fIguardExpr\fR?. If
+having one element, the element will be considered the \fIclassName\fR
+of the mixin class. If having three elements, the third
+element \fIguardExpr\fR will be stored as a guard expression of the
+mixin class. This guard expression will be evaluated using
+\fBexpr\fR when \fIobj\fR receives a message to determine if the mixin
+is to be considered during method dispatch or not. Guard expressions
+allow for realizing context-dependent or conditional mixin
+composition.
+.RE
+.IP
+At the time of setting the mixin relation, that is, calling \fBobject\fR \fBmixins\fR, every
+\fIclassName\fR as part of a spec must be an existing instance of \fBnx::Class\fR. To
+access and to manipulate the list of mixin classes of \fIobj\fR,
+\fBcget\fR|\fBconfigure\fR \fB-object-mixins\fR can also be used.
+.RE
+.TP
+\fB__object_configureparameter\fR
+.RS
+.TP
+\fIobj\fR \fB__object_configureparameter\fR
+Computes and returns the configuration options available for \fIobj\fR, to be consumed as method-parameter specification by \fBconfigure\fR.
+.RE
+.TP
+\fBproperty\fR
+.RS
+.TP
+\fIobj\fR \fBobject property\fR ?\fB-accessor\fR \fBpublic\fR | \fBprotected\fR | \fBprivate\fR? ?\fB-configurable\fR \fItrueFalse\fR? ?\fB-incremental\fR? ?\fB-class\fR \fIclassName\fR? ?\fB-nocomplain\fR? \fIspec\fR ?\fIinitBlock\fR?
+Defines a property for the scope of the object. The \fIspec\fR provides
+the property specification as a \fBlist\fR holding at least one
+element or, maximum, two elements:
+\fIpropertyName\fR?\fB:\fR\fItypeSpec\fR? ?\fIdefaultValue\fR?. The \fIpropertyName\fR is also used as to form the names of the getter/setter methods,
+if requested (see \fB-accessor\fR). It
+is, optionally, equipped with a \fItypeSpec\fR following a colon
+delimiter which specifies a value checker for the values
+which become assigned to the property. The second, optional element
+sets a \fIdefaultValue\fR for this property.
+.sp
+If \fB-accessor\fR is set, a property will provide for
+a pair of getter and setter methods:
+.RS
+.TP
+\fIobj\fR \fIpropertyName\fR \fBset\fR \fIvalue\fR
+Sets the property \fIpropertyName\fR to \fIvalue\fR.
+.TP
+\fIobj\fR \fIpropertyName\fR \fBget\fR
+Returns the current value of property \fIpropertyName\fR.
+.TP
+\fIobj\fR \fIpropertyName\fR \fBunset\fR
+Removes the value store of \fIpropertyName\fR (e.g., an object variable), if existing.
+.RE
+.IP
+The option value passed along \fB-accessor\fR sets the level of
+call protection for the generated getter and setter methods: \fBpublic\fR,
+\fBprotected\fR, or \fBprivate\fR. By default, no getter and setter
+methods are created.
+.sp
+Turning on the switch \fB-incremental\fR provides a refined
+setter interface to the value managed by the property. First,
+setting \fB-incremental\fR implies requesting \fB-accessor\fR
+(set to \fBpublic\fR by default, if not specified
+explicitly). Second, the managed value will be considered a valid Tcl
+list. A multiplicity of \fB1..*\fR is set by default, if not
+specified explicitly as part of \fIspec\fR. Third, to
+manage this list value element-wise (\fIincrementally\fR), two
+additional setter methods become available:
+.RS
+.TP
+\fIobj\fR \fIpropertyName\fR \fBadd\fR \fIelement\fR ?\fIindex\fR?
+Adding \fIelement\fR to the managed list value, at the list position given by \fIindex\fR (by default: 0).
+.TP
+\fIobj\fR \fIpropertyName\fR \fBdelete\fR \fIelementPattern\fR
+Removing one or multiple elements from the managed list value which match \fIelementPattern\fR. \fIelementPattern\fR can contain matching characters (see \fBstring match\fR).
+.RE
+.sp
+By setting \fB-configurable\fR to \fBtrue\fR (the default), the
+property can be accessed and modified through \fBcget\fR and
+\fBconfigure\fR, respectively. If \fBfalse\fR, no configuration option
+will become available via \fBcget\fR and \fBconfigure\fR.
+.sp
+If neither \fB-accessor\fR nor \fB-configurable\fR are
+requested, the value managed by the property will have to be accessed
+and modified directly. If the property manages an object variable, its
+value will be readable and writable using \fBset\fR and \fBeval\fR.
+.sp
+A property becomes implemented by a slot object under any of the following conditions:
+.RS
+.IP \(bu
+\fB-configurable\fR equals \fBtrue\fR (by default).
+.IP \(bu
+\fB-accessor\fR is one of \fBpublic\fR, \fBprotected\fR, or \fBprivate\fR.
+.IP \(bu
+\fB-incremental\fR is turned on.
+.IP \(bu
+\fIinitBlock\fR is a non-empty string.
+.RE
+.IP
+Assuming default settings, every property is realized by a
+slot object.
+.sp
+Provided a slot object managing the property is to be
+created, a custom class \fIclassName\fR from which this slot object is
+to be instantiated can be set using \fB-class\fR. The
+default value is \fB::nx::VariableSlot\fR.
+.sp
+The last argument \fIinitBlock\fR accepts an optional Tcl script which is passed into
+the initialization procedure (see \fBconfigure\fR) of the property's slot object. See
+also \fB\fIinitBlock\fR for \fBcreate\fR and \fBnew\fR\fR.
+.sp
+By default, the property will ascertain that no (potentially)
+pre-existing and equally named object variable will be overwritten
+when defining the property. In case of a conflict, an error exception
+is thrown:
+.CS
+% Object create obj { set :x 1 }
+::obj
+% ::obj object property {x 2}
+object ::obj has already an instance variable named 'x'
+.CE
+.IP
+If the switch \fB-nocomplain\fR is on, this check is omitted (continuing the above example):
+.CS
+% ::obj object property -nocomplain {x 2}
+% ::obj eval {set :x}
+2
+.CE
+.RE
+.TP
+\fBrequire\fR
+.RS
+.TP
+\fIobj\fR \fBrequire namespace\fR
+Create a Tcl namespace named after the object \fIobj\fR. All object
+variables become available as namespace variables.
+.TP
+\fIobj\fR \fBrequire\fR ?\fBpublic\fR | \fBprotected\fR | \fBprivate\fR? \fBobject method\fR \fImethodName\fR
+Attempts to register a method definition made available using \fB::nsf::method::provide\fR under
+the name \fImethodName\fR with \fIobj\fR . The registered
+method is subjected to default call protection (\fBprotected\fR), if
+not set explicitly.
+.RE
+.TP
+\fBunknown\fR
+.RS
+.TP
+\fIobj\fR \fBunknown\fR \fIunknownMethodName\fR ?\fIarg\fR ...?
+This method is called implicitly whenever an unknown method is invoked.
+\fIunknownMethodName\fR indicates the unresolvable method name,
+followed by the remainder of the original argument vector as a number
+of \fIarg\fR of the indirected method invocation.
+.RE
+.TP
+\fBvariable\fR
+.RS
+.TP
+\fIobj\fR \fBobject variable\fR ?\fB-accessor\fR \fBpublic\fR | \fBprotected\fR | \fBprivate\fR? ?\fB-incremental\fR? ?\fB-class\fR \fIclassName\fR? ?\fB-configurable\fR \fItrueFalse\fR? ?\fB-initblock\fR \fIscript\fR? ?\fB-nocomplain\fR? \fIspec\fR ?\fIdefaultValue\fR?
+Defines a variable for the scope of the object. The \fIspec\fR provides
+the variable specification: \fIvariableName\fR?\fB:\fR\fItypeSpec\fR?. The
+\fIvariableName\fR will be used to name the underlying Tcl variable
+and the getter/setter methods, if requested (see \fB-accessor\fR).
+\fIspec\fR is optionally equipped with a \fItypeSpec\fR following a colon
+delimiter which specifies a value checker for the values
+managed by the variable. Optionally, a \fIdefaultValue\fR can
+be defined.
+.sp
+If \fB-accessor\fR is set explicitly, a variable will provide for a pair of
+getter and setter methods:
+.RS
+.TP
+\fIobj\fR \fIvariableName\fR \fBset\fR \fIvarValue\fR
+Sets \fIvariableName\fR to \fIvarValue\fR.
+.TP
+\fIobj\fR \fIvariableName\fR \fBget\fR
+Returns the current value of \fIvariableName\fR.
+.TP
+\fIobj\fR \fIvariableName\fR \fBunset\fR
+Removes \fIvariableName\fR, if existing, underlying the property.
+.RE
+.IP
+The option value passed along \fB-accessor\fR sets the level of
+call protection for the getter and setter methods: \fBpublic\fR,
+\fBprotected\fR, or \fBprivate\fR. By default, no getter and setter
+methods are created.
+.sp
+Turning on the switch \fB-incremental\fR provides a refined
+setter interface to the value managed by the variable. First,
+setting \fB-incremental\fR implies requesting \fB-accessor\fR
+(\fBpublic\fR by default, if not specified
+explicitly). Second, the managed value will be considered a valid Tcl
+list. A multiplicity of \fB1..*\fR is set by default, if not
+specified explicitly as part of \fIspec\fR (see above). Third, to
+manage this list value element-wise (\fIincrementally\fR), two
+additional setter operations become available:
+.RS
+.TP
+\fIobj\fR \fIvariableName\fR \fBadd\fR \fIelement\fR ?\fIindex\fR?
+Adding \fIelement\fR to the managed list value, at the list position given by \fIindex\fR (by default: 0).
+.TP
+\fIobj\fR \fIvariableName\fR \fBdelete\fR \fIelementPattern\fR
+Removing one or multiple elements from the managed list value which
+match \fIelementPattern\fR. \fIelementPattern\fR can contain matching
+characters (see \fBstring match\fR).
+.RE
+.sp
+By setting \fB-configurable\fR to \fBtrue\fR, the variable can be
+accessed and modified via \fBcget\fR and \fBconfigure\fR,
+respectively. If \fBfalse\fR (the default), the interface based on \fBcget\fR and
+\fBconfigure\fR will not become available. In this case, and provided that
+\fB-accessor\fR is set, the variable can be accessed and modified via
+the getter/setter methods. Alternatively, the underlying Tcl variable, which
+is represented by the variable, can always be accessed and modified
+directly, e.g., using \fBeval\fR. By default, \fB-configurable\fR is
+\fBfalse\fR.
+.sp
+A variable becomes implemented by a slot object under any of the following conditions:
+.RS
+.IP \(bu
+\fB-configurable\fR equals \fBtrue\fR.
+.IP \(bu
+\fB-accessor\fR is one of \fBpublic\fR, \fBprotected\fR, or \fBprivate\fR.
+.IP \(bu
+\fB-incremental\fR is turned on.
+.IP \(bu
+\fB-initblock\fR is a non-empty string.
+.RE
+.IP
+Provided a slot object managing the variable is to be
+created, a custom class \fIclassName\fR from which this slot object is
+to be instantiated can be set using \fB-class\fR. The
+default value is \fB::nx::VariableSlot\fR.
+.sp
+Using \fB-initblock\fR, an optional Tcl \fIscript\fR can be defined which becomes passed into
+the initialization procedure (see \fBconfigure\fR) of the variable's slot object. See
+also \fB\fIinitBlock\fR for \fBcreate\fR and \fBnew\fR\fR.
+.sp
+By default, the variable will ascertain that a
+pre-existing and equally named object variable will not be overwritten
+when defining the variable. In case of a conflict, an error exception
+is thrown:
+.CS
+% Object create obj { set :x 1 }
+::obj
+% ::obj object variable x 2
+object ::obj has already an instance variable named 'x'
+.CE
+.IP
+If the switch \fB-nocomplain\fR is on, this check is omitted (continuing the above example):
+.CS
+% ::obj object variable -nocomplain x 2
+% ::obj eval {set :x}
+2
+.CE
+.RE
+.PP
+.SH "OBJECT SELF-REFERENCE"
+Objects are naturally recursive, with methods of an object \fB::obj\fR
+frequently invoking other methods in the same object \fB::obj\fR and
+accessing \fB::obj\fR's object variables. To represent these
+self-references effectively in method bodies, and dependening on the
+usage scenario, NX offers two alternative notations for self-references: one based on a
+special-purpose syntax token ("colon prefix"), the other based on the
+command \fBnx::current\fR.
+.PP
+Both, the colon-prefix notation and
+\fBnx::current\fR, may be used only in method bodies and scripts
+passed to \fBeval\fR. If they appear anywhere else, an error will be
+reported.
+There are three main use cases for self-references:
+.IP [1]
+As a \fIplaceholder\fR for the currently active object, \fBnx::current\fR
+can be used to retrieve the object name.
+.IP [2]
+Reading and writing \fIobject variables\fR directly (i.e. without getter/setter methods in place) require the use
+of variable names carrying the prefix \fB:\fR ("colon-prefix
+notation"). Internally, colon-prefixed variable names are processed
+using Tcl's variable resolvers. Alternatively, one can provide for getter/setter methods for object variables (see \fBproperty\fR and \fBvariable\fR).
+.IP [3]
+\fISelf-referential method calls\fR can be defined via
+prefixing (\fB:\fR) the method names or, alternatively, via \fBnx::current\fR. Internally,
+colon-prefixed method names are processed using Tcl's command
+resolvers. The colon-prefix notation is recommended, also because it
+has a (slight) performance advantage over \fBnx::current\fR which
+requires two rather than one command evaluation per method call.
+.PP
+See the following listing for some examples corresponding to use cases 1--3:
+.CS
+Object create ::obj {
+puts [current]; 			# 1) print name of currently active object ('::obj')
+set :x 1; :object variable y 2;	# 2) object variables
+:public object method print {} {
+set z 3; 				# 2.a) method-local variable
+puts ${:x}-${:y}-$z; 		# 2.b) variable substitution using '$' and ':'
+puts [set :x]-[set :y]-[set z]; 	# 2.c) reading variables using 'set'
+set :x 1; incr :y; 			# 2.d) writing variables using 'set', 'incr', ...
+}
+:public object method show {} {
+:print;				# 3.a) self-referential method call using ':'
+[current] print;			# 3.b) self-referential method call using 'nx::current'
+[current object] print;              # 3.c) self-referential method call using 'nx::current object'
+}
+:show
+}
+.CE
+.SH COPYRIGHT
+.nf
+Copyright (c) 2014 Stefan Sobernig <stefan.sobernig@wu.ac.at>, Gustaf Neumann <gustaf.neumann@wu.ac.at>; available under the Creative Commons Attribution 3.0 Austria license (CC BY 3.0 AT).
+.fi
