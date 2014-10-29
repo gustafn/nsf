@@ -19,7 +19,10 @@ the corresponding reverse index}]
 [vset MODIFIER "object"]
 
 [copyright {2014 Stefan Sobernig <stefan.sobernig@wu.ac.at>, Gustaf Neumann <gustaf.neumann@wu.ac.at>; available under the Creative Commons Attribution 3.0 Austria license (CC BY 3.0 AT).}]
+
+[moddesc "NX API"]
 [titledesc {API reference of the base class in the NX object system}]
+
 
 [description]
 [para]
@@ -806,22 +809,32 @@ See the following listing for some examples corresponding to use cases 1--3:
 
 
 [example {
-Object create ::obj {
-  puts [current]; 			# 1) print name of currently active object ('::obj')        
-  set :x 1; :object variable y 2;	# 2) object variables
-  :public object method print {} {
-    set z 3; 				# 2.a) method-local variable
-    puts ${:x}-${:y}-$z; 		# 2.b) variable substitution using '$' and ':'
-    puts [set :x]-[set :y]-[set z]; 	# 2.c) reading variables using 'set'
-    set :x 1; incr :y; 			# 2.d) writing variables using 'set', 'incr', ...
+  Object create ::obj {
+    # 1) print name of currently active object ('::obj')
+    puts [current];
+    # 2) object variables
+    set :x 1; :object variable y 2;	
+    :public object method print {} {
+      # 2.a) method-local variable
+      set z 3;
+      # 2.b) variable substitution using '$' and ':'
+      puts ${:x}-${:y}-$z;
+      # 2.c) reading variables using 'set'
+      puts [set :x]-[set :y]-[set z];
+      # 2.d) writing variables using 'set', 'incr', ...
+      set :x 1; incr :y; 			
+    }
+    :public object method show {} {
+      # 3.a) self-referential method call using ':'	
+      :print;
+      # 3.b) self-referential method call using 'nx::current'
+      [current] print;
+      # 3.c) self-referential method call using 'nx::current object'
+      [current object] print;              
+    }
+    :show
   }
-  :public object method show {} {
-   :print;				# 3.a) self-referential method call using ':'	
-   [current] print;			# 3.b) self-referential method call using 'nx::current'
-   [current object] print;              # 3.c) self-referential method call using 'nx::current object'
-  }
-  :show
-}}]
+}]
 
 
 [manpage_end]

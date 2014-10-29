@@ -181,6 +181,11 @@ div.synopsis {
     padding: 0 1em;
 }
 
+div.synopsis ul {
+    padding-left: 0;
+}
+
+
 a:link {
     color: #002a4b;
     text-decoration: none
