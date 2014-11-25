@@ -1,8 +1,30 @@
+body {
+    font-size: 13px !important;
+    /*prince-linebreak-magic: auto;*/
+}
+
+pre.example {
+    font-size: 80% !important;
+    white-space: pre-wrap !important;
+}
+
+ul.syntax {
+    margin-left: 0 !important;
+    padding-left: 0 !important; 
+}
+
+ul.syntax li {
+    text-indent: 1em hanging !important;
+}
+
+h2 { string-set: chapter-title content() } 
+
 @page {
     size: A4;
     /* DIV 15 for A4 paper */
     margin: 19.80mm 14mm;
-    @top { 
+
+    @top {
 	font-family: "Arial","Verdana", sans-serif;
 	color: #666;
 	font-size: 80%;
@@ -16,4 +38,11 @@
     }
 }
 
-h2 { string-set: chapter-title content() }
+@page:first { 
+   @top { content: normal }
+}
+
+
+
+
+

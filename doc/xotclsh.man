@@ -5,6 +5,7 @@
 [copyright {2014 Stefan Sobernig <stefan.sobernig@wu.ac.at>, Gustaf Neumann <gustaf.neumann@wu.ac.at>; available under the Creative Commons Attribution 3.0 Austria license (CC BY 3.0 AT).}]
 
 [titledesc {Simple shell containing NSF/XOTcl2 interpreter}]
+[moddesc {Command-line interface}]
 
 [description]
 
