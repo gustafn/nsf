@@ -201,3 +201,7 @@ declare 38 generic {
 declare 39 generic {
   int Nsf_CmdDefinitionRegister(Tcl_Interp *interp, Nsf_methodDefinition *definitionRecords)
 }
+declare 40 generic {
+  int NsfArgumentError(Tcl_Interp *interp, CONST char *errorMsg, Nsf_Param CONST *paramPtr,
+		       Tcl_Obj *cmdNameObj, Tcl_Obj *methodPathObj)
+}

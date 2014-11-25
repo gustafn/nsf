@@ -314,6 +314,14 @@ EXTERN int		Nsf_EnumerationTypeRegister(Tcl_Interp *interp,
 EXTERN int		Nsf_CmdDefinitionRegister(Tcl_Interp *interp,
 				Nsf_methodDefinition *definitionRecords);
 #endif
+#ifndef NsfArgumentError_TCL_DECLARED
+#define NsfArgumentError_TCL_DECLARED
+/* 40 */
+EXTERN int		NsfArgumentError(Tcl_Interp *interp,
+				CONST char *errorMsg,
+				Nsf_Param CONST *paramPtr,
+				Tcl_Obj *cmdNameObj, Tcl_Obj *methodPathObj);
+#endif
 
 typedef struct NsfStubHooks {
     struct NsfIntStubs *nsfIntStubs;
@@ -363,6 +371,7 @@ typedef struct NsfStubs {
     int (*nsf_ConvertToTclobj) (Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr, ClientData *clientData, Tcl_Obj **outObjPtr); /* 37 */
     int (*nsf_EnumerationTypeRegister) (Tcl_Interp *interp, Nsf_EnumeratorConverterEntry *typeRecords); /* 38 */
     int (*nsf_CmdDefinitionRegister) (Tcl_Interp *interp, Nsf_methodDefinition *definitionRecords); /* 39 */
+    int (*nsfArgumentError) (Tcl_Interp *interp, CONST char *errorMsg, Nsf_Param CONST *paramPtr, Tcl_Obj *cmdNameObj, Tcl_Obj *methodPathObj); /* 40 */
 } NsfStubs;
 
 extern NsfStubs *nsfStubsPtr;
@@ -533,6 +542,10 @@ extern NsfStubs *nsfStubsPtr;
 #ifndef Nsf_CmdDefinitionRegister
 #define Nsf_CmdDefinitionRegister \
 	(nsfStubsPtr->nsf_CmdDefinitionRegister) /* 39 */
+#endif
+#ifndef NsfArgumentError
+#define NsfArgumentError \
+	(nsfStubsPtr->nsfArgumentError) /* 40 */
 #endif
 
 #endif /* defined(USE_NSF_STUBS) && !defined(USE_NSF_STUB_PROCS) */

@@ -15,6 +15,9 @@ array set ptrConverter {
   mongoc_gridfs_t 1
 }
 
+cmd json NsfMongoJson {
+  {-argName "list" -required 1 -type tclobj}
+}
 
 cmd close NsfMongoClose {
   {-argName "conn" -required 1 -type mongoc_client_t -withObj 1}
@@ -31,6 +34,7 @@ cmd run NsfMongoRunCmd {
 cmd status NsfMongoStatus {
   {-argName "conn" -required 1 -type mongoc_client_t -withObj 1}
 }
+
 
 #
 # collection

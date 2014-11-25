@@ -492,7 +492,7 @@ BsonAppend(Tcl_Interp *interp, bson_t *bbPtr, CONST char *name, CONST char *tag,
  */
 static int
 BsonAppendObjv(Tcl_Interp *interp, bson_t *bPtr, int objc, Tcl_Obj **objv) {
-  int i;
+  int i, result = TCL_OK;
 
   bson_init(bPtr);
   for (i = 0; i < objc; i += 3) {
@@ -500,16 +500,51 @@ BsonAppendObjv(Tcl_Interp *interp, bson_t *bPtr, int objc, Tcl_Obj **objv) {
     char *tag = ObjStr(objv[i+1]);
     Tcl_Obj *value = objv[i+2];
     /*fprintf(stderr, "adding pair '%s' (%s) '%s'\n", name, tag, ObjStr(value));*/
-    BsonAppend(interp, bPtr, name, tag, value);
+    result = BsonAppend(interp, bPtr, name, tag, value);
+    if (result != TCL_OK) {
+      break;
+    }
   }
-
-  return TCL_OK;
+  return result;
 }
 
 
 /***********************************************************************
  * Define the api functions
  ***********************************************************************/
+/*
+cmd json NsfMongoJson {
+  {-argName "list" -required 1 -type tclobj}
+}
+*/
+static int
+NsfMongoJson(Tcl_Interp *interp, Tcl_Obj *listObj) {
+  bson_t list, *listPtr = &list;
+  size_t length;
+  char *jsonString;
+  int result, objc;
+  Tcl_Obj **objv;
+
+  result = Tcl_ListObjGetElements(interp, listObj, &objc, &objv);
+  if (result != TCL_OK || (objc % 3 != 0)) {
+    return NsfPrintError(interp, "%s: must contain a multiple of 3 elements", ObjStr(listObj));
+  }
+
+  result = BsonAppendObjv(interp, listPtr, objc, objv);
+  if (result == TCL_OK) {
+    jsonString = bson_as_json(listPtr, &length);
+    if (jsonString != NULL) {
+      Tcl_SetObjResult(interp, Tcl_NewStringObj(jsonString, length));
+      bson_free(jsonString);
+    } else {
+      result = NsfPrintError(interp, "invalid bson string: %s", ObjStr(listObj));
+    }
+
+    bson_destroy( listPtr );
+  }
+  
+  return result;
+}
 
 /*
 cmd close NsfMongoClose {

@@ -85,7 +85,7 @@ static int ConvertToGridfilesource(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Para
     
 
 /* just to define the symbol */
-static Nsf_methodDefinition method_definitions[29];
+static Nsf_methodDefinition method_definitions[30];
   
 static CONST char *method_command_namespace_names[] = {
   "::mongo"
@@ -141,6 +141,8 @@ static int NsfMongoGridFileOpenStub(ClientData clientData, Tcl_Interp *interp, i
 static int NsfMongoGridFileReadStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
   NSF_nonnull(2) NSF_nonnull(4);
 static int NsfMongoGridFileSeekStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
+  NSF_nonnull(2) NSF_nonnull(4);
+static int NsfMongoJsonStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
   NSF_nonnull(2) NSF_nonnull(4);
 static int NsfMongoRunCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
   NSF_nonnull(2) NSF_nonnull(4);
@@ -199,6 +201,8 @@ static int NsfMongoGridFileRead(Tcl_Interp *interp, mongoc_gridfs_file_t *gridfi
   NSF_nonnull(1) NSF_nonnull(2);
 static int NsfMongoGridFileSeek(Tcl_Interp *interp, mongoc_gridfs_file_t *gridfilePtr, int offset)
   NSF_nonnull(1) NSF_nonnull(2);
+static int NsfMongoJson(Tcl_Interp *interp, Tcl_Obj *list)
+  NSF_nonnull(1) NSF_nonnull(2);
 static int NsfMongoRunCmd(Tcl_Interp *interp, int withNocomplain, mongoc_client_t *connPtr, CONST char *db, Tcl_Obj *cmd)
   NSF_nonnull(1) NSF_nonnull(3) NSF_nonnull(4) NSF_nonnull(5);
 static int NsfMongoStatus(Tcl_Interp *interp, mongoc_client_t *connPtr, Tcl_Obj *connObj)
@@ -231,6 +235,7 @@ enum {
  NsfMongoGridFileOpenIdx,
  NsfMongoGridFileReadIdx,
  NsfMongoGridFileSeekIdx,
+ NsfMongoJsonIdx,
  NsfMongoRunCmdIdx,
  NsfMongoStatusIdx
 } NsfMethods;
@@ -799,6 +804,22 @@ NsfMongoGridFileSeekStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
 }
 
 static int
+NsfMongoJsonStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  (void)clientData;
+
+    
+
+      if (objc != 2) {
+	return NsfArgumentError(interp, "wrong # of arguments:",
+			     method_definitions[NsfMongoJsonIdx].paramDefs,
+			     NULL, objv[0]);
+      }
+    
+    return NsfMongoJson(interp, objv[1]);
+
+}
+
+static int
 NsfMongoRunCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   ParseContext pc;
   (void)clientData;
@@ -841,7 +862,7 @@ NsfMongoStatusStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
   }
 }
 
-static Nsf_methodDefinition method_definitions[29] = {
+static Nsf_methodDefinition method_definitions[30] = {
 {"::mongo::collection::close", NsfCollectionCloseStub, 1, {
   {"collection", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Pointer, NULL,NULL,"mongoc_collection_t",NULL,NULL,NULL,NULL,NULL}}
 },
@@ -961,6 +982,9 @@ static Nsf_methodDefinition method_definitions[29] = {
 {"::mongo::gridfile::seek", NsfMongoGridFileSeekStub, 2, {
   {"gridfile", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Pointer, NULL,NULL,"mongoc_gridfs_file_t",NULL,NULL,NULL,NULL,NULL},
   {"offset", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Int32, NULL,NULL,"int32",NULL,NULL,NULL,NULL,NULL}}
+},
+{"::mongo::json", NsfMongoJsonStub, 1, {
+  {"list", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::mongo::run", NsfMongoRunCmdStub, 4, {
   {"-nocomplain", 0, 0, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},

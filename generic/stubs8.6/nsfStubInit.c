@@ -115,6 +115,7 @@ const NsfStubs nsfStubs = {
     Nsf_ConvertToTclobj, /* 37 */
     Nsf_EnumerationTypeRegister, /* 38 */
     Nsf_CmdDefinitionRegister, /* 39 */
+    NsfArgumentError, /* 40 */
 };
 
 /* !END!: Do not edit above this line. */
