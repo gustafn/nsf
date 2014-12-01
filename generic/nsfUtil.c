@@ -93,12 +93,13 @@ char *strnstr(const char *buffer, const char *needle, size_t buffer_len) {
  *----------------------------------------------------------------------
  */
 char *
-Nsf_ltoa(char *buf, long i, int *len) {
+Nsf_ltoa(char *buf, long i, int *lengthPtr) {
   int nr_written, negative;
   char tmp[LONG_AS_STRING], *pointer = &tmp[1], *string, *p;
   *tmp = 0;
 
   assert(buf);
+  assert(lengthPtr != NULL);
 
   if (i<0) {
     i = -i;
@@ -117,7 +118,8 @@ Nsf_ltoa(char *buf, long i, int *len) {
     *p++ = '-';
 
   while ((*p++ = *--pointer));   /* copy number (reversed) from tmp to buf */
-  if (len) *len = nr_written;
+  *lengthPtr = nr_written;
+
   return string;
 }
 

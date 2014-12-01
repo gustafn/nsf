@@ -1120,7 +1120,7 @@ typedef struct {
 } NsfMethodContext;
 
 /* functions from nsfUtil.c */
-char *Nsf_ltoa(char *buf, long i, int *len)
+char *Nsf_ltoa(char *buf, long i, int *lengthPtr)
   nonnull(1) nonnull(3);
 
 char *NsfStringIncr(NsfStringIncrStruct *iss)
