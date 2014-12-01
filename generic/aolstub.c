@@ -202,6 +202,9 @@ Ns_ModuleInit(char *hServer, char *hModule) {
 
   return ret == TCL_OK ? NS_OK : NS_ERROR;
 }
+#else
+/* avoid empty translation unit */
+   typedef void empty;
 #endif
 
 /*

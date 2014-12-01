@@ -1385,11 +1385,11 @@ ObjTrace(char *string, NsfObject *object) {
  *----------------------------------------------------------------------
  */
 /* search for tail of name */
-static CONST char * NSTail(CONST char *string) nonnull(1);
+static const char * NSTail(const char *string) nonnull(1);
 
-static CONST char *
-NSTail(CONST char *string) {
-  register char *p = (char *)string+strlen(string);
+static const char *
+NSTail(const char *string) {
+  register const char *p = string + strlen(string);
 
   assert(string);
 
@@ -3164,7 +3164,7 @@ static NsfObject *
 GetEnsembleObjectFromName(Tcl_Interp *interp, Tcl_Namespace *nsPtr, Tcl_Obj *name,
                          Tcl_Command *cmdPtr, int *fromClassNS) {
   Tcl_Command cmd;
-  char *nameString = ObjStr(name);
+  const char *nameString = ObjStr(name);
 
   assert(interp);
   assert(name);
@@ -3269,7 +3269,7 @@ ResolveMethodName(Tcl_Interp *interp, Tcl_Namespace *nsPtr, Tcl_Obj *methodObj,
                   NsfObject **regObject,
                   NsfObject **defObject,
                   CONST char **methodName1, int *fromClassNS) {
-  char *methodName;
+  const char *methodName;
   NsfObject *referencedObject;
   int containsSpace, tailContainsSpace;
   Tcl_Command cmd;
@@ -4225,7 +4225,7 @@ CompiledLocalsLookup(CallFrame *varFramePtr, CONST char *varName) {
   for (i = 0 ; i < localCt ; i++, objPtrPtr++) {
     Tcl_Obj *objPtr = *objPtrPtr;
     if (likely(objPtr != NULL)) {
-      char *localName = TclGetString(objPtr);
+      const char *localName = TclGetString(objPtr);
       if (unlikely(varName[0] == localName[0]
                    && varName[1] == localName[1]
                    && strcmp(varName, localName) == 0)) {
@@ -4292,7 +4292,7 @@ static CONST char *MethodName(Tcl_Obj *methodObj) nonnull(1) returns_nonnull;
 
 static CONST char *
 MethodName(Tcl_Obj *methodObj) {
-  char *methodName;
+  const char *methodName;
 
   assert(methodObj);
 
@@ -6345,7 +6345,7 @@ AutonameIncr(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfObject *object,
     INCR_REF_COUNT2("autoname", resultObj);
   } else {
     int mustCopy = 1, format = 0;
-    char *c;
+    const char *c;
 
     if (valueObj == NULL) {
       valueObj = Tcl_ObjSetVar2(interp, NsfGlobalObjs[NSF_AUTONAMES],
@@ -6411,7 +6411,7 @@ AutonameIncr(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfObject *object,
       FREE_ON_STACK(Tcl_Obj*, ov);
 
     } else {
-      char *valueString = Tcl_GetString(valueObj);
+      const char *valueString = Tcl_GetString(valueObj);
 
       Tcl_AppendLimitedToObj(resultObj, valueString, valueObj->length, INT_MAX, NULL);
       /*fprintf(stderr, "+++ append to obj done\n");*/
@@ -9757,7 +9757,7 @@ FilterSearchAgain(Tcl_Interp *interp, NsfCmdList **filters,
   CmdListRemoveDeleted(filters, GuardDel);
   for (cmdList = *filters; cmdList; cmdList = cmdList->nextPtr) {
     NsfClass *cl = NULL;
-    char *simpleName = (char *) Tcl_GetCommandName(interp, cmdList->cmdPtr);
+    const char *simpleName = Tcl_GetCommandName(interp, cmdList->cmdPtr);
     Tcl_Command cmd = FilterSearch(simpleName, startingObject, startingClass, &cl);
 
     if (cmd == NULL) {
@@ -10014,7 +10014,7 @@ FilterComputeOrderFullList(Tcl_Interp *interp, NsfCmdList **filters,
   CmdListRemoveDeleted(filters, GuardDel);
 
   for (f = *filters; f; f = f->nextPtr) {
-    char *simpleName = (char *) Tcl_GetCommandName(interp, f->cmdPtr);
+    const char *simpleName = Tcl_GetCommandName(interp, f->cmdPtr);
     fcl = f->clorobj;
     CmdListAdd(filterList, f->cmdPtr, fcl, /*noDuplicates*/ 0, 1);
 
@@ -14142,7 +14142,7 @@ Nsf_ConvertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
     result = TCL_OK;
 #if defined(NSF_WITH_VALUE_WARNINGS)
     if (RUNTIME_STATE(interp)->debugLevel > 0) {
-      char *value = ObjStr(objPtr);
+      const char *value = ObjStr(objPtr);
       if (unlikely(*value == '-'
                    && (pPtr->flags & NSF_ARG_CHECK_NONPOS)
                    && isalpha(*(value+1))
@@ -15443,7 +15443,7 @@ ParamParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, int disallowe
    * an error message.
    */
   {
-    char *errStr = ObjStr(Tcl_GetObjResult(interp));
+    const char *errStr = ObjStr(Tcl_GetObjResult(interp));
     assert(*errStr != '\0');
   }
 #endif
@@ -17040,7 +17040,7 @@ AddSlotObjects(Tcl_Interp *interp, NsfObject *parent, CONST char *prefix,
 
     hPtr = Tcl_FirstHashEntry(cmdTablePtr, &hSrch);
     for (; hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
-      char *key = Tcl_GetHashKey(cmdTablePtr, hPtr);
+      const char *key = Tcl_GetHashKey(cmdTablePtr, hPtr);
       NsfObject *childObject;
 
       if (slotTablePtr) {
@@ -17148,7 +17148,7 @@ FindCalledClass(Tcl_Interp *interp, NsfObject *object) {
   if (cscPtr->frameType == NSF_CSC_TYPE_ACTIVE_FILTER) {
     methodName = MethodName(cscPtr->filterStackEntry->calledProc);
   } else if (cscPtr->frameType == NSF_CSC_TYPE_ACTIVE_MIXIN && object->mixinStack) {
-    methodName = (char *)Tcl_GetCommandName(interp, cscPtr->cmdPtr);
+    methodName = Tcl_GetCommandName(interp, cscPtr->cmdPtr);
   } else {
     return NULL;
   }
@@ -17826,7 +17826,7 @@ FindSelfNext(Tcl_Interp *interp) {
 
   Tcl_ResetResult(interp);
 
-  methodName = (char *)Tcl_GetCommandName(interp, cscPtr->cmdPtr);
+  methodName = Tcl_GetCommandName(interp, cscPtr->cmdPtr);
   if (methodName == NULL) {
     return TCL_OK;
   }
@@ -18038,17 +18038,17 @@ FreeUnsetTraceVariable(Tcl_Interp *interp, NsfObject *object) {
  *----------------------------------------------------------------------
  */
 
-static char *NsfUnsetTrace(ClientData clientData, Tcl_Interp *interp,
+static const char *NsfUnsetTrace(ClientData clientData, Tcl_Interp *interp,
                            CONST char *UNUSED(name), CONST char *UNUSED(name2), unsigned int flags)
   nonnull(1) nonnull(2);
 
-static char *
+static const char *
 NsfUnsetTrace(ClientData clientData, Tcl_Interp *interp,
               CONST char *UNUSED(name), CONST char *UNUSED(name2), unsigned int flags)
 {
   Tcl_Obj *objPtr = (Tcl_Obj *)clientData;
   NsfObject *object;
-  char *resultMsg = NULL;
+  const char *resultMsg = NULL;
 
   assert(clientData);
   assert(interp);
@@ -19518,7 +19518,7 @@ ImportInstVarIntoCurrentScope(Tcl_Interp *interp, const char *cmdName, NsfObject
   unsigned int flogs = TCL_LEAVE_ERR_MSG;
   Tcl_CallFrame *varFramePtr;
   CallFrame frame, *framePtr = &frame;
-  char *varNameString;
+  const char *varNameString;
 
   assert(interp);
   assert(cmdName);
@@ -21305,7 +21305,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
     Nsf_Param CONST *pPtr = currentParamPtr;
     Tcl_Obj *argumentObj = objv[o];
     Tcl_Obj *valueObj = NULL;
-    char *valueInArgument = NULL;
+    const char *valueInArgument = NULL;
 
 #if defined(PARSE_TRACE_FULL)
     fprintf(stderr, "arg [%d]: %s (param %ld, last %d)\n",
@@ -22870,7 +22870,7 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
   Tcl_HashSearch hSrch;
   Tcl_HashEntry *hPtr;
   Tcl_Command cmd;
-  char *key;
+  const char *key;
   int isObject, methodTypeMatch;
   int prefixLength = prefix ? Tcl_DStringLength(prefix) : 0;
   Tcl_Obj *resultObj = Tcl_GetObjResult(interp);
@@ -23096,7 +23096,7 @@ ListChildren(Tcl_Interp *interp, NsfObject *object, CONST char *pattern,
     for (hPtr = Tcl_FirstHashEntry(cmdTablePtr, &hSrch);
          hPtr;
          hPtr = Tcl_NextHashEntry(&hSrch)) {
-      char *key = Tcl_GetHashKey(cmdTablePtr, hPtr);
+      const char *key = Tcl_GetHashKey(cmdTablePtr, hPtr);
 
       if (pattern == NULL || Tcl_StringMatch(key, pattern)) {
         Tcl_Command cmd = (Tcl_Command)Tcl_GetHashValue(hPtr);
@@ -25414,8 +25414,8 @@ static int
 NsfObjectSystemCreateCmd(Tcl_Interp *interp, Tcl_Obj *Object, Tcl_Obj *Class, Tcl_Obj *systemMethodsObj) {
   NsfClass *theobj = NULL, *thecls = NULL;
   Tcl_Obj *object, *class;
-  char *objectName = ObjStr(Object);
-  char *className = ObjStr(Class);
+  const char *objectName = ObjStr(Object);
+  const char *className = ObjStr(Class);
   NsfObjectSystem *osPtr;
 
   assert(interp);
@@ -26764,7 +26764,7 @@ cmd var::unset NsfVarUnsetCmd {
 */
 static int
 NsfVarUnsetCmd(Tcl_Interp *interp, int withNocomplain, NsfObject *object, Tcl_Obj *varNameObj) {
-  char *varName = ObjStr(varNameObj);
+  const char *varName = ObjStr(varNameObj);
 
   assert(interp);
   assert(object);
@@ -27630,7 +27630,7 @@ NsfOCgetMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj) {
   Nsf_Param CONST *paramPtr;
   NsfParamDefs *paramDefs;
   CallFrame frame, *framePtr = &frame, *uplevelVarFramePtr;
-  char *nameString = ObjStr(nameObj);
+  const char *nameString = ObjStr(nameObj);
 
   assert(interp);
   assert(object);

@@ -1138,7 +1138,7 @@ void NsfStringIncrFree(NsfStringIncrStruct *iss)
 EXTERN void Nsf_EnumerationTypeInit(Tcl_Interp *interp)
   nonnull(1);
 
-EXTERN CONST char *Nsf_EnumerationTypeGetDomain(Nsf_TypeConverter *converter)
+EXTERN const char *Nsf_EnumerationTypeGetDomain(Nsf_TypeConverter *converter)
   nonnull(1);
 
 /*

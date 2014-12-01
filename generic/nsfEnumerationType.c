@@ -116,11 +116,11 @@ Nsf_EnumerationTypeRegister(Tcl_Interp *interp, Nsf_EnumeratorConverterEntry *ty
  *
  *----------------------------------------------------------------------
  */
-CONST char *
+const char *
 Nsf_EnumerationTypeGetDomain(Nsf_TypeConverter *converter) {
   Tcl_HashEntry *hPtr;
   Tcl_HashSearch hSrch;
-  CONST char* domain = NULL;
+  const char* domain = NULL;
 
   assert(converter);
 
@@ -128,7 +128,7 @@ Nsf_EnumerationTypeGetDomain(Nsf_TypeConverter *converter) {
 
   for (hPtr = Tcl_FirstHashEntry(enumerationHashTablePtr, &hSrch); hPtr != NULL;
        hPtr = Tcl_NextHashEntry(&hSrch)) {
-    void *ptr = Tcl_GetHashValue(hPtr);
+    Nsf_TypeConverter *ptr = (Nsf_TypeConverter *)Tcl_GetHashValue(hPtr);
 
     if (ptr == converter) {
       domain = Tcl_GetHashKey(enumerationHashTablePtr, hPtr);
