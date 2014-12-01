@@ -288,20 +288,22 @@ static Tcl_CallFrame * CallStackGetActiveProcFrame(Tcl_CallFrame *framePtr) nonn
 static Tcl_CallFrame *
 CallStackGetActiveProcFrame(Tcl_CallFrame *framePtr) {
 
-  assert(framePtr);
+  assert(framePtr != NULL);
 
-  for (; framePtr; framePtr = Tcl_CallFrame_callerPtr(framePtr)) {
+  do {
     register int flag = Tcl_CallFrame_isProcCallFrame(framePtr);
 
-    if (flag & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) {
+    if ((flag & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) != 0) {
       /* never return an inactive method frame */
       if (likely(!(((NsfCallStackContent *)Tcl_CallFrame_clientData(framePtr))->frameType
 		   & NSF_CSC_TYPE_INACTIVE))) break;
     } else {
-      if (unlikely(flag & (FRAME_IS_NSF_OBJECT))) continue;
-      if (flag == 0 || (flag & FRAME_IS_PROC)) break;
+      if (likely((flag & (FRAME_IS_NSF_OBJECT)) == 0u)) {
+        if (flag == 0 || (flag & FRAME_IS_PROC) != 0) break;
+      }
     }
-  }
+    framePtr = Tcl_CallFrame_callerPtr(framePtr);
+  } while (framePtr != NULL);
 
   return framePtr;
 }
@@ -327,10 +329,13 @@ static Tcl_CallFrame *
 CallStackNextFrameOfType(Tcl_CallFrame *framePtr, unsigned int flags) {
   assert(framePtr);
 
-  for (; framePtr; framePtr = Tcl_CallFrame_callerPtr(framePtr)) {
-    if (Tcl_CallFrame_isProcCallFrame(framePtr) & flags)
+  do {
+    if (Tcl_CallFrame_isProcCallFrame(framePtr) & flags) {
       return framePtr;
-  }
+    }
+    framePtr = Tcl_CallFrame_callerPtr(framePtr);
+  } while (framePtr != NULL);
+
   return framePtr;
 }
 

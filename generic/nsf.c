@@ -1130,9 +1130,9 @@ NsfGetClass(Tcl_Interp *interp, CONST char *name) {
 Nsf_Class *
 NsfIsClass(Tcl_Interp *UNUSED(interp), ClientData clientData) {
 
-  assert(clientData);
+  assert(clientData != NULL);
 
-  if (clientData && NsfObjectIsClass((NsfObject *)clientData)) {
+  if (NsfObjectIsClass((NsfObject *)clientData)) {
     return (Nsf_Class *) clientData;
   }
   return NULL;
@@ -1634,7 +1634,7 @@ GetObjectFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfObject **objectPtr) {
     /*fprintf(stderr, "GetObjectFromObj obj %s, o is %p objProc %p NsfObjDispatch %p\n", ObjStr(objPtr),
       object, Tcl_Command_objProc(cmd), NsfObjDispatch);*/
     if (object) {
-      if (objectPtr) *objectPtr = object;
+      *objectPtr = object;
       return TCL_OK;
     }
   }
@@ -1659,7 +1659,7 @@ GetObjectFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfObject **objectPtr) {
   }
 
   if (likely(object != NULL)) {
-    if (objectPtr) {*objectPtr = object;}
+    *objectPtr = object;
     return TCL_OK;
   }
 
@@ -2978,10 +2978,13 @@ FlushPrecedences(NsfClasses *clPtr) {
 
   assert(clPtr != NULL);
 
-  for (; clPtr; clPtr = clPtr->nextPtr) {
-    if (clPtr->cl->order) NsfClassListFree(clPtr->cl->order);
+  do {
+    if (clPtr->cl->order) {
+      NsfClassListFree(clPtr->cl->order);
+    }
     clPtr->cl->order = NULL;
-  }
+    clPtr = clPtr->nextPtr;
+  } while (clPtr != NULL);
 }
 
 
@@ -3588,33 +3591,34 @@ FindProcMethod(Tcl_Namespace *nsPtr, CONST char *methodName) {
  *
  *----------------------------------------------------------------------
  */
-static NsfClass * SearchPLMethod(register NsfClasses *pl, CONST char *methodName, Tcl_Command *cmdPtr, unsigned int flags)
+static NsfClass * SearchPLMethod(register NsfClasses *pl, const char *methodName, Tcl_Command *cmdPtr, unsigned int flags)
   nonnull(1) nonnull(2) nonnull(3);
-static NsfClass * SearchPLMethod0(register NsfClasses *pl, CONST char *methodName, Tcl_Command *cmdPtr)
+static NsfClass * SearchPLMethod0(register NsfClasses *pl, const char *methodName, Tcl_Command *cmdPtr)
   nonnull(1) nonnull(2) nonnull(3);
 
 static NsfClass *
-SearchPLMethod0(register NsfClasses *pl, CONST char *methodName, Tcl_Command *cmdPtr) {
+SearchPLMethod0(register NsfClasses *pl, const char *methodName, Tcl_Command *cmdPtr) {
 
   assert(pl);
   assert(methodName);
   assert(cmdPtr);
 
   /* Search the precedence list (class hierarchy) */
-  for (; pl;  pl = pl->nextPtr) {
+  do {
     register Tcl_HashEntry *entryPtr =
       Tcl_CreateHashEntry(Tcl_Namespace_cmdTablePtr(pl->cl->nsPtr), methodName, NULL);
     if (entryPtr != NULL) {
       *cmdPtr = (Tcl_Command) Tcl_GetHashValue(entryPtr);
       return pl->cl;
     }
-  }
+    pl = pl->nextPtr;
+  } while (pl != NULL);
 
   return NULL;
 }
 
 static NsfClass *
-SearchPLMethod(register NsfClasses *pl, CONST char *methodName,
+SearchPLMethod(register NsfClasses *pl, const char *methodName,
                Tcl_Command *cmdPtr, unsigned int flags) {
 
   assert(pl);
@@ -3622,21 +3626,20 @@ SearchPLMethod(register NsfClasses *pl, CONST char *methodName,
   assert(cmdPtr);
 
   /* Search the precedence list (class hierarchy) */
-  for (; pl;  pl = pl->nextPtr) {
+  do {
     register Tcl_HashEntry *entryPtr =
       Tcl_CreateHashEntry(Tcl_Namespace_cmdTablePtr(pl->cl->nsPtr), methodName, NULL);
     if (entryPtr != NULL) {
       Tcl_Command cmd = (Tcl_Command) Tcl_GetHashValue(entryPtr);
 
-      if (unlikely(Tcl_Command_flags(cmd) & flags)) {
-        /*fprintf(stderr, "skipped cmd %p flags %.6x & %.6x => %.6x\n",
-          cmd, flags, Tcl_Command_flags(cmd), Tcl_Command_flags(cmd) & flags);*/
-        continue;
+      if (likely((Tcl_Command_flags(cmd) & flags) == 0u)) {
+        *cmdPtr = cmd;
+        return pl->cl;
       }
-      *cmdPtr = cmd;
-      return pl->cl;
     }
-  }
+    pl = pl->nextPtr;
+  } while (pl != NULL);
+
   return NULL;
 }
 
@@ -6892,16 +6895,20 @@ static NsfCmdList * CmdListFindNameInList(Tcl_Interp *interp, CONST char *name, 
   nonnull(1) nonnull(2) nonnull(3);
 
 static NsfCmdList *
-CmdListFindNameInList(Tcl_Interp *interp, CONST char *name, NsfCmdList *l) {
+CmdListFindNameInList(Tcl_Interp *interp, CONST char *name, NsfCmdList *cmdList) {
 
   assert(interp);
   assert(name);
-  assert(l);
+  assert(cmdList);
 
-  for (; l; l = l->nextPtr) {
-    CONST char *cmdName = Tcl_GetCommandName(interp, l->cmdPtr);
-    if (cmdName[0] == name[0] && !strcmp(cmdName, name)) return l;
-  }
+  do {
+    const char *cmdName = Tcl_GetCommandName(interp, cmdList->cmdPtr);
+    if (cmdName[0] == name[0] && strcmp(cmdName, name) == 0) {
+      return cmdList;
+    }
+    cmdList = cmdList->nextPtr;
+  } while (cmdList != NULL);
+
   return NULL;
 }
 
@@ -6968,13 +6975,16 @@ TclObjListFreeList(NsfTclObjList *list) {
 
   assert(list);
 
-  while (list) {
+  do {
     NsfTclObjList *del = list;
+
     list = list->nextPtr;
     DECR_REF_COUNT2("listContent", del->content);
-    if (del->payload) {DECR_REF_COUNT2("listPayload", del->payload);}
+    if (del->payload) {
+      DECR_REF_COUNT2("listPayload", del->payload);
+    }
     FREE(NsfTclObjList, del);
-  }
+  } while (list != NULL);
 }
 
 /*
@@ -7873,17 +7883,17 @@ static int AppendMatchingElementsFromCmdList(Tcl_Interp *interp, NsfCmdList *cmd
   nonnull(1) nonnull(2) nonnull(3);
 
 static int
-AppendMatchingElementsFromCmdList(Tcl_Interp *interp, NsfCmdList *cmdl,
+AppendMatchingElementsFromCmdList(Tcl_Interp *interp, NsfCmdList *cmdList,
                                   Tcl_Obj *resultObj,
                                   CONST char *pattern, NsfObject *matchObject) {
   int rc = 0;
 
   assert(interp);
-  assert(cmdl);
+  assert(cmdList);
   assert(resultObj);
 
-  for ( ; cmdl; cmdl = cmdl->nextPtr) {
-    NsfObject *object = NsfGetObjectFromCmdPtr(cmdl->cmdPtr);
+  do {
+    NsfObject *object = NsfGetObjectFromCmdPtr(cmdList->cmdPtr);
     if (object) {
       if (matchObject == object) {
         return 1;
@@ -7891,7 +7901,9 @@ AppendMatchingElementsFromCmdList(Tcl_Interp *interp, NsfCmdList *cmdl,
         AppendMatchingElement(interp, resultObj, object->cmdName, pattern);
       }
     }
-  }
+    cmdList = cmdList->nextPtr;
+  } while (cmdList != NULL);
+
   return rc;
 }
 
@@ -8492,24 +8504,25 @@ GetAllClassMixins(Tcl_Interp *interp, Tcl_HashTable *destTablePtr,
 static void RemoveFromClassMixinsOf(Tcl_Command cmd, NsfCmdList *cmdlist) nonnull(1) nonnull(2);
 
 static void
-RemoveFromClassMixinsOf(Tcl_Command cmd, NsfCmdList *cmdlist) {
+RemoveFromClassMixinsOf(Tcl_Command cmd, NsfCmdList *cmdList) {
 
   assert(cmd);
-  assert(cmdlist);
+  assert(cmdList);
 
-  for ( ; cmdlist; cmdlist = cmdlist->nextPtr) {
-    NsfClass *ncl = NsfGetClassFromCmdPtr(cmdlist->cmdPtr);
+  do {
+    NsfClass *ncl = NsfGetClassFromCmdPtr(cmdList->cmdPtr);
     NsfClassOpt *nclopt = ncl ? ncl->opt : NULL;
     if (nclopt) {
       NsfCmdList *del = CmdListFindCmdInList(cmd, nclopt->isClassMixinOf);
       if (del) {
         /* fprintf(stderr, "Removing class %s from isClassMixinOf of class %s\n",
-           ClassName(cl), ObjStr(NsfGetClassFromCmdPtr(cmdlist->cmdPtr)->object.cmdName)); */
+           ClassName(cl), ObjStr(NsfGetClassFromCmdPtr(cmdList->cmdPtr)->object.cmdName)); */
         del = CmdListRemoveFromList(&nclopt->isClassMixinOf, del);
         CmdListDeleteCmdListEntry(del, GuardDel);
       }
     }
-  }
+    cmdList = cmdList->nextPtr;
+  } while (cmdList != NULL);
 }
 
 /*
@@ -8517,7 +8530,7 @@ RemoveFromClassMixinsOf(Tcl_Command cmd, NsfCmdList *cmdlist) {
  * RemoveFromObjectMixinsOf --
  *
  *    Remove the class (provided as a cmd) from all isObjectMixinOf definitions
- *    from the provided classes (provided as cmdlist).
+ *    from the provided classes (provided as cmdList).
  *
  * Results:
  *    void
@@ -8528,22 +8541,22 @@ RemoveFromClassMixinsOf(Tcl_Command cmd, NsfCmdList *cmdlist) {
  *----------------------------------------------------------------------
  */
 
-static void RemoveFromObjectMixinsOf(Tcl_Command cmd, NsfCmdList *cmdlist) nonnull(1) nonnull(2);
+static void RemoveFromObjectMixinsOf(Tcl_Command cmd, NsfCmdList *cmdList) nonnull(1) nonnull(2);
 
 static void
-RemoveFromObjectMixinsOf(Tcl_Command cmd, NsfCmdList *cmdlist) {
+RemoveFromObjectMixinsOf(Tcl_Command cmd, NsfCmdList *cmdList) {
 
   assert(cmd);
-  assert(cmdlist);
+  assert(cmdList);
 
-  for ( ; likely(cmdlist != NULL); cmdlist = cmdlist->nextPtr) {
-    NsfClass *cl = NsfGetClassFromCmdPtr(cmdlist->cmdPtr);
+  for ( ; likely(cmdList != NULL); cmdList = cmdList->nextPtr) {
+    NsfClass *cl = NsfGetClassFromCmdPtr(cmdList->cmdPtr);
     NsfClassOpt *clopt = cl ? cl->opt : NULL;
     if (clopt) {
       NsfCmdList *del = CmdListFindCmdInList(cmd, clopt->isObjectMixinOf);
       if (del) {
         /* fprintf(stderr, "Removing object %s from isObjectMixinOf of Class %s\n",
-           ObjectName(object), ObjStr(NsfGetClassFromCmdPtr(cmdlist->cmdPtr)->object.cmdName)); */
+           ObjectName(object), ObjStr(NsfGetClassFromCmdPtr(cmdList->cmdPtr)->object.cmdName)); */
         del = CmdListRemoveFromList(&clopt->isObjectMixinOf, del);
         CmdListDeleteCmdListEntry(del, GuardDel);
       }
@@ -8556,7 +8569,7 @@ RemoveFromObjectMixinsOf(Tcl_Command cmd, NsfCmdList *cmdlist) {
  * RemoveFromClassmixins --
  *
  *    Remove the class (provided as a cmd) from all class mixins lists
- *    from the provided classes (provided as cmdlist).
+ *    from the provided classes (provided as cmdList).
  *
  * Results:
  *    void
@@ -8567,16 +8580,16 @@ RemoveFromObjectMixinsOf(Tcl_Command cmd, NsfCmdList *cmdlist) {
  *----------------------------------------------------------------------
  */
 
-static void RemoveFromClassmixins(Tcl_Command cmd, NsfCmdList *cmdlist) nonnull(1) nonnull(2);
+static void RemoveFromClassmixins(Tcl_Command cmd, NsfCmdList *cmdList) nonnull(1) nonnull(2);
 
 static void
-RemoveFromClassmixins(Tcl_Command cmd, NsfCmdList *cmdlist) {
+RemoveFromClassmixins(Tcl_Command cmd, NsfCmdList *cmdList) {
 
   assert(cmd);
-  assert(cmdlist);
+  assert(cmdList);
 
-  for ( ; likely(cmdlist != NULL); cmdlist = cmdlist->nextPtr) {
-    NsfClass *cl = NsfGetClassFromCmdPtr(cmdlist->cmdPtr);
+  for ( ; likely(cmdList != NULL); cmdList = cmdList->nextPtr) {
+    NsfClass *cl = NsfGetClassFromCmdPtr(cmdList->cmdPtr);
     NsfClassOpt *clopt = cl ? cl->opt : NULL;
 
     if (clopt) {
@@ -8584,7 +8597,7 @@ RemoveFromClassmixins(Tcl_Command cmd, NsfCmdList *cmdlist) {
 
       if (del) {
         /* fprintf(stderr, "Removing class %s from mixins of object %s\n",
-           ClassName(cl), ObjStr(NsfGetObjectFromCmdPtr(cmdlist->cmdPtr)->cmdName)); */
+           ClassName(cl), ObjStr(NsfGetObjectFromCmdPtr(cmdList->cmdPtr)->cmdName)); */
         del = CmdListRemoveFromList(&clopt->classMixins, del);
         CmdListDeleteCmdListEntry(del, GuardDel);
         if (cl->object.mixinOrder) MixinResetOrder(&cl->object);
@@ -8598,7 +8611,7 @@ RemoveFromClassmixins(Tcl_Command cmd, NsfCmdList *cmdlist) {
  * RemoveFromObjectMixins --
  *
  *    Remove the class (provided as a cmd) from all object mixin lists
- *    from the provided classes (provided as cmdlist).
+ *    from the provided classes (provided as cmdList).
  *
  * Results:
  *    void
@@ -8608,16 +8621,16 @@ RemoveFromClassmixins(Tcl_Command cmd, NsfCmdList *cmdlist) {
  *
  *----------------------------------------------------------------------
  */
-static void RemoveFromObjectMixins(Tcl_Command cmd, NsfCmdList *cmdlist) nonnull(1) nonnull(2);
+static void RemoveFromObjectMixins(Tcl_Command cmd, NsfCmdList *cmdList) nonnull(1) nonnull(2);
 
 static void
-RemoveFromObjectMixins(Tcl_Command cmd, NsfCmdList *cmdlist) {
+RemoveFromObjectMixins(Tcl_Command cmd, NsfCmdList *cmdList) {
 
   assert(cmd);
-  assert(cmdlist);
+  assert(cmdList);
 
-  for ( ; likely(cmdlist != NULL); cmdlist = cmdlist->nextPtr) {
-    NsfObject *nobj = NsfGetObjectFromCmdPtr(cmdlist->cmdPtr);
+  for ( ; likely(cmdList != NULL); cmdList = cmdList->nextPtr) {
+    NsfObject *nobj = NsfGetObjectFromCmdPtr(cmdList->cmdPtr);
     NsfObjectOpt *objopt = nobj ? nobj->opt : NULL;
 
     if (objopt) {
@@ -8625,7 +8638,7 @@ RemoveFromObjectMixins(Tcl_Command cmd, NsfCmdList *cmdlist) {
 
       if (del) {
         /* fprintf(stderr, "Removing class %s from mixins of object %s\n",
-           ClassName(cl), ObjStr(NsfGetObjectFromCmdPtr(cmdlist->cmdPtr)->cmdName)); */
+           ClassName(cl), ObjStr(NsfGetObjectFromCmdPtr(cmdList->cmdPtr)->cmdName)); */
         del = CmdListRemoveFromList(&objopt->objMixins, del);
         CmdListDeleteCmdListEntry(del, GuardDel);
         if (nobj->mixinOrder) MixinResetOrder(nobj);
@@ -19974,7 +19987,7 @@ ForwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
     } else if (pos < 0) {
       pos --;
     }
-    if (ForwardArgString == remainder || abs(pos) > totalargs) {
+    if (ForwardArgString == remainder || labs(pos) > totalargs) {
       return NsfForwardPrintError(interp, tcd, objc, objv,
                                   "forward: invalid index specified in argument %s",
                                   ObjStr(forwardArgObj));
@@ -24559,7 +24572,7 @@ NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
   assert(interp);
   assert(object);
   assert(methodName);
-  assert(methodName && *methodName != ':');
+  assert(*methodName != ':');
   assert(cmdName);
 
   cmd = Tcl_GetCommandFromObj(interp, cmdName);
@@ -28183,7 +28196,7 @@ NsfOUpvarMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CONST 
     i = 1;
   }
 
-  if (object && (object->filterStack || object->mixinStack)) {
+  if (object->filterStack || object->mixinStack) {
     CallStackUseActiveFrame(interp, &ctx);
   }
 
@@ -29668,7 +29681,7 @@ InstancesFromClassList(Tcl_Interp *interp, NsfClasses *subClasses,
   assert(interp);
   assert(subClasses);
 
-  for (; subClasses; subClasses = subClasses->nextPtr) {
+  do {
     Tcl_HashTable *tablePtr = &subClasses->cl->instances;
     Tcl_HashEntry *hPtr;
     Tcl_HashSearch search;
@@ -29683,7 +29696,9 @@ InstancesFromClassList(Tcl_Interp *interp, NsfClasses *subClasses,
       }
       AppendMatchingElement(interp, resultObj, inst->cmdName, pattern);
     }
-  }
+    subClasses = subClasses->nextPtr;
+  } while (subClasses != NULL);
+
   return resultObj;
 }
 
