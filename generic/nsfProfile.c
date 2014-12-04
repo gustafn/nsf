@@ -67,11 +67,11 @@ NsfProfileFillTable(Tcl_HashTable *table, char *keyStr, double totalMicroSec) {
   Tcl_HashEntry *hPtr;
   int isNew;
 
-  assert(table);
-  assert(keyStr);
+  assert(table != NULL);
+  assert(keyStr != NULL);
 
   hPtr = Tcl_CreateHashEntry(table, keyStr, &isNew);
-  if (isNew) {
+  if (isNew != 0) {
     value = (NsfProfileData *)ckalloc(sizeof(NsfProfileData));
     value->microSec = 0;
     value->count = 0;
@@ -110,8 +110,8 @@ NsfProfileRecordMethodData(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
   NsfProfile *profile = &RUNTIME_STATE(interp)->profile;
   struct timeval trt;
 
-  assert(interp);
-  assert(cscPtr);
+  assert(interp != NULL);
+  assert(cscPtr != NULL);
 
   gettimeofday(&trt, NULL);
 
@@ -130,10 +130,10 @@ NsfProfileRecordMethodData(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
   Tcl_DStringAppend(&objectKey, cscPtr->methodName, -1);
 
   Tcl_DStringInit(&methodKey);
-  Tcl_DStringAppend(&methodKey, cl ? ObjStr(cl->object.cmdName) : ObjStr(obj->cmdName), -1);
+  Tcl_DStringAppend(&methodKey, (cl != NULL) ? ObjStr(cl->object.cmdName) : ObjStr(obj->cmdName), -1);
   Tcl_DStringAppend(&methodKey, " ", 1);
   Tcl_DStringAppend(&methodKey, cscPtr->methodName, -1);
-  if (cl) {
+  if (cl != NULL) {
     Tcl_DStringAppend(&methodKey, " method", 7);
   } else {
     Tcl_DStringAppend(&methodKey, " object-method", 14);
@@ -141,15 +141,15 @@ NsfProfileRecordMethodData(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
 
   {
     NsfCallStackContent *cscPtrTop = NsfCallStackGetTopFrame(interp, NULL);
-    if (cscPtrTop) {
+    if (cscPtrTop != NULL) {
       NsfClass *cl = cscPtrTop->cl;
       NsfObject *obj = cscPtrTop->self;
 
       Tcl_DStringAppend(&methodKey, " ", 1);
-      Tcl_DStringAppend(&methodKey, cl ? ObjStr(cl->object.cmdName) : ObjStr(obj->cmdName), -1);
+      Tcl_DStringAppend(&methodKey, (cl != NULL) ? ObjStr(cl->object.cmdName) : ObjStr(obj->cmdName), -1);
       Tcl_DStringAppend(&methodKey, " ", 1);
       Tcl_DStringAppend(&methodKey, cscPtrTop->methodName, -1);
-      if (cl) {
+      if (cl != NULL) {
 	Tcl_DStringAppend(&methodKey, " method", 7);
       } else {
 	Tcl_DStringAppend(&methodKey, " object-method", 14);
@@ -186,8 +186,8 @@ NsfProfileRecordProcData(Tcl_Interp *interp, char *methodName, long startSec, lo
   double totalMicroSec;
   struct timeval trt;
 
-  assert(interp);
-  assert(methodName);
+  assert(interp != NULL);
+  assert(methodName != NULL);
 
   gettimeofday(&trt, NULL);
 
@@ -220,7 +220,7 @@ NsfProfileClearTable(Tcl_HashTable *table) {
   Tcl_HashSearch hSrch;
   Tcl_HashEntry *hPtr;
 
-  assert(table);
+  assert(table != NULL);
 
   for (hPtr = Tcl_FirstHashEntry(table, &hSrch); hPtr;
        hPtr = Tcl_NextHashEntry(&hSrch)) {
@@ -251,7 +251,7 @@ NsfProfileClearData(Tcl_Interp *interp) {
   NsfProfile *profilePtr = &RUNTIME_STATE(interp)->profile;
   struct timeval trt;
 
-  assert(interp);
+  assert(interp != NULL);
 
   NsfProfileClearTable(&profilePtr->objectData);
   NsfProfileClearTable(&profilePtr->methodData);
@@ -286,8 +286,8 @@ NsfProfileGetTable(Tcl_Interp *interp, Tcl_HashTable *table) {
   Tcl_HashSearch hSrch;
   Tcl_HashEntry *hPtr;
 
-  assert(interp);
-  assert(table);
+  assert(interp != NULL);
+  assert(table != NULL);
 
   for (hPtr = Tcl_FirstHashEntry(table, &hSrch); hPtr;
        hPtr = Tcl_NextHashEntry(&hSrch)) {
@@ -328,7 +328,7 @@ NsfProfileGetData(Tcl_Interp *interp) {
   long totalMicroSec;
   struct timeval trt;
 
-  assert(interp);
+  assert(interp != NULL);
 
   gettimeofday(&trt, NULL);
   totalMicroSec = (trt.tv_sec - profilePtr->startSec) * 1000000 + (trt.tv_usec - profilePtr->startUSec);
@@ -363,7 +363,7 @@ NsfProfileInit(Tcl_Interp *interp) {
   NsfProfile *profilePtr = &RUNTIME_STATE(interp)->profile;
   struct timeval trt;
 
-  assert(interp);
+  assert(interp != NULL);
 
   Tcl_InitHashTable(&profilePtr->objectData, TCL_STRING_KEYS);
   Tcl_InitHashTable(&profilePtr->methodData, TCL_STRING_KEYS);
@@ -394,7 +394,7 @@ void
 NsfProfileFree(Tcl_Interp *interp) {
   NsfProfile *profilePtr = &RUNTIME_STATE(interp)->profile;
 
-  assert(interp);
+  assert(interp != NULL);
 
   NsfProfileClearData(interp);
   Tcl_DeleteHashTable(&profilePtr->objectData);

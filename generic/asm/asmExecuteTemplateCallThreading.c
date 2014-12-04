@@ -18,7 +18,7 @@ AsmExecute(ClientData cd, Tcl_Interp *interp, AsmCompiledProc *proc, int argc, T
   Var *compiledLocals;
 
   compiledLocals = ((Interp *) interp)->varFramePtr->compiledLocals;
-  if (compiledLocals) {
+  if (compiledLocals != NULL) {
     fprintf(stderr, "compiledLocals = %p\n", compiledLocals);
   }
 #endif

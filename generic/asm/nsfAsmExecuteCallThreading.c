@@ -85,7 +85,7 @@ static int asmJump(ClientData clientData, Tcl_Interp *interp, int argc, Tcl_Obj 
 static int asmJumpTrue(ClientData clientData, Tcl_Interp *interp, int argc, Tcl_Obj *argv[]) {
   AsmCompiledProc *proc = clientData;
 
-	if (proc->status) {
+	if (proc->status != 0) {
 	  //fprintf(stderr, "asmJumpTrue jump oc %d instructionIndex %d\n", argc, PTR2INT(argv[0]));
 	  NsfAsmJump(PTR2INT(argv[0]));
 	} else {
@@ -185,7 +185,7 @@ static int asmMethodSelfDispatch(ClientData clientData, Tcl_Interp *interp, int 
 
 	{
 	  AsmResolverInfo *resInfo = clientData;
-	  Tcl_Command cmd = resInfo->cmd ? resInfo->cmd : Tcl_GetCommandFromObj(interp, argv[0]);
+	  Tcl_Command cmd = (resInfo->cmd != NULL) ? resInfo->cmd : Tcl_GetCommandFromObj(interp, argv[0]);
 	  
 	  result = MethodDispatch(resInfo->proc->currentObject, interp, 
 				  argc, argv, 
@@ -269,7 +269,7 @@ AsmExecute(ClientData cd, Tcl_Interp *interp, AsmCompiledProc *proc, int argc, T
   Var *compiledLocals;
 
   compiledLocals = ((Interp *) interp)->varFramePtr->compiledLocals;
-  if (compiledLocals) {
+  if (compiledLocals != NULL) {
     fprintf(stderr, "compiledLocals = %p\n", compiledLocals);
   }
 #endif

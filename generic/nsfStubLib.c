@@ -114,14 +114,14 @@ Nsf_InitStubs(Tcl_Interp *interp, CONST char *version, int exact) {
         return NULL;
     } else {
       CONST86 NsfStubs * const stubsPtr = clientData;
-      CONST86 NsfIntStubs * const intStubsPtr = stubsPtr->hooks ?
+      CONST86 NsfIntStubs * const intStubsPtr = (stubsPtr->hooks != NULL) ?
         stubsPtr->hooks->nsfIntStubs : NULL;
 
       if (actualVersion == NULL) {
         return NULL;
       }
 
-      if (!intStubsPtr) {
+      if (intStubsPtr == NULL) {
         static char *errMsg = "missing stubInt table pointer";
 
         Tcl_ResetResult(interp);

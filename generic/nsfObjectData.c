@@ -60,7 +60,7 @@ NsfSetObjectData(NsfObject* obj, NsfClass* cl, ClientData data) {
 
   NsfRequireClassOpt(cl);
 
-  if (!cl->opt->objectdata) {
+  if (cl->opt->objectdata == 0) {
     cl->opt->objectdata = (Tcl_HashTable*)ckalloc(sizeof(Tcl_HashTable));
     Tcl_InitHashTable(cl->opt->objectdata, TCL_ONE_WORD_KEYS);
   }
@@ -74,8 +74,8 @@ NsfGetObjectData(NsfObject* obj, NsfClass* cl, ClientData* data) {
   if (!cl->opt || !cl->opt->objectdata)
     return 0;
   hPtr = Tcl_FindHashEntry(cl->opt->objectdata, (char*)obj);
-  if (data) *data = hPtr ? Tcl_GetHashValue(hPtr) : 0;
-  return hPtr != 0;
+  if (data != NULL) *data = (hPtr != NULL) ? Tcl_GetHashValue(hPtr) : 0;
+  return hPtr != NULL;
 }
 
 EXTERN int
@@ -85,8 +85,8 @@ NsfUnsetObjectData(NsfObject* obj, NsfClass* cl) {
   if (!cl->opt || !cl->opt->objectdata)
     return 0;
   hPtr = Tcl_FindHashEntry(cl->opt->objectdata, (char*)obj);
-  if (hPtr) Tcl_DeleteHashEntry(hPtr);
-  return hPtr != 0;
+  if (hPtr != NULL) Tcl_DeleteHashEntry(hPtr);
+  return hPtr != NULL;
 }
 #endif
 

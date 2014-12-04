@@ -112,7 +112,7 @@ nx::Class create Instruction -superclass Statement {
     #
     append . \
 	"\n\tinst = AsmInstructionNew(proc, [:cName], cArgs);" \
-	"\n\tif (cArgs>0) {AsmInstructionArgvSet(interp, offset, argc, 0, inst, proc, argv, 0);}" \
+	"\n\tif (cArgs > 0) {AsmInstructionArgvSet(interp, offset, argc, 0, inst, proc, argv, 0);}" \
 	[:asmEmitCode]
   }
 
@@ -356,7 +356,7 @@ namespace eval ::asm {
 	    resInfo->object = object;
 	    inst->clientData = resInfo;
 	    AsmInstructionSetCmd(inst, asmMethodDelegateDispatch11);
-	  } else if (cmd) {
+	  } else if (cmd != NULL) {
 	    inst->clientData = cmd;
 	  } else {	  
 	    inst->clientData = NULL;
@@ -407,7 +407,7 @@ namespace eval ::asm {
 	  
 	  if (strncmp(ObjStr(inst->argv[0]), "::nsf::methods::", 16) == 0) {
 	    cmd = Tcl_GetCommandFromObj(interp, inst->argv[0]);
-	    if (cmd) {
+	    if (cmd != NULL) {
 	      //fprintf(stderr, "%s: asmMethodSelfCmdDispatch cmd '%s' => %p\n", procName, ObjStr(inst->argv[0]), cmd);
 	      AsmInstructionSetCmd(inst, asmMethodSelfCmdDispatch);
 	    }
@@ -424,7 +424,7 @@ namespace eval ::asm {
       -execCode {
 	{
 	  AsmResolverInfo *resInfo = ip->clientData;
-	  Tcl_Command cmd = resInfo->cmd ? resInfo->cmd : Tcl_GetCommandFromObj(interp, ip->argv[0]);
+	  Tcl_Command cmd = (resInfo->cmd != NULL) ? resInfo->cmd : Tcl_GetCommandFromObj(interp, ip->argv[0]);
 	  
 	  result = MethodDispatch(resInfo->proc->currentObject, interp, 
 				  ip->argc, ip->argv, 
@@ -475,7 +475,7 @@ namespace eval ::asm {
       -execNeedsProc true \
       -isJump true \
       -execCode {
-	if (proc->status) {
+	if (proc->status != 0) {
 	  //fprintf(stderr, "asmJumpTrue jump oc %d instructionIndex %d\n", ip->argc, PTR2INT(ip->argv[0]));
 	  NsfAsmJump(PTR2INT(ip->argv[0]));
 	} else {

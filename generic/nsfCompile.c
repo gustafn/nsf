@@ -74,9 +74,9 @@ static int
 initProcNsCompile(Tcl_Interp *interp, Tcl_Parse *parsePtr,
 		  CompileEnv *envPtr) {
 
-  assert(interp);
-  assert(parsePtr);
-  assert(envPtr);
+  assert(interp != NULL);
+  assert(parsePtr != NULL);
+  assert(envPtr != NULL);
 
   if (parsePtr->numWords != 1) {
 	Tcl_ResetResult(interp);
@@ -99,9 +99,9 @@ static int
 nextCompile(Tcl_Interp *interp, Tcl_Parse *parsePtr,
 		  CompileEnv *envPtr) {
 
-  assert(interp);
-  assert(parsePtr);
-  assert(envPtr);
+  assert(interp != NULL);
+  assert(parsePtr != NULL);
+  assert(envPtr != NULL);
 
   if (parsePtr->numWords != 1)
     return TCL_OUT_LINE_COMPILE;
@@ -119,9 +119,9 @@ static int
 selfCompile(Tcl_Interp *interp, Tcl_Parse *parsePtr,
 		  CompileEnv *envPtr) {
 
-  assert(interp);
-  assert(parsePtr);
-  assert(envPtr);
+  assert(interp != NULL);
+  assert(parsePtr != NULL);
+  assert(envPtr != NULL);
 
   if (parsePtr->numWords != 1)
     return TCL_OUT_LINE_COMPILE;
@@ -142,9 +142,9 @@ selfDispatchCompile(Tcl_Interp *interp, Tcl_Parse *parsePtr,
   Tcl_Token *tokenPtr;
   int code, wordIdx;
 
-  assert(interp);
-  assert(parsePtr);
-  assert(envPtr);
+  assert(interp != NULL);
+  assert(parsePtr != NULL);
+  assert(envPtr != NULL);
 
   /*
   fprintf(stderr, "****** selfDispatchCompile words=%d tokens=%d, avail=%d\n",

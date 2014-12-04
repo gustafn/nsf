@@ -434,7 +434,7 @@ BsonAppend(Tcl_Interp *interp, bson_t *bbPtr, CONST char *name, CONST char *tag,
     bson_t    child, *childPtr = &child;
 
     result = Tcl_ListObjGetElements(interp, value, &objc, &objv);
-    if (result != TCL_OK || objc % 3 != 0) {
+    if (result != TCL_OK || ((objc % 3) != 0)) {
       return NsfPrintError(interp, "invalid %s value contain multiple of 3 elements %s", tag, ObjStr(value));
     }
 
@@ -526,7 +526,7 @@ NsfMongoJson(Tcl_Interp *interp, Tcl_Obj *listObj) {
   Tcl_Obj **objv;
 
   result = Tcl_ListObjGetElements(interp, listObj, &objc, &objv);
-  if (result != TCL_OK || (objc % 3 != 0)) {
+  if (result != TCL_OK || ((objc % 3) != 0)) {
     return NsfPrintError(interp, "%s: must contain a multiple of 3 elements", ObjStr(listObj));
   }
 
@@ -629,7 +629,7 @@ NsfMongoRunCmd(Tcl_Interp *interp, int withNocomplain, mongoc_client_t *clientPt
   Tcl_Obj **objv;
 
   result = Tcl_ListObjGetElements(interp, cmdObj, &objc, &objv);
-  if (result != TCL_OK || (objc % 3 != 0)) {
+  if (result != TCL_OK || ((objc % 3) != 0)) {
     return NsfPrintError(interp, "%s: must contain a multiple of 3 elements", ObjStr(cmdObj));
   }
   BsonAppendObjv(interp, cmdPtr, objc, objv);
@@ -736,7 +736,7 @@ NsfMongoCollectionCount(Tcl_Interp *interp,
   bson_error_t bsonError;
 
   result = Tcl_ListObjGetElements(interp, queryObj, &objc, &objv);
-  if (result != TCL_OK || (objc % 3 != 0)) {
+  if (result != TCL_OK || ((objc % 3) != 0)) {
     return NsfPrintError(interp, "%s: must contain a multiple of 3 elements", ObjStr(queryObj));
   }
 
@@ -777,7 +777,7 @@ NsfMongoCollectionDelete(Tcl_Interp *interp,
   const mongoc_write_concern_t *writeConcern = NULL; /* TODO: not handled yet */
 
   result = Tcl_ListObjGetElements(interp, conditionObj, &objc, &objv);
-  if (result != TCL_OK || (objc % 3 != 0)) {
+  if (result != TCL_OK || ((objc % 3) != 0)) {
     return NsfPrintError(interp, "%s: must contain a multiple of 3 elements", ObjStr(conditionObj));
   }
 
@@ -822,7 +822,7 @@ NsfMongoCollectionIndex(Tcl_Interp *interp,
   mongoc_index_opt_t options;
 
   result = Tcl_ListObjGetElements(interp, attributesObj, &objc, &objv);
-  if (result != TCL_OK || (objc % 3 != 0)) {
+  if (result != TCL_OK || ((objc % 3) != 0)) {
     return NsfPrintError(interp, "%s: must contain a multiple of 3 elements", ObjStr(attributesObj));
   }
 
@@ -830,12 +830,12 @@ NsfMongoCollectionIndex(Tcl_Interp *interp,
 
   mongoc_index_opt_init(&options);
 
-  if (withBackground) {options.background = 1;}
-  if (withDropdups)   {options.drop_dups = 1;}
-  if (withSparse)     {options.sparse = 1;}
-  if (withUnique)     {options.unique = 1;}
-  if (withTtl)        {options.expire_after_seconds = withTtl;}
-  if (withName)       {options.name = withName;}
+  if (withBackground != 0) {options.background = 1;}
+  if (withDropdups != 0)   {options.drop_dups = 1;}
+  if (withSparse != 0)     {options.sparse = 1;}
+  if (withUnique != 0)     {options.unique = 1;}
+  if (withTtl != 0)        {options.expire_after_seconds = withTtl;}
+  if (withName != 0)       {options.name = withName;}
   /* TODO: not handled: is_initialized, v, weights, default_language, laguage_override, padding */
 
   success = mongoc_collection_create_index(collectionPtr, keysPtr, &options, &bsonError);
@@ -870,7 +870,7 @@ static int NsfMongoCollectionInsert(Tcl_Interp *interp,
   const mongoc_write_concern_t *writeConcern = NULL; /* TODO: not handled yet */
 
   result = Tcl_ListObjGetElements(interp, valuesObj, &objc, &objv);
-  if (result != TCL_OK || (objc % 3 != 0)) {
+  if (result != TCL_OK || ((objc % 3) != 0)) {
     return NsfPrintError(interp, "%s: must contain a multiple of 3 elements", ObjStr(valuesObj));
   }
 
@@ -926,12 +926,12 @@ NsfMongoCollectionQuery(Tcl_Interp *interp,
     namespace, withLimit, withSkip);*/
 
   result = Tcl_ListObjGetElements(interp, queryObj, &objc1, &objv1);
-  if (result != TCL_OK || (objc1 % 3 != 0)) {
+  if (result != TCL_OK || ((objc1 % 3) != 0)) {
     return NsfPrintError(interp, "%s: must contain a multiple of 3 elements", ObjStr(queryObj));
   }
-  if (withAttsObj) {
+  if (withAttsObj != NULL) {
     result = Tcl_ListObjGetElements(interp, withAttsObj, &objc2, &objv2);
-    if (result != TCL_OK || (objc2 % 3 != 0)) {
+    if (result != TCL_OK || ((objc2 % 3) != 0)) {
       return NsfPrintError(interp, "%s: must contain a multiple of 3 elements", ObjStr(withAttsObj));
     }
   } else {
@@ -981,10 +981,10 @@ NsfMongoCollectionStats(Tcl_Interp *interp,
   bson_t stats, *statsPtr = &stats;
   bson_error_t bsonError;
 
-  if (optionsObj) {
+  if (optionsObj != NULL) {
     int result = Tcl_ListObjGetElements(interp, optionsObj, &objc, &objv);
 
-    if (result != TCL_OK || (objc % 3 != 0)) {
+    if (result != TCL_OK || ((objc % 3) != 0)) {
       return NsfPrintError(interp, "%s: must contain a multiple of 3 elements", ObjStr(optionsObj));
     }
     optionsPtr = &options;
@@ -993,11 +993,11 @@ NsfMongoCollectionStats(Tcl_Interp *interp,
 
    success = mongoc_collection_stats(collectionPtr, optionsPtr, statsPtr, &bsonError);
    
-   if (optionsPtr) {
+   if (optionsPtr != NULL) {
      bson_destroy (optionsPtr);
    }
 
-   if (success) {
+   if (success != 0) {
      Tcl_SetObjResult(interp, BsonToList(interp, statsPtr, 0));
      bson_destroy (statsPtr);
      return TCL_OK;
@@ -1029,22 +1029,22 @@ NsfMongoCollectionUpdate(Tcl_Interp *interp,
   Tcl_Obj **objv;
 
   result = Tcl_ListObjGetElements(interp, conditionObj, &objc, &objv);
-  if (result != TCL_OK || (objc % 3 != 0)) {
+  if (result != TCL_OK || ((objc % 3) != 0)) {
     return NsfPrintError(interp, "%s: must contain a multiple of 3 elements", ObjStr(conditionObj));
   }
 
   BsonAppendObjv(interp, condPtr, objc, objv);
 
   result = Tcl_ListObjGetElements(interp, valuesObj, &objc, &objv);
-  if (result != TCL_OK || (objc % 3 != 0)) {
+  if (result != TCL_OK || ((objc % 3) != 0)) {
     bson_destroy(condPtr);
     return NsfPrintError(interp, "%s: must contain a multiple of 3 elements", ObjStr(valuesObj));
   }
 
   BsonAppendObjv(interp, valuesPtr, objc, objv);
 
-  if (withUpsert) {updateFlags |= MONGOC_UPDATE_UPSERT;}
-  if (withAll)    {updateFlags |= MONGOC_UPDATE_MULTI_UPDATE;}
+  if (withUpsert != 0) {updateFlags |= MONGOC_UPDATE_UPSERT;}
+  if (withAll != 0)    {updateFlags |= MONGOC_UPDATE_MULTI_UPDATE;}
 
   success = mongoc_collection_update(collectionPtr, updateFlags, condPtr, valuesPtr, writeConcern, &bsonError);
 
@@ -1083,11 +1083,11 @@ NsfMongoCursorAggregate(Tcl_Interp *interp,
   mongoc_read_prefs_t *readPrefsPtr = NULL; /* TODO: not used */
 
   result = Tcl_ListObjGetElements(interp, pipelineObj, &objc1, &objv1);
-  if (result != TCL_OK || (objc1 % 3 != 0)) {
+  if (result != TCL_OK || ((objc1 % 3) != 0)) {
     return NsfPrintError(interp, "%s: must contain a multiple of 3 elements", ObjStr(pipelineObj));
   }
   result = Tcl_ListObjGetElements(interp, optionsObj, &objc2, &objv2);
-  if (result != TCL_OK || (objc2 % 3 != 0)) {
+  if (result != TCL_OK || ((objc2 % 3) != 0)) {
     return NsfPrintError(interp, "%s: must contain a multiple of 3 elements", ObjStr(optionsObj));
   }
 
@@ -1098,10 +1098,10 @@ NsfMongoCursorAggregate(Tcl_Interp *interp,
    *  The last field of mongo_find is options, semantics are described here
    *  http://www.mongodb.org/display/DOCS/Mongo+Wire+Protocol#MongoWireProtocol-OPQUERY
    */
-  if (withTailable) {
+  if (withTailable != 0) {
     queryFlags |= MONGOC_QUERY_TAILABLE_CURSOR;
   }
-  if (withAwaitdata) {
+  if (withAwaitdata != 0) {
     queryFlags |= MONGOC_QUERY_AWAIT_DATA;
   }
   /* TODO: query flags:
@@ -1114,7 +1114,7 @@ NsfMongoCursorAggregate(Tcl_Interp *interp,
   cursor = mongoc_collection_aggregate(collectionPtr, queryFlags,
                                        pipelinePtr, optionsPtr,
                                        readPrefsPtr);
-  if (cursor) {
+  if (cursor != NULL) {
     char buffer[80];
     if (Nsf_PointerAdd(interp, buffer, "mongoc_cursor_t", cursor) == TCL_OK) {
       Tcl_SetObjResult(interp, Tcl_NewStringObj(buffer, -1));
@@ -1161,12 +1161,12 @@ NsfMongoCursorFind(Tcl_Interp *interp,
     namespace, withLimit, withSkip);*/
 
   result = Tcl_ListObjGetElements(interp, queryObj, &objc1, &objv1);
-  if (result != TCL_OK || (objc1 % 3 != 0)) {
+  if (result != TCL_OK || ((objc1 % 3) != 0)) {
     return NsfPrintError(interp, "%s: must contain a multiple of 3 elements", ObjStr(queryObj));
   }
-  if (withAttsObj) {
+  if (withAttsObj != NULL) {
     result = Tcl_ListObjGetElements(interp, withAttsObj, &objc2, &objv2);
-    if (result != TCL_OK || (objc2 % 3 != 0)) {
+    if (result != TCL_OK || ((objc2 % 3) != 0)) {
       return NsfPrintError(interp, "%s: must contain a multiple of 3 elements", ObjStr(withAttsObj));
     }
   }
@@ -1178,10 +1178,10 @@ NsfMongoCursorFind(Tcl_Interp *interp,
    *  The last field of mongo_find is options, semantics are described here
    *  http://www.mongodb.org/display/DOCS/Mongo+Wire+Protocol#MongoWireProtocol-OPQUERY
    */
-  if (withTailable) {
+  if (withTailable != 0) {
     queryFlags |= MONGOC_QUERY_TAILABLE_CURSOR;
   }
-  if (withAwaitdata) {
+  if (withAwaitdata != 0) {
     queryFlags |= MONGOC_QUERY_AWAIT_DATA;
   }
   /* TODO: query flags:
@@ -1194,7 +1194,7 @@ NsfMongoCursorFind(Tcl_Interp *interp,
   cursor = mongoc_collection_find(collectionPtr, queryFlags, 
 				  withSkip, withLimit, 0 /*TODO missing batch_size*/,
 				  queryPtr, attsPtr, readPrefsPtr);
-  if (cursor) {
+  if (cursor != NULL) {
     char buffer[80];
     if (Nsf_PointerAdd(interp, buffer, "mongoc_cursor_t", cursor) == TCL_OK) {
       Tcl_SetObjResult(interp, Tcl_NewStringObj(buffer, -1));
@@ -1333,7 +1333,7 @@ NsfMongoGridFileCreate(Tcl_Interp *interp, int withSource,
     int objc;
 
     result = Tcl_ListObjGetElements(interp, withMetadata, &objc, &objv);
-    if (result != TCL_OK || (objc % 3 != 0)) {
+    if (result != TCL_OK || ((objc % 3) != 0)) {
       return NsfPrintError(interp, "%s: must contain a multiple of 3 elements", ObjStr(withMetadata));
     }
     BsonAppendObjv(interp, bsonMetaDataPtr, objc, objv);
@@ -1360,7 +1360,7 @@ NsfMongoGridFileCreate(Tcl_Interp *interp, int withSource,
     }
 
     for (;; ) {
-      int n = read(fd, iov.iov_base, MONGOC_GRIDFS_READ_CHUNK);
+      ssize_t n = read(fd, iov.iov_base, MONGOC_GRIDFS_READ_CHUNK);
       if (n > 0) {
 	iov.iov_len = n;
 	n = mongoc_gridfs_file_writev(gridFile, &iov, 1, 0);
@@ -1406,7 +1406,7 @@ NsfMongoGridFileDelete(Tcl_Interp *interp,
   int objc, result;
 
   result = Tcl_ListObjGetElements(interp, queryObj, &objc, &objv);
-  if (result != TCL_OK || (objc % 3 != 0)) {
+  if (result != TCL_OK || ((objc % 3) != 0)) {
     return NsfPrintError(interp, "%s: must contain a multiple of 3 elements", ObjStr(queryObj));
   }
 
@@ -1467,7 +1467,7 @@ NsfMongoGridFileOpen(Tcl_Interp *interp,
     namespace, withLimit, withSkip);*/
 
   result = Tcl_ListObjGetElements(interp, queryObj, &objc, &objv);
-  if (result != TCL_OK || (objc % 3 != 0)) {
+  if (result != TCL_OK || ((objc % 3) != 0)) {
     return NsfPrintError(interp, "%s: must contain a multiple of 3 elements", ObjStr(queryObj));
   }
 

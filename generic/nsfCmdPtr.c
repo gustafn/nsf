@@ -8,7 +8,7 @@ static NSF_INLINE ClientData NsfGetClientDataFromCmdPtr(Tcl_Command cmd) nonnull
 
 static NSF_INLINE ClientData
 NsfGetClientDataFromCmdPtr(Tcl_Command cmd) {
-  assert(cmd);
+  assert(cmd != NULL);
   /*fprintf(stderr, "objProc=%p %p\n", Tcl_Command_objProc(cmd),NsfObjDispatch);*/
   if (likely(Tcl_Command_objProc(cmd) == NsfObjDispatch))
     return Tcl_Command_objClientData(cmd);
@@ -25,7 +25,7 @@ NsfGetClientDataFromCmdPtr(Tcl_Command cmd) {
 static NSF_INLINE NsfClass*
 NsfGetClassFromCmdPtr(Tcl_Command cmd) {
   ClientData cd = NsfGetClientDataFromCmdPtr(cmd);
-  assert(cmd);
+  assert(cmd != NULL);
   /*fprintf(stderr, "cd=%p\n",cd);*/
   if (likely(cd != NULL)) {
     return NsfObjectToClass(cd);
@@ -36,6 +36,6 @@ NsfGetClassFromCmdPtr(Tcl_Command cmd) {
 
 static NSF_INLINE NsfObject*
 NsfGetObjectFromCmdPtr(Tcl_Command cmd) {
-  assert(cmd);
+  assert(cmd != NULL);
   return (NsfObject*) NsfGetClientDataFromCmdPtr(cmd);
 }

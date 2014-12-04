@@ -57,8 +57,8 @@ static void CscListAdd(Tcl_Interp *interp, NsfCallStackContent *cscPtr) nonnull(
 static void
 CscListAdd(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
 
-  assert(interp);
-  assert(cscPtr);
+  assert(interp != NULL);
+  assert(cscPtr != NULL);
 
   NsfClassListAdd(&RUNTIME_STATE(interp)->cscList, (NsfClass *)cscPtr, NULL);
 }
@@ -83,12 +83,12 @@ static int
 CscListRemove(Tcl_Interp *interp, NsfCallStackContent *cscPtr, NsfClasses **cscListPtr) {
   NsfClasses *entryPtr, **cscList = &RUNTIME_STATE(interp)->cscList;
 
-  assert(interp);
-  assert(cscPtr);
-  assert(cscListPtr);
+  assert(interp != NULL);
+  assert(cscPtr != NULL);
+  assert(cscListPtr != NULL);
 
   entryPtr = NsfClassListUnlink(cscList, cscPtr);
-  if (entryPtr) {
+  if (entryPtr != NULL) {
     FREE(NsfClasses, entryPtr);
   }
   if (cscListPtr != NULL) {
@@ -140,14 +140,9 @@ void NsfShowStack(Tcl_Interp *interp) {
             Tcl_CallFrame_nsPtr(framePtr), Tcl_CallFrame_nsPtr(framePtr)->fullName,
             Tcl_CallFrame_objc(framePtr) && 0 ? ObjStr(Tcl_CallFrame_objv(framePtr)[0]) : "(null)",
             Tcl_CallFrame_objc(framePtr) ? Tcl_CallFrame_objc(framePtr) : -1);
-    if (cscPtr) {
+    if (cscPtr != NULL) {
       fprintf(stderr, " csc %p frameType %.4x flags %.6x (%s.%p %s)\n",
-	      cscPtr,
-              cscPtr ? cscPtr->frameType : -1,
-              cscPtr ? cscPtr->flags : -1,
-              cscPtr ? ObjectName(cscPtr->self) : "",
-              cscPtr ? cscPtr->cmdPtr : NULL,
-              cscPtr ? Tcl_GetCommandName(interp, cscPtr->cmdPtr) : ""
+	      cscPtr, (cscPtr != NULL) ? cscPtr->frameType : -1, (cscPtr != NULL) ? cscPtr->flags : -1, (cscPtr != NULL) ? ObjectName(cscPtr->self) : "", (cscPtr != NULL) ? cscPtr->cmdPtr : NULL, (cscPtr != NULL) ? Tcl_GetCommandName(interp, cscPtr->cmdPtr) : ""
 	      );
     } else {
       fprintf(stderr, " no csc");
@@ -186,12 +181,12 @@ static void Nsf_PushFrameObj(Tcl_Interp *interp, NsfObject *object, CallFrame *f
 static void Nsf_PopFrameObj(Tcl_Interp *interp, CallFrame *framePtr) nonnull(1) nonnull(2);
 
 static void Nsf_PushFrameObj(Tcl_Interp *interp, NsfObject *object, CallFrame *framePtr) {
-  assert(interp);
-  assert(object);
-  assert(framePtr);
+  assert(interp != NULL);
+  assert(object != NULL);
+  assert(framePtr != NULL);
 
   /*fprintf(stderr,"PUSH OBJECT_FRAME (Nsf_PushFrameObj) frame %p\n", framePtr);*/
-  if (object->nsPtr) {
+  if (object->nsPtr != NULL) {
     Tcl_PushCallFrame(interp, (Tcl_CallFrame *)framePtr, object->nsPtr,
                       0|FRAME_IS_NSF_OBJECT);
   } else {
@@ -210,8 +205,8 @@ static void Nsf_PushFrameObj(Tcl_Interp *interp, NsfObject *object, CallFrame *f
 
 
 static void Nsf_PopFrameObj(Tcl_Interp *interp, CallFrame *framePtr) {
-  assert(interp);
-  assert(framePtr);
+  assert(interp != NULL);
+  assert(framePtr != NULL);
 
   /*fprintf(stderr,"POP  OBJECT_FRAME (Nsf_PopFrameObj) frame %p, varTable %p set to NULL, already %d\n",
     framePtr, Tcl_CallFrame_varTablePtr(framePtr), Tcl_CallFrame_varTablePtr(framePtr) == NULL);*/
@@ -243,9 +238,9 @@ NSF_INLINE static void
 Nsf_PushFrameCsc(Tcl_Interp *interp, NsfCallStackContent *cscPtr, CallFrame *framePtr) {
   CallFrame *varFramePtr = Tcl_Interp_varFramePtr(interp);
 
-  assert(interp);
-  assert(cscPtr);
-  assert(framePtr);
+  assert(interp != NULL);
+  assert(cscPtr != NULL);
+  assert(framePtr != NULL);
 
   /*fprintf(stderr,"PUSH CMETHOD_FRAME (Nsf_PushFrameCsc) frame %p cscPtr %p methodName %s\n",
     framePtr, cscPtr, Tcl_GetCommandName(interp, cscPtr->cmdPtr));*/
@@ -258,7 +253,7 @@ Nsf_PushFrameCsc(Tcl_Interp *interp, NsfCallStackContent *cscPtr, CallFrame *fra
 
 NSF_INLINE static void
 Nsf_PopFrameCsc(Tcl_Interp *interp, CallFrame *UNUSED(framePtr)) {
-  assert(interp);
+  assert(interp != NULL);
 
   /*fprintf(stderr,"POP CMETHOD_FRAME (Nsf_PopFrameCsc) frame %p, varTablePtr = %p\n",
     framePtr, Tcl_CallFrame_varTablePtr(framePtr));*/
@@ -327,7 +322,7 @@ static Tcl_CallFrame * CallStackNextFrameOfType(Tcl_CallFrame *framePtr, unsigne
 
 static Tcl_CallFrame *
 CallStackNextFrameOfType(Tcl_CallFrame *framePtr, unsigned int flags) {
-  assert(framePtr);
+  assert(framePtr != NULL);
 
   do {
     if (Tcl_CallFrame_isProcCallFrame(framePtr) & flags) {
@@ -369,7 +364,7 @@ NSF_INLINE static NsfObject*
 GetSelfObj(Tcl_Interp *interp) {
   register Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
 
-  assert(interp);
+  assert(interp != NULL);
 
   /*fprintf(stderr, "GetSelfObj interp has frame %p and var-frame %p\n",
     Tcl_Interp_framePtr(interp), Tcl_Interp_varFramePtr(interp));*/
@@ -425,7 +420,7 @@ static  Tcl_CallFrame* CallStackGetTclFrame(Tcl_Interp *interp,
 static Tcl_CallFrame* CallStackGetTclFrame(Tcl_Interp *interp,
 					   Tcl_CallFrame *varFramePtr,
 					   int skip) {
-  assert(interp);
+  assert(interp != NULL);
   assert(skip >= 0);
 
   /* NsfShowStack(interp); */
@@ -469,18 +464,18 @@ static NsfCallStackContent*
 CallStackGetTopFrame(Tcl_Interp *interp, Tcl_CallFrame **framePtrPtr) {
   register Tcl_CallFrame *varFramePtr;
 
-  assert(interp);
+  assert(interp != NULL);
 
   for (varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
        varFramePtr;
        varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
 
       if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) {
-        if (framePtrPtr) *framePtrPtr = varFramePtr;
+        if (framePtrPtr != NULL) *framePtrPtr = varFramePtr;
         return (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
       }
   }
-  if (framePtrPtr) *framePtrPtr = NULL;
+  if (framePtrPtr != NULL) *framePtrPtr = NULL;
   return NULL;
 }
 
@@ -490,7 +485,7 @@ NSF_INLINE static NsfCallStackContent*
 CallStackGetTopFrame0(Tcl_Interp *interp) {
   register Tcl_CallFrame *varFramePtr;
 
-  assert(interp);
+  assert(interp != NULL);
 
   for (varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
        varFramePtr;
@@ -534,7 +529,7 @@ NsfCallStackFindLastInvocation(Tcl_Interp *interp, int offset, Tcl_CallFrame **f
   register Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
   int lvl = Tcl_CallFrame_level(varFramePtr);
 
-  assert(interp);
+  assert(interp != NULL);
 
   for (; likely(varFramePtr != NULL); varFramePtr = Tcl_CallFrame_callerVarPtr(varFramePtr)) {
 
@@ -549,10 +544,10 @@ NsfCallStackFindLastInvocation(Tcl_Interp *interp, int offset, Tcl_CallFrame **f
         continue;
       }
 
-      if (offset) {
+      if (offset != 0) {
         offset--;
       } else if (Tcl_CallFrame_level(varFramePtr) < lvl) {
-	if (framePtrPtr) *framePtrPtr = varFramePtr;
+	if (framePtrPtr != NULL) *framePtrPtr = varFramePtr;
 	return cscPtr;
       }
     } else if (Tcl_CallFrame_isProcCallFrame(varFramePtr)) {
@@ -560,16 +555,16 @@ NsfCallStackFindLastInvocation(Tcl_Interp *interp, int offset, Tcl_CallFrame **f
       /*
        * A Tcl proc frame.
        */
-      if (offset) {
+      if (offset != 0) {
         offset--;
       } else if (Tcl_CallFrame_level(varFramePtr) < lvl) {
-	if (framePtrPtr) *framePtrPtr = varFramePtr;
+	if (framePtrPtr != NULL) *framePtrPtr = varFramePtr;
 	return NULL;
       }
     }
   }
 
-  if (framePtrPtr) *framePtrPtr = NULL;
+  if (framePtrPtr != NULL) *framePtrPtr = NULL;
   return NULL;
 }
 
@@ -593,7 +588,7 @@ static NsfCallStackContent *
 NsfCallStackFindActiveFrame(Tcl_Interp *interp, int offset, Tcl_CallFrame **framePtrPtr) {
   register Tcl_CallFrame *varFramePtr;
 
-  assert(interp);
+  assert(interp != NULL);
 
   /* skip #offset frames */
   for (varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
@@ -606,13 +601,13 @@ NsfCallStackFindActiveFrame(Tcl_Interp *interp, int offset, Tcl_CallFrame **fram
       NsfCallStackContent *cscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
       if (!(cscPtr->frameType & NSF_CSC_TYPE_INACTIVE)) {
         /* we found the highest active frame */
-        if (framePtrPtr) *framePtrPtr = varFramePtr;
+        if (framePtrPtr != NULL) *framePtrPtr = varFramePtr;
         return cscPtr;
       }
     }
   }
   /* we could not find an active frame; called from toplevel? */
-  if (framePtrPtr) *framePtrPtr = NULL;
+  if (framePtrPtr != NULL) *framePtrPtr = NULL;
   return NULL;
 }
 
@@ -639,8 +634,8 @@ static void
 CallStackUseActiveFrame(Tcl_Interp *interp, callFrameContext *ctx) {
   Tcl_CallFrame *framePtr, *inFramePtr;
 
-  assert(interp);
-  assert(ctx);
+  assert(interp != NULL);
+  assert(ctx != NULL);
 
   inFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
 
@@ -681,10 +676,10 @@ static void CallStackRestoreSavedFrames(Tcl_Interp *interp, callFrameContext *ct
 static void
 CallStackRestoreSavedFrames(Tcl_Interp *interp, callFrameContext *ctx) {
 
-  assert(interp);
-  assert(ctx);
+  assert(interp != NULL);
+  assert(ctx != NULL);
 
-  if (ctx->frameSaved) {
+  if (ctx->frameSaved != 0) {
     /*fprintf(stderr, "CallStackRestoreSavedFrames drops %p restores %p\n",
       Tcl_Interp_varFramePtr(interp), ctx->varFramePtr);*/
     Tcl_Interp_varFramePtr(interp) = (CallFrame *)ctx->varFramePtr;
@@ -711,7 +706,7 @@ static NsfCallStackContent *
 CallStackFindActiveFilter(Tcl_Interp *interp) {
   register Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
 
-  assert(interp);
+  assert(interp != NULL);
 
   for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
     if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) {
@@ -748,15 +743,15 @@ CallStackFindEnsembleCsc(Tcl_CallFrame *framePtr, Tcl_CallFrame **framePtrPtr) {
   register Tcl_CallFrame *varFramePtr;
   NsfCallStackContent *cscPtr = NULL;
 
-  assert(framePtr);
-  assert(framePtrPtr);
+  assert(framePtr != NULL);
+  assert(framePtrPtr != NULL);
 
   for (/* Skipping the starting frame, assuming a "leaf" frame in an ensemble dispatch */
        varFramePtr = Tcl_CallFrame_callerPtr(framePtr);
        Tcl_CallFrame_isProcCallFrame(varFramePtr) & FRAME_IS_NSF_CMETHOD;
        varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
     cscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
-    assert(cscPtr);
+    assert(cscPtr != NULL);
 
     /*fprintf(stderr,"	--- frame %p cmdPtr %p NSF_CSC_TYPE_ENSEMBLE %d NSF_CSC_CALL_IS_ENSEMBLE %d \
 			 NSF_CSC_TYPE_INACTIVE %d\n",
@@ -803,8 +798,8 @@ CallStackMethodPath(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
   Tcl_Obj *resultObj;
   Tcl_Obj *methodPathObj = Tcl_NewListObj(0, NULL);
 
-  assert(interp);
-  assert(framePtr);
+  assert(interp != NULL);
+  assert(framePtr != NULL);
 
   /*
    * Append all ensemble names to the specified list obj
@@ -814,7 +809,7 @@ CallStackMethodPath(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
        framePtr = Tcl_CallFrame_callerPtr(framePtr)) {
 
     NsfCallStackContent *cscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(framePtr);
-    assert(cscPtr);
+    assert(cscPtr != NULL);
 
     /*fprintf(stderr,	"--- frame %p cmdPtr %p cmd %s NSF_CSC_TYPE_ENSEMBLE %d \
 			NSF_CSC_CALL_IS_ENSEMBLE %d NSF_CSC_TYPE_INACTIVE %d\n",
@@ -900,8 +895,8 @@ NSF_INLINE static int
 FilterActiveOnObj(Tcl_Interp *interp, NsfObject *object, Tcl_Command cmd) {
   register Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
 
-  assert(interp);
-  assert(object);
+  assert(interp != NULL);
+  assert(object != NULL);
 
   for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
     if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) {
@@ -937,9 +932,9 @@ static void
 CallStackReplaceVarTableReferences(Tcl_Interp *interp, TclVarHashTable *oldVarTablePtr, TclVarHashTable *newVarTablePtr) {
   Tcl_CallFrame *framePtr;
 
-  assert(interp);
-  assert(oldVarTablePtr);
-  assert(newVarTablePtr);
+  assert(interp != NULL);
+  assert(oldVarTablePtr != NULL);
+  assert(newVarTablePtr != NULL);
 
   for (framePtr = (Tcl_CallFrame *)Tcl_Interp_framePtr(interp); framePtr;
        framePtr = Tcl_CallFrame_callerPtr(framePtr)) {
@@ -973,7 +968,7 @@ CallStackReplaceVarTableReferences(Tcl_Interp *interp, TclVarHashTable *oldVarTa
 
 static void CallStackPopAll(Tcl_Interp *interp) {
 
-  assert(interp);
+  assert(interp != NULL);
 
   if (RUNTIME_STATE(interp)->debugLevel > 2) {
     NsfShowStack(interp);
@@ -983,7 +978,7 @@ static void CallStackPopAll(Tcl_Interp *interp) {
     Tcl_CallFrame *framePtr = Tcl_Interp_framePtr(interp);
     int frameFlags;
 
-    if (!framePtr) break;
+    if (framePtr == NULL) break;
     if (Tcl_CallFrame_level(framePtr) == 0) break;
 
     frameFlags = Tcl_CallFrame_isProcCallFrame(framePtr);
@@ -1016,7 +1011,7 @@ static void CallStackPopAll(Tcl_Interp *interp) {
       CscFinish(interp, cscPtr, TCL_OK, "unwind");
 
       count ++;
-      nextCscPtr = unstackedEntries ? unstackedEntries->nextPtr : NULL;
+      nextCscPtr = (unstackedEntries != NULL) ? unstackedEntries->nextPtr : NULL;
     }
 
     if (count>0 && RUNTIME_STATE(interp)->debugLevel > 0) {
@@ -1054,7 +1049,7 @@ static NsfCallStackContent * CscAlloc(Tcl_Interp *interp, NsfCallStackContent *c
 static NsfCallStackContent *
 CscAlloc(Tcl_Interp *interp, NsfCallStackContent *cscPtr, Tcl_Command cmd) {
 #if defined(NRE)
-  Tcl_ObjCmdProc *proc = cmd ? Tcl_Command_objProc(cmd) : NULL;
+  Tcl_ObjCmdProc *proc = (cmd != NULL) ? Tcl_Command_objProc(cmd) : NULL;
 
   if (proc == TclObjInterpProc) {
     cscPtr = (NsfCallStackContent *) NsfTclStackAlloc(interp, sizeof(NsfCallStackContent), "csc");
@@ -1063,7 +1058,7 @@ CscAlloc(Tcl_Interp *interp, NsfCallStackContent *cscPtr, Tcl_Command cmd) {
     cscPtr->flags = 0;
   }
 #else
-  assert(cscPtr);
+  assert(cscPtr != NULL);
   (void)interp;
   (void)cmd;
   cscPtr->flags = 0;
@@ -1098,8 +1093,8 @@ CscInit_(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass 
   struct timeval trt;
 #endif
 
-  assert(cscPtr);
-  assert(object);
+  assert(cscPtr != NULL);
+  assert(object != NULL);
 
 #if defined(NSF_PROFILE)
   gettimeofday(&trt, NULL);
@@ -1120,12 +1115,12 @@ CscInit_(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass 
     object->activationCount ++;
     MEM_COUNT_ALLOC("object.activationCount",object);
     /*fprintf(stderr, "CscInit %p method %s activationCount ++ (%s) --> %d (cl %p)\n",
-	    cscPtr, cmd ? Tcl_GetCommandName(object->teardown, cmd) : "UNK",
+	    cscPtr, (cmd != NULL) ? Tcl_GetCommandName(object->teardown, cmd) : "UNK",
 	    ObjectName(object),  object->activationCount, cl);*/
     /*
      * Track class activations
      */
-    if (cl) {
+    if (cl != NULL) {
       /*
        * handle class activation count
        */
@@ -1174,8 +1169,8 @@ NSF_INLINE static void
 CscFinish_(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
   NsfObject *object;
 
-  assert(interp);
-  assert(cscPtr);
+  assert(interp != NULL);
+  assert(cscPtr != NULL);
   assert(cscPtr->self);
 
 #if defined(NSF_PROFILE)
@@ -1277,9 +1272,9 @@ BeginOfCallChain(Tcl_Interp *interp, NsfObject *object) {
   Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp),
     *prevFramePtr = varFramePtr;
 
-  assert(interp);
+  assert(interp != NULL);
 
-  if (object) {
+  if (object != NULL) {
     fprintf(stderr, "BeginOfCallChain obj %s\n", ObjectName(object));
     for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
       register unsigned int flags = Tcl_CallFrame_isProcCallFrame(varFramePtr);

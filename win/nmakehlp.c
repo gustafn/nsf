@@ -254,7 +254,7 @@ CheckForCompilerFeature(
 	    &si,	    /* Pointer to STARTUPINFO structure. */
 	    &pi);	    /* Pointer to PROCESS_INFORMATION structure. */
 
-    if (!ok) {
+    if (ok == 0) {
 	DWORD err = GetLastError();
 	int chars = snprintf(msg, sizeof(msg) - 1,
 		"Tried to launch: \"%s\", but got error [%u]: ", cmdline, err);
@@ -382,7 +382,7 @@ CheckForLinkerFeature(
 	    &si,	    /* Pointer to STARTUPINFO structure. */
 	    &pi);	    /* Pointer to PROCESS_INFORMATION structure. */
 
-    if (!ok) {
+    if (ok == 0) {
 	DWORD err = GetLastError();
 	int chars = snprintf(msg, sizeof(msg) - 1,
 		"Tried to launch: \"%s\", but got error [%u]: ", cmdline, err);
@@ -542,7 +542,7 @@ static list_item_t *
 list_insert(list_item_t **listPtrPtr, const char *key, const char *value)
 {
     list_item_t *itemPtr = malloc(sizeof(list_item_t));
-    if (itemPtr) {
+    if (itemPtr != NULL) {
 	itemPtr->key = strdup(key);
 	itemPtr->value = strdup(value);
 	itemPtr->nextPtr = NULL;
@@ -640,7 +640,7 @@ SubstituteFile(
 	    list_item_t *p = NULL;
 	    for (p = substPtr; p != NULL; p = p->nextPtr) {
 		char *m = strstr(szBuffer, p->key);
-		if (m) {
+		if (m != NULL) {
 		    char *cp, *op, *sp;
 		    cp = szCopy;
 		    op = szBuffer;

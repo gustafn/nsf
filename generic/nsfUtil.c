@@ -98,7 +98,7 @@ Nsf_ltoa(char *buf, long i, int *lengthPtr) {
   char tmp[LONG_AS_STRING], *pointer = &tmp[1], *string, *p;
   *tmp = 0;
 
-  assert(buf);
+  assert(buf != NULL);
   assert(lengthPtr != NULL);
 
   if (i<0) {
@@ -114,7 +114,7 @@ Nsf_ltoa(char *buf, long i, int *lengthPtr) {
   } while (i);
 
   p = string = buf;
-  if (negative)
+  if (negative != 0)
     *p++ = '-';
 
   while ((*p++ = *--pointer));   /* copy number (reversed) from tmp to buf */
@@ -151,13 +151,13 @@ char *
 NsfStringIncr(NsfStringIncrStruct *iss) {
   char newch, *currentChar;
 
-  assert(iss);
+  assert(iss != NULL);
 
   currentChar = iss->buffer + iss->bufSize - 2;
   newch = *(alphabet + chartable[(unsigned)*currentChar]);
 
   while (1) {
-    if (newch) { /* no overflow */
+    if (newch != '\0') { /* no overflow */
       *currentChar = newch;
       break;
     } else {     /* overflow */
@@ -214,9 +214,9 @@ void
 NsfStringIncrInit(NsfStringIncrStruct *iss) {
   char *p;
   int i = 0;
-  const size_t bufSize = blockIncrement>2 ? blockIncrement : 2;
+  const size_t bufSize = (blockIncrement > 2) ? blockIncrement : 2;
 
-  assert(iss);
+  assert(iss != NULL);
 
   for (p=alphabet; *p; p++) {
     chartable[(int)*p] = ++i;
@@ -238,7 +238,7 @@ NsfStringIncrInit(NsfStringIncrStruct *iss) {
 void
 NsfStringIncrFree(NsfStringIncrStruct *iss) {
 
-  assert(iss);
+  assert(iss != NULL);
 
   ckfree(iss->buffer);
 }

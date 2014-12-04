@@ -70,7 +70,7 @@ AsmAssemble(ClientData cd, Tcl_Interp *interp, Tcl_Obj *nameObj,
   Tcl_Obj **ov;
   CONST char *procName;
 
-  assert(nameObj);
+  assert(nameObj != NULL);
   procName = ObjStr(nameObj);
   
   if (Tcl_ListObjGetElements(interp, asmObj, &oc, &ov) != TCL_OK) {

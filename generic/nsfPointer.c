@@ -62,13 +62,13 @@ int
 Nsf_PointerAdd(Tcl_Interp *interp, char *buffer, CONST char *typeName, void *valuePtr) {
   int *counterPtr;
 
-  assert(interp);
-  assert(buffer);
-  assert(typeName);
-  assert(valuePtr);
+  assert(interp != NULL);
+  assert(buffer != NULL);
+  assert(typeName != NULL);
+  assert(valuePtr != NULL);
 
   counterPtr = Nsf_PointerTypeLookup(interp, typeName);
-  if (counterPtr) {
+  if (counterPtr != NULL) {
     Tcl_DString ds, *dsPtr = &ds;
     Tcl_HashEntry *hPtr;
     int isNew;
@@ -115,8 +115,8 @@ static void *
 Nsf_PointerGet(char *key, CONST char *prefix) {
   void *valuePtr = NULL;
 
-  assert(key);
-  assert(prefix);
+  assert(key != NULL);
+  assert(prefix != NULL);
 
   /* make sure to return the right type of hash entry */
   if (strncmp(prefix, key, strlen(prefix)) == 0) {
@@ -125,7 +125,7 @@ Nsf_PointerGet(char *key, CONST char *prefix) {
     NsfMutexLock(&pointerMutex);
     hPtr = Tcl_CreateHashEntry(pointerHashTablePtr, key, NULL);
 
-    if (hPtr) {
+    if (hPtr != NULL) {
       valuePtr = Tcl_GetHashValue(hPtr);
     }
     NsfMutexUnlock(&pointerMutex);
@@ -160,7 +160,7 @@ Nsf_PointerGetHptr(void *valuePtr) {
   Tcl_HashEntry *hPtr;
   Tcl_HashSearch hSrch;
 
-  assert(valuePtr);
+  assert(valuePtr != NULL);
 
   for (hPtr = Tcl_FirstHashEntry(pointerHashTablePtr, &hSrch); hPtr;
        hPtr = Tcl_NextHashEntry(&hSrch)) {
@@ -195,14 +195,15 @@ Nsf_PointerDelete(CONST char *key, void *valuePtr, int free) {
   Tcl_HashEntry *hPtr;
   int result;
 
-  assert(valuePtr);
+  assert(valuePtr != NULL);
 
   NsfMutexLock(&pointerMutex);
-  hPtr = key
-    ? Tcl_CreateHashEntry(pointerHashTablePtr, key, NULL)
+  hPtr = (key != NULL) ? Tcl_CreateHashEntry(pointerHashTablePtr, key, NULL)
     : Nsf_PointerGetHptr(valuePtr);
-  if (hPtr) {
-    if (free) {ckfree((char *)valuePtr);}
+  if (hPtr != NULL) {
+    if (free != 0) {
+      ckfree((char *)valuePtr);
+    }
     Tcl_DeleteHashEntry(hPtr);
     result = TCL_OK;
   } else {
@@ -241,15 +242,15 @@ Nsf_ConvertToPointer(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr
 		     ClientData *clientData, Tcl_Obj **outObjPtr) {
   void *valuePtr;
 
-  assert(interp);
-  assert(objPtr);
-  assert(pPtr);
-  assert(clientData);
-  assert(outObjPtr);
+  assert(interp != NULL);
+  assert(objPtr != NULL);
+  assert(pPtr != NULL);
+  assert(clientData != NULL);
+  assert(outObjPtr != NULL);
 
   *outObjPtr = objPtr;
   valuePtr = Nsf_PointerGet(ObjStr(objPtr), pPtr->type);
-  if (valuePtr) {
+  if (valuePtr != NULL) {
     *clientData = valuePtr;
     return TCL_OK;
   }
@@ -276,9 +277,9 @@ Nsf_PointerTypeRegister(Tcl_Interp *interp, CONST char* typeName, int *counterPt
   Tcl_HashEntry *hPtr;
   int isNew;
 
-  assert(interp);
-  assert(typeName);
-  assert(counterPtr);
+  assert(interp != NULL);
+  assert(typeName != NULL);
+  assert(counterPtr != NULL);
 
   NsfMutexLock(&pointerMutex);
 
@@ -286,7 +287,7 @@ Nsf_PointerTypeRegister(Tcl_Interp *interp, CONST char* typeName, int *counterPt
 
   NsfMutexUnlock(&pointerMutex);
 
-  if (isNew) {
+  if (isNew != 0) {
     Tcl_SetHashValue(hPtr, counterPtr);
     return TCL_OK;
   } else {
@@ -314,14 +315,14 @@ void *
 Nsf_PointerTypeLookup(Tcl_Interp *interp, CONST char* typeName) {
   Tcl_HashEntry *hPtr;
 
-  assert(interp);
-  assert(typeName);
+  assert(interp != NULL);
+  assert(typeName != NULL);
 
   NsfMutexLock(&pointerMutex);
   hPtr = Tcl_CreateHashEntry(pointerHashTablePtr, typeName, NULL);
   NsfMutexUnlock(&pointerMutex);
 
-  if (hPtr) {
+  if (hPtr != NULL) {
     return Tcl_GetHashValue(hPtr);
   }
   return NULL;
@@ -345,7 +346,7 @@ Nsf_PointerTypeLookup(Tcl_Interp *interp, CONST char* typeName) {
 void
 Nsf_PointerInit(Tcl_Interp *interp) {
 
-  assert(interp);
+  assert(interp != NULL);
 
   NsfMutexLock(&pointerMutex);
 
@@ -378,7 +379,7 @@ Nsf_PointerInit(Tcl_Interp *interp) {
 void
 Nsf_PointerExit(Tcl_Interp *interp) {
 
-  assert(interp);
+  assert(interp != NULL);
 
   NsfMutexLock(&pointerMutex);
   if (--pointerTableRefCount == 0) {

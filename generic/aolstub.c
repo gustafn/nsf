@@ -75,7 +75,7 @@ NsNsf_Init (Tcl_Interp *interp, void *context)
 
  ret = Nsf_Init(interp);
 
- if (firsttime) {
+ if (firsttime != 0) {
    if (ret != TCL_OK) {
      Ns_Log(Warning, "can't load module %s: %s", (char *)context,
 	    Tcl_GetStringResult(interp));
@@ -180,8 +180,8 @@ int
 Ns_ModuleInit(char *hServer, char *hModule) {
   int ret;
 
-  assert(hServer);
-  assert(hModule);
+  assert(hServer != NULL);
+  assert(hModule != NULL);
 
   /*Ns_Log(Notice, "+++ ModuleInit","INIT");*/
   ret = Ns_TclInitInterps(hServer, NsNsf_Init, (void*)hModule);

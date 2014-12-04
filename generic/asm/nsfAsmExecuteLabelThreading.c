@@ -186,7 +186,7 @@ INST_asmJump:
 
 INST_asmJumpTrue:
 
-	if (proc->status) {
+	if (proc->status != 0) {
 	  //fprintf(stderr, "asmJumpTrue jump oc %d instructionIndex %d\n", ip->argc, PTR2INT(ip->argv[0]));
 	  NsfAsmJump(PTR2INT(ip->argv[0]));
 	} else {
@@ -288,7 +288,7 @@ INST_asmMethodSelfDispatch:
 
 	{
 	  AsmResolverInfo *resInfo = ip->clientData;
-	  Tcl_Command cmd = resInfo->cmd ? resInfo->cmd : Tcl_GetCommandFromObj(interp, ip->argv[0]);
+	  Tcl_Command cmd = (resInfo->cmd != NULL) ? resInfo->cmd : Tcl_GetCommandFromObj(interp, ip->argv[0]);
 	  
 	  result = MethodDispatch(resInfo->proc->currentObject, interp, 
 				  ip->argc, ip->argv, 

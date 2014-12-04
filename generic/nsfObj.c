@@ -82,8 +82,7 @@ MethodFreeInternalRep(
   if (mcPtr != NULL) {
 #if defined(METHOD_OBJECT_TRACE)
     fprintf(stderr, "MethodFreeInternalRep %p methodContext %p methodEpoch %d type <%s>\n",
-	    objPtr, mcPtr, mcPtr->methodEpoch,
-	    objPtr->typePtr ? objPtr->typePtr->name : "none");
+	    objPtr, mcPtr, mcPtr->methodEpoch, (objPtr->typePtr != NULL) ? objPtr->typePtr->name : "none");
 #endif
     /*
      * ... and free structure
@@ -142,8 +141,9 @@ NsfMethodObjSet(
 #if defined(METHOD_OBJECT_TRACE)
   fprintf(stderr, "... NsfMethodObjSet %p %s context %p methodEpoch %d "
 	  "cmd %p cl %p %s old obj type <%s> flags %.6x\n",
-	  objPtr, ObjStr(objPtr), context, methodEpoch, cmd, cl, cl ? ClassName(cl) : "obj",
-	  objPtr->typePtr ? objPtr->typePtr->name : "none", flags);
+	  objPtr, ObjStr(objPtr), context, methodEpoch, cmd, cl,
+          (cl != NULL) ? ClassName(cl) : "obj",
+          (objPtr->typePtr != NULL) ? objPtr->typePtr->name : "none", flags);
 #endif
   /*
    * Free or reuse the old interal representation and store own
@@ -151,8 +151,7 @@ NsfMethodObjSet(
    */
   if (objPtr->typePtr != objectType) {
 #if defined(METHOD_OBJECT_TRACE)
-    fprintf(stderr, "... NsfMethodObjSet frees old int rep %s\n",
-	    objPtr->typePtr ? objPtr->typePtr->name : "none");
+    fprintf(stderr, "... NsfMethodObjSet frees old int rep %s\n", (objPtr->typePtr != NULL) ? objPtr->typePtr->name : "none");
 #endif
     TclFreeIntRep(objPtr);
     mcPtr = NEW(NsfMethodContext);
@@ -172,7 +171,7 @@ NsfMethodObjSet(
 #endif
   }
 
-  assert(mcPtr);
+  assert(mcPtr != NULL);
 
   /*
    * add values to the structure
@@ -226,7 +225,9 @@ FlagFreeInternalRep(
     /*
      * Decrement refCounts; same as in NsfFlagSet() in the reuse branch
      */
-    if (flagPtr->payload) {DECR_REF_COUNT2("flagPtr->payload", flagPtr->payload);}
+    if (flagPtr->payload != NULL) {
+      DECR_REF_COUNT2("flagPtr->payload", flagPtr->payload);
+    }
 
     /*
      * ... and free structure
@@ -301,10 +302,10 @@ NsfFlagObjSet(
     /*fprintf(stderr, "NsfFlagObjSet %p reuses interal rep, serial (%d/%d)\n",
       objPtr, flagPtr->serial, serial);*/
 
-    if (flagPtr->payload) {DECR_REF_COUNT2("flagPtr->payload", flagPtr->payload);}
+    if (flagPtr->payload != NULL) {DECR_REF_COUNT2("flagPtr->payload", flagPtr->payload);}
   }
 
-  assert(flagPtr);
+  assert(flagPtr != NULL);
 
   /*
    * add values to the structure
@@ -313,7 +314,7 @@ NsfFlagObjSet(
   flagPtr->serial = serial;
   flagPtr->paramPtr = paramPtr;
   flagPtr->payload = payload;
-  if (payload) {INCR_REF_COUNT2("flagPtr->payload", flagPtr->payload);}
+  if (payload != NULL) {INCR_REF_COUNT2("flagPtr->payload", flagPtr->payload);}
   flagPtr->flags = flags;
 
   return TCL_OK;
@@ -368,7 +369,7 @@ MixinregFreeInternalRep(
    */
   NsfCleanupObject(&(mixinRegPtr->mixin)->object, "MixinregFreeInternalRep");
 
-  if (mixinRegPtr->guardObj) {DECR_REF_COUNT2("mixinRegPtr->guardObj", mixinRegPtr->guardObj);}
+  if (mixinRegPtr->guardObj != NULL) {DECR_REF_COUNT2("mixinRegPtr->guardObj", mixinRegPtr->guardObj);}
 
   /*
    * ... and free structure
@@ -388,7 +389,7 @@ MixinregDupInternalRep(
 {
   register Mixinreg *srcPtr = (Mixinreg *)srcObjPtr->internalRep.twoPtrValue.ptr1, *dstPtr;
 
-  assert(srcPtr);
+  assert(srcPtr != NULL);
 
 #if defined(METHOD_OBJECT_TRACE)
   fprintf(stderr, "MixinregDupInternalRep src %p dst %p\n",
@@ -401,7 +402,7 @@ MixinregDupInternalRep(
    * increment refcounts
    */
   NsfObjectRefCountIncr(&(srcPtr->mixin)->object);
-  if (srcPtr->guardObj) {INCR_REF_COUNT2("mixinRegPtr->guardObj", srcPtr->guardObj);}
+  if (srcPtr->guardObj != NULL) {INCR_REF_COUNT2("mixinRegPtr->guardObj", srcPtr->guardObj);}
 
   /*
    * update destination obj
@@ -464,7 +465,7 @@ MixinregSetFromAny(
    * ... and increment refCounts
    */
   NsfObjectRefCountIncr((&mixin->object));
-  if (guardObj) {INCR_REF_COUNT2("mixinRegPtr->guardObj", guardObj);}
+  if (guardObj != NULL) {INCR_REF_COUNT2("mixinRegPtr->guardObj", guardObj);}
 
   /*
    * Build list of tcl-objs per mixin class for invalidation.
@@ -513,10 +514,10 @@ MixinregSetFromAny(
 int
 NsfMixinregGet(Tcl_Interp *interp, Tcl_Obj *obj, NsfClass **clPtr, Tcl_Obj **guardObj) {
 
-  assert(interp);
-  assert(obj);
-  assert(clPtr);
-  assert(guardObj);
+  assert(interp != NULL);
+  assert(obj != NULL);
+  assert(clPtr != NULL);
+  assert(guardObj != NULL);
 
   if (obj->typePtr == &NsfMixinregObjType) {
     Mixinreg *mixinRegPtr = obj->internalRep.twoPtrValue.ptr1;
@@ -524,8 +525,8 @@ NsfMixinregGet(Tcl_Interp *interp, Tcl_Obj *obj, NsfClass **clPtr, Tcl_Obj **gua
     /*
      * We got a mixin with an included cmd, but both might be already deleted.
      */
-    if ((mixinRegPtr->mixin->object.flags & NSF_DELETED) != 0U
-        || (Tcl_Command_flags(mixinRegPtr->mixin->object.id) & CMD_IS_DELETED) != 0U) {
+    if ((mixinRegPtr->mixin->object.flags & NSF_DELETED) != 0u
+        || (Tcl_Command_flags(mixinRegPtr->mixin->object.id) & CMD_IS_DELETED) != 0u) {
 
       /*
        * The cmd is deleted. retry to refetch it.
@@ -628,7 +629,7 @@ FilterregFreeInternalRep(
 {
   Filterreg *filterregPtr = (Filterreg *)objPtr->internalRep.twoPtrValue.ptr1;
 
-  assert(filterregPtr);
+  assert(filterregPtr != NULL);
 
   /*fprintf(stderr, "FilterregFreeInternalRep freeing filterreg %p class %p guard %p\n",
     filterregPtr, filterregPtr->class, filterregPtr->guardObj);*/
@@ -637,7 +638,7 @@ FilterregFreeInternalRep(
    * Decrement refCounts
    */
   DECR_REF_COUNT2("filterregPtr->filterObj", filterregPtr->filterObj);
-  if (filterregPtr->guardObj) {DECR_REF_COUNT2("filterregPtr->guardObj", filterregPtr->guardObj);}
+  if (filterregPtr->guardObj != NULL) {DECR_REF_COUNT2("filterregPtr->guardObj", filterregPtr->guardObj);}
 
   /*
    * ... and free structure
@@ -656,9 +657,9 @@ FilterregDupInternalRep(
     Tcl_Obj *dstObjPtr) {
   register Filterreg *srcPtr = (Filterreg *)srcObjPtr->internalRep.twoPtrValue.ptr1, *dstPtr;
 
-  assert(srcObjPtr);
-  assert(dstObjPtr);
-  assert(srcPtr);
+  assert(srcObjPtr != NULL);
+  assert(dstObjPtr != NULL);
+  assert(srcPtr != NULL);
 
 #if defined(METHOD_OBJECT_TRACE)
   fprintf(stderr, "FilterregDupInternalRep src %p dst %p\n", srcObjPtr, dstObjPtr);
@@ -671,7 +672,7 @@ FilterregDupInternalRep(
    * increment refcounts
    */
   INCR_REF_COUNT2("filterregPtr->filterObj", srcPtr->filterObj);
-  if (srcPtr->guardObj) {INCR_REF_COUNT2("FilterregPtr->guardObj", srcPtr->guardObj);}
+  if (srcPtr->guardObj != NULL) {INCR_REF_COUNT2("FilterregPtr->guardObj", srcPtr->guardObj);}
 
   /*
    * update destination obj
@@ -724,7 +725,7 @@ FilterregSetFromAny(
    * ... and increment refCounts
    */
   INCR_REF_COUNT2("filterregPtr->filterObj", filterObj);
-  if (guardObj) {INCR_REF_COUNT2("filterregPtr->guardObj", guardObj);}
+  if (guardObj != NULL) {INCR_REF_COUNT2("filterregPtr->guardObj", guardObj);}
 
   /*fprintf(stderr, "FilterregSetFromAny alloc filterreg %p class %p guard %p\n",
     filterregPtr, filterregPtr->filterObj, filterregPtr->guardObj);*/
@@ -760,9 +761,9 @@ FilterregSetFromAny(
 int
 NsfFilterregGet(Tcl_Interp *UNUSED(interp), Tcl_Obj *obj, Tcl_Obj **filterObj, Tcl_Obj **guardObj) {
 
-  assert(obj);
-  assert(filterObj);
-  assert(guardObj);
+  assert(obj != NULL);
+  assert(filterObj != NULL);
+  assert(guardObj != NULL);
 
   if (obj->typePtr == &NsfFilterregObjType) {
     Filterreg *filterregPtr = obj->internalRep.twoPtrValue.ptr1;

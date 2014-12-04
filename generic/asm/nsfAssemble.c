@@ -245,7 +245,7 @@ AsmInstructionArgvSet(Tcl_Interp *interp, int from, int to, int currentArg,
     Tcl_GetIndexFromObj(interp, wordOv[j], asmStatementArgType, "asm cmd arg type", 0, &argIndex);
     Tcl_GetIntFromObj(interp, wordOv[j+1], &intValue);
 
-    if (verbose) {
+    if (verbose != 0) {
       fprintf(stderr, "AsmInstructionArgvSet (type %d) arg[%d] := %s[%s]\n", 
 	      argIndex, currentArg, ObjStr(wordOv[j]), ObjStr(wordOv[j+1]));
     }
@@ -306,7 +306,7 @@ NsfAsmProcDeleteProc(ClientData clientData) {
   /*fprintf(stderr, "NsfAsmProcDeleteProc received %p\n", clientData);*/
   
   fprintf(stderr, "NsfAsmProcDeleteProc: TODO free asmProc\n");
-  if (cd->paramDefs) {
+  if (cd->paramDefs != 0) {
     /* tcd->paramDefs is freed by NsfProcDeleteProc() */
     fprintf(stderr, "NsfAsmProcDeleteProc: TODO free paramDefs\n");
   }
@@ -334,7 +334,7 @@ NsfAsmProc(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
   AsmProcClientData *cd = clientData;
   int result;
 
-  assert(cd);
+  assert(cd != NULL);
   assert(cd->proc);
   //fprintf(stderr, "NsfAsmProcStub %s is called, tcd %p object %p\n", ObjStr(objv[0]), cd, cd->object);
 
@@ -424,7 +424,7 @@ NsfAsmProcAddArgs(Tcl_Interp *interp, Tcl_Obj *argumentsObj,
   cd->proc = asmProc;
   cd->paramDefs = NULL;
   cd->with_ad = with_ad;
-  cd->with_checkAlways = with_checkAlways ? NSF_ARGPARSE_CHECK : 0;
+  cd->with_checkAlways = (with_checkAlways != 0) ? NSF_ARGPARSE_CHECK : 0;
 
   Tcl_CreateObjCommand(interp, procName, NsfAsmProc,
 		       cd, NsfAsmProcDeleteProc);

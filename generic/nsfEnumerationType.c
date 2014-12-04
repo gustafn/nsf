@@ -59,7 +59,7 @@ static int Register(Tcl_Interp *interp, CONST char* domain, Nsf_TypeConverter *c
 void
 Nsf_EnumerationTypeInit(Tcl_Interp *interp) {
 
-  assert(interp);
+  assert(interp != NULL);
 
   NsfMutexLock(&enumerationMutex);
 
@@ -89,8 +89,8 @@ int
 Nsf_EnumerationTypeRegister(Tcl_Interp *interp, Nsf_EnumeratorConverterEntry *typeRecords) {
   Nsf_EnumeratorConverterEntry *ePtr;
 
-  assert(interp);
-  assert(typeRecords);
+  assert(interp != NULL);
+  assert(typeRecords != NULL);
 
   for (ePtr = typeRecords; ePtr->converter; ePtr++) {
     int result = Register(interp, ePtr->domain, ePtr->converter);
@@ -122,7 +122,7 @@ Nsf_EnumerationTypeGetDomain(Nsf_TypeConverter *converter) {
   Tcl_HashSearch hSrch;
   const char* domain = NULL;
 
-  assert(converter);
+  assert(converter != NULL);
 
   NsfMutexLock(&enumerationMutex);
 
@@ -160,14 +160,14 @@ Register(Tcl_Interp *interp, CONST char* domain, Nsf_TypeConverter *converter) {
   Tcl_HashEntry *hPtr;
   int isNew;
 
-  assert(interp);
-  assert(converter);
+  assert(interp != NULL);
+  assert(converter != NULL);
 
   NsfMutexLock(&enumerationMutex);
   hPtr = Tcl_CreateHashEntry(enumerationHashTablePtr, domain, &isNew);
   NsfMutexUnlock(&enumerationMutex);
 
-  if (isNew) {
+  if (isNew != 0) {
     Tcl_SetHashValue(hPtr, converter);
   } else {
     /*

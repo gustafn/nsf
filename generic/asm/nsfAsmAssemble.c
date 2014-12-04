@@ -151,7 +151,7 @@ AsmAssemble(ClientData cd, Tcl_Interp *interp, Tcl_Obj *nameObj,
   Tcl_Obj **ov;
   CONST char *procName;
 
-  assert(nameObj);
+  assert(nameObj != NULL);
   procName = ObjStr(nameObj);
   
   if (Tcl_ListObjGetElements(interp, asmObj, &oc, &ov) != TCL_OK) {
@@ -325,13 +325,13 @@ AsmAssemble(ClientData cd, Tcl_Interp *interp, Tcl_Obj *nameObj,
    case asmEvalIdx:
 
 	inst = AsmInstructionNew(proc, asmEval, cArgs);
-	if (cArgs>0) {AsmInstructionArgvSet(interp, offset, argc, 0, inst, proc, argv, 0);}
+	if (cArgs > 0) {AsmInstructionArgvSet(interp, offset, argc, 0, inst, proc, argv, 0);}
       break;
 
    case asmDuplicateObjIdx:
 
 	inst = AsmInstructionNew(proc, asmDuplicateObj, cArgs);
-	if (cArgs>0) {AsmInstructionArgvSet(interp, offset, argc, 0, inst, proc, argv, 0);}
+	if (cArgs > 0) {AsmInstructionArgvSet(interp, offset, argc, 0, inst, proc, argv, 0);}
 	inst->clientData = proc;
 
       break;
@@ -339,7 +339,7 @@ AsmAssemble(ClientData cd, Tcl_Interp *interp, Tcl_Obj *nameObj,
    case asmIncrIntIdx:
 
 	inst = AsmInstructionNew(proc, asmIncrInt, cArgs);
-	if (cArgs>0) {AsmInstructionArgvSet(interp, offset, argc, 0, inst, proc, argv, 0);}
+	if (cArgs > 0) {AsmInstructionArgvSet(interp, offset, argc, 0, inst, proc, argv, 0);}
 	inst->clientData = proc;
 
       break;
@@ -347,7 +347,7 @@ AsmAssemble(ClientData cd, Tcl_Interp *interp, Tcl_Obj *nameObj,
    case asmIncrObjIdx:
 
 	inst = AsmInstructionNew(proc, asmIncrObj, cArgs);
-	if (cArgs>0) {AsmInstructionArgvSet(interp, offset, argc, 0, inst, proc, argv, 0);}
+	if (cArgs > 0) {AsmInstructionArgvSet(interp, offset, argc, 0, inst, proc, argv, 0);}
 	inst->clientData = proc;
 
       break;
@@ -368,7 +368,7 @@ AsmAssemble(ClientData cd, Tcl_Interp *interp, Tcl_Obj *nameObj,
    case asmJumpIdx:
 
 	inst = AsmInstructionNew(proc, asmJump, cArgs);
-	if (cArgs>0) {AsmInstructionArgvSet(interp, offset, argc, 0, inst, proc, argv, 0);}
+	if (cArgs > 0) {AsmInstructionArgvSet(interp, offset, argc, 0, inst, proc, argv, 0);}
 	inst->clientData = proc;
 
       break;
@@ -376,7 +376,7 @@ AsmAssemble(ClientData cd, Tcl_Interp *interp, Tcl_Obj *nameObj,
    case asmJumpTrueIdx:
 
 	inst = AsmInstructionNew(proc, asmJumpTrue, cArgs);
-	if (cArgs>0) {AsmInstructionArgvSet(interp, offset, argc, 0, inst, proc, argv, 0);}
+	if (cArgs > 0) {AsmInstructionArgvSet(interp, offset, argc, 0, inst, proc, argv, 0);}
 	inst->clientData = proc;
 
       break;
@@ -384,7 +384,7 @@ AsmAssemble(ClientData cd, Tcl_Interp *interp, Tcl_Obj *nameObj,
    case asmLeIntIdx:
 
 	inst = AsmInstructionNew(proc, asmLeInt, cArgs);
-	if (cArgs>0) {AsmInstructionArgvSet(interp, offset, argc, 0, inst, proc, argv, 0);}
+	if (cArgs > 0) {AsmInstructionArgvSet(interp, offset, argc, 0, inst, proc, argv, 0);}
 	inst->clientData = proc;
 
       break;
@@ -392,7 +392,7 @@ AsmAssemble(ClientData cd, Tcl_Interp *interp, Tcl_Obj *nameObj,
    case asmLeIntObjIdx:
 
 	inst = AsmInstructionNew(proc, asmLeIntObj, cArgs);
-	if (cArgs>0) {AsmInstructionArgvSet(interp, offset, argc, 0, inst, proc, argv, 0);}
+	if (cArgs > 0) {AsmInstructionArgvSet(interp, offset, argc, 0, inst, proc, argv, 0);}
 	inst->clientData = proc;
 
       break;
@@ -400,7 +400,7 @@ AsmAssemble(ClientData cd, Tcl_Interp *interp, Tcl_Obj *nameObj,
    case asmMethodDelegateDispatchIdx:
 
 	inst = AsmInstructionNew(proc, asmMethodDelegateDispatch, cArgs);
-	if (cArgs>0) {AsmInstructionArgvSet(interp, offset, argc, 0, inst, proc, argv, 0);}
+	if (cArgs > 0) {AsmInstructionArgvSet(interp, offset, argc, 0, inst, proc, argv, 0);}
 	{ Tcl_Command cmd = NULL;
 	  NsfObject *object = NULL;
 	  AsmResolverInfo *resInfo;
@@ -420,7 +420,7 @@ AsmAssemble(ClientData cd, Tcl_Interp *interp, Tcl_Obj *nameObj,
 	    resInfo->object = object;
 	    inst->clientData = resInfo;
 	    AsmInstructionSetCmd(inst, asmMethodDelegateDispatch11);
-	  } else if (cmd) {
+	  } else if (cmd != 0) {
 	    inst->clientData = cmd;
 	  } else {	  
 	    inst->clientData = NULL;
@@ -432,13 +432,13 @@ AsmAssemble(ClientData cd, Tcl_Interp *interp, Tcl_Obj *nameObj,
    case asmMethodSelfDispatchIdx:
 
 	inst = AsmInstructionNew(proc, asmMethodSelfDispatch, cArgs);
-	if (cArgs>0) {AsmInstructionArgvSet(interp, offset, argc, 0, inst, proc, argv, 0);}
+	if (cArgs > 0) {AsmInstructionArgvSet(interp, offset, argc, 0, inst, proc, argv, 0);}
 	{ Tcl_Command cmd = NULL;	  
 	  AsmResolverInfo *resInfo;
 	  
 	  if (strncmp(ObjStr(inst->argv[0]), "::nsf::methods::", 16) == 0) {
 	    cmd = Tcl_GetCommandFromObj(interp, inst->argv[0]);
-	    if (cmd) {
+	    if (cmd != 0) {
 	      //fprintf(stderr, "%s: asmMethodSelfCmdDispatch cmd '%s' => %p\n", procName, ObjStr(inst->argv[0]), cmd);
 	      AsmInstructionSetCmd(inst, asmMethodSelfCmdDispatch);
 	    }
@@ -456,7 +456,7 @@ AsmAssemble(ClientData cd, Tcl_Interp *interp, Tcl_Obj *nameObj,
    case asmNoopIdx:
 
 	inst = AsmInstructionNew(proc, asmNoop, cArgs);
-	if (cArgs>0) {AsmInstructionArgvSet(interp, offset, argc, 0, inst, proc, argv, 0);}
+	if (cArgs > 0) {AsmInstructionArgvSet(interp, offset, argc, 0, inst, proc, argv, 0);}
       break;
 
    case asmObjIdx:
@@ -471,7 +471,7 @@ AsmAssemble(ClientData cd, Tcl_Interp *interp, Tcl_Obj *nameObj,
    case asmSelfIdx:
 
 	inst = AsmInstructionNew(proc, asmSelf, cArgs);
-	if (cArgs>0) {AsmInstructionArgvSet(interp, offset, argc, 0, inst, proc, argv, 0);}
+	if (cArgs > 0) {AsmInstructionArgvSet(interp, offset, argc, 0, inst, proc, argv, 0);}
 	inst->clientData = proc;
 
       break;
@@ -479,7 +479,7 @@ AsmAssemble(ClientData cd, Tcl_Interp *interp, Tcl_Obj *nameObj,
    case asmSetIntIdx:
 
 	inst = AsmInstructionNew(proc, asmSetInt, cArgs);
-	if (cArgs>0) {AsmInstructionArgvSet(interp, offset, argc, 0, inst, proc, argv, 0);}
+	if (cArgs > 0) {AsmInstructionArgvSet(interp, offset, argc, 0, inst, proc, argv, 0);}
 	inst->clientData = proc;
 
       break;
@@ -487,7 +487,7 @@ AsmAssemble(ClientData cd, Tcl_Interp *interp, Tcl_Obj *nameObj,
    case asmSetObjIdx:
 
 	inst = AsmInstructionNew(proc, asmSetObj, cArgs);
-	if (cArgs>0) {AsmInstructionArgvSet(interp, offset, argc, 0, inst, proc, argv, 0);}
+	if (cArgs > 0) {AsmInstructionArgvSet(interp, offset, argc, 0, inst, proc, argv, 0);}
 	inst->clientData = proc;
 
       break;
@@ -495,7 +495,7 @@ AsmAssemble(ClientData cd, Tcl_Interp *interp, Tcl_Obj *nameObj,
    case asmSetObjToResultIdx:
 
 	inst = AsmInstructionNew(proc, asmSetObjToResult, cArgs);
-	if (cArgs>0) {AsmInstructionArgvSet(interp, offset, argc, 0, inst, proc, argv, 0);}
+	if (cArgs > 0) {AsmInstructionArgvSet(interp, offset, argc, 0, inst, proc, argv, 0);}
 	inst->clientData = proc;
 
       break;
@@ -503,7 +503,7 @@ AsmAssemble(ClientData cd, Tcl_Interp *interp, Tcl_Obj *nameObj,
    case asmSetResultIdx:
 
 	inst = AsmInstructionNew(proc, asmSetResult, cArgs);
-	if (cArgs>0) {AsmInstructionArgvSet(interp, offset, argc, 0, inst, proc, argv, 0);}
+	if (cArgs > 0) {AsmInstructionArgvSet(interp, offset, argc, 0, inst, proc, argv, 0);}
 	inst->clientData = proc;
 
       break;
@@ -511,7 +511,7 @@ AsmAssemble(ClientData cd, Tcl_Interp *interp, Tcl_Obj *nameObj,
    case asmSetResultIntIdx:
 
 	inst = AsmInstructionNew(proc, asmSetResultInt, cArgs);
-	if (cArgs>0) {AsmInstructionArgvSet(interp, offset, argc, 0, inst, proc, argv, 0);}
+	if (cArgs > 0) {AsmInstructionArgvSet(interp, offset, argc, 0, inst, proc, argv, 0);}
 	inst->clientData = proc;
 
       break;
@@ -519,7 +519,7 @@ AsmAssemble(ClientData cd, Tcl_Interp *interp, Tcl_Obj *nameObj,
    case asmStoreResultIdx:
 
 	inst = AsmInstructionNew(proc, asmStoreResult, cArgs);
-	if (cArgs>0) {AsmInstructionArgvSet(interp, offset, argc, 0, inst, proc, argv, 0);}
+	if (cArgs > 0) {AsmInstructionArgvSet(interp, offset, argc, 0, inst, proc, argv, 0);}
 	codeIndex = -1;
 	argvIndex = -1;
 	for (j = offset; j < argc; j += 2) {
