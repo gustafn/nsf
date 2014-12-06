@@ -761,7 +761,7 @@ cleandoc:
 	-rm -rf $(xotcl_target_doc_dir)/*-xotcl.html
 
 clean: cleandoc
-	-rm -rf $(BINARIES) $(CLEANFILES) ./receiver $(TESTLOG)
+	-rm -rf $(BINARIES) $(CLEANFILES) generic/stub*/*.o ./receiver $(TESTLOG)
 	find ${srcdir} -type f -name \*~ -exec rm \{} \;
 	@if test ! "x$(subdirs)" = "x" ; then dirs="$(subdirs)" ; \
 	for dir in $$dirs ; do \
