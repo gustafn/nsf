@@ -370,7 +370,7 @@ typedef Tcl_Obj *(NsfFormatFunction) _ANSI_ARGS_((Tcl_Interp *interp, Nsf_Param 
 static Tcl_Obj *NsfParamDefsVirtualFormat(Tcl_Interp *interp, Nsf_Param CONST *pPtr,
                                           NsfObject *contextObject,  CONST char *pattern,
                                           NsfFormatFunction formatFunction)
-  nonnull(1) nonnull(2) nonnull(3) nonnull(4);
+  nonnull(1) nonnull(2) nonnull(3) nonnull(5);
 
 static int NsfParamDefsAppendVirtual(Tcl_Interp *interp, Tcl_Obj *listObj,
                                      Nsf_Param CONST *paramsPtr, NsfObject *contextObject,
@@ -6272,8 +6272,7 @@ NsfAddClassMethod(Tcl_Interp *interp, Nsf_Class *class, CONST char *methodName,
   assert(class != NULL);
   assert(methodName != NULL);
   assert(proc != NULL);
-
-
+  assert(cl->nsPtr != NULL);
 
    /* Check, if we are allowed to redefine the method */
   result = CanRedefineCmd(interp, cl->nsPtr, &cl->object, (char *)methodName, flags);
@@ -11783,9 +11782,9 @@ NsfParamDefsVirtualFormat(Tcl_Interp *interp, Nsf_Param CONST *pPtr, NsfObject *
 
   assert(interp != NULL);
   assert(pPtr != NULL);
-  assert(pPtr->type);
-  assert(formatFunction != NULL);
+  assert(pPtr->type != NULL);
   assert(contextObject != NULL);
+  assert(formatFunction != NULL);
 
   if (strcmp(pPtr->type, "virtualobjectargs") == 0) {
     result = GetObjectParameterDefinition(interp, NsfGlobalObjs[NSF_EMPTY], contextObject, NULL, &parsedParam);
@@ -17648,7 +17647,7 @@ NextSearchAndInvoke(Tcl_Interp *interp, CONST char *methodName,
 #endif
   } else if (likely(result == TCL_OK)) {
     NsfCallStackContent *topCscPtr;
-    Tcl_CallFrame *varFramePtr;
+    Tcl_CallFrame *varFramePtr = NULL;
     int isLeafNext;
 
     /*
@@ -17676,6 +17675,7 @@ NextSearchAndInvoke(Tcl_Interp *interp, CONST char *methodName,
 
     topCscPtr = CallStackGetTopFrame(interp, &varFramePtr);
     assert(topCscPtr != NULL);
+    assert(varFramePtr != NULL);
 
     /*
      * Find the appropriate frame pointing to the start of the ensemble, in
@@ -17694,10 +17694,12 @@ NextSearchAndInvoke(Tcl_Interp *interp, CONST char *methodName,
         if ((topCscPtr->flags & NSF_CM_ENSEMBLE_UNKNOWN)) break;
       }
 
-      varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr);
-      if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) {
-        topCscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
-        assert(topCscPtr != NULL);
+      if (varFramePtr != NULL) {
+        varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr);
+        if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) {
+          topCscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
+          assert(topCscPtr != NULL);
+        }
       }
     }
 
@@ -22229,7 +22231,7 @@ ListMethod(Tcl_Interp *interp,
 
   Tcl_ResetResult(interp);
 
-  if (regObject && !NsfObjectIsClass(regObject)) {
+  if (regObject != NULL && !NsfObjectIsClass(regObject)) {
     withPer_object = 1;
     /* don't output "object" modifier, if regObject is not a class */
     outputPerObject = 0;
@@ -22422,7 +22424,7 @@ ListMethod(Tcl_Interp *interp,
       Tcl_SetObjResult(interp, NsfGlobalObjs[NSF_FORWARD]);
       break;
     case InfomethodsubcmdDefinitionIdx:
-      {
+      if (regObject != NULL) {
         ClientData clientData;
 
         assert(cmd != NULL);
@@ -22437,9 +22439,9 @@ ListMethod(Tcl_Interp *interp,
 
           AppendForwardDefinition(interp, resultObj, clientData);
           Tcl_SetObjResult(interp, resultObj);
-          break;
         }
       }
+      break;
     }
 
   } else if (procPtr == NsfSetterMethod) {
@@ -22448,18 +22450,18 @@ ListMethod(Tcl_Interp *interp,
     case InfomethodsubcmdTypeIdx:
       Tcl_SetObjResult(interp, NsfGlobalObjs[NSF_SETTER]);
       break;
-    case InfomethodsubcmdDefinitionIdx: {
-      SetterCmdClientData *cd = (SetterCmdClientData *)Tcl_Command_objClientData(cmd);
+    case InfomethodsubcmdDefinitionIdx:
+      if (regObject != NULL) {
+        SetterCmdClientData *cd = (SetterCmdClientData *)Tcl_Command_objClientData(cmd);
 
-      resultObj = Tcl_NewListObj(0, NULL);
-      /* todo: don't hard-code registering command name "setter" / NSF_SETTER */
-
-      AppendMethodRegistration(interp, resultObj, NsfGlobalStrings[NSF_SETTER], regObject,
-                               (cd && cd->paramsPtr) ? ObjStr(cd->paramsPtr->paramObj) : methodName,
-                               cmd, 0, outputPerObject, 1);
-      Tcl_SetObjResult(interp, resultObj);
+        resultObj = Tcl_NewListObj(0, NULL);
+        /* todo: don't hard-code registering command name "setter" / NSF_SETTER */
+        AppendMethodRegistration(interp, resultObj, NsfGlobalStrings[NSF_SETTER], regObject,
+                                 (cd && cd->paramsPtr) ? ObjStr(cd->paramsPtr->paramObj) : methodName,
+                                 cmd, 0, outputPerObject, 1);
+        Tcl_SetObjResult(interp, resultObj);
+      }
       break;
-    }
     }
   } else if (procPtr == NsfProcStub) {
     /*
@@ -22532,7 +22534,7 @@ ListMethod(Tcl_Interp *interp,
         Tcl_SetObjResult(interp, NsfGlobalObjs[NSF_ALIAS]);
         break;
       case InfomethodsubcmdDefinitionIdx:
-        {
+        if (regObject != NULL) {
           int nrElements;
           Tcl_Obj **listElements;
 
@@ -22546,8 +22548,9 @@ ListMethod(Tcl_Interp *interp,
           AppendReturnsClause(interp, resultObj, cmd);
           Tcl_ListObjAppendElement(interp, resultObj, listElements[nrElements-1]);
           Tcl_SetObjResult(interp, resultObj);
-          break;
         }
+        break;
+        
       case InfomethodsubcmdOriginIdx:
         {
           int nrElements;
@@ -28014,7 +28017,10 @@ NsfOResidualargsMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj 
   }
 
   for( ; i < objc;  argc = nextArgc, argv = nextArgv, methodName = nextMethodName) {
+    
+    assert(initString != NULL);
     Tcl_ResetResult(interp);
+    
     switch (isdasharg) {
     case SKALAR_DASH:    /* Argument is a skalar with a leading dash */
       { int j;

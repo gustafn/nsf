@@ -1364,6 +1364,9 @@ NsfMongoGridFileCreate(Tcl_Interp *interp, int withSource,
       if (n > 0) {
 	iov.iov_len = n;
 	n = mongoc_gridfs_file_writev(gridFile, &iov, 1, 0);
+        if (n != iov.iov_len) {
+          NsfLog(interp, NSF_LOG_WARN, "mongodb: write of %d bytes returned %d", iov.iov_len, n);
+        }
       } else if (n == 0) {
 	break;
       } else {
