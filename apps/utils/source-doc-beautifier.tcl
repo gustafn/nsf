@@ -1,4 +1,4 @@
-#!/usr/bin/env tclsh
+#!/usr/bin/env tclsh8.5
 #
 # Script to beautify scripted documentations.
 #

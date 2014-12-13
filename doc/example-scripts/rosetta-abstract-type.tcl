@@ -24,10 +24,13 @@ nx::Class create AbstractQueue {
 # Define a concrete queue (named ListQueue) based 
 # on the Abstract Queue
 nx::Class create ListQueue -superclass AbstractQueue {
+    
   :variable list {}
+    
   :public method enqueue {item} {
     lappend :list $item
   }
+  
   :public method dequeue {} {
     set item [lindex ${:list} 0]
     set :list [lrange ${:list} 1 end]

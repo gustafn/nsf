@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 8.6.8" />
+<meta name="generator" content="AsciiDoc 8.6.9" />
 <title>Listing of doc/example-scripts/rosetta-delegates.tcl</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -94,7 +94,9 @@ ul > li > * { color: black; }
   padding: 0;
   margin: 0;
 }
-
+pre {
+  white-space: pre-wrap;
+}
 
 #author {
   color: #527bbd;
@@ -223,7 +225,7 @@ div.exampleblock > div.content {
 }
 
 div.imageblock div.content { padding-left: 0; }
-span.image img { border-style: none; }
+span.image img { border-style: none; vertical-align: text-bottom; }
 a.image:visited { color: white; }
 
 dl {
@@ -739,17 +741,80 @@ asciidoc.install();
 <div class="sectionbody">
 <div class="paragraph"><p>For details see <a href="http://rosettacode.org/wiki/Delegates">http://rosettacode.org/wiki/Delegates</a></p></div>
 <div class="listingblock">
-<div class="content"></div></div>
+<div class="content"><style type='text/css'>
+.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
+table.nx        {border-collapse: collapse; border-spacing: 3px;}
+.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
+.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
+.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
+.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
+.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
+.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
+</style>
+<pre class='nx'><span class='nx-keyword'>package</span> req nx
+
+<span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Delegator {
+
+  <span class='nx-comment'># The class Delegator has a property named "delegatee" which is an
+</span>  <span class='nx-comment'># object:
+</span>
+  <span class='nx-keyword'>:property</span> delegatee<span class='nx-keyword'>:object</span>
+
+  <span class='nx-comment'># The method "operation" decides, whether it deletates the action to
+</span>  <span class='nx-comment'># another object, or it performs the action itself.
+</span>
+  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> operation {} {
+    <span class='nx-keyword'>if</span> {[<span class='nx-keyword'>info</span> exists :delegatee]} {
+      <span class='nx-variable'>${</span><span class='nx-variable'>:delegatee}</span> operation
+    } <span class='nx-keyword'>else</span> {
+      <span class='nx-keyword'>return</span> <span class='nx-string'>"default implementatiton"</span>
+    }
+  }
+}
+
+<span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Delegatee {
+
+  <span class='nx-comment'># The class "Delgatee" might receice invocations from the class
+</span>  <span class='nx-comment'># "Delegator"
+</span>
+  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> operation {} {
+    <span class='nx-keyword'>return</span> <span class='nx-string'>"delegatee implementatiton"</span>
+  }
+}</pre></div></div>
 <div class="sect2">
 <h3 id="_demonstrating_the_behavior_in_a_shell">Demonstrating the behavior in a shell:</h3>
 <div class="paragraph"><p>Create a <code>Delegator</code>, which has no <code>delegatee</code> defined. Therefore
 delegator performs the action by itself, the default implementation.</p></div>
 <div class="listingblock">
-<div class="content"></div></div>
+<div class="content"><style type='text/css'>
+.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
+table.nx        {border-collapse: collapse; border-spacing: 3px;}
+.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
+.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
+.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
+.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
+.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
+.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
+</style>
+<pre class='nx'>% <span class='nx-keyword'>set</span> a [Delegator <span class='nx-keyword'>new</span>]
+% <span class='nx-variable'>$a</span> operation
+default implementatiton</pre></div></div>
 <div class="paragraph"><p>Now, we set the <code>delegatee</code>; therefore, the delegatee will perform
 the action.</p></div>
 <div class="listingblock">
-<div class="content"></div></div>
+<div class="content"><style type='text/css'>
+.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
+table.nx        {border-collapse: collapse; border-spacing: 3px;}
+.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
+.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
+.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
+.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
+.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
+.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
+</style>
+<pre class='nx'>% <span class='nx-variable'>$a</span> <span class='nx-keyword'>configure</span> -delegatee [Delegatee <span class='nx-keyword'>new</span>]
+% <span class='nx-variable'>$a</span> operation
+delegatee implementatiton</pre></div></div>
 </div>
 </div>
 </div>
@@ -757,7 +822,7 @@ the action.</p></div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2013-06-07 00:07:52 CEST
+Last updated 2014-12-13 12:07:28 CET
 </div>
 </div>
 </body>
