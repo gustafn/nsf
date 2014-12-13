@@ -554,7 +554,7 @@ NsfLog(Tcl_Interp *interp, int requiredLevel, CONST char *fmt, ...) {
     va_list ap;
 
     switch (requiredLevel) {
-    case NSF_LOG_INFO: level = "Info"; break;
+    case NSF_LOG_DEBUG: level = "Debug"; break;
     case NSF_LOG_NOTICE: level = "Notice"; break;
     default: level = "Warning"; break;
     }
@@ -20226,7 +20226,7 @@ CallForwarder(ForwardCmdClientData *tcd, Tcl_Interp *interp, int objc, Tcl_Obj *
   if (unlikely(tcd->verbose)) {
     Tcl_Obj *cmd = Tcl_NewListObj(objc, objv);
 
-    NsfLog(interp, NSF_LOG_INFO, "forwarder calls '%s'",  ObjStr(cmd));
+    NsfLog(interp, NSF_LOG_DEBUG, "forwarder calls '%s'",  ObjStr(cmd));
     DECR_REF_COUNT(cmd);
   }
   if (tcd->frame == FrameObjectIdx) {
