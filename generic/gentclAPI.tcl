@@ -30,7 +30,7 @@
 #
 
 set ::converter ""
-set ::objCmdProc "(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv \[\])"
+set ::objCmdProc "(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv)"
 
 proc convertername {type typename} {
   if {[info exists ::registeredConverter($type)]} {
@@ -48,14 +48,14 @@ proc createconverter {type typename} {
     return ""
   }
   set domain [split $type |]
-  set opts "static CONST char *opts\[\] = {\"[join $domain {", "}]\", NULL};"
+  set opts "static const char *opts\[\] = {\"[join $domain {", "}]\", NULL};"
   set ::createdConverter($name) "ConvertTo${name}, \"$type\""
   set enums [list ${name}NULL]
   foreach d $domain {lappend enums $name[string totitle [string map [list - _] $d]]Idx}
   subst {
 enum ${name}Idx {[join $enums {, }]};
 
-static int ConvertTo${name}(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr,
+static int ConvertTo${name}(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
   $opts
@@ -188,7 +188,7 @@ proc gencall {methodName fn parameterDefinitions clientData
       set type "int "
       if {$(-nrargs) == 1} {
         switch -glob $(-type) {
-          ""           {set type "CONST char *"}
+          ""           {set type "const char *"}
           "class"      {set type "NsfClass *"}
           "object"     {set type "NsfObject *"}
           "tclobj"     {set type "Tcl_Obj *"}
@@ -202,7 +202,7 @@ proc gencall {methodName fn parameterDefinitions clientData
       set varName $(-argName)
       set calledArg $varName
       switch -glob $(-type) {
-        ""           {set type "CONST char *"}
+        ""           {set type "const char *"}
         "boolean"    {set type "int "}
         "int32"      {set type "int "}
         "class"      {set type "NsfClass *"}
@@ -213,22 +213,22 @@ proc gencall {methodName fn parameterDefinitions clientData
         "args"       {
           set type "int "
           set calledArg "objc-pc.lastObjc, objv+pc.lastObjc"
-          lappend if "int nobjc" "Tcl_Obj *CONST nobjv\[\]"
+          lappend if "int nobjc" "Tcl_Obj *CONST* nobjv"
           set ifSet 1
           set cVar 0
         }
         "allargs" {
           set type "int "
           set calledArg "objc, objv"
-          lappend if "int objc" "Tcl_Obj *CONST objv\[\]"
+          lappend if "int objc" "Tcl_Obj *CONST* objv"
           set ifSet 1
           set cVar 0
         }
         "objpattern" {
           set type "Tcl_Obj *"
-          lappend c "CONST char *${varName}String = NULL;" "NsfObject *${varName}Object = NULL;"
+          lappend c "const char *${varName}String = NULL;" "NsfObject *${varName}Object = NULL;"
           set calledArg "${varName}String, ${varName}Object"
-          lappend if "CONST char *${varName}String" "NsfObject *${varName}Object"
+          lappend if "const char *${varName}String" "NsfObject *${varName}Object"
           set ifSet 1
           append pre [subst -nocommands {
     if (GetMatchObject(interp, ${varName}, objc>$i ? objv[$i] : NULL, &${varName}Object, &${varName}String) == -1) {
@@ -299,7 +299,7 @@ proc genStub {stub intro obj idx cDefs pre call post cleanup} {
   }
   return [subst -nocommands {
 static int
-${stub}(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+${stub}(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv) {
   ParseContext pc;
 $intro
   if (likely(ArgumentParse(interp, objc, objv, $obj, objv[0],
@@ -322,7 +322,7 @@ proc genSimpleStub {stub intro idx cDefs pre call post cleanup} {
   if {$cleanup ne ""} {error "$stub cleanup code '$cleanup' must be empty"}
   return [subst -nocommands {
 static int
-${stub}(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+${stub}(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv) {
 $intro
     $cDefs
 $pre
@@ -466,7 +466,7 @@ static Nsf_methodDefinition method_definitions[$nrIfds];
      lappend namespaces "\"$value\""
   }
   set namespaceString [join $namespaces ",\n  "]
-  puts "static CONST char *method_command_namespace_names\[\] = {\n  $namespaceString\n};"
+  puts "static const char *method_command_namespace_names\[\] = {\n  $namespaceString\n};"
   puts $stubDecls
   puts $decls
   set enumString [join $enums ",\n "]
@@ -536,35 +536,35 @@ puts {
  */
 
 #if defined(USE_NSF_STUBS)
-int Nsf_ConvertTo_Boolean(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
+int Nsf_ConvertTo_Boolean(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
 			  ClientData *clientData, Tcl_Obj **outObjPtr) {
   return Nsf_ConvertToBoolean(interp, objPtr, pPtr, clientData, outObjPtr);
 }
-int Nsf_ConvertTo_Class(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
+int Nsf_ConvertTo_Class(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
 			  ClientData *clientData, Tcl_Obj **outObjPtr) {
   return Nsf_ConvertToClass(interp, objPtr, pPtr, clientData, outObjPtr);
 }
-int Nsf_ConvertTo_Int32(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
+int Nsf_ConvertTo_Int32(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
 			  ClientData *clientData, Tcl_Obj **outObjPtr) {
   return Nsf_ConvertToInt32(interp, objPtr, pPtr, clientData, outObjPtr);
 }
-int Nsf_ConvertTo_Integer(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
+int Nsf_ConvertTo_Integer(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
 			  ClientData *clientData, Tcl_Obj **outObjPtr) {
   return Nsf_ConvertToInteger(interp, objPtr, pPtr, clientData, outObjPtr);
 }
-int Nsf_ConvertTo_Object(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
+int Nsf_ConvertTo_Object(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
 			  ClientData *clientData, Tcl_Obj **outObjPtr) {
   return Nsf_ConvertToObject(interp, objPtr, pPtr, clientData, outObjPtr);
 }
-int Nsf_ConvertTo_Pointer(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
+int Nsf_ConvertTo_Pointer(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
 			  ClientData *clientData, Tcl_Obj **outObjPtr) {
   return Nsf_ConvertToPointer(interp, objPtr, pPtr, clientData, outObjPtr);
 }
-int Nsf_ConvertTo_String(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
+int Nsf_ConvertTo_String(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
 			  ClientData *clientData, Tcl_Obj **outObjPtr) {
   return Nsf_ConvertToString(interp, objPtr, pPtr, clientData, outObjPtr);
 }
-int Nsf_ConvertTo_Tclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
+int Nsf_ConvertTo_Tclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
 			  ClientData *clientData, Tcl_Obj **outObjPtr) {
   return Nsf_ConvertToTclobj(interp, objPtr, pPtr, clientData, outObjPtr);
 }
