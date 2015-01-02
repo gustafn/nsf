@@ -41,7 +41,7 @@ static Tcl_HashTable enumerationHashTable, *enumerationHashTablePtr = &enumerati
 static int enumerationTypeRefCount = 0;
 static NsfMutex enumerationMutex = 0;
 
-static int Register(Tcl_Interp *interp, CONST char* domain, Nsf_TypeConverter *converter) nonnull(1) nonnull(3);
+static int Register(Tcl_Interp *interp, const char *domain, Nsf_TypeConverter *converter) nonnull(1) nonnull(3);
 /*
  *----------------------------------------------------------------------
  * Nsf_EnumerationTypeInit --
@@ -156,7 +156,7 @@ Nsf_EnumerationTypeGetDomain(Nsf_TypeConverter *converter) {
  */
 
 static int
-Register(Tcl_Interp *interp, CONST char* domain, Nsf_TypeConverter *converter) {
+Register(Tcl_Interp *interp, const char *domain, Nsf_TypeConverter *converter) {
   Tcl_HashEntry *hPtr;
   int isNew;
 

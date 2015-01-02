@@ -59,7 +59,7 @@ static NsfMutex pointerMutex = 0;
  *----------------------------------------------------------------------
  */
 int
-Nsf_PointerAdd(Tcl_Interp *interp, char *buffer, CONST char *typeName, void *valuePtr) {
+Nsf_PointerAdd(Tcl_Interp *interp, char *buffer, const char *typeName, void *valuePtr) {
   int *counterPtr;
 
   assert(interp != NULL);
@@ -109,10 +109,10 @@ Nsf_PointerAdd(Tcl_Interp *interp, char *buffer, CONST char *typeName, void *val
  *
  *----------------------------------------------------------------------
  */
-static void * Nsf_PointerGet(char *key, CONST char *prefix) nonnull(1) nonnull(2);
+static void * Nsf_PointerGet(char *key, const char *prefix) nonnull(1) nonnull(2);
 
 static void *
-Nsf_PointerGet(char *key, CONST char *prefix) {
+Nsf_PointerGet(char *key, const char *prefix) {
   void *valuePtr = NULL;
 
   assert(key != NULL);
@@ -191,7 +191,7 @@ Nsf_PointerGetHptr(void *valuePtr) {
  *----------------------------------------------------------------------
  */
 int
-Nsf_PointerDelete(CONST char *key, void *valuePtr, int free) {
+Nsf_PointerDelete(const char *key, void *valuePtr, int free) {
   Tcl_HashEntry *hPtr;
   int result;
 
@@ -233,12 +233,12 @@ Nsf_PointerDelete(CONST char *key, void *valuePtr, int free) {
  *----------------------------------------------------------------------
  */
 
-int Nsf_ConvertToPointer(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
+int Nsf_ConvertToPointer(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
 			 ClientData *clientData, Tcl_Obj **outObjPtr)
   nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(5);
 
 int
-Nsf_ConvertToPointer(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
+Nsf_ConvertToPointer(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
 		     ClientData *clientData, Tcl_Obj **outObjPtr) {
   void *valuePtr;
 
@@ -273,7 +273,7 @@ Nsf_ConvertToPointer(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr
  */
 
 int
-Nsf_PointerTypeRegister(Tcl_Interp *interp, CONST char* typeName, int *counterPtr) {
+Nsf_PointerTypeRegister(Tcl_Interp *interp, const char* typeName, int *counterPtr) {
   Tcl_HashEntry *hPtr;
   int isNew;
 
@@ -312,7 +312,7 @@ Nsf_PointerTypeRegister(Tcl_Interp *interp, CONST char* typeName, int *counterPt
  */
 
 void *
-Nsf_PointerTypeLookup(Tcl_Interp *interp, CONST char* typeName) {
+Nsf_PointerTypeLookup(Tcl_Interp *interp, const char* typeName) {
   Tcl_HashEntry *hPtr;
 
   assert(interp != NULL);

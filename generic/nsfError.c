@@ -44,8 +44,8 @@
 #include "nsfInt.h"
 
 /* function prototypes */
-Tcl_Obj *NsfParamDefsSyntax(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr,
-			    NsfObject *contextObject, CONST char *pattern)
+Tcl_Obj *NsfParamDefsSyntax(Tcl_Interp *interp, Nsf_Param const *paramsPtr,
+			    NsfObject *contextObject, const char *pattern)
   nonnull(1) nonnull(2) returns_nonnull;
 
 /*
@@ -66,7 +66,7 @@ Tcl_Obj *NsfParamDefsSyntax(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr,
  */
 
 void
-NsfDStringPrintf(Tcl_DString *dsPtr, CONST char *fmt, va_list vargs) {
+NsfDStringPrintf(Tcl_DString *dsPtr, const char *fmt, va_list vargs) {
   int      result, failure, offset = dsPtr->length, avail = dsPtr->spaceAvl;
   va_list  vargsCopy;
 
@@ -175,7 +175,7 @@ NsfDStringArgv(Tcl_DString *dsPtr, int objc, Tcl_Obj *CONST objv[]) {
  *----------------------------------------------------------------------
  */
 int
-NsfPrintError(Tcl_Interp *interp, CONST char *fmt, ...) {
+NsfPrintError(Tcl_Interp *interp, const char *fmt, ...) {
   va_list ap;
   Tcl_DString ds;
 
@@ -209,7 +209,7 @@ NsfPrintError(Tcl_Interp *interp, CONST char *fmt, ...) {
  */
 int
 NsfErrInProc(Tcl_Interp *interp, Tcl_Obj *objName,
-               Tcl_Obj *clName, CONST char *procName) {
+               Tcl_Obj *clName, const char *procName) {
   Tcl_DString errMsg;
   char *cName, *space;
 
@@ -249,7 +249,7 @@ NsfErrInProc(Tcl_Interp *interp, Tcl_Obj *objName,
  *----------------------------------------------------------------------
  */
 int
-NsfObjWrongArgs(Tcl_Interp *interp, CONST char *msg, Tcl_Obj *cmdNameObj,
+NsfObjWrongArgs(Tcl_Interp *interp, const char *msg, Tcl_Obj *cmdNameObj,
 		Tcl_Obj *methodPathObj, char *arglist) {
   int need_space = 0;
 
@@ -297,7 +297,7 @@ NsfObjWrongArgs(Tcl_Interp *interp, CONST char *msg, Tcl_Obj *cmdNameObj,
  *----------------------------------------------------------------------
  */
 int
-NsfArgumentError(Tcl_Interp *interp, CONST char *errorMsg, Nsf_Param CONST *paramPtr,
+NsfArgumentError(Tcl_Interp *interp, const char *errorMsg, Nsf_Param const *paramPtr,
               Tcl_Obj *cmdNameObj, Tcl_Obj *methodPathObj) {
   Tcl_Obj *argStringObj = NsfParamDefsSyntax(interp, paramPtr, NULL, NULL);
 
@@ -328,8 +328,8 @@ NsfArgumentError(Tcl_Interp *interp, CONST char *errorMsg, Nsf_Param CONST *para
  *----------------------------------------------------------------------
  */
 int
-NsfUnexpectedArgumentError(Tcl_Interp *interp, CONST char *argumentString,
-			   Nsf_Object *object, Nsf_Param CONST *paramPtr,
+NsfUnexpectedArgumentError(Tcl_Interp *interp, const char *argumentString,
+			   Nsf_Object *object, Nsf_Param const *paramPtr,
 			   Tcl_Obj *methodPathObj) {
   Tcl_DString ds, *dsPtr = &ds;
 
@@ -365,13 +365,13 @@ NsfUnexpectedArgumentError(Tcl_Interp *interp, CONST char *argumentString,
  */
 int
 NsfUnexpectedNonposArgumentError(Tcl_Interp *interp,
-				 CONST char *argumentString,
+				 const char *argumentString,
 				 Nsf_Object *object,
-				 Nsf_Param CONST *currentParamPtr,
-				 Nsf_Param CONST *paramPtr,
+				 Nsf_Param const *currentParamPtr,
+				 Nsf_Param const *paramPtr,
 				 Tcl_Obj *methodPathObj) {
   Tcl_DString ds, *dsPtr = &ds;
-  Nsf_Param CONST *pPtr;
+  Nsf_Param const *pPtr;
 
   assert(interp != NULL);
   assert(argumentString != NULL);
@@ -416,7 +416,7 @@ NsfUnexpectedNonposArgumentError(Tcl_Interp *interp,
  */
 int
 NsfDispatchClientDataError(Tcl_Interp *interp, ClientData clientData,
-			   CONST char *what, CONST char *methodName) {
+			   const char *what, const char *methodName) {
 
   assert(interp != NULL);
   assert(what != NULL);
@@ -447,7 +447,7 @@ NsfDispatchClientDataError(Tcl_Interp *interp, ClientData clientData,
  *----------------------------------------------------------------------
  */
 int
-NsfNoCurrentObjectError(Tcl_Interp *interp, CONST char *what) {
+NsfNoCurrentObjectError(Tcl_Interp *interp, const char *what) {
 
   assert(interp != NULL);
 
@@ -473,10 +473,10 @@ NsfNoCurrentObjectError(Tcl_Interp *interp, CONST char *what) {
  */
 int
 NsfObjErrType(Tcl_Interp *interp,
-	      CONST char *context,
+	      const char *context,
 	      Tcl_Obj *value,
-	      CONST char *type,
-	      Nsf_Param CONST *paramPtr)
+	      const char *type,
+	      Nsf_Param const *paramPtr)
 {
   int named = (paramPtr && (paramPtr->flags & NSF_ARG_UNNAMED) == 0);
   int returnValue = !named && paramPtr && (paramPtr->flags & NSF_ARG_IS_RETURNVALUE);

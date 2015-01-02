@@ -272,9 +272,9 @@ int
 NsfFlagObjSet(
     Tcl_Interp *interp,			/* Used for error reporting if not NULL. */
     register Tcl_Obj *objPtr,   	/* The object to convert. */
-    Nsf_Param CONST *baseParamPtr,	/* the full parameter block */
+    Nsf_Param const *baseParamPtr,	/* the full parameter block */
     int serial,				/* interface serial */
-    Nsf_Param CONST *paramPtr,  	/* a single parameter */
+    Nsf_Param const *paramPtr,  	/* a single parameter */
     Tcl_Obj *payload,  			/* payload */
     int flags  				/* detail infos */
 	      )

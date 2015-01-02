@@ -322,7 +322,7 @@ Nsf_InfoFrameObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
     if (frameFlags & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) {
       NsfCallStackContent *cscPtr =
         ((NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr));
-      CONST char *frameType;
+      const char *frameType;
       Tcl_Obj *listObj, **ov;
       int oc, i;
 

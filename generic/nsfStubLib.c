@@ -95,9 +95,9 @@ CONST86 NsfIntStubs *nsfIntStubsPtr = NULL;
  *----------------------------------------------------------------------
  */
 
-CONST char *
-Nsf_InitStubs(Tcl_Interp *interp, CONST char *version, int exact) {
-    CONST char *actualVersion;
+const char *
+Nsf_InitStubs(Tcl_Interp *interp, const char *version, int exact) {
+    const char *actualVersion;
     const char *packageName = "nsf";
     ClientData clientData = NULL;
 
