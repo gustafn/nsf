@@ -294,7 +294,7 @@ libraries: libraries-pkgindex
 
 cppcheck:
 	cppcheck --enable=all generic/*.c $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) \
-		-I/usr/include -D__x86_64__
+		-DNDEBUG=1 -I/usr/include -D__x86_64__
 
 libraries-pkgindex: pkgIndex.tcl
 	$(TCLSH) $(src_lib_dir_native)/lib/mkIndex.tcl -dir $(src_lib_dir_native)
