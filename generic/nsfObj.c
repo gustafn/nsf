@@ -655,12 +655,14 @@ static void
 FilterregDupInternalRep(
     Tcl_Obj *srcObjPtr,
     Tcl_Obj *dstObjPtr) {
-  register Filterreg *srcPtr = (Filterreg *)srcObjPtr->internalRep.twoPtrValue.ptr1, *dstPtr;
+  register Filterreg *srcPtr, *dstPtr;
 
   assert(srcObjPtr != NULL);
   assert(dstObjPtr != NULL);
-  assert(srcPtr != NULL);
 
+  srcPtr = (Filterreg *)srcObjPtr->internalRep.twoPtrValue.ptr1;
+  assert(srcPtr != NULL);
+  
 #if defined(METHOD_OBJECT_TRACE)
   fprintf(stderr, "FilterregDupInternalRep src %p dst %p\n", srcObjPtr, dstObjPtr);
 #endif

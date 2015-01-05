@@ -116,15 +116,19 @@ void NsfStackDump(Tcl_Interp *interp) nonnull(1);
 
 void
 NsfStackDump(Tcl_Interp *interp) {
-  Interp *iPtr = (Interp *)interp;
-  CallFrame *f = iPtr->framePtr, *v = iPtr->varFramePtr;
-  Tcl_Obj *varCmdObj;
+  Interp     *iPtr = (Interp *)interp;
+  CallFrame  *f, *v;
+  Tcl_Obj    *varCmdObj;
 
   assert(interp != NULL);
 
+  f = iPtr->framePtr;
+  v = iPtr->varFramePtr;
   varCmdObj = Tcl_NewObj();
   fprintf (stderr, "     TCL STACK:\n");
-  if (f == 0) fprintf(stderr, "- ");
+  if (f == 0) {
+    fprintf(stderr, "- ");
+  }
   while (f) {
     Tcl_Obj *cmdObj = Tcl_NewObj();
     fprintf(stderr, "\tFrame=%p ", f);

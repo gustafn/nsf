@@ -749,9 +749,11 @@ static void ParseContextRelease(ParseContext *pcPtr) nonnull(1);
 
 static void
 ParseContextRelease(ParseContext *pcPtr) {
-  int status = pcPtr->status;
+  int status;
 
   assert(pcPtr != NULL);
+
+  status = pcPtr->status;
 
   /*fprintf(stderr, "ParseContextRelease %p status %.6x %d elements\n",
     pcPtr, status, pcPtr->objc);*/
@@ -7924,13 +7926,14 @@ static int AppendMatchingElementsFromClasses(Tcl_Interp *interp, NsfClasses *cls
 static int
 AppendMatchingElementsFromClasses(Tcl_Interp *interp, NsfClasses *cls,
                                   const char *pattern, NsfObject *matchObject) {
-  int rc = 0;
-  Tcl_Obj *resultObj = Tcl_GetObjResult(interp);
+  Tcl_Obj *resultObj;
 
   assert(interp != NULL);
 
-  for ( ; cls; cls = cls->nextPtr) {
+  resultObj = Tcl_GetObjResult(interp);
+  for ( ; cls != NULL; cls = cls->nextPtr) {
     NsfObject *object = (NsfObject *)cls->cl;
+    
     if (object != NULL) {
       if (matchObject && object == matchObject) {
         /*
@@ -7943,7 +7946,7 @@ AppendMatchingElementsFromClasses(Tcl_Interp *interp, NsfClasses *cls,
       }
     }
   }
-  return rc;
+  return 0;
 }
 
 /*
@@ -22124,9 +22127,9 @@ AppendMethodRegistration(Tcl_Interp *interp, Tcl_Obj *listObj, const char *regis
   Tcl_ListObjAppendElement(interp, listObj, object->cmdName);
   if (withProtection != 0) {
     Tcl_ListObjAppendElement(interp, listObj,
-                             Tcl_Command_flags(cmd) & NSF_CMD_CALL_PRIVATE_METHOD
+                             ((Tcl_Command_flags(cmd) & NSF_CMD_CALL_PRIVATE_METHOD) != 0)
                              ? Tcl_NewStringObj("private", 7)
-                             : Tcl_Command_flags(cmd) & NSF_CMD_CALL_PROTECTED_METHOD
+                             : ((Tcl_Command_flags(cmd) & NSF_CMD_CALL_PROTECTED_METHOD) != 0)
                              ? Tcl_NewStringObj("protected", 9)
                              : Tcl_NewStringObj("public", 6));
   }
@@ -23285,7 +23288,9 @@ ListSuperClasses(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *pattern, int withClo
 
   if (withClosure != 0) {
     NsfClasses *pl = PrecedenceOrder(cl);
-    if (pl != NULL) pl = pl->nextPtr;
+    if (pl != NULL) {
+      pl = pl->nextPtr;
+    }
     rc = AppendMatchingElementsFromClasses(interp, pl, patternString, matchObject);
   } else {
     NsfClasses *clSuper = NsfReverseClasses(cl->super);
@@ -29123,7 +29128,7 @@ ListMethodKeysClassList(Tcl_Interp *interp, NsfClasses *classListPtr,
   assert(object != NULL);
 
   /* append method keys from inheritance order */
-  for (; classListPtr; classListPtr = classListPtr->nextPtr) {
+  for (; classListPtr != NULL; classListPtr = classListPtr->nextPtr) {
     Tcl_HashTable *cmdTablePtr = Tcl_Namespace_cmdTablePtr(classListPtr->cl->nsPtr);
 
     if (!MethodSourceMatches(withSource, classListPtr->cl, NULL)) {
