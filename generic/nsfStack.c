@@ -117,7 +117,7 @@ void NsfShowStack(Tcl_Interp *interp) {
   Tcl_CallFrame *framePtr;
 
   fprintf(stderr, "NsfShowStack framePtr %p varFramePtr %p\n",
-          Tcl_Interp_framePtr(interp), Tcl_Interp_varFramePtr(interp));
+          (void *)Tcl_Interp_framePtr(interp), (void *)Tcl_Interp_varFramePtr(interp));
   /* framePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
     for (; framePtr; framePtr = Tcl_CallFrame_callerPtr(framePtr)) {
     fprintf(stderr, "... frame %p flags %.6x cd %p objv[0] %s\n",
@@ -134,21 +134,25 @@ void NsfShowStack(Tcl_Interp *interp) {
       ((NsfCallStackContent *)Tcl_CallFrame_clientData(framePtr)) : NULL;
 
     fprintf(stderr, "... %16p %.6x %16p %3d %16p %s ov %s %d",
-            framePtr, frameFlags,
+            (void *)framePtr, frameFlags,
             Tcl_CallFrame_clientData(framePtr),
             Tcl_CallFrame_level(framePtr),
-            Tcl_CallFrame_nsPtr(framePtr), Tcl_CallFrame_nsPtr(framePtr)->fullName,
+            (void *)Tcl_CallFrame_nsPtr(framePtr), Tcl_CallFrame_nsPtr(framePtr)->fullName,
             Tcl_CallFrame_objc(framePtr) && 0 ? ObjStr(Tcl_CallFrame_objv(framePtr)[0]) : "(null)",
             Tcl_CallFrame_objc(framePtr) ? Tcl_CallFrame_objc(framePtr) : -1);
     if (cscPtr != NULL) {
       fprintf(stderr, " csc %p frameType %.4x flags %.6x (%s.%p %s)\n",
-	      cscPtr, (cscPtr != NULL) ? cscPtr->frameType : -1, (cscPtr != NULL) ? cscPtr->flags : -1, (cscPtr != NULL) ? ObjectName(cscPtr->self) : "", (cscPtr != NULL) ? cscPtr->cmdPtr : NULL, (cscPtr != NULL) ? Tcl_GetCommandName(interp, cscPtr->cmdPtr) : ""
+	      (void *)cscPtr, (cscPtr != NULL) ? cscPtr->frameType : -1,
+              (cscPtr != NULL) ? cscPtr->flags : -1,
+              (cscPtr != NULL) ? ObjectName(cscPtr->self) : "",
+              (cscPtr != NULL) ? (void *)cscPtr->cmdPtr : NULL,
+              (cscPtr != NULL) ? Tcl_GetCommandName(interp, cscPtr->cmdPtr) : ""
 	      );
     } else {
       fprintf(stderr, " no csc");
       if (frameFlags & FRAME_IS_NSF_OBJECT) {
         NsfObject *object = (NsfObject *)Tcl_CallFrame_clientData(framePtr);
-        fprintf(stderr, " obj %p %s", object, ObjectName(object));
+        fprintf(stderr, " obj %p %s", (void *)object, ObjectName(object));
       }
       fprintf(stderr, "\n");
     }

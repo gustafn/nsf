@@ -131,15 +131,15 @@ NsfStackDump(Tcl_Interp *interp) {
   }
   while (f) {
     Tcl_Obj *cmdObj = Tcl_NewObj();
-    fprintf(stderr, "\tFrame=%p ", f);
+    fprintf(stderr, "\tFrame=%p ", (void *)f);
     if (f && f->isProcCallFrame && f->procPtr && f->procPtr->cmdPtr) {
-      fprintf(stderr,"caller %p ", Tcl_CallFrame_callerPtr(f));
-      fprintf(stderr,"callerV %p ", Tcl_CallFrame_callerVarPtr(f));
+      fprintf(stderr,"caller %p ", (void *)Tcl_CallFrame_callerPtr(f));
+      fprintf(stderr,"callerV %p ", (void *)Tcl_CallFrame_callerVarPtr(f));
       Tcl_GetCommandFullName(interp, (Tcl_Command)f->procPtr->cmdPtr, cmdObj);
-      fprintf(stderr, "%s (%p) lvl=%d\n", ObjStr(cmdObj), f->procPtr->cmdPtr, f->level);
+      fprintf(stderr, "%s (%p) lvl=%d\n", ObjStr(cmdObj), (void *)f->procPtr->cmdPtr, f->level);
     } else {
         if (f && f->varTablePtr) {
-            fprintf(stderr, "var_table = %p ", f->varTablePtr);
+            fprintf(stderr, "var_table = %p ", (void *)f->varTablePtr);
         }
         fprintf(stderr, "- \n");
     }
@@ -148,9 +148,9 @@ NsfStackDump(Tcl_Interp *interp) {
   }
 
   fprintf (stderr, "     VARFRAME:\n");
-  fprintf(stderr, "\tFrame=%p ", v);
+  fprintf(stderr, "\tFrame=%p ", (void *)v);
   if (v != NULL) {
-      fprintf(stderr, "caller %p var_table %p ", v->callerPtr, v->varTablePtr);
+      fprintf(stderr, "caller %p var_table %p ", (void *)v->callerPtr, (void *)v->varTablePtr);
       /*      if (v->varTablePtr != NULL)
               panic(0, "testing");*/
   }
@@ -191,7 +191,7 @@ NsfPrintObjv(char *string, int objc, Tcl_Obj *CONST objv[]) {
   fprintf(stderr, "%s", string);
   for (j = 0; j < objc; j++) {
     /*fprintf(stderr, "  objv[%d]=%s, ", j, objv[j] ? ObjStr(objv[j]) : "NULL");*/
-    fprintf(stderr, "  objv[%d]=%s %p, ", j, objv[j] ? ObjStr(objv[j]) : "NULL", objv[j]);
+    fprintf(stderr, "  objv[%d]=%s %p, ", j, objv[j] ? ObjStr(objv[j]) : "NULL", (void *)objv[j]);
   }
   fprintf(stderr, "\n");
 }

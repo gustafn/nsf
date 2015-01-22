@@ -5754,7 +5754,7 @@ NSGetFreshNamespace(Tcl_Interp *interp, NsfObject *object, const char *name) {
     }
     MEM_COUNT_ALLOC("NSNamespace", nsPtr);
   } else {
-    fprintf(stderr, "NSGetFreshNamespace: reusing namespace %p %s\n", nsPtr, nsPtr->fullName);
+    fprintf(stderr, "NSGetFreshNamespace: reusing namespace %p %s\n", (void *)nsPtr, nsPtr->fullName);
   }
 
   return (Tcl_Namespace *)nsPtr;
@@ -6052,8 +6052,8 @@ GetHiddenObjectFromCmd(Tcl_Interp *interp, Tcl_Command cmdPtr) {
 #if !defined(NDEBUG)
   if (screenedObject != NULL) {
     NsfLog(interp, NSF_LOG_NOTICE, "screened object %s found: object %p (%s) cmd %p",
-           Tcl_GetCommandName(interp, cmdPtr), screenedObject,
-           ObjectName(screenedObject), cmdPtr);
+           Tcl_GetCommandName(interp, cmdPtr), (void *)screenedObject,
+           ObjectName(screenedObject), (void *)cmdPtr);
   }
 #endif
   return screenedObject;
@@ -8340,8 +8340,8 @@ GetAllClassMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTablePtr,
          * Sanity check: it seems that we can create via
          *  __default_superclass a class which has itself as subclass!
          */
-        fprintf(stderr, "... STRANGE %p is subclass of %p %s, sub %p\n", sc->cl,
-                startCl, ClassName(startCl), startCl->sub);
+        fprintf(stderr, "... STRANGE %p is subclass of %p %s, sub %p\n",
+                (void *)sc->cl, (void *)startCl, ClassName(startCl), (void *)startCl->sub);
         continue;
       }
 #endif
@@ -17015,8 +17015,8 @@ AddSlotObjects(Tcl_Interp *interp, NsfObject *parent, const char *prefix,
   assert(prefix != NULL);
   assert(listObj != NULL);
 
-  /* fprintf(stderr, "AddSlotObjects parent %s prefix %s type %p %s\n",
-     ObjectName(parent), prefix, type, (type != NULL) ? ClassName(type) : "");*/
+  /*fprintf(stderr, "AddSlotObjects parent %s prefix %s type %p %s\n",
+    ObjectName(parent), prefix, type, (type != NULL) ? ClassName(type) : "");*/
 
   DSTRING_INIT(dsPtr);
   Tcl_DStringAppend(dsPtr, ObjectName(parent), -1);
@@ -18627,7 +18627,7 @@ DefaultSuperClass(Tcl_Interp *interp, NsfClass *cl, NsfClass *mCl, int isMeta) {
   assert(mCl != NULL);
 
   /*fprintf(stderr, "DefaultSuperClass cl %s, mcl %s, isMeta %d\n",
-    ClassName(cl), ClassName(mcl), isMeta );*/
+    ClassName(cl), ClassName(mCl), isMeta );*/
 
   resultObj = Nsf_ObjGetVar2((Nsf_Object *)mCl, interp, (isMeta != 0) ?
                              NsfGlobalObjs[NSF_DEFAULTMETACLASS] :
@@ -18637,13 +18637,15 @@ DefaultSuperClass(Tcl_Interp *interp, NsfClass *cl, NsfClass *mCl, int isMeta) {
     if (unlikely(GetClassFromObj(interp, resultObj, &resultClass, 0) != TCL_OK)) {
       NsfPrintError(interp, "default superclass is not a class");
     }
-    /* fprintf(stderr, "DefaultSuperClass for %s got from var %s\n", ClassName(cl), ObjStr(nameObj)); */
-
+    /*fprintf(stderr, "DefaultSuperClass for %s got from var %s => %s\n",
+            ClassName(cl),
+            ObjStr((isMeta != 0) ? NsfGlobalObjs[NSF_DEFAULTMETACLASS] : NsfGlobalObjs[NSF_DEFAULTSUPERCLASS]),
+            ClassName(resultClass));*/
   } else {
     NsfClasses *sc;
 
-    /* fprintf(stderr, "DefaultSuperClass for %s: search in superClasses starting with %p meta %d\n",
-       ClassName(cl), cl->super, isMeta); */
+    /*fprintf(stderr, "DefaultSuperClass for %s: search in superClasses starting with %p meta %d\n",
+      ClassName(cl), cl->super, isMeta);*/
 
     if (isMeta != 0) {
       /*
@@ -18789,7 +18791,7 @@ CleanupDestroyClass(Tcl_Interp *interp, NsfClass *cl, int softrecreate, int recr
   if (softrecreate == 0) {
 
     /*
-     * Reclass all instances of the current class the the appropriate
+     * Reclass all instances of the current class to the appropriate
      * most general class ("baseClass"). The most general class of a
      * metaclass is the root meta class, the most general class of an
      * object is the root class. Instances of meta-classes can be only
@@ -23551,7 +23553,7 @@ AliasRefetch(Tcl_Interp *interp, NsfObject *object, const char *methodName, Alia
 
   NsfLog(interp, NSF_LOG_NOTICE,
          "trying to refetch an epoched cmd %p as %s -- cmdName %s\n",
-         tcd->aliasedCmd, methodName, ObjStr(targetObj));
+         (void *)tcd->aliasedCmd, methodName, ObjStr(targetObj));
 
   /*
    * Replace cmd and its objProc and clientData with a newly fetched
@@ -23733,7 +23735,7 @@ NsfDebugShowObj(Tcl_Interp *interp, Tcl_Obj *objPtr) {
   assert(objPtr != NULL);
 
   fprintf(stderr, "*** obj %p refCount %d type <%s>\n",
-          objPtr, objPtr->refCount, (objPtr->typePtr != NULL) ? objPtr->typePtr->name : "");
+          (void *)objPtr, objPtr->refCount, (objPtr->typePtr != NULL) ? objPtr->typePtr->name : "");
 
   if (objPtr->typePtr == &NsfObjectMethodObjType
       || objPtr->typePtr == &NsfInstanceMethodObjType
@@ -23746,11 +23748,12 @@ NsfDebugShowObj(Tcl_Interp *interp, Tcl_Obj *objPtr) {
 
     fprintf(stderr, "   method epoch %d max %d cmd %p objProc %p flags %.6x\n",
             mcPtr->methodEpoch, currentMethodEpoch,
-            cmd, (cmd != NULL) ? ((Command *)cmd)->objProc : 0,
+            (void *)cmd,
+            (cmd != NULL) ? ((void *)((Command *)cmd)->objProc) : NULL,
             mcPtr->flags);
     if (cmd != NULL) {
-      fprintf(stderr, "... cmd %p flags %.6x\n", cmd, Tcl_Command_flags(cmd));
-        assert(((Command *)cmd)->objProc != NULL);
+      fprintf(stderr, "... cmd %p flags %.6x\n", (void *)cmd, Tcl_Command_flags(cmd));
+      assert(((Command *)cmd)->objProc != NULL);
     }
     assert( currentMethodEpoch >= mcPtr->methodEpoch);
   }
@@ -30167,10 +30170,10 @@ FinalObjectDeletion(Tcl_Interp *interp, NsfObject *object) {
   if (unlikely(object->refCount != 1)) {
     if (object->refCount > 1) {
       NsfLog(interp, NSF_LOG_WARN,  "RefCount for obj %p %d (name %s) > 1",
-             object, object->refCount, ObjectName(object));
+             (void *)object, object->refCount, ObjectName(object));
     } else {
       NsfLog(interp, NSF_LOG_WARN,  "Refcount for obj %p %d > 1",
-             object, object->refCount);
+             (void *)object, object->refCount);
     }
     /*object->refCount = 1;*/
   }
@@ -30178,7 +30181,8 @@ FinalObjectDeletion(Tcl_Interp *interp, NsfObject *object) {
 
 #if !defined(NDEBUG)
   if (unlikely(object->activationCount != 0)) {
-    fprintf(stderr, "FinalObjectDeletion obj %p activationcount %d\n", object, object->activationCount);
+    fprintf(stderr, "FinalObjectDeletion obj %p activationcount %d\n",
+            (void *)object, object->activationCount);
   }
 #endif
   assert(object->activationCount == 0);
