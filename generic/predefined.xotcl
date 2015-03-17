@@ -80,7 +80,7 @@ namespace eval ::xotcl { namespace export @ myproc myvar Attribute}
 ::xotcl::setrelation ::xotcl::MetaSlot superclass ::xotcl::Class
 ::xotcl::MetaSlot instproc new args {
   set slotobject [self callingobject]::slot
-  if {![my isobject $slotobject]} {Object create $slotobject; namespace eval $slotobject {namespace import ::xotcl::*; puts stderr IMPORT}}
+  if {![my isobject $slotobject]} {Object create $slotobject; namespace eval $slotobject {namespace import ::xotcl::*}}
   #namespace eval [self]::slot $cmds
   #puts "metaslot $args // [namespace current] // [self callingobject]"
   eval next -childof $slotobject $args
