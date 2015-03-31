@@ -7933,7 +7933,7 @@ AppendMatchingElementsFromClasses(Tcl_Interp *interp, NsfClasses *cls,
   resultObj = Tcl_GetObjResult(interp);
   for ( ; cls != NULL; cls = cls->nextPtr) {
     NsfObject *object = (NsfObject *)cls->cl;
-    
+
     if (object != NULL) {
       if (matchObject && object == matchObject) {
         /*
@@ -12317,7 +12317,7 @@ CmdMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
      * for example, self introspection working for the requested dispatch, we
      * introduce a CMETHOD frame.
      */
-    /*fprintf(stderr, "Nsf_PushFrameCsc %s %s\n", ObjectName(object), Tcl_GetCommandName(cmd));*/
+    /*fprintf(stderr, "Nsf_PushFrameCsc %s %s\n", ObjectName(object), Tcl_GetCommandName(interp, cmd));*/
     Nsf_PushFrameCsc(interp, cscPtr, framePtr);
     result = Tcl_NRCallObjProc(interp, Tcl_Command_objProc(cmd), cp, objc, objv);
     Nsf_PopFrameCsc(interp, framePtr);
@@ -13198,6 +13198,8 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
           methodObj, methodObj->refCount, methodName, methodObj->typePtr, (methodObj->typePtr != NULL) ? methodObj->typePtr->name : "");
 #endif
 
+  NSF_PROFILE_CALL(interp, object, ObjStr(methodObj));
+
   /*fprintf(stderr, "ObjectDispatch obj = %s objc = %d 0=%s methodName=%s shift %d\n", (object != NULL) ? ObjectName(object) : NULL,
           objc, objv[0] ? ObjStr(objv[0]) : NULL,
           methodName, shift);*/
@@ -13707,7 +13709,10 @@ DispatchDestroyMethod(Tcl_Interp *interp, NsfObject *object, unsigned int flags)
   object->flags |= NSF_DESTROY_CALLED;
 
   if (CallDirectly(interp, object, NSF_o_destroy_idx, &methodObj)) {
+    NSF_PROFILE_CALL(interp, object, Nsf_SystemMethodOpts[NSF_o_destroy_idx]);
     result = NsfODestroyMethod(interp, object);
+    NSF_PROFILE_EXIT(interp, object, Nsf_SystemMethodOpts[NSF_o_destroy_idx]);
+
   } else {
     result = CallMethod(object, interp, methodObj, 2, NULL,
                         NSF_CM_IGNORE_PERMISSIONS|NSF_CSC_IMMEDIATE|flags);
@@ -16180,6 +16185,15 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, Pa
   assert(pcPtr != NULL);
 
   CheckCStack(interp, "nsfProc", fullMethodName);
+
+#if defined(NSF_PROFILE)
+  if (rst->doTrace) {
+    NsfProfile *profilePtr = &RUNTIME_STATE(interp)->profile;
+
+    profilePtr->depth ++;
+    NsfLog(interp, NSF_LOG_NOTICE, "call(%d): %s", profilePtr->depth, fullMethodName);
+  }
+#endif
 
   /*
    * The code below is derived from the scripted method dispatch and just
@@ -19255,8 +19269,10 @@ DoObjInitialization(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
       methodObj = NsfGlobalObjs[NSF_CONFIGURE];
     }
     assert(methodObj != NULL);
-    /* methodObjd is just for error reporting */
+    /* methodObj is just for error reporting */
+    NSF_PROFILE_CALL(interp, object, ObjStr(methodObj));
     result = NsfOConfigureMethod(interp, object, objc, objv, methodObj);
+    //NSF_PROFILE_EXIT(interp, object, ObjStr(methodObj));
   } else {
     result = CallMethod(object, interp, methodObj, objc+2, objv, NSF_CSC_IMMEDIATE);
   }
@@ -22555,7 +22571,7 @@ ListMethod(Tcl_Interp *interp,
           Tcl_SetObjResult(interp, resultObj);
         }
         break;
-        
+
       case InfomethodsubcmdOriginIdx:
         {
           int nrElements;
@@ -24012,7 +24028,7 @@ NsfConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *valueObj) {
   if (NSF_DTRACE_CONFIGURE_PROBE_ENABLED()) {
     /* TODO: opts copied from tclAPI.h; maybe make global value? */
     static const char *opts[] = {
-      "debug", "dtrace", "filter", "profile", "softrecreate",
+      "debug", "dtrace", "filter", "profile", "trace", "softrecreate",
       "objectsystems", "keepcmds", "checkresults", "checkarguments", NULL};
     NSF_DTRACE_CONFIGURE_PROBE((char *)opts[configureoption-1], (valueObj != NULL) ? ObjStr(valueObj) : NULL);
   }
@@ -24097,6 +24113,24 @@ NsfConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *valueObj) {
     if (valueObj != NULL) {
 #if defined(NSF_PROFILE)
       RUNTIME_STATE(interp)->doProfile = bool;
+#else
+      NsfLog(interp, NSF_LOG_WARN, "No profile support compiled in");
+#endif
+    }
+    break;
+
+  case ConfigureoptionTraceIdx:
+    Tcl_SetBooleanObj(Tcl_GetObjResult(interp),
+                      (RUNTIME_STATE(interp)->doTrace));
+    if (valueObj != NULL) {
+#if defined(NSF_PROFILE)
+      RUNTIME_STATE(interp)->doTrace = bool;
+      /*
+       * Turn on autormically profiling, when trace is turned on.
+       */
+      if (bool) {
+        RUNTIME_STATE(interp)->doProfile = bool;
+      }
 #else
       NsfLog(interp, NSF_LOG_WARN, "No profile support compiled in");
 #endif
@@ -27816,7 +27850,9 @@ NsfODestroyMethod(Tcl_Interp *interp, NsfObject *object) {
       ((Command *)object->id)->flags == 0 ? ObjectName(object) : "(deleted)");*/
 
     if (CallDirectly(interp, &object->cl->object, NSF_c_dealloc_idx, &methodObj)) {
+      NSF_PROFILE_CALL(interp, &object->cl->object, Nsf_SystemMethodOpts[NSF_c_dealloc_idx]);
       result = DoDealloc(interp, object);
+      NSF_PROFILE_EXIT(interp, &object->cl->object, Nsf_SystemMethodOpts[NSF_c_dealloc_idx]);
     } else {
       result = NsfCallMethodWithArgs(interp, (Nsf_Object *)object->cl, methodObj,
                                      object->cmdName, 1, NULL,
@@ -28025,10 +28061,10 @@ NsfOResidualargsMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj 
   }
 
   for( ; i < objc;  argc = nextArgc, argv = nextArgv, methodName = nextMethodName) {
-    
+
     assert(initString != NULL);
     Tcl_ResetResult(interp);
-    
+
     switch (isdasharg) {
     case SKALAR_DASH:    /* Argument is a skalar with a leading dash */
       { int j;
@@ -28474,8 +28510,9 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *specifiedNameObj, in
 
     /* call recreate --> initialization */
     if (CallDirectly(interp, &cl->object, NSF_c_recreate_idx, &methodObj)) {
+      NSF_PROFILE_CALL(interp, &cl->object, Nsf_SystemMethodOpts[NSF_c_recreate_idx]);
       result = RecreateObject(interp, cl, newObject, objc, objv);
-
+      NSF_PROFILE_EXIT(interp, &cl->object, Nsf_SystemMethodOpts[NSF_c_recreate_idx]);
     } else {
 
       ALLOC_ON_STACK(Tcl_Obj*, objc+3, xov);
@@ -28506,7 +28543,9 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *specifiedNameObj, in
      */
 
     if (CallDirectly(interp, &cl->object, NSF_c_alloc_idx, &methodObj)) {
+      NSF_PROFILE_CALL(interp, &cl->object, Nsf_SystemMethodOpts[NSF_c_alloc_idx]);
       result = NsfCAllocMethod_(interp, cl, nameObj, parentNsPtr);
+      NSF_PROFILE_EXIT(interp, &cl->object, Nsf_SystemMethodOpts[NSF_c_alloc_idx]);
     } else {
       result = CallMethod(cl, interp, methodObj,
                           3, &nameObj, NSF_CSC_IMMEDIATE);
@@ -28732,7 +28771,9 @@ NsfCNewMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *withChildof,
     callDirectly = CallDirectly(interp, &cl->object, NSF_c_create_idx, &methodObj);
 
     if (callDirectly != 0) {
+      NSF_PROFILE_CALL(interp, &cl->object, Nsf_SystemMethodOpts[NSF_c_create_idx]);
       result = NsfCCreateMethod(interp, cl, fullnameObj, objc, objv);
+      NSF_PROFILE_EXIT(interp, &cl->object, Nsf_SystemMethodOpts[NSF_c_create_idx]);
     } else {
       ALLOC_ON_STACK(Tcl_Obj*, objc+3, ov);
 
@@ -28793,7 +28834,9 @@ RecreateObject(Tcl_Interp *interp, NsfClass *class, NsfObject *object,
      */
     if (CallDirectly(interp, object, NSF_o_cleanup_idx, &methodObj)) {
       /*fprintf(stderr, "RECREATE calls cleanup directly for object %s\n", ObjectName(object));*/
+      NSF_PROFILE_CALL(interp, object, Nsf_SystemMethodOpts[NSF_o_cleanup_idx]);
       result = NsfOCleanupMethod(interp, object);
+      NSF_PROFILE_EXIT(interp, object, Nsf_SystemMethodOpts[NSF_o_cleanup_idx]);
     } else {
       /*NsfObjectSystem *osPtr = GetObjectSystem(object);
       fprintf(stderr, "RECREATE calls method cleanup for object %p %s OS %s\n",

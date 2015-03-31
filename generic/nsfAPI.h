@@ -129,12 +129,12 @@ static int ConvertToScope(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *
   return result;
 }
   
-enum ConfigureoptionIdx {ConfigureoptionNULL, ConfigureoptionDebugIdx, ConfigureoptionDtraceIdx, ConfigureoptionFilterIdx, ConfigureoptionProfileIdx, ConfigureoptionSoftrecreateIdx, ConfigureoptionObjectsystemsIdx, ConfigureoptionKeepcmdsIdx, ConfigureoptionCheckresultsIdx, ConfigureoptionCheckargumentsIdx};
+enum ConfigureoptionIdx {ConfigureoptionNULL, ConfigureoptionDebugIdx, ConfigureoptionDtraceIdx, ConfigureoptionFilterIdx, ConfigureoptionProfileIdx, ConfigureoptionTraceIdx, ConfigureoptionSoftrecreateIdx, ConfigureoptionObjectsystemsIdx, ConfigureoptionKeepcmdsIdx, ConfigureoptionCheckresultsIdx, ConfigureoptionCheckargumentsIdx};
 
 static int ConvertToConfigureoption(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
-  static const char *opts[] = {"debug", "dtrace", "filter", "profile", "softrecreate", "objectsystems", "keepcmds", "checkresults", "checkarguments", NULL};
+  static const char *opts[] = {"debug", "dtrace", "filter", "profile", "trace", "softrecreate", "objectsystems", "keepcmds", "checkresults", "checkarguments", NULL};
   (void)pPtr;
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "configureoption", 0, &index);
   *clientData = (ClientData) INT2PTR(index + 1);
@@ -271,7 +271,7 @@ static int ConvertToInfoobjectparametersubcmd(Tcl_Interp *interp, Tcl_Obj *objPt
   {ConvertToMethodproperty, "class-only|call-private|call-protected|redefine-protected|returns|slotobj"},
   {ConvertToRelationtype, "object-mixin|class-mixin|object-filter|class-filter|class|superclass|rootclass"},
   {ConvertToSource, "all|application|system"},
-  {ConvertToConfigureoption, "debug|dtrace|filter|profile|softrecreate|objectsystems|keepcmds|checkresults|checkarguments"},
+  {ConvertToConfigureoption, "debug|dtrace|filter|profile|trace|softrecreate|objectsystems|keepcmds|checkresults|checkarguments"},
   {ConvertToObjectproperty, "initialized|class|rootmetaclass|rootclass|volatile|slotcontainer|hasperobjectslots|keepcallerself|perobjectdispatch"},
   {ConvertToAssertionsubcmd, "check|object-invar|class-invar"},
   {ConvertToParametersubcmd, "default|list|name|syntax|type"},

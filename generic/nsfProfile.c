@@ -102,12 +102,28 @@ NsfProfileFillTable(Tcl_HashTable *table, char *keyStr, double totalMicroSec) {
  *----------------------------------------------------------------------
  */
 void
+NsfProfileObjectLabel(Tcl_DString *dsPtr, NsfObject *obj, const char *methodName) {
+
+  assert(dsPtr != NULL);
+  assert(obj != NULL);
+  assert(methodName != NULL);
+  
+  Tcl_DStringInit(dsPtr);
+  Tcl_DStringAppend(dsPtr, ObjectName(obj), -1);
+  Tcl_DStringAppend(dsPtr, " ", 1);
+  Tcl_DStringAppend(dsPtr, ClassName(obj->cl), -1);
+  Tcl_DStringAppend(dsPtr, " ", 1);
+  Tcl_DStringAppend(dsPtr, methodName, -1);
+}
+  
+void
 NsfProfileRecordMethodData(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
   double totalMicroSec;
   NsfObject *obj = cscPtr->self;
   NsfClass *cl = cscPtr->cl;
   Tcl_DString methodKey, objectKey;
-  NsfProfile *profile = &RUNTIME_STATE(interp)->profile;
+  NsfRuntimeState *rst = RUNTIME_STATE(interp);
+  NsfProfile *profilePtr = &rst->profile;
   struct timeval trt;
 
   assert(interp != NULL);
@@ -116,18 +132,13 @@ NsfProfileRecordMethodData(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
   gettimeofday(&trt, NULL);
 
   totalMicroSec = (trt.tv_sec - cscPtr->startSec) * 1000000 + (trt.tv_usec - cscPtr->startUsec);
-  profile->overallTime += totalMicroSec;
+  profilePtr->overallTime += totalMicroSec;
 
   if (obj->teardown == 0 || !obj->id) {
     return;
   }
 
-  Tcl_DStringInit(&objectKey);
-  Tcl_DStringAppend(&objectKey, ObjectName(obj), -1);
-  Tcl_DStringAppend(&objectKey, " ", 1);
-  Tcl_DStringAppend(&objectKey, ClassName(obj->cl), -1);
-  Tcl_DStringAppend(&objectKey, " ", 1);
-  Tcl_DStringAppend(&objectKey, cscPtr->methodName, -1);
+  NsfProfileObjectLabel(&objectKey, obj, cscPtr->methodName);
 
   Tcl_DStringInit(&methodKey);
   Tcl_DStringAppend(&methodKey, (cl != NULL) ? ObjStr(cl->object.cmdName) : ObjStr(obj->cmdName), -1);
@@ -159,15 +170,21 @@ NsfProfileRecordMethodData(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
     }
   }
 
-  NsfProfileFillTable(&profile->objectData, Tcl_DStringValue(&objectKey), totalMicroSec);
-  NsfProfileFillTable(&profile->methodData, Tcl_DStringValue(&methodKey), totalMicroSec);
+  if (rst->doTrace) {
+    NsfLog(interp, NSF_LOG_NOTICE, "exit(%d): %s %.0f", profilePtr->depth, Tcl_DStringValue(&objectKey), totalMicroSec);
+    profilePtr->depth --;
+    //fprintf(stderr, "methodData-data: %s %.2f\n", Tcl_DStringValue(&methodKey), totalMicroSec);
+  }
+  
+  NsfProfileFillTable(&profilePtr->objectData, Tcl_DStringValue(&objectKey), totalMicroSec);
+  NsfProfileFillTable(&profilePtr->methodData, Tcl_DStringValue(&methodKey), totalMicroSec);
   Tcl_DStringFree(&objectKey);
   Tcl_DStringFree(&methodKey);
 }
 
 /*
  *----------------------------------------------------------------------
- * NsfProfileRecordMethodData --
+ * NsfProfileRecordProcData --
  *
  *    This function is invoked, when a call of a nsf::proc. It records
  *    time spent and count per nsf::proc.
@@ -182,7 +199,8 @@ NsfProfileRecordMethodData(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
  */
 void
 NsfProfileRecordProcData(Tcl_Interp *interp, char *methodName, long startSec, long startUsec) {
-  NsfProfile *profile = &RUNTIME_STATE(interp)->profile;
+  NsfRuntimeState *rst = RUNTIME_STATE(interp);
+  NsfProfile *profilePtr = &rst->profile;
   double totalMicroSec;
   struct timeval trt;
 
@@ -192,9 +210,14 @@ NsfProfileRecordProcData(Tcl_Interp *interp, char *methodName, long startSec, lo
   gettimeofday(&trt, NULL);
 
   totalMicroSec = (trt.tv_sec - startSec) * 1000000 + (trt.tv_usec - startUsec);
-  profile->overallTime += totalMicroSec;
+  profilePtr->overallTime += totalMicroSec;
 
-  NsfProfileFillTable(&profile->procData, methodName, totalMicroSec);
+  if (rst->doTrace) {
+    NsfLog(interp, NSF_LOG_NOTICE, "exit(%d): %s %.0f", profilePtr->depth, methodName, totalMicroSec);
+    profilePtr->depth --;
+  }
+
+  NsfProfileFillTable(&profilePtr->procData, methodName, totalMicroSec);
 }
 
 /*
@@ -261,6 +284,7 @@ NsfProfileClearData(Tcl_Interp *interp) {
   profilePtr->startSec = trt.tv_sec;
   profilePtr->startUSec = trt.tv_usec;
   profilePtr->overallTime = 0;
+  profilePtr->depth = 0;
 }
 
 /*
@@ -373,6 +397,7 @@ NsfProfileInit(Tcl_Interp *interp) {
   profilePtr->startSec = trt.tv_sec;
   profilePtr->startUSec = trt.tv_usec;
   profilePtr->overallTime = 0;
+  profilePtr->depth = 0;
 }
 
 /*
