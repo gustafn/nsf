@@ -844,30 +844,12 @@ typedef struct NsfProfile {
   Tcl_HashTable objectData;
   Tcl_HashTable methodData;
   Tcl_HashTable procData;
+  Tcl_DString traceDs;
   int depth;
 } NsfProfile;
 
-# define NSF_PROFILE_CALL(interp, object, methodName) \
-  if (RUNTIME_STATE(interp)->doTrace) {	      \
-        Tcl_DString objectLabel; \
-        NsfProfile *profilePtr = &RUNTIME_STATE(interp)->profile; \
-\
-        profilePtr->depth ++; \
-	NsfProfileObjectLabel(&objectLabel, (object), methodName);	\
-        NsfLog(interp, NSF_LOG_NOTICE, "call(%d): %s", profilePtr->depth, Tcl_DStringValue(&objectLabel));\
-        Tcl_DStringFree(&objectLabel);\
-      }
-# define NSF_PROFILE_EXIT(interp, object, methodName) \
-  if (RUNTIME_STATE(interp)->doTrace) {	      \
-        Tcl_DString objectLabel; \
-        NsfProfile *profilePtr = &RUNTIME_STATE(interp)->profile; \
-	Tcl_Obj *resultObj = Tcl_GetObjResult(interp); INCR_REF_COUNT(resultObj); \
-        profilePtr->depth --; \
-	NsfProfileObjectLabel(&objectLabel, (object), methodName);	\
-        NsfLog(interp, NSF_LOG_NOTICE, "exit(%d): %s 0", profilePtr->depth, Tcl_DStringValue(&objectLabel));\
-	Tcl_SetObjResult(interp, resultObj); DECR_REF_COUNT(resultObj); \
-        Tcl_DStringFree(&objectLabel);\
-      }
+# define NSF_PROFILE_CALL(interp, object, methodName) NsfProfileTraceCall(interp, object, methodName)
+# define NSF_PROFILE_EXIT(interp, object, methodName) NsfProfileTraceExit(interp, object, methodName)
 #else
 # define NSF_PROFILE_CALL(interp, object, methodName)
 # define NSF_PROFILE_EXIT(interp, object, methodName) 
@@ -1002,8 +984,17 @@ EXTERN void NsfProfileInit(Tcl_Interp *interp) nonnull(1);
 EXTERN void NsfProfileFree(Tcl_Interp *interp) nonnull(1);
 EXTERN void NsfProfileClearData(Tcl_Interp *interp) nonnull(1);
 EXTERN void NsfProfileGetData(Tcl_Interp *interp) nonnull(1);
+
 EXTERN void NsfProfileObjectLabel(Tcl_DString *dsPtr, NsfObject *obj, const char *methodName)
   nonnull(1) nonnull(2) nonnull(3);
+EXTERN void NsfProfileTraceCall(Tcl_Interp *interp, NsfObject *object, const char *methodName)
+  nonnull(1) nonnull(2) nonnull(3);
+EXTERN void NsfProfileTraceExit(Tcl_Interp *interp, NsfObject *object, const char *methodName)
+  nonnull(1) nonnull(2) nonnull(3);
+EXTERN void NsfProfileTraceCallAppend(Tcl_Interp *interp, const char *label)
+  nonnull(1) nonnull(2);
+EXTERN void NsfProfileTraceExitAppend(Tcl_Interp *interp, const char *label, double duration)
+  nonnull(1) nonnull(2);
 
 EXTERN NsfCallStackContent *NsfCallStackGetTopFrame(Tcl_Interp *interp, Tcl_CallFrame **framePtrPtr)
   nonnull(1);

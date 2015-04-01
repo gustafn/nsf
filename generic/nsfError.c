@@ -48,10 +48,11 @@ Tcl_Obj *NsfParamDefsSyntax(Tcl_Interp *interp, Nsf_Param const *paramsPtr,
 			    NsfObject *contextObject, const char *pattern)
   nonnull(1) nonnull(2) returns_nonnull;
 
+
 /*
  *----------------------------------------------------------------------
  *
- * NsfDStringPrintf --
+ * NsfDStringVPrintf --
  *
  *      Appends to a Tcl_DString a formatted value. This function
  *      iterates until it has sufficiently memory allocated.
@@ -66,7 +67,7 @@ Tcl_Obj *NsfParamDefsSyntax(Tcl_Interp *interp, Nsf_Param const *paramsPtr,
  */
 
 void
-NsfDStringPrintf(Tcl_DString *dsPtr, const char *fmt, va_list vargs) {
+NsfDStringVPrintf(Tcl_DString *dsPtr, const char *fmt, va_list vargs) {
   int      result, failure, offset = dsPtr->length, avail = dsPtr->spaceAvl;
   va_list  vargsCopy;
 
@@ -127,6 +128,33 @@ NsfDStringPrintf(Tcl_DString *dsPtr, const char *fmt, va_list vargs) {
   }
 }
 
+/*
+ *----------------------------------------------------------------------
+ * Nsf_DStringPrintf --
+ *
+ *      Append a sequence of values using a format string.
+ *
+ * Results:
+ *      Pointer to the current string value.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+Nsf_DStringPrintf(Tcl_DString *dsPtr, const char *fmt, ...)
+{
+    va_list         ap;
+
+    assert(dsPtr != NULL);
+    assert(fmt != NULL);
+
+    va_start(ap, fmt);
+    NsfDStringVPrintf(dsPtr, fmt, ap);
+    va_end(ap);
+}
 
 /*
  *----------------------------------------------------------------------
@@ -182,7 +210,7 @@ NsfPrintError(Tcl_Interp *interp, const char *fmt, ...) {
   Tcl_DStringInit(&ds);
 
   va_start(ap, fmt);
-  NsfDStringPrintf(&ds, fmt, ap);
+  NsfDStringVPrintf(&ds, fmt, ap);
   va_end(ap);
 
   Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_DStringValue(&ds), -1));

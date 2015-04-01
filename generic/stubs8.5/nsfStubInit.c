@@ -86,7 +86,7 @@ NsfStubs nsfStubs = {
     Nsf_ObjSetVar2, /* 8 */
     Nsf_ObjGetVar2, /* 9 */
     Nsf_UnsetVar2, /* 10 */
-    NsfDStringPrintf, /* 11 */
+    NsfDStringVPrintf, /* 11 */
     NsfPrintError, /* 12 */
     NsfErrInProc, /* 13 */
     NsfObjErrType, /* 14 */
@@ -116,6 +116,7 @@ NsfStubs nsfStubs = {
     Nsf_EnumerationTypeRegister, /* 38 */
     Nsf_CmdDefinitionRegister, /* 39 */
     NsfArgumentError, /* 40 */
+    Nsf_DStringPrintf, /* 41 */
 };
 
 /* !END!: Do not edit above this line. */

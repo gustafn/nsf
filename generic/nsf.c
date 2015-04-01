@@ -561,7 +561,7 @@ NsfLog(Tcl_Interp *interp, int requiredLevel, const char *fmt, ...) {
 
     Tcl_DStringInit(&ds);
     va_start(ap, fmt);
-    NsfDStringPrintf(&ds, fmt, ap);
+    NsfDStringVPrintf(&ds, fmt, ap);
     va_end(ap);
 
     Tcl_DStringInit(&cmdString);
@@ -16188,10 +16188,7 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, Pa
 
 #if defined(NSF_PROFILE)
   if (rst->doTrace) {
-    NsfProfile *profilePtr = &RUNTIME_STATE(interp)->profile;
-
-    profilePtr->depth ++;
-    NsfLog(interp, NSF_LOG_NOTICE, "call(%d): %s", profilePtr->depth, fullMethodName);
+    NsfProfileTraceCallAppend(interp, fullMethodName);
   }
 #endif
 
@@ -19901,7 +19898,7 @@ NsfForwardPrintError(Tcl_Interp *interp, ForwardCmdClientData *tcd,
   Tcl_DStringInit(&ds);
 
   va_start(ap, fmt);
-  NsfDStringPrintf(&ds, fmt, ap);
+  NsfDStringVPrintf(&ds, fmt, ap);
   va_end(ap);
 
   if (tcd->onerror != NULL) {

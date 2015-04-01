@@ -122,11 +122,11 @@ EXTERN int		Nsf_UnsetVar2(struct Nsf_Object *object,
 				Tcl_Interp *interp, CONST char *name1,
 				CONST char *name2, unsigned int flags);
 #endif
-#ifndef NsfDStringPrintf_TCL_DECLARED
-#define NsfDStringPrintf_TCL_DECLARED
+#ifndef NsfDStringVPrintf_TCL_DECLARED
+#define NsfDStringVPrintf_TCL_DECLARED
 /* 11 */
-EXTERN void		NsfDStringPrintf(Tcl_DString *dsPtr, CONST char *fmt,
-				va_list apSrc);
+EXTERN void		NsfDStringVPrintf(Tcl_DString *dsPtr,
+				CONST char *fmt, va_list apSrc);
 #endif
 #ifndef NsfPrintError_TCL_DECLARED
 #define NsfPrintError_TCL_DECLARED
@@ -322,6 +322,12 @@ EXTERN int		NsfArgumentError(Tcl_Interp *interp,
 				Nsf_Param CONST *paramPtr,
 				Tcl_Obj *cmdNameObj, Tcl_Obj *methodPathObj);
 #endif
+#ifndef Nsf_DStringPrintf_TCL_DECLARED
+#define Nsf_DStringPrintf_TCL_DECLARED
+/* 41 */
+EXTERN void		Nsf_DStringPrintf(Tcl_DString *dsPtr,
+				CONST char *fmt, ...);
+#endif
 
 typedef struct NsfStubHooks {
     struct NsfIntStubs *nsfIntStubs;
@@ -342,7 +348,7 @@ typedef struct NsfStubs {
     Tcl_Obj * (*nsf_ObjSetVar2) (struct Nsf_Object *object, Tcl_Interp *interp, Tcl_Obj *name1, Tcl_Obj *name2, Tcl_Obj *value, unsigned int flags); /* 8 */
     Tcl_Obj * (*nsf_ObjGetVar2) (struct Nsf_Object *object, Tcl_Interp *interp, Tcl_Obj *name1, Tcl_Obj *name2, unsigned int flags); /* 9 */
     int (*nsf_UnsetVar2) (struct Nsf_Object *object, Tcl_Interp *interp, CONST char *name1, CONST char *name2, unsigned int flags); /* 10 */
-    void (*nsfDStringPrintf) (Tcl_DString *dsPtr, CONST char *fmt, va_list apSrc); /* 11 */
+    void (*nsfDStringVPrintf) (Tcl_DString *dsPtr, CONST char *fmt, va_list apSrc); /* 11 */
     int (*nsfPrintError) (Tcl_Interp *interp, CONST char *fmt, ...); /* 12 */
     int (*nsfErrInProc) (Tcl_Interp *interp, Tcl_Obj *objName, Tcl_Obj *clName, CONST char *procName); /* 13 */
     int (*nsfObjErrType) (Tcl_Interp *interp, CONST char *context, Tcl_Obj *value, CONST char *type, Nsf_Param CONST *pPtr); /* 14 */
@@ -372,6 +378,7 @@ typedef struct NsfStubs {
     int (*nsf_EnumerationTypeRegister) (Tcl_Interp *interp, Nsf_EnumeratorConverterEntry *typeRecords); /* 38 */
     int (*nsf_CmdDefinitionRegister) (Tcl_Interp *interp, Nsf_methodDefinition *definitionRecords); /* 39 */
     int (*nsfArgumentError) (Tcl_Interp *interp, CONST char *errorMsg, Nsf_Param CONST *paramPtr, Tcl_Obj *cmdNameObj, Tcl_Obj *methodPathObj); /* 40 */
+    void (*nsf_DStringPrintf) (Tcl_DString *dsPtr, CONST char *fmt, ...); /* 41 */
 } NsfStubs;
 
 extern NsfStubs *nsfStubsPtr;
@@ -427,9 +434,9 @@ extern NsfStubs *nsfStubsPtr;
 #define Nsf_UnsetVar2 \
 	(nsfStubsPtr->nsf_UnsetVar2) /* 10 */
 #endif
-#ifndef NsfDStringPrintf
-#define NsfDStringPrintf \
-	(nsfStubsPtr->nsfDStringPrintf) /* 11 */
+#ifndef NsfDStringVPrintf
+#define NsfDStringVPrintf \
+	(nsfStubsPtr->nsfDStringVPrintf) /* 11 */
 #endif
 #ifndef NsfPrintError
 #define NsfPrintError \
@@ -546,6 +553,10 @@ extern NsfStubs *nsfStubsPtr;
 #ifndef NsfArgumentError
 #define NsfArgumentError \
 	(nsfStubsPtr->nsfArgumentError) /* 40 */
+#endif
+#ifndef Nsf_DStringPrintf
+#define Nsf_DStringPrintf \
+	(nsfStubsPtr->nsf_DStringPrintf) /* 41 */
 #endif
 
 #endif /* defined(USE_NSF_STUBS) && !defined(USE_NSF_STUB_PROCS) */

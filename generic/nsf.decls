@@ -92,7 +92,7 @@ declare 10 generic {
 		    CONST char *name1, CONST char *name2, unsigned int flags)
 }
 declare 11 generic {
-  void NsfDStringPrintf(Tcl_DString *dsPtr, CONST char *fmt, va_list apSrc)
+  void NsfDStringVPrintf(Tcl_DString *dsPtr, CONST char *fmt, va_list apSrc)
 }
 declare 12 generic {
   int NsfPrintError(Tcl_Interp *interp, CONST char *fmt, ...)
@@ -204,4 +204,7 @@ declare 39 generic {
 declare 40 generic {
   int NsfArgumentError(Tcl_Interp *interp, CONST char *errorMsg, Nsf_Param CONST *paramPtr,
 		       Tcl_Obj *cmdNameObj, Tcl_Obj *methodPathObj)
+}
+declare 41 generic {
+  void Nsf_DStringPrintf(Tcl_DString *dsPtr, const char *fmt, ...)
 }
