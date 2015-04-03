@@ -58,8 +58,7 @@
  *----------------------------------------------------------------------
  */
 
-#define NSF_XSTR(x) NSF_STR(x)
-#define NSF_STR(x) #x
+#define NsfConfigStr(x) (NsfConfigEnabled(x) ? "1" : "0")
 
 void
 NsfReportVars(Tcl_Interp *interp) {
@@ -70,28 +69,28 @@ NsfReportVars(Tcl_Interp *interp) {
   Tcl_SetVar(interp, "::nsf::patchLevel", NSF_PATCHLEVEL, TCL_GLOBAL_ONLY);
 
   Tcl_SetVar(interp, "::nsf::config(development)",
-             NSF_XSTR(NsfConfigEnabled(NSF_DEVELOPMENT)),
+             NsfConfigStr(DEVELOPMENT),
              TCL_GLOBAL_ONLY);
 
 
   Tcl_SetVar(interp, "::nsf::config(memcount)",
-             NSF_XSTR(NsfConfigEnabled(NSF_MEM_COUNT)),
+             NsfConfigStr(MEM_COUNT),
              TCL_GLOBAL_ONLY);
 
   Tcl_SetVar(interp, "::nsf::config(memtrace)",
-             NSF_XSTR(NsfConfigEnabled(NSF_MEM_TRACE)),
+             NsfConfigStr(MEM_TRACE),
              TCL_GLOBAL_ONLY);
 
   Tcl_SetVar(interp, "::nsf::config(profile)",
-             NSF_XSTR(NsfConfigEnabled(NSF_PROFILE)),
+             NsfConfigStr(PROFILE),
              TCL_GLOBAL_ONLY);
 
   Tcl_SetVar(interp, "::nsf::config(dtrace)",
-             NSF_XSTR(NsfConfigEnabled(NSF_DTRACE)),
+             NsfConfigStr(DTRACE),
              TCL_GLOBAL_ONLY);
 
   Tcl_SetVar(interp, "::nsf::config(assertions)",
-             NSF_XSTR(NsfConfigEnabled(NSF_WITH_ASSERTIONS)),
+             NsfConfigStr(WITH_ASSERTIONS),
              TCL_GLOBAL_ONLY);
 }
 

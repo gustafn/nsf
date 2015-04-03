@@ -278,6 +278,15 @@ nx::test case nsf-method-get-variants {
       "/objectName/ ?-matnr /value/? ?-object-mixins /mixinreg .../? ?-object-filters /filterreg .../? ?-class /class/? ?/__initblock/?"
 }
 
+nx::test case nsf-config-array {
+  ? {array exists ::nsf::config} 1
+  set opts [list development memcount memtrace profile dtrace assertions]
+  foreach opt $opts {
+    ? [list info exists ::nsf::config($opt)] 1
+    ? [list string is boolean $::nsf::config($opt)] 1
+  }
+}
+
 #
 # Local variables:
 #    mode: tcl

@@ -334,19 +334,24 @@ typedef struct NsfMemCounter {
 
 /*
   The NsfConfigEnabled() macro allows for querying whether a
-  configuration macro (see above) is actually defined (and whether it
-  expands to 1). This macro can be used both in CPP expressions (e.g.,
-  "#if NsfConfigEnabled(...)") and in C expressions (e.g.,
-  "if(NsfConfigEnabled(...))")
-
-  Adapted from https://plus.google.com/+LinusTorvalds/posts/9gntjh57dXt
+  configuration macro (NSF_*; see above) is actually defined (and
+  whether it expands to 1). This macro can be used both in CPP
+  expressions (e.g., "#if NsfConfigEnabled(...)") and in C expressions
+  (e.g., "if(NsfConfigEnabled(...))")
 */
 
-#define NsfConfigEnabled(macro) NsfConfigEnabled_(macro)
-#define NsfMacroTest_1 ,
-#define NsfConfigEnabled_(value) NsfConfigEnabled__(NsfMacroTest_##value)
-#define NsfConfigEnabled__(comma) NsfConfigEnabled___(comma 1, 0)
-#define NsfConfigEnabled___(_, v, ...) v
+#define NsfConfigEnabled__NOOP(...) 
+#define NsfConfigEnabled__open (
+#define NsfConfigEnabled__close )
+#define NsfConfigEnabled__caller(macro, args) macro args
+#define NsfConfigEnabled__helper_1 NsfConfigEnabled__close NsfConfigEnabled__open 1
+#define NsfConfigEnabled__(x) (NsfConfigEnabled__caller(NsfConfigEnabled__NOOP, \
+						       NsfConfigEnabled__open \
+						       NsfConfigEnabled__helper_##x \
+						       NsfConfigEnabled__close) + 0)
+#define NsfConfigEnabled_(x) NsfConfigEnabled__(x)
+#define NsfConfigEnabled(x) NsfConfigEnabled_(NSF_##x)
+
 
 /*
  *
