@@ -851,11 +851,16 @@ typedef struct NsfProfile {
   Tcl_HashTable procData;
   Tcl_DString traceDs;
   int depth;
+  int verbose;
 } NsfProfile;
 
-# define NSF_PROFILE_CALL(interp, object, methodName) NsfProfileTraceCall(interp, object, methodName)
-# define NSF_PROFILE_EXIT(interp, object, methodName) NsfProfileTraceExit(interp, object, methodName)
+# define NSF_PROFILE_TIME_DATA struct timeval profile_trt
+# define NSF_PROFILE_CALL(interp, object, methodName) \
+  gettimeofday(&profile_trt, NULL); \
+  NsfProfileTraceCall(interp, object, methodName)
+# define NSF_PROFILE_EXIT(interp, object, methodName) NsfProfileTraceExit(interp, object, methodName, &profile_trt)
 #else
+# define NSF_PROFILE_TIME_DATA()
 # define NSF_PROFILE_CALL(interp, object, methodName)
 # define NSF_PROFILE_EXIT(interp, object, methodName) 
 #endif
@@ -994,8 +999,8 @@ EXTERN void NsfProfileObjectLabel(Tcl_DString *dsPtr, NsfObject *obj, const char
   nonnull(1) nonnull(2) nonnull(3);
 EXTERN void NsfProfileTraceCall(Tcl_Interp *interp, NsfObject *object, const char *methodName)
   nonnull(1) nonnull(2) nonnull(3);
-EXTERN void NsfProfileTraceExit(Tcl_Interp *interp, NsfObject *object, const char *methodName)
-  nonnull(1) nonnull(2) nonnull(3);
+EXTERN void NsfProfileTraceExit(Tcl_Interp *interp, NsfObject *object, const char *methodName, struct timeval *trt)
+  nonnull(1) nonnull(2) nonnull(3) nonnull(4);
 EXTERN void NsfProfileTraceCallAppend(Tcl_Interp *interp, const char *label)
   nonnull(1) nonnull(2);
 EXTERN void NsfProfileTraceExitAppend(Tcl_Interp *interp, const char *label, double duration)

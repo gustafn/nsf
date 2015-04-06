@@ -194,6 +194,7 @@ proc gencall {methodName fn parameterDefinitions clientData
           "tclobj"     {set type "Tcl_Obj *"}
           "int"        {set type "Tcl_Obj *"}
           "int32"      {set type "int "}
+          "boolean"    {set type "int "}
           "*|*"        {set type "int "}
           default      {error "type '$(-type)' not allowed for parameter"}
         }

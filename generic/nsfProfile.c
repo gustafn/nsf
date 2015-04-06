@@ -85,6 +85,48 @@ NsfProfileFillTable(Tcl_HashTable *table, char *keyStr, double totalMicroSec) {
 
 /*
  *----------------------------------------------------------------------
+ * NsfProfileTrace --
+ *
+ *    Function callable via tcl to control trace behavior.
+ *
+ * Results:
+ *    OK
+ *
+ * Side effects:
+ *    update RUNTIME_STATE(interp)->doTrace and profilePtr->verbose
+ *
+ *----------------------------------------------------------------------
+ */
+
+int
+NsfProfileTrace(Tcl_Interp *interp, int withEnable, int withVerbose) {
+  NsfRuntimeState *rst;
+  NsfProfile *profilePtr;
+  int oldProfileState;
+
+  assert(interp != NULL);
+
+  rst = RUNTIME_STATE(interp);
+  profilePtr = &rst->profile;
+
+  fprintf(stderr, "trace: withEnable %d withVerbose %d\n", withEnable, withVerbose);
+
+  oldProfileState = rst->doTrace;
+  rst->doTrace = withEnable;
+  /*
+   * Turn automically profiling on&off, when trace is turned on/off
+   */
+  rst->doProfile = withEnable;
+
+  profilePtr->verbose = withVerbose;
+  Tcl_SetObjResult(interp, Tcl_NewBooleanObj(oldProfileState));
+
+  return TCL_OK;
+}
+
+
+/*
+ *----------------------------------------------------------------------
  * NsfProfileTraceCallAppend, NsfProfileTraceExitAppend --
  *
  *    Low level function to add entries to the trace dstring when functions ar
@@ -108,6 +150,9 @@ NsfProfileTraceCallAppend(Tcl_Interp *interp, const char *label) {
 
   Tcl_DStringInit(&ds);
   Nsf_DStringPrintf(&ds, "call(%d): %s\n", profilePtr->depth, label);
+  if (profilePtr->verbose) {
+    fprintf(stderr, "### %s", ds.string);
+  }
   Tcl_DStringAppend(&profilePtr->traceDs, ds.string, ds.length);
   Tcl_DStringFree(&ds);
 }
@@ -118,12 +163,16 @@ NsfProfileTraceExitAppend(Tcl_Interp *interp, const char *label, double duration
   NsfProfile *profilePtr = &rst->profile;
   Tcl_DString ds;
 
-  profilePtr->depth --;
-
   Tcl_DStringInit(&ds);
   Nsf_DStringPrintf(&ds, "exit(%d): %s %.0f\n", profilePtr->depth, label, duration);
+  if (profilePtr->verbose) {
+    fprintf(stderr, "### %s", ds.string);
+  }
   Tcl_DStringAppend(&profilePtr->traceDs, ds.string, ds.length);
   Tcl_DStringFree(&ds);
+
+  profilePtr->depth --;
+
 }
 
 /*
@@ -147,7 +196,7 @@ NsfProfileTraceExitAppend(Tcl_Interp *interp, const char *label, double duration
 void
 NsfProfileTraceCall(Tcl_Interp *interp, NsfObject *object, const char *methodName) {
   NsfRuntimeState *rst = RUNTIME_STATE(interp);
-    
+
   if (rst->doTrace) {
     Tcl_DString objectLabel;
 
@@ -158,14 +207,19 @@ NsfProfileTraceCall(Tcl_Interp *interp, NsfObject *object, const char *methodNam
 }
 
 void
-NsfProfileTraceExit(Tcl_Interp *interp, NsfObject *object, const char *methodName) {
+NsfProfileTraceExit(Tcl_Interp *interp, NsfObject *object, const char *methodName, struct timeval *callTime) {
   NsfRuntimeState *rst = RUNTIME_STATE(interp);
 
   if (rst->doTrace) {
     Tcl_DString objectLabel;
+    double totalMicroSec;
+    struct timeval trt;
+
+    gettimeofday(&trt, NULL);
+    totalMicroSec = (trt.tv_sec - callTime->tv_sec) * 1000000 + (trt.tv_usec - callTime->tv_usec);
 
     NsfProfileObjectLabel(&objectLabel, (object), methodName);
-    NsfProfileTraceExitAppend(interp, Tcl_DStringValue(&objectLabel), 0.0);
+    NsfProfileTraceExitAppend(interp, Tcl_DStringValue(&objectLabel), totalMicroSec);
     Tcl_DStringFree(&objectLabel);
   }
 }
@@ -194,7 +248,7 @@ NsfProfileObjectLabel(Tcl_DString *dsPtr, NsfObject *obj, const char *methodName
   assert(dsPtr != NULL);
   assert(obj != NULL);
   assert(methodName != NULL);
-  
+
   Tcl_DStringInit(dsPtr);
   Tcl_DStringAppend(dsPtr, ObjectName(obj), -1);
   Tcl_DStringAppend(dsPtr, " ", 1);
@@ -202,7 +256,7 @@ NsfProfileObjectLabel(Tcl_DString *dsPtr, NsfObject *obj, const char *methodName
   Tcl_DStringAppend(dsPtr, " ", 1);
   Tcl_DStringAppend(dsPtr, methodName, -1);
 }
-  
+
 void
 NsfProfileRecordMethodData(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
   NsfRuntimeState *rst = RUNTIME_STATE(interp);
@@ -256,11 +310,11 @@ NsfProfileRecordMethodData(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
       Tcl_DStringAppend(&methodKey, " - - -", 6);
     }
   }
-  
+
   if (rst->doTrace) {
     NsfProfileTraceExitAppend(interp, Tcl_DStringValue(&objectKey), totalMicroSec);
   }
-  
+
   NsfProfileFillTable(&profilePtr->objectData, Tcl_DStringValue(&objectKey), totalMicroSec);
   NsfProfileFillTable(&profilePtr->methodData, Tcl_DStringValue(&methodKey), totalMicroSec);
   Tcl_DStringFree(&objectKey);

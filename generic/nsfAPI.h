@@ -281,7 +281,7 @@ static int ConvertToInfoobjectparametersubcmd(Tcl_Interp *interp, Tcl_Obj *objPt
     
 
 /* just to define the symbol */
-static Nsf_methodDefinition method_definitions[110];
+static Nsf_methodDefinition method_definitions[111];
   
 static const char *method_command_namespace_names[] = {
   "::nsf::methods::object::info",
@@ -406,6 +406,8 @@ static int NsfProcCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, T
 static int NsfProfileClearDataStubStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv)
   NSF_nonnull(2) NSF_nonnull(4);
 static int NsfProfileGetDataStubStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv)
+  NSF_nonnull(2) NSF_nonnull(4);
+static int NsfProfileTraceStubStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv)
   NSF_nonnull(2) NSF_nonnull(4);
 static int NsfRelationGetCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv)
   NSF_nonnull(2) NSF_nonnull(4);
@@ -626,6 +628,8 @@ static int NsfProfileClearDataStub(Tcl_Interp *interp)
   NSF_nonnull(1);
 static int NsfProfileGetDataStub(Tcl_Interp *interp)
   NSF_nonnull(1);
+static int NsfProfileTraceStub(Tcl_Interp *interp, int withEnable, int withVerbose)
+  NSF_nonnull(1);
 static int NsfRelationGetCmd(Tcl_Interp *interp, NsfObject *object, int type)
   NSF_nonnull(1) NSF_nonnull(2);
 static int NsfRelationSetCmd(Tcl_Interp *interp, NsfObject *object, int type, Tcl_Obj *value)
@@ -787,6 +791,7 @@ enum {
  NsfProcCmdIdx,
  NsfProfileClearDataStubIdx,
  NsfProfileGetDataStubIdx,
+ NsfProfileTraceStubIdx,
  NsfRelationGetCmdIdx,
  NsfRelationSetCmdIdx,
  NsfSelfCmdIdx,
@@ -2198,6 +2203,27 @@ NsfProfileGetDataStubStub(ClientData clientData, Tcl_Interp *interp, int objc, T
 }
 
 static int
+NsfProfileTraceStubStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv) {
+  ParseContext pc;
+  (void)clientData;
+
+  if (likely(ArgumentParse(interp, objc, objv, NULL, objv[0],
+                     method_definitions[NsfProfileTraceStubIdx].paramDefs,
+                     method_definitions[NsfProfileTraceStubIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
+                     &pc) == TCL_OK)) {
+    int withEnable = (int )PTR2INT(pc.clientData[0]);
+    int withVerbose = (int )PTR2INT(pc.clientData[1]);
+
+    assert(pc.status == 0);
+    return NsfProfileTraceStub(interp, withEnable, withVerbose);
+
+  } else {
+    
+    return TCL_ERROR;
+  }
+}
+
+static int
 NsfRelationGetCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv) {
   ParseContext pc;
   (void)clientData;
@@ -3292,7 +3318,7 @@ NsfObjInfoVarsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
   }
 }
 
-static Nsf_methodDefinition method_definitions[110] = {
+static Nsf_methodDefinition method_definitions[111] = {
 {"::nsf::methods::class::alloc", NsfCAllocMethodStub, 1, {
   {"objectName", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
@@ -3574,6 +3600,10 @@ static Nsf_methodDefinition method_definitions[110] = {
 },
 {"::nsf::__profile_get", NsfProfileGetDataStubStub, 0, {
   {NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+},
+{"::nsf::__profile_trace", NsfProfileTraceStubStub, 2, {
+  {"-enable", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Boolean, NULL,NULL,"boolean",NULL,NULL,NULL,NULL,NULL},
+  {"-verbose", 0, 1, Nsf_ConvertTo_Boolean, NULL,NULL,"boolean",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::relation::get", NsfRelationGetCmdStub, 2, {
   {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Object, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},

@@ -221,7 +221,8 @@
 
 #if defined(NSF_PROFILE) || defined(NSF_DTRACE)
 # define CscInit(cscPtr, object, cl, cmd, frametype, flags, method) \
-  CscInit_(cscPtr, object, cl, cmd, frametype, flags); cscPtr->methodName = (method);
+  CscInit_(cscPtr, object, cl, cmd, frametype, flags); cscPtr->methodName = (method); \
+  NsfProfileTraceCall(interp, (object), cscPtr->methodName);
 #else
 # define CscInit(cscPtr, object, cl, cmd, frametype, flags, methodName) \
   CscInit_(cscPtr, object, cl, cmd, frametype, flags)

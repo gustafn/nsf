@@ -12544,9 +12544,9 @@ ObjectCmdMethodDispatch(NsfObject *invokedObject, Tcl_Interp *interp, int objc, 
      */
 
     /*fprintf(stderr, ".... ensemble dispatch object %s self %s pass %s\n",
-      ObjectName(object), ObjectName(self), (self->flags & NSF_KEEP_CALLER_SELF) ? "callerSelf" : "invokedObject");
+      ObjectName(invokedObject), ObjectName(actualSelf), (actualSelf->flags & NSF_KEEP_CALLER_SELF) ? "callerSelf" : "invokedObject");
       fprintf(stderr, ".... ensemble dispatch on %s.%s objflags %.8x cscPtr %p base flags %.6x flags %.6x cl %s\n",
-      ObjectName(actualSelf), subMethodName, self->flags,
+      ObjectName(actualSelf), subMethodName, actualSelf->flags,
       cscPtr, (0xFF & cscPtr->flags), (cscPtr->flags & 0xFF)|NSF_CSC_IMMEDIATE, (actualClass != NULL) ? ClassName(actualClass) : "NONE");*/
     result = MethodDispatch(actualSelf,
                             interp, objc-1, objv+1,
@@ -13198,8 +13198,6 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
           methodObj, methodObj->refCount, methodName, methodObj->typePtr, (methodObj->typePtr != NULL) ? methodObj->typePtr->name : "");
 #endif
 
-  NSF_PROFILE_CALL(interp, object, ObjStr(methodObj));
-
   /*fprintf(stderr, "ObjectDispatch obj = %s objc = %d 0=%s methodName=%s shift %d\n", (object != NULL) ? ObjectName(object) : NULL,
           objc, objv[0] ? ObjStr(objv[0]) : NULL,
           methodName, shift);*/
@@ -13709,6 +13707,7 @@ DispatchDestroyMethod(Tcl_Interp *interp, NsfObject *object, unsigned int flags)
   object->flags |= NSF_DESTROY_CALLED;
 
   if (CallDirectly(interp, object, NSF_o_destroy_idx, &methodObj)) {
+    NSF_PROFILE_TIME_DATA;
     NSF_PROFILE_CALL(interp, object, Nsf_SystemMethodOpts[NSF_o_destroy_idx]);
     result = NsfODestroyMethod(interp, object);
     NSF_PROFILE_EXIT(interp, object, Nsf_SystemMethodOpts[NSF_o_destroy_idx]);
@@ -16186,12 +16185,6 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, Pa
 
   CheckCStack(interp, "nsfProc", fullMethodName);
 
-#if defined(NSF_PROFILE)
-  if (rst->doTrace) {
-    NsfProfileTraceCallAppend(interp, fullMethodName);
-  }
-#endif
-
   /*
    * The code below is derived from the scripted method dispatch and just
    * slightly adapted to remove object dependencies.
@@ -16226,6 +16219,12 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, Pa
     NsfCommandPreserve(tcd->cmd);
 #endif
   }
+
+#if defined(NSF_PROFILE)
+  if (rst->doTrace) {
+    NsfProfileTraceCallAppend(interp, fullMethodName);
+  }
+#endif
 
   procPtr = (Proc *)Tcl_Command_objClientData(cmd);
   result = TclPushStackFrame(interp, &framePtr,
@@ -19262,6 +19261,7 @@ DoObjInitialization(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
    * Call configure method
    */
   if (CallDirectly(interp, object, NSF_o_configure_idx, &methodObj)) {
+    NSF_PROFILE_TIME_DATA;
     if (methodObj == NULL) {
       methodObj = NsfGlobalObjs[NSF_CONFIGURE];
     }
@@ -19269,7 +19269,7 @@ DoObjInitialization(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
     /* methodObj is just for error reporting */
     NSF_PROFILE_CALL(interp, object, ObjStr(methodObj));
     result = NsfOConfigureMethod(interp, object, objc, objv, methodObj);
-    //NSF_PROFILE_EXIT(interp, object, ObjStr(methodObj));
+    NSF_PROFILE_EXIT(interp, object, ObjStr(methodObj));
   } else {
     result = CallMethod(object, interp, methodObj, objc+2, objv, NSF_CSC_IMMEDIATE);
   }
@@ -23887,6 +23887,25 @@ NsfProfileGetDataStub(Tcl_Interp *interp) {
 }
 
 /*
+cmd __profile_trace NsfProfileTraceStub {
+  {-argName "-enable" -required 1 -nrargs 1 -type boolean}
+  {-argName "-verbose" -required 0 -nrargs 1 -type boolean}
+}
+*/
+static int NsfProfileTraceStub(Tcl_Interp *interp, int withEnable, int withVerbose)
+  NSF_nonnull(1);
+
+static int
+NsfProfileTraceStub(Tcl_Interp *interp, int withEnable, int withVerbose) {
+  assert(interp != NULL);
+
+#if defined(NSF_PROFILE)
+  NsfProfileTrace(interp, withEnable, withVerbose);
+#endif
+  return TCL_OK;
+}
+
+/*
  *----------------------------------------------------------------------
  * NsfUnsetUnknownArgsCmd --
 *
@@ -24123,11 +24142,9 @@ NsfConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *valueObj) {
 #if defined(NSF_PROFILE)
       RUNTIME_STATE(interp)->doTrace = bool;
       /*
-       * Turn on autormically profiling, when trace is turned on.
+       * Turn automically profiling on&off, when trace is turned on/off
        */
-      if (bool) {
-        RUNTIME_STATE(interp)->doProfile = bool;
-      }
+      RUNTIME_STATE(interp)->doProfile = bool;
 #else
       NsfLog(interp, NSF_LOG_WARN, "No profile support compiled in");
 #endif
@@ -27847,6 +27864,7 @@ NsfODestroyMethod(Tcl_Interp *interp, NsfObject *object) {
       ((Command *)object->id)->flags == 0 ? ObjectName(object) : "(deleted)");*/
 
     if (CallDirectly(interp, &object->cl->object, NSF_c_dealloc_idx, &methodObj)) {
+      NSF_PROFILE_TIME_DATA;
       NSF_PROFILE_CALL(interp, &object->cl->object, Nsf_SystemMethodOpts[NSF_c_dealloc_idx]);
       result = DoDealloc(interp, object);
       NSF_PROFILE_EXIT(interp, &object->cl->object, Nsf_SystemMethodOpts[NSF_c_dealloc_idx]);
@@ -28507,6 +28525,7 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *specifiedNameObj, in
 
     /* call recreate --> initialization */
     if (CallDirectly(interp, &cl->object, NSF_c_recreate_idx, &methodObj)) {
+      NSF_PROFILE_TIME_DATA;
       NSF_PROFILE_CALL(interp, &cl->object, Nsf_SystemMethodOpts[NSF_c_recreate_idx]);
       result = RecreateObject(interp, cl, newObject, objc, objv);
       NSF_PROFILE_EXIT(interp, &cl->object, Nsf_SystemMethodOpts[NSF_c_recreate_idx]);
@@ -28540,6 +28559,7 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *specifiedNameObj, in
      */
 
     if (CallDirectly(interp, &cl->object, NSF_c_alloc_idx, &methodObj)) {
+      NSF_PROFILE_TIME_DATA;
       NSF_PROFILE_CALL(interp, &cl->object, Nsf_SystemMethodOpts[NSF_c_alloc_idx]);
       result = NsfCAllocMethod_(interp, cl, nameObj, parentNsPtr);
       NSF_PROFILE_EXIT(interp, &cl->object, Nsf_SystemMethodOpts[NSF_c_alloc_idx]);
@@ -28768,6 +28788,7 @@ NsfCNewMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *withChildof,
     callDirectly = CallDirectly(interp, &cl->object, NSF_c_create_idx, &methodObj);
 
     if (callDirectly != 0) {
+      NSF_PROFILE_TIME_DATA;
       NSF_PROFILE_CALL(interp, &cl->object, Nsf_SystemMethodOpts[NSF_c_create_idx]);
       result = NsfCCreateMethod(interp, cl, fullnameObj, objc, objv);
       NSF_PROFILE_EXIT(interp, &cl->object, Nsf_SystemMethodOpts[NSF_c_create_idx]);
@@ -28830,6 +28851,7 @@ RecreateObject(Tcl_Interp *interp, NsfClass *class, NsfObject *object,
      * Dispatch "cleanup" method.
      */
     if (CallDirectly(interp, object, NSF_o_cleanup_idx, &methodObj)) {
+      NSF_PROFILE_TIME_DATA;
       /*fprintf(stderr, "RECREATE calls cleanup directly for object %s\n", ObjectName(object));*/
       NSF_PROFILE_CALL(interp, object, Nsf_SystemMethodOpts[NSF_o_cleanup_idx]);
       result = NsfOCleanupMethod(interp, object);

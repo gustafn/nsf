@@ -56,6 +56,12 @@ cmd __db_show_obj NsfDebugShowObj {
 }
 cmd __profile_clear NsfProfileClearDataStub {} 
 cmd __profile_get NsfProfileGetDataStub {}
+cmd __profile_get NsfProfileGetDataStub {}
+cmd __profile_trace NsfProfileTraceStub {
+  {-argName "-enable" -required 1 -nrargs 1 -type boolean}
+  {-argName "-verbose" -required 0 -nrargs 1 -type boolean}  
+}
+
 cmd __unset_unknown_args NsfUnsetUnknownArgsCmd {}
 
 cmd "asm::proc" NsfAsmProcCmd {
