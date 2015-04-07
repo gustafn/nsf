@@ -860,7 +860,7 @@ typedef struct NsfProfile {
   NsfProfileTraceCall(interp, object, methodName)
 # define NSF_PROFILE_EXIT(interp, object, methodName) NsfProfileTraceExit(interp, object, methodName, &profile_trt)
 #else
-# define NSF_PROFILE_TIME_DATA()
+# define NSF_PROFILE_TIME_DATA
 # define NSF_PROFILE_CALL(interp, object, methodName)
 # define NSF_PROFILE_EXIT(interp, object, methodName) 
 #endif
@@ -994,6 +994,7 @@ EXTERN void NsfProfileInit(Tcl_Interp *interp) nonnull(1);
 EXTERN void NsfProfileFree(Tcl_Interp *interp) nonnull(1);
 EXTERN void NsfProfileClearData(Tcl_Interp *interp) nonnull(1);
 EXTERN void NsfProfileGetData(Tcl_Interp *interp) nonnull(1);
+EXTERN int NsfProfileTrace(Tcl_Interp *interp, int withEnable, int withVerbose);
 
 EXTERN void NsfProfileObjectLabel(Tcl_DString *dsPtr, NsfObject *obj, const char *methodName)
   nonnull(1) nonnull(2) nonnull(3);
