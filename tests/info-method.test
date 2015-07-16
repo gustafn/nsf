@@ -646,8 +646,14 @@ nx::test case info-submethod {
   #
   # test whether the handles for ensemble methods work
   #
+  ? {C info method exists "bar"} 1
+  ? {C info method exists [C info method registrationhandle "bar"]} 1
   ? {C info method parameters [C info method registrationhandle "bar"]} ""
+
+  ? {C info method exists "bar b"} 1
+  ? {C info method exists [C info method registrationhandle "bar b"]} 1
   ? {C info method parameters [C info method registrationhandle "bar b"]} "x:int y:upper"
+  
   ? {C info method parameters [C info method registrationhandle "bar baz y"]} "x:int y:upper"
   
   #

@@ -22275,7 +22275,7 @@ ListMethod(Tcl_Interp *interp,
     }
   case InfomethodsubcmdExistsIdx:
     {
-      Tcl_SetObjResult(interp, Tcl_NewIntObj(1));
+      Tcl_SetObjResult(interp, Tcl_NewIntObj(!CmdIsNsfObject(cmd)));
       return TCL_OK;
     }
   case InfomethodsubcmdArgsIdx:

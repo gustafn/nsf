@@ -179,6 +179,47 @@ nx::test case nsf-method-get-variants {
   ? {nsf::cmd::info postcondition $::handle} ""
   ? {nsf::cmd::info submethods $::handle} ""
   ? {nsf::cmd::info returns $::handle} ""
+
+  #
+  # A plain NX object 
+  #
+  set ::handle [nx::Object new]
+
+  ? {nsf::cmd::info args $::handle} ""
+  ? {nsf::cmd::info body $::handle} ""
+  ? {nsf::cmd::info definition $::handle} ""
+  ? {nsf::cmd::info exists $::handle} 0
+  ? {nsf::cmd::info registrationhandle $::handle} ""
+  ? {nsf::cmd::info definitionhandle $::handle} ""
+  ? {nsf::cmd::info origin $::handle} ""
+  ? {nsf::cmd::info parameter $::handle} ""
+  ? {nsf::cmd::info syntax $::handle} ""
+  ? {nsf::cmd::info type $::handle} "cmd"
+  ? {nsf::cmd::info precondition $::handle} ""
+  ? {nsf::cmd::info postcondition $::handle} ""
+  ? {nsf::cmd::info submethods $::handle} ""
+  ? {nsf::cmd::info returns $::handle} ""
+
+  #
+  # A method handle for an ensemble
+  #
+  set ::handle [nx::Object info method registrationhandle "info"]
+
+  ? {nsf::cmd::info args $::handle} ""
+  ? {nsf::cmd::info body $::handle} ""
+  ? {nsf::cmd::info definition $::handle} "::nx::Object public alias info ::nx::Object::slot::__info"
+  ? {nsf::cmd::info exists $::handle} 1
+  ? {nsf::cmd::info registrationhandle $::handle} $::handle
+  ? {nsf::cmd::info definitionhandle $::handle} $::handle
+  ? {nsf::cmd::info origin $::handle} "::nx::Object::slot::__info"
+  ? {nsf::cmd::info parameter $::handle} ""
+  ? {nsf::cmd::info syntax $::handle} ""
+  ? {nsf::cmd::info type $::handle} "alias"
+  ? {nsf::cmd::info precondition $::handle} ""
+  ? {nsf::cmd::info postcondition $::handle} ""
+  ? {nsf::cmd::info submethods $::handle} [nx::Object info method submethods info]
+  ? {nsf::cmd::info returns $::handle} ""
+
 }
 
 
