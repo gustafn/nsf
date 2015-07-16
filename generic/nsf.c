@@ -21874,13 +21874,13 @@ ListParamDefs(Tcl_Interp *interp, Nsf_Param const *paramsPtr,
  *----------------------------------------------------------------------
  * ListCmdParams --
  *
- *    Obtains a cmd and a method name and sets as side effect the Tcl result
- *    to either the list. The print-style NSF_PARAMS_NAMES, NSF_PARAMS_LIST,
- *    NSF_PARAMS_PARAMETER, NSF_PARAMS_SYNTAX controls the elements of the
- *    list.
+ *    Obtains a cmd and a method name. As a side effect, sets the Tcl interp
+ *    result to a list of parameter definitions, if available. The print-style
+ *    NSF_PARAMS_NAMES, NSF_PARAMS_LIST, NSF_PARAMS_PARAMETER,
+ *    NSF_PARAMS_SYNTAX controls the list content.
  *
  * Results:
- *    Tcl result code.
+ *    Tcl result code
  *
  * Side effects:
  *    Sets interp result
@@ -22035,22 +22035,19 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd,  NsfObject *contextObject,
   if (Tcl_Command_objProc(cmd) == NsfForwardMethod) {
     return NsfPrintError(interp, "could not obtain parameter definition for forwarder '%s'",
                          methodName);
-  } else if (!CmdIsNsfObject(cmd)) {
+  } else if (CmdIsNsfObject(cmd)) {
+    /* procPtr == NsfObjDispatch:
+
+       reached for:
+       ... ensemble objects
+       ... plain objects
+     */
+    return TCL_OK;
+  } else {
+    /* reached e.g. for C-implemented Tcl command procs */
     return NsfPrintError(interp, "could not obtain parameter definition for method '%s'",
                          methodName);
-  } else {
-    /* procPtr == NsfObjDispatch, be quiet */
-    return TCL_OK;
   }
-
-  {
-    Tcl_Obj *methodObj = Tcl_NewStringObj(methodName, -1);
-
-    INCR_REF_COUNT(methodObj);
-    NsfObjErrType(interp, "parameter get", methodObj, "a method name", NULL);
-    DECR_REF_COUNT(methodObj);
-  }
-  return TCL_ERROR;
 }
 
 
