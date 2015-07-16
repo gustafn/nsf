@@ -142,12 +142,12 @@ void NsfShowStack(Tcl_Interp *interp) {
             Tcl_CallFrame_objc(framePtr) ? Tcl_CallFrame_objc(framePtr) : -1);
     if (cscPtr != NULL) {
       fprintf(stderr, " csc %p frameType %.4x flags %.6x (%s.%p %s)\n",
-	      (void *)cscPtr, (cscPtr != NULL) ? cscPtr->frameType : -1,
-              (cscPtr != NULL) ? cscPtr->flags : -1,
-              (cscPtr != NULL) ? ObjectName(cscPtr->self) : "",
-              (cscPtr != NULL) ? (void *)cscPtr->cmdPtr : NULL,
-              (cscPtr != NULL) ? Tcl_GetCommandName(interp, cscPtr->cmdPtr) : ""
-	      );
+	      (void *)cscPtr,
+              cscPtr->frameType,
+              cscPtr->flags,
+              ObjectName(cscPtr->self),
+              (void *)cscPtr->cmdPtr,
+              Tcl_GetCommandName(interp, cscPtr->cmdPtr));
     } else {
       fprintf(stderr, " no csc");
       if (frameFlags & FRAME_IS_NSF_OBJECT) {
