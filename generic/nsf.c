@@ -14630,8 +14630,10 @@ ConvertViaCmd(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
   INCR_REF_COUNT(ov[2]);
 
   /* result = Tcl_EvalObjv(interp, oc, ov, 0); */
-  GetObjectFromObj(interp, ov[0], &object);
-  result = ObjectDispatch(object, interp, oc, ov, NSF_CSC_IMMEDIATE|NSF_CM_IGNORE_PERMISSIONS);
+  result = GetObjectFromObj(interp, ov[0], &object);
+  if(likely(result == TCL_OK)) {
+    result = ObjectDispatch(object, interp, oc, ov, NSF_CSC_IMMEDIATE|NSF_CM_IGNORE_PERMISSIONS);
+  }
 
   DECR_REF_COUNT(ov[1]);
   DECR_REF_COUNT(ov[2]);
@@ -14720,8 +14722,7 @@ ConvertToObjpattern(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *UNUSED
      * We have no meta characters, we try to check for an existing object
      */
     NsfObject *object = NULL;
-    GetObjectFromObj(interp, objPtr, &object);
-    if (object != NULL) {
+    if (GetObjectFromObj(interp, objPtr, &object) == TCL_OK && object != NULL) {
       patternObj = object->cmdName;
     }
   } else {
@@ -27304,8 +27305,7 @@ GetSlotObject(Tcl_Interp *interp, Tcl_Obj *slotObj) {
   assert(interp != NULL);
   assert(slotObj != NULL);
 
-  GetObjectFromObj(interp, slotObj, &slotObject);
-  if (unlikely(slotObject == NULL)) {
+  if (unlikely(GetObjectFromObj(interp, slotObj, &slotObject) != TCL_OK || slotObject == NULL)) {
     NsfPrintError(interp, "couldn't resolve slot object %s", ObjStr(slotObj));
   }
 
