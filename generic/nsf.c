@@ -25112,36 +25112,29 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
       Tcl_SetIntObj(Tcl_GetObjResult(interp), (Tcl_Command_flags(cmd) & flag) != 0);
       break;
     }
-
-  case MethodpropertySlotobjIdx:
   case MethodpropertyReturnsIdx:
     {
       NsfParamDefs *paramDefs;
       Tcl_Obj **objPtr;
-
-      if (valueObj == NULL && methodproperty == MethodpropertySlotobjIdx) {
-        return NsfPrintError(interp, "option 'slotobj' of method '%s' requires argument",
-                             methodName);
-      }
 
       paramDefs = ParamDefsGet(cmd, NULL);
       /*fprintf(stderr, "MethodProperty, ParamDefsGet cmd %p paramDefs %p returns %p\n",
         cmd, paramDefs, (paramDefs != NULL) ?paramDefs->returns:NULL);*/
 
       if (valueObj == NULL) {
-        /* a query for "returns" or "slotobj" */
+        /* a query for "returns" */
         Tcl_Obj *resultObj;
 
         if (paramDefs == NULL) {
           resultObj = NsfGlobalObjs[NSF_EMPTY];
         } else {
-          objPtr = methodproperty == MethodpropertySlotobjIdx ? &paramDefs->slotObj : &paramDefs->returns;
+          objPtr = &paramDefs->returns;
           resultObj = *objPtr ? *objPtr : NsfGlobalObjs[NSF_EMPTY];
         }
         Tcl_SetObjResult(interp, resultObj);
 
       } else {
-        /* setting "returns" or "slotobj" */
+        /* setting "returns" */
         const char *valueString = ObjStr(valueObj);
 
         if (paramDefs == NULL) {
@@ -25150,9 +25143,8 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
           ParamDefsStore(interp, cmd, paramDefs, 0);
           /*fprintf(stderr, "new param definitions %p for cmd %p %s\n", paramDefs, cmd, methodName);*/
         }
-        objPtr =
-          methodproperty == MethodpropertySlotobjIdx ?
-          &paramDefs->slotObj : &paramDefs->returns;
+
+        objPtr = &paramDefs->returns;
 
         /* Set a new value; if there is already a value, free it */
         if (*objPtr) {

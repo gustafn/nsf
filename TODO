@@ -5556,6 +5556,21 @@ build system:
 ========================================================================
 TODO:
 
+- Is NsfParamDefs.slotObj obsolete?
+
+  Right now, the slot objs responsible for (method) parameters are
+  stored along with each Nsf_Param, and not as a
+  NsfParamDefs.slotObj. NsfParamDefs.slotObj is not used actively,
+  ::nsf::method::property slotobj is dysfunctional (expects extra
+  argument, which cannot be provided + control-flow issue CID 88767).
+
+  pt. 1: For the time being, I removed ::nsf::method::property slotobj
+  entirely (also to fix CID 88767). Seems harmless, not tested
+  explicitly, not required by object-system scripts, ...
+
+  pt. 2: NsfParamDefs.slotObj and its memory-management statements all
+  over remain in place, to be reviewed.
+
 - should we change "/obj/ info lookup syntax /methodName/" to return obj and method as well?
   (similar to "info method syntax /methodName/")
 
