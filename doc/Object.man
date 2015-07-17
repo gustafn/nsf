@@ -440,7 +440,7 @@ originally instantiated using [method create] or [method new].
 [call [arg obj] [method "info has"] [opt "[method mixin] | [method namespace] | [method type]"] [opt "[arg arg] ..."]]
 
 [list_begin definitions]
-[def "[arg obj] [method "info method has mixin"] [arg className]"] 
+[def "[arg obj] [method "info has mixin"] [arg className]"] 
 
 Verifies whether [arg obj] has a given [cmd nx::Class] [arg className] registered as a [term "mixin class"] (returns: [const true]) or not (returns: [const false]).
 

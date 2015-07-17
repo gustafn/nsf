@@ -28,8 +28,15 @@ returned filters can be limited to those whose names match [arg patterns] (see
 [call [arg [vset CMD]] [method "info [vset MODIFIER] method"] [arg option] [arg methodName]]
 
 This introspection [term "submethod"] provides access to the details
-of [arg methodName] provided by [arg [vset CMD]]. Permitted values for
-[arg option] are:
+of [arg methodName] provided by [arg [vset CMD]]. If [arg methodName]
+is not the name of an existing method, an empty string is returned. To
+disambiguate between a non-existing method and an empty string as
+valid return value (e.g., for [method "info [vset MODIFIER] method args|parameters|args|..."]),
+use [method "info [vset MODIFIER] method exists"].
+
+[para]
+
+Permitted values for [arg option] are:
 
 [list_begin itemized]
 
