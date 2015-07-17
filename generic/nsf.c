@@ -10907,7 +10907,7 @@ ObjectSystemsCheckSystemMethod(Tcl_Interp *interp, const char *methodName, NsfOb
           result = NsfMethodAliasCmd(interp, defObject, 0, methodName, 0,
                                          ProtectionRedefine_protectedIdx, osPtr->handles[i]);
 
-          if (result != TCL_OK) {
+          if (unlikely(result != TCL_OK)) {
             /* alias definition failed */
             NsfLog(interp, NSF_LOG_WARN, "Could not define alias %s for %s",
                    ObjStr(osPtr->handles[i]), Nsf_SystemMethodOpts[i]);
