@@ -7195,17 +7195,17 @@ AssertionAddProc(Tcl_Interp *interp, const char *name, NsfAssertionStore *aStore
   assert(interp != NULL);
   assert(name != NULL);
   assert(aStore != NULL);
-  assert(interp != NULL);
 
   AssertionRemoveProc(aStore, name);
   procs->pre = AssertionNewList(interp, pre);
   procs->post = AssertionNewList(interp, post);
-  assert(aStore != NULL);
   hPtr = Tcl_CreateHashEntry(&aStore->procs, name, &new);
   if (new != 0) {
     Tcl_SetHashValue(hPtr, procs);
   }
 }
+
+static NsfAssertionStore *AssertionCreateStore() returns_nonnull;
 
 static NsfAssertionStore *
 AssertionCreateStore() {
