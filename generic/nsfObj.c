@@ -423,9 +423,10 @@ MixinregSetFromAny(
   NsfClass *mixin = NULL;
   Tcl_Obj *guardObj = NULL, *nameObj = NULL;
   Mixinreg *mixinRegPtr;
-  int oc; Tcl_Obj **ov;
+  int oc, result; Tcl_Obj **ov;
 
-  if (Tcl_ListObjGetElements(interp, objPtr, &oc, &ov) == TCL_OK) {
+  result = Tcl_ListObjGetElements(interp, objPtr, &oc, &ov);
+  if (result == TCL_OK) {
 
     if (oc == 1) {
       nameObj = ov[0];
@@ -443,7 +444,8 @@ MixinregSetFromAny(
     }
 
   } else {
-    return NsfObjErrType(interp, "mixin", nameObj, "a class as mixin", NULL);
+    /* invalid Tcl list */
+    return result;
   }
 
   /*

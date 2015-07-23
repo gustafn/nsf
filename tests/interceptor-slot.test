@@ -158,6 +158,31 @@ nx::test case mixin-add {
   ? {O info precedence} "::M1 ::nx::Class ::nx::Object"
 }
 
+nx::test case mixin-relation-invalid-value {
+  
+  nx::Class create C
+  nx::Class create M
+  
+  # Double-escaping allows for injecting an invalid string rep of a Tcl
+  # list into MixinregSetFromAny(). Other API facets (::nsf::mixin)
+  # catch this through list ops at the script level.
+  
+  set ::str "\\\{ ::M"
+  ? {lindex [subst $::str] 0} "unmatched open brace in list"
+  ? {C mixins get} ""
+  ? {C object mixins get} ""
+  ? {::nsf::relation::set C class-mixin $::str} "unmatched open brace in list"
+  ? {::nsf::relation::set C object-mixin $::str} "unmatched open brace in list"
+  ? {C mixins get} ""
+  ? {C object mixins get} ""
+
+  # via slot interface
+  ? {C mixins set $::str} "unmatched open brace in list"
+  ? {C object mixins set $::str} "unmatched open brace in list"
+  
+}
+
+
 nx::test case filter-relation {
   nx::Class create CC {
     :public method filterA args {next}
