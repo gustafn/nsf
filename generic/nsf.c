@@ -30552,13 +30552,12 @@ FreeAllNsfObjectsAndClasses(Tcl_Interp *interp, NsfCmdList **instances) {
       NsfClass *cl = entry->clorobj;
 
       assert(cl != NULL);
-      if (!NsfObjectIsClass(&cl->object)) {
+      if (cl == NULL || !NsfObjectIsClass(&cl->object)) {
         continue;
       }
 
       /*fprintf(stderr, "cl key = %s %p\n", ClassName(cl), cl); */
-      if (cl
-          && !ObjectHasChildren((NsfObject *)cl)
+      if (!ObjectHasChildren((NsfObject *)cl)
           && !ClassHasInstances(cl)
           && !ClassHasSubclasses(cl)
           && !IsBaseClass(&cl->object)
