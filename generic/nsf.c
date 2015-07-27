@@ -3410,7 +3410,7 @@ ResolveMethodName(Tcl_Interp *interp, Tcl_Namespace *nsPtr, Tcl_Obj *methodObj,
      * final methodName,
      */
     cmd = Tcl_GetCommandFromObj(interp, methodHandleObj);
-    if (methodName1 != NULL) {*methodName1 = Tcl_DStringValue(methodNameDs);}
+    if (methodNameDs != NULL && methodName1 != NULL) {*methodName1 = Tcl_DStringValue(methodNameDs);}
 
     /*fprintf(stderr, "... methodname1 '%s' cmd %p\n", Tcl_DStringValue(methodNameDs), cmd);*/
     DECR_REF_COUNT(methodHandleObj);
