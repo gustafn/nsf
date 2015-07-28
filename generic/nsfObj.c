@@ -426,28 +426,26 @@ MixinregSetFromAny(
   int oc, result; Tcl_Obj **ov;
 
   result = Tcl_ListObjGetElements(interp, objPtr, &oc, &ov);
-  if (result == TCL_OK) {
-
-    if (oc == 1) {
-      nameObj = ov[0];
-
-      /*} else if (oc == 2) {
-      nameObj = ov[0];
-      guardObj = ov[1];*/
-
-    } else if (oc == 3 && !strcmp(ObjStr(ov[1]), NsfGlobalStrings[NSF_GUARD_OPTION])) {
-      nameObj = ov[0];
-      guardObj = ov[2];
-
-    } else {
-      nameObj = objPtr;
-    }
-
-  } else {
+  if (unlikely(result != TCL_OK)) {
     /* invalid Tcl list */
     return result;
   }
-
+  
+  if (oc == 1) {
+    nameObj = ov[0];
+    
+    /*} else if (oc == 2) {
+      nameObj = ov[0];
+      guardObj = ov[1];*/
+    
+  } else if (oc == 3 && !strcmp(ObjStr(ov[1]), NsfGlobalStrings[NSF_GUARD_OPTION])) {
+    nameObj = ov[0];
+    guardObj = ov[2];
+    
+  } else {
+    nameObj = objPtr;
+  }
+  
   /*
    * Syntax was ok. Try to lookup mixin classes:
    */
