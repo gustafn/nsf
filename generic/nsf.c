@@ -28119,19 +28119,24 @@ NsfOResidualargsMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj 
   normalArgs = i-1;
 
   /*
-   * Get the init string; do it once, outside the loop.
+   * Get the init string; do it once, outside the loop.  If initString is not
+   * obtainable (i.e. not configured in the object system), don't call the
+   * "init" method in the loop.
    */
   if (i < objc) {
     NsfObjectSystem *osPtr = GetObjectSystem(object);
     Tcl_Obj *initObj = osPtr->methods[NSF_o_init_idx];
+
     if (initObj != NULL) {
       initString = ObjStr(initObj);
+      assert(initString != NULL);
     }
+
   }
+
 
   for( ; i < objc;  argc = nextArgc, argv = nextArgv, methodName = nextMethodName) {
 
-    assert(initString != NULL);
     Tcl_ResetResult(interp);
 
     switch (isdasharg) {
@@ -28147,9 +28152,11 @@ NsfOResidualargsMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj 
             break;
           }
         }
-        result = CallConfigureMethod(interp, object, initString, methodName, argc+1, objv+i+1);
-        if (unlikely(result != TCL_OK)) {
-          return result;
+        if (initString != NULL) {
+          result = CallConfigureMethod(interp, object, initString, methodName, argc+1, objv+i+1);
+          if (unlikely(result != TCL_OK)) {
+            return result;
+          }
         }
         i += argc;
         break;
@@ -28165,9 +28172,11 @@ NsfOResidualargsMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj 
           nextArgv = NULL;
           nextArgc = 0;
         }
-        result = CallConfigureMethod(interp, object, initString, methodName, argc+1, argv+1);
-        if (unlikely(result != TCL_OK)) {
-          return result;
+        if (initString != NULL) {
+          result = CallConfigureMethod(interp, object, initString, methodName, argc+1, argv+1);
+          if (unlikely(result != TCL_OK)) {
+            return result;
+          }
         }
         break;
       }
