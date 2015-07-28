@@ -185,6 +185,7 @@ static void Nsf_PushFrameObj(Tcl_Interp *interp, NsfObject *object, CallFrame *f
 static void Nsf_PopFrameObj(Tcl_Interp *interp, CallFrame *framePtr) nonnull(1) nonnull(2);
 
 static void Nsf_PushFrameObj(Tcl_Interp *interp, NsfObject *object, CallFrame *framePtr) {
+  
   assert(interp != NULL);
   assert(object != NULL);
   assert(framePtr != NULL);
@@ -209,6 +210,7 @@ static void Nsf_PushFrameObj(Tcl_Interp *interp, NsfObject *object, CallFrame *f
 
 
 static void Nsf_PopFrameObj(Tcl_Interp *interp, CallFrame *framePtr) {
+
   assert(interp != NULL);
   assert(framePtr != NULL);
 
