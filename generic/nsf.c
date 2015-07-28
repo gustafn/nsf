@@ -5461,7 +5461,7 @@ NSDeleteChild(Tcl_Interp *interp, Tcl_Command cmd, int deleteObjectsOnly) {
              * the command anyway, since its parent is currently being
              * deleted.
              */
-            if (object->teardown != NULL) {
+            if (object->teardown != NULL && (object->flags & NSF_DURING_DELETE) == 0u) {
               NsfLog(interp, NSF_LOG_NOTICE, "Destroy failed for object %s, perform low level deletion",
                      ObjectName(object));
               CallStackDestroyObject(interp, object);
