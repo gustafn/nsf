@@ -26243,7 +26243,6 @@ NsfRelationClassMixinsSet(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *valueObj, i
 
   assert(interp != NULL);
   assert(cl != NULL);
-  assert(clopt != NULL);
   assert(valueObj != NULL);
 
   for (i = 0; i < oc; i++) {
@@ -26253,6 +26252,8 @@ NsfRelationClassMixinsSet(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *valueObj, i
     }
   }
   clopt = cl->opt;
+  assert(clopt != NULL);
+
   if (clopt->classMixins != NULL) {
     if (clopt->classMixins != NULL) RemoveFromClassMixinsOf(cl->object.id, clopt->classMixins);
     CmdListFree(&clopt->classMixins, GuardDel);

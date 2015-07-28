@@ -19,6 +19,9 @@ Steps for a beta release:
          make "CC=clang" test
        * run static analysis:
          cppcheck --enable=all -DNDEBUG *.c
+
+	 /opt/local/bin/scan-build-mp-3.7 -enable-checker alpha make
+
        * configure without --enable-development
          make install
          make install-aol
