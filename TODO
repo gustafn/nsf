@@ -5556,6 +5556,8 @@ build system:
 - write body-blocks of if on separate lines
 - change variable name "validCscPtr" to "isValidCsc", since
   it is a boolean and not a ptr (tcl coding guidelines)
+- prefer explicit comparisons
+- remove test, since it is covered already by assertions
 
 ========================================================================
 TODO:

@@ -30554,7 +30554,8 @@ FreeAllNsfObjectsAndClasses(Tcl_Interp *interp, NsfCmdList **instances) {
       NsfClass *cl = entry->clorobj;
 
       assert(cl != NULL);
-      if (cl == NULL || !NsfObjectIsClass(&cl->object)) {
+
+      if (!NsfObjectIsClass(&cl->object)) {
         continue;
       }
 
