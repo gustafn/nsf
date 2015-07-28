@@ -5553,8 +5553,12 @@ build system:
 - regenerate documentation
 - bump verison number to 2.0.0 (also in .man files)
 
-========================================================================
-TODO:
+- write body-blocks of if on separate lines
+- change variable name "validCscPtr" to "isValidCsc", since
+  it is a boolean and not a ptr (tcl coding guidelines)
+- prefer explicit comparisons
+- remove test, since it is covered already by assertions
+
 
 - Is NsfParamDefs.slotObj obsolete?
 
@@ -5570,6 +5574,17 @@ TODO:
 
   pt. 2: NsfParamDefs.slotObj and its memory-management statements all
   over remain in place, to be reviewed.
+
+- removed  NsfParamDefs.slotObj (and single occurance for memory-management)
+  since it is not used for the time being
+- fix potential bug on tcl-triggered cmd-delete operations, where 
+  destroy returns non-TCL_OK and name of the object could not be 
+  retrieved anymore in error message.
+- move dereferencing of members after assertions
+
+========================================================================
+TODO:
+
 
 - should we change "/obj/ info lookup syntax /methodName/" to return obj and method as well?
   (similar to "info method syntax /methodName/")

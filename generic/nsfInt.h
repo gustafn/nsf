@@ -512,7 +512,7 @@ typedef struct NsfStringIncrStruct {
 #define NsfObjectIsClass(obj) \
 	((obj)->flags & NSF_IS_CLASS)
 #define NsfObjectToClass(obj) \
-	(NsfClass*)((((NsfObject*)obj)->flags & NSF_IS_CLASS)?obj:NULL)
+	(NsfClass *)((((NsfObject *)obj)->flags & NSF_IS_CLASS) ? obj : NULL)
 
 
 /*
@@ -524,7 +524,6 @@ typedef struct NsfParamDefs {
   int nrParams;
   int refCount;
   int serial;
-  Tcl_Obj *slotObj;
   Tcl_Obj *returns;
 } NsfParamDefs;
 
@@ -608,7 +607,7 @@ typedef struct NsfProcClientData {
 } NsfProcClientData;
 
 typedef enum SystemMethodsIdx {
-  NSF_c_alloc_idx, 
+  NSF_c_alloc_idx,
   NSF_c_create_idx, 
   NSF_c_dealloc_idx,
   NSF_c_configureparameter_idx, 
@@ -618,8 +617,8 @@ typedef enum SystemMethodsIdx {
   NSF_o_configureparameter_idx,
   NSF_o_defaultmethod_idx, 
   NSF_o_destroy_idx, 
-  NSF_o_init_idx, 
-  NSF_o_move_idx, 
+  NSF_o_init_idx,
+  NSF_o_move_idx,
   NSF_o_unknown_idx,
   NSF_s_get_idx,
   NSF_s_set_idx
