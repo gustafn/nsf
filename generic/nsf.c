@@ -15731,6 +15731,7 @@ ParameterMethodDispatch(Tcl_Interp *interp, NsfObject *object,
 
   } else if (paramPtr->flags & NSF_ARG_ALIAS) {
     Tcl_Obj *methodObj, **ovPtr, *ov0;
+    static Tcl_Obj *constantObj = NULL;
     const char *methodString;
     int oc = 0;
 
@@ -15794,7 +15795,7 @@ ParameterMethodDispatch(Tcl_Interp *interp, NsfObject *object,
       Tcl_Obj **movPtr = NULL;
 
       ov0 = NULL;
-      ovPtr = NULL;
+      ovPtr = &constantObj;
 
       if (Tcl_ListObjGetElements(interp, methodObj, &moc, &movPtr) == TCL_OK) {
         if (moc != 2) {
@@ -15833,6 +15834,8 @@ ParameterMethodDispatch(Tcl_Interp *interp, NsfObject *object,
               paramPtr->nrArgs, ObjStr(newValue));*/
 #if !defined(NDEBUG)
       if (oc > 2) {
+        assert(ovPtr != NULL);
+        assert(ovPtr != &constantObj);
         assert(ISOBJ(ovPtr[oc-2]));
       }
 #endif
