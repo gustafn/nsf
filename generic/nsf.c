@@ -12998,7 +12998,7 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
                              resolvedCmd, cscPtr, methodName, &validCscPtr);
 
 #if defined(NRE)
-  if (validCscPtr != NULL) {
+  if (validCscPtr) {
     CscListRemove(interp, cscPtr, NULL);
     CscFinish(interp, cscPtr, result, "csc cleanup");
   }
