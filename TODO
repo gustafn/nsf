@@ -5559,8 +5559,6 @@ build system:
 - prefer explicit comparisons
 - remove test, since it is covered already by assertions
 
-========================================================================
-TODO:
 
 - Is NsfParamDefs.slotObj obsolete?
 
@@ -5576,6 +5574,13 @@ TODO:
 
   pt. 2: NsfParamDefs.slotObj and its memory-management statements all
   over remain in place, to be reviewed.
+
+- removed  NsfParamDefs.slotObj (and single occurance for memory-management)
+  since it is not used for the time being
+
+========================================================================
+TODO:
+
 
 - should we change "/obj/ info lookup syntax /methodName/" to return obj and method as well?
   (similar to "info method syntax /methodName/")

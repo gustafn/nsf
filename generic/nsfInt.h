@@ -512,7 +512,7 @@ typedef struct NsfStringIncrStruct {
 #define NsfObjectIsClass(obj) \
 	((obj)->flags & NSF_IS_CLASS)
 #define NsfObjectToClass(obj) \
-	(NsfClass*)((((NsfObject*)obj)->flags & NSF_IS_CLASS)?obj:NULL)
+	(NsfClass *)((((NsfObject *)obj)->flags & NSF_IS_CLASS) ? obj : NULL)
 
 
 /*
@@ -524,7 +524,6 @@ typedef struct NsfParamDefs {
   int nrParams;
   int refCount;
   int serial;
-  Tcl_Obj *slotObj;
   Tcl_Obj *returns;
 } NsfParamDefs;
 

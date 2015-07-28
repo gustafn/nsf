@@ -11360,7 +11360,6 @@ ParamDefsFree(NsfParamDefs *paramDefs) {
   if (paramDefs->paramsPtr != NULL) {
     ParamsFree(paramDefs->paramsPtr);
   }
-  if (paramDefs->slotObj != NULL) {DECR_REF_COUNT2("paramDefsObj", paramDefs->slotObj);}
   if (paramDefs->returns != NULL) {DECR_REF_COUNT2("paramDefsObj", paramDefs->returns);}
   FREE(NsfParamDefs, paramDefs);
 }
@@ -21983,7 +21982,7 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd,  NsfObject *contextObject,
      */
     Nsf_methodDefinition *mdPtr = Nsf_CmdDefinitionGet(((Command *)cmd)->objProc);
     if (mdPtr != NULL) {
-        NsfParamDefs paramDefs = {mdPtr->paramDefs, mdPtr->nrParameters, 1, 0, NULL, NULL};
+        NsfParamDefs paramDefs = {mdPtr->paramDefs, mdPtr->nrParameters, 1, 0, NULL};
         Tcl_Obj *list = ListParamDefs(interp, paramDefs.paramsPtr, contextObject, pattern, printStyle);
 
         Tcl_SetObjResult(interp, list);
@@ -21998,9 +21997,9 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd,  NsfObject *contextObject,
     if (cd && cd->paramsPtr) {
       Tcl_Obj *list;
       NsfParamDefs paramDefs;
+
       paramDefs.paramsPtr = cd->paramsPtr;
       paramDefs.nrParams = 1;
-      paramDefs.slotObj = NULL;
       list = ListParamDefs(interp, paramDefs.paramsPtr, contextObject, pattern, printStyle);
       Tcl_SetObjResult(interp, list);
       DECR_REF_COUNT2("paramDefsObj", list);
