@@ -3410,7 +3410,9 @@ ResolveMethodName(Tcl_Interp *interp, Tcl_Namespace *nsPtr, Tcl_Obj *methodObj,
      * final methodName,
      */
     cmd = Tcl_GetCommandFromObj(interp, methodHandleObj);
-    if (methodNameDs != NULL && methodName1 != NULL) {*methodName1 = Tcl_DStringValue(methodNameDs);}
+    if (methodNameDs != NULL && methodName1 != NULL) {
+      *methodName1 = Tcl_DStringValue(methodNameDs);
+    }
 
     /*fprintf(stderr, "... methodname1 '%s' cmd %p\n", Tcl_DStringValue(methodNameDs), cmd);*/
     DECR_REF_COUNT(methodHandleObj);
@@ -12959,7 +12961,7 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
                Tcl_Command cmd, NsfObject *object, NsfClass *cl,
                const char *methodName, int frameType, unsigned int flags) {
   NsfCallStackContent csc, *cscPtr;
-  int result, validCscPtr = 1;
+  int result, isValidCsc = 1;
   Tcl_Command resolvedCmd;
 
   assert(clientData != NULL);
@@ -12995,10 +12997,10 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
   CscInit(cscPtr, object, cl, cmd, frameType, flags, methodName);
 
   result = MethodDispatchCsc(object, interp, objc, objv,
-                             resolvedCmd, cscPtr, methodName, &validCscPtr);
+                             resolvedCmd, cscPtr, methodName, &isValidCsc);
 
 #if defined(NRE)
-  if (validCscPtr) {
+  if (isValidCsc == 1) {
     CscListRemove(interp, cscPtr, NULL);
     CscFinish(interp, cscPtr, result, "csc cleanup");
   }
@@ -13170,7 +13172,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
   Tcl_Command cmd = NULL;
   Tcl_Obj *cmdName = object->cmdName, *methodObj;
   NsfCallStackContent csc, *cscPtr = NULL;
-  int validCscPtr = 1;
+  int isValidCsc = 1;
   NsfRuntimeState *rst = RUNTIME_STATE(interp);
 
   assert(interp != NULL);
@@ -13362,7 +13364,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
       if (unlikely(result != TCL_OK)) {
         /*fprintf(stderr, "mixinsearch returned an error for %p %s.%s\n",
           object, ObjectName(object), methodName);*/
-        validCscPtr = 0;
+        isValidCsc = 0;
         goto exit_object_dispatch;
       }
       if (cmd1 != NULL) {
@@ -13544,7 +13546,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
      */
     Tcl_Command resolvedCmd = AliasDereference(interp, object, methodName, cmd);
     if (unlikely(resolvedCmd == NULL)) {
-      validCscPtr = 0;
+      isValidCsc = 0;
       goto exit_object_dispatch;
     }
 
@@ -13573,7 +13575,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
             cscPtr);*/
 
     result = MethodDispatchCsc(clientData, interp, objc-shift, objv+shift,
-                               resolvedCmd, cscPtr, methodName, &validCscPtr);
+                               resolvedCmd, cscPtr, methodName, &isValidCsc);
 
     if (unlikely(result == TCL_ERROR)) {
       /*fprintf(stderr, "Call ErrInProc cl = %p, cmd %p, methodName %s flags %.6x\n",
@@ -13598,7 +13600,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
   }
 
  exit_object_dispatch:
-  if (likely(validCscPtr)) {
+  if (likely(isValidCsc == 1)) {
     /*
      * In every situation, we have a cscPtr containing all context information
      */
@@ -22278,7 +22280,7 @@ ListMethod(Tcl_Interp *interp,
     }
   case InfomethodsubcmdExistsIdx:
     {
-      Tcl_SetObjResult(interp, Tcl_NewIntObj(!CmdIsNsfObject(cmd)));
+      Tcl_SetObjResult(interp, Tcl_NewIntObj(CmdIsNsfObject(cmd) == 0));
       return TCL_OK;
     }
   case InfomethodsubcmdArgsIdx:
