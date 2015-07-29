@@ -156,7 +156,8 @@ proc gencall {methodName fn parameterDefinitions clientData
       set argNum 3
       append intro \
           "  NsfClass *cl =  NsfObjectToClass(clientData);" \n\n \
-          "  assert(objc > 0);" \n
+          "  assert(objc > 0);" \n \
+          "  if (unlikely(cl == NULL)) return NsfDispatchClientDataError(interp, clientData, \"class\", ObjStr(objv\[0\]));"
     }
     object {
       set a  [list obj]

@@ -851,7 +851,7 @@ NsfCAllocMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
 
   assert(clientData != NULL);
   assert(objc > 0);
-
+  if (unlikely(cl == NULL)) return NsfDispatchClientDataError(interp, clientData, "class", ObjStr(objv[0]));
     
 
       if (objc != 2) {
@@ -871,7 +871,7 @@ NsfCCreateMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
 
   assert(clientData != NULL);
   assert(objc > 0);
-
+  if (unlikely(cl == NULL)) return NsfDispatchClientDataError(interp, clientData, "class", ObjStr(objv[0]));
   if (likely(ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0],
                      method_definitions[NsfCCreateMethodIdx].paramDefs,
                      method_definitions[NsfCCreateMethodIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
@@ -893,7 +893,7 @@ NsfCDeallocMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
 
   assert(clientData != NULL);
   assert(objc > 0);
-
+  if (unlikely(cl == NULL)) return NsfDispatchClientDataError(interp, clientData, "class", ObjStr(objv[0]));
     
 
       if (objc != 2) {
@@ -913,7 +913,7 @@ NsfCFilterGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, T
 
   assert(clientData != NULL);
   assert(objc > 0);
-
+  if (unlikely(cl == NULL)) return NsfDispatchClientDataError(interp, clientData, "class", ObjStr(objv[0]));
   if (likely(ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0],
                      method_definitions[NsfCFilterGuardMethodIdx].paramDefs,
                      method_definitions[NsfCFilterGuardMethodIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
@@ -936,7 +936,7 @@ NsfCGetCachendParametersMethodStub(ClientData clientData, Tcl_Interp *interp, in
 
   assert(clientData != NULL);
   assert(objc > 0);
-
+  if (unlikely(cl == NULL)) return NsfDispatchClientDataError(interp, clientData, "class", ObjStr(objv[0]));
     
 
       if (unlikely(objc != 1)) {
@@ -956,7 +956,7 @@ NsfCMixinGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
 
   assert(clientData != NULL);
   assert(objc > 0);
-
+  if (unlikely(cl == NULL)) return NsfDispatchClientDataError(interp, clientData, "class", ObjStr(objv[0]));
   if (likely(ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0],
                      method_definitions[NsfCMixinGuardMethodIdx].paramDefs,
                      method_definitions[NsfCMixinGuardMethodIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
@@ -980,7 +980,7 @@ NsfCNewMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
 
   assert(clientData != NULL);
   assert(objc > 0);
-
+  if (unlikely(cl == NULL)) return NsfDispatchClientDataError(interp, clientData, "class", ObjStr(objv[0]));
   if (likely(ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0],
                      method_definitions[NsfCNewMethodIdx].paramDefs,
                      method_definitions[NsfCNewMethodIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
@@ -1003,7 +1003,7 @@ NsfCRecreateMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
 
   assert(clientData != NULL);
   assert(objc > 0);
-
+  if (unlikely(cl == NULL)) return NsfDispatchClientDataError(interp, clientData, "class", ObjStr(objv[0]));
   if (likely(ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0],
                      method_definitions[NsfCRecreateMethodIdx].paramDefs,
                      method_definitions[NsfCRecreateMethodIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
@@ -1025,7 +1025,7 @@ NsfCSuperclassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
 
   assert(clientData != NULL);
   assert(objc > 0);
-
+  if (unlikely(cl == NULL)) return NsfDispatchClientDataError(interp, clientData, "class", ObjStr(objv[0]));
     
 
       if (objc < 1 || objc > 2) {
@@ -1045,7 +1045,7 @@ NsfClassInfoFilterguardMethodStub(ClientData clientData, Tcl_Interp *interp, int
 
   assert(clientData != NULL);
   assert(objc > 0);
-
+  if (unlikely(cl == NULL)) return NsfDispatchClientDataError(interp, clientData, "class", ObjStr(objv[0]));
   if (likely(ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0],
                      method_definitions[NsfClassInfoFilterguardMethodIdx].paramDefs,
                      method_definitions[NsfClassInfoFilterguardMethodIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
@@ -1068,7 +1068,7 @@ NsfClassInfoFiltersMethodStub(ClientData clientData, Tcl_Interp *interp, int obj
 
   assert(clientData != NULL);
   assert(objc > 0);
-
+  if (unlikely(cl == NULL)) return NsfDispatchClientDataError(interp, clientData, "class", ObjStr(objv[0]));
   if (likely(ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0],
                      method_definitions[NsfClassInfoFiltersMethodIdx].paramDefs,
                      method_definitions[NsfClassInfoFiltersMethodIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
@@ -1092,7 +1092,7 @@ NsfClassInfoForwardMethodStub(ClientData clientData, Tcl_Interp *interp, int obj
 
   assert(clientData != NULL);
   assert(objc > 0);
-
+  if (unlikely(cl == NULL)) return NsfDispatchClientDataError(interp, clientData, "class", ObjStr(objv[0]));
   if (likely(ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0],
                      method_definitions[NsfClassInfoForwardMethodIdx].paramDefs,
                      method_definitions[NsfClassInfoForwardMethodIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
@@ -1116,7 +1116,7 @@ NsfClassInfoHeritageMethodStub(ClientData clientData, Tcl_Interp *interp, int ob
 
   assert(clientData != NULL);
   assert(objc > 0);
-
+  if (unlikely(cl == NULL)) return NsfDispatchClientDataError(interp, clientData, "class", ObjStr(objv[0]));
   if (likely(ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0],
                      method_definitions[NsfClassInfoHeritageMethodIdx].paramDefs,
                      method_definitions[NsfClassInfoHeritageMethodIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
@@ -1139,7 +1139,7 @@ NsfClassInfoInstancesMethodStub(ClientData clientData, Tcl_Interp *interp, int o
 
   assert(clientData != NULL);
   assert(objc > 0);
-
+  if (unlikely(cl == NULL)) return NsfDispatchClientDataError(interp, clientData, "class", ObjStr(objv[0]));
   if (likely(ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0],
                      method_definitions[NsfClassInfoInstancesMethodIdx].paramDefs,
                      method_definitions[NsfClassInfoInstancesMethodIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
@@ -1182,7 +1182,7 @@ NsfClassInfoMethodMethodStub(ClientData clientData, Tcl_Interp *interp, int objc
 
   assert(clientData != NULL);
   assert(objc > 0);
-
+  if (unlikely(cl == NULL)) return NsfDispatchClientDataError(interp, clientData, "class", ObjStr(objv[0]));
   if (likely(ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0],
                      method_definitions[NsfClassInfoMethodMethodIdx].paramDefs,
                      method_definitions[NsfClassInfoMethodMethodIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
@@ -1206,7 +1206,7 @@ NsfClassInfoMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int obj
 
   assert(clientData != NULL);
   assert(objc > 0);
-
+  if (unlikely(cl == NULL)) return NsfDispatchClientDataError(interp, clientData, "class", ObjStr(objv[0]));
   if (likely(ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0],
                      method_definitions[NsfClassInfoMethodsMethodIdx].paramDefs,
                      method_definitions[NsfClassInfoMethodsMethodIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
@@ -1234,7 +1234,7 @@ NsfClassInfoMixinOfMethodStub(ClientData clientData, Tcl_Interp *interp, int obj
 
   assert(clientData != NULL);
   assert(objc > 0);
-
+  if (unlikely(cl == NULL)) return NsfDispatchClientDataError(interp, clientData, "class", ObjStr(objv[0]));
   if (likely(ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0],
                      method_definitions[NsfClassInfoMixinOfMethodIdx].paramDefs,
                      method_definitions[NsfClassInfoMixinOfMethodIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
@@ -1278,7 +1278,7 @@ NsfClassInfoMixinguardMethodStub(ClientData clientData, Tcl_Interp *interp, int 
 
   assert(clientData != NULL);
   assert(objc > 0);
-
+  if (unlikely(cl == NULL)) return NsfDispatchClientDataError(interp, clientData, "class", ObjStr(objv[0]));
   if (likely(ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0],
                      method_definitions[NsfClassInfoMixinguardMethodIdx].paramDefs,
                      method_definitions[NsfClassInfoMixinguardMethodIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
@@ -1301,7 +1301,7 @@ NsfClassInfoMixinsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc
 
   assert(clientData != NULL);
   assert(objc > 0);
-
+  if (unlikely(cl == NULL)) return NsfDispatchClientDataError(interp, clientData, "class", ObjStr(objv[0]));
   if (likely(ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0],
                      method_definitions[NsfClassInfoMixinsMethodIdx].paramDefs,
                      method_definitions[NsfClassInfoMixinsMethodIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
@@ -1346,7 +1346,7 @@ NsfClassInfoSlotobjectsMethodStub(ClientData clientData, Tcl_Interp *interp, int
 
   assert(clientData != NULL);
   assert(objc > 0);
-
+  if (unlikely(cl == NULL)) return NsfDispatchClientDataError(interp, clientData, "class", ObjStr(objv[0]));
   if (likely(ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0],
                      method_definitions[NsfClassInfoSlotobjectsMethodIdx].paramDefs,
                      method_definitions[NsfClassInfoSlotobjectsMethodIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
@@ -1372,7 +1372,7 @@ NsfClassInfoSubclassMethodStub(ClientData clientData, Tcl_Interp *interp, int ob
 
   assert(clientData != NULL);
   assert(objc > 0);
-
+  if (unlikely(cl == NULL)) return NsfDispatchClientDataError(interp, clientData, "class", ObjStr(objv[0]));
   if (likely(ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0],
                      method_definitions[NsfClassInfoSubclassMethodIdx].paramDefs,
                      method_definitions[NsfClassInfoSubclassMethodIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
@@ -1416,7 +1416,7 @@ NsfClassInfoSuperclassMethodStub(ClientData clientData, Tcl_Interp *interp, int 
 
   assert(clientData != NULL);
   assert(objc > 0);
-
+  if (unlikely(cl == NULL)) return NsfDispatchClientDataError(interp, clientData, "class", ObjStr(objv[0]));
   if (likely(ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0],
                      method_definitions[NsfClassInfoSuperclassMethodIdx].paramDefs,
                      method_definitions[NsfClassInfoSuperclassMethodIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
