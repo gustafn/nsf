@@ -13515,9 +13515,11 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
           /*
            * Skip entries until the first base class.
            */
-          for (; classListPtr;  classListPtr = classListPtr->nextPtr) {
+          do {
             if (IsBaseClass(&classListPtr->cl->object)) {break;}
-          }
+            classListPtr = classListPtr->nextPtr;
+          } while (classListPtr->nextPtr != NULL);
+
           cl = SearchPLMethod(classListPtr, methodName, &cmd, NSF_CMD_CALL_PRIVATE_METHOD);
         } else {
           cl = SearchPLMethod(currentClass->order, methodName, &cmd, NSF_CMD_CALL_PRIVATE_METHOD);
