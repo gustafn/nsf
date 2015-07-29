@@ -9838,7 +9838,7 @@ FilterInvalidateObjOrders(Tcl_Interp *interp, NsfClasses *subClasses) {
   assert(interp != NULL);
   assert(subClasses != NULL);
 
-  for (; likely(subClasses != NULL); subClasses = subClasses->nextPtr) {
+  do {
     Tcl_HashSearch hSrch;
     Tcl_HashEntry *hPtr;
 
@@ -9851,6 +9851,7 @@ FilterInvalidateObjOrders(Tcl_Interp *interp, NsfClasses *subClasses) {
     if (subClasses->cl->opt != NULL) {
       FilterSearchAgain(interp, &subClasses->cl->opt->classFilters, NULL, subClasses->cl);
     }
+
     for (; hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
       NsfObject *object = (NsfObject *)Tcl_GetHashKey(&subClasses->cl->instances, hPtr);
 
@@ -9862,7 +9863,8 @@ FilterInvalidateObjOrders(Tcl_Interp *interp, NsfClasses *subClasses) {
         FilterSearchAgain(interp, &object->opt->objFilters, object, NULL);
       }
     }
-  }
+    subClasses = subClasses->nextPtr;
+  } while (likely(subClasses != NULL));
 }
 
 /*
