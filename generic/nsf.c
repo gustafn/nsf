@@ -17503,6 +17503,12 @@ NextGetArguments(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
     /*
      * copy the remaining argument vector
      */
+
+#if defined(NDEBUG)
+    if (objv == NULL) {
+      assert(cscPtr->objv != NULL);
+    }
+#endif
     memcpy(nobjv + methodNameLength, objv == NULL ? cscPtr->objv : objv, sizeof(Tcl_Obj *) * objc);
 
     INCR_REF_COUNT(nobjv[0]); /* we seem to need this here */
