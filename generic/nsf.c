@@ -18839,7 +18839,9 @@ CleanupDestroyClass(Tcl_Interp *interp, NsfClass *cl, int softrecreate, int recr
     /*
      * Remove dependent filters of this class from all subclasses
      */
-    FilterRemoveDependentFilterCmds(cl, subClasses);
+    if (subClasses != NULL) {
+      FilterRemoveDependentFilterCmds(cl, subClasses);
+    }
 
 #if defined(NSF_WITH_ASSERTIONS)
     if (clopt->assertions != NULL) {
