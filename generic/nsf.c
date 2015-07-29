@@ -17482,7 +17482,7 @@ NextGetArguments(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
       nobjv = (Tcl_Obj **)ckalloc(sizeof(Tcl_Obj *) * nobjc);
       MEM_COUNT_ALLOC("nextArgumentVector", nobjv);
       /*
-       * copy the ensemble path name
+       * Copy the ensemble path name
        */
       memcpy((char *)nobjv, cscPtr->objv, sizeof(Tcl_Obj *) * methodNameLength);
 
@@ -17492,7 +17492,7 @@ NextGetArguments(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
       nobjv = (Tcl_Obj **)ckalloc(sizeof(Tcl_Obj *) * nobjc);
       MEM_COUNT_ALLOC("nextArgumentVector", nobjv);
       /*
-       * copy the method name
+       * Copy the method name
        */
       if (cscPtr->objv != NULL) {
         nobjv[0] = cscPtr->objv[0];
@@ -17500,22 +17500,20 @@ NextGetArguments(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
         nobjv[0] = Tcl_CallFrame_objv(framePtr)[0];
       }
     }
-    /*
-     * copy the remaining argument vector
-     */
 
-#if defined(NDEBUG)
-    if (objv == NULL) {
-      assert(cscPtr->objv != NULL);
+    if (objc > 0) {
+      /*
+       * Copy the remaining argument vector
+       */
+      assert((objv != NULL) || (cscPtr->objv != NULL));
+      memcpy(nobjv + methodNameLength, objv == NULL ? cscPtr->objv : objv, sizeof(Tcl_Obj *) * objc);
     }
-#endif
-    memcpy(nobjv + methodNameLength, objv == NULL ? cscPtr->objv : objv, sizeof(Tcl_Obj *) * objc);
 
     INCR_REF_COUNT(nobjv[0]); /* we seem to need this here */
     *freeArgumentVector = 1;
   } else {
     /*
-     * no arguments were provided
+     * No arguments were provided
      */
     if (cscPtr->objv != NULL) {
       nobjv = (Tcl_Obj **)cscPtr->objv;
