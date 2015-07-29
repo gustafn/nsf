@@ -20,10 +20,6 @@ Steps for a beta release:
        * run static analysis:
          cppcheck --enable=all -DNDEBUG *.c
 	 /opt/local/bin/scan-build-mp-3.7 -enable-checker alpha make
-       * configure without --enable-development
-         make install
-         make install-aol
-         test with naviserver/aolserver (xowiki/xowf)
        * run Coverity (7.6.0, requires gcc 4.8):
        	 (sudo port install gcc48)
 	 (download Coverity Build Tool from https://scan.coverity.com/download/)
@@ -31,7 +27,19 @@ Steps for a beta release:
 	 rm -rf cov-int/
          /usr/local/cov-analysis-macosx-7.6.0/bin/cov-build --dir cov-int make CC=gcc-mp-4.8
 	 tar czvf /tmp/nsf.tgz cov-int
-	 (upload tgz to Coverity scanner)
+
+	 curl --form token=jJ1QoqZ2Ksriz6JXtI3aHg \
+	   --form email=<email> \
+	   --form file=@/tmp/nsf.tgz \
+	   --form version="`git describe --tags`" \
+  	   --form description="maintenance checkout" \
+	     https://scan.coverity.com/builds?project=Next+Scripting+Framework
+
+
+       * configure without --enable-development
+         make install
+         make install-aol
+         test with naviserver/aolserver (xowiki/xowf)
      * tcl 8.6: 
        * configure with --enable-development
          make test
