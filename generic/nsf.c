@@ -10949,28 +10949,31 @@ ObjectSystemsCheckSystemMethod(Tcl_Interp *interp, const char *methodName, NsfOb
             NsfLog(interp, NSF_LOG_WARN, "Could not define alias %s for %s",
                    ObjStr(osPtr->handles[i]), Nsf_SystemMethodOpts[i]);
             return TCL_ERROR;
-          }
+          } else {
+            /* 
+             * Alias definition suceeded 
+             */
+            Tcl_Obj *methodObj = Tcl_GetObjResult(interp);
+            Tcl_Command cmd = Tcl_GetCommandFromObj(interp, methodObj);
 
-          /* alias definition suceeded */
-          
-          /*
-           * Since the defObject is not equal to the overloaded method, the
-           * definition above is effectively an overload of the alias.
-           */
-          osPtr->overloadedMethods |= flag;
+            
+            /*
+             * Since the defObject is not equal to the overloaded method, the
+             * definition above is effectively an overload of the alias.
+             */
+            osPtr->overloadedMethods |= flag;
 
-          /*
-           * Set method protection.
-           */
-          Tcl_Obj *methodObj = Tcl_GetObjResult(interp);
-          Tcl_Command cmd = Tcl_GetCommandFromObj(interp, methodObj);
-          if (cmd != NULL) {
-            Tcl_Command_flags(cmd) |= NSF_CMD_CALL_PROTECTED_METHOD;
-            if (osPtr->protected[i]) {
-              Tcl_Command_flags(cmd) |= NSF_CMD_REDEFINE_PROTECTED_METHOD;
+            /*
+             * Set method protection.
+             */
+            if (cmd != NULL) {
+              Tcl_Command_flags(cmd) |= NSF_CMD_CALL_PROTECTED_METHOD;
+              if (osPtr->protected[i]) {
+                Tcl_Command_flags(cmd) |= NSF_CMD_REDEFINE_PROTECTED_METHOD;
+              }
             }
+            Tcl_ResetResult(interp);
           }
-          Tcl_ResetResult(interp);
         }
       }
     }
