@@ -9844,8 +9844,7 @@ FilterInvalidateObjOrders(Tcl_Interp *interp, NsfClasses *subClasses) {
 
     assert(subClasses->cl);
 
-    hPtr = &subClasses->cl->instances ?
-      Tcl_FirstHashEntry(&subClasses->cl->instances, &hSrch) : NULL;
+    hPtr = Tcl_FirstHashEntry(&subClasses->cl->instances, &hSrch);
 
     /* recalculate the commands of all class-filter registrations */
     if (subClasses->cl->opt != NULL) {
@@ -9904,7 +9903,7 @@ FilterRemoveDependentFilterCmds(NsfClass *removeClass, NsfClasses *subClasses) {
     NsfClassOpt *opt;
 
     assert(subClasses->cl);
-    hPtr = &subClasses->cl->instances ? Tcl_FirstHashEntry(&subClasses->cl->instances, &hSrch) : NULL;
+    hPtr = Tcl_FirstHashEntry(&subClasses->cl->instances, &hSrch);
 
     opt = subClasses->cl->opt;
     if (opt != NULL) {
