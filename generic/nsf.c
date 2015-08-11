@@ -5435,7 +5435,7 @@ NSDeleteChild(Tcl_Interp *interp, Tcl_Command cmd, int deleteObjectsOnly) {
   assert(interp != NULL);
 
   /*fprintf(stderr, "NSDeleteChildren child %p flags %.6x epoch %d\n",
-          cmd, Tcl_Command_flags(cmd), Tcl_Command_cmdEpoch(cmd));*/
+    (void *)cmd, Tcl_Command_flags(cmd), Tcl_Command_cmdEpoch(cmd));*/
 
   /*
    * In some situations (e.g. small buckets, less than 12 entries), we
@@ -5448,7 +5448,7 @@ NSDeleteChild(Tcl_Interp *interp, Tcl_Command cmd, int deleteObjectsOnly) {
     NsfObject *object = NsfGetObjectFromCmdPtr(cmd);
 
     /*fprintf(stderr, "NSDeleteChildren child %p (%s) epoch %d\n",
-      cmd, Tcl_GetCommandName(interp, cmd), Tcl_Command_cmdEpoch(cmd));*/
+      (void *)cmd, Tcl_GetCommandName(interp, cmd), Tcl_Command_cmdEpoch(cmd));*/
 
     if (object == NULL) {
       /*
@@ -5459,7 +5459,7 @@ NSDeleteChild(Tcl_Interp *interp, Tcl_Command cmd, int deleteObjectsOnly) {
     }
 
     /*fprintf(stderr, "NSDeleteChild check %p %s true child %d\n",
-      object, ObjectName(object), object->id == cmd);*/
+      (void *)object, ObjectName(object), object->id == cmd);*/
 
     /* delete here just true children */
     if (object->id == cmd) {
@@ -5467,8 +5467,7 @@ NSDeleteChild(Tcl_Interp *interp, Tcl_Command cmd, int deleteObjectsOnly) {
       if (deleteObjectsOnly && NsfObjectIsClass(object)) {
         return 0;
       }
-
-      /*fprintf(stderr, "NSDeleteChild destroy %p %s\n", object, ObjectName(object));*/
+      /*fprintf(stderr, "NSDeleteChild destroy %p %s\n", (void *)object, ObjectName(object));*/
 
       /* in the exit handler physical destroy --> directly call destroy */
       if (RUNTIME_STATE(interp)->exitHandlerDestroyRound
@@ -5477,7 +5476,11 @@ NSDeleteChild(Tcl_Interp *interp, Tcl_Command cmd, int deleteObjectsOnly) {
         return 1;
       } else {
         if (object->teardown && !(object->flags & NSF_DESTROY_CALLED)) {
-          int result = DispatchDestroyMethod(interp, object, 0);
+          int result;
+
+          NsfObjectRefCountIncr(object);
+
+          result = DispatchDestroyMethod(interp, object, 0);
 
           if (unlikely(result != TCL_OK)) {
             /*
@@ -5485,17 +5488,23 @@ NSDeleteChild(Tcl_Interp *interp, Tcl_Command cmd, int deleteObjectsOnly) {
              * the command anyway, since its parent is currently being
              * deleted.
              */
-            if (object->teardown != NULL && (object->flags & NSF_DURING_DELETE) == 0u) {
-              NsfLog(interp, NSF_LOG_NOTICE, "Destroy failed for object %s, perform low level deletion",
-                     ObjectName(object));
+            /*fprintf(stderr, "==== NSDeleteChild DispatchDestroyMethod FAILED object %p (cmd %p) id %p teardown %p flags %.6x\n",
+              (void *)object, (void *)cmd, (void *)object->id, (void *)object->teardown, object->flags);*/
+
+            if (object->teardown != NULL) {
+              NsfLog(interp, NSF_LOG_NOTICE, "Destroy failed for object %s %p %.6x, perform low level deletion",
+                     (object->flags & NSF_DURING_DELETE) == 1u ? "deleted-object" : ObjectName(object),
+                     (void*)object, object->flags);
               CallStackDestroyObject(interp, object);
             }
           }
+          NsfCleanupObject(object, "NSDeleteChild");
+          
           return 1;
         }
       }
     } else {
-      /*fprintf(stderr, "NSDeleteChild remove alias %p %s\n", object, Tcl_GetCommandName(interp, cmd));*/
+      /*fprintf(stderr, "NSDeleteChild remove alias %p %s\n", (void*)object, Tcl_GetCommandName(interp, cmd));*/
       return AliasDeleteObjectReference(interp, cmd);
     }
   }
@@ -6501,10 +6510,10 @@ CallStackDoDestroy(Tcl_Interp *interp, NsfObject *object) {
 
       assert(object->teardown == NULL);
 
-      /*fprintf(stderr, "    before DeleteCommandFromToken %p object flags %.6x\n", oid, object->flags);*/
-      /*fprintf(stderr, "cmd dealloc %p refCount %d dodestroy \n", oid, Tcl_Command_refCount(oid));*/
+      /*fprintf(stderr, "    before DeleteCommandFromToken %p object flags %.6x\n", (void *)oid, object->flags);*/
+      /*fprintf(stderr, "cmd dealloc %p refCount %d dodestroy \n", (void *)oid, Tcl_Command_refCount(oid));*/
       Tcl_DeleteCommandFromToken(interp, oid); /* this can change the result */
-      /*fprintf(stderr, "    after DeleteCommandFromToken %p %.6x\n", oid, ((Command *)oid)->flags);*/
+      /*fprintf(stderr, "    after DeleteCommandFromToken %p %.6x\n", (void *)oid, ((Command *)oid)->flags);*/
       Tcl_SetObjResult(interp, savedResultObj);
       DECR_REF_COUNT(savedResultObj);
     }
@@ -13729,11 +13738,12 @@ static int
 DispatchDestroyMethod(Tcl_Interp *interp, NsfObject *object, unsigned int flags) {
   int result;
   Tcl_Obj *methodObj;
-  NsfRuntimeState *rst = RUNTIME_STATE(interp);
+  NsfRuntimeState *rst;
 
   assert(interp != NULL);
   assert(object != NULL);
 
+  rst = RUNTIME_STATE(interp);
   /*
    * Don't call destroy after exit handler started physical
    * destruction, or when it was called already before
@@ -18399,7 +18409,7 @@ PrimitiveODestroy(ClientData clientData) {
   assert(object->teardown);
 
   /*fprintf(stderr, "****** PrimitiveODestroy %p cmd %p flags %.6x\n",
-    object, object->id, object->flags);*/
+    (void *)object, (void *)object->id, object->flags);*/
 
   /*
    * We assume, the object was not yet deleted, but destroy was called
@@ -18418,7 +18428,9 @@ PrimitiveODestroy(ClientData clientData) {
    * Don't destroy, if the interpreter is destroyed already
    * e.g. TK calls Tcl_DeleteInterp directly, if the window is killed
    */
-  if (Tcl_InterpDeleted(interp)) return;
+  if (Tcl_InterpDeleted(interp)) {
+    return;
+  }
 
 #ifdef OBJDELETION_TRACE
   {Command *cmdPtr = object->id;
@@ -18442,20 +18454,19 @@ PrimitiveODestroy(ClientData clientData) {
    * teardown after the deletion of the children.
    */
   if (object->nsPtr != NULL) {
-    /*fprintf(stderr, "PrimitiveODestroy calls deleteNamespace for object %p nsPtr %p\n", object, object->nsPtr);*/
+    /*fprintf(stderr, "PrimitiveODestroy calls deleteNamespace for object %p nsPtr %p\n", (void*)object, object->nsPtr);*/
     Nsf_DeleteNamespace(interp, object->nsPtr);
     object->nsPtr = NULL;
   }
   object->teardown = NULL;
 
-  /*fprintf(stderr, " +++ OBJ/CLS free: %p %s\n", object, ObjectName(object));*/
+  /*fprintf(stderr, " +++ OBJ/CLS free: %p %s\n", (void *)object, ObjectName(object));*/
 
   object->flags |= NSF_DELETED;
   ObjTrace("ODestroy", object);
 
   DECR_REF_COUNT(object->cmdName);
   NsfCleanupObject(object, "PrimitiveODestroy");
-
 }
 
 /*

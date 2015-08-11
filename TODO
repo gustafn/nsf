@@ -5582,6 +5582,12 @@ build system:
   retrieved anymore in error message.
 - move dereferencing of members after assertions
 
+- improve robustness of destroy: in case an error happened in a 
+  destroy method in implicit delete operations, a crash was possible,
+  since the state of the object to be delete was somewhat unclear
+  (it might or might not have been deleted). Now, the object 
+  is explicitly kept longer around to allow proper handling).
+
 ========================================================================
 TODO:
 
