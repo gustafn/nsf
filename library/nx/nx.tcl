@@ -1278,11 +1278,13 @@ namespace eval ::nx {
 	if {[${:domain} ::nsf::methods::object::info::method exists ${:name}]} {
 	  ::nsf::method::delete ${:domain} -per-object ${:name}
 	}
+      } elseif {[::nsf::is class ${:domain}]} {
+        ::nsf::parameter::cache::classinvalidate ${:domain}
+        if {[${:domain} ::nsf::methods::class::info::method exists ${:name}]} {
+          ::nsf::method::delete ${:domain} ${:name}
+        }
       } else {
-	::nsf::parameter::cache::classinvalidate ${:domain}
-	if {[${:domain} ::nsf::methods::class::info::method exists ${:name}]} {
-	  ::nsf::method::delete ${:domain} ${:name}
-	}
+        nsf::log Warning "ignore inproper domain ${:domain} during destroy (maybe per-object not set?)"
       }
     }
     ::nsf::next
