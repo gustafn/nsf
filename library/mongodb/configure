@@ -735,6 +735,7 @@ with_mongoc
 with_bson
 with_nsf
 enable_development
+enable_profile
 with_tcl
 with_tclinclude
 enable_threads
@@ -1366,6 +1367,7 @@ Optional Features:
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --enable-development    build nsf with development support (intensive
                           runtime checking, etc.; default: disabled)
+  --enable-profile        build nsf with profile support (default: disabled)
   --enable-threads        build with threads
   --enable-shared         build and link with shared libraries (default: on)
   --enable-64bit          enable 64bit support (default: off)
@@ -2376,6 +2378,12 @@ else
   enable_development=no
 fi
 
+# Check whether --enable-profile was given.
+if test "${enable_profile+set}" = set; then :
+  enableval=$enable_profile; enable_profile=$enableval
+else
+  enable_profile=no
+fi
 
 
 #--------------------------------------------------------------------

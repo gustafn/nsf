@@ -73,7 +73,7 @@ subdirs=""
 
 if ! test "$with_mongoc" = no; then
    test_mongodb=test-mongdb
-   subdirs="$subdirs library/mongodb"
+   subdirs="$subdirs ${srcdir}/library/mongodb"
 fi
 
 test_actiweb=""
@@ -357,9 +357,14 @@ AC_SUBST([TCL_EXEC_PREFIX])
 #
 # Next Scripting specific configs
 #
-
 #NSF_SRC_DIR=$srcdir
-NSF_SRC_DIR="`pwd`"
+#NSF_SRC_DIR="`pwd`"
+
+NSF_BUILD_DIR=${PWD}
+cd ${srcdir}
+NSF_SRC_DIR=${PWD}
+cd ${NSF_BUILD_DIR}
+
 AC_SUBST([NSF_SRC_DIR])
 
 eval "NSF_PKG_LIBDIR=\"${libdir}/${PACKAGE_NAME}${PACKAGE_VERSION}\""
@@ -367,7 +372,7 @@ AC_SUBST([NSF_PKG_LIBDIR])
 
 if test "${TEA_PLATFORM}" != "windows" ; then
 
-NSF_BUILD_LIB_SPEC="-L${NSF_SRC_DIR} -lnsf${PACKAGE_VERSION}"
+NSF_BUILD_LIB_SPEC="-L${NSF_BUILD_DIR} -lnsf${PACKAGE_VERSION}"
 NSF_LIB_SPEC="-L${NSF_PKG_LIBDIR} -lnsf${PACKAGE_VERSION}"
 
 # If someone wants to build without stubs, as it was the case for
@@ -380,7 +385,7 @@ if test "${TCL_MAJOR_VERSION}" = "8" -a "${TCL_MINOR_VERSION}" = "0"; then
 else
 	NSF_BUILD_STUB_LIB_PATH="${NSF_SRC_DIR}/${PKG_STUB_LIB_FILE}"
 	NSF_STUB_LIB_PATH="${NSF_PKG_LIBDIR}/${PKG_STUB_LIB_FILE}"
-	NSF_BUILD_STUB_LIB_SPEC="-L${NSF_SRC_DIR} -lnsfstub${PACKAGE_VERSION}"
+	NSF_BUILD_STUB_LIB_SPEC="-L${NSF_BUILD_DIR} -lnsfstub${PACKAGE_VERSION}"
 	NSF_STUB_LIB_SPEC="-L${NSF_PKG_LIBDIR} -lnsfstub${PACKAGE_VERSION}"
 	AC_DEFINE([COMPILE_NSF_STUBS])
 fi
@@ -389,9 +394,9 @@ else
 
 NSF_BUILD_LIB_SPEC="${NSF_SRC_DIR}/${PKG_LIB_FILE}"
 NSF_LIB_SPEC="${NSF_PKG_LIBDIR}/${PKG_LIB_FILE}"
-NSF_BUILD_STUB_LIB_PATH="${NSF_SRC_DIR}/${PKG_STUB_LIB_FILE}"
+NSF_BUILD_STUB_LIB_PATH="${NSF_BUILD_DIR}/${PKG_STUB_LIB_FILE}"
 NSF_STUB_LIB_PATH="${NSF_PKG_LIBDIR}/${PKG_STUB_LIB_FILE}"
-NSF_BUILD_STUB_LIB_SPEC="${NSF_SRC_DIR}/${PKG_STUB_LIB_FILE}"
+NSF_BUILD_STUB_LIB_SPEC="${NSF_BUILD_DIR}/${PKG_STUB_LIB_FILE}"
 NSF_STUB_LIB_SPEC="${NSF_PKG_LIBDIR}/${PKG_STUB_LIB_FILE}"
 
 fi
@@ -429,7 +434,7 @@ dnl
 dnl Change the value of -this- macro if you want to add or remove
 dnl such files.
 
-AC_DEFUN([CONFIG_OUTPUT_FILES], [[Makefile nsfConfig.sh library/xotcl/xotclsh library/xotcl/xowish unix/pkgIndex.unix nxsh nxwish]])
+AC_DEFUN([CONFIG_OUTPUT_FILES], [[Makefile ${srcdir}/nsfConfig.sh ${srcdir}/library/xotcl/xotclsh ${srcdir}/library/xotcl/xowish ${srcdir}/unix/pkgIndex.unix nxsh nxwish]])
 
 #--------------------------------------------------------------------
 # the value of this variable is set to the files which are to be
@@ -454,9 +459,7 @@ AC_CONFIG_FILES(CONFIG_OUTPUT_FILES)
 
 AC_OUTPUT
 
-chmod +x nxsh nxwish library/xotcl/xotclsh library/xotcl/xowish
-
-here=${PWD}
+chmod +x nxsh nxwish ${srcdir}/library/xotcl/xotclsh ${srcdir}/library/xotcl/xowish
 
 for subdir in ${subdirs}
 do
@@ -464,28 +467,10 @@ do
 	if test x"${srcdir}" = x. ; then
 		confdir=.
 	else
-   		mkdir -p $subdir
+ 		#mkdir -p $subdir
 		confdir=${srcdir}/$subdir
 	fi
-    (cd $subdir; echo $SHELL ${confdir}/configure ${ac_configure_args} --prefix=${prefix} --with-nsf=${here}; eval $SHELL ${confdir}/configure ${ac_configure_args} --prefix=${prefix} --with-nsf=${here})
+    (cd $subdir; echo $SHELL ${confdir}/configure ${ac_configure_args} --prefix=${prefix} --with-nsf=${NSF_SRC_DIR}; eval $SHELL ${confdir}/configure ${ac_configure_args} --prefix=${prefix} --with-nsf=${NSF_SRC_DIR})
 done
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

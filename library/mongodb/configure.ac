@@ -56,7 +56,9 @@ AC_ARG_ENABLE([development],
 	AS_HELP_STRING([--enable-development],
 		[build nsf with development support (intensive runtime checking, etc.; default: disabled)]),
         [enable_development=$enableval], [enable_development=no])
-
+AC_ARG_ENABLE([profile],
+	AS_HELP_STRING([--enable-profile], [build nsf with profile support (default: disabled)]),
+        [enable_profile=$enableval], [enable_profile=no])
 
 #--------------------------------------------------------------------
 # Load the tclConfig.sh file

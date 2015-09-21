@@ -422,8 +422,8 @@ install-libraries: libraries $(DESTDIR)$(includedir) $(DESTDIR)$(pkglibdir)
 	done;
 	@echo "    Installing pkgIndex.tcl for nsf in $(DESTDIR)$(pkglibdir)/pkgIndex.tcl"
 	@echo "" >> $(DESTDIR)$(pkglibdir)/pkgIndex.tcl
-	@cat unix/pkgIndex.unix >> $(DESTDIR)$(pkglibdir)/pkgIndex.tcl
-	@$(INSTALL_DATA) nsfConfig.sh $(DESTDIR)$(libdir)/
+	@cat $(srcdir)/unix/pkgIndex.unix >> $(DESTDIR)$(pkglibdir)/pkgIndex.tcl
+	@$(INSTALL_DATA) $(srcdir)/nsfConfig.sh $(DESTDIR)$(libdir)/
 
 install-xotcl-libraries: install-libraries $(DESTDIR)$(pkglibdir)
 	@echo "Installing XOTcl Libraries to $(DESTDIR)$(xotcl_pkglibdir)/"
@@ -922,7 +922,7 @@ bin-tar:
 	)
 
 tar:  libraries-pkgindex
-	sh ./tclconfig/mktar.sh
+	sh $(srcdir)/tclconfig/mktar.sh
 
 
 .PHONY: all binaries clean depend distclean doc install libraries \
