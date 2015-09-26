@@ -3,8 +3,8 @@
  *
  *      Stack handling functions of the Next Scripting Framework.
  *
- * Copyright (C) 2010-2014 Gustaf Neumann
- * Copyright (C) 2011 Stefan Sobernig
+ * Copyright (C) 2010-2015 Gustaf Neumann
+ * Copyright (C) 2011-2015 Stefan Sobernig
  *
  * Vienna University of Economics and Business
  * Institute of Information Systems and New Media
@@ -185,7 +185,7 @@ static void Nsf_PushFrameObj(Tcl_Interp *interp, NsfObject *object, CallFrame *f
 static void Nsf_PopFrameObj(Tcl_Interp *interp, CallFrame *framePtr) nonnull(1) nonnull(2);
 
 static void Nsf_PushFrameObj(Tcl_Interp *interp, NsfObject *object, CallFrame *framePtr) {
-  
+
   assert(interp != NULL);
   assert(object != NULL);
   assert(framePtr != NULL);
@@ -297,10 +297,14 @@ CallStackGetActiveProcFrame(Tcl_CallFrame *framePtr) {
     if ((flag & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) != 0) {
       /* never return an inactive method frame */
       if (likely(!(((NsfCallStackContent *)Tcl_CallFrame_clientData(framePtr))->frameType
-		   & NSF_CSC_TYPE_INACTIVE))) break;
+		   & NSF_CSC_TYPE_INACTIVE))) {
+        break;
+      }
     } else {
       if (likely((flag & (FRAME_IS_NSF_OBJECT)) == 0u)) {
-        if (flag == 0 || (flag & FRAME_IS_PROC) != 0) break;
+        if (flag == 0 || (flag & FRAME_IS_PROC) != 0) {
+          break;
+        }
       }
     }
     framePtr = Tcl_CallFrame_callerPtr(framePtr);
@@ -477,11 +481,15 @@ CallStackGetTopFrame(Tcl_Interp *interp, Tcl_CallFrame **framePtrPtr) {
        varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
 
       if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) {
-        if (framePtrPtr != NULL) *framePtrPtr = varFramePtr;
+        if (framePtrPtr != NULL) {
+          *framePtrPtr = varFramePtr;
+        }
         return (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
       }
   }
-  if (framePtrPtr != NULL) *framePtrPtr = NULL;
+  if (framePtrPtr != NULL) {
+    *framePtrPtr = NULL;
+  }
   return NULL;
 }
 
@@ -553,7 +561,9 @@ NsfCallStackFindLastInvocation(Tcl_Interp *interp, int offset, Tcl_CallFrame **f
       if (offset != 0) {
         offset--;
       } else if (Tcl_CallFrame_level(varFramePtr) < lvl) {
-	if (framePtrPtr != NULL) *framePtrPtr = varFramePtr;
+	if (framePtrPtr != NULL) {
+          *framePtrPtr = varFramePtr;
+        }
 	return cscPtr;
       }
     } else if (Tcl_CallFrame_isProcCallFrame(varFramePtr)) {
@@ -564,13 +574,17 @@ NsfCallStackFindLastInvocation(Tcl_Interp *interp, int offset, Tcl_CallFrame **f
       if (offset != 0) {
         offset--;
       } else if (Tcl_CallFrame_level(varFramePtr) < lvl) {
-	if (framePtrPtr != NULL) *framePtrPtr = varFramePtr;
+	if (framePtrPtr != NULL) {
+          *framePtrPtr = varFramePtr;
+        }
 	return NULL;
       }
     }
   }
 
-  if (framePtrPtr != NULL) *framePtrPtr = NULL;
+  if (framePtrPtr != NULL) {
+    *framePtrPtr = NULL;
+  }
   return NULL;
 }
 
@@ -607,13 +621,17 @@ NsfCallStackFindActiveFrame(Tcl_Interp *interp, int offset, Tcl_CallFrame **fram
       NsfCallStackContent *cscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
       if (!(cscPtr->frameType & NSF_CSC_TYPE_INACTIVE)) {
         /* we found the highest active frame */
-        if (framePtrPtr != NULL) *framePtrPtr = varFramePtr;
+        if (framePtrPtr != NULL) {
+          *framePtrPtr = varFramePtr;
+        }
         return cscPtr;
       }
     }
   }
   /* we could not find an active frame; called from toplevel? */
-  if (framePtrPtr != NULL) *framePtrPtr = NULL;
+  if (framePtrPtr != NULL) {
+    *framePtrPtr = NULL;
+  }
   return NULL;
 }
 
@@ -771,8 +789,10 @@ CallStackFindEnsembleCsc(Tcl_CallFrame *framePtr, Tcl_CallFrame **framePtrPtr) {
      * dispatch is not typed as an NSF_CSC_TYPE_ENSEMBLE frame, the call type
      * /is/ NSF_CSC_CALL_IS_ENSEMBLE.
      */
-    if ((cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) == 0 &&
-	(cscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE)) break;
+    if ((cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) == 0u &&
+	(cscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE)) {
+      break;
+    }
   }
 
   *framePtrPtr = varFramePtr;
@@ -832,14 +852,17 @@ CallStackMethodPath(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
      * effectively omit leaf ensemble and non-ensemble frames from being
      * reported.
      */
-    if ((cscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE) == 0) break;
+    if ((cscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE) == 0u) {
+      break;
+    }
     /*
      * The callstack might contain consecutive calls of ensemble entry calls
      * chained via next. We can detect consecutive calls via the elements
      * count.
      */
-    if (elements == 0 && (cscPtr->flags & NSF_CM_ENSEMBLE_UNKNOWN) && (cscPtr->flags & NSF_CSC_CALL_IS_NEXT))
+    if (elements == 0 && (cscPtr->flags & NSF_CM_ENSEMBLE_UNKNOWN) && (cscPtr->flags & NSF_CSC_CALL_IS_NEXT)) {
       break;
+    }
 
     Tcl_ListObjAppendElement(interp, methodPathObj,
 			     Tcl_NewStringObj(Tcl_GetCommandName(interp, cscPtr->cmdPtr), -1));
@@ -851,7 +874,9 @@ CallStackMethodPath(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
      * /is/ NSF_CSC_CALL_IS_ENSEMBLE (as checked above).
      */
 
-    if ((cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) == 0) break;
+    if ((cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) == 0u) {
+      break;
+    }
 
   }
   /*
@@ -946,8 +971,12 @@ CallStackReplaceVarTableReferences(Tcl_Interp *interp, TclVarHashTable *oldVarTa
        framePtr = Tcl_CallFrame_callerPtr(framePtr)) {
     int frameFlags = Tcl_CallFrame_isProcCallFrame(framePtr);
 
-    if (!(frameFlags & FRAME_IS_NSF_OBJECT)) continue;
-    if (!(Tcl_CallFrame_varTablePtr(framePtr) == oldVarTablePtr)) continue;
+    if (!(frameFlags & FRAME_IS_NSF_OBJECT)) {
+      continue;
+    }
+    if (!(Tcl_CallFrame_varTablePtr(framePtr) == oldVarTablePtr)) {
+      continue;
+    }
 
     /*fprintf(stderr, "+++ makeObjNamespace replacing varTable %p with %p in frame %p\n",
       oldVarTablePtr, newVarTablePtr, framePtr);*/
@@ -984,8 +1013,9 @@ static void CallStackPopAll(Tcl_Interp *interp) {
     Tcl_CallFrame *framePtr = Tcl_Interp_framePtr(interp);
     int frameFlags;
 
-    if (framePtr == NULL) break;
-    if (Tcl_CallFrame_level(framePtr) == 0) break;
+    if (framePtr == NULL || (Tcl_CallFrame_level(framePtr) == 0)) {
+      break;
+    }
 
     frameFlags = Tcl_CallFrame_isProcCallFrame(framePtr);
     /*fprintf(stderr, "--- popping %p frame-flags %.6x\n", framePtr, frameFlags);*/

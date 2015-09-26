@@ -3,7 +3,7 @@
  *
  *      Utility functions of the Next Scripting Framework.
  *
- * Copyright (C) 2001-2014 Gustaf Neumann
+ * Copyright (C) 2001-2015 Gustaf Neumann
  * Copyright (C) 2001-2007 Uwe Zdun
  *
  * Vienna University of Economics and Business
@@ -67,7 +67,9 @@ char *strnstr(const char *buffer, const char *needle, size_t buffer_len) {
        p != NULL;
        p = memchr(p + 1, *needle, remainder-1)) {
     remainder = buffer_len - (p - buffer);
-    if (remainder < needle_len) break;
+    if (remainder < needle_len) {
+      break;
+    }
     if (strncmp(p, needle, needle_len) == 0) {
       return p;
     }
@@ -101,12 +103,12 @@ Nsf_ltoa(char *buf, long i, int *lengthPtr) {
   assert(buf != NULL);
   assert(lengthPtr != NULL);
 
-  if (i<0) {
+  if (i < 0) {
     i = -i;
     negative = nr_written = 1;
-  } else
+  } else {
     nr_written = negative = 0;
-
+  }
   do {
     nr_written++;
     *pointer++ = i%10 + '0';
@@ -114,10 +116,12 @@ Nsf_ltoa(char *buf, long i, int *lengthPtr) {
   } while (i);
 
   p = string = buf;
-  if (negative != 0)
+  if (negative != 0) {
     *p++ = '-';
-
-  while ((*p++ = *--pointer));   /* copy number (reversed) from tmp to buf */
+  }
+  while ((*p++ = *--pointer)) {
+    ;   /* copy number (reversed) from tmp to buf */
+  }
   *lengthPtr = nr_written;
 
   return string;

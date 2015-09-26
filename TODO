@@ -5588,6 +5588,13 @@ build system:
   (it might or might not have been deleted). Now, the object 
   is explicitly kept longer around to allow proper handling).
 
+- prefer boolean expressions
+- reduce implicit conversions
+- wite body of if-statements as blocks
+- whitespace changes
+- update licenses
+
+
 ========================================================================
 TODO:
 

@@ -5,8 +5,9 @@
  *      specified, it can be used to equip every object with an
  *      additional payload from C.
  *
- * Copyright (C) 1999-2014 Gustaf Neumann (a, b)
+ * Copyright (C) 1999-2015 Gustaf Neumann (a, b)
  * Copyright (C) 1999-2007 Uwe Zdun (a, b)
+ * Copyright (C) 2011 Stefan Sobernig (b)
  * 
  * (a) University of Essen
  *     Specification of Software Systems
@@ -71,10 +72,14 @@ NsfSetObjectData(NsfObject* obj, NsfClass* cl, ClientData data) {
 EXTERN int
 NsfGetObjectData(NsfObject* obj, NsfClass* cl, ClientData* data) {
   Tcl_HashEntry *hPtr;
-  if (!cl->opt || !cl->opt->objectdata)
+
+  if (!cl->opt || !cl->opt->objectdata) {
     return 0;
+  }
   hPtr = Tcl_FindHashEntry(cl->opt->objectdata, (char*)obj);
-  if (data != NULL) *data = (hPtr != NULL) ? Tcl_GetHashValue(hPtr) : 0;
+  if (data != NULL) {
+    *data = (hPtr != NULL) ? Tcl_GetHashValue(hPtr) : 0;
+  }
   return hPtr != NULL;
 }
 
@@ -82,10 +87,13 @@ EXTERN int
 NsfUnsetObjectData(NsfObject* obj, NsfClass* cl) {
   Tcl_HashEntry *hPtr;
 
-  if (!cl->opt || !cl->opt->objectdata)
+  if (!cl->opt || !cl->opt->objectdata) {
     return 0;
+  }
   hPtr = Tcl_FindHashEntry(cl->opt->objectdata, (char*)obj);
-  if (hPtr != NULL) Tcl_DeleteHashEntry(hPtr);
+  if (hPtr != NULL) {
+    Tcl_DeleteHashEntry(hPtr);
+  }
   return hPtr != NULL;
 }
 #endif

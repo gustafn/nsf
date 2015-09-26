@@ -3,9 +3,9 @@
  *
  *      Error reporting functions for the Next Scripting Framework.
  *
- * Copyright (C) 1999-2014 Gustaf Neumann (a, b)
+ * Copyright (C) 1999-2015 Gustaf Neumann (a, b)
  * Copyright (C) 1999-2007 Uwe Zdun (a, b)
- * Copyright (C) 2011 Stefan Sobernig (b)
+ * Copyright (C) 2011-2014 Stefan Sobernig (b)
  *
  * (a) University of Essen
  *     Specification of Software Systems
@@ -292,7 +292,9 @@ NsfObjWrongArgs(Tcl_Interp *interp, const char *msg, Tcl_Obj *cmdNameObj,
   }
 
   if (methodPathObj != NULL) {
-    if (need_space != 0) Tcl_AppendResult(interp, " ", (char *) NULL);
+    if (need_space != 0) {
+      Tcl_AppendResult(interp, " ", (char *) NULL);
+    }
 
     INCR_REF_COUNT(methodPathObj);
     Tcl_AppendResult(interp, ObjStr(methodPathObj), (char *) NULL);
@@ -301,7 +303,9 @@ NsfObjWrongArgs(Tcl_Interp *interp, const char *msg, Tcl_Obj *cmdNameObj,
     need_space = 1;
   }
   if (arglist != NULL) {
-    if (need_space != 0) Tcl_AppendResult(interp, " ", (char *) NULL);
+    if (need_space != 0) {
+      Tcl_AppendResult(interp, " ", (char *) NULL);
+    }
     Tcl_AppendResult(interp, arglist, (char *) NULL);
   }
   Tcl_AppendResult(interp, "\"", (char *) NULL);

@@ -7,7 +7,7 @@
  *      for naming changes etc., but requires more work to be revived. The
  *      code is currently deactivated.
  *
- * Copyright (C) 2005-2014 Gustaf Neumann
+ * Copyright (C) 2005-2015 Gustaf Neumann
  *
  * Vienna University of Economics and Business
  * Institute of Information Systems and New Media
@@ -103,9 +103,9 @@ nextCompile(Tcl_Interp *interp, Tcl_Parse *parsePtr,
   assert(parsePtr != NULL);
   assert(envPtr != NULL);
 
-  if (parsePtr->numWords != 1)
+  if (parsePtr->numWords != 1) {
     return TCL_OUT_LINE_COMPILE;
-
+  }
   TclEmitOpcode(instructions[INST_NEXT].bytecode, envPtr);
   envPtr->maxStackDepth = 0;
 
@@ -123,9 +123,9 @@ selfCompile(Tcl_Interp *interp, Tcl_Parse *parsePtr,
   assert(parsePtr != NULL);
   assert(envPtr != NULL);
 
-  if (parsePtr->numWords != 1)
+  if (parsePtr->numWords != 1) {
     return TCL_OUT_LINE_COMPILE;
-
+  }
   TclEmitOpcode(instructions[INST_SELF].bytecode, envPtr);
   envPtr->maxStackDepth = 0;
 
@@ -151,9 +151,9 @@ selfDispatchCompile(Tcl_Interp *interp, Tcl_Parse *parsePtr,
 	  parsePtr->numWords, parsePtr->numTokens, parsePtr->tokensAvailable);
   */
 
-  if (parsePtr->numWords > 255)
+  if (parsePtr->numWords > 255) {
     return TCL_OUT_LINE_COMPILE;
-
+  }
   /*TclEmitOpcode(instructions[INST_SELF].bytecode, envPtr);*/
 
   for (wordIdx=0, tokenPtr = parsePtr->tokenPtr + 0;

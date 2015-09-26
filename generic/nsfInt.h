@@ -1,12 +1,12 @@
 /* 
  *  nsfInt.h --
- *  
+ *
  *      Declarations of the internally used API Functions of the Next
  *      Scripting Framework.
  *
- *  Copyright (C) 1999-2014 Gustaf Neumann (a, b)
+ *  Copyright (C) 1999-2015 Gustaf Neumann (a, b)
  *  Copyright (C) 1999-2007 Uwe Zdun (a, b)
- *  Copyright (C) 2011 Stefan Sobernig (b)
+ *  Copyright (C) 2011-2013 Stefan Sobernig (b)
  *
  * (a) University of Essen
  *     Specification of Software Systems
@@ -469,7 +469,7 @@ typedef struct NsfStringIncrStruct {
 #define NSF_DURING_DELETE                0x020000
 #define NSF_DELETED                      0x040000
 #define NSF_RECREATE                     0x080000
-#define NSF_TCL_DELETE                   0x100000  
+#define NSF_TCL_DELETE                   0x100000
 
 
 /* method invocations */
