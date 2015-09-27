@@ -650,8 +650,8 @@ CONST char *Nsf_SystemMethodOpts[] = {
 typedef struct NsfObjectSystem {
   NsfClass *rootClass;
   NsfClass *rootMetaClass;
-  int overloadedMethods;
-  int definedMethods;
+  unsigned int overloadedMethods;
+  unsigned int definedMethods;
   Tcl_Obj *methods[NSF_s_set_idx+1];
   Tcl_Obj *handles[NSF_s_set_idx+1];
   struct NsfObjectSystem *nextPtr;
@@ -891,7 +891,7 @@ typedef struct NsfRuntimeState {
 #endif
   int errorCount;        /* keep track of number of errors to avoid potential error loops */
   int unknown;           /* keep track whether an unknown method is currently called */
-  int overloadedMethods; /* bitarray for tracking overloaded methods */
+  unsigned int overloadedMethods; /* bitarray for tracking overloaded methods */
   /* 
    * Configure options. The following do*-flags could be moved into a
    * bitarray, but we have only one state per interp, so the win on
