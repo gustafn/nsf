@@ -168,6 +168,19 @@ static int ConvertToFrame(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *
   return result;
 }
   
+enum ForwardpropertyIdx {ForwardpropertyNULL, ForwardpropertyPrefixIdx, ForwardpropertyTargetIdx, ForwardpropertyVerboseIdx};
+
+static int ConvertToForwardproperty(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
+			    ClientData *clientData, Tcl_Obj **outObjPtr) {
+  int index, result;
+  static const char *opts[] = {"prefix", "target", "verbose", NULL};
+  (void)pPtr;
+  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "forwardProperty", 0, &index);
+  *clientData = (ClientData) INT2PTR(index + 1);
+  *outObjPtr = objPtr;
+  return result;
+}
+  
 enum ProtectionIdx {ProtectionNULL, ProtectionCall_protectedIdx, ProtectionRedefine_protectedIdx, ProtectionNoneIdx};
 
 static int ConvertToProtection(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
@@ -271,6 +284,7 @@ static int ConvertToInfoobjectparametersubcmd(Tcl_Interp *interp, Tcl_Obj *objPt
   {ConvertToMethodproperty, "class-only|call-private|call-protected|redefine-protected|returns"},
   {ConvertToRelationtype, "object-mixin|class-mixin|object-filter|class-filter|class|superclass|rootclass"},
   {ConvertToSource, "all|application|system"},
+  {ConvertToForwardproperty, "prefix|target|verbose"},
   {ConvertToConfigureoption, "debug|dtrace|filter|profile|trace|softrecreate|objectsystems|keepcmds|checkresults|checkarguments"},
   {ConvertToObjectproperty, "initialized|class|rootmetaclass|rootclass|volatile|slotcontainer|hasperobjectslots|keepcallerself|perobjectdispatch"},
   {ConvertToAssertionsubcmd, "check|object-invar|class-invar"},
@@ -281,7 +295,7 @@ static int ConvertToInfoobjectparametersubcmd(Tcl_Interp *interp, Tcl_Obj *objPt
     
 
 /* just to define the symbol */
-static Nsf_methodDefinition method_definitions[111];
+static Nsf_methodDefinition method_definitions[112];
   
 static const char *method_command_namespace_names[] = {
   "::nsf::methods::object::info",
@@ -356,6 +370,8 @@ static int NsfDirectDispatchCmdStub(ClientData clientData, Tcl_Interp *interp, i
 static int NsfDispatchCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv)
   NSF_nonnull(2) NSF_nonnull(4);
 static int NsfFinalizeCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv)
+  NSF_nonnull(2) NSF_nonnull(4);
+static int NsfForwardPropertyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv)
   NSF_nonnull(2) NSF_nonnull(4);
 static int NsfInterpObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv)
   NSF_nonnull(2) NSF_nonnull(4);
@@ -578,6 +594,8 @@ static int NsfDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withIntrins
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(5);
 static int NsfFinalizeCmd(Tcl_Interp *interp, int withKeepvars)
   NSF_nonnull(1);
+static int NsfForwardPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj *methodName, int forwardProperty, Tcl_Obj *value)
+  NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(4);
 static int NsfInterpObjCmd(Tcl_Interp *interp, const char *name, int objc, Tcl_Obj *CONST* objv)
   NSF_nonnull(1) NSF_nonnull(2);
 static int NsfIsCmd(Tcl_Interp *interp, int withComplain, int withConfigure, const char *withName, Tcl_Obj *constraint, Tcl_Obj *value)
@@ -766,6 +784,7 @@ enum {
  NsfDirectDispatchCmdIdx,
  NsfDispatchCmdIdx,
  NsfFinalizeCmdIdx,
+ NsfForwardPropertyCmdIdx,
  NsfInterpObjCmdIdx,
  NsfIsCmdIdx,
  NsfMethodAliasCmdIdx,
@@ -1708,6 +1727,30 @@ NsfFinalizeCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
 
     assert(pc.status == 0);
     return NsfFinalizeCmd(interp, withKeepvars);
+
+  } else {
+    
+    return TCL_ERROR;
+  }
+}
+
+static int
+NsfForwardPropertyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv) {
+  ParseContext pc;
+  (void)clientData;
+
+  if (likely(ArgumentParse(interp, objc, objv, NULL, objv[0],
+                     method_definitions[NsfForwardPropertyCmdIdx].paramDefs,
+                     method_definitions[NsfForwardPropertyCmdIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
+                     &pc) == TCL_OK)) {
+    NsfObject *object = (NsfObject *)pc.clientData[0];
+    int withPer_object = (int )PTR2INT(pc.clientData[1]);
+    Tcl_Obj *methodName = (Tcl_Obj *)pc.clientData[2];
+    int forwardProperty = (int )PTR2INT(pc.clientData[3]);
+    Tcl_Obj *value = (Tcl_Obj *)pc.clientData[4];
+
+    assert(pc.status == 0);
+    return NsfForwardPropertyCmd(interp, object, withPer_object, methodName, forwardProperty, value);
 
   } else {
     
@@ -3402,7 +3445,7 @@ NsfObjInfoVarsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
   }
 }
 
-static Nsf_methodDefinition method_definitions[111] = {
+static Nsf_methodDefinition method_definitions[112] = {
 {"::nsf::methods::class::alloc", NsfCAllocMethodStub, 1, {
   {"objectName", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
@@ -3551,6 +3594,13 @@ static Nsf_methodDefinition method_definitions[111] = {
 },
 {"::nsf::finalize", NsfFinalizeCmdStub, 1, {
   {"-keepvars", 0, 0, Nsf_ConvertTo_Boolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL}}
+},
+{"::nsf::method::forward::property", NsfForwardPropertyCmdStub, 5, {
+  {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Object, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
+  {"-per-object", 0, 0, Nsf_ConvertTo_Boolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
+  {"methodName", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"forwardProperty", NSF_ARG_REQUIRED|NSF_ARG_IS_ENUMERATION, 1, ConvertToForwardproperty, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"value", 0, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::interp", NsfInterpObjCmdStub, 2, {
   {"name", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},

@@ -1,1 +1,1 @@
-package ifneeded nx::serializer 2.0 [list source [file join $dir serializer.tcl]]
+package ifneeded nx::serializer 2.1 [list source [file join $dir serializer.tcl]]

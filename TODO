@@ -5515,7 +5515,7 @@ Migration guide and tutorial:
 - updated "/cls/ info filters" and "/obj/ info object filters"
 - dropped "/cls/ info mixin guard" and "/obj/ info object mixin guard"
   dropped "/cls/ info filter guard" and "/obj/ info object filter guard"
-  (use "-guard option insteads)y
+  (use "-guard option instead)
 - updated "/cls/ mixins ...", "/obj/ object mixins ...",
   "/cls/ filteres ...", "/obj/ object filters ..."
 
@@ -5551,7 +5551,7 @@ build system:
      make "DTPLITE=/usr/local/ns/bin/tclsh8.5 /usr/local/ns/bin/dtplite" man
 
 - regenerate documentation
-- bump verison number to 2.0.0 (also in .man files)
+- bump version number to 2.0.0 (also in .man files)
 
 - write body-blocks of if on separate lines
 - change variable name "validCscPtr" to "isValidCsc", since
@@ -5575,7 +5575,7 @@ build system:
   pt. 2: NsfParamDefs.slotObj and its memory-management statements all
   over remain in place, to be reviewed.
 
-- removed  NsfParamDefs.slotObj (and single occurance for memory-management)
+- removed  NsfParamDefs.slotObj (and single occurrence for memory-management)
   since it is not used for the time being
 - fix potential bug on tcl-triggered cmd-delete operations, where 
   destroy returns non-TCL_OK and name of the object could not be 
@@ -5591,14 +5591,25 @@ build system:
 - update licenses
 
 - reduce implicit conversions
-- wite body of if-statements as blocks
+- write body of if-statements as blocks
 - whitespace changes
 - prefer boolean expressions
 - add likely/unlikely hints
 
+- added optional paramter "-target" for serializer to ease
+  changing name of object in serialization
+
+- new command nsf::method::forward::property in analogy to nsf::method::property
+  for reading+writing introspection of forwarders (important for serializer,
+  when different target objects are specified, to map the per-object forwarder)
+- extended regression test
+- bumped version number of serializer to 2.1
+
+  
+
 ========================================================================
 TODO:
-
+- maybe more complete handling of other forward "properties"
 
 - should we change "/obj/ info lookup syntax /methodName/" to return obj and method as well?
   (similar to "info method syntax /methodName/")

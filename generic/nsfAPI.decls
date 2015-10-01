@@ -199,6 +199,14 @@ cmd "method::forward" NsfMethodForwardCmd {
   {-argName "args" -type args}
 } {-nxdoc 1}
 
+cmd "method::forward::property" NsfForwardPropertyCmd {
+  {-argName "object" -required 1 -type object}
+  {-argName "-per-object" -required 0 -nrargs 0 -type switch}
+  {-argName "methodName" -required 1 -type tclobj}
+  {-argName "forwardProperty" -required 1 -type "prefix|target|verbose"}
+  {-argName "value" -type tclobj}
+}
+
 
 cmd "method::property" NsfMethodPropertyCmd {
   {-argName "object" -required 1 -type object}

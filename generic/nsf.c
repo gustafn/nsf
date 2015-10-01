@@ -23429,7 +23429,7 @@ ListForward(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
       ClientData clientData = (cmd != NULL) ? Tcl_Command_objClientData(cmd) : NULL;
       ForwardCmdClientData *tcd = (ForwardCmdClientData *)clientData;
 
-      if (tcd && Tcl_Command_objProc(cmd) == NsfForwardMethod) {
+      if (tcd != NULL && Tcl_Command_objProc(cmd) == NsfForwardMethod) {
         Tcl_Obj *listObj = Tcl_NewListObj(0, NULL);
 
         AppendForwardDefinition(interp, listObj, tcd);
@@ -25292,6 +25292,83 @@ NsfMethodForwardCmd(Tcl_Interp *interp,
 
 
 /*
+cmd "method::forward::property" NsfForwardPropertyCmd {
+  {-argName "object" -required 1 -type object}
+  {-argName "-per-object" -required 0 -nrargs 0 -type switch}
+  {-argName "methodName" -required 1 -type tclobj}
+  {-argName "forwardProperty" -required 1 -type "target|verbose"}
+  {-argName "value" -type tclobj}
+}
+*/
+static int
+NsfForwardPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
+                     Tcl_Obj *methodObj, int methodproperty, Tcl_Obj *valueObj) {
+  ForwardCmdClientData *tcd;
+  Tcl_ObjCmdProc       *procPtr;
+  Tcl_Command           cmd;
+  NsfObject            *defObject;
+  NsfClass             *cl;
+  int                   fromClassNS;
+
+  assert(interp != NULL);
+  assert(object != NULL);
+  assert(methodObj != NULL);
+
+  cl = withPer_object == 0 && NsfObjectIsClass(object) ? (NsfClass *)object : NULL;
+  fromClassNS = cl != NULL;
+
+  cmd = ResolveMethodName(interp, (cl != NULL) ? cl->nsPtr : object->nsPtr, methodObj,
+                          NULL, NULL, &defObject, NULL, &fromClassNS);
+
+  if (unlikely(cmd == NULL)) {
+    return NsfPrintError(interp, "cannot lookup %s method '%s' for %s",
+                         cl == NULL ? "object " : "",
+                         ObjStr(methodObj), ObjectName(object));
+  }
+
+  procPtr = Tcl_Command_objProc(cmd);
+  if (procPtr != NsfForwardMethod) {
+    return NsfPrintError(interp, "%s is not a forwarder method",
+                         ObjStr(methodObj));
+  }
+
+  tcd = (ForwardCmdClientData *)Tcl_Command_objClientData(cmd);
+  if (tcd == NULL) {
+    return NsfPrintError(interp, "forwarder method has no client data");
+  }
+
+  switch (methodproperty) {
+  case ForwardpropertyTargetIdx:
+    if (valueObj != NULL) {
+      DECR_REF_COUNT(tcd->cmdName);
+      INCR_REF_COUNT(valueObj);
+      tcd->cmdName = valueObj;
+    }
+    // should we return old or new value? /class/set/... return new value, /configure/ often the old.
+    Tcl_SetObjResult(interp, tcd->cmdName);
+    break;
+
+  case ForwardpropertyPrefixIdx:
+    if (valueObj != NULL) {
+      DECR_REF_COUNT(tcd->prefix);
+      INCR_REF_COUNT(valueObj);
+      tcd->prefix = valueObj;
+    }
+    Tcl_SetObjResult(interp, tcd->prefix);
+    break;
+
+  case ForwardpropertyVerboseIdx:
+    if (valueObj != NULL) {
+      Tcl_GetBooleanFromObj(interp, valueObj, &tcd->verbose);
+    }
+    Tcl_SetObjResult(interp, Tcl_NewBooleanObj(tcd->verbose));
+    break;
+  }
+
+  return TCL_OK;
+}
+
+/*
 cmd ::method::property NsfMethodPropertyCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-per-object"}
@@ -25437,6 +25514,7 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
 
   return TCL_OK;
 }
+
 
 /*
 cmd "method::registered" NsfMethodRegisteredCmd {

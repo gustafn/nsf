@@ -1,7 +1,57 @@
 # -*- Tcl -*-
 
 package req nx::test
-package req nx::serializer	
+package req nx::serializer
+
+nx::test case serialize-target {
+  #
+  # Create object structure with a forwarder and a slot
+  #
+  Object create ::xxx {
+    :object property -accessor public ref
+    Object create [self]::b {
+      [:info parent] ref set [Object create [self]::c]
+    }
+  }
+  #
+  # check forwarder target and domain+manager of slot.
+  #
+  ? {nsf::method::forward::property :::xxx -per-object ref target} "::xxx::per-object-slot::ref"
+  ? {nsf::var::get ::xxx::per-object-slot::ref manager} "::xxx::per-object-slot::ref"
+  ? {nsf::var::get ::xxx::per-object-slot::ref domain} "::xxx"
+
+  #puts [xxx serialize -target XXX]
+  #
+  # Create an serialized object, which has the target mapped to
+  # XXX. The target name has intentionally no leading colons, such
+  # that the object can be instantiated in a different namespace. This
+  # is for example useful when importing objects in OpenACS from a
+  # different system, where one has to assure that the imported
+  # objects do not clash with the already existing objects, but it has
+  # as well certain dangers.
+  #
+  set code [xxx serialize -target XXX]
+
+  #
+  # Create the object with the new target
+  #
+  set result [eval $code]
+
+  ? [list set _ $result] ::XXX::per-object-slot::ref
+
+  #
+  # The target object of the forwarder + the slot manager and domain are mapped as well.
+  # Otherwise, we would trigger warnings during destroy
+  #
+
+  ? {nsf::method::forward::property ::XXX -per-object ref target} "XXX::per-object-slot::ref"
+  ? {nsf::var::get ::XXX::per-object-slot::ref manager} "XXX::per-object-slot::ref"
+  ? {nsf::var::get ::XXX::per-object-slot::ref domain} "XXX"
+
+}
+
+
+
 
 nx::test case deepSerialize-map-filter {
 
@@ -28,7 +78,7 @@ nx::test case deepSerialize-map-filter {
   ? {::nsf::object::exists ::a::b::c} 0
 
   eval $script
-  
+
   ? {::nsf::object::exists ::a} 0
   ? {::nsf::object::exists ::a::b} 0
   ? {::nsf::object::exists ::a::b::c} 0
@@ -45,7 +95,7 @@ nx::test case deepSerialize-map-filter {
   set script [::a eval {
     ::Serializer deepSerialize -map [list ::x::y [self] ::x [self]] ::x::y::c
   }]
-  
+
   ? {::x::y::c eval {set :parentRef}} ::x
   ? {::nsf::object::exists ::a::c} 0
   eval $script
@@ -53,7 +103,7 @@ nx::test case deepSerialize-map-filter {
   ? {::a::c eval {set :parentRef}} ::a
 }
 
-nx::test case deepSerialize-ignoreVarsRE-filter {   
+nx::test case deepSerialize-ignoreVarsRE-filter {
   nx::Class create C {
     :object property -accessor public x
     :object property -accessor public y
@@ -66,7 +116,7 @@ nx::test case deepSerialize-ignoreVarsRE-filter {
   ? {C x get} 1
   ? {C y set 1} 1
   ? {C y get} 1
-  
+
   ? {lsort [C info methods]} "a b"
   ? {lsort [C info object methods]} "x y"
   ? {c1 a set b} {expected integer but got "b" for parameter "value"}
@@ -80,7 +130,7 @@ nx::test case deepSerialize-ignoreVarsRE-filter {
   set c1(IgnoreAll)   [list [::Serializer deepSerialize -ignoreVarsRE "." c1] ""]
   set names {}; foreach s [C info slots] {lappend names [$s cget -name]}
   set c1(None2)       [list [::Serializer deepSerialize -ignoreVarsRE [join $names |] c1] ""]
-  
+
   c1 destroy
   foreach t [array names c1] {
     ? {nsf::object::exists c1} 0
@@ -91,7 +141,7 @@ nx::test case deepSerialize-ignoreVarsRE-filter {
     c1 destroy
   }
 
-  
+
   set C(IgnoreNone1) [list [::Serializer deepSerialize C] "x y"]
   set C(IgnoreNone2) [list [::Serializer deepSerialize -ignoreVarsRE "" C] "x y"]
   #set C(One) [list [::Serializer deepSerialize -ignoreVarsRE "x" C] "y"]
@@ -99,9 +149,9 @@ nx::test case deepSerialize-ignoreVarsRE-filter {
   #set C(IgnoreAll) [list [::Serializer deepSerialize -ignoreVarsRE "." C] ""]
   set names {}; foreach s [C info object slots] {lappend names [$s cget -name]}
   #set C(None2) [list [::Serializer deepSerialize -ignoreVarsRE [join $names |] C] ""]
-  
+
   C destroy
-  
+
   foreach t [array names C] {
     ? {nsf::object::exists C} 0
     lassign $C($t) script res
@@ -115,9 +165,9 @@ nx::test case deepSerialize-ignoreVarsRE-filter {
   }
 }
 
-nx::test case deepSerialize-ignore-filter { 
+nx::test case deepSerialize-ignore-filter {
   Object create ::a {
-    Object create [self]::b 
+    Object create [self]::b
     Object create [self]::c
   }
 
@@ -136,7 +186,7 @@ nx::test case deepSerialize-ignore-filter {
   ? {::nsf::object::exists ::a} 1
   ? {::nsf::object::exists ::a::b} 0
   ? {::nsf::object::exists ::a::c} 1
-  
+
   set script [::Serializer deepSerialize -ignore ::a ::a]
   ::a destroy
 
@@ -146,7 +196,7 @@ nx::test case deepSerialize-ignore-filter {
 }
 
 nx::test case serialize-slotContainer {
- 
+
   nx::Class create C {
     :object property x
     :property a
@@ -179,7 +229,7 @@ nx::test case serialize-slotContainer {
 # perobjectdispatch for nx::Objects are handled correctly via serialize
 #
 nx::test case serialize-object-properties {
- 
+
   #
   # Check on object o
   #

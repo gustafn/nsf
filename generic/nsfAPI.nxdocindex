@@ -26,6 +26,7 @@ set ::nxdoc::include(::nsf::method::asmcreate) 0
 set ::nxdoc::include(::nsf::method::create) 1
 set ::nxdoc::include(::nsf::method::delete) 1
 set ::nxdoc::include(::nsf::method::forward) 1
+set ::nxdoc::include(::nsf::method::forward::property) 0
 set ::nxdoc::include(::nsf::method::property) 1
 set ::nxdoc::include(::nsf::method::registered) 1
 set ::nxdoc::include(::nsf::method::setter) 1

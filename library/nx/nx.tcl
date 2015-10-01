@@ -5,7 +5,7 @@
 #      Implementation of the Next Scripting Language (NX) object
 #      system, based on the Next Scripting Framework (NSF).
 #
-# Copyright (C) 2010-2014 Gustaf Neumann
+# Copyright (C) 2010-2015 Gustaf Neumann
 # Copyright (C) 2010-2014 Stefan Sobernig
 #
 # Vienna University of Economics and Business
@@ -2625,6 +2625,12 @@ namespace eval ::nx {
       }
       return [lindex $objs 0]
     }
+
+    #:public object method mapSlot {newslot origin dest} {
+    #  if {[$oldslot cget -domain] eq $origin}   {$newslot configure -domain $dest}
+    #  if {[$oldslot cget -manager] eq $oldslot} {$newslot configure -manager $newslot}
+    #  $newslot eval :init
+    #}
 
     :public method copy {obj {dest ""}} {
       #puts stderr "[::nsf::self] copy <$obj> <$dest>"
