@@ -8,7 +8,11 @@
 # - auto_path is needed, when nx is loaded via good old pkgIndex.tcl
 # - tcl::tm::roots is needed when nx is provided as a tcl module (.tm)
 lappend auto_path ..
-::tcl::tm::roots [pwd]
+
+# Is support for Tcl modules available (>= Tcl 8.5)?
+if {[info commands ::tcl::tm::roots] ne ""} {
+    ::tcl::tm::roots [pwd]
+}
 
 set verbose 0
 
