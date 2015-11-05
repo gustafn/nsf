@@ -1552,7 +1552,7 @@ nx::test case checktype {
   nx::Object create o {
     :public object method f01 {} {::nsf::dispatch o ::nsf::methods::object::info::hastype ::nx::Object}
     :public object method f02 {} {::nsf::dispatch o ::nsf::methods::object::info::hastype   nx::Object}
-    :public object method f03 {} {::nsf::dispatch o ::nsf::methods::object::info::hastype       nx::Object}
+    :public object method f03 {} {::nsf::dispatch o ::nsf::methods::object::info::hastype   nx::Object}
 
     :public object method f11 {} {::nsf::is object,type=::nx::Object o}
     :public object method f12 {} {::nsf::is object,type=nx::Object o}
@@ -1583,7 +1583,7 @@ namespace eval foo {
   nx::Object create o {
     :public object method f01 {} {::nsf::dispatch c1 ::nsf::methods::object::info::hastype ::nx::Object}
     :public object method f02 {} {::nsf::dispatch c1 ::nsf::methods::object::info::hastype   nx::Object}
-    :public object method f03 {} {::nsf::dispatch c1 ::nsf::methods::object::info::hastype       nx::Object}
+    :public object method f03 {} {::nsf::dispatch c1 ::nsf::methods::object::info::hastype   nx::Object}
     :public object method f04 {} {::nsf::dispatch c1 ::nsf::methods::object::info::hastype foo::C}
     :public object method f05 {} {::nsf::dispatch c1 ::nsf::methods::object::info::hastype C}
 
