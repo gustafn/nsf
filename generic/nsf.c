@@ -21316,7 +21316,9 @@ ArgumentDefaults(ParseContext *pcPtr, Tcl_Interp *interp,
          */
         pcPtr->flags[i] |= NSF_PC_IS_DEFAULT;
 
-        /* Is it necessary to substitute the default value? */
+        /*
+         * Does the user want to substitute in the default value?
+         */
         if (unlikely((pPtr->flags & NSF_ARG_SUBST_DEFAULT) != 0u)) {
           Tcl_Obj *obj = Tcl_SubstObj(interp, newValue, TCL_SUBST_ALL);
 
@@ -31181,10 +31183,11 @@ static void Nsf_ThreadExitProc(ClientData clientData) nonnull(1);
 
 static void
 Nsf_ThreadExitProc(ClientData clientData) {
-  /*fprintf(stderr, "+++ Nsf_ThreadExitProc\n");*/
   void Nsf_ExitProc(ClientData clientData);
 
   assert(clientData != NULL);
+
+  /*fprintf(stderr, "+++ Nsf_ThreadExitProc\n");*/
 
   Tcl_DeleteExitHandler(Nsf_ExitProc, clientData);
   ExitHandler(clientData);
