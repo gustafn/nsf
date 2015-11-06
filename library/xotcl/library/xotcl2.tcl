@@ -1067,6 +1067,7 @@ namespace eval ::xotcl {
 
     #:property defaultmethods {get set}
 
+    :property {substdefault true}
     :property -accessor public multivalued {
       #
       # The slot object is an nx object, therefore we need the nx

@@ -5605,10 +5605,42 @@ build system:
 - extended regression test
 - bumped version number of serializer to 2.1
 
-  
+
+- Fixed a bug that disallowed the combination of valuecmd and
+  valuechangedcmd for a single property (many thanks to Zoran
+  for pointing this out)
+
+Removed implicit substdefault for configure parameters in nx:
+- The syntax of substdefault for method parameters and configure
+  parameters was different. For method parameters, it was necessary to
+  specify :substdefault per parameter to activate it, for configure
+  parameter is was based in the XOTcl tradition on the content of the
+  default (whether it contains [...])  One problem is, that there was
+  no easy way to turn this feature off. If one wants to provide a
+  script block as a default, it was necessary to escape all square
+  brackets.
+- Now, in nx, one has to specify :substdefault for configure
+  parameter explicitly as well, syntax for configure and method
+  parameters is the same.
+- XOTcl 2.0 keeps implicit substdefaults (backward compatible)
+- fix bug: never try to substdefault, when there is no default given.
+
 
 ========================================================================
 TODO:
+- check error propagation in trace procs
+
+- maybe use as well "$obj eval $cmd" for valuechangedcmd
+  Consequence: commands like the folowings become more complicated
+  ::nx Class {
+    :property -accessor public c {set :valuechangedcmd { ::nsf::var::set $obj $var 999 }}
+  }
+
+- maybe better handling of single-colon prefixed vars in trace procs,
+  when passing values to nsf::var::set/get/...
+
+- add better commented example for value traces to regression test
+
 - maybe more complete handling of other forward "properties"
 
 - should we change "/obj/ info lookup syntax /methodName/" to return obj and method as well?

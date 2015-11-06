@@ -237,8 +237,8 @@ nx::test case configure-trace-class {
   nx::Class create C
   C property p {
     set :valuechangedcmd {
-      #puts stderr "C.p valuechangedcmd $obj $var +1"
-      ::nsf::var::set $obj $var [expr [list [::nsf::var::set $obj $var] + 1]]
+      #puts stderr "==== C.p valuechangedcmd $obj $var +1"
+      ::nsf::var::set $obj $var [expr {[::nsf::var::set $obj $var] + 1}]
     }
   }
   
@@ -249,7 +249,7 @@ nx::test case configure-trace-class {
   ? {c1 configure -p 1} ""
   ? {c1 eval {info exists :p}} 1
   ? {c1 cget -p} "2"
-  
+
   #
   # class case with default
   #

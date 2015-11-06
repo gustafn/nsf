@@ -1073,7 +1073,7 @@ namespace eval ::nx {
     }
     
     set slotObj [::nx::slotObj -container $container $target $slotname]
-    #puts stderr "*** [list $class create $slotObj] {*}$opts $initblock]"
+    #puts stderr "[self] *** [list $class create $slotObj] {*}$opts <$initblock>"
     set r [$class create $slotObj {*}$opts $initblock]
     #puts stderr "*** returned $r"
     return $r
@@ -1384,10 +1384,6 @@ namespace eval ::nx {
 	# In case the "get" method was provided on the slot, ask nsf to call it directly
 	lappend options slot=[::nsf::self]
       }
-
-      if {[info exists :substdefault] && ${:substdefault}} {
-	lappend options substdefault
-      }
     }
     if {[info exists :noarg] && ${:noarg}} {lappend options noarg}
     if {[info exists :nodashalnum] && ${:nodashalnum}} {lappend options nodashalnum}
@@ -1421,8 +1417,11 @@ namespace eval ::nx {
 	set :parameterSpec [list [:namedParameterSpec $prefix ${:name} $options] $initblock]
 
       } elseif {[info exists :default]} {
-	# deactivated for now: || [string first {$} ${:default}] > -1
-	if {[string match {*\[*\]*} ${:default}]} {
+        #
+        # Only add implicit substdefault, when default is given and
+        # substdefault is allowed via substdefault slot property.
+        #
+	if {[string match {*\[*\]*} ${:default}] && ${:substdefault}} {
 	  lappend options substdefault
 	}
 	set :parameterSpec [list [:namedParameterSpec $prefix ${:name} $options] ${:default}]
@@ -1431,7 +1430,7 @@ namespace eval ::nx {
       }
     }
 
-    #puts stderr ================${:parameterSpec}
+    #puts stderr [self]================${:parameterSpec}
     return ${:parameterSpec}
   }
 
@@ -1854,9 +1853,6 @@ namespace eval ::nx {
       lappend options ${:multiplicity}
     }
     if {$forObjectParameter} {
-      if {[info exists :substdefault] && ${:substdefault}} {
-	lappend options substdefault
-      }
       if {[info exists :configurable] && !${:configurable}} {
 	lappend options noconfig
       }
@@ -1945,7 +1941,7 @@ namespace eval ::nx {
   }
 
   ::nx::VariableSlot protected method init {} {
-    #puts "VariableSlot [self] ${:incremental} && ${:accessor} && ${:multiplicity} incremental ${:incremental}"
+    #puts "[self] VariableSlot [self] ${:incremental} && ${:accessor} && ${:multiplicity} incremental ${:incremental}"
     if {${:incremental}} {
       if {${:accessor} eq "none"} { set :accessor "public" }
       if {![:isMultivalued]} { 
@@ -2018,11 +2014,14 @@ namespace eval ::nx {
   }
 
   ::nx::VariableSlot protected method handleTraces {} {
-    # essentially like before
+    #
+    # This method assembles the __initblock, which might be used at
+    # creation time of instances, or immediately for per-object slots.
+    #
     set __initblock ""
     set trace {::nsf::directdispatch [::nsf::self] -frame object ::trace}
 
-    # There be already default values registered on the
+    # There might be already default values registered on the
     # class. If so, defaultcmd is ignored.
     if {[info exists :default]} {
       if {[info exists :defaultcmd]} {
@@ -2031,7 +2030,8 @@ namespace eval ::nx {
       }
       if {[info exists :valuecmd]} {
 	  return -code error \
-	      "valuecmd can't be used together with default value"}
+	      "valuecmd can't be used together with default value"
+      }
     } elseif [info exists :defaultcmd] {
       if {[info exists :valuecmd]} {
 	  return -code error \
@@ -2040,16 +2040,19 @@ namespace eval ::nx {
       append __initblock "::nsf::directdispatch [::nsf::self] -frame object :removeTraces \[::nsf::self\] read\n"
       append __initblock "$trace add variable [list ${:name}] read \
 	\[list [::nsf::self] __default_from_cmd \[::nsf::self\] [list [set :defaultcmd]]\]\n"
+
     } elseif [info exists :valuecmd] {
       append __initblock "::nsf::directdispatch [::nsf::self] -frame object :removeTraces \[::nsf::self\] read\n"
       append __initblock "$trace add variable [list ${:name}] read \
-	\[list [::nsf::self] __value_from_cmd \[::nsf::self\] [list [set :valuecmd]]\]"
+	\[list [::nsf::self] __value_from_cmd \[::nsf::self\] [list [set :valuecmd]]\]\n"
     }
+
     if {[info exists :valuechangedcmd]} {
       append __initblock "::nsf::directdispatch [::nsf::self] -frame object :removeTraces \[::nsf::self\] write\n"
       append __initblock "$trace add variable [list ${:name}] write \
 	\[list [::nsf::self] __value_changed_cmd \[::nsf::self\] [list [set :valuechangedcmd]]\]"
     }
+
     if {$__initblock ne ""} {
       if {${:per-object}} {
 	${:domain} eval $__initblock
@@ -2069,11 +2072,11 @@ namespace eval ::nx {
     ::nsf::var::set $obj $var [$obj eval $cmd]
   }
   ::nx::VariableSlot method __value_from_cmd {obj cmd var sub op} {
-    #puts "GETVAR [::nsf::current method] obj=$obj cmd=$cmd, var=$var, op=$op"
-    ::nsf::var::set $obj $var [$obj eval $cmd]
+    #puts stderr "GETVAR [::nsf::current method] obj=$obj cmd=$cmd, var=$var, op=$op"
+    ::nsf::var::set $obj [string trimleft $var :] [$obj eval $cmd]
   }
   ::nx::VariableSlot method __value_changed_cmd {obj cmd var sub op} {
-    # puts "valuechanged obj=$obj cmd=$cmd, var=$var, op=$op, ...\n$obj exists $var -> [::nsf::var::set $obj $var]"
+    #puts "valuechanged obj=$obj cmd=$cmd, var=$var, op=$op"
     eval $cmd
   }
 
