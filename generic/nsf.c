@@ -28001,7 +28001,20 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
           goto configure_exit;
         }
       } else {
-        Tcl_ObjSetVar2(interp, paramPtr->nameObj, NULL, newValue, TCL_LEAVE_ERR_MSG|TCL_PARSE_PART1);
+        Tcl_Obj *resultObj;
+        /*
+         * Plain set of the variable.
+         */
+        resultObj = Tcl_ObjSetVar2(interp, paramPtr->nameObj, NULL, newValue, TCL_LEAVE_ERR_MSG|TCL_PARSE_PART1);
+        if (unlikely(resultObj == NULL)) {
+          /*
+           * When the setting of the variable failed (e.g. caused by variable
+           * traces), report the error back.
+           */
+          result = TCL_ERROR;
+          Nsf_PopFrameObj(interp, framePtr);
+          goto configure_exit;
+        }
       }
     }
   }
@@ -28105,7 +28118,7 @@ NsfOCgetMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj) {
     goto cget_exit;
   }
 
-  /*fprintf(stderr, "arg %s found, flags %.8x\n", nameString, paramPtr->flags);*/
+  /*fprintf(stderr, "cget: arg %s found, flags %.8x\n", nameString, paramPtr->flags);*/
 
   /*
    * Check for slot invocation

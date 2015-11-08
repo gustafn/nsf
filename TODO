@@ -5624,12 +5624,10 @@ Removed implicit substdefault for configure parameters in nx:
   parameters is the same.
 - XOTcl 2.0 keeps implicit substdefaults (backward compatible)
 - fix bug: never try to substdefault, when there is no default given.
-
+- don't swallow errors triggered from variable write traces in configure
 
 ========================================================================
 TODO:
-- check error propagation in trace procs
-
 - maybe use as well "$obj eval $cmd" for valuechangedcmd
   Consequence: commands like the folowings become more complicated
   ::nx Class {
