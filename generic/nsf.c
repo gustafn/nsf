@@ -16037,7 +16037,7 @@ ParameterMethodDispatch(Tcl_Interp *interp, NsfObject *object,
         ) {
       Tcl_Obj *resultObj;
 
-      resultObj = Tcl_ObjSetVar2(interp, NsfGlobalObjs[NSF_ARRAY_CMD], paramPtr->nameObj, newValue, 0);
+      resultObj = Tcl_ObjSetVar2(interp, NsfGlobalObjs[NSF_ARRAY_CMD], paramPtr->nameObj, newValue, TCL_LEAVE_ERR_MSG);
       if (unlikely(resultObj == NULL)) {
         result = TCL_ERROR;
       }
@@ -26114,11 +26114,11 @@ NsfNSCopyVarsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
              ObjStr(TclVarValue(Tcl_Obj, varPtr, objPtr)));*/
 
           resultObj = Nsf_ObjSetVar2((Nsf_Object *)destObject, interp, varNameObj, NULL,
-                                     TclVarValue(Tcl_Obj, varPtr, objPtr), 0);
+                                     TclVarValue(Tcl_Obj, varPtr, objPtr), TCL_LEAVE_ERR_MSG);
         } else {
           resultObj = Tcl_ObjSetVar2(interp, varNameObj, NULL,
                                      TclVarValue(Tcl_Obj, varPtr, objPtr),
-                                     TCL_NAMESPACE_ONLY);
+                                     TCL_NAMESPACE_ONLY|TCL_LEAVE_ERR_MSG);
         }
         if (unlikely(resultObj == NULL)) {
           DECR_REF_COUNT(varNameObj);
@@ -26142,11 +26142,11 @@ NsfNSCopyVarsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
             if (TclIsVarScalar(eltVar)) {
               if (object != NULL) {
                 resultObj = Nsf_ObjSetVar2((Nsf_Object *)destObject, interp, varNameObj, eltNameObj,
-                                           TclVarValue(Tcl_Obj, eltVar, objPtr), 0);
+                                           TclVarValue(Tcl_Obj, eltVar, objPtr), TCL_LEAVE_ERR_MSG);
               } else {
                 resultObj = Tcl_ObjSetVar2(interp, varNameObj, eltNameObj,
                                            TclVarValue(Tcl_Obj, eltVar, objPtr),
-                                           TCL_NAMESPACE_ONLY);
+                                           TCL_NAMESPACE_ONLY|TCL_LEAVE_ERR_MSG);
               }
               if (unlikely(resultObj == NULL)) {
                 DECR_REF_COUNT(varNameObj);
@@ -27940,7 +27940,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
               goto configure_exit;
             }
             if (unlikely(Tcl_ObjSetVar2(interp, NsfGlobalObjs[NSF_ARRAY_INITCMD],
-                                        paramPtr->nameObj, Tcl_NewIntObj(1), 0) == NULL)) {
+                                        paramPtr->nameObj, Tcl_NewIntObj(1), TCL_LEAVE_ERR_MSG) == NULL)) {
               Nsf_PopFrameObj(interp, framePtr);
               goto configure_exit;
             }
