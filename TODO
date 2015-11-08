@@ -5625,6 +5625,7 @@ Removed implicit substdefault for configure parameters in nx:
 - XOTcl 2.0 keeps implicit substdefaults (backward compatible)
 - fix bug: never try to substdefault, when there is no default given.
 - don't swallow errors triggered from variable write traces in configure
+- handle result of Tcl_ObjSetVar2() in all cases
 
 ========================================================================
 TODO:

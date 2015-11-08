@@ -6395,8 +6395,11 @@ AutonameIncr(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfObject *object,
       valueObj = Tcl_DuplicateObj(valueObj);
     }
     Tcl_SetLongObj(valueObj, autoname_counter);
-    Tcl_ObjSetVar2(interp, NsfGlobalObjs[NSF_AUTONAMES], nameObj,
-                   valueObj, flogs);
+    resultObj = Tcl_ObjSetVar2(interp, NsfGlobalObjs[NSF_AUTONAMES], nameObj,
+                               valueObj, flogs);
+    if (unlikely(resultObj == NULL)) {
+      return NULL;
+    }
   }
 
   if (doResetOpt == 1) {
@@ -16032,7 +16035,12 @@ ParameterMethodDispatch(Tcl_Interp *interp, NsfObject *object,
     if ((paramPtr->flags & NSF_ARG_CMD) != 0u
         && RUNTIME_STATE(interp)->doKeepcmds
         ) {
-      Tcl_ObjSetVar2(interp, NsfGlobalObjs[NSF_ARRAY_CMD], paramPtr->nameObj, newValue, 0);
+      Tcl_Obj *resultObj;
+
+      resultObj = Tcl_ObjSetVar2(interp, NsfGlobalObjs[NSF_ARRAY_CMD], paramPtr->nameObj, newValue, 0);
+      if (unlikely(resultObj == NULL)) {
+        result = TCL_ERROR;
+      }
     }
   }
 
@@ -26047,6 +26055,7 @@ NsfNSCopyVarsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
   Tcl_Obj *destFullNameObj;
   Tcl_CallFrame frame, *framePtr = &frame;
   Tcl_Obj *varNameObj = NULL;
+  int      result;
 
   assert(interp != NULL);
   assert(fromNs != NULL);
@@ -26068,6 +26077,7 @@ NsfNSCopyVarsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
     Tcl_PushCallFrame(interp, (Tcl_CallFrame *)framePtr, toNsPtr, 0);
   } else {
     NsfObject *newObject;
+
     if (GetObjectFromObj(interp, fromNs, &object) != TCL_OK) {
       return NsfPrintError(interp, "CopyVars: Origin object/namespace %s does not exist",
                            ObjStr(fromNs));
@@ -26082,10 +26092,12 @@ NsfNSCopyVarsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
   }
 
   destObject = GetObjectFromString(interp, destFullName);
+  result = TCL_OK;
 
   /* copy all vars in the ns */
   hPtr = (varTablePtr != NULL) ? Tcl_FirstHashEntry(TclVarHashTablePtr(varTablePtr), &hSrch) : NULL;
   while (hPtr) {
+    Tcl_Obj *resultObj;
 
     GetVarAndNameFromHash(hPtr, &varPtr, &varNameObj);
     INCR_REF_COUNT(varNameObj);
@@ -26101,12 +26113,17 @@ NsfNSCopyVarsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
           /* fprintf(stderr, "copy in obj %s var %s val '%s'\n", ObjectName(object), ObjStr(varNameObj),
              ObjStr(TclVarValue(Tcl_Obj, varPtr, objPtr)));*/
 
-          Nsf_ObjSetVar2((Nsf_Object *)destObject, interp, varNameObj, NULL,
-                         TclVarValue(Tcl_Obj, varPtr, objPtr), 0);
+          resultObj = Nsf_ObjSetVar2((Nsf_Object *)destObject, interp, varNameObj, NULL,
+                                     TclVarValue(Tcl_Obj, varPtr, objPtr), 0);
         } else {
-          Tcl_ObjSetVar2(interp, varNameObj, NULL,
-                         TclVarValue(Tcl_Obj, varPtr, objPtr),
-                         TCL_NAMESPACE_ONLY);
+          resultObj = Tcl_ObjSetVar2(interp, varNameObj, NULL,
+                                     TclVarValue(Tcl_Obj, varPtr, objPtr),
+                                     TCL_NAMESPACE_ONLY);
+        }
+        if (unlikely(resultObj == NULL)) {
+          DECR_REF_COUNT(varNameObj);
+          result = TCL_ERROR;
+          goto copy_done;
         }
       } else {
         if (TclIsVarArray(varPtr)) {
@@ -26124,12 +26141,17 @@ NsfNSCopyVarsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
 
             if (TclIsVarScalar(eltVar)) {
               if (object != NULL) {
-                Nsf_ObjSetVar2((Nsf_Object *)destObject, interp, varNameObj, eltNameObj,
-                                 TclVarValue(Tcl_Obj, eltVar, objPtr), 0);
+                resultObj = Nsf_ObjSetVar2((Nsf_Object *)destObject, interp, varNameObj, eltNameObj,
+                                           TclVarValue(Tcl_Obj, eltVar, objPtr), 0);
               } else {
-                Tcl_ObjSetVar2(interp, varNameObj, eltNameObj,
-                               TclVarValue(Tcl_Obj, eltVar, objPtr),
-                               TCL_NAMESPACE_ONLY);
+                resultObj = Tcl_ObjSetVar2(interp, varNameObj, eltNameObj,
+                                           TclVarValue(Tcl_Obj, eltVar, objPtr),
+                                           TCL_NAMESPACE_ONLY);
+              }
+              if (unlikely(resultObj == NULL)) {
+                DECR_REF_COUNT(varNameObj);
+                result = TCL_ERROR;
+                goto copy_done;
               }
             }
             DECR_REF_COUNT(eltNameObj);
@@ -26140,11 +26162,12 @@ NsfNSCopyVarsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
     DECR_REF_COUNT(varNameObj);
     hPtr = Tcl_NextHashEntry(&hSrch);
   }
+ copy_done:
   if (fromNsPtr != NULL) {
     DECR_REF_COUNT(destFullNameObj);
     Tcl_PopCallFrame(interp);
   }
-  return TCL_OK;
+  return result;
 }
 
 /*
@@ -27916,13 +27939,16 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
               Nsf_PopFrameObj(interp, framePtr);
               goto configure_exit;
             }
-            Tcl_ObjSetVar2(interp, NsfGlobalObjs[NSF_ARRAY_INITCMD],
-                           paramPtr->nameObj, Tcl_NewIntObj(1), 0);
+            if (unlikely(Tcl_ObjSetVar2(interp, NsfGlobalObjs[NSF_ARRAY_INITCMD],
+                                        paramPtr->nameObj, Tcl_NewIntObj(1), 0) == NULL)) {
+              Nsf_PopFrameObj(interp, framePtr);
+              goto configure_exit;
+            }
           }
 
         } else {
           /*
-           * we could consider to require a default
+           * We could consider to require a default
            */
         }
         /*
