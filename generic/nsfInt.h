@@ -652,10 +652,10 @@ typedef struct NsfObjectSystem {
   NsfClass *rootMetaClass;
   unsigned int overloadedMethods;
   unsigned int definedMethods;
-  Tcl_Obj *methods[NSF_s_set_idx+1];
-  Tcl_Obj *handles[NSF_s_set_idx+1];
+  Tcl_Obj *methods[NSF_s_set_idx+2];
+  Tcl_Obj *handles[NSF_s_set_idx+2];
   struct NsfObjectSystem *nextPtr;
-  char protected[NSF_s_set_idx+1];
+  char protected[NSF_s_set_idx+2];
 } NsfObjectSystem;
 
 
