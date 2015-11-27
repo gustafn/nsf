@@ -24162,17 +24162,18 @@ NsfProfileGetDataStub(Tcl_Interp *interp) {
 cmd __profile_trace NsfProfileTraceStub {
   {-argName "-enable" -required 1 -nrargs 1 -type boolean}
   {-argName "-verbose" -required 0 -nrargs 1 -type boolean}
+  {-argName "-dontsave" -required 0 -nrargs 1 -type boolean}
 }
 */
-static int NsfProfileTraceStub(Tcl_Interp *interp, int withEnable, int withVerbose)
+static int NsfProfileTraceStub(Tcl_Interp *interp, int withEnable, int withVerbose, int withDontsave)
   NSF_nonnull(1);
 
 static int
-NsfProfileTraceStub(Tcl_Interp *interp, int withEnable, int withVerbose) {
+NsfProfileTraceStub(Tcl_Interp *interp, int withEnable, int withVerbose, int withDontsave) {
   assert(interp != NULL);
 
 #if defined(NSF_PROFILE)
-  NsfProfileTrace(interp, withEnable, withVerbose);
+  NsfProfileTrace(interp, withEnable, withVerbose, withDontsave);
 #endif
   return TCL_OK;
 }

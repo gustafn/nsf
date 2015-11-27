@@ -646,7 +646,7 @@ static int NsfProfileClearDataStub(Tcl_Interp *interp)
   NSF_nonnull(1);
 static int NsfProfileGetDataStub(Tcl_Interp *interp)
   NSF_nonnull(1);
-static int NsfProfileTraceStub(Tcl_Interp *interp, int withEnable, int withVerbose)
+static int NsfProfileTraceStub(Tcl_Interp *interp, int withEnable, int withVerbose, int withDontsave)
   NSF_nonnull(1);
 static int NsfRelationGetCmd(Tcl_Interp *interp, NsfObject *object, int type)
   NSF_nonnull(1) NSF_nonnull(2);
@@ -2300,9 +2300,10 @@ NsfProfileTraceStubStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
                      &pc) == TCL_OK)) {
     int withEnable = (int )PTR2INT(pc.clientData[0]);
     int withVerbose = (int )PTR2INT(pc.clientData[1]);
+    int withDontsave = (int )PTR2INT(pc.clientData[2]);
 
     assert(pc.status == 0);
-    return NsfProfileTraceStub(interp, withEnable, withVerbose);
+    return NsfProfileTraceStub(interp, withEnable, withVerbose, withDontsave);
 
   } else {
     
@@ -3735,9 +3736,10 @@ static Nsf_methodDefinition method_definitions[112] = {
 {"::nsf::__profile_get", NsfProfileGetDataStubStub, 0, {
   {NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
-{"::nsf::__profile_trace", NsfProfileTraceStubStub, 2, {
+{"::nsf::__profile_trace", NsfProfileTraceStubStub, 3, {
   {"-enable", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Boolean, NULL,NULL,"boolean",NULL,NULL,NULL,NULL,NULL},
-  {"-verbose", 0, 1, Nsf_ConvertTo_Boolean, NULL,NULL,"boolean",NULL,NULL,NULL,NULL,NULL}}
+  {"-verbose", 0, 1, Nsf_ConvertTo_Boolean, NULL,NULL,"boolean",NULL,NULL,NULL,NULL,NULL},
+  {"-dontsave", 0, 1, Nsf_ConvertTo_Boolean, NULL,NULL,"boolean",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::relation::get", NsfRelationGetCmdStub, 2, {
   {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Object, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
