@@ -5627,6 +5627,16 @@ Removed implicit substdefault for configure parameters in nx:
 - don't swallow errors triggered from variable write traces in configure
 - handle result of Tcl_ObjSetVar2() in all cases
 
+
+- Use standard logging for
+      nsf::__profile_trace ... -verbose true ...
+  By using the standard logging mechanism, we can redefining
+  ::nsf::log to output e.g. trace in a GUI.
+- Add argument "-dontsave" to nsf::__profile_trace
+  to avoid saving trace in memory
+- Refactor trace and debug output to deliver lists.
+  This makes it easier to postprocess the results from Tcl.
+
 ========================================================================
 TODO:
 - maybe use as well "$obj eval $cmd" for valuechangedcmd
