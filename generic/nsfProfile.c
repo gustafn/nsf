@@ -237,9 +237,6 @@ NsfProfileTraceExitAppend(Tcl_Interp *interp, const char *label, double duration
  *
  *----------------------------------------------------------------------
  */
-static void NsfProfileObjectLabel(Tcl_DString *dsPtr, NsfObject *obj, NsfClass *cl, const char *methodName)
-  nonnull(1) nonnull(2) nonnull(4);
-
 static void NsfProfileMethodLabel(Tcl_DString *dsPtr, NsfObject *obj, NsfClass *cl, const char *methodName)
   nonnull(1) nonnull(2) nonnull(4);
 
