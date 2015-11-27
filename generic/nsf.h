@@ -181,10 +181,10 @@
 #ifdef NSF_DTRACE
 # define NSF_DTRACE_METHOD_RETURN_PROBE(cscPtr,retCode) \
   if (cscPtr->cmdPtr && NSF_DTRACE_METHOD_RETURN_ENABLED()) {		\
-    NSF_DTRACE_METHOD_RETURN(ObjectName(cscPtr->self),	\
-			     cscPtr->cl ? ClassName(cscPtr->cl) : ObjectName(cscPtr->self), \
-			     (char *)cscPtr->methodName,			\
-			     retCode);			\
+    NSF_DTRACE_METHOD_RETURN(ObjectName((cscPtr)->self),		\
+			     (cscPtr)->cl ? ClassName((cscPtr)->cl) : ObjectName((cscPtr)->self), \
+			     (char *)(cscPtr)->methodName,		\
+			     (retCode));				\
   }
 #else
 # define NSF_DTRACE_METHOD_RETURN_PROBE(cscPtr,retCode) {}
@@ -201,18 +201,18 @@
 /*# define CHECK_ACTIVATION_COUNTS 1*/
 # define NsfCleanupObject(object,string)				\
   /*fprintf(stderr, "NsfCleanupObject %p %s\n",object,string);*/	\
-  NsfCleanupObject_(object)
+  NsfCleanupObject_((object))
 # define CscFinish(interp,cscPtr,retCode,string)			\
   /*fprintf(stderr, "CscFinish %p %s\n",cscPtr,string);	*/		\
-  NSF_DTRACE_METHOD_RETURN_PROBE(cscPtr,retCode);			\
-  CscFinish_(interp, cscPtr)
+  NSF_DTRACE_METHOD_RETURN_PROBE((cscPtr),(retCode));			\
+  CscFinish_((interp), (cscPtr))
 #else
 # define NDEBUG 1
 # define NsfCleanupObject(object,string)				\
-  NsfCleanupObject_(object)
+  NsfCleanupObject_((object))
 # define CscFinish(interp,cscPtr,retCode,string)			\
   NSF_DTRACE_METHOD_RETURN_PROBE(cscPtr,retCode);			\
-  CscFinish_(interp, cscPtr)
+  CscFinish_((interp), (cscPtr))
 #endif
 
 #if defined(NSF_MEM_TRACE) && !defined(NSF_MEM_COUNT)
@@ -221,11 +221,11 @@
 
 #if defined(NSF_PROFILE) || defined(NSF_DTRACE)
 # define CscInit(cscPtr, object, cl, cmd, frametype, flags, method) \
-  CscInit_(cscPtr, object, cl, cmd, frametype, flags); cscPtr->methodName = (method); \
-  NsfProfileTraceCall(interp, (object), cscPtr->methodName);
+  CscInit_((cscPtr), (object), (cl), (cmd), (frametype), (flags)); (cscPtr)->methodName = (method); \
+  NsfProfileTraceCall((interp), (object), (cl), (cscPtr)->methodName);
 #else
 # define CscInit(cscPtr, object, cl, cmd, frametype, flags, methodName) \
-  CscInit_(cscPtr, object, cl, cmd, frametype, flags)
+  CscInit_((cscPtr), (object), (cl), (cmd), (frametype), (flags))
 #endif
 
 #if !defined(CHECK_ACTIVATION_COUNTS)
@@ -235,8 +235,8 @@
 
 #if defined(TCL_THREADS)
 # define NsfMutex Tcl_Mutex
-# define NsfMutexLock(a) Tcl_MutexLock(a)
-# define NsfMutexUnlock(a) Tcl_MutexUnlock(a)
+# define NsfMutexLock(a) Tcl_MutexLock((a))
+# define NsfMutexUnlock(a) Tcl_MutexUnlock((a))
 #else
 # define NsfMutex int
 # define NsfMutexLock(a)   (*(a))++
