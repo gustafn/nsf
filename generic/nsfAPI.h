@@ -868,7 +868,7 @@ static int
 NsfCAllocMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv) {
   NsfClass *cl;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   cl = NsfObjectToClass(clientData);
@@ -890,7 +890,7 @@ NsfCCreateMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
   ParseContext pc;
   NsfClass *cl;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   cl = NsfObjectToClass(clientData);
@@ -914,7 +914,7 @@ static int
 NsfCDeallocMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv) {
   NsfClass *cl;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   cl = NsfObjectToClass(clientData);
@@ -936,7 +936,7 @@ NsfCFilterGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, T
   ParseContext pc;
   NsfClass *cl;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   cl = NsfObjectToClass(clientData);
@@ -961,7 +961,7 @@ static int
 NsfCGetCachendParametersMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv) {
   NsfClass *cl;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   cl = NsfObjectToClass(clientData);
@@ -983,7 +983,7 @@ NsfCMixinGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
   ParseContext pc;
   NsfClass *cl;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   cl = NsfObjectToClass(clientData);
@@ -1009,7 +1009,7 @@ NsfCNewMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
   ParseContext pc;
   NsfClass *cl;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   cl = NsfObjectToClass(clientData);
@@ -1034,7 +1034,7 @@ NsfCRecreateMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
   ParseContext pc;
   NsfClass *cl;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   cl = NsfObjectToClass(clientData);
@@ -1058,7 +1058,7 @@ static int
 NsfCSuperclassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv) {
   NsfClass *cl;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   cl = NsfObjectToClass(clientData);
@@ -1080,7 +1080,7 @@ NsfClassInfoFilterguardMethodStub(ClientData clientData, Tcl_Interp *interp, int
   ParseContext pc;
   NsfClass *cl;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   cl = NsfObjectToClass(clientData);
@@ -1105,7 +1105,7 @@ NsfClassInfoFiltersMethodStub(ClientData clientData, Tcl_Interp *interp, int obj
   ParseContext pc;
   NsfClass *cl;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   cl = NsfObjectToClass(clientData);
@@ -1131,7 +1131,7 @@ NsfClassInfoForwardMethodStub(ClientData clientData, Tcl_Interp *interp, int obj
   ParseContext pc;
   NsfClass *cl;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   cl = NsfObjectToClass(clientData);
@@ -1157,7 +1157,7 @@ NsfClassInfoHeritageMethodStub(ClientData clientData, Tcl_Interp *interp, int ob
   ParseContext pc;
   NsfClass *cl;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   cl = NsfObjectToClass(clientData);
@@ -1182,7 +1182,7 @@ NsfClassInfoInstancesMethodStub(ClientData clientData, Tcl_Interp *interp, int o
   ParseContext pc;
   NsfClass *cl;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   cl = NsfObjectToClass(clientData);
@@ -1227,7 +1227,7 @@ NsfClassInfoMethodMethodStub(ClientData clientData, Tcl_Interp *interp, int objc
   ParseContext pc;
   NsfClass *cl;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   cl = NsfObjectToClass(clientData);
@@ -1253,7 +1253,7 @@ NsfClassInfoMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int obj
   ParseContext pc;
   NsfClass *cl;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   cl = NsfObjectToClass(clientData);
@@ -1283,7 +1283,7 @@ NsfClassInfoMixinOfMethodStub(ClientData clientData, Tcl_Interp *interp, int obj
   ParseContext pc;
   NsfClass *cl;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   cl = NsfObjectToClass(clientData);
@@ -1329,7 +1329,7 @@ NsfClassInfoMixinguardMethodStub(ClientData clientData, Tcl_Interp *interp, int 
   ParseContext pc;
   NsfClass *cl;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   cl = NsfObjectToClass(clientData);
@@ -1354,7 +1354,7 @@ NsfClassInfoMixinsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc
   ParseContext pc;
   NsfClass *cl;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   cl = NsfObjectToClass(clientData);
@@ -1401,7 +1401,7 @@ NsfClassInfoSlotobjectsMethodStub(ClientData clientData, Tcl_Interp *interp, int
   ParseContext pc;
   NsfClass *cl;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   cl = NsfObjectToClass(clientData);
@@ -1429,7 +1429,7 @@ NsfClassInfoSubclassMethodStub(ClientData clientData, Tcl_Interp *interp, int ob
   ParseContext pc;
   NsfClass *cl;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   cl = NsfObjectToClass(clientData);
@@ -1475,7 +1475,7 @@ NsfClassInfoSuperclassMethodStub(ClientData clientData, Tcl_Interp *interp, int 
   ParseContext pc;
   NsfClass *cl;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   cl = NsfObjectToClass(clientData);
@@ -2517,7 +2517,7 @@ NsfOAutonameMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
   ParseContext pc;
   NsfObject *obj;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   obj = (NsfObject *)clientData;
@@ -2542,7 +2542,7 @@ static int
 NsfOCgetMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv) {
   NsfObject *obj;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   obj = (NsfObject *)clientData;
@@ -2562,7 +2562,7 @@ static int
 NsfOClassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv) {
   NsfObject *obj;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   obj = (NsfObject *)clientData;
@@ -2582,7 +2582,7 @@ static int
 NsfOCleanupMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv) {
   NsfObject *obj;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   obj = (NsfObject *)clientData;
@@ -2603,7 +2603,7 @@ NsfOConfigureMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
   ParseContext pc;
   NsfObject *obj;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   obj = (NsfObject *)clientData;
@@ -2626,7 +2626,7 @@ static int
 NsfODestroyMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv) {
   NsfObject *obj;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   obj = (NsfObject *)clientData;
@@ -2647,7 +2647,7 @@ NsfOExistsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
   ParseContext pc;
   NsfObject *obj;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   obj = (NsfObject *)clientData;
@@ -2671,7 +2671,7 @@ NsfOFilterGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, T
   ParseContext pc;
   NsfObject *obj;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   obj = (NsfObject *)clientData;
@@ -2695,7 +2695,7 @@ static int
 NsfOInstvarMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv) {
   NsfObject *obj;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   obj = (NsfObject *)clientData;
@@ -2710,7 +2710,7 @@ NsfOMixinGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
   ParseContext pc;
   NsfObject *obj;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   obj = (NsfObject *)clientData;
@@ -2734,7 +2734,7 @@ static int
 NsfONoinitMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv) {
   NsfObject *obj;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   obj = (NsfObject *)clientData;
@@ -2754,7 +2754,7 @@ static int
 NsfORequireNamespaceMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv) {
   NsfObject *obj;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   obj = (NsfObject *)clientData;
@@ -2774,7 +2774,7 @@ static int
 NsfOResidualargsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv) {
   NsfObject *obj;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   obj = (NsfObject *)clientData;
@@ -2788,7 +2788,7 @@ static int
 NsfOUplevelMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv) {
   NsfObject *obj;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   obj = (NsfObject *)clientData;
@@ -2802,7 +2802,7 @@ static int
 NsfOUpvarMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv) {
   NsfObject *obj;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   obj = (NsfObject *)clientData;
@@ -2816,7 +2816,7 @@ static int
 NsfOVolatileMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv) {
   NsfObject *obj;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   obj = (NsfObject *)clientData;
@@ -2837,7 +2837,7 @@ NsfObjInfoChildrenMethodStub(ClientData clientData, Tcl_Interp *interp, int objc
   ParseContext pc;
   NsfObject *obj;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   obj = (NsfObject *)clientData;
@@ -2861,7 +2861,7 @@ static int
 NsfObjInfoClassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv) {
   NsfObject *obj;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   obj = (NsfObject *)clientData;
@@ -2882,7 +2882,7 @@ NsfObjInfoFilterguardMethodStub(ClientData clientData, Tcl_Interp *interp, int o
   ParseContext pc;
   NsfObject *obj;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   obj = (NsfObject *)clientData;
@@ -2906,7 +2906,7 @@ NsfObjInfoFiltersMethodStub(ClientData clientData, Tcl_Interp *interp, int objc,
   ParseContext pc;
   NsfObject *obj;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   obj = (NsfObject *)clientData;
@@ -2931,7 +2931,7 @@ NsfObjInfoForwardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc,
   ParseContext pc;
   NsfObject *obj;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   obj = (NsfObject *)clientData;
@@ -2956,7 +2956,7 @@ NsfObjInfoHasMixinMethodStub(ClientData clientData, Tcl_Interp *interp, int objc
   ParseContext pc;
   NsfObject *obj;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   obj = (NsfObject *)clientData;
@@ -2980,7 +2980,7 @@ NsfObjInfoHasTypeMethodStub(ClientData clientData, Tcl_Interp *interp, int objc,
   ParseContext pc;
   NsfObject *obj;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   obj = (NsfObject *)clientData;
@@ -3003,7 +3003,7 @@ static int
 NsfObjInfoHasnamespaceMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv) {
   NsfObject *obj;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   obj = (NsfObject *)clientData;
@@ -3024,7 +3024,7 @@ NsfObjInfoLookupFilterMethodStub(ClientData clientData, Tcl_Interp *interp, int 
   ParseContext pc;
   NsfObject *obj;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   obj = (NsfObject *)clientData;
@@ -3048,7 +3048,7 @@ NsfObjInfoLookupFiltersMethodStub(ClientData clientData, Tcl_Interp *interp, int
   ParseContext pc;
   NsfObject *obj;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   obj = (NsfObject *)clientData;
@@ -3072,7 +3072,7 @@ static int
 NsfObjInfoLookupMethodMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv) {
   NsfObject *obj;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   obj = (NsfObject *)clientData;
@@ -3093,7 +3093,7 @@ NsfObjInfoLookupMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int
   ParseContext pc;
   NsfObject *obj;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   obj = (NsfObject *)clientData;
@@ -3123,7 +3123,7 @@ NsfObjInfoLookupMixinsMethodStub(ClientData clientData, Tcl_Interp *interp, int 
   ParseContext pc;
   NsfObject *obj;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   obj = (NsfObject *)clientData;
@@ -3167,7 +3167,7 @@ NsfObjInfoLookupSlotsMethodStub(ClientData clientData, Tcl_Interp *interp, int o
   ParseContext pc;
   NsfObject *obj;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   obj = (NsfObject *)clientData;
@@ -3193,7 +3193,7 @@ NsfObjInfoMethodMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, 
   ParseContext pc;
   NsfObject *obj;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   obj = (NsfObject *)clientData;
@@ -3218,7 +3218,7 @@ NsfObjInfoMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc,
   ParseContext pc;
   NsfObject *obj;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   obj = (NsfObject *)clientData;
@@ -3245,7 +3245,7 @@ NsfObjInfoMixinguardMethodStub(ClientData clientData, Tcl_Interp *interp, int ob
   ParseContext pc;
   NsfObject *obj;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   obj = (NsfObject *)clientData;
@@ -3269,7 +3269,7 @@ NsfObjInfoMixinsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, 
   ParseContext pc;
   NsfObject *obj;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   obj = (NsfObject *)clientData;
@@ -3312,7 +3312,7 @@ static int
 NsfObjInfoNameMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv) {
   NsfObject *obj;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   obj = (NsfObject *)clientData;
@@ -3333,7 +3333,7 @@ NsfObjInfoObjectparameterMethodStub(ClientData clientData, Tcl_Interp *interp, i
   ParseContext pc;
   NsfObject *obj;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   obj = (NsfObject *)clientData;
@@ -3357,7 +3357,7 @@ static int
 NsfObjInfoParentMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv) {
   NsfObject *obj;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   obj = (NsfObject *)clientData;
@@ -3378,7 +3378,7 @@ NsfObjInfoPrecedenceMethodStub(ClientData clientData, Tcl_Interp *interp, int ob
   ParseContext pc;
   NsfObject *obj;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   obj = (NsfObject *)clientData;
@@ -3403,7 +3403,7 @@ NsfObjInfoSlotobjectsMethodStub(ClientData clientData, Tcl_Interp *interp, int o
   ParseContext pc;
   NsfObject *obj;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   obj = (NsfObject *)clientData;
@@ -3428,7 +3428,7 @@ NsfObjInfoVarsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
   ParseContext pc;
   NsfObject *obj;
 
-  assert(clientData != NULL);
+  NSF_nonnull_assert(clientData != NULL);
   assert(objc > 0);
 
   obj = (NsfObject *)clientData;

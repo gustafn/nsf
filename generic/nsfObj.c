@@ -360,7 +360,7 @@ MixinregFreeInternalRep(
 {
   Mixinreg *mixinRegPtr = (Mixinreg *)objPtr->internalRep.twoPtrValue.ptr1;
 
-  assert(mixinRegPtr != NULL);
+  nonnull_assert(mixinRegPtr != NULL);
   /*fprintf(stderr, "MixinregFreeInternalRep freeing mixinReg %p class %p guard %p refcount before decr %d\n",
     mixinRegPtr, mixinRegPtr->mixin, mixinRegPtr->guardObj, (&(mixinRegPtr->mixin)->object)->refCount);*/
 
@@ -389,7 +389,7 @@ MixinregDupInternalRep(
 {
   register Mixinreg *srcPtr = (Mixinreg *)srcObjPtr->internalRep.twoPtrValue.ptr1, *dstPtr;
 
-  assert(srcPtr != NULL);
+  nonnull_assert(srcPtr != NULL);
 
 #if defined(METHOD_OBJECT_TRACE)
   fprintf(stderr, "MixinregDupInternalRep src %p dst %p\n",
@@ -514,10 +514,10 @@ MixinregSetFromAny(
 int
 NsfMixinregGet(Tcl_Interp *interp, Tcl_Obj *obj, NsfClass **clPtr, Tcl_Obj **guardObj) {
 
-  assert(interp != NULL);
-  assert(obj != NULL);
-  assert(clPtr != NULL);
-  assert(guardObj != NULL);
+  nonnull_assert(interp != NULL);
+  nonnull_assert(obj != NULL);
+  nonnull_assert(clPtr != NULL);
+  nonnull_assert(guardObj != NULL);
 
   if (obj->typePtr == &NsfMixinregObjType) {
     Mixinreg *mixinRegPtr = obj->internalRep.twoPtrValue.ptr1;
@@ -629,7 +629,7 @@ FilterregFreeInternalRep(
 {
   Filterreg *filterregPtr = (Filterreg *)objPtr->internalRep.twoPtrValue.ptr1;
 
-  assert(filterregPtr != NULL);
+  nonnull_assert(filterregPtr != NULL);
 
   /*fprintf(stderr, "FilterregFreeInternalRep freeing filterreg %p class %p guard %p\n",
     filterregPtr, filterregPtr->class, filterregPtr->guardObj);*/
@@ -763,9 +763,9 @@ FilterregSetFromAny(
 int
 NsfFilterregGet(Tcl_Interp *UNUSED(interp), Tcl_Obj *obj, Tcl_Obj **filterObj, Tcl_Obj **guardObj) {
 
-  assert(obj != NULL);
-  assert(filterObj != NULL);
-  assert(guardObj != NULL);
+  nonnull_assert(obj != NULL);
+  nonnull_assert(filterObj != NULL);
+  nonnull_assert(guardObj != NULL);
 
   if (obj->typePtr == &NsfFilterregObjType) {
     Filterreg *filterregPtr = obj->internalRep.twoPtrValue.ptr1;

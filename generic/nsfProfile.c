@@ -68,8 +68,8 @@ NsfProfileFillTable(Tcl_HashTable *table, const char *keyStr, double totalMicroS
   Tcl_HashEntry *hPtr;
   int isNew;
 
-  assert(table != NULL);
-  assert(keyStr != NULL);
+  nonnull_assert(table != NULL);
+  nonnull_assert(keyStr != NULL);
 
   hPtr = Tcl_CreateHashEntry(table, keyStr, &isNew);
   if (isNew != 0) {
@@ -166,7 +166,7 @@ GetPair(Tcl_Interp *interp, Tcl_Obj *objPtr, int verbose, Tcl_Obj **nameObjPtr, 
 
   if (Tcl_ListObjGetElements(interp, objPtr, &oc, &ov) != TCL_OK) {
     if (verbose) {
-      NsfLog(interp, NSF_LOG_WARN, "invalid list element '%s'", ObjStr(objPtr));
+      NsfLog(interp, NSF_LOG_WARN, "nsfprofile: invalid list element '%s'", ObjStr(objPtr));
       result = TCL_ERROR;
     }
   } else {
@@ -177,13 +177,13 @@ GetPair(Tcl_Interp *interp, Tcl_Obj *objPtr, int verbose, Tcl_Obj **nameObjPtr, 
         *nameObjPtr = ov[0];
       } else {
         if (verbose) {
-          NsfLog(interp, NSF_LOG_WARN, "second element of '%s' must be an integer", ObjStr(objPtr));
+          NsfLog(interp, NSF_LOG_WARN, "nsfprofile: second element of '%s' must be an integer", ObjStr(objPtr));
           result = TCL_ERROR;
         }
       }
     } else {
       if (verbose) {
-        NsfLog(interp, NSF_LOG_WARN, "list element '%s' not a valid pair", ObjStr(objPtr));
+        NsfLog(interp, NSF_LOG_WARN, "nsfprofile: list element '%s' not a valid pair", ObjStr(objPtr));
         result = TCL_ERROR;
       }
     }
@@ -215,7 +215,7 @@ NsfProfileTrace(Tcl_Interp *interp, int withEnable, int withVerbose, int withDon
   int              oldProfileState, oc;
   Tcl_Obj        **ov;
 
-  assert(interp != NULL);
+  nonnull_assert(interp != NULL);
 
   rst = RUNTIME_STATE(interp);
   profilePtr = &rst->profile;
@@ -228,7 +228,7 @@ NsfProfileTrace(Tcl_Interp *interp, int withEnable, int withVerbose, int withDon
    */
   if (withEnable == 1) {
     if (rst->doProfile == 1) {
-      NsfLog(interp, NSF_LOG_WARN, "tracing is already active");
+      NsfLog(interp, NSF_LOG_WARN, "nsfprofile: tracing is already active");
     } else {
       /*
        * Activate profile trace.
@@ -238,7 +238,7 @@ NsfProfileTrace(Tcl_Interp *interp, int withEnable, int withVerbose, int withDon
          * A list of cammands was provided
          */
         if (Tcl_ListObjGetElements(interp, builtinObjs, &oc, &ov) != TCL_OK) {
-          NsfLog(interp, NSF_LOG_WARN, "argument '%s' is not a list of commands", ObjStr(builtinObjs));
+          NsfLog(interp, NSF_LOG_WARN, "nsfprofile: argument '%s' is not a list of commands", ObjStr(builtinObjs));
         } else {
           NsfShadowTclCommandInfo *ti = NEW_ARRAY(NsfShadowTclCommandInfo, oc);
           int i;
@@ -250,7 +250,7 @@ NsfProfileTrace(Tcl_Interp *interp, int withEnable, int withVerbose, int withDon
             if (GetPair(interp, ov[i], 1, &nameObj, &nrArgs) == TCL_OK) {
               ti[i].nrArgs = nrArgs;
               if (NsfReplaceCommand(interp, nameObj, Nsf_ProfileFilterObjCmd, &ti[i], &ti[i]) != TCL_OK) {
-                NsfLog(interp, NSF_LOG_WARN, "List element '%s' is not a command", ObjStr(nameObj));
+                NsfLog(interp, NSF_LOG_WARN, "nsfprofile: list element '%s' is not a command", ObjStr(nameObj));
               }
             }
           }
@@ -267,7 +267,7 @@ NsfProfileTrace(Tcl_Interp *interp, int withEnable, int withVerbose, int withDon
     if (profilePtr->shadowedObjs != NULL) {
 
       if (Tcl_ListObjGetElements(interp, profilePtr->shadowedObjs, &oc, &ov) != TCL_OK) {
-        NsfLog(interp, NSF_LOG_WARN, "shadowed objects are apparently not a list");
+        NsfLog(interp, NSF_LOG_WARN, "nsfprofile: shadowed objects are apparently not a list");
       } else {
         int i;
 
@@ -285,7 +285,7 @@ NsfProfileTrace(Tcl_Interp *interp, int withEnable, int withVerbose, int withDon
       FREE(NsfShadowTclCommandInfo*, profilePtr->shadowedTi);
       profilePtr->shadowedTi = NULL;
       profilePtr->shadowedObjs = NULL;
-      fprintf(stderr, "freed profile information\n");
+      /*fprintf(stderr, "freed profile information\n");*/
     }
 
   }
@@ -412,9 +412,9 @@ static void NsfProfileMethodLabel(Tcl_DString *dsPtr, NsfObject *obj, NsfClass *
 void
 NsfProfileObjectLabel(Tcl_DString *dsPtr, NsfObject *obj, NsfClass *cl, const char *methodName) {
 
-  assert(dsPtr != NULL);
-  assert(obj != NULL);
-  assert(methodName != NULL);
+  nonnull_assert(dsPtr != NULL);
+  nonnull_assert(obj != NULL);
+  nonnull_assert(methodName != NULL);
 
   Tcl_DStringAppend(dsPtr, ObjectName(obj), -1);
   Tcl_DStringAppend(dsPtr, " ", 1);
@@ -424,9 +424,9 @@ NsfProfileObjectLabel(Tcl_DString *dsPtr, NsfObject *obj, NsfClass *cl, const ch
 static void
 NsfProfileMethodLabel(Tcl_DString *dsPtr, NsfObject *obj, NsfClass *cl, const char *methodName) {
 
-  assert(dsPtr != NULL);
-  assert(obj != NULL);
-  assert(methodName != NULL);
+  nonnull_assert(dsPtr != NULL);
+  nonnull_assert(obj != NULL);
+  nonnull_assert(methodName != NULL);
 
   if (cl != NULL) {
     Tcl_DStringAppend(dsPtr, ObjStr(cl->object.cmdName), -1);
@@ -535,8 +535,8 @@ NsfProfileRecordMethodData(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
   NsfProfile *profilePtr = &rst->profile;
   struct timeval trt;
 
-  assert(interp != NULL);
-  assert(cscPtr != NULL);
+  nonnull_assert(interp != NULL);
+  nonnull_assert(cscPtr != NULL);
 
   gettimeofday(&trt, NULL);
 
@@ -620,8 +620,8 @@ NsfProfileRecordProcData(Tcl_Interp *interp, const char *methodName, long startS
   double totalMicroSec;
   struct timeval trt;
 
-  assert(interp != NULL);
-  assert(methodName != NULL);
+  nonnull_assert(interp != NULL);
+  nonnull_assert(methodName != NULL);
 
   gettimeofday(&trt, NULL);
 
@@ -658,7 +658,7 @@ NsfProfileClearTable(Tcl_HashTable *table) {
   Tcl_HashSearch hSrch;
   Tcl_HashEntry *hPtr;
 
-  assert(table != NULL);
+  nonnull_assert(table != NULL);
 
   for (hPtr = Tcl_FirstHashEntry(table, &hSrch); hPtr;
        hPtr = Tcl_NextHashEntry(&hSrch)) {
@@ -689,7 +689,7 @@ NsfProfileClearData(Tcl_Interp *interp) {
   NsfProfile *profilePtr = &RUNTIME_STATE(interp)->profile;
   struct timeval trt;
 
-  assert(interp != NULL);
+  nonnull_assert(interp != NULL);
 
   NsfProfileClearTable(&profilePtr->objectData);
   NsfProfileClearTable(&profilePtr->methodData);
@@ -727,8 +727,8 @@ NsfProfileGetTable(Tcl_Interp *interp, Tcl_HashTable *table) {
   Tcl_HashSearch hSrch;
   Tcl_HashEntry *hPtr;
 
-  assert(interp != NULL);
-  assert(table != NULL);
+  nonnull_assert(interp != NULL);
+  nonnull_assert(table != NULL);
 
   for (hPtr = Tcl_FirstHashEntry(table, &hSrch); hPtr;
        hPtr = Tcl_NextHashEntry(&hSrch)) {
@@ -769,7 +769,7 @@ NsfProfileGetData(Tcl_Interp *interp) {
   long totalMicroSec;
   struct timeval trt;
 
-  assert(interp != NULL);
+  nonnull_assert(interp != NULL);
 
   gettimeofday(&trt, NULL);
   totalMicroSec = (trt.tv_sec - profilePtr->startSec) * 1000000 + (trt.tv_usec - profilePtr->startUSec);
@@ -805,7 +805,7 @@ NsfProfileInit(Tcl_Interp *interp) {
   NsfProfile *profilePtr = &RUNTIME_STATE(interp)->profile;
   struct timeval trt;
 
-  assert(interp != NULL);
+  nonnull_assert(interp != NULL);
 
   Tcl_InitHashTable(&profilePtr->objectData, TCL_STRING_KEYS);
   Tcl_InitHashTable(&profilePtr->methodData, TCL_STRING_KEYS);
@@ -838,7 +838,7 @@ void
 NsfProfileFree(Tcl_Interp *interp) {
   NsfProfile *profilePtr = &RUNTIME_STATE(interp)->profile;
 
-  assert(interp != NULL);
+  nonnull_assert(interp != NULL);
 
   NsfProfileClearData(interp);
   Tcl_DeleteHashTable(&profilePtr->objectData);

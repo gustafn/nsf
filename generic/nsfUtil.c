@@ -100,8 +100,8 @@ Nsf_ltoa(char *buf, long i, int *lengthPtr) {
   char tmp[LONG_AS_STRING], *pointer = &tmp[1], *string, *p;
   *tmp = 0;
 
-  assert(buf != NULL);
-  assert(lengthPtr != NULL);
+  nonnull_assert(buf != NULL);
+  nonnull_assert(lengthPtr != NULL);
 
   if (i < 0) {
     i = -i;
@@ -155,7 +155,7 @@ char *
 NsfStringIncr(NsfStringIncrStruct *iss) {
   char newch, *currentChar;
 
-  assert(iss != NULL);
+  nonnull_assert(iss != NULL);
 
   currentChar = iss->buffer + iss->bufSize - 2;
   newch = *(alphabet + chartable[(unsigned)*currentChar]);
@@ -220,7 +220,7 @@ NsfStringIncrInit(NsfStringIncrStruct *iss) {
   int i = 0;
   const size_t bufSize = (blockIncrement > 2) ? blockIncrement : 2;
 
-  assert(iss != NULL);
+  nonnull_assert(iss != NULL);
 
   for (p=alphabet; *p; p++) {
     chartable[(int)*p] = ++i;
@@ -242,7 +242,7 @@ NsfStringIncrInit(NsfStringIncrStruct *iss) {
 void
 NsfStringIncrFree(NsfStringIncrStruct *iss) {
 
-  assert(iss != NULL);
+  nonnull_assert(iss != NULL);
 
   ckfree(iss->buffer);
 }

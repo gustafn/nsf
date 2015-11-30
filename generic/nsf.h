@@ -361,6 +361,13 @@ typedef struct Nsf_Param {
 # define NSF_nonnull(ARGS)
 #endif
 
+#if __GNUC_PREREQ(6, 0)
+# define NSF_nonnull_assert(assertion) 
+#else
+# define NSF_nonnull_assert(assertion) assert((assertion))
+#endif
+
+
 /* unforunately, we can't combine NSF_attribute_format() with functions called via stubs */
 #if __GNUC_PREREQ(3, 4)
 # define NSF_attribute_format(ARGS) __attribute__((format ARGS))

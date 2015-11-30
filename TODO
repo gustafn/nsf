@@ -5646,9 +5646,32 @@ Profile trace enhancements:
 - generalized NsfReplaceCommand* logic to become more general
   usable (e.g. for the builtins mechanism of nsf::__profile_trace)
 
+- New macros NSF_nonnull_assert() and nonnull_assert()
+  Background: The unreleased gcc6 with "-pedantic"
+  complaints since recently about asserts, in which nonnull
+  conditions implied by nonnull declarations are explicitly
+  tested, and spits out warnings like
+      ... warning: nonnull argument ... compared to NULL ...
+  The new macros turns off asserts, when gcc6 is used.
+
 
 ========================================================================
 TODO:
+- gcc6:
+  * ISOBJ(methodObj); will raise a warning, when methodObj is decared as nonnull
+  * Same with ObjectName() and ClassName()
+  * gcc6 seems to have a bug: when e.g. a variable "foo" is declared as nonnull,
+    then the construct
+
+      do {
+        ...
+        foo = foo->nextPtr;
+      } while (foo != NULL);
+
+    whill raise a warning, despite of the fact that foo is overwritten.
+  * a few more for-loops have to be turned into do/while loops to avaid the warnings.
+
+
 - maybe use as well "$obj eval $cmd" for valuechangedcmd
   Consequence: commands like the folowings become more complicated
   ::nx Class {

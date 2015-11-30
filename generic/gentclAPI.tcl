@@ -367,7 +367,7 @@ proc genstubs {} {
     if {[dict get $::definitions($key) clientData] ne ""} {
       set stubNN "NSF_nonnull(1) "
       set NN " NSF_nonnull(2)"
-      regsub \n\n $intro "\n\n  assert(clientData != NULL);\n" intro
+      regsub \n\n $intro "\n\n  NSF_nonnull_assert(clientData != NULL);\n" intro
     } else {
       set stubNN ""
       set NN ""

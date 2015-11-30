@@ -148,8 +148,8 @@ Nsf_DStringPrintf(Tcl_DString *dsPtr, const char *fmt, ...)
 {
     va_list         ap;
 
-    assert(dsPtr != NULL);
-    assert(fmt != NULL);
+    nonnull_assert(dsPtr != NULL);
+    nonnull_assert(fmt != NULL);
 
     va_start(ap, fmt);
     NsfDStringVPrintf(dsPtr, fmt, ap);
@@ -174,8 +174,8 @@ Nsf_DStringPrintf(Tcl_DString *dsPtr, const char *fmt, ...)
 void
 NsfDStringArgv(Tcl_DString *dsPtr, int objc, Tcl_Obj *CONST objv[]) {
 
-  assert(dsPtr != NULL);
-  assert(objv != NULL);
+  nonnull_assert(dsPtr != NULL);
+  nonnull_assert(objv != NULL);
 
   if (objc > 0) {
     int i;
@@ -281,8 +281,8 @@ NsfObjWrongArgs(Tcl_Interp *interp, const char *msg, Tcl_Obj *cmdNameObj,
 		Tcl_Obj *methodPathObj, char *arglist) {
   int need_space = 0;
 
-  assert(interp != NULL);
-  assert(msg != NULL);
+  nonnull_assert(interp != NULL);
+  nonnull_assert(msg != NULL);
 
   Tcl_ResetResult(interp);
   Tcl_AppendResult(interp, msg, " should be \"", (char *) NULL);
@@ -333,9 +333,9 @@ NsfArgumentError(Tcl_Interp *interp, const char *errorMsg, Nsf_Param const *para
               Tcl_Obj *cmdNameObj, Tcl_Obj *methodPathObj) {
   Tcl_Obj *argStringObj = NsfParamDefsSyntax(interp, paramPtr, NULL, NULL);
 
-  assert(interp != NULL);
-  assert(errorMsg != NULL);
-  assert(paramPtr != NULL);
+  nonnull_assert(interp != NULL);
+  nonnull_assert(errorMsg != NULL);
+  nonnull_assert(paramPtr != NULL);
 
   NsfObjWrongArgs(interp, errorMsg, cmdNameObj, methodPathObj, ObjStr(argStringObj));
   DECR_REF_COUNT2("paramDefsObj", argStringObj);
@@ -365,10 +365,10 @@ NsfUnexpectedArgumentError(Tcl_Interp *interp, const char *argumentString,
 			   Tcl_Obj *methodPathObj) {
   Tcl_DString ds, *dsPtr = &ds;
 
-  assert(interp != NULL);
-  assert(argumentString != NULL);
-  assert(paramPtr != NULL);
-  assert(methodPathObj != NULL);
+  nonnull_assert(interp != NULL);
+  nonnull_assert(argumentString != NULL);
+  nonnull_assert(paramPtr != NULL);
+  nonnull_assert(methodPathObj != NULL);
 
   DSTRING_INIT(dsPtr);
   Tcl_DStringAppend(dsPtr, "invalid argument '", -1);
@@ -405,11 +405,11 @@ NsfUnexpectedNonposArgumentError(Tcl_Interp *interp,
   Tcl_DString ds, *dsPtr = &ds;
   Nsf_Param const *pPtr;
 
-  assert(interp != NULL);
-  assert(argumentString != NULL);
-  assert(currentParamPtr != NULL);
-  assert(paramPtr != NULL);
-  assert(methodPathObj != NULL);
+  nonnull_assert(interp != NULL);
+  nonnull_assert(argumentString != NULL);
+  nonnull_assert(currentParamPtr != NULL);
+  nonnull_assert(paramPtr != NULL);
+  nonnull_assert(methodPathObj != NULL);
 
   DSTRING_INIT(dsPtr);
   Tcl_DStringAppend(dsPtr, "invalid non-positional argument '", -1);
@@ -450,9 +450,9 @@ int
 NsfDispatchClientDataError(Tcl_Interp *interp, ClientData clientData,
 			   const char *what, const char *methodName) {
 
-  assert(interp != NULL);
-  assert(what != NULL);
-  assert(methodName != NULL);
+  nonnull_assert(interp != NULL);
+  nonnull_assert(what != NULL);
+  nonnull_assert(methodName != NULL);
 
   if (clientData != NULL) {
     return NsfPrintError(interp, "method %s not dispatched on valid %s",
@@ -481,7 +481,7 @@ NsfDispatchClientDataError(Tcl_Interp *interp, ClientData clientData,
 int
 NsfNoCurrentObjectError(Tcl_Interp *interp, const char *what) {
 
-  assert(interp != NULL);
+  nonnull_assert(interp != NULL);
 
   return NsfPrintError(interp, "no current object; %s called outside the context of a Next Scripting method",
                        (what != NULL) ? what : "command");

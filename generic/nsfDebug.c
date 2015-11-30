@@ -63,7 +63,7 @@
 void
 NsfReportVars(Tcl_Interp *interp) {
 
-  assert(interp != NULL);
+  nonnull_assert(interp != NULL);
 
   Tcl_SetVar(interp, "::nsf::version", NSF_VERSION, TCL_GLOBAL_ONLY);
   Tcl_SetVar(interp, "::nsf::patchLevel", NSF_PATCHLEVEL, TCL_GLOBAL_ONLY);
@@ -119,7 +119,7 @@ NsfStackDump(Tcl_Interp *interp) {
   CallFrame  *f, *v;
   Tcl_Obj    *varCmdObj;
 
-  assert(interp != NULL);
+  nonnull_assert(interp != NULL);
 
   f = iPtr->framePtr;
   v = iPtr->varFramePtr;
@@ -184,8 +184,8 @@ void
 NsfPrintObjv(char *string, int objc, Tcl_Obj *CONST objv[]) {
   int j;
 
-  assert(string != NULL);
-  assert(objv != NULL);
+  nonnull_assert(string != NULL);
+  nonnull_assert(objv != NULL);
 
   fprintf(stderr, "%s", string);
   for (j = 0; j < objc; j++) {
@@ -218,7 +218,7 @@ NsfMemCountGetTable(int **initialized) {
   static Tcl_ThreadDataKey memCountFlagKey;
   Tcl_HashTable *tablePtr;
 
-  assert(initialized != NULL);
+  nonnull_assert(initialized != NULL);
 
   tablePtr = (Tcl_HashTable *)Tcl_GetThreadData(&memCountTableKey, sizeof(Tcl_HashTable));
   *initialized = (int *)Tcl_GetThreadData(&memCountFlagKey, sizeof(int));
@@ -252,7 +252,7 @@ NsfMemCountAlloc(char *id, void *p) {
   Tcl_HashTable *tablePtr = NsfMemCountGetTable(&tableInitialized);
   Tcl_HashEntry *hPtr;
 
-  assert(id != NULL);
+  nonnull_assert(id != NULL);
 
   if (!*tableInitialized) {
     fprintf(stderr, "+++ alloc %s %p\n", id, p);
@@ -303,7 +303,7 @@ NsfMemCountFree(char *id, void *p) {
   Tcl_HashTable *tablePtr = NsfMemCountGetTable(&tableInitialized);
   Tcl_HashEntry *hPtr;
 
-  assert(id != NULL);
+  nonnull_assert(id != NULL);
 
   if (!*tableInitialized) {
     fprintf(stderr, "+++ free %s %p !tableInitialized !\n", id, p);

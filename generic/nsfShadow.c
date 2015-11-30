@@ -60,9 +60,9 @@ NsfReplaceCommandCleanup(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfShadowTclComma
   Tcl_Command  cmd;
   int          result = TCL_OK;
 
-  assert(interp != NULL);
-  assert(nameObj != NULL);
-  assert(ti != NULL);
+  nonnull_assert(interp != NULL);
+  nonnull_assert(nameObj != NULL);
+  nonnull_assert(ti != NULL);
 
   /*fprintf(stderr," cleanup for %s  ti=%p in %p\n", NsfGlobalStrings[name], ti, interp);*/
   cmd = Tcl_GetCommandFromObj(interp, nameObj);
@@ -104,10 +104,10 @@ NsfReplaceCommandCheck(Tcl_Interp *interp, Tcl_Obj *nameObj, Tcl_ObjCmdProc *pro
                        NsfShadowTclCommandInfo *ti) {
   Tcl_Command cmd;
 
-  assert(interp != NULL);
-  assert(nameObj != NULL);
-  assert(proc != NULL);
-  assert(ti != NULL);
+  nonnull_assert(interp != NULL);
+  nonnull_assert(nameObj != NULL);
+  nonnull_assert(proc != NULL);
+  nonnull_assert(ti != NULL);
 
   cmd = Tcl_GetCommandFromObj(interp, nameObj);
 
@@ -146,9 +146,9 @@ NsfReplaceCommand(Tcl_Interp *interp, Tcl_Obj *nameObj,
   Tcl_Command cmd;
   int result = TCL_OK;
 
-  assert(interp != NULL);
-  assert(nameObj != NULL);
-  assert(ti != NULL);
+  nonnull_assert(interp != NULL);
+  nonnull_assert(nameObj != NULL);
+  nonnull_assert(ti != NULL);
 
   /* fprintf(stderr,"NsfReplaceCommand %s\n", ObjStr(nameObj)); */
   cmd = Tcl_GetCommandFromObj(interp, nameObj);
@@ -199,8 +199,8 @@ static int
 Nsf_InfoBodyObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   Tcl_Command cmd;
 
-  assert(interp != NULL);
-  assert(objv != NULL);
+  nonnull_assert(interp != NULL);
+  nonnull_assert(objv != NULL);
 
   if (objc != 2) {
     /* wrong # args, let Tcl generate the error */
@@ -406,7 +406,7 @@ NsfShadowTclCommands(Tcl_Interp *interp, NsfShadowOperations load) {
   int rc = TCL_OK;
   NsfRuntimeState *rst = RUNTIME_STATE(interp);
 
-  assert(interp != NULL);
+  nonnull_assert(interp != NULL);
 
   if (load == SHADOW_LOAD) {
 
