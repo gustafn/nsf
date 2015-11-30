@@ -24163,17 +24163,21 @@ cmd __profile_trace NsfProfileTraceStub {
   {-argName "-enable" -required 1 -nrargs 1 -type boolean}
   {-argName "-verbose" -required 0 -nrargs 1 -type boolean}
   {-argName "-dontsave" -required 0 -nrargs 1 -type boolean}
+  {-argName "-builtins" -required 0 -nrargs 1 -type tclobj}
 }
 */
-static int NsfProfileTraceStub(Tcl_Interp *interp, int withEnable, int withVerbose, int withDontsave)
+static int NsfProfileTraceStub(Tcl_Interp *interp,
+                               int withEnable, int withVerbose, int withDontsave,
+                               Tcl_Obj *builtins)
   NSF_nonnull(1);
 
 static int
-NsfProfileTraceStub(Tcl_Interp *interp, int withEnable, int withVerbose, int withDontsave) {
+NsfProfileTraceStub(Tcl_Interp *interp, int withEnable, int withVerbose, int withDontsave, Tcl_Obj *builtins) {
+
   assert(interp != NULL);
 
 #if defined(NSF_PROFILE)
-  NsfProfileTrace(interp, withEnable, withVerbose, withDontsave);
+  NsfProfileTrace(interp, withEnable, withVerbose, withDontsave, builtins);
 #endif
   return TCL_OK;
 }
@@ -24728,6 +24732,17 @@ NsfFinalizeCmd(Tcl_Interp *interp, int withKeepvars) {
   int result;
 
   assert(interp != NULL);
+
+#if defined(NSF_PROFILE)
+  /*
+   * Check, if profile trace is still running. If so, delete it here.
+   * Interestingly, NsfLog() seems to be unavaliable at this place.
+   */
+  if (RUNTIME_STATE(interp)->doTrace == 1) {
+    NsfLog(interp, NSF_LOG_WARN, "tracing is still running, deactivate due to cleanup");
+    NsfProfileTrace(interp, 0, 0, 0, NULL);
+  }
+#endif
 
 #if defined(NSF_STACKCHECK)
   {NsfRuntimeState *rst = RUNTIME_STATE(interp);

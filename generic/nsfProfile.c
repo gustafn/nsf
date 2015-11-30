@@ -45,9 +45,6 @@ typedef struct NsfProfileData {
 } NsfProfileData;
 
 
-
-
-
 /*
  *----------------------------------------------------------------------
  * NsfProfileFillTable --
@@ -63,10 +60,10 @@ typedef struct NsfProfileData {
  *
  *----------------------------------------------------------------------
  */
-static void NsfProfileFillTable(Tcl_HashTable *table, char *keyStr, double totalMicroSec) nonnull(1) nonnull(2);
+static void NsfProfileFillTable(Tcl_HashTable *table, const char *keyStr, double totalMicroSec) nonnull(1) nonnull(2);
 
 static void
-NsfProfileFillTable(Tcl_HashTable *table, char *keyStr, double totalMicroSec) {
+NsfProfileFillTable(Tcl_HashTable *table, const char *keyStr, double totalMicroSec) {
   NsfProfileData *value;
   Tcl_HashEntry *hPtr;
   int isNew;
@@ -89,6 +86,114 @@ NsfProfileFillTable(Tcl_HashTable *table, char *keyStr, double totalMicroSec) {
 
 /*
  *----------------------------------------------------------------------
+ * Nsf_ProfileFilterObjCmd --
+ *
+ *    Stub command to include C-level commands in profile traces.
+ *
+ * Results:
+ *    Tcl result code
+ *
+ * Side effects:
+ *    Perform tracing
+ *
+ *----------------------------------------------------------------------
+ */
+static int
+Nsf_ProfileFilterObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  int result;
+  NsfShadowTclCommandInfo *ti;
+  struct timeval start;
+  const char *fullMethodName, *label;
+  Tcl_DString ds;
+
+  assert(cd);
+
+  fullMethodName = ObjStr(objv[0]);
+  ti = (NsfShadowTclCommandInfo *)cd;
+
+  if (ti->nrArgs == 0 || objc < 2) {
+    label = fullMethodName;
+  } else {
+    int i, nrArgs = objc;
+
+    if (nrArgs > ti->nrArgs) {
+      nrArgs = ti->nrArgs;
+    }
+
+    Tcl_DStringInit(&ds);
+    Tcl_DStringAppend(&ds, fullMethodName, -1);
+    for (i = 1; i<=nrArgs; i++) {
+      Tcl_DStringAppend(&ds, " ", 1);
+      Tcl_DStringAppend(&ds, ObjStr(objv[i]), -1);
+    }
+    label = ds.string;
+  }
+
+  NsfProfileTraceCallAppend(interp, label);
+
+  gettimeofday(&start, NULL);
+  result = Tcl_NRCallObjProc(interp, ti->proc, ti->clientData, objc, objv);
+  NsfProfileRecordProcData(interp, label, start.tv_sec, start.tv_usec);
+
+  if (label != fullMethodName) {
+    Tcl_DStringFree(&ds);
+  }
+  return result;
+}
+
+/*
+ *----------------------------------------------------------------------
+ * GetPair --
+ *
+ *    Split a Tcl_Obj into a nameObj and an integer value, if possible
+ *
+ * Results:
+ *    Tcl result
+ *
+ * Side effects:
+ *    Produce warnings for error cases, when "verbose" is on.
+ *
+ *----------------------------------------------------------------------
+ */
+static int
+GetPair(Tcl_Interp *interp, Tcl_Obj *objPtr, int verbose, Tcl_Obj **nameObjPtr, int *nrArgsPtr)
+  nonnull(1) nonnull(2) nonnull(4) nonnull(5);
+
+static int
+GetPair(Tcl_Interp *interp, Tcl_Obj *objPtr, int verbose, Tcl_Obj **nameObjPtr, int *nrArgsPtr) {
+  int result = TCL_OK, oc;
+  Tcl_Obj **ov;
+
+  if (Tcl_ListObjGetElements(interp, objPtr, &oc, &ov) != TCL_OK) {
+    if (verbose) {
+      NsfLog(interp, NSF_LOG_WARN, "invalid list element '%s'", ObjStr(objPtr));
+      result = TCL_ERROR;
+    }
+  } else {
+    if (oc == 1) {
+      *nameObjPtr = ov[0];
+    } else if (oc == 2) {
+      if (Tcl_GetIntFromObj(interp, ov[1], nrArgsPtr) == TCL_OK) {
+        *nameObjPtr = ov[0];
+      } else {
+        if (verbose) {
+          NsfLog(interp, NSF_LOG_WARN, "second element of '%s' must be an integer", ObjStr(objPtr));
+          result = TCL_ERROR;
+        }
+      }
+    } else {
+      if (verbose) {
+        NsfLog(interp, NSF_LOG_WARN, "list element '%s' not a valid pair", ObjStr(objPtr));
+        result = TCL_ERROR;
+      }
+    }
+  }
+
+  return result;
+}
+
+/*
+ *----------------------------------------------------------------------
  * NsfProfileTrace --
  *
  *    Function callable via tcl to control trace behavior.
@@ -103,12 +208,12 @@ NsfProfileFillTable(Tcl_HashTable *table, char *keyStr, double totalMicroSec) {
  *
  *----------------------------------------------------------------------
  */
-
 int
-NsfProfileTrace(Tcl_Interp *interp, int withEnable, int withVerbose, int withDontsave) {
+NsfProfileTrace(Tcl_Interp *interp, int withEnable, int withVerbose, int withDontsave, Tcl_Obj *builtinObjs) {
   NsfRuntimeState *rst;
-  NsfProfile *profilePtr;
-  int oldProfileState;
+  NsfProfile      *profilePtr;
+  int              oldProfileState, oc;
+  Tcl_Obj        **ov;
 
   assert(interp != NULL);
 
@@ -121,6 +226,70 @@ NsfProfileTrace(Tcl_Interp *interp, int withEnable, int withVerbose, int withDon
   /*
    * Turn automically profiling on&off, when trace is turned on/off
    */
+  if (withEnable == 1) {
+    if (rst->doProfile == 1) {
+      NsfLog(interp, NSF_LOG_WARN, "tracing is already active");
+    } else {
+      /*
+       * Activate profile trace.
+       */
+      if (builtinObjs != NULL) {
+        /*
+         * A list of cammands was provided
+         */
+        if (Tcl_ListObjGetElements(interp, builtinObjs, &oc, &ov) != TCL_OK) {
+          NsfLog(interp, NSF_LOG_WARN, "argument '%s' is not a list of commands", ObjStr(builtinObjs));
+        } else {
+          NsfShadowTclCommandInfo *ti = NEW_ARRAY(NsfShadowTclCommandInfo, oc);
+          int i;
+
+          for (i = 0; i < oc; i++) {
+            int nrArgs = 0;
+            Tcl_Obj *nameObj = NULL;
+
+            if (GetPair(interp, ov[i], 1, &nameObj, &nrArgs) == TCL_OK) {
+              ti[i].nrArgs = nrArgs;
+              if (NsfReplaceCommand(interp, nameObj, Nsf_ProfileFilterObjCmd, &ti[i], &ti[i]) != TCL_OK) {
+                NsfLog(interp, NSF_LOG_WARN, "List element '%s' is not a command", ObjStr(nameObj));
+              }
+            }
+          }
+          INCR_REF_COUNT(builtinObjs);
+          profilePtr->shadowedObjs = builtinObjs;
+          profilePtr->shadowedTi = ti;
+        }
+      }
+    }
+  } else {
+    /*
+     * Deactivate profile trace.
+     */
+    if (profilePtr->shadowedObjs != NULL) {
+
+      if (Tcl_ListObjGetElements(interp, profilePtr->shadowedObjs, &oc, &ov) != TCL_OK) {
+        NsfLog(interp, NSF_LOG_WARN, "shadowed objects are apparently not a list");
+      } else {
+        int i;
+
+        for (i = 0; i < oc; i++) {
+          int nrArgs = 0;
+          Tcl_Obj *nameObj = NULL;
+
+          if (GetPair(interp, ov[i], 0, &nameObj, &nrArgs) == TCL_OK) {
+            NsfReplaceCommandCleanup(interp, nameObj, &profilePtr->shadowedTi[i]);
+          }
+        }
+      }
+      INCR_REF_COUNT(profilePtr->shadowedObjs);
+
+      FREE(NsfShadowTclCommandInfo*, profilePtr->shadowedTi);
+      profilePtr->shadowedTi = NULL;
+      profilePtr->shadowedObjs = NULL;
+      fprintf(stderr, "freed profile information\n");
+    }
+
+  }
+
   rst->doProfile = withEnable;
 
   profilePtr->verbose = withVerbose;
@@ -159,7 +328,7 @@ ReportLine(Tcl_Interp *interp,  NsfRuntimeState *rst, const char *line) {
   savedResultObj = Tcl_GetObjResult(interp);
   INCR_REF_COUNT(savedResultObj);
 
-  NsfLog(interp, NSF_LOG_NOTICE, line);
+  NsfLog(interp, NSF_LOG_NOTICE, "%s", line);
 
   Tcl_SetObjResult(interp, savedResultObj);
   DECR_REF_COUNT(savedResultObj);
@@ -247,8 +416,6 @@ NsfProfileObjectLabel(Tcl_DString *dsPtr, NsfObject *obj, NsfClass *cl, const ch
   assert(obj != NULL);
   assert(methodName != NULL);
 
-  Tcl_DStringInit(dsPtr);
-
   Tcl_DStringAppend(dsPtr, ObjectName(obj), -1);
   Tcl_DStringAppend(dsPtr, " ", 1);
   Tcl_DStringAppend(dsPtr, ClassName(obj->cl), -1);
@@ -260,8 +427,6 @@ NsfProfileMethodLabel(Tcl_DString *dsPtr, NsfObject *obj, NsfClass *cl, const ch
   assert(dsPtr != NULL);
   assert(obj != NULL);
   assert(methodName != NULL);
-
-  Tcl_DStringInit(dsPtr);
 
   if (cl != NULL) {
     Tcl_DStringAppend(dsPtr, ObjStr(cl->object.cmdName), -1);
@@ -296,8 +461,9 @@ NsfProfileTraceCall(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, const c
     Tcl_DString ds, traceLabel;
 
     Tcl_DStringInit(&ds);
-    Tcl_DStringInit(&traceLabel);
     NsfProfileObjectLabel(&ds, object, cl, methodName);
+
+    Tcl_DStringInit(&traceLabel);
     Tcl_DStringAppendElement(&traceLabel, Tcl_DStringValue(&ds));
     Tcl_DStringAppend(&traceLabel, " ", 1);
 
@@ -325,9 +491,9 @@ NsfProfileTraceExit(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, const c
     totalMicroSec = (trt.tv_sec - callTime->tv_sec) * 1000000 + (trt.tv_usec - callTime->tv_usec);
 
     Tcl_DStringInit(&ds);
+    NsfProfileObjectLabel(&ds, object, cl, methodName);
 
     Tcl_DStringInit(&traceLabel);
-    NsfProfileObjectLabel(&ds, object, cl, methodName);
     Tcl_DStringAppendElement(&traceLabel, Tcl_DStringValue(&ds));
     Tcl_DStringAppend(&traceLabel, " ", 1);
 
@@ -381,6 +547,7 @@ NsfProfileRecordMethodData(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
     return;
   }
 
+  Tcl_DStringInit(&objectKey);
   NsfProfileObjectLabel(&objectKey, obj, NULL, cscPtr->methodName);
 
   Tcl_DStringInit(&methodInfo);
@@ -447,7 +614,7 @@ NsfProfileRecordMethodData(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
  *----------------------------------------------------------------------
  */
 void
-NsfProfileRecordProcData(Tcl_Interp *interp, char *methodName, long startSec, long startUsec) {
+NsfProfileRecordProcData(Tcl_Interp *interp, const char *methodName, long startSec, long startUsec) {
   NsfRuntimeState *rst = RUNTIME_STATE(interp);
   NsfProfile *profilePtr = &rst->profile;
   double totalMicroSec;

@@ -5637,6 +5637,16 @@ Removed implicit substdefault for configure parameters in nx:
 - Refactor trace and debug output to deliver lists.
   This makes it easier to postprocess the results from Tcl.
 
+Profile trace enhancements:
+- add optional argument "-builtins" to nsf::__profile_trace
+  to trace a selected list of builtins. Every element of the
+  list passed to "-builtins" might contain a cmd name and
+  optionally a maximum number of arguments to be shown
+  (typically 0 or 1)
+- generalized NsfReplaceCommand* logic to become more general
+  usable (e.g. for the builtins mechanism of nsf::__profile_trace)
+
+
 ========================================================================
 TODO:
 - maybe use as well "$obj eval $cmd" for valuechangedcmd

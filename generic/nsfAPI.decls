@@ -61,6 +61,7 @@ cmd __profile_trace NsfProfileTraceStub {
   {-argName "-enable" -required 1 -nrargs 1 -type boolean}
   {-argName "-verbose" -required 0 -nrargs 1 -type boolean}
   {-argName "-dontsave" -required 0 -nrargs 1 -type boolean}
+  {-argName "-builtins" -required 0 -nrargs 1 -type tclobj}
 }
 
 cmd __unset_unknown_args NsfUnsetUnknownArgsCmd {}

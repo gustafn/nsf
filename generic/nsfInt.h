@@ -309,8 +309,8 @@ typedef struct NsfMemCounter {
   MEM_COUNT_ALLOC("INCR_REF_COUNT-" name,(A)); Tcl_IncrRefCount((A))
 
 #define ObjStr(obj) ((obj)->bytes) ? ((obj)->bytes) : Tcl_GetString(obj)
-#define ClassName(cl) (((cl) ? ObjStr((cl)->object.cmdName) : "NULL"))
-#define ObjectName(obj) (((obj) ? ObjStr((obj)->cmdName) : "NULL"))
+#define ClassName(cl) (((cl) != NULL) ? ObjStr((cl)->object.cmdName) : "NULL")
+#define ObjectName(obj) (((obj) != NULL) ? ObjStr((obj)->cmdName) : "NULL")
 
 #ifdef OBJDELETION_TRACE
 # define PRINTOBJ(ctx,obj) \
@@ -737,6 +737,7 @@ EXTERN NsfClassOpt *NsfRequireClassOpt(/*@notnull@*/ NsfClass *cl) nonnull(1) re
 typedef struct NsfShadowTclCommandInfo {
   TclObjCmdProcType proc;
   ClientData clientData;
+  int nrArgs;
 } NsfShadowTclCommandInfo;
 typedef enum {SHADOW_LOAD=1, SHADOW_UNLOAD=0, SHADOW_REFETCH=2} NsfShadowOperations;
 
@@ -754,6 +755,14 @@ int NsfShadowTclCommands(Tcl_Interp *interp, NsfShadowOperations load)
 Tcl_Obj *NsfMethodObj(NsfObject *object, int methodIdx)
   nonnull(1);
 
+int NsfReplaceCommandCleanup(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfShadowTclCommandInfo *ti)
+  nonnull(1) nonnull(2) nonnull(3);
+
+int NsfReplaceCommand(Tcl_Interp *interp, Tcl_Obj *nameObj,
+		      Tcl_ObjCmdProc *nsfReplacementProc,
+		      ClientData cd,
+		      NsfShadowTclCommandInfo *ti)
+  nonnull(1) nonnull(2) nonnull(5);
 
 
 /*
@@ -852,7 +861,8 @@ typedef struct NsfProfile {
   int depth;
   int verbose;
   int inmemory;
-
+  Tcl_Obj *shadowedObjs;
+  NsfShadowTclCommandInfo *shadowedTi;
 } NsfProfile;
 
 # define NSF_PROFILE_TIME_DATA struct timeval profile_trt
@@ -990,13 +1000,13 @@ EXTERN void NsfCleanupObject_(NsfObject *object) nonnull(1);
 #if defined(NSF_PROFILE)
 EXTERN void NsfProfileRecordMethodData(Tcl_Interp* interp, NsfCallStackContent *cscPtr)
   nonnull(1) nonnull(2);
-EXTERN void NsfProfileRecordProcData(Tcl_Interp *interp, char *methodName, long startSec, long startUsec)
+EXTERN void NsfProfileRecordProcData(Tcl_Interp *interp, const char *methodName, long startSec, long startUsec)
   nonnull(1) nonnull(2);
 EXTERN void NsfProfileInit(Tcl_Interp *interp) nonnull(1);
 EXTERN void NsfProfileFree(Tcl_Interp *interp) nonnull(1);
 EXTERN void NsfProfileClearData(Tcl_Interp *interp) nonnull(1);
 EXTERN void NsfProfileGetData(Tcl_Interp *interp) nonnull(1);
-EXTERN int NsfProfileTrace(Tcl_Interp *interp, int withEnable, int withVerbose, int withInmemory);
+EXTERN int NsfProfileTrace(Tcl_Interp *interp, int withEnable, int withVerbose, int withInmemory, Tcl_Obj *builtins);
 
 EXTERN void NsfProfileObjectLabel(Tcl_DString *dsPtr, NsfObject *obj, NsfClass *cl, const char *methodName)
   nonnull(1) nonnull(2) nonnull(4);
