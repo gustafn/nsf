@@ -2586,7 +2586,7 @@ naming using multiple layers of subcommands).
 ----------------
 |[source,tcl]
 ----------------
-cd # Check if object is an NX class
+# Check if object is an NX class
 /obj/ has type ::nx::Class
 
 # Check if object is a class in one of the
