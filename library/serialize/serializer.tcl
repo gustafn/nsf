@@ -780,7 +780,12 @@ namespace eval ::nx::serializer {
     :public object method serializeExportedMethod {object kind name s} {
       # todo: object modifier is missing
       set :targetName $object
-      return [:method-serialize $object $name "" $s]
+      if {$kind eq "inst"} {
+        set modifier ""
+      } else {
+        set modifier "object"
+      }
+      return [:method-serialize $object $name $modifier $s]
     }
 
     :object method method-serialize {o m modifier s} {
