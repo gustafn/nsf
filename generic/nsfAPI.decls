@@ -441,6 +441,8 @@ classMethod superclass NsfCSuperclassMethod {
 #
 # info object methods
 #
+objectInfoMethod baseclass NsfObjInfoBaseclassMethod {
+}
 objectInfoMethod children NsfObjInfoChildrenMethod {
   {-argName "-type" -required 0 -type class}
   {-argName "pattern" -required 0}

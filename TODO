@@ -5657,6 +5657,7 @@ Profile trace enhancements:
 - new introspection methods:
      "/obj/ info object method callprotection /m/"
      "/cls/ info method callprotection /m/"
+     "/obj/ info baseclass"
 - extended regression test
 
 ========================================================================
@@ -5664,6 +5665,7 @@ TODO:
 - add to doc:
    info object method callprotection
    info method callprotection
+   info baseclass
 
 - gcc6:
   * ISOBJ(methodObj); will raise a warning, when methodObj is decared as nonnull

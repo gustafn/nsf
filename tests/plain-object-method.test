@@ -11,7 +11,7 @@ nx::test case plain-methods-0 {
   ? {o filters set f} "::o: unable to dispatch method 'filters'"
 
   ? {lsort [o info object methods]} "f"
-  ? {lsort [o info]} "valid submethods of ::o info: children class has info lookup name object parent precedence variable vars"
+  ? {lsort [o info]} "valid submethods of ::o info: baseclass children class has info lookup name object parent precedence variable vars"
 }
 
 #
@@ -60,7 +60,7 @@ nx::test case plain-methods-1 {
   ? {o info filters} ""
 
   ? {lsort [o info object methods]} "a f foo fwd p v2"
-  ? {lsort [o info]} "valid submethods of ::o info: children class filters has info lookup method methods mixins name object parent precedence slots variable variables vars"
+  ? {lsort [o info]} "valid submethods of ::o info: baseclass children class filters has info lookup method methods mixins name object parent precedence slots variable variables vars"
 }
 
 #

@@ -73,6 +73,7 @@ set ::nxdoc::include(::nsf::methods::class::mixinguard) 0
 set ::nxdoc::include(::nsf::methods::class::new) 0
 set ::nxdoc::include(::nsf::methods::class::recreate) 0
 set ::nxdoc::include(::nsf::methods::class::superclass) 0
+set ::nxdoc::include(::nsf::methods::object::info::baseclass) 0
 set ::nxdoc::include(::nsf::methods::object::info::children) 0
 set ::nxdoc::include(::nsf::methods::object::info::class) 0
 set ::nxdoc::include(::nsf::methods::object::info::filterguard) 0

@@ -27,12 +27,14 @@ proc ? {cmd expected {msg ""}} {
 ? {::nsf::is metaclass nx::Object} 0
 ? {nx::Object info superclasses} ""
 ? {nx::Object info class} ::nx::Class
+? {nx::Object info baseclass} ::nx::Object
 
 ? {::nsf::object::exists nx::Class} 1
 ? {::nsf::is class nx::Class} 1
 ? {::nsf::is metaclass nx::Class} 1
 ? {nx::Class info superclasses} ::nx::Object
 ? {nx::Class info class} ::nx::Class
+? {nx::Class info baseclass} ::nx::Object
 
 #
 # Minimal argument passing tests for early problem detection
@@ -82,6 +84,7 @@ nx::Object create o
 ? {::nsf::is class o} 0
 ? {::nsf::is metaclass o} 0
 ? {o info class} ::nx::Object
+? {o info baseclass} ::nx::Object
 ? {nx::Object info instances o} ::o
 ? {nx::Object info instances ::o} ::o
 o destroy
@@ -107,6 +110,7 @@ nx::Class create M -superclass ::nx::Class
 ? {::nsf::is metaclass M} 1
 ? {M info superclasses} ::nx::Class
 ? {M info class} ::nx::Class
+? {M info baseclass} ::nx::Object
 
 M create C
 ? {::nsf::object::exists C} 1

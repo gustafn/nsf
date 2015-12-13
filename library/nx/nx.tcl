@@ -743,6 +743,7 @@ namespace eval ::nx {
     :method "info lookup variables" {pattern:optional} {
       return [: info lookup slots -type ::nx::VariableSlot {*}[current args]]
     }
+    :alias "info baseclass"        ::nsf::methods::object::info::baseclass
     :alias "info children"         ::nsf::methods::object::info::children
     :alias "info class"            ::nsf::methods::object::info::class
     :alias "info has mixin"        ::nsf::methods::object::info::hasmixin

@@ -29400,7 +29400,25 @@ AggregatedMethodType(int methodType) {
 /***********************************************************************
  * Begin Object Info Methods
  ***********************************************************************/
+/*
+objectInfoMethod baseclass NsfObjInfoBaseclassMethod {
+}
+*/
+ 
+static int
+NsfObjInfoBaseclassMethod(Tcl_Interp *interp, NsfObject *object) {
+  NsfObjectSystem *osPtr;
+  
+  nonnull_assert(interp != NULL);
+  nonnull_assert(object != NULL);
 
+  osPtr = GetObjectSystem(object);
+  assert(osPtr != NULL);
+
+  Tcl_SetObjResult(interp, osPtr->rootClass->object.cmdName);
+
+  return TCL_OK;
+}
 /*
 objectInfoMethod children NsfObjInfoChildrenMethod {
   {-argName "-type" -required 0 -nrargs 1 -type class}

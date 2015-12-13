@@ -295,7 +295,7 @@ static int ConvertToInfoobjectparametersubcmd(Tcl_Interp *interp, Tcl_Obj *objPt
     
 
 /* just to define the symbol */
-static Nsf_methodDefinition method_definitions[112];
+static Nsf_methodDefinition method_definitions[113];
   
 static const char *method_command_namespace_names[] = {
   "::nsf::methods::object::info",
@@ -476,6 +476,8 @@ static int NsfOUplevelMethodStub(ClientData clientData, Tcl_Interp *interp, int 
 static int NsfOUpvarMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(4);
 static int NsfOVolatileMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv)
+  NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(4);
+static int NsfObjInfoBaseclassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(4);
 static int NsfObjInfoChildrenMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(4);
@@ -700,6 +702,8 @@ static int NsfOUpvarMethod(Tcl_Interp *interp, NsfObject *obj, int objc, Tcl_Obj
   NSF_nonnull(1) NSF_nonnull(2);
 static int NsfOVolatileMethod(Tcl_Interp *interp, NsfObject *obj)
   NSF_nonnull(1) NSF_nonnull(2);
+static int NsfObjInfoBaseclassMethod(Tcl_Interp *interp, NsfObject *obj)
+  NSF_nonnull(1) NSF_nonnull(2);
 static int NsfObjInfoChildrenMethod(Tcl_Interp *interp, NsfObject *obj, NsfClass *withType, const char *pattern)
   NSF_nonnull(1) NSF_nonnull(2);
 static int NsfObjInfoClassMethod(Tcl_Interp *interp, NsfObject *obj)
@@ -837,6 +841,7 @@ enum {
  NsfOUplevelMethodIdx,
  NsfOUpvarMethodIdx,
  NsfOVolatileMethodIdx,
+ NsfObjInfoBaseclassMethodIdx,
  NsfObjInfoChildrenMethodIdx,
  NsfObjInfoClassMethodIdx,
  NsfObjInfoFilterguardMethodIdx,
@@ -2833,6 +2838,26 @@ NsfOVolatileMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
 }
 
 static int
+NsfObjInfoBaseclassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv) {
+  NsfObject *obj;
+
+  NSF_nonnull_assert(clientData != NULL);
+  assert(objc > 0);
+
+  obj = (NsfObject *)clientData;
+    
+
+      if (unlikely(objc != 1)) {
+	return NsfArgumentError(interp, "too many arguments:",
+			     method_definitions[NsfObjInfoBaseclassMethodIdx].paramDefs,
+			     NULL, objv[0]);
+      }
+    
+    return NsfObjInfoBaseclassMethod(interp, obj);
+
+}
+
+static int
 NsfObjInfoChildrenMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv) {
   ParseContext pc;
   NsfObject *obj;
@@ -3447,7 +3472,7 @@ NsfObjInfoVarsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
   }
 }
 
-static Nsf_methodDefinition method_definitions[112] = {
+static Nsf_methodDefinition method_definitions[113] = {
 {"::nsf::methods::class::alloc", NsfCAllocMethodStub, 1, {
   {"objectName", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
@@ -3836,6 +3861,9 @@ static Nsf_methodDefinition method_definitions[112] = {
   {"args", 0, 1, ConvertToNothing, NULL,NULL,"allargs",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::volatile", NsfOVolatileMethodStub, 0, {
+  {NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+},
+{"::nsf::methods::object::info::baseclass", NsfObjInfoBaseclassMethodStub, 0, {
   {NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::info::children", NsfObjInfoChildrenMethodStub, 2, {
