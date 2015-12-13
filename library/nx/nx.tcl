@@ -879,12 +879,22 @@ namespace eval ::nx {
       if {[info exists pattern]} {return [::nsf::parameter::filter $defs $pattern]}
       return $defs
     }
-    :method "info method syntax"        {name} {
+    :method "info method syntax"         {name} {
       return [string trimright "/cls/ [namespace tail $name] [: ::nsf::methods::class::info::method syntax $name]" { }]
     }
-    :method "info method type"          {name} {: ::nsf::methods::class::info::method type $name}
-    :method "info method submethods"    {name} {: ::nsf::methods::class::info::method submethods $name}
-    :method "info method returns"       {name} {: ::nsf::methods::class::info::method returns $name}
+    :method "info method type"           {name} {: ::nsf::methods::class::info::method type $name}
+    :method "info method submethods"     {name} {: ::nsf::methods::class::info::method submethods $name}
+    :method "info method returns"        {name} {: ::nsf::methods::class::info::method returns $name}
+    :method "info method callprotection" {name} {
+      if {[::nsf::method::property [self] $name call-protected]} {
+        puts stderr "YES"
+        return protected
+      } elseif {[::nsf::method::property [self] $name call-private]} {
+        return private
+      } else {
+        return public
+      }
+    }
   }
 
   Object  eval {
@@ -902,12 +912,21 @@ namespace eval ::nx {
       if {[info exists pattern]} {return [::nsf::parameter::filter $defs $pattern]}
       return $defs
     }
-    :method "info object method syntax"        {name} {
+    :method "info object method syntax"         {name} {
       return [string trimright "/obj/ [namespace tail $name] [: ::nsf::methods::object::info::method syntax $name]" { }]
     }
-    :method "info object method type"          {name} {: ::nsf::methods::object::info::method type $name}
-    :method "info object method submethods"    {name} {: ::nsf::methods::object::info::method submethods $name}
-    :method "info object method returns"       {name} {: ::nsf::methods::object::info::method returns $name}
+    :method "info object method type"           {name} {: ::nsf::methods::object::info::method type $name}
+    :method "info object method submethods"     {name} {: ::nsf::methods::object::info::method submethods $name}
+    :method "info object method returns"        {name} {: ::nsf::methods::object::info::method returns $name}
+    :method "info object method callprotection" {name} {
+      if {[::nsf::method::property [self] -per-object $name call-protected]} {
+        return protected
+      } elseif {[::nsf::method::property [self] -per-object $name call-private]} {
+        return private
+      } else {
+        return public
+      }
+    }
   }
 
   ######################################################################

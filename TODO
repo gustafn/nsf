@@ -5654,9 +5654,17 @@ Profile trace enhancements:
       ... warning: nonnull argument ... compared to NULL ...
   The new macros turns off asserts, when gcc6 is used.
 
+- new introspection methods:
+     "/obj/ info object method callprotection /m/"
+     "/cls/ info method callprotection /m/"
+- extended regression test
 
 ========================================================================
 TODO:
+- add to doc:
+   info object method callprotection
+   info method callprotection
+
 - gcc6:
   * ISOBJ(methodObj); will raise a warning, when methodObj is decared as nonnull
   * Same with ObjectName() and ClassName()

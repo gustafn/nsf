@@ -64,6 +64,8 @@ C create c1 {
   :public object alias public_object_alias [:info object method registrationhandle public_object_method]
   :protected object alias protected_object_alias [:info object method registrationhandle protected_object_method]
 }
+
+
 C property -accessor public s0
 C property -accessor protected s1
 ? {c1 s0 set 0} 0
@@ -71,8 +73,28 @@ C property -accessor protected s1
 C object property -accessor public {s3 ""}
 ? {C s3 set 3} 3
 
+
+nx::test case info-callprotection {
+  ? {C info method callprotection plain_method} "public"
+  ? {C info method callprotection protected_method} "protected"
+  ? {C info method callprotection public_method} "public"
+
+  ? {C info method callprotection plain_alias} "public"
+  ? {C info method callprotection protected_alias} "protected"
+  ? {C info method callprotection public_alias} "public"
+
+  ? {C info object method callprotection plain_object_method} "public"
+  ? {C info object method callprotection protected_object_method} "protected"
+  ? {C info object method callprotection public_object_method} "public"
+
+  ? {C info object method callprotection plain_object_alias} "public"
+  ? {C info object method callprotection protected_object_alias} "protected"
+  ? {C info object method callprotection public_object_alias} "public"
+}
+
 # create a fresh object (different from c1)
 C create c2
+
 # test scripted class level methods
 nx::test case scripted-class-level-methods {
   ? {c2 plain_method} "plain_method"
