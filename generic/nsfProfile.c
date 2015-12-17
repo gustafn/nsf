@@ -38,12 +38,215 @@
 #include "nsfInt.h"
 
 #if defined(NSF_PROFILE)
-
 typedef struct NsfProfileData {
   long microSec;
   long count;
 } NsfProfileData;
+#endif
 
+/*
+ *----------------------------------------------------------------------
+ * NsfProfileObjectLabel, NsfProfileMethodLabel --
+ *
+ *    Produce a string label for an object or method using in profiling.
+ *    NsfProfileMethodLabel() is available also when compiled without
+ *    NSF_PROFILE.
+ *
+ * Results:
+ *    None
+ *
+ * Side effects:
+ *    Initializes and fills the passed DString,
+ *
+ *----------------------------------------------------------------------
+ */
+#if defined(NSF_PROFILE)
+static void NsfProfileObjectLabel(Tcl_DString *dsPtr, NsfObject *object, NsfClass *cl, const char *methodName)
+  nonnull(1) nonnull(2) nonnull(4);
+
+static void
+NsfProfileObjectLabel(Tcl_DString *dsPtr, NsfObject *object, NsfClass *cl, const char *methodName) {
+
+  nonnull_assert(dsPtr != NULL);
+  nonnull_assert(object != NULL);
+  nonnull_assert(methodName != NULL);
+
+  Tcl_DStringAppend(dsPtr, ObjectName(object), -1);
+  Tcl_DStringAppend(dsPtr, " ", 1);
+  Tcl_DStringAppend(dsPtr, ClassName(object->cl), -1);
+}
+#endif
+
+
+static void NsfProfileMethodLabel(Tcl_DString *dsPtr, NsfObject *object, NsfClass *cl, const char *methodName)
+  nonnull(1) nonnull(4);
+
+static void
+NsfProfileMethodLabel(Tcl_DString *dsPtr, NsfObject *object, NsfClass *cl, const char *methodName) {
+
+  nonnull_assert(dsPtr != NULL);
+  nonnull_assert(methodName != NULL);
+
+  if (cl != NULL && object != NULL) {
+    Tcl_DStringAppend(dsPtr, ObjStr(cl->object.cmdName), -1);
+    Tcl_DStringAppend(dsPtr, " ", 1);
+  }
+  Tcl_DStringAppendElement(dsPtr, methodName);
+}
+
+/*
+ *----------------------------------------------------------------------
+ * ReportLine --
+ *
+ *    Report a profile line via NsfLog(). Since NsfLog() uses a Tcl function,
+ *    ReportLine has to turn off profiling to avoid recursive profile
+ *    invocation. It is as well necessary to save the interp result.
+ *
+ * Results:
+ *    None
+ *
+ * Side effects:
+ *    logging
+ *
+ *----------------------------------------------------------------------
+ */
+static void ReportLine(Tcl_Interp *interp, int level, NsfRuntimeState *rst, const char *line)
+  nonnull(1) nonnull(3) nonnull(4);
+
+static void
+ReportLine(Tcl_Interp *interp, int level, NsfRuntimeState *rst, const char *line) {
+  Tcl_Obj *savedResultObj;
+  int prevProfileSetting;
+
+  nonnull_assert(interp != NULL);
+  nonnull_assert(rst != NULL);
+  nonnull_assert(line != NULL);
+
+  prevProfileSetting = rst->doProfile;
+  rst->doProfile = 0;
+
+  savedResultObj = Tcl_GetObjResult(interp);
+  INCR_REF_COUNT(savedResultObj);
+
+  NsfLog(interp, level, "%s", line);
+
+  Tcl_SetObjResult(interp, savedResultObj);
+  DECR_REF_COUNT(savedResultObj);
+
+  rst->doProfile = prevProfileSetting;
+}
+
+/*
+ *----------------------------------------------------------------------
+ * NsfProfileDeprecatedCall --
+ *
+ *    Output a line in case a deprecated function/method is called using
+ *    the low-level NsfDeprecatedCmd() function.
+ *
+ * Results:
+ *    None
+ *
+ * Side effects:
+ *    logging
+ *
+ *----------------------------------------------------------------------
+ */
+void
+NsfProfileDeprecatedCall(Tcl_Interp *interp, NsfObject *object, NsfClass *cl,
+                         const char *methodName, const char *altMethod) {
+  Tcl_DString ds;
+
+  nonnull_assert(interp != NULL);
+  nonnull_assert(object != NULL);
+  nonnull_assert(methodName != NULL);
+  nonnull_assert(altMethod != NULL);
+
+  Tcl_DStringInit(&ds);
+  Tcl_DStringAppend(&ds, "{", 1);
+  NsfProfileMethodLabel(&ds, object, cl, methodName);
+  Tcl_DStringAppend(&ds, "}", 1);
+
+  NsfDeprecatedCmd(interp,"method", ds.string, altMethod);
+  Tcl_DStringFree(&ds);
+}
+
+/*
+ *----------------------------------------------------------------------
+ * NsfProfileDebugCall, NsfProfileDebugExit --
+ *
+ *    Output a line in case a function/method is called/exited having the
+ *    debug flag set.  These two functions use ReportLine (which calls NsfLog)
+ *    for reporting.
+ *
+ * Results:
+ *    None
+ *
+ * Side effects:
+ *    logging
+ *
+ *----------------------------------------------------------------------
+ */
+void
+NsfProfileDebugCall(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, const char *methodName,
+                    int objc, Tcl_Obj **objv) {
+  NsfRuntimeState *rst;
+  Tcl_Obj *listObj;
+  Tcl_DString ds;
+
+  nonnull_assert(interp != NULL);
+  nonnull_assert(methodName != NULL);
+
+  rst = RUNTIME_STATE(interp);
+  rst->debugCallingDepth++;
+
+  Tcl_DStringInit(&ds);
+  Nsf_DStringPrintf(&ds, "call(%d) - {", rst->debugCallingDepth);
+  NsfProfileMethodLabel(&ds, object, cl, methodName);
+  Tcl_DStringAppend(&ds, "}", 1);
+
+  listObj = Tcl_NewListObj(objc, objv);
+  INCR_REF_COUNT(listObj);
+  Nsf_DStringPrintf(&ds, " %s", ObjStr(listObj));
+  DECR_REF_COUNT(listObj);
+
+  ReportLine(interp, NSF_LOG_DEBUG, rst, ds.string);
+
+  Tcl_DStringFree(&ds);
+
+}
+
+void
+NsfProfileDebugExit(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, const char *methodName,
+                    long startSec, long startUsec) {
+  Tcl_DString      ds, *dsPtr = &ds;
+  NsfRuntimeState *rst;
+
+  nonnull_assert(interp != NULL);
+  nonnull_assert(methodName != NULL);
+
+  rst = RUNTIME_STATE(interp);
+  Tcl_DStringInit(dsPtr);
+  Nsf_DStringPrintf(dsPtr, "exit(%d) - {", rst->debugCallingDepth);
+
+  if (startSec != 0 || startUsec != 0) {
+    struct timeval trt;
+
+    gettimeofday(&trt, NULL);
+    NsfProfileMethodLabel(dsPtr, object, cl, methodName);
+    Nsf_DStringPrintf(dsPtr, "} %ld usec", (trt.tv_sec - startSec) * 1000000 + (trt.tv_usec - startUsec));
+  } else {
+    NsfProfileMethodLabel(dsPtr, object, cl, methodName);
+    Tcl_DStringAppend(dsPtr, "}", 1);
+  }
+
+  ReportLine(interp, NSF_LOG_DEBUG, rst, ds.string);
+  Tcl_DStringFree(dsPtr);
+
+  rst->debugCallingDepth--;
+}
+
+
+#if defined(NSF_PROFILE)
 
 /*
  *----------------------------------------------------------------------
@@ -300,41 +503,6 @@ NsfProfileTrace(Tcl_Interp *interp, int withEnable, int withVerbose, int withDon
 }
 
 
-/*
- *----------------------------------------------------------------------
- * ReportLine --
- *
- *    Report a profile line via NsfLog(). Since NsfLog() uses a Tcl function,
- *    ReportLine has to turn off profiling to avoid recursive profile
- *    invocation. It is as well necessary to save the interp result.
- *
- * Results:
- *    None
- *
- * Side effects:
- *    logging
- *
- *----------------------------------------------------------------------
- */
-static void ReportLine(Tcl_Interp *interp,  NsfRuntimeState *rst, const char *line)
-  nonnull(1) nonnull(2) nonnull(3);
-
-static void
-ReportLine(Tcl_Interp *interp,  NsfRuntimeState *rst, const char *line) {
-  Tcl_Obj *savedResultObj;
-
-  rst->doProfile = 0;
-
-  savedResultObj = Tcl_GetObjResult(interp);
-  INCR_REF_COUNT(savedResultObj);
-
-  NsfLog(interp, NSF_LOG_NOTICE, "%s", line);
-
-  Tcl_SetObjResult(interp, savedResultObj);
-  DECR_REF_COUNT(savedResultObj);
-
-  rst->doProfile = 1;
-}
 
 /*
  *----------------------------------------------------------------------
@@ -362,7 +530,7 @@ NsfProfileTraceCallAppend(Tcl_Interp *interp, const char *label) {
   Tcl_DStringInit(&ds);
   Nsf_DStringPrintf(&ds, "call(%d): %s", profilePtr->depth, label);
   if (profilePtr->verbose) {
-    ReportLine(interp, rst, ds.string);
+    ReportLine(interp, NSF_LOG_NOTICE, rst, ds.string);
   }
   if (profilePtr->inmemory) {
     Tcl_DStringAppend(&ds, "\n", 1);
@@ -380,7 +548,7 @@ NsfProfileTraceExitAppend(Tcl_Interp *interp, const char *label, double duration
   Tcl_DStringInit(&ds);
   Nsf_DStringPrintf(&ds, "exit(%d): %s %.0f", profilePtr->depth, label, duration);
   if (profilePtr->verbose) {
-    ReportLine(interp, rst, ds.string);
+    ReportLine(interp, NSF_LOG_NOTICE, rst, ds.string);
   }
   if (profilePtr->inmemory) {
     Tcl_DStringAppend(&ds, "\n", 1);
@@ -391,49 +559,6 @@ NsfProfileTraceExitAppend(Tcl_Interp *interp, const char *label, double duration
   profilePtr->depth --;
 }
 
-
-/*
- *----------------------------------------------------------------------
- * NsfProfileObjectLabel, NsfProfileMethodLabel --
- *
- *    Produce a string label for an object or method using in profiling.
- *
- * Results:
- *    None
- *
- * Side effects:
- *    Initializes and fills the passed DString,
- *
- *----------------------------------------------------------------------
- */
-static void NsfProfileMethodLabel(Tcl_DString *dsPtr, NsfObject *obj, NsfClass *cl, const char *methodName)
-  nonnull(1) nonnull(2) nonnull(4);
-
-void
-NsfProfileObjectLabel(Tcl_DString *dsPtr, NsfObject *obj, NsfClass *cl, const char *methodName) {
-
-  nonnull_assert(dsPtr != NULL);
-  nonnull_assert(obj != NULL);
-  nonnull_assert(methodName != NULL);
-
-  Tcl_DStringAppend(dsPtr, ObjectName(obj), -1);
-  Tcl_DStringAppend(dsPtr, " ", 1);
-  Tcl_DStringAppend(dsPtr, ClassName(obj->cl), -1);
-}
-
-static void
-NsfProfileMethodLabel(Tcl_DString *dsPtr, NsfObject *obj, NsfClass *cl, const char *methodName) {
-
-  nonnull_assert(dsPtr != NULL);
-  nonnull_assert(obj != NULL);
-  nonnull_assert(methodName != NULL);
-
-  if (cl != NULL) {
-    Tcl_DStringAppend(dsPtr, ObjStr(cl->object.cmdName), -1);
-    Tcl_DStringAppend(dsPtr, " ", 1);
-  }
-  Tcl_DStringAppendElement(dsPtr, methodName);
-}
 
 /*
  *----------------------------------------------------------------------
@@ -476,6 +601,7 @@ NsfProfileTraceCall(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, const c
     Tcl_DStringFree(&ds);
   }
 }
+
 
 void
 NsfProfileTraceExit(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, const char *methodName,

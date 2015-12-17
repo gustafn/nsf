@@ -207,12 +207,12 @@ static int ConvertToAssertionsubcmd(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Par
   return result;
 }
   
-enum MethodpropertyIdx {MethodpropertyNULL, MethodpropertyClass_onlyIdx, MethodpropertyCall_privateIdx, MethodpropertyCall_protectedIdx, MethodpropertyRedefine_protectedIdx, MethodpropertyReturnsIdx};
+enum MethodpropertyIdx {MethodpropertyNULL, MethodpropertyClass_onlyIdx, MethodpropertyCall_privateIdx, MethodpropertyCall_protectedIdx, MethodpropertyDebugIdx, MethodpropertyDeprecatedIdx, MethodpropertyRedefine_protectedIdx, MethodpropertyReturnsIdx};
 
 static int ConvertToMethodproperty(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
-  static const char *opts[] = {"class-only", "call-private", "call-protected", "redefine-protected", "returns", NULL};
+  static const char *opts[] = {"class-only", "call-private", "call-protected", "debug", "deprecated", "redefine-protected", "returns", NULL};
   (void)pPtr;
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "methodProperty", 0, &index);
   *clientData = (ClientData) INT2PTR(index + 1);
@@ -281,7 +281,7 @@ static int ConvertToInfoobjectparametersubcmd(Tcl_Interp *interp, Tcl_Obj *objPt
   {ConvertToMethodtype, "all|scripted|builtin|alias|forwarder|object|setter|nsfproc"},
   {ConvertToFrame, "method|object|default"},
   {ConvertToCurrentoption, "proc|method|methodpath|object|class|activelevel|args|activemixin|calledproc|calledmethod|calledclass|callingproc|callingmethod|callingclass|callinglevel|callingobject|filterreg|isnextcall|nextmethod"},
-  {ConvertToMethodproperty, "class-only|call-private|call-protected|redefine-protected|returns"},
+  {ConvertToMethodproperty, "class-only|call-private|call-protected|debug|deprecated|redefine-protected|returns"},
   {ConvertToRelationtype, "object-mixin|class-mixin|object-filter|class-filter|class|superclass|rootclass"},
   {ConvertToSource, "all|application|system"},
   {ConvertToForwardproperty, "prefix|target|verbose"},
@@ -642,8 +642,8 @@ static int NsfParameterInfoCmd(Tcl_Interp *interp, int subcmd, Tcl_Obj *spec, Tc
   NSF_nonnull(1) NSF_nonnull(3);
 static int NsfParameterSpecsCmd(Tcl_Interp *interp, int withConfigure, int withNonposargs, Tcl_Obj *slotobjs)
   NSF_nonnull(1) NSF_nonnull(4);
-static int NsfProcCmd(Tcl_Interp *interp, int withAd, int withCheckalways, Tcl_Obj *procName, Tcl_Obj *arguments, Tcl_Obj *body)
-  NSF_nonnull(1) NSF_nonnull(4) NSF_nonnull(5) NSF_nonnull(6);
+static int NsfProcCmd(Tcl_Interp *interp, int withAd, int withCheckalways, int withDebug, int withDeprecated, Tcl_Obj *procName, Tcl_Obj *arguments, Tcl_Obj *body)
+  NSF_nonnull(1) NSF_nonnull(6) NSF_nonnull(7) NSF_nonnull(8);
 static int NsfProfileClearDataStub(Tcl_Interp *interp)
   NSF_nonnull(1);
 static int NsfProfileGetDataStub(Tcl_Interp *interp)
@@ -2249,12 +2249,14 @@ NsfProcCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
                      &pc) == TCL_OK)) {
     int withAd = (int )PTR2INT(pc.clientData[0]);
     int withCheckalways = (int )PTR2INT(pc.clientData[1]);
-    Tcl_Obj *procName = (Tcl_Obj *)pc.clientData[2];
-    Tcl_Obj *arguments = (Tcl_Obj *)pc.clientData[3];
-    Tcl_Obj *body = (Tcl_Obj *)pc.clientData[4];
+    int withDebug = (int )PTR2INT(pc.clientData[2]);
+    int withDeprecated = (int )PTR2INT(pc.clientData[3]);
+    Tcl_Obj *procName = (Tcl_Obj *)pc.clientData[4];
+    Tcl_Obj *arguments = (Tcl_Obj *)pc.clientData[5];
+    Tcl_Obj *body = (Tcl_Obj *)pc.clientData[6];
 
     assert(pc.status == 0);
-    return NsfProcCmd(interp, withAd, withCheckalways, procName, arguments, body);
+    return NsfProcCmd(interp, withAd, withCheckalways, withDebug, withDeprecated, procName, arguments, body);
 
   } else {
     
@@ -3749,9 +3751,11 @@ static Nsf_methodDefinition method_definitions[113] = {
   {"-nonposargs", 0, 0, Nsf_ConvertTo_Boolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
   {"slotobjs", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
-{"::nsf::proc", NsfProcCmdStub, 5, {
+{"::nsf::proc", NsfProcCmdStub, 7, {
   {"-ad", 0, 0, Nsf_ConvertTo_Boolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
   {"-checkalways", 0, 0, Nsf_ConvertTo_Boolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
+  {"-debug", 0, 0, Nsf_ConvertTo_Boolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
+  {"-deprecated", 0, 0, Nsf_ConvertTo_Boolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
   {"procName", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"arguments", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"body", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}

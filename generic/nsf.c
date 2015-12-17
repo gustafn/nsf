@@ -580,9 +580,11 @@ NsfLog(Tcl_Interp *interp, int requiredLevel, const char *fmt, ...) {
  *
  * NsfDeprecatedCmd --
  *
- *      Provide a warning about a deprecated command or method. The
- *      message is produced via calling the external Tcl function
- *      ::nsf::deprecated.
+ *      Provide a warning about a deprecated command or method. The message is
+ *      produced via calling the external Tcl function ::nsf::deprecated. In
+ *      case, profiling is turned on, it is deactivated temporarily. Saving
+ *      the interp result should not be an issue, since the command is called
+ *      before the body of the command is executed.
  *
  * Results:
  *      None.
@@ -592,12 +594,11 @@ NsfLog(Tcl_Interp *interp, int requiredLevel, const char *fmt, ...) {
  *
  *----------------------------------------------------------------------
  */
-static void NsfDeprecatedCmd(Tcl_Interp *interp, const char *what, const char *oldCmd, const char *newCmd)
-  nonnull(1) nonnull(2) nonnull(3) nonnull(4);
-
-static void
+void
 NsfDeprecatedCmd(Tcl_Interp *interp, const char *what, const char *oldCmd, const char *newCmd) {
+  NsfRuntimeState *rst = RUNTIME_STATE(interp);
   Tcl_DString ds, *dsPtr = &ds;
+  int prevProfileSetting;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(newCmd != NULL);
@@ -609,7 +610,12 @@ NsfDeprecatedCmd(Tcl_Interp *interp, const char *what, const char *oldCmd, const
   Tcl_DStringAppendElement(dsPtr, what);
   Tcl_DStringAppendElement(dsPtr, oldCmd);
   Tcl_DStringAppendElement(dsPtr, newCmd);
+
+  prevProfileSetting = rst->doProfile;
+  rst->doProfile = 0;
   NsfDStringEval(interp, dsPtr, "log command");
+  rst->doProfile = prevProfileSetting;
+
   Tcl_DStringFree(dsPtr);
 }
 
@@ -688,7 +694,8 @@ ParseContextInit(ParseContext *pcPtr, int objc, NsfObject *object, Tcl_Obj *proc
  *
  *----------------------------------------------------------------------
  */
-static void ParseContextExtendObjv(ParseContext *pcPtr, int from, int elts, Tcl_Obj *CONST source[]) nonnull(1) nonnull(4);
+static void ParseContextExtendObjv(ParseContext *pcPtr, int from, int elts, Tcl_Obj *CONST source[])
+  nonnull(1) nonnull(4);
 
 static void
 ParseContextExtendObjv(ParseContext *pcPtr, int from, int elts, Tcl_Obj *CONST source[]) {
@@ -701,7 +708,9 @@ ParseContextExtendObjv(ParseContext *pcPtr, int from, int elts, Tcl_Obj *CONST s
 
   if (unlikely(requiredSize >= PARSE_CONTEXT_PREALLOC)) {
     if (pcPtr->objv == &pcPtr->objv_static[1]) {
-      /* realloc from preallocated memory */
+      /*
+       * Realloc from preallocated memory
+       */
       pcPtr->full_objv = (Tcl_Obj **)    ckalloc(sizeof(Tcl_Obj *) * requiredSize);
       pcPtr->flags     = (unsigned int *)ckalloc(sizeof(int) * requiredSize);
       MEM_COUNT_ALLOC("pcPtr.objv", pcPtr->full_objv);
@@ -712,7 +721,9 @@ ParseContextExtendObjv(ParseContext *pcPtr, int from, int elts, Tcl_Obj *CONST s
 
       pcPtr->status     |= NSF_PC_STATUS_FREE_OBJV;
     } else {
-      /* realloc from mallocated memory */
+      /*
+       *  Realloc from mallocated memory
+       */
       pcPtr->full_objv = (Tcl_Obj **)    ckrealloc((char *)pcPtr->full_objv, sizeof(Tcl_Obj *) * requiredSize);
       pcPtr->flags     = (unsigned int *)ckrealloc((char *)pcPtr->flags,     sizeof(int) * requiredSize);
       /*fprintf(stderr, "ParseContextExtendObjv: extend %p realloc %d  new objv=%p pcPtr %p\n",
@@ -3833,7 +3844,7 @@ ObjectFindMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *methodObj, NsfC
     for (mixinList = object->mixinOrder; mixinList; mixinList = mixinList->nextPtr) {
       NsfClass *mixin = NsfGetClassFromCmdPtr(mixinList->cmdPtr);
       if (mixin && (*pcl = (*lookupFunction)(interp, mixin, methodObj, &cmd))) {
-        if (Tcl_Command_flags(cmd) & NSF_CMD_CLASS_ONLY_METHOD && !NsfObjectIsClass(object)) {
+        if ((Tcl_Command_flags(cmd) & NSF_CMD_CLASS_ONLY_METHOD) != 0 && !NsfObjectIsClass(object)) {
           cmd = NULL;
           continue;
         }
@@ -9020,8 +9031,8 @@ CanInvokeMixinMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Command cmd, Nsf
   nonnull_assert(object != NULL);
   nonnull_assert(cmdList != NULL);
 
-  if ((cmdFlags & NSF_CMD_CALL_PRIVATE_METHOD) ||
-      ((cmdFlags & NSF_CMD_CLASS_ONLY_METHOD) && !NsfObjectIsClass(object))) {
+  if ((cmdFlags & NSF_CMD_CALL_PRIVATE_METHOD) != 0 ||
+      ((cmdFlags & NSF_CMD_CLASS_ONLY_METHOD) != 0 && !NsfObjectIsClass(object))) {
     /*
      * The command is not applicable for objects (i.e. might crash,
      * since it expects a class record); therefore skip it
@@ -9078,7 +9089,7 @@ MixinSearchProc(Tcl_Interp *interp, NsfObject *object,
   nonnull_assert(clPtr != NULL);
   nonnull_assert(currentCmdPtr != NULL);
   nonnull_assert(cmdPtr != NULL);
-  
+
   assert(object->mixinStack != NULL);
 
   /* ensure that the mixin order is valid */
@@ -10445,7 +10456,7 @@ FilterSearchProc(Tcl_Interp *interp, NsfObject *object,
   nonnull_assert(object != NULL);
   nonnull_assert(currentCmd != NULL);
   nonnull_assert(clPtr != NULL);
-  
+
   assert(object->filterStack != NULL);
   /*
    * Ensure that the filter order is not invalid, otherwise compute order
@@ -11979,9 +11990,9 @@ NsfParamDefsAppendVirtual(Tcl_Interp *interp, Tcl_Obj *listObj,
   nonnull_assert(listObj != NULL);
   nonnull_assert(paramsPtr != NULL);
   nonnull_assert(formatFunction != NULL);
-  
+
   assert(paramsPtr->name != NULL);
-  
+
   if (paramsPtr->converter == ConvertToNothing && strcmp(paramsPtr->name, "args") == 0) {
 
     if ((contextObject != NULL)
@@ -12293,7 +12304,7 @@ ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
   nonnull_assert(cmdPtr != NULL);
   nonnull_assert(cscPtr != NULL);
   nonnull_assert(object != NULL);
-  
+
   assert(object->teardown != NULL);
 
 #if defined(NRE)
@@ -12476,7 +12487,7 @@ CmdMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
   nonnull_assert(objv != NULL);
   nonnull_assert(cmd != NULL);
   nonnull_assert(object != NULL);
-  
+
   assert(object->teardown != NULL);
 
 #if defined(NRE)
@@ -12971,6 +12982,12 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
                             (char *)methodName,
                             objc-1, (Tcl_Obj **)objv+1);
   }
+  if (unlikely((Tcl_Command_flags(cmd) & NSF_CMD_DEPRECATED_METHOD) != 0)) {
+    NsfProfileDeprecatedCall(interp, object, cscPtr->cl, methodName, "");
+  }
+  if (unlikely((Tcl_Command_flags(cmd) & NSF_CMD_DEBUG_METHOD) != 0)) {
+    NsfProfileDebugCall(interp, object, cscPtr->cl, methodName, objc-1, (Tcl_Obj **)objv+1);
+  }
 
   /*fprintf(stderr, "MethodDispatch method '%s' cmd %p %s clientData %p cp=%p objc=%d cscPtr %p csc->flags %.6x \n",
           methodName, cmd, Tcl_GetCommandName(interp, cmd), clientData,
@@ -13069,7 +13086,7 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 #endif
 
 
-  } else if ((Tcl_Command_flags(cmd) & NSF_CMD_NONLEAF_METHOD)
+  } else if ((Tcl_Command_flags(cmd) & NSF_CMD_NONLEAF_METHOD) != 0
              || ((cscPtr->flags & NSF_CSC_FORCE_FRAME) != 0u)) {
     /*
      * Technically, we would not need a frame to execute the cmd, but maybe,
@@ -13138,7 +13155,7 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
   nonnull_assert(cmd != NULL);
   nonnull_assert(object != NULL);
   nonnull_assert(methodName != NULL);
-  
+
   assert(object->teardown != NULL);
 
   CheckCStack(interp, "method", methodName);
@@ -13212,7 +13229,7 @@ ObjectDispatchFinalize(Tcl_Interp *interp, NsfCallStackContent *cscPtr,
 
   nonnull_assert(interp != NULL);
   nonnull_assert(cscPtr != NULL);
-  
+
   object = cscPtr->self;
   assert(object != NULL);
   assert(object->id != NULL);
@@ -13588,7 +13605,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
            * b) trying to call an object with no method interface
            */
           if (((flags & (NSF_CM_LOCAL_METHOD|NSF_CM_IGNORE_PERMISSIONS)) == 0u
-               && (Tcl_Command_flags(cmd) & NSF_CMD_CALL_PRIVATE_METHOD))
+               && (Tcl_Command_flags(cmd) & NSF_CMD_CALL_PRIVATE_METHOD) != 0)
               ) {
             cmd = NULL;
           } else {
@@ -16356,29 +16373,22 @@ NsfProcStubDeleteProc(ClientData clientData) {
  *
  *----------------------------------------------------------------------
  */
-static int InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, ParseContext *pcPtr)
-  nonnull(1) nonnull(2) nonnull(4) nonnull(3);
+static int InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, ParseContext *pcPtr, struct timeval *trtPtr)
+  nonnull(1) nonnull(2) nonnull(4) nonnull(3) nonnull(4);
 
 static int
-InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, ParseContext *pcPtr) {
-  Tcl_Obj *CONST *objv;
-  int objc, result;
-  const char *fullMethodName = ObjStr(procNameObj);
+InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, ParseContext *pcPtr, struct timeval *trtPtr) {
+  Tcl_Obj       *CONST *objv;
+  int            objc, result;
+  const char    *fullMethodName = ObjStr(procNameObj);
   Tcl_CallFrame *framePtr;
-  Proc *procPtr;
-#if defined(NSF_PROFILE)
-  struct timeval trt;
-  NsfRuntimeState *rst = RUNTIME_STATE(interp);
-
-  if (rst->doProfile != 0) {
-    gettimeofday(&trt, NULL);
-  }
-#endif
+  Proc          *procPtr;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(procNameObj != NULL);
   nonnull_assert(cmd != NULL);
   nonnull_assert(pcPtr != NULL);
+  nonnull_assert(trtPtr != NULL);
 
   objv = pcPtr->full_objv;
   objc = pcPtr->objc+1;
@@ -16390,8 +16400,6 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, Pa
    * slightly adapted to remove object dependencies.
    */
 
-  /*fprintf(stderr, "fullMethodName %s epoch %d\n", fullMethodName, Tcl_Command_cmdEpoch(cmd));*/
-
   if (Tcl_Command_cmdEpoch(cmd)) {
 #if 1
     /*
@@ -16401,9 +16409,8 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, Pa
     return NsfPrintError(interp, "command '%s' is epoched", fullMethodName);
 #else
     /*
-     * We could refetch the command ...
+     * We must refetch the command ...
      */
-
     cmd = Tcl_GetCommandFromObj(interp, procNameObj);
     if (unlikely(cmd == NULL)) {
       return NsfPrintError(interp, "cannot lookup command '%s'", fullMethodName);
@@ -16412,19 +16419,13 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, Pa
       return NsfPrintError(interp, "command '%s' is not a proc", fullMethodName);
     }
     /*
-     * ... and update the refCounts
+     * ... and update the refCounts and cmd in ClientData
      */
     NsfCommandRelease(tcd->cmd);
     tcd->cmd = cmd;
     NsfCommandPreserve(tcd->cmd);
 #endif
   }
-
-#if defined(NSF_PROFILE)
-  if (rst->doTrace) {
-    NsfProfileTraceCallAppend(interp, fullMethodName);
-  }
-#endif
 
   procPtr = (Proc *)Tcl_Command_objClientData(cmd);
   result = TclPushStackFrame(interp, &framePtr,
@@ -16450,8 +16451,8 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, Pa
   Tcl_NRAddCallback(interp, ProcDispatchFinalize,
                     (ClientData)fullMethodName, pcPtr,
 # if defined(NSF_PROFILE)
-                    (ClientData)(unsigned long)trt.tv_usec,
-                    (ClientData)(unsigned long)trt.tv_sec
+                    (ClientData)(unsigned long)trtPtr->tv_usec,
+                    (ClientData)(unsigned long)trtPtr->tv_sec
 # else
                     NULL,
                     NULL
@@ -16464,8 +16465,8 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, Pa
     (ClientData)fullMethodName,
     pcPtr,
 # if defined(NSF_PROFILE)
-    (ClientData)(unsigned long)trt.tv_usec,
-    (ClientData)(unsigned long)trt.tv_sec
+    (ClientData)(unsigned long)trtPtr->tv_usec,
+    (ClientData)(unsigned long)trtPtr->tv_sec
 # else
     NULL,
     NULL
@@ -16512,35 +16513,61 @@ NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 
   if (likely(tcd->paramDefs && tcd->paramDefs->paramsPtr)) {
     ParseContext *pcPtr = (ParseContext *) NsfTclStackAlloc(interp, sizeof(ParseContext), "parse context");
-#if 0
-    /* i see no difference from tcl */
-    ALLOC_ON_STACK(Tcl_Obj*, objc, tov);
 
-    /*
-     * We have to substitute the first element of objv with the name
-     * of the function to be called. Since objv is immutable, we have
-     * to copy the full argument vector and replace the element on
-     * position [0]
-     */
-    memcpy(tov+1, objv+1, sizeof(Tcl_Obj *)*(objc-1));
-    tov[0] = tcd->procName;
-#endif
     /* If the argument parsing is ok, the shadowed proc will be called */
     result = ProcessMethodArguments(pcPtr, interp, NULL,
-                                    tcd->checkAlwaysFlag|NSF_ARGPARSE_FORCE_REQUIRED,
+                                    (((tcd->flags & NSF_PROC_FLAG_CHECK_ALWAYS) != 0) ? NSF_ARGPARSE_CHECK : 0)
+                                    |NSF_ARGPARSE_FORCE_REQUIRED,
                                     tcd->paramDefs, objv[0],
                                     objc, objv);
 
     if (likely(result == TCL_OK)) {
-      result = InvokeShadowedProc(interp, tcd->procName, tcd->cmd, pcPtr);
+      Tcl_Command cmd = tcd->wrapperCmd;
+      int cmdFlags;
+      struct timeval trt;
+
+      assert(cmd != NULL);
+
+      cmdFlags = Tcl_Command_flags(cmd);
+
+#if defined(NSF_PROFILE)
+      gettimeofday(&trt, NULL);
+
+      if (RUNTIME_STATE(interp)->doTrace) {
+        NsfProfileTraceCallAppend(interp, ObjStr(objv[0]));
+      }
+      if ((cmdFlags & NSF_CMD_DEBUG_METHOD) != 0) {
+        NsfProfileDebugCall(interp, NULL, NULL, ObjStr(objv[0]), objc-1, (Tcl_Obj **)objv+1);
+      }
+#else
+      if ((cmdFlags & NSF_CMD_DEBUG_METHOD) != 0) {
+        gettimeofday(&trt, NULL);
+
+        NsfProfileDebugCall(interp, NULL, NULL, ObjStr(objv[0]), objc-1, (Tcl_Obj **)objv+1);
+      } else {
+        trt.tv_sec = 0;
+        trt.tv_usec = 0;
+      }
+#endif
+      if ((cmdFlags & NSF_CMD_DEPRECATED_METHOD) != 0) {
+        NsfDeprecatedCmd(interp, "proc", ObjStr(objv[0]), "");
+      }
+
+      result = InvokeShadowedProc(interp, tcd->procName, tcd->cmd, pcPtr, &trt);
+
+      if ((cmdFlags & NSF_CMD_DEBUG_METHOD) != 0) {
+        NsfProfileDebugExit(interp, NULL, NULL, ObjStr(objv[0]), trt.tv_sec, trt.tv_usec);
+      }
+
     } else {
-      /*Tcl_Obj *resultObj = Tcl_GetObjResult(interp);
-      fprintf(stderr, "NsfProcStub: incorrect arguments (%s)\n", ObjStr(resultObj));*/
+      /*
+       * Result is already set to TCL_ERROR, the error message should be already
+       * provided.
+       */
       ParseContextRelease(pcPtr);
       NsfTclStackFree(interp, pcPtr, "release parse context");
     }
 
-    /*FREE_ON_STACK(Tcl_Obj *, tov);*/
   } else {
     fprintf(stderr, "no parameters\n");
     assert(0); /* should never happen */
@@ -16575,21 +16602,22 @@ NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
  *----------------------------------------------------------------------
  */
 static int NsfProcAdd(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
-           const char *procName, Tcl_Obj *body,
-           int with_ad, int with_checkAlways) nonnull(1) nonnull(2) nonnull(3) nonnull(4);
+                      const char *procName, Tcl_Obj *body,
+                      int with_ad, int with_checkAlways, int with_Debug, int with_Deprecated)
+  nonnull(1) nonnull(2) nonnull(3) nonnull(4);
 
 static int
 NsfProcAdd(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
            const char *procName, Tcl_Obj *body,
-           int with_ad, int with_checkAlways) {
-  NsfParamDefs *paramDefs;
-  Nsf_Param *paramPtr;
+           int with_ad, int with_checkAlways, int with_Debug, int with_Deprecated) {
+  NsfParamDefs      *paramDefs;
+  Nsf_Param         *paramPtr;
   NsfProcClientData *tcd;
-  Tcl_Namespace *cmdNsPtr;
-  Tcl_Obj *argList, *procNameObj, *ov[4];
-  Tcl_DString ds, *dsPtr = &ds;
-  int result, checkAlwaysFlag;
-  Tcl_Command cmd;
+  Tcl_Namespace     *cmdNsPtr;
+  Tcl_Obj           *argList, *procNameObj, *ov[4];
+  Tcl_DString        ds, *dsPtr = &ds;
+  int                result, checkAlwaysFlag;
+  Tcl_Command        cmd;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(parsedParamPtr != NULL);
@@ -16623,12 +16651,11 @@ NsfProcAdd(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
   }
 
   checkAlwaysFlag = (with_checkAlways != 0) ? NSF_ARGPARSE_CHECK : 0;
-
   cmdNsPtr = Tcl_Command_nsPtr(cmd);
 
   /*
-   * Storing param defs is actually not needed to be stored, since the stub
-   * receives paramters + flag via client data... but it is needed for
+   * Storing param definitions is not needed for running the proc, since the
+   * stub receives parameters + flag via client data... but it is needed for
    * introspection.
    */
   paramDefs = parsedParamPtr->paramDefs;
@@ -16639,8 +16666,7 @@ NsfProcAdd(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
 
   /*
    * Let us create the shadowed Tcl proc, which is stored under
-   * ::nsf::procs::*. First build the fully qualified name
-   * procNameObj.
+   * ::nsf::procs::*. First build the fully qualified name procNameObj.
    */
   Tcl_DStringSetLength(dsPtr, 0);
   Tcl_DStringAppend(dsPtr, "::nsf::procs", -1);
@@ -16654,8 +16680,9 @@ NsfProcAdd(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
    * it does not exist.
    */
   {
-    Namespace *nsPtr, *dummy1Ptr, *dummy2Ptr;
+    Namespace  *nsPtr, *dummy1Ptr, *dummy2Ptr;
     const char *dummy;
+
     /* create the target namespace, if it does not exist */
     TclGetNamespaceForQualName(interp, ObjStr(procNameObj), NULL, TCL_CREATE_NS_IF_UNKNOWN,
                                &nsPtr, &dummy1Ptr,
@@ -16667,9 +16694,9 @@ NsfProcAdd(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
    */
   tcd->procName = procNameObj;
   tcd->paramDefs = paramDefs;
-  tcd->with_ad = with_ad;
-  tcd->checkAlwaysFlag = checkAlwaysFlag;
+  tcd->flags = (checkAlwaysFlag != 0 ? NSF_PROC_FLAG_CHECK_ALWAYS : 0u) | (with_ad != 0 ? NSF_PROC_FLAG_AD : 0u);
   tcd->cmd = NULL;
+  tcd->wrapperCmd = cmd;  // TODO should we preserve?
 
   /*fprintf(stderr, "NsfProcAdd %s tcd %p paramdefs %p\n",
     ObjStr(procNameObj), tcd, tcd->paramDefs);*/
@@ -16683,6 +16710,7 @@ NsfProcAdd(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
   for (paramPtr = paramDefs->paramsPtr; paramPtr->name; paramPtr++) {
     if (*paramPtr->name == '-') {
       Tcl_Obj *varNameObj = Tcl_NewStringObj(paramPtr->name+1, -1);
+
       /*
        * If we have the -ad (for ars digita) flag set, we provide the
        * OpenACS semantics. This is (a) to use the name "boolean" for
@@ -16719,15 +16747,23 @@ NsfProcAdd(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
 
   if (likely(result == TCL_OK)) {
     /*
-     * The shadowed proc was created successfully. Retrieve the
-     * defined proc and set its namespace to the namespace of the stub
-     * cmd
+     * The shadowed proc was created successfully. Retrieve the defined proc
+     * and set its namespace to the namespace of the stub cmd.
      */
     Tcl_Command procCmd = Tcl_GetCommandFromObj(interp, procNameObj);
+
     assert(procCmd != NULL);
     ((Command *)procCmd)->nsPtr = (Namespace *)cmdNsPtr;
     tcd->cmd = procCmd;
     NsfCommandPreserve(tcd->cmd);
+
+    if (with_Debug) {
+      Tcl_Command_flags(cmd) |= NSF_CMD_DEBUG_METHOD;
+    }
+    if (with_Deprecated) {
+      Tcl_Command_flags(cmd) |= NSF_CMD_DEPRECATED_METHOD;
+    }
+
 
   } else {
     /*
@@ -17501,7 +17537,7 @@ NextSearchMethod(NsfObject *object, Tcl_Interp *interp, NsfCallStackContent *csc
       /* fprintf(stderr, "NEXT found absolute cmd %s => %p\n", *methodNamePtr, *cmdPtr); */
     } else if (object->nsPtr != NULL) {
       *cmdPtr = FindMethod(object->nsPtr, *methodNamePtr);
-      if ((*cmdPtr != NULL) && (Tcl_Command_flags(*cmdPtr) & NSF_CMD_CALL_PRIVATE_METHOD)) {
+      if ((*cmdPtr != NULL) && (Tcl_Command_flags(*cmdPtr) & NSF_CMD_CALL_PRIVATE_METHOD) != 0) {
         /*fprintf(stderr, "NEXT found private cmd %s => %p\n", *methodNamePtr, *cmdPtr);*/
         *cmdPtr = NULL;
       }
@@ -22423,7 +22459,7 @@ AppendMethodRegistration(Tcl_Interp *interp, Tcl_Obj *listObj, const char *regis
     Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-frame", 6));
     Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("object", 6));
   }
-  if (Tcl_Command_flags(cmd) & NSF_CMD_NONLEAF_METHOD) {
+  if ((Tcl_Command_flags(cmd) & NSF_CMD_NONLEAF_METHOD) != 0) {
     Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-frame", 6));
     Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("method", 6));
   }
@@ -22756,7 +22792,7 @@ ListMethod(Tcl_Interp *interp,
      */
     NsfProcClientData *tcd = Tcl_Command_objClientData(cmd);
 
-    if (tcd && tcd->procName) {
+    if (tcd != NULL && tcd->procName) {
       Tcl_Command procCmd = Tcl_GetCommandFromObj(interp, tcd->procName);
       Tcl_DString ds, *dsPtr = &ds;
       Tcl_Obj *resultObj;
@@ -22777,7 +22813,7 @@ ListMethod(Tcl_Interp *interp,
         DStringAppendQualName(dsPtr, Tcl_Command_nsPtr(cmd), methodName);
         /* don't hardcode names */
         Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("::nsf::proc", -1));
-        if (tcd->with_ad != 0) {
+        if ((tcd->flags & NSF_PROC_FLAG_AD) != 0) {
           Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("-ad", 3));
         }
         Tcl_ListObjAppendElement(interp, resultObj,
@@ -23183,7 +23219,7 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
       methodTypeMatch = MethodTypeMatches(interp, methodType, cmd, object, key,
                                           withPer_object, &isObject);
 
-      if (Tcl_Command_flags(cmd) & NSF_CMD_CLASS_ONLY_METHOD && !NsfObjectIsClass(object)) {
+      if ((Tcl_Command_flags(cmd) & NSF_CMD_CLASS_ONLY_METHOD) != 0 && !NsfObjectIsClass(object)) {
         return TCL_OK;
       }
       /*
@@ -23303,7 +23339,7 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
 
       }
 
-      if (Tcl_Command_flags(cmd) & NSF_CMD_CLASS_ONLY_METHOD && !NsfObjectIsClass(object)) {
+      if ((Tcl_Command_flags(cmd) & NSF_CMD_CLASS_ONLY_METHOD) != 0 && !NsfObjectIsClass(object)) {
         continue;
       }
       if (!ProtectionMatches(withCallprotection, cmd)
@@ -25389,7 +25425,6 @@ NsfForwardPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
       INCR_REF_COUNT(valueObj);
       tcd->cmdName = valueObj;
     }
-    // should we return old or new value? /class/set/... return new value, /configure/ often the old.
     Tcl_SetObjResult(interp, tcd->cmdName);
     break;
 
@@ -25418,7 +25453,7 @@ cmd ::method::property NsfMethodPropertyCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-per-object"}
   {-argName "methodName" -required 1 -type tclobj}
-  {-argName "methodproperty" -required 1 -type "class-only|call-private|call-protected|redefine-protected|returns|slotobj"}
+  {-argName "methodproperty" -required 1 -type "class-only|call-private|call-protected|deprecated|redefine-protected|returns|slotobj"}
   {-argName "value" -type tclobj}
 }
 */
@@ -25449,9 +25484,11 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
   }
 
   switch (methodproperty) {
-  case MethodpropertyClass_onlyIdx: /* fall through */
-  case MethodpropertyCall_privateIdx:  /* fall through */
-  case MethodpropertyCall_protectedIdx:  /* fall through */
+  case MethodpropertyClass_onlyIdx:          /* fall through */
+  case MethodpropertyCall_privateIdx:        /* fall through */
+  case MethodpropertyCall_protectedIdx:      /* fall through */
+  case MethodpropertyDebugIdx:               /* fall through */
+  case MethodpropertyDeprecatedIdx:          /* fall through */
   case MethodpropertyRedefine_protectedIdx:  /* fall through */
     {
       int impliedSetFlag = 0, impliedClearFlag = 0;
@@ -25468,10 +25505,17 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
         impliedClearFlag = NSF_CMD_CALL_PRIVATE_METHOD;
         flag = NSF_CMD_CALL_PROTECTED_METHOD;
         break;
+      case MethodpropertyDebugIdx:
+        flag = NSF_CMD_DEBUG_METHOD;
+        break;
+      case MethodpropertyDeprecatedIdx:
+        flag = NSF_CMD_DEPRECATED_METHOD;
+        break;
       case MethodpropertyRedefine_protectedIdx:
         flag = NSF_CMD_REDEFINE_PROTECTED_METHOD;
         break;
       default: flag = 0;
+        break;
       }
 
       if (valueObj != NULL) {
@@ -25482,6 +25526,7 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
           return result;
         }
         if (bool != 0) {
+
           /*
            * set flag
            */
@@ -26512,15 +26557,18 @@ NsfParameterSpecsCmd(Tcl_Interp *interp, int withConfigure, int withNonposargs, 
 
 /*
 cmd proc NsfProcCmd {
-  {-argName "-ad" -required 0  -nrargs 0 -type switch}
-  {-argName "-checkalways" -required 0  -nrargs 0 -type switch}
-  {-argName "procName" -required 1 -type tclobj}
-  {-argName "arguments" -required 1 -type tclobj}
-  {-argName "body" -required 1 -type tclobj}
+  {-argName "-ad"          -required 0 -nrargs 0 -type switch}
+  {-argName "-checkalways" -required 0 -nrargs 0 -type switch}
+  {-argName "-debug"       -required 0 -nrargs 0 -type switch}
+  {-argName "-deprecated"  -required 0 -nrargs 0 -type switch}
+  {-argName "procName"     -required 1 -type tclobj}
+  {-argName "arguments"    -required 1 -type tclobj}
+  {-argName "body"         -required 1 -type tclobj}
 }
 */
 static int
-NsfProcCmd(Tcl_Interp *interp, int with_ad, int with_checkAlways, Tcl_Obj *nameObj, Tcl_Obj *arguments, Tcl_Obj *body) {
+NsfProcCmd(Tcl_Interp *interp, int with_ad, int with_checkAlways, int with_Debug, int with_Deprecated,
+           Tcl_Obj *nameObj, Tcl_Obj *arguments, Tcl_Obj *body) {
   NsfParsedParam parsedParam;
   int result;
 
@@ -26540,13 +26588,14 @@ NsfProcCmd(Tcl_Interp *interp, int with_ad, int with_checkAlways, Tcl_Obj *nameO
     return result;
   }
 
-  if (parsedParam.paramDefs != NULL) {
+  if (parsedParam.paramDefs != NULL || with_Debug != 0) {
     /*
      * We need parameter handling. In such cases, a thin C-based layer
      * is added which handles the parameter passing and calls the proc
      * later.
      */
-    result = NsfProcAdd(interp, &parsedParam, ObjStr(nameObj), body, with_ad, with_checkAlways);
+    result = NsfProcAdd(interp, &parsedParam, ObjStr(nameObj), body,
+                        with_ad, with_checkAlways, with_Debug, with_Deprecated);
 
   } else {
     /*
@@ -29404,11 +29453,11 @@ AggregatedMethodType(int methodType) {
 objectInfoMethod baseclass NsfObjInfoBaseclassMethod {
 }
 */
- 
+
 static int
 NsfObjInfoBaseclassMethod(Tcl_Interp *interp, NsfObject *object) {
   NsfObjectSystem *osPtr;
-  
+
   nonnull_assert(interp != NULL);
   nonnull_assert(object != NULL);
 

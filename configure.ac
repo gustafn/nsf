@@ -13,7 +13,7 @@
 #--------------------------------------------------------------------
 AC_PREREQ([2.69])
 
-define(NsfVersion, 2.0.0)
+define(NsfVersion, 2.0.1)
 AC_INIT([nsf],[NsfVersion], [xotcl@alice.wu-wien.ac.at])
 
 AC_CONFIG_MACRO_DIR([m4])

@@ -5660,15 +5660,35 @@ Profile trace enhancements:
      "/obj/ info baseclass"
 - extended regression test
 
+
+- added nsf::method::property /obj/ /method/ debug ?0|1?
+  when debug is activated, a debug line written to the log file when 
+  the function is called and exited
+
+- added nsf::method::property /obj/ /method/ deprecated ?0|1?
+  when deprecated is activated, a warning written to the log file when 
+  the function is called
+
+- added flags to nsf::proc: -debug and -deprecated
+  (can als be set via nsf::method::property with an arbitrary object
+   and proc passed fully qualified)
+
+- bumped version number to 2.0.1
+
 ========================================================================
 TODO:
+- handling deprecated and debug in serializer (for methods and nsf::proc)
+- add regression tests for debug and deprecated in methods
+- add tests for nsf::proc flags -debug and -deprecated
+
 - add to doc:
    info object method callprotection
    info method callprotection
    info baseclass
+   nsf::proc flags -debug and -deprecated
 
 - gcc6:
-  * ISOBJ(methodObj); will raise a warning, when methodObj is decared as nonnull
+  * ISOBJ(methodObj); will raise a warning, when methodObj is declared as nonnull
   * Same with ObjectName() and ClassName()
   * gcc6 seems to have a bug: when e.g. a variable "foo" is declared as nonnull,
     then the construct

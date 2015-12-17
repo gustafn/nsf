@@ -214,7 +214,7 @@ cmd "method::property" NsfMethodPropertyCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-per-object" -required 0 -nrargs 0 -type switch}
   {-argName "methodName" -required 1 -type tclobj}
-  {-argName "methodProperty" -required 1 -type "class-only|call-private|call-protected|redefine-protected|returns"}
+  {-argName "methodProperty" -required 1 -type "class-only|call-private|call-protected|debug|deprecated|redefine-protected|returns"}
   {-argName "value" -type tclobj}
 } {-nxdoc 1}
 
@@ -273,11 +273,13 @@ cmd nscopyvars NsfNSCopyVarsCmd {
 }
 
 cmd proc NsfProcCmd {
-  {-argName "-ad" -required 0  -nrargs 0 -type switch}
-  {-argName "-checkalways" -required 0  -nrargs 0 -type switch}
-  {-argName "procName" -required 1 -type tclobj}
-  {-argName "arguments" -required 1 -type tclobj}
-  {-argName "body" -required 1 -type tclobj}
+  {-argName "-ad"          -required 0 -nrargs 0 -type switch}
+  {-argName "-checkalways" -required 0 -nrargs 0 -type switch}
+  {-argName "-debug"       -required 0 -nrargs 0 -type switch}
+  {-argName "-deprecated"  -required 0 -nrargs 0 -type switch}
+  {-argName "procName"     -required 1 -type tclobj}
+  {-argName "arguments"    -required 1 -type tclobj}
+  {-argName "body"         -required 1 -type tclobj}
 } {-nxdoc 1}
 
 cmd relation::get NsfRelationGetCmd {

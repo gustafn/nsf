@@ -77,9 +77,7 @@
 # include <tclCompile.h>
 #endif
 
-#if defined(NSF_PROFILE)
-# include <sys/time.h>
-#endif
+#include <sys/time.h>
 
 #if __GNUC_PREREQ(2, 95)
 /* Use gcc branch prediction hint to minimize cost of e.g. DTrace
@@ -446,6 +444,8 @@ typedef struct NsfStringIncrStruct {
 /* NSF_CMD_NONLEAF_METHOD is used to flag, if a Method implemented via cmd calls "next" */
 #define NSF_CMD_NONLEAF_METHOD			0x00080000
 #define NSF_CMD_CLASS_ONLY_METHOD		0x00100000
+#define NSF_CMD_DEPRECATED_METHOD		0x00200000
+#define NSF_CMD_DEBUG_METHOD			0x00400000
 /*
  * object flags ...
  */
@@ -606,12 +606,15 @@ typedef struct NsfClasses {
 /*
  * needed in nsf.c and in nsfShadow
  */
+#define NSF_PROC_FLAG_AD           0x01u
+#define NSF_PROC_FLAG_CHECK_ALWAYS 0x02u
+
 typedef struct NsfProcClientData {
   Tcl_Obj *procName;
   Tcl_Command cmd;
+  Tcl_Command wrapperCmd;
   NsfParamDefs *paramDefs;
-  int with_ad;
-  int checkAlwaysFlag;
+  unsigned int flags;
 } NsfProcClientData;
 
 typedef enum SystemMethodsIdx {
@@ -919,6 +922,7 @@ typedef struct NsfRuntimeState {
    * memory is very little.
    */
   int debugLevel;
+  int debugCallingDepth;
   int doCheckArguments;
   int doCheckResults;
   int doFilters;
@@ -1005,6 +1009,18 @@ EXTERN void NsfCleanupObject_(NsfObject *object) nonnull(1);
  * Profiling functions
  */
 
+EXTERN void NsfDeprecatedCmd(Tcl_Interp *interp, const char *what, const char *oldCmd, const char *newCmd)
+  nonnull(1) nonnull(2) nonnull(3) nonnull(4);
+EXTERN void NsfProfileDeprecatedCall(Tcl_Interp *interp, NsfObject *object, NsfClass *cl,
+				     const char *methodName, const char *altMethod)
+  nonnull(1) nonnull(2) nonnull(4) nonnull(5);
+EXTERN void NsfProfileDebugCall(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, const char *methodName,
+				int objc, Tcl_Obj **objv)
+  nonnull(1) nonnull(4);
+EXTERN void NsfProfileDebugExit(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, const char *methodName,
+                    long startSec, long startUsec)
+  nonnull(1) nonnull(4);
+
 #if defined(NSF_PROFILE)
 EXTERN void NsfProfileRecordMethodData(Tcl_Interp* interp, NsfCallStackContent *cscPtr)
   nonnull(1) nonnull(2);
@@ -1016,8 +1032,6 @@ EXTERN void NsfProfileClearData(Tcl_Interp *interp) nonnull(1);
 EXTERN void NsfProfileGetData(Tcl_Interp *interp) nonnull(1);
 EXTERN int NsfProfileTrace(Tcl_Interp *interp, int withEnable, int withVerbose, int withInmemory, Tcl_Obj *builtins);
 
-EXTERN void NsfProfileObjectLabel(Tcl_DString *dsPtr, NsfObject *obj, NsfClass *cl, const char *methodName)
-  nonnull(1) nonnull(2) nonnull(4);
 EXTERN void NsfProfileTraceCall(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, const char *methodName)
   nonnull(1) nonnull(2) nonnull(4);
 EXTERN void NsfProfileTraceExit(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, const char *methodName, struct timeval *trt)
@@ -1030,6 +1044,7 @@ EXTERN void NsfProfileTraceExitAppend(Tcl_Interp *interp, const char *label, dou
 EXTERN NsfCallStackContent *NsfCallStackGetTopFrame(Tcl_Interp *interp, Tcl_CallFrame **framePtrPtr)
   nonnull(1);
 #endif
+
 
 /*
  * MEM Counting
@@ -1105,8 +1120,9 @@ EXTERN void NsfDStringArgv(Tcl_DString *dsPtr, int objc, Tcl_Obj *CONST objv[])
 
 EXTERN Tcl_Obj *NsfMethodNamePath(Tcl_Interp *interp, 
 				  Tcl_CallFrame *framePtr, 
-				  CONST char *methodName)
+				  const char *methodName)
   nonnull(1) nonnull(3) returns_nonnull;
+
 
 
 /*
