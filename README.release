@@ -84,7 +84,7 @@ Steps for a beta release:
    - prepare next release:
        rename folder containing nsf to e.g. nsf2.0b4
        update version number in 
-         * configure.in
+         * configure.ac
 	 * library/nx/nx.tcl
          * library/nx/pkgIndex.tcl
 	 * library/xotcl/library/xotcl2.tcl
