@@ -5683,14 +5683,22 @@ Profile trace enhancements:
 
 - bumped version number to 2.0.1
 
-- handling "deprecated" and "debug" properties for nsf::proc
+- handling "-deprecated" and "-debug" properties for nsf::proc
   (in "nsf::cmd::info definition /proc/" and serializer)
+- extended regression test for introspecting nsf::cmd::info definition
+  + "-deprecated" and "-debug"
 
 ========================================================================
 TODO:
-- handling "deprecated" and "debug" properties in serializer (for methods)
-- add regression tests for debug and deprecated in methods
-- add tests for nsf::proc flags -debug and -deprecated
+- handling "deprecated" and "debug" properties in serializer (for methods and introspection)
+  * addressing scripted methods is not sufficient (e.g. "-debug" on c-implemented methods)
+  * handling for XOTcl methods
+  * probably, the most uniform way is to implement this via separate nsf::method::property
+    cmds, but also there it should be probably integrated with "info methods" as an additional
+    filter ... (like e.g. "-flags none|debug|deprecated")
+
+- add regression tests for debug and deprecated in methods (behavior + introspection)
+- add regression tests for nsf::proc flags -debug and -deprecated (behavior)
 
 - add to doc:
    info object method callprotection
