@@ -1316,6 +1316,30 @@ nx::test case uplevel+tcl-transparency {
   ? bar 2
 }
 
+nx::test case debug+deprecated {
+  nx::Class create C {
+    :public method foo {} {return 1}
+    :public method bar {} {return 1}
+
+    :public object method ofoo {} {return 1}
+    :public object method obar {} {return 1}
+  }
+
+  ? {C info method debug foo} 0
+  ? {C info method deprecated bar} 0
+  ? {C info object method debug ofoo} 0
+  ? {C info object method deprecated obar} 0
+
+  ? {nsf::method::property C foo debug 1} 1
+  ? {nsf::method::property C bar deprecated 1} 1
+  ? {nsf::method::property C -per-object ofoo debug 1} 1
+  ? {nsf::method::property C -per-object obar deprecated 1} 1
+
+  ? {C info method debug foo} 1
+  ? {C info method deprecated bar} 1
+  ? {C info object method debug ofoo} 1
+  ? {C info object method deprecated obar} 1
+}
 
 #
 # Local variables:

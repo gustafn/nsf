@@ -5688,6 +5688,13 @@ Profile trace enhancements:
 - extended regression test for introspecting nsf::cmd::info definition
   + "-deprecated" and "-debug"
 
+- nx: added new introspection options
+    /cls/ info method debug
+    /cls/ info method deprecated
+    /obj/ info object method debug
+    /obj/ info object method deprecated
+- extended regression test
+
 ========================================================================
 TODO:
 - handling "deprecated" and "debug" properties in serializer (for methods and introspection)
@@ -5695,7 +5702,7 @@ TODO:
   * handling for XOTcl methods
   * probably, the most uniform way is to implement this via separate nsf::method::property
     cmds, but also there it should be probably integrated with "info methods" as an additional
-    filter ... (like e.g.
+    filter ... like e.g.
        ... info methods .. -flags none|debug|deprecated ...
     or
        ... info methods .. -deprecated ...
@@ -5704,15 +5711,19 @@ TODO:
 
        ... info method deprecated ...
        ... info method debug ...
-    which speaks rather tor the 2nd approach for "info methods"
+    which speaks rather for the 2nd approach for "info methods"
 
 - add regression tests for debug and deprecated in methods (behavior + introspection)
 - add regression tests for nsf::proc flags -debug and -deprecated (behavior)
 
 - add to doc:
-   info method callprotection
-   info object method callprotection
-   info baseclass
+   /cls/ info method callprotection
+   /cls/ info method debug
+   /cls/ info method deprecated
+   /obj/ info baseclass
+   /obj/ info object method callprotection
+   /obj/ info object method debug
+   /obj/ info object method deprecated
    nsf::proc flags -debug and -deprecated
 
 - gcc6:

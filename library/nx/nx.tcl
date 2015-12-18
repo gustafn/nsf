@@ -888,7 +888,6 @@ namespace eval ::nx {
     :method "info method returns"        {name} {: ::nsf::methods::class::info::method returns $name}
     :method "info method callprotection" {name} {
       if {[::nsf::method::property [self] $name call-protected]} {
-        puts stderr "YES"
         return protected
       } elseif {[::nsf::method::property [self] $name call-private]} {
         return private
@@ -896,6 +895,8 @@ namespace eval ::nx {
         return public
       }
     }
+    :method "info method deprecated"     {name} {::nsf::method::property [self] $name deprecated}
+    :method "info method debug"          {name} {::nsf::method::property [self] $name debug}
   }
 
   Object  eval {
@@ -928,6 +929,8 @@ namespace eval ::nx {
         return public
       }
     }
+    :method "info object method deprecated" {name} {::nsf::method::property [self] -per-object $name deprecated}
+    :method "info object method debug"      {name} {::nsf::method::property [self] -per-object $name debug}
   }
 
   ######################################################################
