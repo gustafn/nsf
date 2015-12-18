@@ -5695,14 +5695,23 @@ TODO:
   * handling for XOTcl methods
   * probably, the most uniform way is to implement this via separate nsf::method::property
     cmds, but also there it should be probably integrated with "info methods" as an additional
-    filter ... (like e.g. "-flags none|debug|deprecated")
+    filter ... (like e.g.
+       ... info methods .. -flags none|debug|deprecated ...
+    or
+       ... info methods .. -deprecated ...
+       ... info methods .. -debug ...
+    we need as well
+
+       ... info method deprecated ...
+       ... info method debug ...
+    which speaks rather tor the 2nd approach for "info methods"
 
 - add regression tests for debug and deprecated in methods (behavior + introspection)
 - add regression tests for nsf::proc flags -debug and -deprecated (behavior)
 
 - add to doc:
-   info object method callprotection
    info method callprotection
+   info object method callprotection
    info baseclass
    nsf::proc flags -debug and -deprecated
 
