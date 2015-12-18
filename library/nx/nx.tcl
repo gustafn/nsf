@@ -239,6 +239,7 @@ namespace eval ::nx {
   ######################################################################
 
   ::nsf::method::create Class method {
+    -debug:switch -deprecated:switch
     name arguments:parameter,0..* -checkalways:switch -returns body
   } {
     set p [:__resolve_method_path $name]
@@ -254,6 +255,8 @@ namespace eval ::nx {
 	::nsf::method::property $object $r call-protected \
 	    [::nsf::dispatch $object __default_method_call_protection]
 	if {[info exists returns]} {::nsf::method::property $object $r returns $returns}
+        if {$debug} {::nsf::method::property $object $r debug true}
+        if {$deprecated} {::nsf::method::property $object $r deprecated true}
       }
       return $r
     }
@@ -521,6 +524,7 @@ namespace eval ::nx {
     #    - "forward"
 
     :public method "object method" {
+      -debug:switch -deprecated:switch
       methodName arguments:parameter,0..* -checkalways:switch -returns body
     } {
       set pathData  [:__resolve_method_path -per-object $methodName]
@@ -538,6 +542,8 @@ namespace eval ::nx {
 	::nsf::method::property $object $r call-protected \
 	    [::nsf::dispatch $object __default_method_call_protection]
 	if {[info exists returns]} {::nsf::method::property $object $r returns $returns}
+        if {$debug} {::nsf::method::property $object $r debug true}
+        if {$deprecated} {::nsf::method::property $object $r deprecated true}
       }
       return $r
     }

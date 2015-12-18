@@ -1317,6 +1317,10 @@ nx::test case uplevel+tcl-transparency {
 }
 
 nx::test case debug+deprecated {
+  #
+  # Check setting and introspection of method properties "debug" and
+  # "deprecated"
+  #
   nx::Class create C {
     :public method foo {} {return 1}
     :public method bar {} {return 1}
@@ -1325,15 +1329,28 @@ nx::test case debug+deprecated {
     :public object method obar {} {return 1}
   }
 
+  ? {nsf::method::property C foo debug} 0
+  ? {nsf::method::property C bar deprecated} 0
+  ? {nsf::method::property C -per-object ofoo debug} 0
+  ? {nsf::method::property C -per-object obar deprecated} 0
+  
   ? {C info method debug foo} 0
   ? {C info method deprecated bar} 0
   ? {C info object method debug ofoo} 0
   ? {C info object method deprecated obar} 0
 
-  ? {nsf::method::property C foo debug 1} 1
-  ? {nsf::method::property C bar deprecated 1} 1
-  ? {nsf::method::property C -per-object ofoo debug 1} 1
-  ? {nsf::method::property C -per-object obar deprecated 1} 1
+   C eval {
+     :public method -debug foo {} {return 1}
+     :public method -deprecated bar {} {return 1}
+     
+     :public object method -debug ofoo {} {return 1}
+     :public object method -deprecated obar {} {return 1}
+  }
+
+  ? {nsf::method::property C foo debug} 1
+  ? {nsf::method::property C bar deprecated} 1
+  ? {nsf::method::property C -per-object ofoo debug} 1
+  ? {nsf::method::property C -per-object obar deprecated} 1
 
   ? {C info method debug foo} 1
   ? {C info method deprecated bar} 1

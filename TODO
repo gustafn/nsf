@@ -5693,6 +5693,9 @@ Profile trace enhancements:
     /cls/ info method deprecated
     /obj/ info object method debug
     /obj/ info object method deprecated
+- nx: added options "-debug" and "-deprecated" to methods "method" 
+  and "obejct method", such one can use e.g.
+    C public method -deprecated bar {} {return 1}
 - extended regression test
 
 ========================================================================
@@ -5713,7 +5716,7 @@ TODO:
        ... info method debug ...
     which speaks rather for the 2nd approach for "info methods"
 
-- add regression tests for debug and deprecated in methods (behavior + introspection)
+- add regression tests for debug and deprecated in methods (behavior)
 - add regression tests for nsf::proc flags -debug and -deprecated (behavior)
 
 - add to doc:
