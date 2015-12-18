@@ -5683,9 +5683,12 @@ Profile trace enhancements:
 
 - bumped version number to 2.0.1
 
+- handling "deprecated" and "debug" properties for nsf::proc
+  (in "nsf::cmd::info definition /proc/" and serializer)
+
 ========================================================================
 TODO:
-- handling deprecated and debug in serializer (for methods and nsf::proc)
+- handling "deprecated" and "debug" properties in serializer (for methods)
 - add regression tests for debug and deprecated in methods
 - add tests for nsf::proc flags -debug and -deprecated
 

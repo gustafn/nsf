@@ -22816,6 +22816,13 @@ ListMethod(Tcl_Interp *interp,
         if ((tcd->flags & NSF_PROC_FLAG_AD) != 0) {
           Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("-ad", 3));
         }
+        if ((Tcl_Command_flags(tcd->wrapperCmd) & NSF_CMD_DEBUG_METHOD) != 0) {
+          Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("-debug", 6));
+        }
+        if ((Tcl_Command_flags(tcd->wrapperCmd) & NSF_CMD_DEPRECATED_METHOD) != 0) {
+          Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("-deprecated",11));
+        }
+
         Tcl_ListObjAppendElement(interp, resultObj,
                                  Tcl_NewStringObj(Tcl_DStringValue(dsPtr),
                                                   Tcl_DStringLength(dsPtr)));

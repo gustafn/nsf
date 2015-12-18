@@ -121,6 +121,13 @@ nx::test case nsf-method-get-variants {
   ? {nsf::cmd::info returns $::handle} ""
 
   #
+  # define a nsf::proc with "-debug" and "-deprecated"
+  #
+  nsf::proc -deprecated -debug ::baz {{-x 1} y:optional} {return $x-$y}
+
+  ? {nsf::cmd::info definition ::baz} {::nsf::proc -debug -deprecated ::baz {{-x 1} y:optional} {return $x-$y}}
+
+  #
   # A simple Tcl proc
   #
   set ::handle ::bar

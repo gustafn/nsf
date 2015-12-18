@@ -449,7 +449,7 @@ namespace eval ::nx::serializer {
       set result ""
       foreach n [:application_namespaces $ns] {
 	foreach p [:info methods -type nsfproc ${n}::*] {
-	  append result [:info method definition $p] \n
+	  append result [::nsf::cmd::info definition $p] \n
 	}
       }
       return $result
