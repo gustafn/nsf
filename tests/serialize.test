@@ -263,6 +263,69 @@ nx::test case serialize-object-properties {
 }
 
 #
+# Check handling of method properties "debug" and "deprecated"
+# in serializer
+#
+nx::test case nx-serialize-debug-deprecated {
+
+  #
+  # Check on object o
+  #
+  nx::Object create o {
+    :public object method -deprecated ofoo {} {return 1}
+    :public object method -debug      obar {} {return 1}
+    :public object alias -deprecated -debug obaz ::nsf::is
+  }
+  ? {::nsf::method::property o ofoo deprecated} 1
+  ? {::nsf::method::property o ofoo debug} 0
+  ? {::nsf::method::property o obar deprecated} 0
+  ? {::nsf::method::property o obar debug} 1
+  ? {::nsf::method::property o obaz deprecated} 1
+  ? {::nsf::method::property o obaz debug} 1
+
+
+  set script [o serialize]
+  o destroy
+  ? {::nsf::object::exists ::o} 0
+
+  eval $script
+
+  ? {::nsf::method::property o ofoo deprecated} 1
+  ? {::nsf::method::property o ofoo debug} 0
+  ? {::nsf::method::property o obar deprecated} 0
+  ? {::nsf::method::property o obar debug} 1
+  ? {::nsf::method::property o obaz deprecated} 1
+  ? {::nsf::method::property o obaz debug} 1
+  #
+  # Now the same for a class
+  #
+  nx::Class create C {
+    :public method -deprecated foo {} {return 1}
+    :public method -debug      bar {} {return 1}
+    :public alias -deprecated -debug baz ::nsf::is
+  }
+
+  ? {::nsf::method::property C foo deprecated} 1
+  ? {::nsf::method::property C foo debug} 0
+  ? {::nsf::method::property C bar deprecated} 0
+  ? {::nsf::method::property C bar debug} 1
+  ? {::nsf::method::property C baz deprecated} 1
+  ? {::nsf::method::property C baz debug} 1
+
+  set script [C serialize]
+  C destroy
+  ? {::nsf::object::exists ::C} 0
+
+  eval $script
+  ? {::nsf::method::property C foo deprecated} 1
+  ? {::nsf::method::property C foo debug} 0
+  ? {::nsf::method::property C bar deprecated} 0
+  ? {::nsf::method::property C bar debug} 1
+  ? {::nsf::method::property C baz deprecated} 1
+  ? {::nsf::method::property C baz debug} 1
+}
+
+#
 # Local variables:
 #    mode: tcl
 #    tcl-indent-level: 2

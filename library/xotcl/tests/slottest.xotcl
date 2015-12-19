@@ -8,15 +8,15 @@ nx::test configure -count 1000
 # what's new:
 #   - slots instances are manager objects for slot values
 #   - generalization of slots to have different kind of domains and managers
-#   - slots for objects and classes (slot parameter 'per-object' true|false, 
+#   - slots for objects and classes (slot parameter 'per-object' true|false,
 #     when to used on a class object)
 #   - works for mixins/filters/class/superclass (e.g ... superclass add ::M)
-#   - defaultcmd and valuecmd 
+#   - defaultcmd and valuecmd
 #     defaultcmd: is executed when the instance variable is read the first time
 #     valuecmd: is executed whenever the instance variable is read
 #     (implemented via trace; alternate approach for similar behavior
 #     is to define per-object procs for get/assign, see e.g. slots for
-#     class and superclass; slots require methods to be invoked, 
+#     class and superclass; slots require methods to be invoked,
 #     not var references;
 #     otoh, trace are somewhat more fragile and harder to debug)
 #     default, defaultcmd and valuecmd are to be used mutually exclusively
@@ -33,8 +33,8 @@ proc T1 {var sub op} {c1 set $var t1}
 proc T2 {var sub op} {c1 set $var t2}
 
 Class C -slots {
-  Attribute create x -defaultcmd {set x 1} 
-  Attribute create y -defaultcmd {incr ::hu} 
+  Attribute create x -defaultcmd {set x 1}
+  Attribute create y -defaultcmd {incr ::hu}
   Attribute create z -defaultcmd {my trace add variable z read T1}
 }
 
@@ -48,7 +48,7 @@ C create c1
 ? {set ::hu} 1
 
 proc ?? {cmd expected {msg ""}} {
-   #puts "??? $cmd"                 
+   #puts "??? $cmd"
    set r [uplevel $cmd]
    if {$msg eq ""} {set msg $cmd}
    if {$r ne $expected} {
@@ -60,7 +60,7 @@ proc ?? {cmd expected {msg ""}} {
 }
 
 Class D -slots {
-  Attribute create x -defaultcmd {set x 2} 
+  Attribute create x -defaultcmd {set x 2}
   Attribute create z -defaultcmd {my trace add variable z read T2}
   ?? self ::D
   ?? {namespace current} ::D::slot
@@ -73,7 +73,7 @@ D create c1
 ? {set ::hu} 2
 
 #######################################################
-# 
+#
 # a small helper
 Object instproc slots cmds {
   if {![my isobject [self]::slot]} {Object create [self]::slot}
@@ -101,12 +101,12 @@ O mixin assign M ;# new name
 ? {O mixin} ::M
 ? {O mixin ""} ""
 
-# with slots like class etc. we have to option to 
+# with slots like class etc. we have to option to
 # a) rename the original command like in the following
 # b) provide a no-op value, such that we define only meta-data in the slot
 # c) define a low-level tcl command like setrelation (or extend it) to handle the setter
 
-# "class" is not multivalued, therefore we should not add (or remove) add/delete 
+# "class" is not multivalued, therefore we should not add (or remove) add/delete
 # from the set of subcommands...
 ? {::nx::RelationSlot info class} "::nx::MetaSlot"
 O o1
@@ -153,7 +153,7 @@ O2 superclass delete ::O
     ? {info exists default0} 1
 
     ? {::Test info default m0 x default1} 0
-    
+
     unset -nocomplain default0 default1
 
     ? {::Test info instdefault m1 y default0} 1
@@ -174,7 +174,7 @@ O2 superclass delete ::O
 
   ? {C info heritage} "::xotcl::Object"
   ? {D info heritage} "::C ::xotcl::Object"
-  
+
   # xotcl info heritage should not see the mixins
   C instmixin [::xotcl::Class create M]
   ? {C info superclass -closure} "::xotcl::Object"
@@ -218,7 +218,6 @@ Person p1 -name neophytos
 ? {p1 age} 0
 p1 age 123
 ? {p1 age} 123
-
 
 Object o1
 o1 set i 0
@@ -317,11 +316,11 @@ C1 c1 -a 1
 ? {c1 b} 10
 ? {c1 c} "Hello World"
 
-##### is short form of 
+##### is short form of
 
 
 Class C2 -slots {
-  Attribute create a 
+  Attribute create a
   Attribute create b -default 10
   Attribute create c -default "Hello World"
 }
@@ -338,7 +337,7 @@ C2 c2 -a 1
 #::nx::VariableSlot mixin add ::nx::VariableSlot::Optimizer
 
 Class C3 -slots {
-  Attribute create a 
+  Attribute create a
   Attribute create b -default 10
   Attribute create c -default "Hello World"
 }
@@ -425,10 +424,10 @@ Person p1 -name "Gustaf"
 ? {p1 projects} {}
 
 Class Project -slots {
-  Attribute create name 
+  Attribute create name
   Attribute create description
 }
-  
+
 Project project1 -name XOTcl -description "A highly flexible OO scripting language"
 
 p1 projects add ::project1
@@ -437,7 +436,7 @@ p1 projects add ::project1
 #? {p1 projects} "some-other-value ::project1"
 
 ::nx::ObjectParameterSlot method check {
-  {-keep_old_value:boolean true} 
+  {-keep_old_value:boolean true}
   value predicate type obj var
 } {
   puts "+++ checking $value with $predicate ==> [expr $predicate]"
@@ -600,7 +599,7 @@ x move y
 #
 # 1) old-style Attribute creation
 #
-  
+
 Class Window -slots {
   Attribute scrollbar; # old style
   Attribute create title; # new style
@@ -649,7 +648,7 @@ Class create AA -slots {
     Attribute foo -default 1 -proc value=set {domain var value} {
 	if {$value < 0 || $value > 99} {
 	    error "$value is not in the range of 0 .. 99"
-	}  
+	}
 	$domain set $var $value
     }
 }
@@ -659,12 +658,50 @@ AA create aa1
 ? {aa1 foo} 10
 ? {catch {aa1 foo -1}} 1
 
+
+nx::test case nx-serialize-debug-deprecated {
+  ::xotcl::Object create o
+  o proc ofoo {} {return 1}
+  o proc obar {} {return 1}
+
+  ? {::nsf::method::property o ofoo deprecated} 0
+  ? {::nsf::method::property o ofoo debug} 0
+  ? {::nsf::method::property o obar deprecated} 0
+  ? {::nsf::method::property o obar debug} 0
+
+  ::nsf::method::property o ofoo deprecated 1
+  ::nsf::method::property o obar debug 1
+
+  ? {::nsf::method::property o ofoo deprecated} 1
+  ? {::nsf::method::property o ofoo debug} 0
+  ? {::nsf::method::property o obar deprecated} 0
+  ? {::nsf::method::property o obar debug} 1
+
+  set script [o serialize]
+  o destroy
+  ? {::nsf::object::exists ::o} 0
+
+  eval $script
+
+  ? {::nsf::method::property o ofoo deprecated} 1
+  ? {::nsf::method::property o ofoo debug} 0
+  ? {::nsf::method::property o obar deprecated} 0
+  ? {::nsf::method::property o obar debug} 1
+}
+
+
+
 exit
 
-  #puts [Person array get __defaults]
-  #puts [Person serialize]
-  puts [Serializer all]
-  eval [Serializer all]
+######################################################################
+#
+# Obsolete content
+#
+######################################################################
+#puts [Person array get __defaults]
+#puts [Person serialize]
+puts [Serializer all]
+eval [Serializer all]
 
 ? {p2 salary} 1009
 ? {catch {p2 append salary b}} 1
@@ -741,8 +778,8 @@ P create p2 -age 345 -s 567
 Slot create Project::fullbudget \
     -defaultcmd {$obj set __x 100} \
     -valuechangedcmd {
-      puts "budget is now [$obj set fullbudget]" 
-      $obj set __x [$obj set fullbudget] 
+      puts "budget is now [$obj set fullbudget]"
+      $obj set __x [$obj set fullbudget]
     }
 
 Slot create Project::currentbudget -valuecmd {$obj incr __x -1}

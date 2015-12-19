@@ -5735,6 +5735,7 @@ serializer:
 - hardened serializer (use e.g. "::namespace" instead
   of "namespace" when there is a potential conflict with
   a method named "namespace", prefer nsf::directdispatch, etc.)
+- extended regression test
 
 
 ========================================================================

@@ -298,9 +298,9 @@ namespace eval ::nx::serializer {
         } elseif {$ns ne [namespace origin $ns] } {
           append pre_cmds "namespace eval $ns {}\n"
         }
-        set exp [namespace eval $ns {namespace export}]
+        set exp [namespace eval $ns {::namespace export}]
         if {$exp ne ""} {
-          append exports "namespace eval $ns {namespace export $exp}" \n
+          append exports "namespace eval $ns {::namespace export $exp}" \n
         }
       }
       return $pre_cmds$result${:post_cmds}$exports
@@ -322,7 +322,7 @@ namespace eval ::nx::serializer {
     :public object method allChildren o {
       # return o and all its children fully qualified
       set set [::nsf::directdispatch $o -frame method ::nsf::current]
-      foreach c [$o info children] {
+      foreach c [::nsf::directdispatch $o ::nsf::methods::object::info::children] {
         lappend set {*}[:allChildren $c]
       }
       return $set
@@ -618,6 +618,27 @@ namespace eval ::nx::serializer {
       return [list $cmd ${:targetName} $relation $v]\n
     }
 
+    :method extraMethodProperties {o perObject m} {
+      #
+      #  Perserve special method properties like "debug" and
+      #  "deprecated" for arbitrary kind of methods via
+      #  "nsf::method::property" calls.
+      #
+      set extra ""
+      if {[::nsf::method::property $o {*}$perObject $m exists]} {
+        if {[::nsf::method::property $o {*}$perObject $m debug]} {
+          append extra "\n::nsf::method::property [list ${:targetName}] $perObject $m debug true"
+        }
+        if {[::nsf::method::property $o {*}$perObject $m deprecated]} {
+          append extra "\n::nsf::method::property [list ${:targetName}] $perObject $m deprecated true"
+        }
+      } else {
+        nsf::log warning "method <$o> <$perObject> <$m> does not exist"
+        #catch {nsf::__db_show_stack}
+      }
+      return $extra
+    }
+
     :method serializeExportedMethods {s} {
       set r ""
       foreach k [array names :exportMethods] {
@@ -731,8 +752,8 @@ namespace eval ::nx::serializer {
     }
 
     :method Object-needsNothing {x s} {
-      set p [$x info parent]
-      set cl [$x info class]
+      set p [::nsf::directdispatch $x ::nsf::methods::object::info::parent]
+      set cl [::nsf::directdispatch $x ::nsf::methods::object::info::class]
       if {$p ne "::"  && [$s needsOneOf $p]} {return 0}
       if {[$s needsOneOf $cl]} {return 0}
       if {[$s needsOneOf [$cl ::nsf::methods::class::info::slotobjects -closure -source application]]} {return 0}
@@ -777,11 +798,13 @@ namespace eval ::nx::serializer {
       expr {[$object info method type $name] ne ""}
     }
 
-    :public object method serializeExportedMethod {object kind name s} {
+    :public object method -debug serializeExportedMethod {object kind name s} {
       # todo: object modifier is missing
       set :targetName $object
-      if {$kind eq "inst"} {
+      if {$kind eq "method"} {
         set modifier ""
+      } elseif {$kind eq "nsfproc"} {
+        return [::nsf::cmd::info definition $name]
       } else {
         set modifier "object"
       }
@@ -790,6 +813,7 @@ namespace eval ::nx::serializer {
 
     :object method method-serialize {o m modifier s} {
       if {![::nsf::is class $o]} {set modifier "object"}
+      set perObject [expr {$modifier eq "object" ? "-per-object" : ""}]
       set methodType [$o info {*}$modifier method type $m]
       #puts stderr "methodType (*o $modifier $m) = $methodType"
       set def [$o info {*}$modifier method definition $m]
@@ -810,7 +834,6 @@ namespace eval ::nx::serializer {
           # (but not necessarily only there).
           #
           if {${:targetName} ne $o} {
-            set perObject [expr {$modifier eq "object" ? "-per-object" : ""}]
             set forwardTarget [nsf::method::forward::property $o {*}$perObject $m target]
             set mappedForwardTarget [$s getTargetName $forwardTarget]
             if {$forwardTarget ne $mappedForwardTarget} {
@@ -824,7 +847,7 @@ namespace eval ::nx::serializer {
       if {${:targetName} ne $o} {
         set def [lreplace $def 0 0 ${:targetName}]
       }
-      return $def
+      return $def[:extraMethodProperties $o $perObject $m]
     }
 
     ###############################
@@ -971,8 +994,10 @@ namespace eval ::nx::serializer {
     :object method method-serialize {o m prefix s} {
       if {![nsf::is class $o] || $prefix eq ""} {
         set scope object
+        set perObject "-per-object"
       } else {
         set scope class
+        set perObject ""
       }
       set arglist [$o ::nsf::methods::${scope}::info::method parameter $m]
 
@@ -990,7 +1015,7 @@ namespace eval ::nx::serializer {
       foreach p {pre post} {
         if {[$o info ${prefix}$p $m] ne ""} {lappend r [$o info ${prefix}$p $m]}
       }
-      return $r
+      return $r[:extraMethodProperties $o $perObject $m]
     }
 
     ###############################
@@ -1061,7 +1086,7 @@ namespace eval ::nx::serializer {
   }
 
   namespace export Serializer
-  namespace eval :: "namespace import -force [namespace current]::*"
+  namespace eval :: "::namespace import -force [namespace current]::*"
 }
 
 #
