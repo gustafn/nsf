@@ -36,8 +36,8 @@
 
  */
 
-static NSF_INLINE NsfObject*NsfGetObjectFromCmdPtr(Tcl_Command cmd) nonnull(1);
-static NSF_INLINE NsfClass*NsfGetClassFromCmdPtr(Tcl_Command cmd) nonnull(1);
+static NSF_INLINE NsfObject* NsfGetObjectFromCmdPtr(Tcl_Command cmd) nonnull(1);
+static NSF_INLINE NsfClass*  NsfGetClassFromCmdPtr(Tcl_Command cmd) nonnull(1);
 static NSF_INLINE ClientData NsfGetClientDataFromCmdPtr(Tcl_Command cmd) nonnull(1);
 
 static NSF_INLINE ClientData

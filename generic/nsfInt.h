@@ -316,7 +316,9 @@ typedef struct NsfMemCounter {
 
 #define ObjStr(obj) ((obj)->bytes) ? ((obj)->bytes) : Tcl_GetString(obj)
 #define ClassName(cl) (((cl) != NULL) ? ObjStr((cl)->object.cmdName) : "NULL")
+#define ClassName_(cl) (ObjStr((cl)->object.cmdName))
 #define ObjectName(obj) (((obj) != NULL) ? ObjStr((obj)->cmdName) : "NULL")
+#define ObjectName_(obj) (ObjStr((obj)->cmdName))
 
 #ifdef OBJDELETION_TRACE
 # define PRINTOBJ(ctx,obj) \
@@ -1123,6 +1125,8 @@ EXTERN Tcl_Obj *NsfMethodNamePath(Tcl_Interp *interp,
 				  const char *methodName)
   nonnull(1) nonnull(3) returns_nonnull;
 
+EXTERN int NsfDStringEval(Tcl_Interp *interp, Tcl_DString *dsPtr, const char *context, int safe, int noProfile)
+  nonnull(1) nonnull(2) nonnull(3);
 
 
 /*

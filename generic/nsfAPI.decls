@@ -214,7 +214,7 @@ cmd "method::property" NsfMethodPropertyCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-per-object" -required 0 -nrargs 0 -type switch}
   {-argName "methodName" -required 1 -type tclobj}
-  {-argName "methodProperty" -required 1 -type "class-only|call-private|call-protected|debug|deprecated|redefine-protected|returns"}
+  {-argName "methodProperty" -required 1 -type "class-only|call-private|call-protected|debug|deprecated|exists|redefine-protected|returns"}
   {-argName "value" -type tclobj}
 } {-nxdoc 1}
 

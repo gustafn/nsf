@@ -207,12 +207,12 @@ static int ConvertToAssertionsubcmd(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Par
   return result;
 }
   
-enum MethodpropertyIdx {MethodpropertyNULL, MethodpropertyClass_onlyIdx, MethodpropertyCall_privateIdx, MethodpropertyCall_protectedIdx, MethodpropertyDebugIdx, MethodpropertyDeprecatedIdx, MethodpropertyRedefine_protectedIdx, MethodpropertyReturnsIdx};
+enum MethodpropertyIdx {MethodpropertyNULL, MethodpropertyClass_onlyIdx, MethodpropertyCall_privateIdx, MethodpropertyCall_protectedIdx, MethodpropertyDebugIdx, MethodpropertyDeprecatedIdx, MethodpropertyExistsIdx, MethodpropertyRedefine_protectedIdx, MethodpropertyReturnsIdx};
 
 static int ConvertToMethodproperty(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
-  static const char *opts[] = {"class-only", "call-private", "call-protected", "debug", "deprecated", "redefine-protected", "returns", NULL};
+  static const char *opts[] = {"class-only", "call-private", "call-protected", "debug", "deprecated", "exists", "redefine-protected", "returns", NULL};
   (void)pPtr;
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "methodProperty", 0, &index);
   *clientData = (ClientData) INT2PTR(index + 1);
@@ -281,7 +281,7 @@ static int ConvertToInfoobjectparametersubcmd(Tcl_Interp *interp, Tcl_Obj *objPt
   {ConvertToMethodtype, "all|scripted|builtin|alias|forwarder|object|setter|nsfproc"},
   {ConvertToFrame, "method|object|default"},
   {ConvertToCurrentoption, "proc|method|methodpath|object|class|activelevel|args|activemixin|calledproc|calledmethod|calledclass|callingproc|callingmethod|callingclass|callinglevel|callingobject|filterreg|isnextcall|nextmethod"},
-  {ConvertToMethodproperty, "class-only|call-private|call-protected|debug|deprecated|redefine-protected|returns"},
+  {ConvertToMethodproperty, "class-only|call-private|call-protected|debug|deprecated|exists|redefine-protected|returns"},
   {ConvertToRelationtype, "object-mixin|class-mixin|object-filter|class-filter|class|superclass|rootclass"},
   {ConvertToSource, "all|application|system"},
   {ConvertToForwardproperty, "prefix|target|verbose"},

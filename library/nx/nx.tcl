@@ -12,7 +12,7 @@
 # Institute of Information Systems and New Media
 # A-1020, Welthandelsplatz 1
 # Vienna, Austria
-# 
+#
 # This work is licensed under the MIT License http://www.opensource.org/licenses/MIT
 #
 # Copyright:
@@ -176,7 +176,7 @@ namespace eval ::nx {
             return -code error "refuse to overwrite object method $w; delete/rename object method first."
           }
 	  set ensembleName ${object}::$w
-	} 
+	}
 	#puts stderr "NX check $scope $object info methods $path @ <$w> cmd=[info command $w] obj?[nsf::object::exists $ensembleName] "
 	if {![nsf::object::exists $ensembleName]} {
  	  #
@@ -283,7 +283,7 @@ namespace eval ::nx {
 
   # Well, class is not a method defining method either, but a modifier
   array set ::nsf::methodDefiningMethod {
-    method 1 alias 1 forward 1 object 1 
+    method 1 alias 1 forward 1 object 1
     ::nsf::classes::nx::Class::method  1 ::nsf::classes::nx::Object::method  1
     ::nsf::classes::nx::Class::alias   1 ::nsf::classes::nx::Object::alias   1
     ::nsf::classes::nx::Class::forward 1 ::nsf::classes::nx::Object::forward 1
@@ -351,6 +351,7 @@ namespace eval ::nx {
   #
 
   Class public method forward {
+      -debug:switch -deprecated:switch
      methodName
      -default -prefix -frame -onerror -returns -verbose:switch
      target:optional args
@@ -363,7 +364,7 @@ namespace eval ::nx {
       error "target '$target' must not start with a dash"
     }
     if {[info exists frame] && $frame ni {object default}} {
-      error "value of parameter -frame must be 'object' or 'default'" 
+      error "value of parameter -frame must be 'object' or 'default'"
     }
     if {[info exists returns]} {
       set nrPreArgs [expr {[llength $arguments]-[llength $args]}]
@@ -376,6 +377,8 @@ namespace eval ::nx {
     ::nsf::method::property $object $r call-protected \
 	[::nsf::dispatch $object __default_method_call_protection]
     if {[info exists returns]} {::nsf::method::property $object $r returns $returns}
+    if {$debug} {::nsf::method::property $object $r debug true}
+    if {$deprecated} {::nsf::method::property $object $r deprecated true}
     return $r
   }
 
@@ -385,7 +388,10 @@ namespace eval ::nx {
   # -frame object|method make only sense for c-defined cmds,
   ######################################################################
 
-  Class public method alias {methodName -returns {-frame default} cmd} {
+  Class public method alias {
+    -debug:switch -deprecated:switch
+    methodName -returns {-frame default} cmd
+  } {
     set pathData  [:__resolve_method_path $methodName]
     set object [dict get $pathData object]
 
@@ -394,6 +400,8 @@ namespace eval ::nx {
     ::nsf::method::property $object $r call-protected \
 	[::nsf::dispatch $object __default_method_call_protection]
     if {[info exists returns]} {::nsf::method::property $object $r returns $returns}
+    if {$debug} {::nsf::method::property $object $r debug true}
+    if {$deprecated} {::nsf::method::property $object $r deprecated true}
     return $r
   }
 
@@ -513,7 +521,7 @@ namespace eval ::nx {
   # Now we are able to use ensemble methods in the definition of NX
   ######################################################################
 
-  
+
   Object eval {
     #
     #  Define method defining methods for Object.
@@ -548,7 +556,10 @@ namespace eval ::nx {
       return $r
     }
 
-    :public method "object alias" {methodName -returns {-frame default} cmd} {
+    :public method "object alias" {
+      -debug:switch -deprecated:switch
+      methodName -returns {-frame default} cmd
+    } {
       set pathData  [:__resolve_method_path -per-object  $methodName]
       set object    [dict get $pathData object]
 
@@ -558,10 +569,13 @@ namespace eval ::nx {
       ::nsf::method::property $object -per-object $r call-protected \
 	  [::nsf::dispatch $object __default_method_call_protection]
       if {[info exists returns]} {::nsf::method::property $object $r returns $returns}
+      if {$debug} {::nsf::method::property $object $r debug true}
+      if {$deprecated} {::nsf::method::property $object $r deprecated true}
       return $r
     }
 
     :public method "object forward" {
+      -debug:switch -deprecated:switch
       methodName
       -default -prefix -frame -onerror -returns -verbose:switch
       target:optional args
@@ -574,7 +588,7 @@ namespace eval ::nx {
         error "target '$target' must not start with a dash"
       }
       if {[info exists frame] && $frame ni {object default}} {
-        error "value of parameter '-frame' must be 'object' or 'default'" 
+        error "value of parameter '-frame' must be 'object' or 'default'"
       }
       if {[info exists returns]} {
         set nrPreArgs [expr {[llength $arguments]-[llength $args]}]
@@ -588,6 +602,8 @@ namespace eval ::nx {
       ::nsf::method::property $object -per-object $r call-protected \
 	  [::nsf::dispatch $object __default_method_call_protection]
       if {[info exists returns]} {::nsf::method::property $object $r returns $returns}
+      if {$debug} {::nsf::method::property $object $r debug true}
+      if {$deprecated} {::nsf::method::property $object $r deprecated true}
       return $r
     }
   }
@@ -623,7 +639,7 @@ namespace eval ::nx {
       }
       # call explicitly the per-object variant of "info::slotobejcts"
       set slot [: ::nsf::methods::object::info::slotobjects -type ::nx::Slot $name]
-      
+
       if {$slot ne ""} {
 	# it is not a slot-less variable
 	$slot destroy
@@ -658,7 +674,7 @@ namespace eval ::nx {
     :method "require namespace" {} {
       ::nsf::directdispatch [::nsf::self] ::nsf::methods::object::requirenamespace
     }
-    
+
     #
     # method require, base cases
     #
@@ -780,7 +796,7 @@ namespace eval ::nx {
     # :method "info parameter name"    {p:parameter} {::nsf::parameter::info name   $p}
     # :method "info parameter syntax"  {p:parameter} {::nsf::parameter::info syntax $p}
     # :method "info parameter type"    {p:parameter} {::nsf::parameter::info type   $p}
-    
+
     :alias "info parent"                ::nsf::methods::object::info::parent
     :alias "info precedence"            ::nsf::methods::object::info::precedence
     :alias "info vars"                  ::nsf::methods::object::info::vars
@@ -819,9 +835,9 @@ namespace eval ::nx {
   #
 
   Class eval {
-    :alias "info lookup"         ::nx::Object::slot::__info::lookup
+    # :alias "info lookup"         ::nx::Object::slot::__info::lookup
     :alias "info filters"        ::nsf::methods::class::info::filters
-    :alias "info has"            ::nx::Object::slot::__info::has
+    # :alias "info has"            ::nx::Object::slot::__info::has
     :alias "info heritage"       ::nsf::methods::class::info::heritage
     :alias "info instances"      ::nsf::methods::class::info::instances
     :alias "info methods"        ::nsf::methods::class::info::methods
@@ -840,7 +856,7 @@ namespace eval ::nx {
     :method "info variables" {pattern:optional} {
       set cmd {info slots -type ::nx::VariableSlot}
       if {[info exists pattern]} {lappend cmd $pattern}
-      return [: {*}$cmd] 
+      return [: {*}$cmd]
     }
   }
 
@@ -855,7 +871,7 @@ namespace eval ::nx {
       if {$name in $methods || $name eq "unknown"} continue
       lappend methods $name
     }
-    
+
     if {$asList} {
       return $methods
     } else {
@@ -945,7 +961,7 @@ namespace eval ::nx {
   Object eval {
     :public alias cget ::nsf::methods::object::cget
 
-    :public alias configure ::nsf::methods::object::configure    
+    :public alias configure ::nsf::methods::object::configure
     #:public method "info configure" {} {: ::nsf::methods::object::info::objectparameter syntax}
   }
   #nsf::method::create ::nx::Class::slot::__info::configure defaultmethod {} {
@@ -1088,7 +1104,7 @@ namespace eval ::nx {
     }
 
     if {$private} {
-      regsub -all :  __$target _ prefix 
+      regsub -all :  __$target _ prefix
       lappend opts -settername $name -name __private($target,$name)
       set slotname ${prefix}.$name
     } else {
@@ -1100,7 +1116,7 @@ namespace eval ::nx {
     } else {
       #puts stderr "*** Class for '$target $name' is $class // [$class info heritage]"
     }
-    
+
     set slotObj [::nx::slotObj -container $container $target $slotname]
     #puts stderr "[self] *** [list $class create $slotObj] {*}$opts <$initblock>"
     set r [$class create $slotObj {*}$opts $initblock]
@@ -1153,7 +1169,7 @@ namespace eval ::nx {
       #
       #regexp {^([^:]+):} $att . att
       #::nsf::method::property $class $att call-protected true
-      
+
       #
       # set for every bootstrap property slot the position 0
       #
@@ -1301,7 +1317,7 @@ namespace eval ::nx {
       # delete the accessors
       #
       #puts stderr "*** slot destroy of [self], domain ${:domain} per-object ${:per-object}"
-      
+
       if {${:per-object}} {
 	::nsf::parameter::cache::objectinvalidate ${:domain}
 	if {[${:domain} ::nsf::methods::object::info::method exists ${:name}]} {
@@ -1464,7 +1480,7 @@ namespace eval ::nx {
   }
 
   ObjectParameterSlot public method getPropertyDefinitionOptions {parameterSpec} {
-    #puts "accessor <${:accessor}> configurable ${:configurable} per-object ${:per-object}" 
+    #puts "accessor <${:accessor}> configurable ${:configurable} per-object ${:per-object}"
 
     set mod [expr {${:per-object} ? "object" : ""}]
     set opts ""
@@ -1630,9 +1646,9 @@ namespace eval ::nx {
   ######################################################################
 
   #
-  # Create relation slots 
+  # Create relation slots
   #
-  # on nx::Object for 
+  # on nx::Object for
   #
   #     object-mixin
   #     object-filter
@@ -1671,7 +1687,7 @@ namespace eval ::nx {
       -disposition slotset \
       -forwardername class-filter \
       -elementtype filterreg
-  
+
   #
   # Define "class" as a ObjectParameterSlot defined as alias
   #
@@ -1818,7 +1834,7 @@ namespace eval ::nx {
     if {[llength $options]} {
       ::nsf::is -configure -complain -name ${:name}: [join $options ,] $value
     }
-    
+
     set restore [:removeTraces $object *]
     ::nsf::var::set $object ${:name} ${:default}
     if {[info exists restore]} { {*}$restore }
@@ -1857,7 +1873,7 @@ namespace eval ::nx {
 			     "alnum" "alpha" "ascii" "control" "digit" "double" \
 			     "false" "graph" "lower" "print" "punct" "space" "true" \
 			     "wideinteger" "wordchar" "xdigit" ]} {
-	  lappend options slot=[::nsf::self] 
+	  lappend options slot=[::nsf::self]
 	}
       }
     }
@@ -1903,7 +1919,7 @@ namespace eval ::nx {
   }
 
   ::nx::VariableSlot protected method makeAccessor {} {
-    
+
     if {${:accessor} eq "none"} {
       #puts stderr "*** Do not register forwarder ${:domain} ${:name}"
       return 0
@@ -1973,7 +1989,7 @@ namespace eval ::nx {
     #puts "[self] VariableSlot [self] ${:incremental} && ${:accessor} && ${:multiplicity} incremental ${:incremental}"
     if {${:incremental}} {
       if {${:accessor} eq "none"} { set :accessor "public" }
-      if {![:isMultivalued]} { 
+      if {![:isMultivalued]} {
         set :multiplicity [string range ${:multiplicity} 0 0]..n
       }
     }
@@ -2032,7 +2048,7 @@ namespace eval ::nx {
     #puts stderr "====removeTraces ${:name} $matchOps"
     set restore ""
     set traces [::nsf::directdispatch $object -frame object ::trace info variable ${:name}]
-    foreach trace $traces { 
+    foreach trace $traces {
       lassign $trace ops cmdPrefix
       if {![string match $matchOps $ops]} continue
       #puts stderr "====remove trace variable ${:name} $ops $cmdPrefix"
@@ -2120,7 +2136,7 @@ namespace eval ::nx {
 
   ::nsf::method::alias ::nx::VariableSlot value=get    ::nsf::var::get
   ::nsf::method::alias ::nx::VariableSlot value=set    ::nsf::var::set
-  
+
   ::nx::VariableSlot public method value=unset {obj prop -nocomplain:switch} {
     ::nsf::var::unset -nocomplain=$nocomplain $obj $prop
   }
@@ -2180,7 +2196,7 @@ namespace eval ::nx {
       set configurable $opts(-configurable)
     }
 
-    #if {$initblock eq "" && $accessor eq "none" && !$incremental} 
+    #if {$initblock eq "" && $accessor eq "none" && !$incremental}
     if {$initblock eq "" && !$configurable && $accessor eq "none" && !$incremental} {
       #
       # we can build a slot-less variable
@@ -2449,7 +2465,7 @@ namespace eval ::nx {
 
     :method makeTargetList {t} {
       if {[::nsf::is object,type=::nx::EnsembleObject $t]} {
-	# 
+	#
 	# we do not copy ensemble objects, since method
 	# introspection/recreation will care about these
 	#

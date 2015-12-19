@@ -5543,19 +5543,19 @@ nsf.c:
 
 nx.tcl:
 - simplify the info ensembles on nx::Object or nx::Class significantly,
-  by making use if ensemble-next. 
+  by making use if ensemble-next.
 - delete "info unknown", since this is not called.
 
 nsf.c:
 - make types for bit operations unsigned (mostly flags)
 
 build system:
-- don't call genstubs from configure, since Debian does not seem 
+- don't call genstubs from configure, since Debian does not seem
   to have genstubs.tcl installed. Now, we pre-generate the
   stub files for tcl8.5 and tcl8.6 and copy the "right" version
   depending on the configured version.
-  
-- Make dtplite configurable in Makefile, e.g. 
+
+- Make dtplite configurable in Makefile, e.g.
      make "DTPLITE=/usr/local/ns/bin/tclsh8.5 /usr/local/ns/bin/dtplite" man
 
 - regenerate documentation
@@ -5585,15 +5585,15 @@ build system:
 
 - removed  NsfParamDefs.slotObj (and single occurrence for memory-management)
   since it is not used for the time being
-- fix potential bug on tcl-triggered cmd-delete operations, where 
-  destroy returns non-TCL_OK and name of the object could not be 
+- fix potential bug on tcl-triggered cmd-delete operations, where
+  destroy returns non-TCL_OK and name of the object could not be
   retrieved anymore in error message.
 - move dereferencing of members after assertions
 
-- improve robustness of destroy: in case an error happened in a 
+- improve robustness of destroy: in case an error happened in a
   destroy method in implicit delete operations, a crash was possible,
   since the state of the object to be delete was somewhat unclear
-  (it might or might not have been deleted). Now, the object 
+  (it might or might not have been deleted). Now, the object
   is explicitly kept longer around to allow proper handling).
 
 - update licenses
@@ -5670,11 +5670,11 @@ Profile trace enhancements:
 
 
 - added nsf::method::property /obj/ /method/ debug ?0|1?
-  when debug is activated, a debug line written to the log file when 
+  when debug is activated, a debug line written to the log file when
   the function is called and exited
 
 - added nsf::method::property /obj/ /method/ deprecated ?0|1?
-  when deprecated is activated, a warning written to the log file when 
+  when deprecated is activated, a warning written to the log file when
   the function is called
 
 - added flags to nsf::proc: -debug and -deprecated
@@ -5683,39 +5683,62 @@ Profile trace enhancements:
 
 - bumped version number to 2.0.1
 
-- handling "-deprecated" and "-debug" properties for nsf::proc
+- handling flags "-deprecated" and "-debug" properties for nsf::proc
   (in "nsf::cmd::info definition /proc/" and serializer)
 - extended regression test for introspecting nsf::cmd::info definition
-  + "-deprecated" and "-debug"
+  and flags "-deprecated" and "-debug"
 
 - nx: added new introspection options
     /cls/ info method debug
     /cls/ info method deprecated
     /obj/ info object method debug
     /obj/ info object method deprecated
-- nx: added options "-debug" and "-deprecated" to methods "method" 
-  and "obejct method", such one can use e.g.
-    C public method -deprecated bar {} {return 1}
+
+- nx: added flag "-debug" and "-deprecated" to methods
+    "method"
+    "object method"
+    "alias"
+    "object alias"
+    "forward"
+    "object forward"
+   such one can use e.g.
+   /cls/ public alias   -deprecated|-debug /method/ ...
+   /cls/ public forward -deprecated|-debug /method/ ...
+   /cls/ public method  -deprecated|-debug /method/ ...
+   /obj/ public object alias   -deprecated|-debug /method/ ...
+   /obj/ public object forward -deprecated|-debug /method/ ...
+   /obj/ public object method  -deprecated|-debug /method/ ...
+
+- added new cmd:
+    nsf::method::property /obj/ ?-per-object? /method/ exists
+  to check, whether a method is defined for an object.
+
+- output triggered via "-debug" is now generated via the
+  tcl functions "nsf::debug::call" and "nsf::debug::exit",
+  that can be redefined (similar to e.g. nsf::deprecated)
+
+- cleanup of nsfProfile.c commands
+
+- defined macros ObjectName_() and ClassName_() that behave
+  like the versions without "_", but do not check the passed
+  arg against NULL. This avoids warnings in newest versions
+  of gcc6 and cppcheck.
+
 - extended regression test
+
+serializer:
+- added handling of "-debug" and "-deprecated" in serializer
+- allow export of nsfprocs via "exportMethods declaration"
+  in order to keep otherwise excluded cmds in the result.
+  this allows us to keep nsf::debug::* or nsf::deprecated
+  definitions in the blueprint in OpenACS.
+- hardened serializer (use e.g. "::namespace" instead
+  of "namespace" when there is a potential conflict with
+  a method named "namespace", prefer nsf::directdispatch, etc.)
+
 
 ========================================================================
 TODO:
-- handling "deprecated" and "debug" properties in serializer (for methods and introspection)
-  * addressing scripted methods is not sufficient (e.g. "-debug" on c-implemented methods)
-  * handling for XOTcl methods
-  * probably, the most uniform way is to implement this via separate nsf::method::property
-    cmds, but also there it should be probably integrated with "info methods" as an additional
-    filter ... like e.g.
-       ... info methods .. -flags none|debug|deprecated ...
-    or
-       ... info methods .. -deprecated ...
-       ... info methods .. -debug ...
-    we need as well
-
-       ... info method deprecated ...
-       ... info method debug ...
-    which speaks rather for the 2nd approach for "info methods"
-
 - add regression tests for debug and deprecated in methods (behavior)
 - add regression tests for nsf::proc flags -debug and -deprecated (behavior)
 
@@ -5727,11 +5750,45 @@ TODO:
    /obj/ info object method callprotection
    /obj/ info object method debug
    /obj/ info object method deprecated
-   nsf::proc flags -debug and -deprecated
+   /cls/ public alias   -deprecated|-debug /method/ ...
+   /cls/ public forward -deprecated|-debug /method/ ...
+   /cls/ public method  -deprecated|-debug /method/ ...
+   /obj/ public object alias   -deprecated|-debug /method/ ...
+   /obj/ public object forward -deprecated|-debug /method/ ...
+   /obj/ public object method  -deprecated|-debug /method/ ...
+
+   # in case, when similar cmds are commented, add:
+   #
+   nsf::proc -debug /name/ ...
+   nsf::proc -deprecated /name/ ...
+   nsf::method::property /obj/ ?-per-object? /method/ exists
+   nsf::method::property /obj/ ?-per-object? /method/ debug ?0|1?
+   nsf::method::property /obj/ ?-per-object? /method/ deprecated ?0|1?
+
+
+- CHECK:
+  [nx::Class info methods -path "info lookup *"] returns "{info lookup parameters} {info lookup mixins} ..."
+  however,
+     nx::Class info method type {info lookup parameters}
+  returns "", while e.g.
+     nx::Class info method type {info method handle}
+  returns "scripted". The problem is not the case that the method is
+  an ensemble method, but probably the case that it is defined as an alias
+  pointing to nx:Object::...:info (same with "info has")
+     nx::Class alias "info lookup"         ::nx::Object::slot::__info::lookup
+     nx::Class alias "info has"            ::nx::Object::slot::__info::has
+  However, when this two lines are commented out, everything looks fine,
+  the regression test and OpenACS work without problems.
+
+  -> check, whether the definitions can be eliminated, or whether the regression
+     test has to be extended. The result of
+        nx::Class info lookup methods -path
+     looks fine to me.
+
+
 
 - gcc6:
   * ISOBJ(methodObj); will raise a warning, when methodObj is declared as nonnull
-  * Same with ObjectName() and ClassName()
   * gcc6 seems to have a bug: when e.g. a variable "foo" is declared as nonnull,
     then the construct
 
@@ -6114,11 +6171,11 @@ For future releases (after first alpha/beta release)
 
 
 
-observation: 
+observation:
 - [current isnextcall] does not work for ensemble next:
-  ... but should probably not, since this is an implicit 
+  ... but should probably not, since this is an implicit
   next call just for resolving an ensemble call.
-  
+
 Object create o {
   :public object method foo {} {return [current isnextcall]}
   :public object method "x y" {} {return [current isnextcall]}

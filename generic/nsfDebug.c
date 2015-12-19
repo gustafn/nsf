@@ -99,7 +99,7 @@ NsfReportVars(Tcl_Interp *interp) {
  * NsfStackDump --
  *
  *    Write the current callstack with various debugging infos to stderr. This
- *    function is primarily for debugging proposes of the C implmenentation of
+ *    function is primarily for debugging proposes of the C implementation of
  *    nsf.
  *
  * Results:
@@ -162,12 +162,13 @@ NsfStackDump(Tcl_Interp *interp) {
   DECR_REF_COUNT(varCmdObj);
 }
 
+#ifdef NSF_PRINT_OBJV
 /*
  *----------------------------------------------------------------------
  * NsfPrintObjv --
  *
  *    Print the provided argument vector to stderr. This function is primarily
- *    for debugging proposes of the C implmenentation of nsf.
+ *    for debugging proposes of the C implementation of nsf.
  *
  * Results:
  *    None.
@@ -178,7 +179,7 @@ NsfStackDump(Tcl_Interp *interp) {
  *----------------------------------------------------------------------
  */
 
-void  NsfPrintObjv(char *string, int objc, Tcl_Obj *CONST objv[]) nonnull(1) nonnull(3);
+void NsfPrintObjv(char *string, int objc, Tcl_Obj *CONST objv[]) nonnull(1) nonnull(3);
 
 void
 NsfPrintObjv(char *string, int objc, Tcl_Obj *CONST objv[]) {
@@ -194,6 +195,7 @@ NsfPrintObjv(char *string, int objc, Tcl_Obj *CONST objv[]) {
   }
   fprintf(stderr, "\n");
 }
+#endif
 
 #ifdef NSF_MEM_COUNT
 /*

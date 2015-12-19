@@ -1,5 +1,5 @@
 # -*- Tcl -*-
-# 
+#
 # Define a basic set of predefined Tcl commands and definitions for
 # the Next Scripting Framework. This file will be transformed by
 # mk_predefined.tcl into "predefined.h", which in included in nsf.c.
@@ -13,10 +13,10 @@ namespace eval ::nsf {
   # get frequenly used primitiva into the ::nsf namespace
   #
   # Symbols reused in the next scripting language
-  
+
   namespace export \
       next current self configure finalize interp is my relation dispatch
- 
+
   namespace eval ::nsf::method::create {namespace export alias}
 
   #
@@ -68,7 +68,7 @@ namespace eval ::nsf {
   }
 
   #
-  # ::nsf::mixin 
+  # ::nsf::mixin
   #
   # Provide a similar interface as for ::nsf::method::create, ::nsf::method::alias,
   # etc..  Semantically, ::nsf::mixin behaves like a "mixin add", but
@@ -136,7 +136,7 @@ namespace eval ::nsf {
   }
   # initialize exit handler
   ::nsf::exithandler unset
-  
+
   #
   # logger
   #
@@ -157,6 +157,17 @@ namespace eval ::nsf {
   }
 
   #
+  # debug::call and debug::exit command
+  #
+  namespace eval ::nsf::debug {}
+  proc ::nsf::debug::call {level objectInfo methodInfo arglist} {
+    nsf::log Warning "DB call($level) - $objectInfo $methodInfo $arglist"
+  }
+  proc ::nsf::debug::exit {level objectInfo methodInfo usec} {
+    nsf::log Warning "DB exit($level) - $objectInfo $methodInfo $usec usec"
+  }
+
+  #
   # deprecated command
   #
   proc ::nsf::deprecated {what oldCmd newCmd} {
@@ -168,7 +179,7 @@ namespace eval ::nsf {
 
   #
   # determine platform aware temp directory
-  #  
+  #
   proc tmpdir {} {
     foreach e [list TMPDIR TEMP TMP] {
       if {[info exists ::env($e)] \
@@ -186,7 +197,7 @@ namespace eval ::nsf {
     }
     return /tmp
   }
-  namespace export tmpdir 
+  namespace export tmpdir
 
   # if HOME is not set, and ~ is resolved, Tcl chokes on that
   if {![info exists ::env(HOME)]} {set ::env(HOME) /root}
@@ -210,3 +221,10 @@ namespace eval ::nsf {
   set ::nsf::parameter::syntax(::nsf::exithandler) "?get?|?set /cmds/?|?unset?"
 
 }
+
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:
