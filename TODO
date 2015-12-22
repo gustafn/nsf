@@ -5737,6 +5737,7 @@ serializer:
   a method named "namespace", prefer nsf::directdispatch, etc.)
 - extended regression test
 
+- fix potentail memory corruption bug in NsfDStringVPrintf()
 
 ========================================================================
 TODO:

@@ -74,6 +74,7 @@ NsfDStringVPrintf(Tcl_DString *dsPtr, const char *fmt, va_list vargs) {
   /*
    * Work on a copy of the va_list so that the caller's copy is untouched
    */
+  avail -= offset;
   va_copy(vargsCopy, vargs);
   result = vsnprintf(dsPtr->string + offset, avail, fmt, vargsCopy);
   va_end(vargsCopy);
@@ -105,6 +106,7 @@ NsfDStringVPrintf(Tcl_DString *dsPtr, const char *fmt, va_list vargs) {
      * we have just to adjust the length.
      */
     Tcl_DStringSetLength(dsPtr, offset + result);
+
   } else {
     int addedStringLength;
     /*
@@ -112,6 +114,7 @@ NsfDStringVPrintf(Tcl_DString *dsPtr, const char *fmt, va_list vargs) {
      * we have to determine the required length (MS),
      * adjust the DString size and copy again.
      */
+
 #if defined(_MSC_VER)
     va_copy(vargsCopy, vargs);
     addedStringLength = _vscprintf(fmt, vargsCopy);
@@ -119,10 +122,11 @@ NsfDStringVPrintf(Tcl_DString *dsPtr, const char *fmt, va_list vargs) {
 #else
     addedStringLength = result;
 #endif
+
     Tcl_DStringSetLength(dsPtr, offset + addedStringLength);
 
     va_copy(vargsCopy, vargs);
-    result = vsnprintf(dsPtr->string + offset, dsPtr->spaceAvl, fmt, vargsCopy);
+    result = vsnprintf(dsPtr->string + offset, dsPtr->spaceAvl - offset, fmt, vargsCopy);
     assert(result > -1);
     va_end(vargsCopy);
   }
