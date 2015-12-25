@@ -798,15 +798,19 @@ namespace eval ::nx::serializer {
       expr {[$object info method type $name] ne ""}
     }
 
-    :public object method -debug serializeExportedMethod {object kind name s} {
-      # todo: object modifier is missing
+    :public object method serializeExportedMethod {object kind name s} {
       set :targetName $object
-      if {$kind eq "method"} {
-        set modifier ""
-      } elseif {$kind eq "nsfproc"} {
-        return [::nsf::cmd::info definition $name]
-      } else {
-        set modifier "object"
+      switch $kind {
+        "inst" -
+        "method" {
+          set modifier ""
+        }
+        "nsfproc" {
+          return [::nsf::cmd::info definition $name]
+        }
+        default {
+          set modifier "object"
+        }
       }
       return [:method-serialize $object $name $modifier $s]
     }
