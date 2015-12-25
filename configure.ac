@@ -13,7 +13,7 @@
 #--------------------------------------------------------------------
 AC_PREREQ([2.69])
 
-define(NsfVersion, 2.0.1)
+define(NsfVersion, 2.1.0)
 AC_INIT([nsf],[NsfVersion], [xotcl@alice.wu-wien.ac.at])
 
 AC_CONFIG_MACRO_DIR([m4])
@@ -92,7 +92,7 @@ AC_SUBST([subdirs])
 #--------------------------------------------------------------------
 
 NSF_MAJOR_VERSION=2
-NSF_MINOR_VERSION=0
+NSF_MINOR_VERSION=1
 
 NSF_PATCH_LEVEL=$PACKAGE_VERSION
 

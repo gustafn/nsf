@@ -12,7 +12,7 @@ nx::test case nsf-method-get-variants {
     :public method "string match" {pattern string} {return string-match-$string}
     :create p1
   }
-  
+
   #
   # A plain method
   #
@@ -146,6 +146,54 @@ nx::test case nsf-method-get-variants {
   ? {nsf::cmd::info postcondition $::handle} ""
   ? {nsf::cmd::info submethods $::handle} ""
   ? {nsf::cmd::info returns $::handle} ""
+  ? {nsf::method::property ::nx::Object $handle debug 1} 1
+  ? {bar a b} "a-b"
+
+  #
+  # redefine bar with debug flag
+  #
+  nsf::proc -debug bar {a b} {return $a-$b}
+  set ::handle ::bar
+
+  ? {nsf::cmd::info args $::handle} "a b"
+  ? {nsf::cmd::info body $::handle} {return $a-$b}
+  ? {nsf::cmd::info definition $::handle} {::nsf::proc -debug ::bar {a b} {return $a-$b}}
+  ? {nsf::cmd::info exists $::handle} 1
+  ? {nsf::cmd::info registrationhandle $::handle} ""
+  ? {nsf::cmd::info definitionhandle $::handle} ""
+  ? {nsf::cmd::info origin $::handle} ""
+  ? {nsf::cmd::info parameter $::handle} "a b"
+  ? {nsf::cmd::info syntax $::handle} {/a/ /b/}
+  ? {nsf::cmd::info type $::handle} "nsfproc"
+  ? {nsf::cmd::info precondition $::handle} ""
+  ? {nsf::cmd::info postcondition $::handle} ""
+  ? {nsf::cmd::info submethods $::handle} ""
+  ? {nsf::cmd::info returns $::handle} ""
+  ? {nsf::method::property ::nx::Object $handle debug 1} 1
+  ? {bar a b} "a-b"
+
+  #
+  # Define a proc with zero arguments
+  #
+  nsf::proc -debug zero {} {return 333}
+  set ::handle ::zero
+
+  ? {nsf::cmd::info args $::handle} ""
+  ? {nsf::cmd::info body $::handle} {return 333}
+  ? {nsf::cmd::info definition $::handle} {::nsf::proc -debug ::zero {} {return 333}}
+  ? {nsf::cmd::info exists $::handle} 1
+  ? {nsf::cmd::info registrationhandle $::handle} ""
+  ? {nsf::cmd::info definitionhandle $::handle} ""
+  ? {nsf::cmd::info origin $::handle} ""
+  ? {nsf::cmd::info parameter $::handle} ""
+  ? {nsf::cmd::info syntax $::handle} {}
+  ? {nsf::cmd::info type $::handle} "nsfproc"
+  ? {nsf::cmd::info precondition $::handle} ""
+  ? {nsf::cmd::info postcondition $::handle} ""
+  ? {nsf::cmd::info submethods $::handle} ""
+  ? {nsf::cmd::info returns $::handle} ""
+  ? {nsf::method::property ::nx::Object $handle debug 1} 1
+  ? {zero} "333"
 
   #
   # A Tcl cmd implemented in C
@@ -188,7 +236,7 @@ nx::test case nsf-method-get-variants {
   ? {nsf::cmd::info returns $::handle} ""
 
   #
-  # A plain NX object 
+  # A plain NX object
   #
   set ::handle [nx::Object new]
 
@@ -306,7 +354,7 @@ nx::test case nsf-method-get-variants {
 
 
   #
-  # queries without context
+  # Queries without context
   #
   ? {nsf::cmd::info parameter $::handle1} args:virtualobjectargs
   ? {nsf::cmd::info parameter $::handle2} "objectName args:virtualclassargs"
@@ -319,7 +367,7 @@ nx::test case nsf-method-get-variants {
   #
 
   nx::Class create Student { :property matnr }
- 
+
   set ::handle4 [Student info lookup method create]
 
   ? {nsf::cmd::info syntax -context Student $::handle4} \

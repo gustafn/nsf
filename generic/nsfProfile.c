@@ -69,7 +69,7 @@ NsfProfileObjectLabel(Tcl_DString *dsPtr, NsfObject *object) {
   nonnull_assert(dsPtr != NULL);
   nonnull_assert(object != NULL);
 
-  Tcl_DStringAppend(dsPtr, ObjectName(object), -1);
+  Tcl_DStringAppend(dsPtr, ObjectName_(object), -1);
   Tcl_DStringAppend(dsPtr, " ", 1);
   Tcl_DStringAppend(dsPtr, ClassName(object->cl), -1);
 }

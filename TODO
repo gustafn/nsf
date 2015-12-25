@@ -5737,7 +5737,14 @@ serializer:
   a method named "namespace", prefer nsf::directdispatch, etc.)
 - extended regression test
 
-- fix potentail memory corruption bug in NsfDStringVPrintf()
+- fix potential memory corruption bug in NsfDStringVPrintf()
+
+- replace all remaning ObjectName and ClassName with variant with
+  trailing "_" when appropriate
+- allow nsf::procs with zero arguments or plain arguments (when
+  "-debug" is used
+- extended regression test
+- bump version number to 2.1
 
 ========================================================================
 TODO:
