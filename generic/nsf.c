@@ -21188,7 +21188,7 @@ static int ArgumentCheckHelper(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_P
 static int
 ArgumentCheckHelper(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param const *pPtr, unsigned int *flags,
                     ClientData *clientData, Tcl_Obj **outObjPtr) {
-  int objc, i, result;
+  int       objc, i, result;
   Tcl_Obj **ov;
 
   nonnull_assert(interp != NULL);
@@ -21198,7 +21198,7 @@ ArgumentCheckHelper(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param const 
   nonnull_assert(clientData != NULL);
   nonnull_assert(outObjPtr != NULL);
   assert((pPtr->flags & NSF_ARG_MULTIVALUED) != 0u);
-  assert(*flags & NSF_PC_MUST_DECR);
+  assert((*flags & NSF_PC_MUST_DECR) != 0u);
 
   result = Tcl_ListObjGetElements(interp, objPtr, &objc, &ov);
   if (unlikely(result != TCL_OK)) {
@@ -21209,7 +21209,7 @@ ArgumentCheckHelper(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param const 
   INCR_REF_COUNT2("valueObj", *outObjPtr);
 
   for (i = 0; i < objc; i++) {
-    Tcl_Obj *elementObjPtr = ov[i];
+    Tcl_Obj    *elementObjPtr = ov[i];
     const char *valueString = ObjStr(elementObjPtr);
 
     if ((pPtr->flags & NSF_ARG_ALLOW_EMPTY) != 0u && *valueString == '\0') {
@@ -23996,7 +23996,7 @@ AliasRefetch(Tcl_Interp *interp, NsfObject *object, const char *methodName, Alia
     return result;
   }
 
-  assert(Tcl_Command_objProc(cmd));
+  assert(Tcl_Command_objProc(cmd) != NULL);
 
   NsfCommandRelease(tcd->aliasedCmd);
   tcd->objProc    = Tcl_Command_objProc(cmd);
@@ -26368,7 +26368,7 @@ NsfParameterInfoCmd(Tcl_Interp *interp, int parametersubcmd, Tcl_Obj *parameters
     return result;
   }
 
-  assert(parsedParam.paramDefs);
+  assert(parsedParam.paramDefs != NULL);
   paramsPtr = parsedParam.paramDefs->paramsPtr;
   assert(paramsPtr != NULL);
 
@@ -27311,7 +27311,7 @@ NsfVarImport(Tcl_Interp *interp, NsfObject *object, const char *cmdName, int obj
       if (likely(varName != NULL)) {
         result = ImportInstVarIntoCurrentScope(interp, cmdName, object, varName, alias);
       } else {
-        assert(objv[i]);
+        assert(objv[i] != NULL);
         result = NsfPrintError(interp, "invalid variable specification '%s'", ObjStr(objv[i]));
       }
     }
@@ -28261,7 +28261,7 @@ NsfOCgetMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj) {
    * GetObjectParameterDefinition() was returning TCL_OK, the paramdefs have
    * to be set.
    */
-  assert(parsedParam.paramDefs);
+  assert(parsedParam.paramDefs != NULL);
 
   /*
    * We do not stack a plain stack fraom NSF_CSC_TYPE_PLAIN here, as we do in
@@ -28907,7 +28907,7 @@ NsfCAllocMethod_(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *nameObj, Tcl_Namespa
   nonnull_assert(cl != NULL);
   nonnull_assert(nameObj != NULL);
   assert(isAbsolutePath(nameString));
-  assert(NSValidObjectName(nameString, 0));
+  assert(NSValidObjectName(nameString, 0) != 0);
 
   /*
    * Create a new object from scratch.
@@ -30152,14 +30152,14 @@ static int
 NsfObjInfoPrecedenceMethod(Tcl_Interp *interp, NsfObject *object,
                                         int withIntrinsicOnly, const char *pattern) {
   NsfClasses *precedenceList, *pl;
-  Tcl_Obj *resultObj = Tcl_NewObj();
+  Tcl_Obj    *resultObj = Tcl_NewObj();
 
   nonnull_assert(interp != NULL);
   nonnull_assert(object != NULL);
 
   precedenceList = ComputePrecedenceList(interp, object, pattern, !withIntrinsicOnly, 1);
   for (pl = precedenceList; pl; pl = pl->nextPtr) {
-    assert(pl->cl);
+    assert(pl->cl != NULL);
     Tcl_ListObjAppendElement(interp, resultObj, pl->cl->object.cmdName);
   }
   if (precedenceList != NULL) {

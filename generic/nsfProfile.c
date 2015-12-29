@@ -315,7 +315,7 @@ Nsf_ProfileFilterObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CO
   const char     *fullMethodName, *label;
   Tcl_DString     ds;
 
-  assert(cd);
+  assert(cd != NULL);
 
   fullMethodName = ObjStr(objv[0]);
   ti = (NsfShadowTclCommandInfo *)cd;
@@ -457,7 +457,9 @@ NsfProfileTrace(Tcl_Interp *interp, int withEnable, int withVerbose, int withDon
             Tcl_Obj *nameObj = NULL;
 
             if (GetPair(interp, ov[i], 1, &nameObj, &nrArgs) == TCL_OK) {
+              assert(nameObj != NULL);
               ti[i].nrArgs = nrArgs;
+
               if (NsfReplaceCommand(interp, nameObj, Nsf_ProfileFilterObjCmd, &ti[i], &ti[i]) != TCL_OK) {
                 NsfLog(interp, NSF_LOG_WARN, "nsfprofile: list element '%s' is not a command", ObjStr(nameObj));
               }
