@@ -221,13 +221,18 @@
 #endif
 
   //  if ((cmd) != NULL) {fprintf(stderr, "METHOD %s cmd %p flags %.8x (%.8x)\n", (method), (cmd), Tcl_Command_flags((cmd)), NSF_CMD_DEPRECATED_METHOD);}
-#if defined(NSF_PROFILE) || defined(NSF_DTRACE)
+#if defined(NSF_PROFILE)
 # define CscInit(cscPtr, object, cl, cmd, frametype, flags, method) \
   CscInit_((cscPtr), (object), (cl), (cmd), (frametype), (flags)); (cscPtr)->methodName = (method); \
   NsfProfileTraceCall((interp), (object), (cl), (method));
 #else
-# define CscInit(cscPtr, object, cl, cmd, frametype, flags, methodName) \
+# if defined(NSF_DTRACE)
+#  define CscInit(cscPtr, object, cl, cmd, frametype, flags, method) \
+  CscInit_((cscPtr), (object), (cl), (cmd), (frametype), (flags)); (cscPtr)->methodName = (method);
+# else
+#  define CscInit(cscPtr, object, cl, cmd, frametype, flags, methodName) \
   CscInit_((cscPtr), (object), (cl), (cmd), (frametype), (flags))
+# endif
 #endif
 
 #if !defined(CHECK_ACTIVATION_COUNTS)
