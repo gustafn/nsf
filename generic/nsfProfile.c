@@ -146,8 +146,8 @@ void
 NsfProfileDebugCall(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, const char *methodName,
                     int objc, Tcl_Obj **objv) {
   NsfRuntimeState *rst;
-  Tcl_Obj *listObj;
-  Tcl_DString ds;
+  Tcl_Obj         *listObj;
+  Tcl_DString      ds;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(methodName != NULL);
@@ -233,7 +233,7 @@ static void ReportLine(Tcl_Interp *interp, int level, NsfRuntimeState *rst, cons
 static void
 ReportLine(Tcl_Interp *interp, int level, NsfRuntimeState *rst, const char *line) {
   Tcl_Obj *savedResultObj;
-  int prevProfileSetting;
+  int      prevProfileSetting;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(rst != NULL);
@@ -268,13 +268,14 @@ ReportLine(Tcl_Interp *interp, int level, NsfRuntimeState *rst, const char *line
  *
  *----------------------------------------------------------------------
  */
-static void NsfProfileFillTable(Tcl_HashTable *table, const char *keyStr, double totalMicroSec) nonnull(1) nonnull(2);
+static void NsfProfileFillTable(Tcl_HashTable *table, const char *keyStr, double totalMicroSec)
+  nonnull(1) nonnull(2);
 
 static void
 NsfProfileFillTable(Tcl_HashTable *table, const char *keyStr, double totalMicroSec) {
   NsfProfileData *value;
-  Tcl_HashEntry *hPtr;
-  int isNew;
+  Tcl_HashEntry  *hPtr;
+  int             isNew;
 
   nonnull_assert(table != NULL);
   nonnull_assert(keyStr != NULL);
@@ -308,11 +309,11 @@ NsfProfileFillTable(Tcl_HashTable *table, const char *keyStr, double totalMicroS
  */
 static int
 Nsf_ProfileFilterObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  int result;
   NsfShadowTclCommandInfo *ti;
-  struct timeval start;
-  const char *fullMethodName, *label;
-  Tcl_DString ds;
+  int             result;
+  struct timeval  start;
+  const char     *fullMethodName, *label;
+  Tcl_DString     ds;
 
   assert(cd);
 
@@ -452,7 +453,7 @@ NsfProfileTrace(Tcl_Interp *interp, int withEnable, int withVerbose, int withDon
           int i;
 
           for (i = 0; i < oc; i++) {
-            int nrArgs = 0;
+            int      nrArgs = 0;
             Tcl_Obj *nameObj = NULL;
 
             if (GetPair(interp, ov[i], 1, &nameObj, &nrArgs) == TCL_OK) {
@@ -480,10 +481,11 @@ NsfProfileTrace(Tcl_Interp *interp, int withEnable, int withVerbose, int withDon
         int i;
 
         for (i = 0; i < oc; i++) {
-          int nrArgs = 0;
+          int      nrArgs = 0;
           Tcl_Obj *nameObj = NULL;
 
           if (GetPair(interp, ov[i], 0, &nameObj, &nrArgs) == TCL_OK) {
+            assert(nameObj != NULL);
             NsfReplaceCommandCleanup(interp, nameObj, &profilePtr->shadowedTi[i]);
           }
         }
@@ -791,7 +793,7 @@ NsfProfileClearTable(Tcl_HashTable *table) {
 
   nonnull_assert(table != NULL);
 
-  for (hPtr = Tcl_FirstHashEntry(table, &hSrch); hPtr;
+  for (hPtr = Tcl_FirstHashEntry(table, &hSrch); hPtr != NULL;
        hPtr = Tcl_NextHashEntry(&hSrch)) {
     NsfProfileData *value = (NsfProfileData *) Tcl_GetHashValue(hPtr);
     ckfree((char *) value);
@@ -854,18 +856,18 @@ static Tcl_Obj* NsfProfileGetTable(Tcl_Interp *interp, Tcl_HashTable *table) non
 
 static Tcl_Obj*
 NsfProfileGetTable(Tcl_Interp *interp, Tcl_HashTable *table) {
-  Tcl_Obj *list = Tcl_NewListObj(0, NULL);
-  Tcl_HashSearch hSrch;
-  Tcl_HashEntry *hPtr;
+  Tcl_Obj        *list = Tcl_NewListObj(0, NULL);
+  Tcl_HashSearch  hSrch;
+  Tcl_HashEntry  *hPtr;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(table != NULL);
 
-  for (hPtr = Tcl_FirstHashEntry(table, &hSrch); hPtr;
+  for (hPtr = Tcl_FirstHashEntry(table, &hSrch); hPtr != NULL;
        hPtr = Tcl_NextHashEntry(&hSrch)) {
     NsfProfileData *value = (NsfProfileData *) Tcl_GetHashValue(hPtr);
-    char *key = Tcl_GetHashKey(table, hPtr);
-    Tcl_Obj *subList = Tcl_NewListObj(0, NULL);
+    char           *key = Tcl_GetHashKey(table, hPtr);
+    Tcl_Obj        *subList = Tcl_NewListObj(0, NULL);
 
     Tcl_ListObjAppendElement(interp, subList, Tcl_NewStringObj(key, -1));
     Tcl_ListObjAppendElement(interp, subList, Tcl_NewIntObj(value->microSec));
@@ -895,9 +897,9 @@ NsfProfileGetTable(Tcl_Interp *interp, Tcl_HashTable *table) {
 
 void
 NsfProfileGetData(Tcl_Interp *interp) {
-  Tcl_Obj *list = Tcl_NewListObj(0, NULL);
-  NsfProfile *profilePtr = &RUNTIME_STATE(interp)->profile;
-  long totalMicroSec;
+  Tcl_Obj       *list = Tcl_NewListObj(0, NULL);
+  NsfProfile    *profilePtr = &RUNTIME_STATE(interp)->profile;
+  long           totalMicroSec;
   struct timeval trt;
 
   nonnull_assert(interp != NULL);
@@ -933,8 +935,8 @@ NsfProfileGetData(Tcl_Interp *interp) {
  */
 void
 NsfProfileInit(Tcl_Interp *interp) {
-  NsfProfile *profilePtr = &RUNTIME_STATE(interp)->profile;
-  struct timeval trt;
+  NsfProfile     *profilePtr = &RUNTIME_STATE(interp)->profile;
+  struct timeval  trt;
 
   nonnull_assert(interp != NULL);
 

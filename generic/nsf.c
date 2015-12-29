@@ -991,7 +991,7 @@ static NSF_INLINE Var *VarHashCreateVar(TclVarHashTable *tablePtr, Tcl_Obj *key,
 
 static NSF_INLINE Var *
 VarHashCreateVar(TclVarHashTable *tablePtr, Tcl_Obj *key, int *newPtr) {
-  Var *varPtr = NULL;
+  Var           *varPtr = NULL;
   Tcl_HashEntry *hPtr;
 
   nonnull_assert(tablePtr != NULL);
@@ -2378,7 +2378,7 @@ TopoSort(NsfClass *cl, NsfClass *baseClass, ClassDirection direction, int withMi
    */
 
   cl->color = GRAY;
-  for (; sl; sl = sl->nextPtr) {
+  for (; sl != NULL; sl = sl->nextPtr) {
     NsfClass *sc = sl->cl;
     if (sc->color == GRAY) { cl->color = WHITE; return 0; }
     if (unlikely(sc->color == WHITE && !TopoSort(sc, baseClass, direction, withMixinOfs))) {
@@ -2471,7 +2471,7 @@ MustBeBefore(NsfClass *a, NsfClass *b, NsfClasses *superClasses) {
     fprintf(stderr, "--> check %s before %s?\n", ClassName(b), ClassName(a));
     NsfClassListPrint("miList", miList);
 #endif
-    for (sl = superClasses; sl; sl = sl->nextPtr) {
+    for (sl = superClasses; sl != NULL; sl = sl->nextPtr) {
       if (sl->cl == b) {
         bFound = 1;
       } else if (bFound && sl->cl == a) {
@@ -2513,7 +2513,9 @@ MustBeBefore(NsfClass *a, NsfClass *b, NsfClasses *superClasses) {
 static void ValidClassListTail(const char *what, NsfClasses *classListPtr) {
   NsfClasses *sl, *tail;
 
-  for (sl = classListPtr, tail = NULL; sl; sl = sl->nextPtr) {tail = sl;}
+  for (sl = classListPtr, tail = NULL; sl != NULL; sl = sl->nextPtr) {
+    tail = sl;
+  }
   if (tail != NULL) {
     /* fprintf(stderr, "check tail what %s %p\n", what, ClassName(tail->cl), tail->nextPtr);*/
     assert(IsBaseClass(&tail->cl->object));
@@ -2591,7 +2593,7 @@ MergeInheritanceLists(NsfClasses *pl, NsfClass *cl) {
    * perform the merge operation. For n elements in superClasses, the merge
    * operation is performed n-1 times.
    */
-  for (sl = superClasses->nextPtr; sl; sl = sl->nextPtr) {
+  for (sl = superClasses->nextPtr; sl != NULL; sl = sl->nextPtr) {
     NsfClasses *mergeList = sl->cl->order, *baseListCurrent;
 
 #if defined(NSF_LINEARIZER_TRACE)
@@ -2707,7 +2709,7 @@ MergeInheritanceLists(NsfClasses *pl, NsfClass *cl) {
     }
   }
 
-  for (sl = deletionList; sl; sl = sl->nextPtr) {
+  for (sl = deletionList; sl != NULL; sl = sl->nextPtr) {
     /* fprintf(stderr, "delete from deletion list %p client data %p\n", sl, sl->clientData); */
     NsfClassListFree(sl->clientData);
   }
@@ -2853,7 +2855,7 @@ PrecedenceOrder(NsfClass *cl) {
    */
 
   if (likely(cl->super != NULL) && unlikely(cl->super->nextPtr != NULL)) {
-    for (sl = cl->super; sl; sl = sl->nextPtr) {
+    for (sl = cl->super; sl != NULL; sl = sl->nextPtr) {
       NsfClasses *pl;
 
 #if defined(NSF_LINEARIZER_TRACE)
@@ -2891,21 +2893,22 @@ PrecedenceOrder(NsfClass *cl) {
   /*
    * Reset the color of all nodes.
    */
-  for (sl = cl->order; sl; sl = sl->nextPtr) {
+  for (sl = cl->order; sl != NULL; sl = sl->nextPtr) {
     sl->cl->color = WHITE;
   }
 
   /*
    * If computation is successful, return cl->order.
-   * Otherwise clear cl->order.
+   * Otherwise clear cl->order if necessary.
    */
   if (likely(success)) {
     AssertOrderIsWhite(cl->order);
-    return cl->order;
-  } else {
+  } else if (cl->order != NULL) {
     NsfClassListFree(cl->order);
-    return cl->order = NULL;
+    cl->order = NULL;
   }
+
+  return cl->order;
 }
 
 /*
@@ -4265,7 +4268,8 @@ MakeObjNamespace(Tcl_Interp *interp, NsfObject *object) {
       if (objHashTablePtr->buckets == objHashTablePtr->staticBuckets) {
         varHashTablePtr->buckets = varHashTablePtr->staticBuckets;
       }
-      for (hPtr = Tcl_FirstHashEntry(varHashTablePtr, &search); hPtr;
+      for (hPtr = Tcl_FirstHashEntry(varHashTablePtr, &search);
+           hPtr != NULL;
            hPtr = Tcl_NextHashEntry(&search)) {
         hPtr->tablePtr = varHashTablePtr;
       }
@@ -5607,7 +5611,8 @@ NSDeleteChildren(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
    * less, if a deletion of one item triggers the destroy of another
    * item.
    */
-  for (hPtr = Tcl_FirstHashEntry(cmdTablePtr, &hSrch); hPtr;
+  for (hPtr = Tcl_FirstHashEntry(cmdTablePtr, &hSrch);
+       hPtr != NULL;
        hPtr = Tcl_NextHashEntry(&hSrch)) {
     Tcl_Command cmd = (Tcl_Command)Tcl_GetHashValue(hPtr);
     fprintf(stderr, "will destroy %p %s\n", cmd, Tcl_GetCommandName(interp, cmd));
@@ -5623,7 +5628,8 @@ NSDeleteChildren(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
    * destroy of another item of the same table. Therefore we use
    * Nsf_NextHashEntry(), which handles this case.
    */
-  for (hPtr = Tcl_FirstHashEntry(cmdTablePtr, &hSrch); hPtr;
+  for (hPtr = Tcl_FirstHashEntry(cmdTablePtr, &hSrch);
+       hPtr != NULL;
        hPtr = Nsf_NextHashEntry(cmdTablePtr, expected, &hSrch)) {
     /*Tcl_Command cmd = (Tcl_Command)Tcl_GetHashValue(hPtr);
     fprintf(stderr, "NSDeleteChild %p table %p numEntries before %d\n",
@@ -5634,7 +5640,8 @@ NSDeleteChildren(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
  /*
   * Finally, delete the classes.
    */
-  for (hPtr = Tcl_FirstHashEntry(cmdTablePtr, &hSrch); hPtr;
+  for (hPtr = Tcl_FirstHashEntry(cmdTablePtr, &hSrch);
+       hPtr != NULL;
        hPtr = Nsf_NextHashEntry(cmdTablePtr, expected, &hSrch)) {
     expected = cmdTablePtr->numEntries -
       NSDeleteChild(interp, (Tcl_Command)Tcl_GetHashValue(hPtr), 0);
@@ -5670,7 +5677,8 @@ NSCleanupNamespace(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
   /*
    * Delete all user-defined procs in the namespace
    */
-  for (hPtr = Tcl_FirstHashEntry(cmdTablePtr, &hSrch); hPtr;
+  for (hPtr = Tcl_FirstHashEntry(cmdTablePtr, &hSrch);
+       hPtr != NULL;
        hPtr = Tcl_NextHashEntry(&hSrch)) {
       Tcl_Command cmd = (Tcl_Command) Tcl_GetHashValue(hPtr);
 
@@ -7347,7 +7355,8 @@ AssertionRemoveStore(NsfAssertionStore *aStore) {
 
   nonnull_assert(aStore != NULL);
 
-  for (hPtr = Tcl_FirstHashEntry(&aStore->procs, &hSrch); hPtr;
+  for (hPtr = Tcl_FirstHashEntry(&aStore->procs, &hSrch);
+       hPtr != NULL;
        hPtr = Tcl_FirstHashEntry(&aStore->procs, &hSrch)) {
     /*
      * AssertionRemoveProc calls Tcl_DeleteHashEntry(hPtr), thus
@@ -8104,7 +8113,8 @@ GetAllInstances(Tcl_Interp *interp, NsfCmdList **instances, NsfClass *startCl) {
     Tcl_HashSearch search;
     Tcl_HashEntry *hPtr;
 
-    for (hPtr = Tcl_FirstHashEntry(tablePtr, &search);  hPtr;
+    for (hPtr = Tcl_FirstHashEntry(tablePtr, &search);
+         hPtr != NULL;
          hPtr = Tcl_NextHashEntry(&search)) {
       NsfObject *inst = (NsfObject *)Tcl_GetHashKey(tablePtr, hPtr);
       Command *cmdPtr;
@@ -8874,7 +8884,8 @@ MixinInvalidateObjOrders(Tcl_Interp *interp, NsfClass *cl, NsfClasses *subClasse
     }
 
     instanceTablePtr = &subClasses->cl->instances;
-    for (hPtr = Tcl_FirstHashEntry(instanceTablePtr, &hSrch); hPtr;
+    for (hPtr = Tcl_FirstHashEntry(instanceTablePtr, &hSrch);
+         hPtr != NULL;
          hPtr = Tcl_NextHashEntry(&hSrch)) {
       NsfObject *object = (NsfObject *)Tcl_GetHashKey(instanceTablePtr, hPtr);
 
@@ -9961,7 +9972,7 @@ FilterInvalidateObjOrders(Tcl_Interp *interp, NsfClasses *subClasses) {
       FilterSearchAgain(interp, &subClasses->cl->opt->classFilters, NULL, subClasses->cl);
     }
 
-    for (; hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
+    for (; hPtr != NULL; hPtr = Tcl_NextHashEntry(&hSrch)) {
       NsfObject *object = (NsfObject *)Tcl_GetHashKey(&subClasses->cl->instances, hPtr);
 
       FilterResetOrder(object);
@@ -10019,7 +10030,7 @@ FilterRemoveDependentFilterCmds(NsfClass *removeClass, NsfClasses *subClasses) {
     if (opt != NULL) {
       CmdListRemoveContextClassFromList(&opt->classFilters, removeClass, GuardDel);
     }
-    for (; hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
+    for (; hPtr != NULL; hPtr = Tcl_NextHashEntry(&hSrch)) {
       NsfObject *object = (NsfObject *) Tcl_GetHashKey(&subClasses->cl->instances, hPtr);
 
       if (object->opt != NULL) {
@@ -10652,7 +10663,7 @@ SuperclassAdd(Tcl_Interp *interp, NsfClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj *a
     while (cl->super) {
       (void)RemoveSuper(cl, cl->super->cl);
     }
-    for (l = osl; l; l = l->nextPtr) {
+    for (l = osl; l != NULL; l = l->nextPtr) {
       AddSuper(cl, l->cl);
     }
     if (osl != NULL) {
@@ -13501,7 +13512,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
 
   } else if (unlikely(*methodName == ':')) {
     NsfObject *regObject;
-    int fromClassNS = 0;
+    int        fromClassNS = 0;
 
     /*
      * We have fully qualified name provided. Determine the class and/or
@@ -13599,7 +13610,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
 
   if (likely(cmd == NULL)) {
     NsfMethodContext *mcPtr = methodObj->internalRep.twoPtrValue.ptr1;
-    int nsfObjectMethodEpoch = rst->objectMethodEpoch;
+    int               nsfObjectMethodEpoch = rst->objectMethodEpoch;
 
     if (methodObj->typePtr == &NsfObjectMethodObjType
         && mcPtr->context == object
@@ -13655,9 +13666,9 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
 
     if (likely(cmd == NULL)) {
       /* check for an instance method */
-      NsfClass *currentClass = object->cl;
+      NsfClass         *currentClass = object->cl;
       NsfMethodContext *mcPtr = methodObj->internalRep.twoPtrValue.ptr1;
-      int nsfInstanceMethodEpoch = rst->instanceMethodEpoch;
+      int               nsfInstanceMethodEpoch = rst->instanceMethodEpoch;
 
 #if defined(METHOD_OBJECT_TRACE)
       fprintf(stderr, "... method %p/%d '%s' type? %d context? %d nsfMethodEpoch %d => %d\n",
@@ -13697,7 +13708,9 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
            * Skip entries until the first base class.
            */
           do {
-            if (IsBaseClass(&classListPtr->cl->object)) {break;}
+            if (IsBaseClass(&classListPtr->cl->object)) {
+              break;
+            }
             classListPtr = classListPtr->nextPtr;
           } while (classListPtr->nextPtr != NULL);
 
@@ -13707,6 +13720,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
         }
         if (methodObj->typePtr != Nsf_OT_tclCmdNameType
             && methodObj->typePtr != Nsf_OT_parsedVarNameType
+            && likely(cmd != NULL)
             ) {
           NsfMethodObjSet(interp, methodObj, &NsfInstanceMethodObjType,
                           currentClass, nsfInstanceMethodEpoch,
@@ -17332,7 +17346,7 @@ AddSlotObjects(Tcl_Interp *interp, NsfObject *parent, const char *prefix,
     Tcl_Command cmd;
 
     hPtr = Tcl_FirstHashEntry(cmdTablePtr, &hSrch);
-    for (; hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
+    for (; hPtr != NULL; hPtr = Tcl_NextHashEntry(&hSrch)) {
       const char *key = Tcl_GetHashKey(cmdTablePtr, hPtr);
       NsfObject *childObject;
 
@@ -19138,7 +19152,7 @@ CleanupDestroyClass(Tcl_Interp *interp, NsfClass *cl, int softrecreate, int recr
       Tcl_HashSearch hSrch;
       Tcl_HashEntry *hPtr;
 
-      for (hPtr = Tcl_FirstHashEntry(instanceTablePtr, &hSrch); hPtr;
+      for (hPtr = Tcl_FirstHashEntry(instanceTablePtr, &hSrch); hPtr != NULL;
            hPtr = Tcl_NextHashEntry(&hSrch)) {
         NsfObject *inst = (NsfObject *)Tcl_GetHashKey(instanceTablePtr, hPtr);
         /*fprintf(stderr, "    inst %p %s flags %.6x id %p baseClass %p %s\n",
@@ -22104,7 +22118,7 @@ ListVarKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr, const char *pattern) {
     Tcl_HashSearch hSrch;
 
     hPtr = (tablePtr != NULL) ? Tcl_FirstHashEntry(tablePtr, &hSrch) : NULL;
-    for (; hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
+    for (; hPtr != NULL; hPtr = Tcl_NextHashEntry(&hSrch)) {
       Var *val = TclVarHashGetValue(hPtr);
       Tcl_Obj *key = TclVarHashGetKey(val);
       if (pattern == NULL || Tcl_StringMatch(ObjStr(key), pattern)) {
@@ -23335,7 +23349,7 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
      * We have to iterate over the elements
      */
     for (hPtr = Tcl_FirstHashEntry(tablePtr, &hSrch);
-         hPtr;
+         hPtr != NULL;
          hPtr = Tcl_NextHashEntry(&hSrch)) {
       NsfObject *childObject;
       Tcl_Command origCmd;
@@ -23494,7 +23508,7 @@ ListChildren(Tcl_Interp *interp, NsfObject *object, const char *pattern,
     Tcl_HashEntry *hPtr;
 
     for (hPtr = Tcl_FirstHashEntry(cmdTablePtr, &hSrch);
-         hPtr;
+         hPtr != NULL;
          hPtr = Tcl_NextHashEntry(&hSrch)) {
       const char *key = Tcl_GetHashKey(cmdTablePtr, hPtr);
 
@@ -26284,7 +26298,7 @@ NsfNSCopyVarsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
           Tcl_HashSearch ahSrch;
           Tcl_HashEntry *ahPtr = (aTable != NULL) ? Tcl_FirstHashEntry(TclVarHashTablePtr(aTable), &ahSrch) : 0;
 
-          for (; ahPtr; ahPtr = Tcl_NextHashEntry(&ahSrch)) {
+          for (; ahPtr != NULL; ahPtr = Tcl_NextHashEntry(&ahSrch)) {
             Tcl_Obj *eltNameObj;
             Var *eltVar;
 
@@ -30344,7 +30358,8 @@ InstancesFromClassList(Tcl_Interp *interp, NsfClasses *subClasses,
     Tcl_HashEntry *hPtr;
     Tcl_HashSearch search;
 
-    for (hPtr = Tcl_FirstHashEntry(tablePtr, &search); hPtr;
+    for (hPtr = Tcl_FirstHashEntry(tablePtr, &search);
+         hPtr != NULL;
          hPtr = Tcl_NextHashEntry(&search)) {
       NsfObject *inst = (NsfObject *) Tcl_GetHashKey(tablePtr, hPtr);
 
@@ -31021,7 +31036,8 @@ ObjectHasChildren(NsfObject *object) {
     Tcl_HashSearch hSrch;
     Tcl_HashTable *cmdTablePtr = Tcl_Namespace_cmdTablePtr(ns);
 
-    for (hPtr = Tcl_FirstHashEntry(cmdTablePtr, &hSrch); hPtr;
+    for (hPtr = Tcl_FirstHashEntry(cmdTablePtr, &hSrch);
+         hPtr != NULL;
          hPtr = Tcl_NextHashEntry(&hSrch)) {
       Tcl_Command cmd = Tcl_GetHashValue(hPtr);
       NsfObject *childObject = NsfGetObjectFromCmdPtr(cmd);
@@ -31080,7 +31096,8 @@ FreeAllNsfObjectsAndClasses(Tcl_Interp *interp, NsfCmdList **instances) {
       Tcl_HashEntry *hPtr;
       Tcl_HashSearch hSrch;
 
-      for (hPtr = Tcl_FirstHashEntry(Tcl_Namespace_cmdTablePtr(object->nsPtr), &hSrch); hPtr;
+      for (hPtr = Tcl_FirstHashEntry(Tcl_Namespace_cmdTablePtr(object->nsPtr), &hSrch);
+           hPtr != NULL;
            hPtr = Tcl_NextHashEntry(&hSrch)) {
         Tcl_Command cmd = Tcl_GetHashValue(hPtr);
 
@@ -31104,7 +31121,8 @@ FreeAllNsfObjectsAndClasses(Tcl_Interp *interp, NsfCmdList **instances) {
       Tcl_HashSearch hSrch;
 
       for (hPtr = Tcl_FirstHashEntry(Tcl_Namespace_cmdTablePtr(((NsfClass *)object)->nsPtr),
-                                      &hSrch); hPtr;
+                                      &hSrch);
+           hPtr != NULL;
            hPtr = Tcl_NextHashEntry(&hSrch)) {
         Tcl_Command cmd = Tcl_GetHashValue(hPtr);
 
