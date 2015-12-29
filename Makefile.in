@@ -296,6 +296,14 @@ cppcheck:
 	cppcheck --enable=all generic/*.c $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) \
 		-DNDEBUG=1 -I/usr/include -D__x86_64__
 
+etags:
+	etags --language=none \
+		--regex='/[ \t]*\(proc\)[ \t]+\([^ \t]+\)/\2/' \
+		--regex='/[ \t]*[:]?\(public \|protected \|private \|\)[ \t]*\(method\|object method\)[ \t]+\([^ \t]+\)/\3/' \
+		--regex='/[ \t]*[a-zA-Z:0-9]+[^ \t]\(public \|protected \|private \|\)[ \t]*\(method\)[ \t]+\([^ \t]+\)/\3/' \
+		--regex='/[ \t]*[a-zA-Z:0-9]+[^ \t]+\(proc\|instproc\)[ \t]+\([^ \t]+\)/\3/' \
+		`find . -name \*.tcl -or -name \*.test`
+
 libraries-pkgindex: pkgIndex.tcl
 	$(TCLSH) $(src_lib_dir_native)/lib/mkIndex.tcl -dir $(src_lib_dir_native)
 
