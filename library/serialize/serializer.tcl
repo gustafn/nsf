@@ -1,6 +1,4 @@
 package require nx
-# TODO: should go away
-#package require nx::plain-object-method
 
 package require XOTcl 2.0
 package provide nx::serializer 2.1
@@ -27,94 +25,94 @@ namespace eval ::nx::serializer {
       Gustaf Neumann, Gustaf.Neumann@wu-wien.ac.at
     }
   }
-  
+
   @ Serializer proc all {
-		 ?-ignoreVarsRE&nbsp;RE? 
+		 ?-ignoreVarsRE&nbsp;RE?
 		 "provide regular expression; matching vars are ignored"
-		 ?-ignore&nbsp;obj1&nbsp;obj2&nbsp;...? 
+		 ?-ignore&nbsp;obj1&nbsp;obj2&nbsp;...?
 		 "provide a list of objects to be omitted"} {
     Description {
-      Serialize all objects and classes that are currently 
+      Serialize all objects and classes that are currently
       defined (except the specified omissions and the current
-	       Serializer object). 
+	       Serializer object).
       <p>Examples:<@br>
       <@pre class='code'>Serializer all -ignoreVarsRE {::b$}</@pre>
       Do not serialize any instance variable named b (of any object).<p>
       <@pre class='code'>Serializer all -ignoreVarsRE {^::o1::.*text.*$|^::o2::x$}</@pre>
-      Do not serialize any variable of c1 whose name contains 
+      Do not serialize any variable of c1 whose name contains
       the string "text" and do not serialze the variable x of o2.<p>
       <@pre class='code'>Serializer all -ignore obj1 obj2 ... </@pre>
       do not serizalze the specified objects
     }
     return "script"
   }
-  
+
   @ Serializer proc deepSerialize {
-		   ?-ignoreVarsRE&nbsp;RE? 
+		   ?-ignoreVarsRE&nbsp;RE?
 		   "provide regular expression; matching vars are ignored"
-		   ?-ignore&nbsp;obj1&nbsp;obj2&nbsp;...? 
+		   ?-ignore&nbsp;obj1&nbsp;obj2&nbsp;...?
 		   "provide a list of objects to be omitted"
 		   ?-map&nbsp;list? "translate object names in serialized code"
 		   objs "Objects to be serialized"
 				 } {
     Description {
-      Serialize object with all child objects (deep operation) 
-      except the specified omissions. For the description of 
-      <@tt>ignore</@tt> and <@tt>ignoreVarsRE</@tt> see 
+      Serialize object with all child objects (deep operation)
+      except the specified omissions. For the description of
+      <@tt>ignore</@tt> and <@tt>ignoreVarsRE</@tt> see
       <@tt>Serizalizer all</@tt>. <@tt>map</@tt> can be used
       in addition to provide pairs of old-string and new-string
       (like in the tcl command <@tt>string map</@tt>). This option
       can be used to regenerate the serialized object under a different
       object or under an different name, or to translate relative
       object names in the serialized code.<p>
-      
-      Examples:  
+
+      Examples:
       <@pre class='code'>Serializer deepSerialize -map {::a::b ::x::y} ::a::b::c</@pre>
-      Serialize the object <@tt>c</@tt> which is a child of <@tt>a::b</@tt>; 
+      Serialize the object <@tt>c</@tt> which is a child of <@tt>a::b</@tt>;
       the object will be reinitialized as object <@tt>::x::y::c</@tt>,
       all references <@tt>::a::b</@tt> will be replaced by <@tt>::x::y</@tt>.<p>
-      
+
       <@pre class='code'>Serializer deepSerialize -map {::a::b [self]} ::a::b::c</@pre>
       The serizalized object can be reinstantiated under some current object,
       under which the script is evaluated.<p>
-      
+
       <@pre class='code'>Serializer deepSerialize -map {::a::b::c ${var} ::a::b::c}</@pre>
       The serizalized object will be reinstantiated under a name specified
       by the variable <@tt>var<@tt> in the recreation context.
     }
     return "script"
   }
-  
+
   @ Serializer proc methodSerialize {
 		     object "object or class"
 		     method "name of method"
 		     prefix "either empty or 'inst' (latter for instprocs)"
 				   } {
     Description {
-      Serialize the specified method. In order to serialize 
+      Serialize the specified method. In order to serialize
       an instproc, <@tt>prefix</@tt> should be 'inst'; to serialze
-      procs, it should be empty.<p> 
-      
+      procs, it should be empty.<p>
+
       Examples:
       <@pre class='code'>Serializer methodSerialize Serializer deepSerialize ""</@pre>
-      This command serializes the proc <@tt>deepSerialize</@tt> 
+      This command serializes the proc <@tt>deepSerialize</@tt>
       of the Class <@tt>Serializer</@tt>.<p>
-      
+
       <@pre class='code'>Serializer methodSerialize Serializer serialize inst</@pre>
-      This command serializes the instproc <@tt>serialize</@tt> 
+      This command serializes the instproc <@tt>serialize</@tt>
       of the Class <@tt>Serializer</@tt>.<p>
     }
     return {Script, which can be used to recreate the specified method}
   }
   @ Serializer proc exportMethods {
-	list "list of methods of the form 'object proc|instproc methodname'" 
+	list "list of methods of the form 'object proc|instproc methodname'"
       } {
     Description {
       This method can be used to specify methods that should be
       exported in every <@tt>Serializer all<@/tt>. The rationale
       behind this is that the serializer does not serialize objects
-      from the namespaces of the basic object systems, which are 
-      used for the object system internals and volatile objects. 
+      from the namespaces of the basic object systems, which are
+      used for the object system internals and volatile objects.
 
       TODO
       It is however often useful to define
@@ -130,13 +128,13 @@ namespace eval ::nx::serializer {
       }<@/pre>
     }
   }
-  
-  
+
+
   @ Serializer instproc serialize {entity "Object or Class"} {
     Description {
       Serialize the specified object or class.
     }
-    return {Object or Class with all currently defined methods, 
+    return {Object or Class with all currently defined methods,
       variables, invariants, filters and mixins}
   }
 
@@ -150,7 +148,7 @@ namespace eval ::nx::serializer {
     :public method ignore args {
       # Ignore the objects passed via args.
       # :skip is used for filtering only in the topological sort.
-      foreach element $args { 
+      foreach element $args {
         foreach o [Serializer allChildren $element] {
           set :skip($o) 1
         }
@@ -159,7 +157,7 @@ namespace eval ::nx::serializer {
     :public method objmap {map} {
       array set :objmap $map
     }
-    
+
     :method init {} {
       # Never serialize the (volatile) serializer object
       :ignore [::nsf::current object]
@@ -176,7 +174,7 @@ namespace eval ::nx::serializer {
     :public method addPostCmd {cmd} {
       if {$cmd ne ""} {append :post_cmds $cmd "\n"}
     }
-    
+
     :public method setObjectSystemSerializer {o serializer} {
       #puts stderr "set :serializer($o) $serializer"
       set :serializer($o) $serializer
@@ -215,7 +213,7 @@ namespace eval ::nx::serializer {
 
       return $targetName
     }
-    
+
     :method topoSort {set all} {
       if {[array exists :s]} {array unset :s}
       if {[array exists :level]} {array unset :level}
@@ -225,7 +223,7 @@ namespace eval ::nx::serializer {
       foreach c $set {
 	set ns [namespace qualifiers $c]
         if {!$all &&
-            [info exists ns_excluded($ns)] && 
+            [info exists ns_excluded($ns)] &&
             ![:isExportedObject $c]} continue
         if {[info exists :skip($c)]} continue
         set :s($c) 1
@@ -257,7 +255,7 @@ namespace eval ::nx::serializer {
       foreach e $list {if {[info exists :s($e)]} {return 1}}
       return 0
     }
-    
+
     :public method serialize-objects {list all} {
       set :post_cmds ""
 
@@ -276,21 +274,21 @@ namespace eval ::nx::serializer {
         set namespace($e) 1
         set namespace([namespace qualifiers $e]) 1
       }
-      
-      # Handling of variable traces: traces might require a 
+
+      # Handling of variable traces: traces might require a
       # different topological sort, which is hard to handle.
       # Similar as with filters, we deactivate the variable
       # traces during initialization. This happens by
       # (1) replacing the next's trace method by a no-op
       # (2) collecting variable traces through collect-var-traces
       # (3) re-activating the traces after variable initialization
-      
+
       set exports ""
       set pre_cmds ""
-      
-      # delete ::xotcl from the namespace list, if it exists...
-      #catch {unset namespace(::xotcl)}
+
+      # delete ::ns from the namespace list, if it exists...
       catch {unset namespace(::ns)}
+
       foreach ns [array name namespace] {
         if {![namespace exists $ns]} continue
         if {![::nsf::object::exists $ns]} {
@@ -308,7 +306,7 @@ namespace eval ::nx::serializer {
 
     :public method deepSerialize {o} {
       # assumes $o to be fully qualified
-      set instances [Serializer allChildren $o] 
+      set instances [Serializer allChildren $o]
       foreach oss [ObjectSystemSerializer info instances] {
         $oss registerSerializer [::nsf::current object] $instances
       }
@@ -341,7 +339,7 @@ namespace eval ::nx::serializer {
 
     :public object method resetPattern {} {array unset :ignorePattern}
     :public object method addPattern {p} {set :ignorePattern($p) 1}
-    
+
     :object method checkExportedMethods {} {
       foreach k [array names :exportMethods] {
         lassign $k o p m
@@ -396,7 +394,7 @@ namespace eval ::nx::serializer {
       :resetPattern
 
       #
-      # export all nsf_procs 
+      # export all nsf_procs
       #
       append r [:export_nsfprocs ::]
 
@@ -415,8 +413,8 @@ namespace eval ::nx::serializer {
       # export the objects and classes
       #$s warn "export objects = [array names :exportObjects]"
       #$s warn "export objects = [array names :exportMethods]"
-      
-      append r [$s serialize-objects $instances 0] 
+
+      append r [$s serialize-objects $instances 0]
 
       foreach oss [ObjectSystemSerializer info instances] {
         append r [$oss serialize-all-end $s]
@@ -481,16 +479,16 @@ namespace eval ::nx::serializer {
 
     # include Serializer in the serialized code
     :exportObjects [::nsf::current object]
-    
+
   }
 
-  
+
   ###########################################################################
   # Object System specific serializer
   ###########################################################################
 
   Class create ObjectSystemSerializer {
-    
+
     :method init {} {
       # Include object system serializers and the meta-class in "Serializer all"
       Serializer exportObjects [::nsf::current class]
@@ -521,7 +519,7 @@ namespace eval ::nx::serializer {
       array unset :alias_dependency
       return $cmd
     }
-    
+
     #
     # Handle association between objects and responsible serializers
     #
@@ -574,11 +572,11 @@ namespace eval ::nx::serializer {
       }
       foreach p [array names :ignorePattern] {Serializer addPattern $p}
     }
-    
+
 
     ###############################
     # general method serialization
-    ###############################    
+    ###############################
 
     :method classify {o} {
       if {[::nsf::dispatch $o ::nsf::methods::object::info::hastype ${:rootMetaClass}]} \
@@ -588,8 +586,8 @@ namespace eval ::nx::serializer {
     :method collectVars {{-serializeSlot:boolean false} o s} {
       set setcmd [list]
       foreach v [lsort [$o info vars]] {
-        if {![::nsf::var::exists $s ignoreVarsRE] 
-	    || [::nsf::var::set $s ignoreVarsRE] eq "" 
+        if {![::nsf::var::exists $s ignoreVarsRE]
+	    || [::nsf::var::set $s ignoreVarsRE] eq ""
 	    || ![regexp [::nsf::var::set $s ignoreVarsRE] ${o}::$v]} {
 	  if {[::nsf::var::exists $o $v] == 0} {
 	    puts stderr "strange, [list $o info vars] returned $v, but it does not seem to exist"
@@ -686,7 +684,7 @@ namespace eval ::nx::serializer {
         set t [::nsf::directdispatch $o -frame object ::trace info variable $v]
 
         if {$t ne ""} {
-          foreach ops $t { 
+          foreach ops $t {
             lassign $ops op cmd
             # save traces in post_cmds
 	    set traceCmd [list ::nsf::directdispatch $o -frame object ::trace add variable $v $op $cmd]
@@ -702,7 +700,7 @@ namespace eval ::nx::serializer {
     }
 
     ###############################
-    # general dependency handling 
+    # general dependency handling
     ###############################
 
     :public method needsNothing {x s} {
@@ -760,7 +758,33 @@ namespace eval ::nx::serializer {
       if {[$s needsOneOf [:alias-dependency $x object]]} {return 0}
       return 1
     }
-    
+
+    :method forward-serialize {o m s perObject} {
+      if {$perObject ne ""} {
+        set scope "object"
+      } else {
+        set scope "class"
+      }
+      set def [$o ::nsf::methods::${scope}::info::method definition $m]
+      if {${:targetName} ne $o} {
+        #
+        # Handle targets of forwarders: when target object mapping
+        # is activated, we might have to adapt the forwarding target
+        # as well. This is particulary important for per-object
+        # forwarders, which are used frequently in the slot objects
+        # (but not necessarily only there).
+        #
+        set forwardTarget [nsf::method::forward::property $o {*}$perObject $m target]
+        set mappedForwardTarget [$s getTargetName $forwardTarget]
+        if {$forwardTarget ne $mappedForwardTarget} {
+          nsf::method::forward::property $o {*}$perObject $m target $mappedForwardTarget
+          set def [$o ::nsf::methods::${scope}::info::method definition $m]
+          nsf::method::forward::property $o {*}$perObject $m target $forwardTarget
+        }
+      }
+      return $def
+    }
+
   }
 
   ###########################################################################
@@ -768,7 +792,7 @@ namespace eval ::nx::serializer {
   ###########################################################################
 
   ObjectSystemSerializer create nx {
-    
+
     set :rootClass ::nx::Object
     set :rootMetaClass ::nx::Class
     array set :ignorePattern [list "::nsf::*" 1 "::nx::*" 1 "::xotcl::*" 1]
@@ -786,7 +810,7 @@ namespace eval ::nx::serializer {
       }
       if {[info command ::Object] ne "" && [namespace origin ::Object] eq "::nx::Object"} {
         append intro "\n" "namespace import -force ::nx::*"
-      } 
+      }
       return "$intro\n[next]"
     }
 
@@ -830,22 +854,7 @@ namespace eval ::nx::serializer {
           return ""
         }
         "forward" {
-          #
-          # handle targets of forwarders: when target object mapping
-          # is activated, we might have to adapt the forwarding target
-          # as well. This is particulary important for per-object
-          # forwarders, which are used frequently in the slot objects
-          # (but not necessarily only there).
-          #
-          if {${:targetName} ne $o} {
-            set forwardTarget [nsf::method::forward::property $o {*}$perObject $m target]
-            set mappedForwardTarget [$s getTargetName $forwardTarget]
-            if {$forwardTarget ne $mappedForwardTarget} {
-              nsf::method::forward::property $o {*}$perObject $m target $mappedForwardTarget
-              set def [$o info {*}$modifier method definition $m]
-              nsf::method::forward::property $o {*}$perObject $m target $forwardTarget
-            }
-          }
+          set def [:forward-serialize $o $m $s $perObject]
         }
       }
       if {${:targetName} ne $o} {
@@ -906,7 +915,7 @@ namespace eval ::nx::serializer {
     ###############################
     # nx class serialization
     ###############################
-    
+
     :object method Class-serialize {o s} {
 
       set cmd [:Object-serialize $o $s]
@@ -918,7 +927,7 @@ namespace eval ::nx::serializer {
           [:frameWorkCmd ::nsf::relation::get $o superclass -unless ${:rootClass}] \
           [:frameWorkCmd ::nsf::relation::get $o class-mixin] \
           [:frameWorkCmd ::nsf::method::assertion $o class-invar]
-      
+
       $s addPostCmd [:frameWorkCmd ::nsf::relation::get $o class-filter]
       return $cmd\n
     }
@@ -928,7 +937,7 @@ namespace eval ::nx::serializer {
       set objmap [expr {[info exists target] ? [list [::nsf::current object] $target] : ""}]
       ::Serializer deepSerialize -objmap $objmap [::nsf::current object]
     }
-    
+
   }
 
 
@@ -938,7 +947,7 @@ namespace eval ::nx::serializer {
   ###########################################################################
 
   ObjectSystemSerializer create xotcl {
-    
+
     set :rootClass ::xotcl::Object
     set :rootMetaClass ::xotcl::Class
     #array set :ignorePattern [list "::xotcl::*" 1]
@@ -982,7 +991,7 @@ namespace eval ::nx::serializer {
 	}
         proc - instproc {
           if {[$object info ${kind}s $name] ne ""} {
-            set prefix [expr {$kind eq "proc" ? "" : "inst"}] 
+            set prefix [expr {$kind eq "proc" ? "" : "inst"}]
             set code [:method-serialize $object $name $prefix $s]\n
           }
         }
@@ -1003,23 +1012,34 @@ namespace eval ::nx::serializer {
         set scope class
         set perObject ""
       }
-      set arglist [$o ::nsf::methods::${scope}::info::method parameter $m]
+      set methodType [$o ::nsf::methods::${scope}::info::method type $m]
 
-      # set arglist0 [list]
-      # foreach v [$o info ${prefix}args $m] {
-      #   if {[$o info ${prefix}default $m $v x]} {
-      #      #puts "... [list $o info ${prefix}default $m $v x] returned 1, x?[info exists x] level=[info level]"
-      #      lappend arglist0 [list $v $x] } {lappend arglist0 $v}
-      # }
-      # set arglist0 [concat [$o info ${prefix}nonposargs $m] $arglist0] 
-      # puts stderr "====== [list $o $m $prefix] scope $scope => NEW $arglist OLD $arglist0"
-      lappend r ${:targetName} ${prefix}proc $m \
-          $arglist \
-          [$o info ${prefix}body $m]
-      foreach p {pre post} {
-        if {[$o info ${prefix}$p $m] ne ""} {lappend r [$o info ${prefix}$p $m]}
+      if {$methodType eq "forward"} {
+        set def [:forward-serialize $o $m $s $perObject]
+        if {$perObject eq ""} {
+          regsub "(public|protected|private) forward" $def "instforward" def
+        } else {
+          regsub "(public|protected|private) object forward" $def "forward" def
+        }
+      } elseif {$methodType eq "alias"} {
+        set def [$o ::nsf::methods::${scope}::info::method definition $m]
+        if {$perObject eq ""} {
+          regsub "^(.*) (public|protected|private) alias" $def {::nsf::method::alias \1} def
+        } else {
+          regsub "^(.*) (public|protected|private) object alias" $def {::nsf::method::alias \1 -per-object} def
+        }
+      } else {
+        set arglist [$o ::nsf::methods::${scope}::info::method parameter $m]
+        lappend def ${:targetName} ${prefix}proc $m \
+            $arglist \
+            [$o info ${prefix}body $m]
+        foreach p {pre post} {
+          if {[$o info ${prefix}$p $m] ne ""} {
+            lappend def [$o info ${prefix}$p $m]
+          }
+        }
       }
-      return $r[:extraMethodProperties $o $perObject $m]
+      return $def[:extraMethodProperties $o $perObject $m]
     }
 
     ###############################
@@ -1051,7 +1071,7 @@ namespace eval ::nx::serializer {
     ###############################
     # XOTcl class serialization
     ###############################
-    
+
     :object method Class-serialize {o s} {
       set cmd [:Object-serialize $o $s]
       foreach i [$o info instprocs] {
@@ -1082,7 +1102,7 @@ namespace eval ::nx::serializer {
       set objmap [expr {[info exists target] ? [list [::nsf::current object] $target] : ""}]
       ::Serializer deepSerialize -objmap $objmap [::nsf::current object]
     }
-    
+
     # include this method in the serialized code
     #Serializer exportMethods {
     #  ::xotcl::Object instproc contains

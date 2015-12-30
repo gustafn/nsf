@@ -303,7 +303,6 @@ namespace eval ::nx {
       }
       set r [: -system {*}$args]
       if {$r ne ""} {::nsf::method::property [self] $r call-protected false}
-
       return $r
     }
 
