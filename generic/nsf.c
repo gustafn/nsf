@@ -22770,13 +22770,22 @@ ListMethod(Tcl_Interp *interp,
     case InfomethodsubcmdDefinitionIdx:
       {
         resultObj = Tcl_NewListObj(0, NULL);
+
         /* todo: don't hard-code registering command name "method" / NSF_METHOD */
         if (regObject != NULL) {
           AppendMethodRegistration(interp, resultObj, NsfGlobalStrings[NSF_METHOD],
                                    regObject, methodName, cmd, 0, outputPerObject, 1);
         } else {
+          Tcl_DString ds, *dsPtr = &ds;
+
           Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("::proc", -1));
-          Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj(methodName, -1));
+
+          Tcl_DStringInit(dsPtr);
+          DStringAppendQualName(dsPtr, Tcl_Command_nsPtr(cmd), methodName);
+          Tcl_ListObjAppendElement(interp, resultObj,
+                                   Tcl_NewStringObj(Tcl_DStringValue(dsPtr),
+                                                    Tcl_DStringLength(dsPtr)));
+          Tcl_DStringFree(dsPtr);
         }
         ListCmdParams(interp, cmd, contextObject, NULL, methodName, NSF_PARAMS_PARAMETER);
         Tcl_ListObjAppendElement(interp, resultObj, Tcl_GetObjResult(interp));
@@ -23055,8 +23064,8 @@ ListMethodResolve(Tcl_Interp *interp, int subcmd,
   cmd = ResolveMethodName(interp, nsPtr, methodNameObj,
                           dsPtr, &regObject, &defObject, &methodName1, &fromClassNS);
   /*
-   * If the cmd is not found, we return for every sub-command but "exists"
-   * empty.
+   * If the cmd is NOT found, we return empty, unless for the sub-command
+   * "exists", we return 0.
    */
   if (likely(cmd != NULL)) {
 
