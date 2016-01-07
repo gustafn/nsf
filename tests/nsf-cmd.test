@@ -134,7 +134,7 @@ nx::test case nsf-method-get-variants {
 
   ? {nsf::cmd::info args $::handle} "a b"
   ? {nsf::cmd::info body $::handle} {return $a-$b}
-  ? {nsf::cmd::info definition $::handle} {::proc bar {a b} {return $a-$b}}
+  ? {nsf::cmd::info definition $::handle} {::proc ::bar {a b} {return $a-$b}}
   ? {nsf::cmd::info exists $::handle} 1
   ? {nsf::cmd::info registrationhandle $::handle} ""
   ? {nsf::cmd::info definitionhandle $::handle} ""
