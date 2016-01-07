@@ -163,8 +163,8 @@ namespace eval ::nsf {
   proc ::nsf::debug::call {level objectInfo methodInfo arglist} {
     nsf::log Warning "DB call($level) - $objectInfo $methodInfo $arglist"
   }
-  proc ::nsf::debug::exit {level objectInfo methodInfo usec} {
-    nsf::log Warning "DB exit($level) - $objectInfo $methodInfo $usec usec"
+  proc ::nsf::debug::exit {level objectInfo methodInfo result usec} {
+    nsf::log Warning "DB exit($level) - $objectInfo $methodInfo $usec usec -> $result"
   }
 
   #

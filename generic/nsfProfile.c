@@ -193,14 +193,16 @@ NsfProfileDebugExit(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, const c
   }
   Tcl_DStringAppend(dsPtr, "} {", 3);
   NsfProfileMethodLabel(dsPtr, cl, methodName);
+  Tcl_DStringAppend(dsPtr, "} ", 1);
+  Tcl_DStringAppendElement(dsPtr, ObjStr(Tcl_GetObjResult(interp)));
 
   if (startSec != 0 || startUsec != 0) {
     struct timeval trt;
 
     gettimeofday(&trt, NULL);
-    Nsf_DStringPrintf(dsPtr, "} %ld ", (trt.tv_sec - startSec) * 1000000 + (trt.tv_usec - startUsec));
+    Nsf_DStringPrintf(dsPtr, " %ld ", (trt.tv_sec - startSec) * 1000000 + (trt.tv_usec - startUsec));
   } else {
-    Tcl_DStringAppend(dsPtr, "} {}", 4);
+    Tcl_DStringAppend(dsPtr, " {}", 4);
   }
 
   NsfDStringEval(interp, &ds, "debug exit", 1, 1);
