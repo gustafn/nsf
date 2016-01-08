@@ -515,6 +515,7 @@ NsfDStringEval(Tcl_Interp *interp, Tcl_DString *dsPtr, const char *context,
   Tcl_InterpState  state;
   NsfRuntimeState *rst;
   int              result, prevDoProfile;
+  unsigned int     prevPreventRecursionFlags;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(dsPtr != NULL);
@@ -533,7 +534,7 @@ NsfDStringEval(Tcl_Interp *interp, Tcl_DString *dsPtr, const char *context,
        */
       return TCL_OK;
     }
-
+    prevPreventRecursionFlags = rst->preventRecursionFlags;
     rst->preventRecursionFlags |= traceEvalFlags;
   }
 
@@ -560,7 +561,7 @@ NsfDStringEval(Tcl_Interp *interp, Tcl_DString *dsPtr, const char *context,
     Tcl_RestoreInterpState(interp, state);
   }
   if ((traceEvalFlags & NSF_EVAL_PREVENT_RECURSION) != 0u) {
-    rst->preventRecursionFlags &= ~traceEvalFlags;
+      rst->preventRecursionFlags = prevPreventRecursionFlags;
   }
 
   if (prevDoProfile == 1) {
