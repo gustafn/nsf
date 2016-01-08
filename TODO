@@ -5746,6 +5746,16 @@ serializer:
 - extended regression test
 - bump version number to 2.1
 
+
+- make use of Tcl_SaveInterpState() and friends for saving results
+  in NsfDStringEval()
+- added results in debug exit calls
+- changed interface of NsfDStringEval to control behavior via bitflags
+  (this is after all more readable than a argument list of "0" and "1"s)
+- added optional recursion prevention for functions called via NsfDStringEval
+  (handling NSF_EVAL_DEBUG, NSF_EVAL_LOG, NSF_EVAL_DEPRECATED)
+- added regression tests for potential recursive calls
+
 ========================================================================
 TODO:
 - add regression tests for debug and deprecated in methods (behavior)

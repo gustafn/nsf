@@ -510,38 +510,63 @@ NsfErrorInfo(Tcl_Interp *interp) {
  *----------------------------------------------------------------------
  */
 int
-NsfDStringEval(Tcl_Interp *interp, Tcl_DString *dsPtr, const char *context, int safe, int noProfile) {
-  int result, prevProfileSetting;
-  Tcl_Obj *savedResultObj;
+NsfDStringEval(Tcl_Interp *interp, Tcl_DString *dsPtr, const char *context,
+               unsigned int traceEvalFlags) {
+  Tcl_InterpState  state;
+  NsfRuntimeState *rst;
+  int              result, prevDoProfile;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(dsPtr != NULL);
   nonnull_assert(context != NULL);
 
-  if (noProfile) {
-    prevProfileSetting = RUNTIME_STATE(interp)->doProfile;
-    RUNTIME_STATE(interp)->doProfile = 0;
+  rst = RUNTIME_STATE(interp);
+
+  if ((traceEvalFlags & NSF_EVAL_PREVENT_RECURSION) != 0u) {
+    /*
+     * We do not want to debug the debug statements, since this would cause an
+     * inifinite recursion.  Check, if we allow execution of the eval call.
+     */
+    if ((rst->preventRecursionFlags & traceEvalFlags) != 0) {
+      /*
+       * Recursive case, do NOT execute the cmd and return silently.
+       */
+      return TCL_OK;
+    }
+
+    rst->preventRecursionFlags |= traceEvalFlags;
   }
 
-  if (safe) {
-    savedResultObj = Tcl_GetObjResult(interp);
-    INCR_REF_COUNT(savedResultObj);
+  if ((traceEvalFlags & NSF_EVAL_NOPROFILE) && rst->doProfile == 1) {
+    /*
+     * Profiling should be deactivated for the eval.
+     */
+    prevDoProfile = 1;
+    rst->doProfile = 0;
+  } else {
+    prevDoProfile = 0;
+  }
+
+  if ((traceEvalFlags & NSF_EVAL_SAVE) != 0u) {
+    state = Tcl_SaveInterpState(interp, TCL_OK);
   }
   result = Tcl_EvalEx(interp, Tcl_DStringValue(dsPtr), Tcl_DStringLength(dsPtr), 0);
-
-  if (safe) {
-    if (result == TCL_OK) {
-      Tcl_SetObjResult(interp, savedResultObj);
-    }
-    DECR_REF_COUNT(savedResultObj);
-  }
-  if (noProfile) {
-    RUNTIME_STATE(interp)->doProfile = prevProfileSetting;
-  }
 
   if (unlikely(result == TCL_ERROR)) {
     NsfErrorContext(interp, context);
   }
+
+  if ((traceEvalFlags & NSF_EVAL_SAVE) != 0u) {
+    Tcl_RestoreInterpState(interp, state);
+  }
+  if ((traceEvalFlags & NSF_EVAL_PREVENT_RECURSION) != 0u) {
+    rst->preventRecursionFlags &= ~traceEvalFlags;
+  }
+
+  if (prevDoProfile == 1) {
+    rst->doProfile = 1;
+  }
+
   return result;
 }
 
@@ -588,7 +613,7 @@ NsfLog(Tcl_Interp *interp, int requiredLevel, const char *fmt, ...) {
     Tcl_DStringAppendElement(&cmdString, "::nsf::log");
     Tcl_DStringAppendElement(&cmdString, level);
     Tcl_DStringAppendElement(&cmdString, Tcl_DStringValue(&ds));
-    NsfDStringEval(interp, &cmdString, "log command", 0, 0);
+    NsfDStringEval(interp, &cmdString, "log command", (NSF_EVAL_LOG|NSF_EVAL_NOPROFILE));
     Tcl_DStringFree(&cmdString);
     Tcl_DStringFree(&ds);
   }
@@ -629,7 +654,7 @@ NsfDeprecatedCmd(Tcl_Interp *interp, const char *what, const char *oldCmd, const
   Tcl_DStringAppendElement(dsPtr, oldCmd);
   Tcl_DStringAppendElement(dsPtr, newCmd);
 
-  NsfDStringEval(interp, dsPtr, "log command", 0, 1);
+  NsfDStringEval(interp, dsPtr, "deprecated command", (NSF_EVAL_DEPRECATED|NSF_EVAL_NOPROFILE));
 
   Tcl_DStringFree(dsPtr);
 }

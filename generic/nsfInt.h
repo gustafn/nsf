@@ -450,6 +450,18 @@ typedef struct NsfStringIncrStruct {
 #define NSF_CMD_CLASS_ONLY_METHOD		0x00100000
 #define NSF_CMD_DEPRECATED_METHOD		0x00200000
 #define NSF_CMD_DEBUG_METHOD			0x00400000
+
+/*
+ * traceEvalFlags controlling NsfDStringEval
+ */
+#define NSF_EVAL_SAVE                    0x01u  /* save interp context */
+#define NSF_EVAL_NOPROFILE               0x02u  /* no profile below this call */
+#define NSF_EVAL_DEBUG                   0x04u  /* call is a debug call, prevent recursion */
+#define NSF_EVAL_LOG                     0x08u  /* call is a log call, prevent recursion */
+#define NSF_EVAL_DEPRECATED              0x10u  /* call is a deprecated call, prevent recursion */
+
+#define NSF_EVAL_PREVENT_RECURSION (NSF_EVAL_DEBUG|NSF_EVAL_LOG|NSF_EVAL_DEPRECATED)
+
 /*
  * object flags ...
  */
@@ -933,6 +945,7 @@ typedef struct NsfRuntimeState {
   int doKeepcmds;
   int doProfile;
   int doTrace;
+  unsigned int preventRecursionFlags;
   int doSoftrecreate;
   /* keep track of defined filters */
   Tcl_HashTable activeFilterTablePtr;
@@ -1127,7 +1140,8 @@ EXTERN Tcl_Obj *NsfMethodNamePath(Tcl_Interp *interp,
 				  const char *methodName)
   nonnull(1) nonnull(3) returns_nonnull;
 
-EXTERN int NsfDStringEval(Tcl_Interp *interp, Tcl_DString *dsPtr, const char *context, int safe, int noProfile)
+EXTERN int NsfDStringEval(Tcl_Interp *interp, Tcl_DString *dsPtr, const char *context,
+			  unsigned int traceEvalFlags)
   nonnull(1) nonnull(2) nonnull(3);
 
 

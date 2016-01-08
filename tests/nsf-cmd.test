@@ -277,6 +277,33 @@ nx::test case nsf-method-get-variants {
 
 }
 
+#
+# test error transparency of "-debug" option
+#
+nx::test case nsf-debug-error {
+  nsf::proc foo {} {
+    set exception [catch {bar} errorMsg options]
+    if {$exception} {
+      puts stderr O=$options
+      puts stderr <<$::errorInfo>>
+      set result [list $exception $errorMsg [string length $::errorInfo] $::errorCode]
+    } else {
+      set result ""
+    }
+    return $result
+  }
+  nsf::proc bar {} {return -code error -errorcode MyException "exception"}
+
+  ? {foo} {1 exception 35 MyException}
+
+  #
+  # redefine bar with debug flag
+  #
+  nsf::proc -debug bar {} {return -code error -errorcode MyException "exception"}
+
+  ? {foo} {1 exception 35 MyException}
+}
+
 
 #
 # test virtual arg resolution + filtering
@@ -382,6 +409,83 @@ nx::test case nsf-config-array {
     ? [list string is boolean $::nsf::config($opt)] 1
   }
 }
+
+#
+# recursive debug calls
+#
+nx::test case nsf-debug-recursive {
+  set ::count 0
+
+  set oldCall [nsf::cmd::info definition ::nsf::debug::call]
+  nsf::proc -debug ::nsf::debug::call args {
+    incr ::count
+    #puts "MYDEBUG $args"
+  }
+  nsf::proc -debug foo {} {return 1}
+
+  ? {foo} "1"
+  ? {set ::count} 1
+
+  # restore original definition of ::nsf::debug::call
+  eval $oldCall
+}
+
+#
+# recursive log calls
+#
+nx::test case nsf-log-recursive {
+
+  #
+  # First the case, where the log function calls another Tcl function
+  # (which might be debugged)
+  #
+  set oldCall [nsf::cmd::info definition ::nsf::log]
+  nsf::proc ::nsf::log args {
+    incr ::count
+    #puts "::nsf::log <$args> ... before foo"
+    foo
+    #puts "::nsf::log <$args> ... after foo"
+    return
+  }
+  nsf::proc foo {} {return 1}
+  nsf::proc bar {} {nsf::log notice hello}
+
+  #
+  # "foo" calls no nsf::log, but "bar" calls it once
+  #
+  set ::count 0
+  ? {foo} "1"
+  ? {set ::count} 0
+
+  set ::count 0
+  ? {bar} ""
+  ? {set ::count} 1
+
+  #
+  # now we add the debug flag to foo, therefore "foo" will call
+  # "nsf::log", which might become a infinite recursion loop.
+  #
+  nsf::proc -debug foo {} {return 1}
+
+  #
+  # "foo" is has now "-debug" set, therefore it calls the log function
+  #
+  set ::count 0
+  ? {foo} "1"
+  ? {set ::count} 2
+
+  #
+  # "bar" calls "log", which in turn calls a debugged function
+  #
+  set ::count 0
+  ? {bar} ""
+  ? {set ::count} 3
+
+  # restore original definition of ::nsf::log
+  eval $oldCall
+
+}
+
 
 #
 # Local variables:

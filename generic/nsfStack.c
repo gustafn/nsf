@@ -1232,9 +1232,11 @@ CscFinish_(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
 
     if ((Tcl_Command_flags(cscPtr->cmdPtr) & NSF_CMD_DEBUG_METHOD) != 0) {
 #if defined(NSF_PROFILE) || defined(NSF_DTRACE)
-      NsfProfileDebugExit(interp, cscPtr->self, cscPtr->cl, cscPtr->methodName, cscPtr->startSec, cscPtr->startUsec);
+      NsfProfileDebugExit(interp, cscPtr->self, cscPtr->cl, cscPtr->methodName,
+                          cscPtr->startSec, cscPtr->startUsec);
 #else
-      NsfProfileDebugExit(interp, cscPtr->self, cscPtr->cl, Tcl_GetCommandName(interp, cscPtr->cmdPtr), 0, 0);
+      NsfProfileDebugExit(interp, cscPtr->self, cscPtr->cl,
+                          Tcl_GetCommandName(interp, cscPtr->cmdPtr), 0, 0);
 #endif
     }
 
@@ -1262,6 +1264,7 @@ CscFinish_(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
      */
     if (unlikely(cscPtr->cl != NULL)) {
       NsfObject *clObject = &cscPtr->cl->object;
+
       clObject->activationCount --;
       MEM_COUNT_FREE("class.activationCount", clObject);
 

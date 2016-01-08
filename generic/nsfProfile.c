@@ -169,7 +169,7 @@ NsfProfileDebugCall(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, const c
   Nsf_DStringPrintf(&ds, " {%s}", ObjStr(listObj));
   DECR_REF_COUNT(listObj);
 
-  NsfDStringEval(interp, &ds, "debug call", 1, 1);
+  NsfDStringEval(interp, &ds, "debug call", (NSF_EVAL_DEBUG|NSF_EVAL_SAVE|NSF_EVAL_NOPROFILE));
 
   Tcl_DStringFree(&ds);
 
@@ -205,7 +205,7 @@ NsfProfileDebugExit(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, const c
     Tcl_DStringAppend(dsPtr, " {}", 4);
   }
 
-  NsfDStringEval(interp, &ds, "debug exit", 1, 1);
+  NsfDStringEval(interp, &ds, "debug exit", (NSF_EVAL_DEBUG|NSF_EVAL_SAVE|NSF_EVAL_NOPROFILE));
 
   Tcl_DStringFree(dsPtr);
   rst->debugCallingDepth--;
