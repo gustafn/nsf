@@ -351,9 +351,9 @@ namespace eval ::nx {
 
   Class public method forward {
       -debug:switch -deprecated:switch
-     methodName
-     -default -prefix -frame -onerror -returns -verbose:switch
-     target:optional args
+      methodName
+      -default -prefix -frame -onerror -returns -verbose:switch
+      target:optional args
    } {
     set pathData  [:__resolve_method_path $methodName]
     set arguments [lrange [::nsf::current args] 1 end]

@@ -5756,6 +5756,8 @@ serializer:
   (handling NSF_EVAL_DEBUG, NSF_EVAL_LOG, NSF_EVAL_DEPRECATED)
 - added regression tests for potential recursive calls
 
+- added flags "-debug" and "-deprecated" to XOTcl 2 "instproc", "proc", 
+  "instforward" and "forward" methods
 ========================================================================
 TODO:
 - add regression tests for debug and deprecated in methods (behavior)

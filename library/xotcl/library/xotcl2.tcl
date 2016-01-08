@@ -310,32 +310,46 @@ namespace eval ::xotcl {
 
   # define instproc and proc
   ::nsf::method::create Class instproc {
+    -debug:switch -deprecated:switch
     name arguments:parameter,0..* body precondition:optional postcondition:optional
   } {
     set conditions [list]
     if {[info exists precondition]}  {lappend conditions -precondition  $precondition}
     if {[info exists postcondition]} {lappend conditions -postcondition $postcondition}
-    ::nsf::method::create [self] $name $arguments $body {*}$conditions
+    set r [::nsf::method::create [self] $name $arguments $body {*}$conditions]
+    if {$debug} {::nsf::method::property [self] $r debug true}
+    if {$deprecated} {::nsf::method::property [self] $r deprecated true}
+    return $r
   }
 
   ::nsf::method::create Object proc {
+    -debug:switch -deprecated:switch
     name arguments body precondition:optional postcondition:optional
   } {
     set conditions [list]
     if {[info exists precondition]}  {lappend conditions -precondition  $precondition}
     if {[info exists postcondition]} {lappend conditions -postcondition $postcondition}
-    ::nsf::method::create [self] -per-object $name $arguments $body {*}$conditions
+    set r [::nsf::method::create [self] -per-object $name $arguments $body {*}$conditions]
+    if {$debug} {::nsf::method::property [self] $r debug true}
+    if {$deprecated} {::nsf::method::property [self] $r deprecated true}
+    return $r
   }
 
   # define a minimal implementation of "method"
-  Object instproc method {name arguments:parameter,0..* body} {
-    :proc $name $arguments $body
+  Object instproc method {
+    -debug:switch -deprecated:switch
+    name arguments:parameter,0..* body
+  } {
+     :proc -debug=$debug -deprecated=$deprecated $name $arguments $body
   }
-  Class instproc method {-per-object:switch name arguments:parameter,0..* body} {
+  Class instproc method {
+    -debug:switch -deprecated:switch
+    -per-object:switch name arguments:parameter,0..* body
+  } {
     if {${per-object}} {
-      :proc $name $arguments $body
+      :proc -debug=$debug -deprecated=$deprecated $name $arguments $body
     } else {
-      :instproc $name $arguments $body
+      :instproc -debug=$debug -deprecated=$deprecated $name $arguments $body
     }
   }
 
@@ -350,6 +364,7 @@ namespace eval ::xotcl {
   # have to provide the definition the hard way via methods.
 
   Object instproc forward {
+    -debug:switch -deprecated:switch
     method
     -default -earlybinding:switch -methodprefix -objscope:switch -onerror -verbose:switch
     target:optional args
@@ -367,10 +382,13 @@ namespace eval ::xotcl {
     if {[info exists target]} {lappend arglist $target}
     if {[llength $args] > 0} {lappend arglist {*}$args}
     set r [::nsf::method::forward [self] -per-object $method {*}$arglist]
+    if {$debug} {::nsf::method::property [self] $r debug true}
+    if {$deprecated} {::nsf::method::property [self] $r deprecated true}
     return $r
   }
 
   Class instproc instforward {
+    -debug:switch -deprecated:switch
     method
     -default -earlybinding:switch -methodprefix -objscope:switch -onerror -verbose:switch
     target:optional args
@@ -388,6 +406,8 @@ namespace eval ::xotcl {
     if {[info exists target]} {lappend arglist $target}
     if {[llength $args] > 0} {lappend arglist {*}$args}
     set r [::nsf::method::forward [self] $method {*}$arglist]
+    if {$debug} {::nsf::method::property [self] $r debug true}
+    if {$deprecated} {::nsf::method::property [self] $r deprecated true}
     return $r
   }
 
