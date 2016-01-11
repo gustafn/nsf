@@ -18,8 +18,10 @@ Steps for a beta release:
          make "CC=clang"
          make "CC=clang" test
        * run static analysis:
-         cppcheck --enable=all -DNDEBUG *.c
-	 /opt/local/bin/scan-build-mp-3.7 -enable-checker alpha make
+         make cppcheck
+	 #/opt/local/bin/scan-build-mp-3.8 -enable-checker alpha make
+	 /opt/local/bin/scan-build-mp-3.8 make
+	 /usr/local/src/naviserver% /opt/local/bin/scan-view-mp-3.8 ...
        * run Coverity (7.6.0, requires gcc 4.8):
        	 (sudo port install gcc48)
 	 (download Coverity Build Tool from https://scan.coverity.com/download/)
