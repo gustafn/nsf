@@ -12,9 +12,12 @@ puts  [info nameofexecutable]
 
 #
 # Tiny scripted replacement of a binary nxsh. This script can be used
-# as interactive shell for testing or like a regular shell with the !#
+# as interactive shell for testing or like a regular shell with the #!
 # markup in the first line of a script. It is designed to work with
 # multiple installed Tcl shells during development.
 #
 package require nx::shell
+
+namespace import -force ::nx::*
+
 nx::shell run $argc $argv

@@ -4,7 +4,6 @@ package provide nx::shell 1.0
 
 nx::Object create ::nx::shell {
   :public object method run {argc argv} {
-    uplevel #0 {namespace import -force ::nx::*}
     if {$argc == 0} {
       set prefix ""
       set line ""
