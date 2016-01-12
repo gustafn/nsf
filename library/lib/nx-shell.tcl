@@ -16,14 +16,15 @@ nx::Object create ::nx::shell {
         }
         append line [gets stdin]
         if {[info complete $line]} {
-          set script [list catch $line result opts]
-          uplevel #0 [list if "\[$script\]" {
-            puts [dict get $opts -errorinfo]
-            unset opts;
+          set script [list catch $line [current]::result [current]::opts]
+          set r [uplevel #0 $script]
+          if {$r} {
+            puts [dict get ${:opts} -errorinfo]
+            unset :opts;
           } else {
-            puts $result
-            unset result
-          }]
+            puts ${:result}
+            unset :result
+          }          
           set line ""
           continue
         }
