@@ -18,7 +18,7 @@ puts  [info nameofexecutable]
 # versions, it should be sufficient to remove the first line.
 #
 
-package require XOTcl 2.0
+package require XOTcl 2
 package require nx::shell
 
 namespace import -force ::xotcl::*
