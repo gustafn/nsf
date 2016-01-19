@@ -37,8 +37,10 @@
  */
 
 static NSF_INLINE NsfObject* NsfGetObjectFromCmdPtr(Tcl_Command cmd) nonnull(1);
-static NSF_INLINE NsfClass*  NsfGetClassFromCmdPtr(Tcl_Command cmd) nonnull(1);
 static NSF_INLINE ClientData NsfGetClientDataFromCmdPtr(Tcl_Command cmd) nonnull(1);
+#ifdef NSF_C
+static NSF_INLINE NsfClass*  NsfGetClassFromCmdPtr(Tcl_Command cmd) nonnull(1);
+#endif
 
 static NSF_INLINE ClientData
 NsfGetClientDataFromCmdPtr(Tcl_Command cmd) {
@@ -59,6 +61,7 @@ NsfGetClientDataFromCmdPtr(Tcl_Command cmd) {
   }
 }
 
+#ifdef NSF_C
 static NSF_INLINE NsfClass*
 NsfGetClassFromCmdPtr(Tcl_Command cmd) {
   ClientData cd;
@@ -73,6 +76,7 @@ NsfGetClassFromCmdPtr(Tcl_Command cmd) {
     return NULL;
   }
 }
+#endif
 
 static NSF_INLINE NsfObject*
 NsfGetObjectFromCmdPtr(Tcl_Command cmd) {

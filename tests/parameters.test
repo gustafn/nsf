@@ -35,7 +35,7 @@ nx::test case syntax {
   ? {::nsf::method::alias C foo ::set 1} \
       {invalid argument '1', maybe too many arguments; should be "::nsf::method::alias /object/ ?-per-object? /methodName/ ?-frame method|object|default? ?-protection call-protected|redefine-protected|none? /cmdName/"}
 
-  ? {C eval {:property x -class D}} {invalid argument 'D', maybe too many arguments; should be "::C property ?-accessor /value/? ?-configurable /boolean/? ?-incremental? ?-class /value/? /spec/ ?/initblock/?"} "Test whether the colon prefix is suppressed"
+  ? {C eval {:property x -class D}} {invalid argument 'D', maybe too many arguments; should be "::C property ?-accessor /value/? ?-class /value/? ?-configurable /boolean/? ?-incremental? ?-trace /value/? /spec/ ?/initblock/?"} "Test whether the colon prefix is suppressed"
 }
 
 #######################################################
@@ -1328,14 +1328,21 @@ nx::test case copy-with-required {
 
 nx::test case slot-traces {
   ::nx::Object create o {
-    :object property -accessor public a {set :defaultcmd { set _ 4 } }
-    :object property -accessor public b {set :valuecmd { set _ 44 } }
-    :object property -accessor public c {set :valuechangedcmd { ::nsf::var::set $obj $var 999 }}
+    :object property -accessor public -trace default a {
+      :public object method value=default {obj var} {puts stderr V=DEFAULT; return 4 }
+    }
+    :object property -accessor public -trace get b {
+      :public object method value=get {obj var} { return 44 }
+    }
+    :object property -accessor public -trace set c {
+      :public object method value=set {obj var value} { ::nsf::var::set $obj $var 999 }
+    }
   }
 
   ? {o a get} 4
   ? {o b get} 44
   ? {o c set 5} 999
+
   ? {::nsf::object::property o hasperobjectslots} 1
 
   o copy o2
@@ -1346,9 +1353,15 @@ nx::test case slot-traces {
   ? {::nsf::object::property o2 hasperobjectslots} 1
 
   ::nx::Class create C {
-    :property -accessor public a {set :defaultcmd { set _ 4 } }
-    :property -accessor public b {set :valuecmd { set _ 44 } }
-    :property -accessor public c {set :valuechangedcmd { ::nsf::var::set $obj $var 999 }}
+    :property -accessor public -trace default a {
+      :public object method value=default {obj var} { return 4 }
+    }
+    :property -accessor public -trace get b {
+      :public object method value=get {obj property} { return 44 }
+    }
+    :property -accessor public -trace set c {
+      :public object method value=set {obj property value} { ::nsf::var::set $obj $property 999 }
+    }
     :create c1
   }
   ? {c1 a get} 4
@@ -1381,23 +1394,16 @@ nx::test case slot-trace-interaction {
   Object create o
 
   ? {o eval {info exists :a}} 0
-  ? {o object property {a 0} {
-    set :defaultcmd {set _ 4}
-  }} "defaultcmd can't be used together with default value"
+  ? {o object property -trace default {a 0} { }} "'-trace default' can't be used together with default value"
 
   ? {o eval {info exists :a}} 0
 
   ? {o eval {info exists :b}} 0
-  ? {o object property {b 0} {
-    set :valuecmd {set _ 44}
-  }} "valuecmd can't be used together with default value"
+  ? {o object property -trace get {b 0} { }} "'trace get' can't be used together with default value"
   ? {o eval {info exists :b}} 0
 
   ? {o eval {info exists :c}} 0
-  ? {o object property c {
-    set :defaultcmd {set _ 4}
-    set :valuecmd {set _ 44}
-  }} "valuecmd can't be used together with defaultcmd"
+  ? {o object property -trace {default get} c { }} "'-trace default' and '-trace get' can't be used together"
   ? {o eval {info exists :c}} 0
 
   #
@@ -1405,9 +1411,12 @@ nx::test case slot-trace-interaction {
   #
 
   ? {o eval {info exists :a}} 0
-  o object property -accessor public {a 0} {
-    set :valuechangedcmd {::nsf::var::set $obj $var [expr {[::nsf::var::set $obj $var] + 1}]}
+  o object property -accessor public -trace set {a 0} {
+    :public object method value=set {obj var value} {
+      ::nsf::var::set -notrace $obj $var [expr {$value + 1}]
+    }
   }
+
   ? {o eval {info exists :a}} 1
 
   ? {o a get} 0
@@ -1416,8 +1425,10 @@ nx::test case slot-trace-interaction {
   ? {o a set 2} 3
 
   ? {o eval {info exists :A}} 0
-  o object property {A 0} {
-    set :valuechangedcmd {::nsf::var::set $obj $var [expr {[::nsf::var::set $obj $var] + 1}]}
+  o object property -trace set {A 0} {
+    :public object method value=set {obj var value} {
+      ::nsf::var::set -notrace $obj $var [expr {$value + 1}]
+    }
   }
   ? {o eval {info exists :A}} 1
   ? {o cget -A} 0
@@ -1427,21 +1438,16 @@ nx::test case slot-trace-interaction {
   # per-class:
   Class create Klass
 
-  ? {Klass property {a 0} {
-    set :defaultcmd {set _ 4}
-  }} "defaultcmd can't be used together with default value"
+  ? {Klass property -trace default {a 0} { }} "'-trace default' can't be used together with default value"
 
-  ? {Klass property {b 0} {
-    set :valuecmd {set _ 44}
-  }} "valuecmd can't be used together with default value"
+  ? {Klass property -trace get {b 0} { }} "'trace get' can't be used together with default value"
 
-  ? {Klass property c {
-    set :defaultcmd {set _ 4}
-    set :valuecmd {set _ 44}
-  }} "valuecmd can't be used together with defaultcmd"
+  ? {Klass property -trace {default get} c { }} "'-trace default' and '-trace get' can't be used together"
 
-  Klass property -accessor public {a 0} {
-    set :valuechangedcmd {::nsf::var::set $obj $var [expr {[::nsf::var::set $obj $var] + 1}]}
+  Klass property -accessor public -trace set {a 0} {
+    :public object method value=set {obj var value} {
+      ::nsf::var::set -notrace $obj $var [expr {$value + 1}]
+    }
   }
 
   Klass create k
@@ -1457,12 +1463,14 @@ nx::test case slot-trace-interaction {
   #
   # a) against scalar checkers (as a simplistic case)
 
-  Klass property b:boolean {
-    set :valuechangedcmd {set _ tr1e}
+  Klass property -trace set b:boolean {
+    :public object method value=set {obj property value} {
+      return tr1e
+    }
+
   }
 
   ? {catch {Klass create kk}} 0
-
   #
   # b) Structured trace scripts, containing lists. Check for
   # brace balancedness ...
@@ -1481,17 +1489,14 @@ nx::test case slot-trace-interaction {
   # evaluated right away and not fiddled through the parameter handling
   # infrastructure.
   ::nx::Class create CC {
-    :property a:0..n {
-      set :defaultcmd {
-	set _ 4
-      }
+    :property -trace default a:0..n {
+      :public object method value=default {obj property} { return 4 }
     }
-
-    :property b:0..n {set :valuecmd {set _ 44} }
-    :property -accessor public c:0..n {
-      set :valuechangedcmd {
-	::nsf::var::set $obj $var 999
-      }
+    :property -trace get b:0..n {
+      :public object method value=get {obj property} { return 44 }
+    }
+    :property -accessor public -trace set c:0..n {
+      :public object method value=set {obj property value} { ::nsf::var::set $obj $property 999 }
     }
     :create ::cc
   }
@@ -2993,6 +2998,157 @@ nx::test case new-parameter-passing {
   ? {$::o1 cget -childof} y
 
 }
+
+nx::test case value=changed {
+
+  nx::Class create C {
+
+    :property a {
+      :public object method value=set {object property value} {
+	incr ::slotset_$property
+        nsf::var::set $object $property [expr {$value + 1}]
+      }
+    }
+
+    :property -trace set b {
+      :public object method value=set {object property value} {
+	incr ::slotset_$property
+        nsf::var::set -notrace $object $property [expr {$value + 1}]
+      }
+    }
+
+    :property -accessor public -trace set c {
+      :public object method value=set {object property value} {
+	incr ::slotset_$property
+        nsf::var::set -notrace $object $property [expr {$value + 1}]
+      }
+    }
+
+    :public method foo {} {
+      set :a 100
+      set :b 100
+      set :c 100
+    }
+  }
+  set ::slotset_a 0
+  set ::slotset_b 0
+  set ::slotset_c 0
+
+  ? {C create c1} ::c1
+  ? {set ::slotset_a} 0
+  ? {set ::slotset_b} 0
+  ? {set ::slotset_c} 0
+
+  c1 configure
+  ? {set ::slotset_a} 0
+  ? {set ::slotset_b} 0
+  ? {set ::slotset_c} 0
+
+  c1 configure -a 1 -b 1 -c 1
+  ? {set ::slotset_a} 1
+  ? {set ::slotset_b} 1
+  ? {set ::slotset_c} 1
+  ? {c1 cget -a} 2
+  ? {c1 cget -b} 2
+  ? {c1 cget -c} 2
+
+  ? {c1 cget -a} 2
+  ? {c1 cget -b} 2
+  ? {c1 cget -c} 2
+
+
+  set ::slotset_a 0
+  set ::slotset_b 0
+  set ::slotset_c 0
+  c1 foo
+  ? {set ::slotset_a} 0
+  ? {set ::slotset_b} 1
+  ? {set ::slotset_c} 1
+  ? {c1 cget -a} 100
+  ? {c1 cget -b} 101
+  ? {c1 cget -c} 101
+
+  set ::slotset_a 0
+  set ::slotset_b 0
+  set ::slotset_c 0
+
+  ? {c1 a set 200} {::c1: unable to dispatch method 'a'}
+  ? {c1 b set 200} {::c1: unable to dispatch method 'b'}
+  ? {c1 c set 200} 201
+  ? {set ::slotset_a} 0
+  ? {set ::slotset_b} 0
+  ? {set ::slotset_c} 1
+}
+
+nx::test case trace-meta-slot {
+
+  ::nx::MetaSlot create ::nsv::TraceVariableSlot -superclass ::nx::VariableSlot {
+    :property {trace {get set}}
+    :public method value=set {obj varName value} {
+      incr ::trace_set
+      #puts stderr "SET nsv_set $obj $varName $value"
+      next
+    }
+    :public method value=get {obj varName} {
+      incr ::trace_get
+      #puts stderr "GET nsv_set $obj $varName"
+      next
+    }
+  }
+
+  set ::trace_set 0
+  set ::trace_get 0
+  nx::Class create Foo {
+
+    :property -class ::nsv::TraceVariableSlot x
+
+    :public method exists {var} { info exists :$var }
+    :public method get {var}    { set :$var }
+    :public method foo {}       { incr :x }
+
+    :create ::f1
+  }
+
+  #
+  # Change the value of ::f1.x via configure
+  #
+  ? {set ::trace_set} 0
+  ? {set ::trace_get} 0
+
+  ? {::f1 configure -x "1"} ""
+
+  ? {set ::trace_set} 2 ;# 2, since the next triggers the default setter, which has no "-notrace"
+  ? {set ::trace_get} 0
+
+  ? {::f1 exists x} 1
+  ? {set ::trace_set} 2
+  ? {set ::trace_get} 1
+
+  ? {::f1 cget -x} "1"
+
+  ? {set ::trace_set} 2
+  ? {set ::trace_get} 3  ;# 3, since the next triggers the default setter, which has no "-notrace"
+
+
+  #
+  # Change the value of ::f1.x via configure again
+  #
+  ? {::f1 configure -x 2} ""
+  ? {::f1 cget -x} "2"
+
+  #
+  # Change the value of ::f1.x via variable changes
+  #
+  set ::trace_set 0
+  set ::trace_get 0
+
+  ? {::f1 foo} "3"
+  ? {set ::trace_set} 1
+  ? {set ::trace_get} 1
+
+  ? {::f1 cget -x} "3"
+}
+
 #
 # Local variables:
 #    mode: tcl

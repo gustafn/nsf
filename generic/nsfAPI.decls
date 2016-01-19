@@ -310,6 +310,7 @@ cmd "var::exists" NsfVarExistsCmd {
 } {-nxdoc 1}
 cmd "var::get" NsfVarGetCmd {
   {-argName "-array" -required 0 -nrargs 0 -type switch}
+  {-argName "-notrace" -required 0 -nrargs 0 -type switch}
   {-argName "object" -required 1 -type object}
   {-argName "varName" -required 1 -type tclobj}
 } {-nxdoc 1}
@@ -320,6 +321,7 @@ cmd "var::import" NsfVarImportCmd {
 } {-nxdoc 1}
 cmd "var::set" NsfVarSetCmd {
   {-argName "-array" -required 0 -nrargs 0 -type switch}
+  {-argName "-notrace" -required 0 -nrargs 0 -type switch}
   {-argName "object" -required 1 -type object}
   {-argName "varName" -required 1 -type tclobj}
   {-argName "value" -required 0 -type tclobj}

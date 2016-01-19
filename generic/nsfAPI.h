@@ -662,12 +662,12 @@ static int NsfUnsetUnknownArgsCmd(Tcl_Interp *interp)
   NSF_nonnull(1);
 static int NsfVarExistsCmd(Tcl_Interp *interp, int withArray, NsfObject *object, const char *varName)
   NSF_nonnull(1) NSF_nonnull(3) NSF_nonnull(4);
-static int NsfVarGetCmd(Tcl_Interp *interp, int withArray, NsfObject *object, Tcl_Obj *varName)
-  NSF_nonnull(1) NSF_nonnull(3) NSF_nonnull(4);
+static int NsfVarGetCmd(Tcl_Interp *interp, int withArray, int withNotrace, NsfObject *object, Tcl_Obj *varName)
+  NSF_nonnull(1) NSF_nonnull(4) NSF_nonnull(5);
 static int NsfVarImportCmd(Tcl_Interp *interp, NsfObject *object, int nobjc, Tcl_Obj *CONST* nobjv)
   NSF_nonnull(1) NSF_nonnull(2);
-static int NsfVarSetCmd(Tcl_Interp *interp, int withArray, NsfObject *object, Tcl_Obj *varName, Tcl_Obj *value)
-  NSF_nonnull(1) NSF_nonnull(3) NSF_nonnull(4);
+static int NsfVarSetCmd(Tcl_Interp *interp, int withArray, int withNotrace, NsfObject *object, Tcl_Obj *varName, Tcl_Obj *value)
+  NSF_nonnull(1) NSF_nonnull(4) NSF_nonnull(5);
 static int NsfVarUnsetCmd(Tcl_Interp *interp, int withNocomplain, NsfObject *object, Tcl_Obj *varName)
   NSF_nonnull(1) NSF_nonnull(3) NSF_nonnull(4);
 static int NsfOAutonameMethod(Tcl_Interp *interp, NsfObject *obj, int withInstance, int withReset, Tcl_Obj *name)
@@ -2442,11 +2442,12 @@ NsfVarGetCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
                      method_definitions[NsfVarGetCmdIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     int withArray = (int )PTR2INT(pc.clientData[0]);
-    NsfObject *object = (NsfObject *)pc.clientData[1];
-    Tcl_Obj *varName = (Tcl_Obj *)pc.clientData[2];
+    int withNotrace = (int )PTR2INT(pc.clientData[1]);
+    NsfObject *object = (NsfObject *)pc.clientData[2];
+    Tcl_Obj *varName = (Tcl_Obj *)pc.clientData[3];
 
     assert(pc.status == 0);
-    return NsfVarGetCmd(interp, withArray, object, varName);
+    return NsfVarGetCmd(interp, withArray, withNotrace, object, varName);
 
   } else {
     
@@ -2484,12 +2485,13 @@ NsfVarSetCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
                      method_definitions[NsfVarSetCmdIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     int withArray = (int )PTR2INT(pc.clientData[0]);
-    NsfObject *object = (NsfObject *)pc.clientData[1];
-    Tcl_Obj *varName = (Tcl_Obj *)pc.clientData[2];
-    Tcl_Obj *value = (Tcl_Obj *)pc.clientData[3];
+    int withNotrace = (int )PTR2INT(pc.clientData[1]);
+    NsfObject *object = (NsfObject *)pc.clientData[2];
+    Tcl_Obj *varName = (Tcl_Obj *)pc.clientData[3];
+    Tcl_Obj *value = (Tcl_Obj *)pc.clientData[4];
 
     assert(pc.status == 0);
-    return NsfVarSetCmd(interp, withArray, object, varName, value);
+    return NsfVarSetCmd(interp, withArray, withNotrace, object, varName, value);
 
   } else {
     
@@ -3795,8 +3797,9 @@ static Nsf_methodDefinition method_definitions[113] = {
   {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Object, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
   {"varName", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
-{"::nsf::var::get", NsfVarGetCmdStub, 3, {
+{"::nsf::var::get", NsfVarGetCmdStub, 4, {
   {"-array", 0, 0, Nsf_ConvertTo_Boolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
+  {"-notrace", 0, 0, Nsf_ConvertTo_Boolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
   {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Object, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
   {"varName", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
@@ -3804,8 +3807,9 @@ static Nsf_methodDefinition method_definitions[113] = {
   {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Object, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
   {"args", 0, 1, ConvertToNothing, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
-{"::nsf::var::set", NsfVarSetCmdStub, 4, {
+{"::nsf::var::set", NsfVarSetCmdStub, 5, {
   {"-array", 0, 0, Nsf_ConvertTo_Boolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
+  {"-notrace", 0, 0, Nsf_ConvertTo_Boolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
   {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Object, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
   {"varName", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"value", 0, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}

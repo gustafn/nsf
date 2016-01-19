@@ -60,7 +60,7 @@ puts stderr ====3
     ? {c1 cget -p3a} 3
     ? {c1 p3a get} 3
     ? {c1 configure -p3a 3} ""
-    ? {c1 p3a get 3} {invalid argument '3', maybe too many arguments; should be "value=get ?-array? /object/ /varName/"}
+    ? {c1 p3a get 3} {invalid argument '3', maybe too many arguments; should be "value=get ?-array? ?-notrace? /object/ /varName/"}
     ? {c1 p3a set 3} 3
     ? {c1 p3a unset} ""
     ? {c1 cget -p3a} {can't read "p3a": no such variable}
