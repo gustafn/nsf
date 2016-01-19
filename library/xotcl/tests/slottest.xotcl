@@ -33,9 +33,18 @@ proc T1 {var sub op} {c1 set $var t1}
 proc T2 {var sub op} {c1 set $var t2}
 
 Class C -slots {
-  Attribute create x -defaultcmd {set x 1}
-  Attribute create y -defaultcmd {incr ::hu}
-  Attribute create z -defaultcmd {my trace add variable z read T1}
+  #Attribute create x -defaultcmd {set x 1}
+  #Attribute create y -defaultcmd {incr ::hu}
+  #Attribute create z -defaultcmd {my trace add variable z read T1}
+
+  Attribute create x -trace default
+  x object method value=default {obj property} { return 1 }
+
+  Attribute create y -trace default
+  y object method value=default {obj property} { incr ::hu }
+
+  Attribute create z -trace default
+  z object method value=default {obj property} { $obj trace add variable z read T1 }
 }
 
 C create c1
@@ -60,8 +69,14 @@ proc ?? {cmd expected {msg ""}} {
 }
 
 Class D -slots {
-  Attribute create x -defaultcmd {set x 2}
-  Attribute create z -defaultcmd {my trace add variable z read T2}
+  #  Attribute create x -defaultcmd {set x 2}
+  #  Attribute create z -defaultcmd {my trace add variable z read T2}
+  Attribute create x -trace default
+  x object method value=default {obj property} { return 2 }
+
+  Attribute create z -trace default
+  z object method value=default {obj property} { $obj trace add variable z read T2 }
+
   ?? self ::D
   ?? {namespace current} ::D::slot
 } -superclass C
@@ -499,7 +514,9 @@ Person method foo {s:sex,slot=::Person::slot::sex,convert} {return $s}
 nx::test case defaultcmd
 set ::hu 0
 Class C -slots {
-  Attribute create x -defaultcmd {incr ::hu; set x 101}
+  # Attribute create x -defaultcmd {incr ::hu; set x 101}
+  Attribute create x -trace default
+  x object method value=default {obj property} { incr ::hu; return 101 }
 }
 C c1
 ? {c1 info vars} "__initcmd"
@@ -583,7 +600,11 @@ set x [Object new -set x 1 -contains {
 # test case (bug) posted by Neil Hampton
 #
 
-Class Fred -slots { Attribute create a -defaultcmd { set _ 4 } }
+Class Fred -slots {
+  #Attribute create a -defaultcmd { set _ 4 }
+  Attribute create a -trace default
+  a object method value=default {obj property} { return 4 }
+}
 ? {Fred x} ::x
 ? {x a 4} 4
 x move y
@@ -688,117 +709,6 @@ nx::test case nx-serialize-debug-deprecated {
   ? {::nsf::method::property o obar deprecated} 0
   ? {::nsf::method::property o obar debug} 1
 }
-
-
-
-exit
-
-######################################################################
-#
-# Obsolete content
-#
-######################################################################
-#puts [Person array get __defaults]
-#puts [Person serialize]
-puts [Serializer all]
-eval [Serializer all]
-
-? {p2 salary} 1009
-? {catch {p2 append salary b}} 1
-? {p2 salary} 1009
-#p2 projects add ::o1
-exit
-p1 set x 0
-t {p1 set x} "get instvar value via set"
-t {p1 set x 1} "set instvar value via set"
-
-
-
-Object o1
-proc f {x} {return $x}
-o1 forward myf -earlybinding f
-? {o1 myf abc} abc
-
-rename f ""
-proc f {x} {return 11}
-? {o1 myf abc} 11
-
-Object o2
-o2 proc f {x} {expr {$x*2}}
-o1 forward myf -earlybinding o2 f
-
-? {o1 myf 100} 200
-
-o1 set x 42
-o1 forward x -earlybinding ::nsf::var::set %self %proc
-? [list o1 x] 42
-? [list o1 x 41] 41
-? {o1 x} "get parametercmd via forward (earlybinding)"
-? {o1 x 41} "set parametercmd via forward (earlybinding)"
-
-#obj forward Mixin -default {getter setter} mixin %1  %self
-o1 forward z -default {getter setter} %self
-
-o1 forward myfset -objscope set
-o1 myfset y 102
-? {o1 myfset y} 102
-
-? {o1 myfset y} "get instvar value via forward"
-? {o1 myfset y 122} "set instvar value via forward"
-
-o1 forward myfdset -earlybinding -objscope set
-o1 myfdset y 103
-? {o1 myfdset y} 103
-
-? {o1 myfdset y} "get instvar value via forward -earlybinding"
-? {o1 myfdset y 123} "set instvar value via forward -earlybinding"
-
-::nsf::method::alias o1 myset -frame object ::set
-o1 myset x 101
-? {o1 myset x} 101
-
-? {o1 myset x} "get instvar value via set alias"
-? {o1 myset x 123} "set instvar value via set alias"
-
-
-? {p1 age} "slot read"
-Class P -parameter {age {s -setter sets}}
-P instproc sets {var value} {
-  my set $var $value
-}
-P create p2 -age 345 -s 567
-
-? {p2 age} "parametercmd read"
-? {::nsf::var::set p2 age} "via setinstvar"
-? {p2 s} "parameter read with setter"
-
-
-
-
-Slot create Project::fullbudget \
-    -defaultcmd {$obj set __x 100} \
-    -valuechangedcmd {
-      puts "budget is now [$obj set fullbudget]"
-      $obj set __x [$obj set fullbudget]
-    }
-
-Slot create Project::currentbudget -valuecmd {$obj incr __x -1}
-
-Person p2 -name gustaf
-Person p3 -name frido
-Article a1 -title "My life as a saint" -date "1.1.2006"
-publishes new -written_by p1 -has_published a1
-set p [Project new -name icamp -manager p2 -member add p1 -member add p3]
-$p member add X end
-puts [$p member]
-
-? [list $p fullbudget] 100
-? [list $p fullbudget] 100
-? [list $p currentbudget] 99
-? [list $p currentbudget] 98
-? [list $p fullbudget 200] 200
-? [list $p currentbudget] 199
-
 
 #
 # Local variables:

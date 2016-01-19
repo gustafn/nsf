@@ -235,10 +235,9 @@ nx::test case configure-trace-class {
   # class case with no default
   #
   nx::Class create C
-  C property p {
-    set :valuechangedcmd {
-      #puts stderr "==== C.p valuechangedcmd $obj $var +1"
-      ::nsf::var::set $obj $var [expr {[::nsf::var::set $obj $var] + 1}]
+  C property -trace set p {
+    :public object method value=set {obj var value} {
+      ::nsf::var::set -notrace $obj $var [expr {$value + 1}]
     }
   }
   
@@ -253,10 +252,9 @@ nx::test case configure-trace-class {
   #
   # class case with default
   #
-  C property {q 100} {
-    set :valuechangedcmd {
-      #puts stderr "C.q valuechangedcmd $obj $var +1"
-      ::nsf::var::set $obj $var [expr [list [::nsf::var::set $obj $var] + 1]]
+  C property -trace set {q 100} {
+    :public object method value=set {obj var value} {
+      ::nsf::var::set -notrace $obj $var [expr {$value + 1}]
     }
   }
   C create c2
@@ -274,10 +272,9 @@ nx::test case configure-trace-object {
   
   nx::Object create o
   ? {o eval {info exists :A}} 0
-  o object property A {
-    set :valuechangedcmd {
-      #puts stderr "o.A valuechangedcmd $obj $var +1"
-      ::nsf::var::set $obj $var [expr [list [::nsf::var::set $obj $var] + 1]]
+  o object property -trace set A {
+    :public object method value=set {obj var value} {
+      ::nsf::var::set -notrace $obj $var [expr {$value + 1}]
     }
   }
   # puts [o info object variables A]
@@ -294,9 +291,10 @@ nx::test case configure-trace-object {
   #
   
   ? {o eval {info exists :B}} 0
-  o object property {B 1000} {
-    #puts stderr "o.B valuechangedcmd $obj $var +1"
-    set :valuechangedcmd {::nsf::var::set $obj $var [expr [list [::nsf::var::set $obj $var] + 1]]}
+  o object property -trace set {B 1000} {
+    :public object method value=set {obj var value} {
+      ::nsf::var::set -notrace $obj $var [expr {$value + 1}]
+    }
   }
   
   ? {o eval {info exists :B}} 1
@@ -313,10 +311,9 @@ nx::test case configure-trace-class-type {
   # class case with type and no default
   #
   nx::Class create C
-  C property p:integer {
-    set :valuechangedcmd {
-      #puts stderr "C.p valuechangedcmd $obj $var +1"
-      ::nsf::var::set $obj $var [expr [list [::nsf::var::set $obj $var] + 1]]
+  C property -trace set p:integer {
+    :public object method value=set {obj var value} {
+      ::nsf::var::set -notrace $obj $var [expr {$value + 1}]
     }
   }
   
@@ -334,20 +331,18 @@ nx::test case configure-trace-class-type {
   # class case with type and default
   #
 
-  ? {C property {q:integer aaa} {
-    set :valuechangedcmd {
-      #puts stderr "C.q valuechangedcmd $obj $var +1"
-      ::nsf::var::set $obj $var [expr [list [::nsf::var::set $obj $var] + 1]]
+  ? {C property -trace set {q:integer aaa} {
+    :public object method value=set {obj var value} {
+      ::nsf::var::set -notrace $obj $var [expr {$value + 1}]
     }
   }} {expected integer but got "aaa" for parameter "q"}
 
   # slot should no exist
   ? {C info slots q} ""
 
-  ? {C property {q:integer 99} {
-    set :valuechangedcmd {
-      #puts stderr "C.q valuechangedcmd $obj $var +1"
-      ::nsf::var::set $obj $var [expr [list [::nsf::var::set $obj $var] + 1]]
+  ? {C property -trace set {q:integer 99} {
+    :public object method value=set {obj var value} {
+      ::nsf::var::set -notrace $obj $var [expr {$value + 1}]
     }
   }} ""
 
@@ -370,10 +365,9 @@ nx::test case configure-trace-object-type {
   
   nx::Object create o
   ? {o eval {info exists :A}} 0
-  o object property A:integer {
-    set :valuechangedcmd {
-      #puts stderr "o.A valuechangedcmd $obj $var +1"
-      ::nsf::var::set $obj $var [expr [list [::nsf::var::set $obj $var] + 1]]
+  o object property -trace set A:integer {
+    :public object method value=set {obj var value} {
+      ::nsf::var::set -notrace $obj $var [expr {$value + 1}]
     }
   }
   # puts [o info object variables A]
@@ -392,17 +386,19 @@ nx::test case configure-trace-object-type {
   #
   
   ? {o eval {info exists :B}} 0
-  ? {o object property {B:integer x} {
-    #puts stderr "o.B valuechangedcmd $obj $var +1"
-    set :valuechangedcmd {::nsf::var::set $obj $var [expr [list [::nsf::var::set $obj $var] + 1]]}
+  ? {o object property -trace set {B:integer x} {
+    :public object method value=set {obj var value} {
+      ::nsf::var::set -notrace $obj $var [expr {$value + 1}]
+    }
   }} {expected integer but got "x" for parameter "B"}
   ? {o eval {info exists :B}} 0
 
   ? {o info object slots B} ""
 
-  ? {o object property {B:integer 1000} {
-    #puts stderr "o.B valuechangedcmd $obj $var +1"
-    set :valuechangedcmd {::nsf::var::set $obj $var [expr [list [::nsf::var::set $obj $var] + 1]]}
+  ? {o object property -trace set {B:integer 1000} {
+    :public object method value=set {obj var value} {
+      ::nsf::var::set -notrace $obj $var [expr {$value + 1}]
+    }
   }} {}
 
   ? {o info object slots B} {::o::per-object-slot::B}

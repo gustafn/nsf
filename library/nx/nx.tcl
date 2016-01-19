@@ -38,7 +38,7 @@
 # SOFTWARE.
 #
 package require nsf
-package provide nx 2.0.0
+package provide nx 2.1.0
 
 namespace eval ::nx {
 
@@ -1117,7 +1117,7 @@ namespace eval ::nx {
     }
 
     set slotObj [::nx::slotObj -container $container $target $slotname]
-    #puts stderr "[self] *** [list $class create $slotObj] {*}$opts <$initblock>"
+    #puts stderr "SLOTCREATE [self] *** [list $class create $slotObj] {*}$opts <$initblock>"
     set r [$class create $slotObj {*}$opts $initblock]
     #puts stderr "*** returned $r"
     return $r
@@ -1267,6 +1267,7 @@ namespace eval ::nx {
     {positional}
     {elementtype}
     {multiplicity 1..1}
+    {trace}
   }
 
   # TODO: check, if substdefault/default could work with e.g. alias; otherwise, move substdefault down
@@ -1817,9 +1818,7 @@ namespace eval ::nx {
     {accessor public}
     {type}
     {settername}
-    valuecmd
-    defaultcmd
-    valuechangedcmd
+    {trace none}
   }
 
   ::nx::VariableSlot public method setCheckedInstVar {-nocomplain:switch object value} {
@@ -1840,8 +1839,13 @@ namespace eval ::nx {
   }
 
   ::nx::VariableSlot protected method setterRedefinedOptions {} {
-    if {[:info lookup method value=set] ne "::nsf::classes::nx::VariableSlot::value=set"} {
-      # In case the "set" method was provided on the slot, ask nsf to call it directly
+    #
+    # In the :trace = "set" case, the slot will be set via the trace
+    # triggered from the direct assingment. Otherwise, when the
+    # "value=set" method is provided, tell nsf ot call it (e.g. in
+    # configure).
+    #
+    if {${:trace} ne "set" && [:info lookup method value=set] ne "::nsf::classes::nx::VariableSlot::value=set"} {
       return [list slot=[::nsf::self] slotset]
     }
     if {[:info lookup method value=get] ne "::nsf::classes::nx::VariableSlot::value=get"} {
@@ -2063,38 +2067,44 @@ namespace eval ::nx {
     # creation time of instances, or immediately for per-object slots.
     #
     set __initblock ""
-    set trace {::nsf::directdispatch [::nsf::self] -frame object ::trace}
+    set traceCmd {::nsf::directdispatch [::nsf::self] -frame object ::trace}
 
-    # There might be already default values registered on the
-    # class. If so, defaultcmd is ignored.
-    if {[info exists :default]} {
-      if {[info exists :defaultcmd]} {
-	  return -code error \
-	      "defaultcmd can't be used together with default value"
+    #puts stderr "instance variable trace has value <${:trace}>"
+    if {"default" in ${:trace}} {
+      if {"get" in ${:trace}} {
+        return -code error \
+            "'-trace default' and '-trace get' can't be used together"
       }
-      if {[info exists :valuecmd]} {
-	  return -code error \
-	      "valuecmd can't be used together with default value"
-      }
-    } elseif [info exists :defaultcmd] {
-      if {[info exists :valuecmd]} {
-	  return -code error \
-	      "valuecmd can't be used together with defaultcmd"
-      }
-      append __initblock "::nsf::directdispatch [::nsf::self] -frame object :removeTraces \[::nsf::self\] read\n"
-      append __initblock "$trace add variable [list ${:name}] read \
-	\[list [::nsf::self] __default_from_cmd \[::nsf::self\] [list [set :defaultcmd]]\]\n"
-
-    } elseif [info exists :valuecmd] {
-      append __initblock "::nsf::directdispatch [::nsf::self] -frame object :removeTraces \[::nsf::self\] read\n"
-      append __initblock "$trace add variable [list ${:name}] read \
-	\[list [::nsf::self] __value_from_cmd \[::nsf::self\] [list [set :valuecmd]]\]\n"
     }
-
-    if {[info exists :valuechangedcmd]} {
+    # There might be already default values registered on the
+    # class. If so, the default trace is ignored.
+    if {[info exists :default]} {
+      if {"default" in ${:trace}} {
+        return -code error \
+            "'-trace default' can't be used together with default value"
+      }
+      if {"get" in ${:trace}} {
+        return -code error \
+            "'trace get' can't be used together with default value"
+      }
+    }
+    if {"default" in ${:trace}} {
+      #puts stderr "DEFAULTCMD [self] trace=${:trace}"
+      append __initblock "::nsf::directdispatch [::nsf::self] -frame object :removeTraces \[::nsf::self\] read\n"
+      append __initblock "$traceCmd add variable [list ${:name}] read \
+	\[list [::nsf::self] __trace_default \[::nsf::self\]\]\n"
+    }
+    if {"get" in ${:trace}} {
+      #puts stderr "VALUECMD [self] trace=${:trace}"
+      append __initblock "::nsf::directdispatch [::nsf::self] -frame object :removeTraces \[::nsf::self\] read\n"
+      append __initblock "$traceCmd add variable [list ${:name}] read \
+	\[list [::nsf::self] __trace_get \[::nsf::self\]\]\n"
+    }
+    if {"set" in ${:trace}} {
+      #puts stderr "VALUECHANGED [self] trace=${:trace}"
       append __initblock "::nsf::directdispatch [::nsf::self] -frame object :removeTraces \[::nsf::self\] write\n"
-      append __initblock "$trace add variable [list ${:name}] write \
-	\[list [::nsf::self] __value_changed_cmd \[::nsf::self\] [list [set :valuechangedcmd]]\]"
+      append __initblock "$traceCmd add variable [list ${:name}] write \
+	\[list [::nsf::self] __trace_set \[::nsf::self\]\]\n"
     }
 
     if {$__initblock ne ""} {
@@ -2115,13 +2125,29 @@ namespace eval ::nx {
 	::trace remove variable $var $op [list [::nsf::self] [::nsf::current method] $obj $cmd]
     ::nsf::var::set $obj $var [$obj eval $cmd]
   }
-  ::nx::VariableSlot method __value_from_cmd {obj cmd var sub op} {
-    #puts stderr "GETVAR [::nsf::current method] obj=$obj cmd=$cmd, var=$var, op=$op"
-    ::nsf::var::set $obj [string trimleft $var :] [$obj eval $cmd]
+  # TODO: remove me
+  # ::nx::VariableSlot method __value_from_cmd {obj cmd var sub op} {
+  #   #puts stderr "GETVAR [::nsf::current method] obj=$obj cmd=$cmd, var=$var, op=$op"
+  #   ::nsf::var::set $obj [string trimleft $var :] [$obj eval $cmd]
+  # }
+  #::nx::VariableSlot method __value_changed_cmd {obj method var sub op} {
+  #  #puts "valuechanged obj=$obj cmd=$cmd, var=$var, op=$op"
+  #  eval $cmd
+  #}
+  ::nx::VariableSlot method __trace_default {obj var sub op} {
+    #puts stderr "trace_default call obj=$obj var=$var, sub=<$sub> op=$op"
+    ::nsf::directdispatch $obj -frame object \
+	::trace remove variable $var $op [list [::nsf::self] [::nsf::current method] $obj]
+    ::nsf::var::set $obj $var [:value=default $obj $var]
   }
-  ::nx::VariableSlot method __value_changed_cmd {obj cmd var sub op} {
-    #puts "valuechanged obj=$obj cmd=$cmd, var=$var, op=$op"
-    eval $cmd
+  ::nx::VariableSlot method __trace_get {obj var sub op} {
+    #puts stderr "trace_get call obj=$obj var=$var, sub=<$sub> op=$op"
+    :value=get $obj [string trimleft $var :]
+  }
+  ::nx::VariableSlot method __trace_set {obj var sub op} {
+    #puts stderr "trace_set call obj=$obj var=$var, sub=<$sub> op=$op"
+    set var [string trimleft $var :]
+    :value=set $obj $var [::nsf::var::get $obj $var]
   }
 
   ######################################################################
@@ -2167,11 +2193,12 @@ namespace eval ::nx {
 
   nx::Object method "object variable" {
      {-accessor "none"}
-     {-incremental:switch}
      {-class ""}
      {-configurable:boolean false}
+     {-incremental:switch}
      {-initblock ""}
      {-nocomplain:switch}
+     {-trace}
      spec:parameter
      defaultValue:optional
    } {
@@ -2195,10 +2222,13 @@ namespace eval ::nx {
       set configurable $opts(-configurable)
     }
 
-    #if {$initblock eq "" && $accessor eq "none" && !$incremental}
-    if {$initblock eq "" && !$configurable && $accessor eq "none" && !$incremental} {
+    if {![info exists trace] && [info exists :trace] && ${:trace} ne "none"} {
+      set trace ${:trace} 
+    }
+    if {$initblock eq "" && !$configurable && !$incremental 
+        && $accessor eq "none" && ![info exists trace]} {
       #
-      # we can build a slot-less variable
+      # Slot-less variable
       #
       #puts "... slotless variable $spec"
 
@@ -2235,13 +2265,15 @@ namespace eval ::nx {
     #
     # create variable via a slot object
     #
+    set defaultopts [list -accessor $accessor]
+    if {[info exists trace]} {lappend defaultopts -trace $trace}
     set slot [::nx::MetaSlot createFromParameterSpec [self] \
 		  -per-object \
 		  -class $class \
 		  -initblock $initblock \
 		  -incremental=$incremental \
 		  -private=[expr {$accessor eq "private"}] \
-		  -defaultopts [list -accessor $accessor] \
+		  -defaultopts $defaultopts \
 		  $spec \
 		  {*}[expr {[info exists defaultValue] ? [list $defaultValue] : ""}]]
 
@@ -2265,18 +2297,20 @@ namespace eval ::nx {
 
   Object method "object property" {
     {-accessor ""}
+    {-class ""}
     {-configurable:boolean true}
     {-incremental:switch}
-    {-class ""}
     {-nocomplain:switch}
+    {-trace}
      spec:parameter
     {initblock ""}
   } {
 
-    if {${accessor} eq ""} {
+    if {$accessor eq ""} {
       set accessor [::nsf::dispatch [self] __default_accessor]
       #puts stderr "OBJECT [self] got default accessor ${accessor}"
     }
+    set traceSpec [expr {[info exists trace] ? [list -trace $trace] : ""}]
 
     set r [[self] object variable \
 	       -accessor $accessor \
@@ -2285,25 +2319,36 @@ namespace eval ::nx {
 	       -initblock $initblock \
 	       -configurable $configurable \
 	       -nocomplain=$nocomplain \
+               {*}$traceSpec \
 	       {*}$spec]
     return $r
   }
 
   nx::Class method variable {
     {-accessor "none"}
-    {-incremental:switch}
     {-class ""}
     {-configurable:boolean false}
+    {-incremental:switch}
     {-initblock ""}
+    {-trace}
     spec:parameter
     defaultValue:optional
   } {
+    set defaultopts [list -accessor $accessor -configurable $configurable]
+    if {[info exists trace]} {
+      foreach t $trace {
+        if {$t ni {none get set default}} {
+          return -code error "invalid value '$t' for trace: '$trace'"
+        }
+      }
+      lappend defaultopts -trace $trace
+    }
     set slot [::nx::MetaSlot createFromParameterSpec [::nsf::self] \
 		  -class $class \
 		  -initblock $initblock \
 		  -incremental=$incremental \
 		  -private=[expr {$accessor eq "private"}] \
-		  -defaultopts [list -accessor $accessor -configurable $configurable] \
+		  -defaultopts $defaultopts \
 		  $spec \
 		  {*}[expr {[info exists defaultValue] ? [list $defaultValue] : ""}]]
     if {[$slot eval {info exists :settername}]} {
@@ -2317,23 +2362,25 @@ namespace eval ::nx {
 
   nx::Class method property {
     {-accessor ""}
+    {-class ""}
     {-configurable:boolean true}
     {-incremental:switch}
-    {-class ""}
+    {-trace}
     spec:parameter
     {initblock ""}
   } {
-
-    if {${accessor} eq ""} {
+    if {$accessor eq ""} {
       set accessor [::nsf::dispatch [self] __default_accessor]
-      #puts stderr "CLASS [self] got default accessor ${accessor}"
     }
+    set traceSpec [expr {[info exists trace] ? [list -trace $trace] : ""}]
+
     set r [[self] ::nsf::classes::nx::Class::variable \
 	       -accessor $accessor \
 	       -incremental=$incremental \
 	       -class $class \
 	       -configurable $configurable \
 	       -initblock $initblock \
+               {*}$traceSpec \
 	       {*}$spec]
     return $r
   }

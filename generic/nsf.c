@@ -403,7 +403,7 @@ static NsfClasses ** NsfClassListAdd(NsfClasses **firstPtrPtr, NsfClass *cl, Cli
   nonnull(1) returns_nonnull;
 
 /* misc prototypes */
-static int SetInstVar(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj, Tcl_Obj *valueObj)
+static int SetInstVar(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj, Tcl_Obj *valueObj, unsigned int flags)
   nonnull(1) nonnull(2) nonnull(3);
 
 static int ListDefinedMethods(Tcl_Interp *interp, NsfObject *object, const char *pattern,
@@ -515,7 +515,7 @@ NsfDStringEval(Tcl_Interp *interp, Tcl_DString *dsPtr, const char *context,
   Tcl_InterpState  state;
   NsfRuntimeState *rst;
   int              result, prevDoProfile;
-  unsigned int     prevPreventRecursionFlags;
+  unsigned int     prevPreventRecursionFlags = 0u;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(dsPtr != NULL);
@@ -9053,11 +9053,13 @@ SeekCurrent(Tcl_Command cmd, register NsfCmdList *cmdListPtr) {
   nonnull_assert(cmdListPtr != NULL);
 
   if (cmd != NULL) {
-    for (; likely(cmdListPtr != NULL); cmdListPtr = cmdListPtr->nextPtr) {
+    do {
       if (cmdListPtr->cmdPtr == cmd) {
         return cmdListPtr->nextPtr;
       }
-    }
+      cmdListPtr = cmdListPtr->nextPtr;
+    } while  likely(cmdListPtr != NULL);
+
     return NULL;
   }
   return cmdListPtr;
@@ -13339,7 +13341,7 @@ ObjectDispatchFinalize(Tcl_Interp *interp, NsfCallStackContent *cscPtr,
    * Resetting mixin and filter stacks
    */
 
-  if (unlikely((flags & NSF_CSC_MIXIN_STACK_PUSHED) && object->mixinStack) != 0u) {
+  if (unlikely((flags & NSF_CSC_MIXIN_STACK_PUSHED) && object->mixinStack != NULL) != 0u) {
     /* fprintf(stderr, "MixinStackPop %s.%s %p %s\n",
        ObjectName(object), methodName, object->mixinStack, msg);*/
     MixinStackPop(object);
@@ -17482,7 +17484,7 @@ FindCalledClass(Tcl_Interp *interp, NsfObject *object) {
   }
   if (cscPtr->frameType == NSF_CSC_TYPE_ACTIVE_FILTER) {
     methodName = MethodName(cscPtr->filterStackEntry->calledProc);
-  } else if (cscPtr->frameType == NSF_CSC_TYPE_ACTIVE_MIXIN && object->mixinStack) {
+  } else if (cscPtr->frameType == NSF_CSC_TYPE_ACTIVE_MIXIN && object->mixinStack != NULL) {
     methodName = Tcl_GetCommandName(interp, cscPtr->cmdPtr);
   } else {
     return NULL;
@@ -17554,7 +17556,7 @@ NextSearchMethod(NsfObject *object, Tcl_Interp *interp, NsfCallStackContent *csc
   }
 
   if ((objflags & NSF_FILTER_ORDER_VALID) != 0u
-      && object->filterStack
+      && (object->filterStack != NULL)
       && object->filterStack->currentCmdPtr) {
     *cmdPtr = FilterSearchProc(interp, object, currentCmdPtr, clPtr);
 
@@ -18719,11 +18721,11 @@ PrimitiveODestroy(ClientData clientData) {
 #endif
   CleanupDestroyObject(interp, object, 0);
 
-  while (object->mixinStack) {
+  while (object->mixinStack != NULL) {
     MixinStackPop(object);
   }
 
-  while (object->filterStack) {
+  while (object->filterStack != NULL) {
     FilterStackPop(object);
   }
 
@@ -20045,23 +20047,59 @@ ImportInstVarIntoCurrentScope(Tcl_Interp *interp, const char *cmdName, NsfObject
  *----------------------------------------------------------------------
  */
 static int
-SetInstVar(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj, Tcl_Obj *valueObj) {
+SetInstVar(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj, Tcl_Obj *valueObj, unsigned int flags) {
   CallFrame frame, *framePtr = &frame;
   Tcl_Obj *resultObj;
-  unsigned int flags;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(object != NULL);
   nonnull_assert(nameObj != NULL);
 
-  flags = (object->nsPtr) ? TCL_LEAVE_ERR_MSG|TCL_NAMESPACE_ONLY : TCL_LEAVE_ERR_MSG;
   Nsf_PushFrameObj(interp, object, framePtr);
 
-  if (likely(valueObj == NULL)) {
-    resultObj = Tcl_ObjGetVar2(interp, nameObj, NULL, flags);
+  if ((flags & NSF_VAR_TRIGGER_TRACE) != 0u) {
+    int tclVarFlags;
+    /*
+     * The command should trigger traces, use therefore the high-level Tcl_Obj*
+     * interface.
+     */
+
+    tclVarFlags = (object->nsPtr) ? TCL_LEAVE_ERR_MSG|TCL_NAMESPACE_ONLY : TCL_LEAVE_ERR_MSG;
+    if (likely(valueObj == NULL)) {
+      resultObj = Tcl_ObjGetVar2(interp, nameObj, NULL, tclVarFlags);
+    } else {
+      resultObj = Tcl_ObjSetVar2(interp, nameObj, NULL, valueObj, tclVarFlags);
+    }
   } else {
-    /*fprintf(stderr, "setvar in obj %s: name %s = %s\n", ObjectName(object), ObjStr(nameObj), ObjStr(value));*/
-    resultObj = Tcl_ObjSetVar2(interp, nameObj, NULL, valueObj, flags);
+    /*
+     * The command should not trigger traces, use the low-level TclLookupVar()
+     * interface.
+     */
+    Var *arrayPtr, *varPtr;
+
+    if (likely(valueObj == NULL)) {
+
+      varPtr = TclLookupVar(interp, ObjStr(nameObj), NULL, TCL_LEAVE_ERR_MSG|TCL_PARSE_PART1, "access",
+                            /*createPart1*/ 0, /*createPart2*/ 0, &arrayPtr);
+      if (likely(varPtr != NULL)) {
+        resultObj = varPtr->value.objPtr;
+      } else {
+        resultObj = NULL;
+      }
+
+    } else {
+      Tcl_Obj *oldValuePtr;
+
+      varPtr = TclLookupVar(interp, ObjStr(nameObj), NULL, TCL_LEAVE_ERR_MSG|TCL_PARSE_PART1, "access",
+                            /*createPart1*/ 1, /*createPart2*/ 0, &arrayPtr);
+      oldValuePtr = varPtr->value.objPtr;
+      INCR_REF_COUNT(valueObj);
+      varPtr->value.objPtr = valueObj;
+      if (oldValuePtr != NULL) {
+        DECR_REF_COUNT(oldValuePtr);
+      }
+      resultObj = valueObj;
+    }
   }
   Nsf_PopFrameObj(interp, framePtr);
 
@@ -20069,6 +20107,7 @@ SetInstVar(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj, Tcl_Obj *val
     Tcl_SetObjResult(interp, resultObj);
     return TCL_OK;
   }
+
   return TCL_ERROR;
 }
 
@@ -20216,7 +20255,7 @@ NsfSetterMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CO
                            &flags, &checkedData, &outObjPtr);
 
     if (likely(result == TCL_OK)) {
-      result = SetInstVar(interp, object, objv[0], outObjPtr);
+      result = SetInstVar(interp, object, objv[0], outObjPtr, NSF_VAR_TRIGGER_TRACE);
     }
 
     if ((flags & NSF_PC_MUST_DECR) != 0u) {
@@ -20225,7 +20264,7 @@ NsfSetterMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CO
     return result;
 
   } else {
-    return SetInstVar(interp, object, objv[0], objc == 2 ? objv[1] : NULL);
+    return SetInstVar(interp, object, objv[0], objc == 2 ? objv[1] : NULL, NSF_VAR_TRIGGER_TRACE);
   }
 }
 
@@ -27302,16 +27341,17 @@ NsfVarExistsCmd(Tcl_Interp *interp, int withArray, NsfObject *object, const char
 
 /*
 cmd var::get NsfVarGetCmd {
-  {-argName "-array" -required 0 -nrargs 0}
+  {-argName "-array" -required 0 -nrargs 0 -type switch}
+  {-argName "-notrace" -required 0 -nrargs 0 -type switch}
   {-argName "object" -required 1 -type object}
   {-argName "varName" -required 1 -type tclobj}
 }
 */
 static int
-NsfVarGetCmd(Tcl_Interp *interp, int withArray,
+NsfVarGetCmd(Tcl_Interp *interp, int withArray, int withNotrace,
              NsfObject *object, Tcl_Obj *varName) {
 
-  return NsfVarSetCmd(interp, withArray, object, varName, NULL);
+  return NsfVarSetCmd(interp, withArray, withNotrace, object, varName, NULL);
 }
 
 /*
@@ -27366,14 +27406,15 @@ NsfVarImportCmd(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CONST 
 
 /*
 cmd var::set NsfVarSetCmd {
-  {-argName "-array" -required 0 -nrargs 0}
+  {-argName "-array" -required 0 -nrargs 0 -type switch}
+  {-argName "-notrace" -required 0 -nrargs 0 -type switch}
   {-argName "object" -required 1 -type object}
   {-argName "varName" -required 1 -type tclobj}
   {-argName "value" -required 0 -type tclobj}
 }
 */
 static int
-NsfVarSetCmd(Tcl_Interp *interp, int withArray,
+NsfVarSetCmd(Tcl_Interp *interp, int withArray, int withNotrace,
              NsfObject *object, Tcl_Obj *varName, Tcl_Obj *valueObj) {
 
   nonnull_assert(interp != NULL);
@@ -27383,10 +27424,11 @@ NsfVarSetCmd(Tcl_Interp *interp, int withArray,
   if (unlikely(CheckVarName(interp, ObjStr(varName)) != TCL_OK)) {
     return TCL_ERROR;
   }
+
   if (withArray != 0) {
     return SetInstArray(interp, object, varName, valueObj);
   } else {
-    return SetInstVar(interp, object, varName, valueObj);
+    return SetInstVar(interp, object, varName, valueObj, withNotrace ? 0 : NSF_VAR_TRIGGER_TRACE);
   }
 }
 
@@ -28563,7 +28605,7 @@ NsfOInstvarMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CONS
   nonnull_assert(interp != NULL);
   nonnull_assert(object != NULL);
 
-  if (object->filterStack || object->mixinStack) {
+  if ((object->filterStack != NULL) || (object->mixinStack != NULL)) {
     CallStackUseActiveFrame(interp, &ctx);
   }
 
@@ -28862,7 +28904,7 @@ NsfOUpvarMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CONST 
     i = 1;
   }
 
-  if (object->filterStack || object->mixinStack) {
+  if ((object->filterStack != NULL) || (object->mixinStack != NULL)) {
     CallStackUseActiveFrame(interp, &ctx);
   }
 
