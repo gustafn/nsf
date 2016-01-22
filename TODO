@@ -5758,6 +5758,8 @@ serializer:
 
 - added flags "-debug" and "-deprecated" to XOTcl 2 "instproc", "proc", 
   "instforward" and "forward" methods
+
+- turned all for-loops controlled over a nonnull value into while loops.
 ========================================================================
 TODO:
 - add regression tests for debug and deprecated in methods (behavior)
@@ -5787,27 +5789,6 @@ TODO:
    nsf::method::property /obj/ ?-per-object? /method/ deprecated ?0|1?
 
 
-- CHECK:
-  [nx::Class info methods -path "info lookup *"] returns "{info lookup parameters} {info lookup mixins} ..."
-  however,
-     nx::Class info method type {info lookup parameters}
-  returns "", while e.g.
-     nx::Class info method type {info method handle}
-  returns "scripted". The problem is not the case that the method is
-  an ensemble method, but probably the case that it is defined as an alias
-  pointing to nx:Object::...:info (same with "info has")
-     nx::Class alias "info lookup"         ::nx::Object::slot::__info::lookup
-     nx::Class alias "info has"            ::nx::Object::slot::__info::has
-  However, when this two lines are commented out, everything looks fine,
-  the regression test and OpenACS work without problems.
-
-  -> check, whether the definitions can be eliminated, or whether the regression
-     test has to be extended. The result of
-        nx::Class info lookup methods -path
-     looks fine to me.
-
-
-
 - gcc6:
   * ISOBJ(methodObj); will raise a warning, when methodObj is declared as nonnull
   * gcc6 seems to have a bug: when e.g. a variable "foo" is declared as nonnull,
@@ -5819,7 +5800,6 @@ TODO:
       } while (foo != NULL);
 
     will raise a warning, despite of the fact that foo is overwritten.
-  * a few more for-loops have to be turned into do/while loops to avoid the warnings.
 
 
 - maybe use as well "$obj eval $cmd" for valuechangedcmd

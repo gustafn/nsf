@@ -8894,7 +8894,7 @@ MixinInvalidateObjOrders(Tcl_Interp *interp, NsfClass *cl, NsfClasses *subClasse
   /*
    * Iterate over the subclass hierarchy.
    */
-  for (; likely(subClasses != NULL); subClasses = subClasses->nextPtr) {
+  do {
     Tcl_HashSearch hSrch;
     Tcl_HashEntry *hPtr;
     Tcl_HashTable *instanceTablePtr;
@@ -8923,7 +8923,8 @@ MixinInvalidateObjOrders(Tcl_Interp *interp, NsfClass *cl, NsfClasses *subClasse
         object->flags &= ~NSF_MIXIN_ORDER_VALID;
       }
     }
-  }
+    subClasses = subClasses->nextPtr;
+  } while (subClasses != NULL);
 
 }
 
@@ -9334,14 +9335,16 @@ MixinSearchMethodByName(NsfCmdList *mixinList, const char *name, NsfClass **clPt
   nonnull_assert(name != NULL);
   nonnull_assert(clPtr != NULL);
 
-  for (; likely(mixinList != NULL);  mixinList = mixinList->nextPtr) {
+  do {
     NsfClass *foundCl = NsfGetClassFromCmdPtr(mixinList->cmdPtr);
 
     if ((foundCl != NULL) && SearchCMethod(foundCl, name, &cmd)) {
       *clPtr = foundCl;
       return cmd;
     }
-  }
+    mixinList = mixinList->nextPtr;
+  } while (mixinList != NULL);
+
   return NULL;
 }
 
