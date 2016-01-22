@@ -1,5 +1,7 @@
+# -*- Tcl -*-
 package req nx::test
 nx::test configure -count 1
+
 nx::test case setter-variants {
     nx::Class create C {
 	:property {p1a 1}
