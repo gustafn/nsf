@@ -8,8 +8,8 @@ Ingredients:
 
 The current version is tested with
 - Tcl 8.5 and Tcl 8.6
-- MongoDB v2.6.5 (released Aug 10, 2014)
-- mongodb-c-driver 1.0.2 (released Oct 9, 2014)
+- MongoDB v3.0.8 (released Dec 15, 2015)
+- mongodb-c-driver 1.3.1 (released Jan 18, 2016)
 
 Follow the following steps to get MongoDB up and running
 and to compile the MongoDB driver for nx:
