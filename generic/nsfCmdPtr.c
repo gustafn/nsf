@@ -3,7 +3,7 @@
  *
  *      Conversion from CmdPtr to Class / Object
  *
- * Copyright (C) 2014-2015 Gustaf Neumann
+ * Copyright (C) 2014-2016 Gustaf Neumann
  *
  * Vienna University of Economics and Business
  * Institute of Information Systems and New Media

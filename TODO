@@ -5759,7 +5759,8 @@ serializer:
 - added flags "-debug" and "-deprecated" to XOTcl 2 "instproc", "proc", 
   "instforward" and "forward" methods
 
-- turned all for-loops controlled over a nonnull value into while loops.
+- turned all for-loops controlled over a nonnull value into while loops
+- updated TODO, copyright notices, version number
 ========================================================================
 TODO:
 - add regression tests for debug and deprecated in methods (behavior)
@@ -5802,16 +5803,8 @@ TODO:
     will raise a warning, despite of the fact that foo is overwritten.
 
 
-- maybe use as well "$obj eval $cmd" for valuechangedcmd
-  Consequence: commands like the followings become more complicated
-  ::nx Class {
-    :property -accessor public c {set :valuechangedcmd { ::nsf::var::set $obj $var 999 }}
-  }
-
 - maybe better handling of single-colon prefixed vars in trace procs,
   when passing values to nsf::var::set/get/...
-
-- add better commented example for value traces to regression test
 
 - maybe more complete handling of other forward "properties"
 

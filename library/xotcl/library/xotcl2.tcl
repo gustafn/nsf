@@ -5,7 +5,7 @@
 #      Implementation of the XOTcl 2 object system, based
 #      on the Next Scripting Framework (NSF).
 #
-# Copyright (C) 2010-2014 Gustaf Neumann
+# Copyright (C) 2010-2016 Gustaf Neumann
 # Copyright (C) 2010-2014 Stefan Sobernig
 #
 # Vienna University of Economics and Business
@@ -38,7 +38,7 @@
 # SOFTWARE.
 #
 
-package provide XOTcl 2.0.0
+package provide XOTcl 2.0.1
 package require nx
 
 #######################################################
@@ -48,7 +48,7 @@ namespace eval ::xotcl {
   #
   # Set XOTcl version variables
   #
-  set ::xotcl::version 2.0
+  set ::xotcl::version 2.1
   set ::xotcl::patchlevel .0
 
   namespace eval ::nsf {}            ;# make pkg-indexer happy

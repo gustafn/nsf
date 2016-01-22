@@ -5,7 +5,7 @@
 #      Implementation of the Next Scripting Language (NX) object
 #      system, based on the Next Scripting Framework (NSF).
 #
-# Copyright (C) 2010-2015 Gustaf Neumann
+# Copyright (C) 2010-2016 Gustaf Neumann
 # Copyright (C) 2010-2014 Stefan Sobernig
 #
 # Vienna University of Economics and Business

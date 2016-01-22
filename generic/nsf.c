@@ -5,7 +5,7 @@
  *      for supporting language-oriented programming.  For details, see
  *      http://next-scripting.org/.
  *
- * Copyright (C) 1999-2015 Gustaf Neumann (a) (b)
+ * Copyright (C) 1999-2016 Gustaf Neumann (a) (b)
  * Copyright (C) 1999-2007 Uwe Zdun (a) (b)
  * Copyright (C) 2007-2008 Martin Matuska (b)
  * Copyright (C) 2010-2015 Stefan Sobernig (b)
