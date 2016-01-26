@@ -5761,6 +5761,12 @@ serializer:
 
 - turned all for-loops controlled over a nonnull value into while loops
 - updated TODO, copyright notices, version number
+
+- Let nsf create classes with ::nsf::object::unknown handler in the fly, when
+  c-function are called with objects of type class. This is necessary for 
+  triggering creation attempts in ttrace via 
+      ::nsf::object::alloc SOMECLASS SOMEOBJ
+
 ========================================================================
 TODO:
 - add regression tests for debug and deprecated in methods (behavior)

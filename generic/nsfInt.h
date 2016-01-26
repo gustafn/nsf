@@ -946,6 +946,7 @@ typedef struct NsfRuntimeState {
   int doProfile;
   int doTrace;
   unsigned int preventRecursionFlags;
+  int doClassConverterOmitUnkown;
   int doSoftrecreate;
   /* keep track of defined filters */
   Tcl_HashTable activeFilterTablePtr;

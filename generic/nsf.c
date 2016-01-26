@@ -1899,6 +1899,7 @@ GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
   }
 
   if (withUnknown != 0) {
+    /*fprintf(stderr, "**** withUnknown 1 obj %s is shared %d\n", ObjStr(objPtr), Tcl_IsShared(objPtr));*/
     result = NsfCallObjectUnknownHandler(interp, isAbsolutePath(objName) ? objPtr :
                                          NameInNamespaceObj(objName, CallingNameSpace(interp)));
 
@@ -5990,7 +5991,7 @@ NSCheckNamespace(Tcl_Interp *interp, const char *nameString, Tcl_Namespace *pare
    * we have to to perform the string operations.
    */
 
-  if (parentNsPtr == NULL && nsPtr) {
+  if (parentNsPtr == NULL && nsPtr != NULL) {
     parentNsPtr = Tcl_Namespace_parentPtr(nsPtr);
   }
 
@@ -14689,6 +14690,7 @@ int Nsf_ConvertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pP
 int
 Nsf_ConvertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
                ClientData *clientData, Tcl_Obj **outObjPtr) {
+  int withUnkown;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(objPtr != NULL);
@@ -14697,7 +14699,9 @@ Nsf_ConvertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
   nonnull_assert(outObjPtr != NULL);
   assert(*outObjPtr == objPtr);
 
-  if (likely(GetClassFromObj(interp, objPtr, (NsfClass **)clientData, 0) == TCL_OK)) {
+  withUnkown = (RUNTIME_STATE(interp)->doClassConverterOmitUnkown == 0);
+
+  if (likely(GetClassFromObj(interp, objPtr, (NsfClass **)clientData, withUnkown) == TCL_OK)) {
     return IsObjectOfType(interp, (NsfObject *)*clientData, "class", objPtr, pPtr);
   }
   return NsfObjErrType(interp, NULL, objPtr, "class", (Nsf_Param *)pPtr);
@@ -27839,7 +27843,9 @@ ParameterCheck(Tcl_Interp *interp, Tcl_Obj *paramObjPtr, Tcl_Obj *valueObj,
     paramPtr->flags &= ~NSF_ARG_UNNAMED;
   }
 
+  RUNTIME_STATE(interp)->doClassConverterOmitUnkown = 1;
   result = ArgumentCheck(interp, valueObj, paramPtr, doCheckArguments, &flags, &checkedData, &outObjPtr);
+  RUNTIME_STATE(interp)->doClassConverterOmitUnkown = 0;
   /*fprintf(stderr, "ParameterCheck paramPtr %p final refCount of wrapper %d can free %d flags %.6x\n",
     paramPtr, paramWrapperPtr->refCount,  paramWrapperPtr->canFree, flags);*/
 
