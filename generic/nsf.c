@@ -1900,13 +1900,14 @@ GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
 
   if (withUnknown != 0) {
     /*fprintf(stderr, "**** withUnknown 1 obj %s is shared %d\n", ObjStr(objPtr), Tcl_IsShared(objPtr));*/
+    INCR_REF_COUNT(objPtr);
     result = NsfCallObjectUnknownHandler(interp, isAbsolutePath(objName) ? objPtr :
                                          NameInNamespaceObj(objName, CallingNameSpace(interp)));
-
     if (likely(result == TCL_OK)) {
       /* Retry, but now, the last argument (withUnknown) has to be 0 */
       result = GetClassFromObj(interp, objPtr, clPtr, 0);
     }
+    DECR_REF_COUNT(objPtr);
     /*fprintf(stderr, "... ::nsf::object::unknown for '%s',
       result %d cl %p\n", objName, result, cl);*/
   }
