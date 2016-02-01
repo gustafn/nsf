@@ -841,10 +841,16 @@ namespace eval ::nx::serializer {
 
     :object method method-serialize {o m modifier s} {
       if {![::nsf::is class $o]} {set modifier "object"}
+      if {$modifier eq "object"} {
+        set perObject "-per-object"
+        set scope object
+      } else {
+        set perObject ""
+        set scope class
+      }
       set perObject [expr {$modifier eq "object" ? "-per-object" : ""}]
-      set methodType [$o info {*}$modifier method type $m]
-      #puts stderr "methodType (*o $modifier $m) = $methodType"
-      set def [$o info {*}$modifier method definition $m]
+      set methodType [$o ::nsf::methods::${scope}::info::method type $m]
+      set def [$o ::nsf::methods::${scope}::info::method definition $m]
       switch -exact -- $methodType {
         "object" {
           # object serialization is fully handled by the serializer
