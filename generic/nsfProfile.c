@@ -131,8 +131,8 @@ NsfProfileDeprecatedCall(Tcl_Interp *interp, NsfObject *object, NsfClass *cl,
  * NsfProfileDebugCall, NsfProfileDebugExit --
  *
  *    Output a line in case a function/method is called/exited having the
- *    debug flag set.  These two functions use ReportLine (which calls NsfLog)
- *    for reporting.
+ *    debug flag set.  These two functions use the Tcl commands ::nsf::debug::call
+ *    and ::nsf::debug::exit for reporting.
  *
  * Results:
  *    None
