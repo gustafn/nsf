@@ -5769,6 +5769,10 @@ serializer:
 
 ========================================================================
 TODO:
+
+- Shouldn't we add debug/deprecated filters for "info methods", i.e.:
+  ... info methods ?-debug? ?-deprecated? ?-callprotection all|public|protected|private? ?-closure? ?-type all|scripted|builtin|alias|forwarder|object|setter|nsfproc? ?-path? ?-source all|application|system? ?/pattern/?"
+
 - add regression tests for debug and deprecated in methods (behavior)
 - add regression tests for nsf::proc flags -debug and -deprecated (behavior)
 
