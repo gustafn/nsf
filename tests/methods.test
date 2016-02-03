@@ -83,6 +83,10 @@ nx::test case info-callprotection {
   ? {C info method callprotection protected_alias} "protected"
   ? {C info method callprotection public_alias} "public"
 
+  ? {C info method callprotection plain_forward} "public"
+  ? {C info method callprotection protected_forward} "protected"
+  ? {C info method callprotection public_forward} "public"
+
   ? {C info object method callprotection plain_object_method} "public"
   ? {C info object method callprotection protected_object_method} "protected"
   ? {C info object method callprotection public_object_method} "public"
@@ -90,6 +94,11 @@ nx::test case info-callprotection {
   ? {C info object method callprotection plain_object_alias} "public"
   ? {C info object method callprotection protected_object_alias} "protected"
   ? {C info object method callprotection public_object_alias} "public"
+
+  ? {C info object method callprotection plain_object_forward} "public"
+  ? {C info object method callprotection protected_object_forward} "protected"
+  ? {C info object method callprotection public_object_forward} "public"
+
 }
 
 # create a fresh object (different from c1)

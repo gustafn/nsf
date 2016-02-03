@@ -28,6 +28,7 @@ proc ? {cmd expected {msg ""}} {
 ? {nx::Object info superclasses} ""
 ? {nx::Object info class} ::nx::Class
 ? {nx::Object info baseclass} ::nx::Object
+? {nx::Object info baseclass} [lindex [::nx::Object info precedence] end]
 
 ? {::nsf::object::exists nx::Class} 1
 ? {::nsf::is class nx::Class} 1
@@ -35,6 +36,7 @@ proc ? {cmd expected {msg ""}} {
 ? {nx::Class info superclasses} ::nx::Object
 ? {nx::Class info class} ::nx::Class
 ? {nx::Class info baseclass} ::nx::Object
+? {nx::Class info baseclass} [lindex [::nx::Class info precedence] end]
 
 #
 # Minimal argument passing tests for early problem detection
@@ -85,6 +87,8 @@ nx::Object create o
 ? {::nsf::is metaclass o} 0
 ? {o info class} ::nx::Object
 ? {o info baseclass} ::nx::Object
+? {o info baseclass} [lindex [o info precedence] end]
+
 ? {nx::Object info instances o} ::o
 ? {nx::Object info instances ::o} ::o
 o destroy
@@ -111,6 +115,7 @@ nx::Class create M -superclass ::nx::Class
 ? {M info superclasses} ::nx::Class
 ? {M info class} ::nx::Class
 ? {M info baseclass} ::nx::Object
+? {M info baseclass} [lindex [M info precedence] end]
 
 M create C
 ? {::nsf::object::exists C} 1
