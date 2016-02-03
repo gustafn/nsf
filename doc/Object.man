@@ -419,6 +419,12 @@ completed, can be defined to store intermediate results.
 
 [list_begin definitions]
 
+[call [arg obj] [method "info baseclass"]]
+
+Returns the [term "base class"] of [arg obj]. The [term "base class"]
+is the class from which all [term NX] objects are instantiated
+directly or indirectly (typically [cmd nx::Object]).
+
 [call [arg obj] [method "info children"] [opt "[option -type] [arg className]"] [opt [arg pattern]]]
 
 Retrieves the list of nested (or aggregated) objects of [arg obj]. The

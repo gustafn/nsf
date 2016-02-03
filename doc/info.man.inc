@@ -45,9 +45,15 @@ Permitted values for [arg option] are:
 
 [item] [const body] returns the body script of [arg methodName].
 
+[item] [const callprotection] returns the call-protection level set for [arg methodName]; possible values: [const public], [const protected], [const private].
+
+[item] [const debug] returns 1 if [arg methodName] is in debug mode, 0 otherwise.
+
 [item] [const definition] returns a canonical command list which allows for (re-)define [arg methodName].
 
 [item] [const definitionhandle] returns the [term "method handle"] for a [term "submethod"] in a [term "method ensemble"] from the perspective of [arg [vset CMD]] as method provider. [arg methodName] must contain a complete [term "method path"].
+
+[item] [const deprecated] returns 1 if [arg methodName] is deprecated, 0 otherwise.
 
 [item] [const exists] returns 1 if there is a [arg methodName] provided by [arg [vset CMD]], returns 0 otherwise.
 

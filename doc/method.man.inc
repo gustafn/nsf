@@ -1,6 +1,6 @@
 [comment {-*- tcl -*- manpage fragment for method method, shared by nx::Object and nx::Class}]
 
-[call [arg [vset CMD]] [opt "[method public] | [method protected] | [method private]"] [method "[vset MODIFIER] method"] [arg name] [arg parameters] [opt [option "-checkalways"]] [opt "[option -returns] [arg valueChecker]"] [arg body]]
+[call [arg [vset CMD]] [opt "[method public] | [method protected] | [method private]"] [method "[vset MODIFIER] method"] [opt [option -debug]] [opt [option -deprecated]] [arg name] [arg parameters] [opt [option "-checkalways"]] [opt "[option -returns] [arg valueChecker]"] [arg body]]
 
 [keywords "value checker"]
 [keywords "colon-prefix notation"]
@@ -21,11 +21,12 @@ parameter options.
 
 [para]
 
-The [arg body] contains the method implementation as a script block. In this body script, the
-colon-prefix notation is available to denote an object variable and
-a [term "self call"]. In addition, the context of the object receiving the
-method call (i.e., the message) can be accessed (e.g., using [cmd nx::self]) and
-the call stack can be introspected (e.g., using [cmd nx::current]).
+The [arg body] contains the method implementation as a script
+block. In this body script, the colon-prefix notation is available to
+denote an object variable and a [term "self call"]. In addition, the
+context of the object receiving the method call (i.e., the message)
+can be accessed (e.g., using [cmd nx::self]) and the call stack can be
+introspected (e.g., using [cmd nx::current]).
 
 [para]
 
@@ -36,13 +37,17 @@ arguments and return value is guaranteed to be performed, even if
 value checking is temporarily disabled; see [cmd nx::configure]).
 
 [para]
+To express deprecation of the method [arg name], set the [option "-deprecated"] flag. Deprecated methods remain usable from client code, but their usage will be signaled to the developer and/or can be tracked using [cmd ::nsf::deprecated]. To register [arg name] with the debugger, set the [option "-debug"] flag. Entering and exiting a method flagged for debugging can be recorded using [cmd ::nsf::log].
+
+[para]
 
 A method closely resembles a Tcl [cmd proc], but it differs in some
 important aspects: First, a method can define non-positional
 parameters and value checkers on arguments. Second, the script
 implementing the method body can contain object-specific notation and
 commands (see above). Third, method calls [emph cannot] be intercepted
-using Tcl [cmd trace]. Note that an existing Tcl [cmd proc] can be registered as
-an [term "alias method"] with the [vset SCOPE] (see [method "[vset MODIFIER] alias"]).
+using Tcl [cmd trace]. Note that an existing Tcl [cmd proc] can be
+registered as an [term "alias method"] with the [vset SCOPE] (see
+[method "[vset MODIFIER] alias"]).
 
 [comment {TODO: refer to nsf::proc?}]

@@ -4,7 +4,7 @@
 [keywords "forward method"]
 [keywords "debugging level"]
 
-[call [arg [vset CMD]] [opt "[method public] | [method protected] | [method private]"] [method "[vset MODIFIER] forward"] [arg methodName] [opt "[option -prefix] [arg prefixName]"] [opt "[option -frame] [const object]"] [opt "[option -returns] [arg valueChecker]"] [opt [option -verbose]] [opt [arg target]] [opt "[arg arg] ..."]]
+[call [arg [vset CMD]] [opt "[method public] | [method protected] | [method private]"] [method "[vset MODIFIER] forward"] [opt [option -debug]] [opt [option -deprecated]] [arg methodName] [opt "[option -prefix] [arg prefixName]"] [opt "[option -frame] [const object]"] [opt "[option -returns] [arg valueChecker]"] [opt [option -verbose]] [opt [arg target]] [opt "[arg arg] ..."]]
 
 Define a [term "forward method"] for the given [vset SCOPE]. The
 definition of a [term "forward method"] registers a predefined, but
@@ -33,6 +33,9 @@ resulting Tcl command is evaluated in the context of the object
 receiving the [term "forward method"] call. This way, variable names
 used in the resulting execution of a command become resolved as
 object variables.
+
+[para]
+To express deprecation of the [term "forward method"] [arg methodName], set the [option "-deprecated"] flag. Deprecated methods remain usable from client code, but their usage will be signaled to the developer and/or can be tracked using [cmd ::nsf::deprecated]. To register [arg methodName] with the debugger, set the [option "-debug"] flag. Entering and exiting a method flagged for debugging can be recorded using [cmd ::nsf::log].
 
 [para]
 

@@ -5773,19 +5773,6 @@ TODO:
 - add regression tests for nsf::proc flags -debug and -deprecated (behavior)
 
 - add to doc:
-   /cls/ info method callprotection
-   /cls/ info method debug
-   /cls/ info method deprecated
-   /obj/ info baseclass
-   /obj/ info object method callprotection
-   /obj/ info object method debug
-   /obj/ info object method deprecated
-   /cls/ public alias   -deprecated|-debug /method/ ...
-   /cls/ public forward -deprecated|-debug /method/ ...
-   /cls/ public method  -deprecated|-debug /method/ ...
-   /obj/ public object alias   -deprecated|-debug /method/ ...
-   /obj/ public object forward -deprecated|-debug /method/ ...
-   /obj/ public object method  -deprecated|-debug /method/ ...
 
    # in case, when similar cmds are commented, add:
    #
