@@ -37,7 +37,7 @@ arguments and return value is guaranteed to be performed, even if
 value checking is temporarily disabled; see [cmd nx::configure]).
 
 [para]
-To express deprecation of the method [arg name], set the [option "-deprecated"] flag. Deprecated methods remain usable from client code, but their usage will be signaled to the developer and/or can be tracked using [cmd ::nsf::deprecated]. To register [arg name] with the debugger, set the [option "-debug"] flag. Entering and exiting a method flagged for debugging can be recorded using [cmd ::nsf::log].
+To express deprecation of the method [arg name], set the [option "-deprecated"] flag. Deprecated methods remain usable from client code, but their usage will be signaled to the developer and/or can be tracked using [cmd ::nsf::deprecated]. To register [arg name] with the debugger, set the [option "-debug"] flag. Entering and exiting a method, which was flagged for debugging, is recorded by calling the redefinable callback procs [cmd ::nsf::debug::call] and [cmd ::nsf::debug::exit], respectively. By default, these callbacks forward to [cmd ::nsf:log], which can also be customized at the script level.
 
 [para]
 
