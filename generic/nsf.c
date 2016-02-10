@@ -8147,6 +8147,8 @@ GetAllInstances(Tcl_Interp *interp, NsfCmdList **instances, NsfClass *startCl) {
       NsfObject *inst = (NsfObject *)Tcl_GetHashKey(tablePtr, hPtr);
       Command *cmdPtr;
 
+      assert(inst != NULL);
+
       if (unlikely((inst->flags & NSF_TCL_DELETE) != 0u)) {
         NsfLog(interp, NSF_LOG_NOTICE, "Object %s is apparently deleted", ObjectName(inst));
         continue;
@@ -8156,7 +8158,7 @@ GetAllInstances(Tcl_Interp *interp, NsfCmdList **instances, NsfClass *startCl) {
       assert(cmdPtr != NULL);
 
       if (unlikely((cmdPtr->nsPtr->flags & NS_DYING) != 0u)) {
-        NsfLog(interp, NSF_LOG_WARN, "Namespace of %s is apparently deleted", ObjectName(inst));
+        NsfLog(interp, NSF_LOG_WARN, "Namespace of %s is apparently deleted", ObjectName_(inst));
         continue;
       }
 
