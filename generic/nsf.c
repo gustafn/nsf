@@ -12021,6 +12021,7 @@ NsfParamDefsVirtualFormat(Tcl_Interp *interp, Nsf_Param const *pPtr, NsfObject *
   nonnull_assert(formatFunction != NULL);
   assert(pPtr->type != NULL);
 
+  parsedParam.paramDefs = NULL;
   if (strcmp(pPtr->type, "virtualobjectargs") == 0) {
     result = GetObjectParameterDefinition(interp, NsfGlobalObjs[NSF_EMPTY], contextObject, NULL, &parsedParam);
   } else if (NsfObjectIsClass(contextObject)) {
