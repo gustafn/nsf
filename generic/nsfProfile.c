@@ -664,22 +664,25 @@ NsfProfileTraceExit(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, const c
  */
 void
 NsfProfileRecordMethodData(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
-  NsfRuntimeState *rst = RUNTIME_STATE(interp);
-  double totalMicroSec;
-  NsfObject *obj = cscPtr->self;
-  NsfClass *cl = cscPtr->cl;
-  Tcl_DString methodKey, objectKey, methodInfo;
-  NsfProfile *profilePtr = &rst->profile;
-  struct timeval trt;
+  NsfRuntimeState *rst;
+  double           totalMicroSec;
+  NsfObject       *obj;
+  NsfClass        *cl;
+  Tcl_DString      methodKey, objectKey, methodInfo;
+  NsfProfile      *profilePtr;
+  struct timeval   trt;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(cscPtr != NULL);
 
   gettimeofday(&trt, NULL);
+  rst = RUNTIME_STATE(interp);
+  profilePtr = &rst->profile;
 
   totalMicroSec = (trt.tv_sec - cscPtr->startSec) * 1000000 + (trt.tv_usec - cscPtr->startUsec);
   profilePtr->overallTime += totalMicroSec;
 
+  obj = cscPtr->self;
   if (obj->teardown == 0 || !obj->id) {
     return;
   }
@@ -689,6 +692,7 @@ NsfProfileRecordMethodData(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
 
   Tcl_DStringInit(&methodInfo);
   Tcl_DStringInit(&methodKey);
+  cl = cscPtr->cl;
   NsfProfileMethodLabel(&methodInfo, cl, cscPtr->methodName);
 
   if (rst->doTrace) {

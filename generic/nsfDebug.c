@@ -115,12 +115,13 @@ void NsfStackDump(Tcl_Interp *interp) nonnull(1);
 
 void
 NsfStackDump(Tcl_Interp *interp) {
-  Interp     *iPtr = (Interp *)interp;
+  Interp     *iPtr;
   CallFrame  *f, *v;
   Tcl_Obj    *varCmdObj;
 
   nonnull_assert(interp != NULL);
 
+  iPtr = (Interp *)interp;
   f = iPtr->framePtr;
   v = iPtr->varFramePtr;
   varCmdObj = Tcl_NewObj();

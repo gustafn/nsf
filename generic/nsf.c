@@ -25655,21 +25655,23 @@ cmd ::method::property NsfMethodPropertyCmd {
 static int
 NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
                      Tcl_Obj *methodObj, int methodproperty, Tcl_Obj *valueObj) {
-  const char *methodName = ObjStr(methodObj);
-  NsfObject *defObject;
-  Tcl_Command cmd;
-  NsfClass *cl = withPer_object == 0 && NsfObjectIsClass(object) ? (NsfClass *)object : NULL;
-  int fromClassNS = cl != NULL;
-  unsigned int flag;
+  NsfObject    *defObject;
+  Tcl_Command   cmd;
+  NsfClass     *cl;
+  int           fromClassNS;
+  unsigned int  flag;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(object != NULL);
   nonnull_assert(methodObj != NULL);
 
+  cl = withPer_object == 0 && NsfObjectIsClass(object) ? (NsfClass *)object : NULL;
+  fromClassNS = (cl != NULL);
+  
   cmd = ResolveMethodName(interp, (cl != NULL) ? cl->nsPtr : object->nsPtr, methodObj,
                           NULL, NULL, &defObject, NULL, &fromClassNS);
   /*fprintf(stderr, "methodProperty for method '%s' prop %d value %s => cl %p cmd %p\n",
-    methodName, methodproperty, (valueObj != NULL) ? ObjStr(valueObj) : "NULL", cl, cmd);*/
+    ObjStr(methodObj), methodproperty, (valueObj != NULL) ? ObjStr(valueObj) : "NULL", cl, cmd);*/
 
 
   if (unlikely(cmd == NULL)) {
@@ -25679,7 +25681,7 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
     } else {
       return NsfPrintError(interp, "cannot lookup %s method '%s' for %s",
                            cl == NULL ? "object " : "",
-                           methodName, ObjectName_(object));
+                           ObjStr(methodObj), ObjectName_(object));
     }
   }
 
@@ -25784,7 +25786,7 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
           /* acquire new paramDefs */
           paramDefs = ParamDefsNew();
           ParamDefsStore(interp, cmd, paramDefs, 0);
-          /*fprintf(stderr, "new param definitions %p for cmd %p %s\n", paramDefs, cmd, methodName);*/
+          /*fprintf(stderr, "new param definitions %p for cmd %p %s\n", paramDefs, cmd, ObjStr(methodObj));*/
         }
 
         objPtr = &paramDefs->returns;
@@ -29033,12 +29035,14 @@ NsfOVolatileMethod(Tcl_Interp *interp, NsfObject *object) {
 
 static int
 NsfCAllocMethod_(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *nameObj, Tcl_Namespace *parentNsPtr) {
-  const char *nameString = ObjStr(nameObj);
-  NsfObject *newObj;
+  const char *nameString;
+  NsfObject  *newObj;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(cl != NULL);
   nonnull_assert(nameObj != NULL);
+
+  nameString = ObjStr(nameObj);
   assert(isAbsolutePath(nameString));
   assert(NSValidObjectName(nameString, 0) != 0);
 
