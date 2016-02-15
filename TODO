@@ -5767,6 +5767,8 @@ serializer:
   triggering creation attempts in ttrace via 
       ::nsf::object::alloc SOMECLASS SOMEOBJ
 
+- added Tcl_HashKeyType cmdPtrHashKeyType for command pointers
+
 ========================================================================
 TODO:
 
