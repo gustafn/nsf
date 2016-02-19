@@ -1,10 +1,11 @@
 /*
  * nsfEnumerationType.c --
  *
- *      Provide API for registering enumeration types
- *      and obtaining their domain.
+ *      Provide an API for registering enumeration types
+ *      and obtaining their domains.
  *
  * Copyright (C) 2014 Gustaf Neumann
+ * Copyright (C) 2016 Stefan Sobernig
  *
  * Vienna University of Economics and Business
  * Institute of Information Systems and New Media
@@ -46,7 +47,7 @@ static int Register(Tcl_Interp *interp, const char *domain, Nsf_TypeConverter *c
  *----------------------------------------------------------------------
  * Nsf_EnumerationTypeInit --
  *
- *    Initialize enumeration type converters
+ *    Initialize a hash table to keep the enumeration-type converters.
  *
  * Results:
  *    None.
@@ -64,7 +65,8 @@ Nsf_EnumerationTypeInit(Tcl_Interp *interp) {
   NsfMutexLock(&enumerationMutex);
 
   if (enumerationTypeRefCount == 0) {
-    Tcl_InitHashTable(enumerationHashTablePtr, TCL_STRING_KEYS);
+    /* Tcl_InitHashTable(enumerationHashTablePtr, TCL_STRING_KEYS); */
+    Nsf_InitFunPtrHashTable(enumerationHashTablePtr);
   }
   enumerationTypeRefCount++;
 
@@ -75,10 +77,10 @@ Nsf_EnumerationTypeInit(Tcl_Interp *interp) {
  *----------------------------------------------------------------------
  * Nsf_EnumerationTypeRegister --
  *
- *    Register an array of enumeration types
+ *    Registers an array of enumeration types upon NSF initialization.
  *
  * Results:
- *    TCL_OK
+ *    Tcl result code.
  *
  * Side effects:
  *    None.
@@ -106,27 +108,29 @@ Nsf_EnumerationTypeRegister(Tcl_Interp *interp, Nsf_EnumeratorConverterEntry *ty
  *----------------------------------------------------------------------
  * Nsf_EnumerationTypeGetDomain --
  *
- *    Obtain the domain from an enumeration type converter
+ *    Obtain the domain (i.e., the permitted enumeration literals) for a given
+ *    enumeration-type converter.
  *
- * Results:
- *    domain as a string or NULL, if not successful
+ * Results: 
+ *    Domain of permitted enumeration literals as a string or NULL, if
+ *    not successful.
  *
  * Side effects:
- *    None.
+ *    Sets a mutex lock.
  *
  *----------------------------------------------------------------------
  */
 const char *
 Nsf_EnumerationTypeGetDomain(Nsf_TypeConverter *converter) {
   Tcl_HashEntry *hPtr;
-  Tcl_HashSearch hSrch;
+  /* Tcl_HashSearch hSrch; */
   const char* domain = NULL;
 
   nonnull_assert(converter != NULL);
 
   NsfMutexLock(&enumerationMutex);
-
-  for (hPtr = Tcl_FirstHashEntry(enumerationHashTablePtr, &hSrch); hPtr != NULL;
+  hPtr = Nsf_FindFunPtrHashEntry(enumerationHashTablePtr, (Nsf_AnyFun *)converter);
+  /* for (hPtr = Tcl_FirstHashEntry(enumerationHashTablePtr, &hSrch); hPtr != NULL;
        hPtr = Tcl_NextHashEntry(&hSrch)) {
     Nsf_TypeConverter *ptr = (Nsf_TypeConverter *)Tcl_GetHashValue(hPtr);
 
@@ -135,8 +139,13 @@ Nsf_EnumerationTypeGetDomain(Nsf_TypeConverter *converter) {
       break;
     }
   }
+  */
   NsfMutexUnlock(&enumerationMutex);
 
+  if (hPtr != NULL) {
+    domain = Tcl_GetHashValue(hPtr);
+  }
+  
   return domain;
 }
 
@@ -144,13 +153,13 @@ Nsf_EnumerationTypeGetDomain(Nsf_TypeConverter *converter) {
  *----------------------------------------------------------------------
  * Register --
  *
- *    Register a enumeration type converter and its domain.
+ *    Register a enumeration-type converter and its domain.
  *
  * Results:
  *    Tcl result code.
  *
  * Side effects:
- *    None.
+ *    Sets a mutex lock.
  *
  *----------------------------------------------------------------------
  */
@@ -164,11 +173,12 @@ Register(Tcl_Interp *interp, const char *domain, Nsf_TypeConverter *converter) {
   nonnull_assert(converter != NULL);
 
   NsfMutexLock(&enumerationMutex);
-  hPtr = Tcl_CreateHashEntry(enumerationHashTablePtr, domain, &isNew);
+  hPtr = Nsf_CreateFunPtrHashEntry(enumerationHashTablePtr, (Nsf_AnyFun *)converter, &isNew);
+  // hPtr = Tcl_CreateHashEntry(enumerationHashTablePtr, domain, &isNew);
   NsfMutexUnlock(&enumerationMutex);
 
   if (isNew != 0) {
-    Tcl_SetHashValue(hPtr, converter);
+    Tcl_SetHashValue(hPtr, domain);
   } else {
     /*
      * In general, it would make sense to return an error here, but for

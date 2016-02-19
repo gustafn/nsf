@@ -221,7 +221,7 @@ AC_SUBST([DTRACE_OBJ])
 stubdir=stubs${TCL_MAJOR_VERSION}.${TCL_MINOR_VERSION}
 TEA_ADD_SOURCES([nsf.c nsfError.c nsfObjectData.c nsfProfile.c \
 	nsfDebug.c nsfUtil.c nsfObj.c nsfPointer.c nsfEnumerationType.c \
-        nsfCmdDefinitions.c nsfShadow.c nsfCompile.c aolstub.c \${srcdir}/generic/${stubdir}/nsfStubInit.${OBJEXT}])
+        nsfCmdDefinitions.c nsfFunPtrHashTable.c nsfShadow.c nsfCompile.c aolstub.c \${srcdir}/generic/${stubdir}/nsfStubInit.${OBJEXT}])
 TEA_ADD_HEADERS([generic/nsf.h generic/nsfInt.h generic/${stubdir}/nsfDecls.h generic/${stubdir}/nsfIntDecls.h])
 TEA_ADD_INCLUDES([])
 TEA_ADD_LIBS([])

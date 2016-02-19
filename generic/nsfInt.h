@@ -1220,8 +1220,25 @@ void NsfStringIncrInit(NsfStringIncrStruct *iss)
 void NsfStringIncrFree(NsfStringIncrStruct *iss)
   nonnull(1);
 
+
 /*
- * Nsf Enumeration type interface
+ *  Interface for NSF's custom hash tables supporting function
+ *  pointers as keys.
+ *
+ */
+
+typedef void (Nsf_AnyFun)();
+
+EXTERN void Nsf_InitFunPtrHashTable(Tcl_HashTable *tablePtr)
+  nonnull(1);
+EXTERN Tcl_HashEntry *Nsf_CreateFunPtrHashEntry(Tcl_HashTable *tablePtr, Nsf_AnyFun *key, int *isNew)
+  nonnull(1) nonnull(2);
+EXTERN Tcl_HashEntry *Nsf_FindFunPtrHashEntry(Tcl_HashTable *tablePtr, Nsf_AnyFun *key)
+  nonnull(1) nonnull(2);
+
+
+/*
+ * NSF enumeration-type interface
  */
 EXTERN void Nsf_EnumerationTypeInit(Tcl_Interp *interp)
   nonnull(1);
@@ -1230,7 +1247,7 @@ EXTERN const char *Nsf_EnumerationTypeGetDomain(Nsf_TypeConverter *converter)
   nonnull(1);
 
 /*
- * Nsf Cmd definition interface
+ * NSF command definitions interface
  */
 EXTERN void Nsf_CmdDefinitionInit(Tcl_Interp *interp)
   nonnull(1);
