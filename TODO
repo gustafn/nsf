@@ -5769,6 +5769,23 @@ serializer:
 
 - added Tcl_HashKeyType cmdPtrHashKeyType for command pointers
 
+- gcc6:
+  * gcc6 seems to have a bug: when e.g. a variable "foo" is declared as nonnull,
+    then the construct
+
+      do {
+        ...
+        foo = foo->nextPtr;
+      } while (foo != NULL);
+
+    will raise a warning, despite of the fact that foo is overwritten.
+    
+    This was reported and confirmed as a false positive; to be fixed
+    in future gcc6.
+
+- Re-factored new hash-table infrastructure (based on function-pointer
+  keys) to support method-definitions (and future uses as well).
+
 ========================================================================
 TODO:
 
@@ -5791,16 +5808,6 @@ TODO:
 
 - gcc6:
   * ISOBJ(methodObj); will raise a warning, when methodObj is declared as nonnull
-  * gcc6 seems to have a bug: when e.g. a variable "foo" is declared as nonnull,
-    then the construct
-
-      do {
-        ...
-        foo = foo->nextPtr;
-      } while (foo != NULL);
-
-    will raise a warning, despite of the fact that foo is overwritten.
-
 
 - maybe better handling of single-colon prefixed vars in trace procs,
   when passing values to nsf::var::set/get/...
