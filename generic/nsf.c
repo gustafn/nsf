@@ -5865,9 +5865,9 @@ NSGetFreshNamespace(Tcl_Interp *interp, NsfObject *object, const char *name) {
      * Avoid hijacking a namespace with different client data
      */
     if (nsPtr->deleteProc || nsPtr->clientData) {
-      Tcl_Panic("Namespace '%s' exists already with delProc %p and clientData %p; "
-                "Can only convert a plain Tcl namespace into an nsf namespace, my delete Proc %p",
-                name, nsPtr->deleteProc, nsPtr->clientData, NSNamespaceDeleteProc);
+      Tcl_Panic("Namespace '%s' exists already with delProc 0x%x and clientData %p; "
+                "Can only convert a plain Tcl namespace into an NSF namespace, my delete proc 0x%x",
+                name, PTR2UINT(nsPtr->deleteProc), nsPtr->clientData, PTR2UINT(NSNamespaceDeleteProc));
     }
 
     {
@@ -24280,10 +24280,10 @@ NsfDebugShowObj(Tcl_Interp *interp, Tcl_Obj *objPtr) {
       RUNTIME_STATE(interp)->instanceMethodEpoch;
     Tcl_Command cmd = mcPtr->cmd;
 
-    fprintf(stderr, "   method epoch %d max %d cmd %p objProc %p flags %.6x\n",
+    fprintf(stderr, "   method epoch %d max %d cmd %p objProc 0x%x flags %.6x\n",
             mcPtr->methodEpoch, currentMethodEpoch,
             (void *)cmd,
-            (cmd != NULL) ? ((void *)((Command *)cmd)->objProc) : NULL,
+            (cmd != NULL) ? PTR2UINT(((Command *)cmd)->objProc) : 0u,
             mcPtr->flags);
     if (cmd != NULL) {
       fprintf(stderr, "... cmd %p flags %.6x\n", (void *)cmd, Tcl_Command_flags(cmd));
