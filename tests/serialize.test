@@ -325,6 +325,15 @@ nx::test case nx-serialize-debug-deprecated {
   ? {::nsf::method::property C baz debug} 1
 }
 
+
+#
+# Check serializing of info internals
+#
+package require XOTcl
+package require xotcl::serializer
+nx::test case xotcl-info-internals {
+  ? {catch {::Serializer methodSerialize ::xotcl::classInfo default ""}} 0
+}
 #
 # Local variables:
 #    mode: tcl
