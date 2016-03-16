@@ -102,11 +102,7 @@
 # define nonnull(ARGS)
 #endif
 
-#if __GNUC_PREREQ(6, 0)
-# define nonnull_assert(assertion) 
-#else
-# define nonnull_assert(assertion) assert((assertion))
-#endif
+#define nonnull_assert(assertion) assert((assertion))
 
 
 #if __GNUC_PREREQ(4, 9)
