@@ -77,8 +77,6 @@
 # include <tclCompile.h>
 #endif
 
-#include <sys/time.h>
-
 #if __GNUC_PREREQ(2, 95)
 /* Use gcc branch prediction hint to minimize cost of e.g. DTrace
  * ENABLED checks. 
@@ -888,9 +886,9 @@ typedef struct NsfProfile {
   NsfShadowTclCommandInfo *shadowedTi;
 } NsfProfile;
 
-# define NSF_PROFILE_TIME_DATA struct timeval profile_trt
+# define NSF_PROFILE_TIME_DATA struct Tcl_Time profile_trt
 # define NSF_PROFILE_CALL(interp, object, methodName) \
-  gettimeofday(&profile_trt, NULL); \
+  Tcl_GetTime(&profile_trt);			\
   NsfProfileTraceCall(interp, object, NULL, methodName)
 # define NSF_PROFILE_EXIT(interp, object, methodName) \
   NsfProfileTraceExit(interp, object, NULL, methodName, &profile_trt)
@@ -1048,7 +1046,7 @@ EXTERN int NsfProfileTrace(Tcl_Interp *interp, int withEnable, int withVerbose, 
 
 EXTERN void NsfProfileTraceCall(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, const char *methodName)
   nonnull(1) nonnull(2) nonnull(4);
-EXTERN void NsfProfileTraceExit(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, const char *methodName, struct timeval *trt)
+EXTERN void NsfProfileTraceExit(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, const char *methodName, struct Tcl_Time *trt)
   nonnull(1) nonnull(2) nonnull(4) nonnull(5);
 EXTERN void NsfProfileTraceCallAppend(Tcl_Interp *interp, const char *label)
   nonnull(1) nonnull(2);

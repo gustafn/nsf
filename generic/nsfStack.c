@@ -1126,17 +1126,17 @@ NSF_INLINE static void
 CscInit_(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *cl,
 	Tcl_Command cmd, int frameType, unsigned int flags) {
 #if defined(NSF_PROFILE)
-  struct timeval trt;
+  struct Tcl_Time trt;
 #endif
 
   nonnull_assert(cscPtr != NULL);
   nonnull_assert(object != NULL);
 
 #if defined(NSF_PROFILE)
-  gettimeofday(&trt, NULL);
+  Tcl_GetTime(&trt);
 
-  cscPtr->startUsec = trt.tv_usec;
-  cscPtr->startSec = trt.tv_sec;
+  cscPtr->startUsec = trt.usec;
+  cscPtr->startSec = trt.sec;
 #endif
 
   /*

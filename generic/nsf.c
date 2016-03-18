@@ -16476,11 +16476,11 @@ NsfProcStubDeleteProc(ClientData clientData) {
  *
  *----------------------------------------------------------------------
  */
-static int InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, ParseContext *pcPtr, struct timeval *trtPtr)
+static int InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, ParseContext *pcPtr, struct Tcl_Time *trtPtr)
   nonnull(1) nonnull(2) nonnull(4) nonnull(3) nonnull(4);
 
 static int
-InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, ParseContext *pcPtr, struct timeval *trtPtr) {
+InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, ParseContext *pcPtr, struct Tcl_Time  *trtPtr) {
   Tcl_Obj       *CONST *objv;
   int            objc, result;
   const char    *fullMethodName;
@@ -16556,8 +16556,8 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, Pa
   Tcl_NRAddCallback(interp, ProcDispatchFinalize,
                     (ClientData)fullMethodName, pcPtr,
 # if defined(NSF_PROFILE)
-                    (ClientData)(unsigned long)trtPtr->tv_usec,
-                    (ClientData)(unsigned long)trtPtr->tv_sec
+                    (ClientData)(unsigned long)trtPtr->usec,
+                    (ClientData)(unsigned long)trtPtr->sec
 # else
                     NULL,
                     NULL
@@ -16570,8 +16570,8 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, Pa
     (ClientData)fullMethodName,
     pcPtr,
 # if defined(NSF_PROFILE)
-    (ClientData)(unsigned long)trtPtr->tv_usec,
-    (ClientData)(unsigned long)trtPtr->tv_sec
+    (ClientData)(unsigned long)trtPtr->usec,
+    (ClientData)(unsigned long)trtPtr->sec
 # else
     NULL,
     NULL
@@ -16645,14 +16645,14 @@ NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
   if (likely(result == TCL_OK)) {
     Tcl_Command    cmd = tcd->wrapperCmd;
     int            cmdFlags;
-    struct timeval trt;
+    struct Tcl_Time trt;
 
     assert(cmd != NULL);
 
     cmdFlags = Tcl_Command_flags(cmd);
 
 #if defined(NSF_PROFILE)
-    gettimeofday(&trt, NULL);
+    Tcl_GetTime(&trt);
 
     if (RUNTIME_STATE(interp)->doTrace) {
       NsfProfileTraceCallAppend(interp, ObjStr(objv[0]));
@@ -16662,12 +16662,12 @@ NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
     }
 #else
     if ((cmdFlags & NSF_CMD_DEBUG_METHOD) != 0) {
-      gettimeofday(&trt, NULL);
+      Tcl_GetTime(&trt);
 
       NsfProfileDebugCall(interp, NULL, NULL, ObjStr(objv[0]), objc-1, (Tcl_Obj **)objv+1);
     } else {
-      trt.tv_sec = 0;
-      trt.tv_usec = 0;
+      trt.sec = 0;
+      trt.usec = 0;
     }
 #endif
     if ((cmdFlags & NSF_CMD_DEPRECATED_METHOD) != 0) {
@@ -16677,7 +16677,7 @@ NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
     result = InvokeShadowedProc(interp, tcd->procName, tcd->cmd, pcPtr, &trt);
 
     if ((cmdFlags & NSF_CMD_DEBUG_METHOD) != 0) {
-      NsfProfileDebugExit(interp, NULL, NULL, ObjStr(objv[0]), trt.tv_sec, trt.tv_usec);
+      NsfProfileDebugExit(interp, NULL, NULL, ObjStr(objv[0]), trt.sec, trt.usec);
     }
 
   } else {
