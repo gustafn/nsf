@@ -1038,10 +1038,11 @@ namespace eval ::nx::serializer {
         set arglist [$o ::nsf::methods::${scope}::info::method parameter $m]
         lappend def ${:targetName} ${prefix}proc $m \
             $arglist \
-            [$o info ${prefix}body $m]
+            [$o ::nsf::methods::${scope}::info::method body $m]
         foreach p {pre post} {
-          if {[$o info ${prefix}$p $m] ne ""} {
-            lappend def [$o info ${prefix}$p $m]
+          set cond [$o ::nsf::methods::${scope}::info::method ${p}condition $m]
+          if {$cond ne ""} {
+            lappend def $cond
           }
         }
       }

@@ -197,10 +197,10 @@ NsfProfileDebugExit(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, const c
   Tcl_DStringAppendElement(dsPtr, ObjStr(Tcl_GetObjResult(interp)));
 
   if (startSec != 0 || startUsec != 0) {
-    struct timeval trt;
+    struct Tcl_Time trt;
 
-    gettimeofday(&trt, NULL);
-    Nsf_DStringPrintf(dsPtr, " %ld ", (trt.tv_sec - startSec) * 1000000 + (trt.tv_usec - startUsec));
+    Tcl_GetTime(&trt);
+    Nsf_DStringPrintf(dsPtr, " %ld ", (trt.sec - startSec) * 1000000 + (trt.usec - startUsec));
   } else {
     Tcl_DStringAppend(dsPtr, " {}", 4);
   }
@@ -313,7 +313,7 @@ static int
 Nsf_ProfileFilterObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   NsfShadowTclCommandInfo *ti;
   int             result;
-  struct timeval  start;
+  struct Tcl_Time start;
   const char     *fullMethodName, *label;
   Tcl_DString     ds;
 
@@ -342,9 +342,9 @@ Nsf_ProfileFilterObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CO
 
   NsfProfileTraceCallAppend(interp, label);
 
-  gettimeofday(&start, NULL);
+  Tcl_GetTime(&start);
   result = Tcl_NRCallObjProc(interp, ti->proc, ti->clientData, objc, objv);
-  NsfProfileRecordProcData(interp, label, start.tv_sec, start.tv_usec);
+  NsfProfileRecordProcData(interp, label, start.sec, start.usec);
 
   if (label != fullMethodName) {
     Tcl_DStringFree(&ds);
@@ -616,16 +616,16 @@ NsfProfileTraceCall(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, const c
 
 void
 NsfProfileTraceExit(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, const char *methodName,
-                    struct timeval *callTime) {
+                    struct Tcl_Time *callTime) {
   NsfRuntimeState *rst = RUNTIME_STATE(interp);
 
   if (rst->doTrace) {
     Tcl_DString ds, traceLabel;
     double totalMicroSec;
-    struct timeval trt;
+    struct Tcl_Time trt;
 
-    gettimeofday(&trt, NULL);
-    totalMicroSec = (trt.tv_sec - callTime->tv_sec) * 1000000 + (trt.tv_usec - callTime->tv_usec);
+    Tcl_GetTime(&trt);
+    totalMicroSec = (trt.sec - callTime->sec) * 1000000 + (trt.usec - callTime->usec);
 
     Tcl_DStringInit(&ds);
     NsfProfileObjectLabel(&ds, object);
@@ -670,16 +670,16 @@ NsfProfileRecordMethodData(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
   NsfClass        *cl;
   Tcl_DString      methodKey, objectKey, methodInfo;
   NsfProfile      *profilePtr;
-  struct timeval   trt;
+  struct Tcl_Time  trt;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(cscPtr != NULL);
 
-  gettimeofday(&trt, NULL);
+  Tcl_GetTime(&trt);
   rst = RUNTIME_STATE(interp);
   profilePtr = &rst->profile;
 
-  totalMicroSec = (trt.tv_sec - cscPtr->startSec) * 1000000 + (trt.tv_usec - cscPtr->startUsec);
+  totalMicroSec = (trt.sec - cscPtr->startSec) * 1000000 + (trt.usec - cscPtr->startUsec);
   profilePtr->overallTime += totalMicroSec;
 
   obj = cscPtr->self;
@@ -759,14 +759,14 @@ NsfProfileRecordProcData(Tcl_Interp *interp, const char *methodName, long startS
   NsfRuntimeState *rst = RUNTIME_STATE(interp);
   NsfProfile *profilePtr = &rst->profile;
   double totalMicroSec;
-  struct timeval trt;
+  struct Tcl_Time trt;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(methodName != NULL);
 
-  gettimeofday(&trt, NULL);
+  Tcl_GetTime(&trt);
 
-  totalMicroSec = (trt.tv_sec - startSec) * 1000000 + (trt.tv_usec - startUsec);
+  totalMicroSec = (trt.sec - startSec) * 1000000 + (trt.usec - startUsec);
   profilePtr->overallTime += totalMicroSec;
 
   if (rst->doTrace) {
@@ -828,7 +828,7 @@ NsfProfileClearTable(Tcl_HashTable *table) {
 void
 NsfProfileClearData(Tcl_Interp *interp) {
   NsfProfile *profilePtr = &RUNTIME_STATE(interp)->profile;
-  struct timeval trt;
+  struct Tcl_Time trt;
 
   nonnull_assert(interp != NULL);
 
@@ -836,9 +836,9 @@ NsfProfileClearData(Tcl_Interp *interp) {
   NsfProfileClearTable(&profilePtr->methodData);
   NsfProfileClearTable(&profilePtr->procData);
 
-  gettimeofday(&trt, NULL);
-  profilePtr->startSec = trt.tv_sec;
-  profilePtr->startUSec = trt.tv_usec;
+  Tcl_GetTime(&trt);
+  profilePtr->startSec = trt.sec;
+  profilePtr->startUSec = trt.usec;
   profilePtr->overallTime = 0;
   profilePtr->depth = 0;
 
@@ -905,15 +905,15 @@ NsfProfileGetTable(Tcl_Interp *interp, Tcl_HashTable *table) {
 
 void
 NsfProfileGetData(Tcl_Interp *interp) {
-  Tcl_Obj       *list = Tcl_NewListObj(0, NULL);
-  NsfProfile    *profilePtr = &RUNTIME_STATE(interp)->profile;
-  long           totalMicroSec;
-  struct timeval trt;
+  Tcl_Obj        *list = Tcl_NewListObj(0, NULL);
+  NsfProfile     *profilePtr = &RUNTIME_STATE(interp)->profile;
+  long            totalMicroSec;
+  struct Tcl_Time trt;
 
   nonnull_assert(interp != NULL);
 
-  gettimeofday(&trt, NULL);
-  totalMicroSec = (trt.tv_sec - profilePtr->startSec) * 1000000 + (trt.tv_usec - profilePtr->startUSec);
+  Tcl_GetTime(&trt);
+  totalMicroSec = (trt.sec - profilePtr->startSec) * 1000000 + (trt.usec - profilePtr->startUSec);
 
   Tcl_ListObjAppendElement(interp, list, Tcl_NewIntObj(totalMicroSec));
   Tcl_ListObjAppendElement(interp, list, Tcl_NewIntObj(profilePtr->overallTime));
@@ -944,7 +944,7 @@ NsfProfileGetData(Tcl_Interp *interp) {
 void
 NsfProfileInit(Tcl_Interp *interp) {
   NsfProfile     *profilePtr = &RUNTIME_STATE(interp)->profile;
-  struct timeval  trt;
+  struct Tcl_Time trt;
 
   nonnull_assert(interp != NULL);
 
@@ -952,9 +952,9 @@ NsfProfileInit(Tcl_Interp *interp) {
   Tcl_InitHashTable(&profilePtr->methodData, TCL_STRING_KEYS);
   Tcl_InitHashTable(&profilePtr->procData, TCL_STRING_KEYS);
 
-  gettimeofday(&trt, NULL);
-  profilePtr->startSec = trt.tv_sec;
-  profilePtr->startUSec = trt.tv_usec;
+  Tcl_GetTime(&trt);
+  profilePtr->startSec = trt.sec;
+  profilePtr->startUSec = trt.usec;
   profilePtr->overallTime = 0;
   profilePtr->depth = 0;
   Tcl_DStringInit(&profilePtr->traceDs);

@@ -295,7 +295,7 @@ static int ConvertToInfoobjectparametersubcmd(Tcl_Interp *interp, Tcl_Obj *objPt
     
 
 /* just to define the symbol */
-static Nsf_methodDefinition method_definitions[113];
+static Nsf_methodDefinition method_definitions[114];
   
 static const char *method_command_namespace_names[] = {
   "::nsf::methods::object::info",
@@ -416,6 +416,8 @@ static int NsfParameterCacheObjectInvalidateCmdStub(ClientData clientData, Tcl_I
 static int NsfParameterInfoCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv)
   NSF_nonnull(2) NSF_nonnull(4);
 static int NsfParameterSpecsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv)
+  NSF_nonnull(2) NSF_nonnull(4);
+static int NsfParseArgsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv)
   NSF_nonnull(2) NSF_nonnull(4);
 static int NsfProcCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv)
   NSF_nonnull(2) NSF_nonnull(4);
@@ -642,6 +644,8 @@ static int NsfParameterInfoCmd(Tcl_Interp *interp, int subcmd, Tcl_Obj *spec, Tc
   NSF_nonnull(1) NSF_nonnull(3);
 static int NsfParameterSpecsCmd(Tcl_Interp *interp, int withConfigure, int withNonposargs, Tcl_Obj *slotobjs)
   NSF_nonnull(1) NSF_nonnull(4);
+static int NsfParseArgsCmd(Tcl_Interp *interp, Tcl_Obj *argspec, Tcl_Obj *arglist)
+  NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
 static int NsfProcCmd(Tcl_Interp *interp, int withAd, int withCheckalways, int withDebug, int withDeprecated, Tcl_Obj *procName, Tcl_Obj *arguments, Tcl_Obj *body)
   NSF_nonnull(1) NSF_nonnull(6) NSF_nonnull(7) NSF_nonnull(8);
 static int NsfProfileClearDataStub(Tcl_Interp *interp)
@@ -811,6 +815,7 @@ enum {
  NsfParameterCacheObjectInvalidateCmdIdx,
  NsfParameterInfoCmdIdx,
  NsfParameterSpecsCmdIdx,
+ NsfParseArgsCmdIdx,
  NsfProcCmdIdx,
  NsfProfileClearDataStubIdx,
  NsfProfileGetDataStubIdx,
@@ -2239,6 +2244,27 @@ NsfParameterSpecsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
 }
 
 static int
+NsfParseArgsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv) {
+  ParseContext pc;
+  (void)clientData;
+
+  if (likely(ArgumentParse(interp, objc, objv, NULL, objv[0],
+                     method_definitions[NsfParseArgsCmdIdx].paramDefs,
+                     method_definitions[NsfParseArgsCmdIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
+                     &pc) == TCL_OK)) {
+    Tcl_Obj *argspec = (Tcl_Obj *)pc.clientData[0];
+    Tcl_Obj *arglist = (Tcl_Obj *)pc.clientData[1];
+
+    assert(pc.status == 0);
+    return NsfParseArgsCmd(interp, argspec, arglist);
+
+  } else {
+    
+    return TCL_ERROR;
+  }
+}
+
+static int
 NsfProcCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv) {
   ParseContext pc;
   (void)clientData;
@@ -3476,7 +3502,7 @@ NsfObjInfoVarsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
   }
 }
 
-static Nsf_methodDefinition method_definitions[113] = {
+static Nsf_methodDefinition method_definitions[114] = {
 {"::nsf::methods::class::alloc", NsfCAllocMethodStub, 1, {
   {"objectName", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
@@ -3752,6 +3778,10 @@ static Nsf_methodDefinition method_definitions[113] = {
   {"-configure", 0, 0, Nsf_ConvertTo_Boolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
   {"-nonposargs", 0, 0, Nsf_ConvertTo_Boolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
   {"slotobjs", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+},
+{"::nsf::parseargs", NsfParseArgsCmdStub, 2, {
+  {"argspec", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"arglist", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::proc", NsfProcCmdStub, 7, {
   {"-ad", 0, 0, Nsf_ConvertTo_Boolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},

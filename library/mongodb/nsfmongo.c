@@ -213,7 +213,7 @@ BsonToList(Tcl_Interp *interp, const bson_t *data , int depth) {
       uint32_t utf8_len;
       const char *string = bson_iter_utf8( &i, &utf8_len);
       /*fprintf(stderr, "append UTF8: <%s> %d\n", string, utf8_len);*/
-      tag = NSF_BSON_STRING; elemObj = Tcl_NewStringObj(string, utf8_len); 
+      tag = NSF_BSON_STRING; elemObj = Tcl_NewStringObj(string, utf8_len);
       break;
     }
     case BSON_TYPE_MINKEY: tag = NSF_BSON_MINKEY; elemObj = Tcl_NewStringObj("null", 4); break;
@@ -298,7 +298,7 @@ BsonTagToType(Tcl_Interp *interp, CONST char *tag) {
     if (*(tag + 1) == 'o' && *(tag + 2) == 'c') /* document */ return BSON_TYPE_DOCUMENT;
     if (*(tag + 1) == 'o' && *(tag + 2) == 'u') /* double   */ return BSON_TYPE_DOUBLE;
     break;
-  case 'i': /* int32|64 */ 
+  case 'i': /* int32|64 */
     if (*(tag + 1) == 'n' && *(tag + 2) == 't' && *(tag + 3) == '3') return BSON_TYPE_INT32;
     if (*(tag + 1) == 'n' && *(tag + 2) == 't' && *(tag + 3) == '6') return BSON_TYPE_INT64;
     if (*(tag + 1) == 'n' && *(tag + 2) == 't') return BSON_TYPE_INT32;
@@ -542,7 +542,7 @@ NsfMongoJson(Tcl_Interp *interp, Tcl_Obj *listObj) {
 
     bson_destroy( listPtr );
   }
-  
+
   return result;
 }
 
@@ -620,7 +620,7 @@ cmd run NsfMongoRunCmd {
 }
 */
 static int
-NsfMongoRunCmd(Tcl_Interp *interp, int withNocomplain, mongoc_client_t *clientPtr, 
+NsfMongoRunCmd(Tcl_Interp *interp, int withNocomplain, mongoc_client_t *clientPtr,
 	       CONST char *db, Tcl_Obj *cmdObj) {
   bson_t cmd, *cmdPtr = &cmd, out, *outPtr = &out;
   mongoc_read_prefs_t *readPrefsPtr = NULL; /* TODO: not used */
@@ -677,8 +677,8 @@ cmd collection::open NsfCollectionOpen {
 }
 */
 int
-NsfCollectionOpen(Tcl_Interp *interp, 
-		  mongoc_client_t *clientPtr, 
+NsfCollectionOpen(Tcl_Interp *interp,
+		  mongoc_client_t *clientPtr,
 		  const char *dbName,
 		  const char *collectionName) {
   int   result = TCL_ERROR;
@@ -696,10 +696,10 @@ NsfCollectionOpen(Tcl_Interp *interp,
       result = TCL_ERROR;
     }
   }
-  
+
   if (collectionPtr == NULL) {
-    result = NsfPrintError(interp, 
-			   "collection::open: could not open collection: %s.%s", 
+    result = NsfPrintError(interp,
+			   "collection::open: could not open collection: %s.%s",
 			   dbName, collectionName);
   }
 
@@ -726,8 +726,8 @@ cmd collection::count NsfMongoCollectionCount {
 }
 */
 static int
-NsfMongoCollectionCount(Tcl_Interp *interp, 
-			mongoc_collection_t *collectionPtr, 
+NsfMongoCollectionCount(Tcl_Interp *interp,
+			mongoc_collection_t *collectionPtr,
 			Tcl_Obj *queryObj) {
   int objc, result;
   Tcl_Obj **objv;
@@ -742,7 +742,7 @@ NsfMongoCollectionCount(Tcl_Interp *interp,
 
   BsonAppendObjv(interp, queryPtr, objc, objv);
 
-  count = mongoc_collection_count(collectionPtr, 
+  count = mongoc_collection_count(collectionPtr,
                                   0 /* query flags */, queryPtr,
                                   0 /*skip */, 0 /*limit */,
                                   NULL /* read preferences */,
@@ -765,7 +765,7 @@ cmd "collection::delete" NsfMongoCollectionDelete {
 }
 */
 static int
-NsfMongoCollectionDelete(Tcl_Interp *interp, 
+NsfMongoCollectionDelete(Tcl_Interp *interp,
 			mongoc_collection_t *collectionPtr,
 			 Tcl_Obj *conditionObj) {
   int objc, result, success;
@@ -853,7 +853,7 @@ cmd "collection::insert" NsfMongoCollectionInsert {
   {-argName "values" -required 1 -type tclobj}
 }
 */
-static int NsfMongoCollectionInsert(Tcl_Interp *interp, 
+static int NsfMongoCollectionInsert(Tcl_Interp *interp,
 				    mongoc_collection_t *collectionPtr,
 				    Tcl_Obj *valuesObj) {
   int i, objc, result, success;
@@ -909,7 +909,7 @@ cmd collection::query NsfMongoCollectionQuery {
 }
 */
 static int
-NsfMongoCollectionQuery(Tcl_Interp *interp, 
+NsfMongoCollectionQuery(Tcl_Interp *interp,
 			mongoc_collection_t *collectionPtr,
 			Tcl_Obj *queryObj, Tcl_Obj *withAttsObj,
 			int withLimit, int withSkip) {
@@ -948,7 +948,7 @@ NsfMongoCollectionQuery(Tcl_Interp *interp,
    *  The last field of mongo_find is options, semantics are described here
    *  http://www.mongodb.org/display/DOCS/Mongo+Wire+Protocol#MongoWireProtocol-OPQUERY
    */
-  cursor = mongoc_collection_find( collectionPtr, queryFlags, 
+  cursor = mongoc_collection_find( collectionPtr, queryFlags,
 				   withSkip, withLimit, 0 /* batch_size */,
 				   queryPtr, attsPtr, readPrefs);
 
@@ -972,7 +972,7 @@ cmd "collection::stats" NsfMongoCollectionStats {
 }
 */
 static int
-NsfMongoCollectionStats(Tcl_Interp *interp, 
+NsfMongoCollectionStats(Tcl_Interp *interp,
 			 mongoc_collection_t *collectionPtr,
 			 Tcl_Obj *optionsObj) {
   int       objc = 0, success;
@@ -992,7 +992,7 @@ NsfMongoCollectionStats(Tcl_Interp *interp,
   }
 
    success = mongoc_collection_stats(collectionPtr, optionsPtr, statsPtr, &bsonError);
-   
+
    if (optionsPtr != NULL) {
      bson_destroy (optionsPtr);
    }
@@ -1016,9 +1016,9 @@ cmd "collection::update" NsfMongoCollectionUpdate {
 }
 */
 static int
-NsfMongoCollectionUpdate(Tcl_Interp *interp, 
+NsfMongoCollectionUpdate(Tcl_Interp *interp,
 			 mongoc_collection_t *collectionPtr,
-			 Tcl_Obj *conditionObj, Tcl_Obj *valuesObj, 
+			 Tcl_Obj *conditionObj, Tcl_Obj *valuesObj,
 			 int withUpsert, int withAll) {
 
   const mongoc_write_concern_t *writeConcern = NULL; /* TODO: not handled yet */
@@ -1144,7 +1144,7 @@ cmd cursor::find NsfMongoCursorFind {
 }
 */
 static int
-NsfMongoCursorFind(Tcl_Interp *interp, 
+NsfMongoCursorFind(Tcl_Interp *interp,
 		   mongoc_collection_t *collectionPtr,
 		   Tcl_Obj *queryObj, Tcl_Obj *withAttsObj,
 		   int withLimit, int withSkip,
@@ -1191,7 +1191,7 @@ NsfMongoCursorFind(Tcl_Interp *interp,
    MONGOC_QUERY_EXHAUST           = 1 << 6,
    MONGOC_QUERY_PARTIAL           = 1 << 7,
   */
-  cursor = mongoc_collection_find(collectionPtr, queryFlags, 
+  cursor = mongoc_collection_find(collectionPtr, queryFlags,
 				  withSkip, withLimit, 0 /*TODO missing batch_size*/,
 				  queryPtr, attsPtr, readPrefsPtr);
   if (cursor != NULL) {
@@ -1353,7 +1353,7 @@ NsfMongoGridFileCreate(Tcl_Interp *interp, int withSource,
     uint8_t buf[MONGOC_GRIDFS_READ_CHUNK];
     struct iovec iov = { buf, 0 };
     int fd = open(value, O_RDONLY);
-    
+
     if (fd < 1) {
       mongoc_gridfs_file_destroy(gridFile);
       return NsfPrintError(interp, "nsf::gridfile::create: cannot open file '%s' for reading", value);
@@ -1398,7 +1398,7 @@ cmd "gridfile::delete" NsfMongoGridFileDelete {
 }
 */
 static int
-NsfMongoGridFileDelete(Tcl_Interp *interp, 
+NsfMongoGridFileDelete(Tcl_Interp *interp,
 			 mongoc_gridfs_t *gridfsPtr,
 			 Tcl_Obj *queryObj) {
   bson_t query, *queryPtr = &query;
@@ -1414,7 +1414,7 @@ NsfMongoGridFileDelete(Tcl_Interp *interp,
   }
 
   BsonAppendObjv(interp, queryPtr, objc, objv);
-  files = mongoc_collection_find( mongoc_gridfs_get_files(gridfsPtr), 0, 
+  files = mongoc_collection_find( mongoc_gridfs_get_files(gridfsPtr), 0,
 				   0, 0, 0 /* batch_size */,
 				   queryPtr, NULL, NULL);
   bson_destroy(queryPtr);
@@ -1457,8 +1457,8 @@ cmd gridfile::open NsfMongoGridFileOpen {
 }
 */
 static int
-NsfMongoGridFileOpen(Tcl_Interp *interp, 
-		     mongoc_gridfs_t *gridfsPtr, 
+NsfMongoGridFileOpen(Tcl_Interp *interp,
+		     mongoc_gridfs_t *gridfsPtr,
 		     Tcl_Obj *queryObj) {
   mongoc_gridfs_file_t* gridFilePtr;
   bson_error_t bsonError;
@@ -1612,12 +1612,14 @@ Nsfmongo_ThreadExit(ClientData clientData) {
    * The exit might happen at a time, when tcl is already shut down.
    * We can't reliably call NsfLog.
    */
-  fprintf(stderr, "+++ Nsfmongo_ThreadExit\n");
+
+  /*fprintf(stderr, "+++ Nsfmongo_ThreadExit\n");*/
+
 #if defined(USE_CLIENT_POOL)
   NsfMutexLock(&poolMutex);
   mongoClientPoolRefCount --;
   if (mongoClientPool != NULL) {
-    fprintf(stderr, "========= Nsfmongo_ThreadExit mongoClientPoolRefCount %d\n", mongoClientPoolRefCount);
+    /*fprintf(stderr, "========= Nsfmongo_ThreadExit mongoClientPoolRefCount %d\n", mongoClientPoolRefCount);*/
     if (mongoClientPoolRefCount < 1) {
       mongoc_client_pool_destroy(mongoClientPool);
       mongoClientPool = NULL;
@@ -1638,7 +1640,9 @@ Nsfmongo_Exit(ClientData clientData) {
    *   Tcl_Interp *interp = (Tcl_Interp *)clientData;
    *   NsfLog(interp,NSF_LOG_NOTICE, "Nsfmongo Exit");
    */
-  fprintf(stderr, "+++ Nsfmongo_Exit\n");
+
+  /*fprintf(stderr, "+++ Nsfmongo_Exit\n");*/
+
 #if defined(TCL_THREADS)
   Tcl_DeleteThreadExitHandler(Nsfmongo_ThreadExit, clientData);
 #endif

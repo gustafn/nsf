@@ -3149,6 +3149,27 @@ nx::test case trace-meta-slot {
   ? {::f1 cget -x} "3"
 }
 
+
+#
+# Testing nsf::parseargs
+#
+
+nx::test case parseargs {
+
+    ? {nsf::parseargs {a:int} {1}; info exists a} "1"
+    ? {nsf::parseargs {a:int} {1}; info exists b} "0"
+    ? {nsf::parseargs {a:int} {a}} {expected integer but got "a" for parameter "a"}
+
+    ? {
+	nsf::parseargs {-foo:int {-bar:int 2} baz} {hi}
+	list [info exists foo] [info exists bar] [info exists baz]
+    } "0 1 1"
+
+    ? {set bar} 2
+    ? {set baz} hi
+}
+
+
 #
 # Local variables:
 #    mode: tcl

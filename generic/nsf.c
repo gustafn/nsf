@@ -862,7 +862,7 @@ ParseContextRelease(ParseContext *pcPtr) {
   }
 #endif
 
-  if (unlikely(status)) {
+  if (unlikely(status != 0)) {
     if (status & NSF_PC_STATUS_MUST_DECR) {
       int i;
       /*fprintf(stderr, "ParseContextRelease %p loop from 0 to %d\n", pcPtr, pcPtr->objc-1);*/
@@ -16476,11 +16476,11 @@ NsfProcStubDeleteProc(ClientData clientData) {
  *
  *----------------------------------------------------------------------
  */
-static int InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, ParseContext *pcPtr, struct timeval *trtPtr)
+static int InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, ParseContext *pcPtr, struct Tcl_Time *trtPtr)
   nonnull(1) nonnull(2) nonnull(4) nonnull(3) nonnull(4);
 
 static int
-InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, ParseContext *pcPtr, struct timeval *trtPtr) {
+InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, ParseContext *pcPtr, struct Tcl_Time  *trtPtr) {
   Tcl_Obj       *CONST *objv;
   int            objc, result;
   const char    *fullMethodName;
@@ -16556,8 +16556,8 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, Pa
   Tcl_NRAddCallback(interp, ProcDispatchFinalize,
                     (ClientData)fullMethodName, pcPtr,
 # if defined(NSF_PROFILE)
-                    (ClientData)(unsigned long)trtPtr->tv_usec,
-                    (ClientData)(unsigned long)trtPtr->tv_sec
+                    (ClientData)(unsigned long)trtPtr->usec,
+                    (ClientData)(unsigned long)trtPtr->sec
 # else
                     NULL,
                     NULL
@@ -16570,8 +16570,8 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, Pa
     (ClientData)fullMethodName,
     pcPtr,
 # if defined(NSF_PROFILE)
-    (ClientData)(unsigned long)trtPtr->tv_usec,
-    (ClientData)(unsigned long)trtPtr->tv_sec
+    (ClientData)(unsigned long)trtPtr->usec,
+    (ClientData)(unsigned long)trtPtr->sec
 # else
     NULL,
     NULL
@@ -16645,14 +16645,14 @@ NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
   if (likely(result == TCL_OK)) {
     Tcl_Command    cmd = tcd->wrapperCmd;
     int            cmdFlags;
-    struct timeval trt;
+    struct Tcl_Time trt;
 
     assert(cmd != NULL);
 
     cmdFlags = Tcl_Command_flags(cmd);
 
 #if defined(NSF_PROFILE)
-    gettimeofday(&trt, NULL);
+    Tcl_GetTime(&trt);
 
     if (RUNTIME_STATE(interp)->doTrace) {
       NsfProfileTraceCallAppend(interp, ObjStr(objv[0]));
@@ -16662,12 +16662,12 @@ NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
     }
 #else
     if ((cmdFlags & NSF_CMD_DEBUG_METHOD) != 0) {
-      gettimeofday(&trt, NULL);
+      Tcl_GetTime(&trt);
 
       NsfProfileDebugCall(interp, NULL, NULL, ObjStr(objv[0]), objc-1, (Tcl_Obj **)objv+1);
     } else {
-      trt.tv_sec = 0;
-      trt.tv_usec = 0;
+      trt.sec = 0;
+      trt.usec = 0;
     }
 #endif
     if ((cmdFlags & NSF_CMD_DEPRECATED_METHOD) != 0) {
@@ -16677,7 +16677,7 @@ NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
     result = InvokeShadowedProc(interp, tcd->procName, tcd->cmd, pcPtr, &trt);
 
     if ((cmdFlags & NSF_CMD_DEBUG_METHOD) != 0) {
-      NsfProfileDebugExit(interp, NULL, NULL, ObjStr(objv[0]), trt.tv_sec, trt.tv_usec);
+      NsfProfileDebugExit(interp, NULL, NULL, ObjStr(objv[0]), trt.sec, trt.usec);
     }
 
   } else {
@@ -21027,7 +21027,7 @@ NsfObjscopedMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
 
   object = tcd->object;
   tcd->object = NULL;
-    
+
   Nsf_PushFrameObj(interp, object, framePtr);
   result = Tcl_NRCallObjProc(interp, tcd->objProc, tcd->clientData, objc, objv);
   Nsf_PopFrameObj(interp, framePtr);
@@ -21716,7 +21716,7 @@ NextParam(Nsf_Param const *paramPtr, Nsf_Param const *lastParamPtr) {
  * ArgumentParse --
  *
  *    Parse the provided ist of argument against the given definition. The
- *    result is returned in the parameter context structure.
+ *    result is returned in the parse context structure.
  *
  * Results:
  *    Standard Tcl result.
@@ -25138,6 +25138,62 @@ NsfIsCmd(Tcl_Interp *interp,
 }
 
 /*
+cmd parseargs NsfParseArgsCmd {
+  {-argName "argspec" -required 1 -type tclobj}
+  {-argName "arglist" -required 1 -type tclobj}
+} {-nxdoc 0}
+*/
+static int
+NsfParseArgsCmd(Tcl_Interp *interp, Tcl_Obj *argspecObj, Tcl_Obj *arglistObj) {
+  NsfParsedParam   parsedParam;
+  unsigned int     processFlags = 0u;
+  Tcl_Obj        **objv;
+  int              result, objc;
+
+  result = ParamDefsParse(interp, NsfGlobalObjs[NSF_PARSE_ARGS], argspecObj,
+                          NSF_DISALLOWED_ARG_METHOD_PARAMETER, 0,
+                          &parsedParam);
+
+  if (unlikely(result != TCL_OK)) {
+    return result;
+  }
+
+  result = Tcl_ListObjGetElements(interp, arglistObj, &objc, &objv);
+  if (likely(result == TCL_OK)) {
+    ParseContext  pc;
+    NsfParamDefs *paramDefs = parsedParam.paramDefs;
+
+    result = ArgumentParse(interp, objc, objv, NULL, NsfGlobalObjs[NSF_PARSE_ARGS],
+                           paramDefs->paramsPtr, paramDefs->nrParams, paramDefs->serial,
+                           processFlags|NSF_ARGPARSE_START_ZERO|RUNTIME_STATE(interp)->doCheckArguments,
+                           &pc);
+
+    if (result == TCL_OK) {
+      Nsf_Param *paramPtr;
+      Tcl_Obj   *resultObj;
+      int        i;
+
+      for (i = 0, paramPtr = paramDefs->paramsPtr; paramPtr->name; paramPtr++, i++) {
+        Tcl_Obj *valueObj = pc.objv[i];
+
+        if (valueObj != NsfGlobalObjs[NSF___UNKNOWN__]) {
+          /*fprintf(stderr, "param %s -> <%s>\n", paramPtr->name,  ObjStr(valueObj));*/
+          resultObj = Tcl_ObjSetVar2(interp, paramPtr->nameObj, NULL, valueObj, TCL_LEAVE_ERR_MSG|TCL_PARSE_PART1);
+          if (resultObj == NULL) {
+            result = TCL_ERROR;
+            break;
+          }
+        }
+      }
+
+      ParseContextRelease(&pc);
+    }
+
+  }
+  return result;
+}
+
+/*
 cmd method::alias NsfMethodAliasCmd {
   {-argName "object" -type object}
   {-argName "-per-object"}
@@ -25667,7 +25723,7 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
 
   cl = withPer_object == 0 && NsfObjectIsClass(object) ? (NsfClass *)object : NULL;
   fromClassNS = (cl != NULL);
-  
+
   cmd = ResolveMethodName(interp, (cl != NULL) ? cl->nsPtr : object->nsPtr, methodObj,
                           NULL, NULL, &defObject, NULL, &fromClassNS);
   /*fprintf(stderr, "methodProperty for method '%s' prop %d value %s => cl %p cmd %p\n",
