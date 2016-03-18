@@ -14465,8 +14465,8 @@ int Nsf_ConvertToBoolean(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *
 int
 Nsf_ConvertToBoolean(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
                             ClientData *clientData, Tcl_Obj **outObjPtr) {
-  int result, bool;
-  result = Tcl_GetBooleanFromObj(interp, objPtr, &bool);
+  int result, boolVal;
+  result = Tcl_GetBooleanFromObj(interp, objPtr, &boolVal);
 
   nonnull_assert(interp != NULL);
   nonnull_assert(objPtr != NULL);
@@ -14475,7 +14475,7 @@ Nsf_ConvertToBoolean(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr
   nonnull_assert(outObjPtr != NULL);
 
   if (likely(result == TCL_OK)) {
-    *clientData = (ClientData)INT2PTR(bool);
+    *clientData = (ClientData)INT2PTR(boolVal);
   } else {
     Tcl_ResetResult(interp);
     NsfObjErrType(interp, NULL, objPtr, "boolean", pPtr);
