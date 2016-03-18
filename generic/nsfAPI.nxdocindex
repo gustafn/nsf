@@ -19,6 +19,7 @@ set ::nxdoc::include(::nsf::parameter::info) 0
 set ::nxdoc::include(::nsf::parameter::cache::classinvalidate) 0
 set ::nxdoc::include(::nsf::parameter::cache::objectinvalidate) 0
 set ::nxdoc::include(::nsf::parameter::specs) 0
+set ::nxdoc::include(::nsf::parseargs) 0
 set ::nxdoc::include(::nsf::cmd::info) 1
 set ::nxdoc::include(::nsf::method::alias) 1
 set ::nxdoc::include(::nsf::method::assertion) 1

@@ -110,7 +110,6 @@ cmd is NsfIsCmd {
   {-argName "value" -required 1 -type tclobj}
 } {-nxdoc 1}
 
-
 cmd parameter::info NsfParameterInfoCmd {
   {-argName "subcmd"   -typeName "parametersubcmd" -type "default|list|name|syntax|type" -required 1}
   {-argName "spec"     -required 1 -type tclobj}
@@ -130,6 +129,11 @@ cmd parameter::specs NsfParameterSpecsCmd {
   {-argName "-nonposargs" -nrargs 0 -required 0 -type switch}
   {-argName "slotobjs"    -required 1 -type tclobj}
 }
+
+cmd parseargs NsfParseArgsCmd {
+  {-argName "argspec" -required 1 -type tclobj}
+  {-argName "arglist" -required 1 -type tclobj}
+} {-nxdoc 0}
 
 #
 # cmd cmds (maybe more later)
