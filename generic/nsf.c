@@ -21519,10 +21519,10 @@ ArgumentDefaults(ParseContext *pcPtr, Tcl_Interp *interp,
        * take the default and invert the value in place.
        */
       if (unlikely(pcPtr->flags[i] & NSF_PC_INVERT_DEFAULT)) {
-        int bool;
+        int boolVal;
 
-        Tcl_GetBooleanFromObj(interp, pPtr->defaultValue, &bool);
-        pcPtr->objv[i] = Tcl_NewBooleanObj(bool == 0);
+        Tcl_GetBooleanFromObj(interp, pPtr->defaultValue, &boolVal);
+        pcPtr->objv[i] = Tcl_NewBooleanObj(boolVal == 0);
         /*
          * Perform bookkeeping to avoid that someone releases the new obj
          * before we are done. The according DECR is performed by
@@ -24566,7 +24566,7 @@ cmd configure NsfConfigureCmd {
 */
 static int
 NsfConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *valueObj) {
-  int bool;
+  int boolVal;
 
   nonnull_assert(interp != NULL);
 
@@ -24638,7 +24638,7 @@ NsfConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *valueObj) {
    * All other configure options are boolean.
    */
   if (valueObj != NULL) {
-    int result = Tcl_GetBooleanFromObj(interp, valueObj, &bool);
+    int result = Tcl_GetBooleanFromObj(interp, valueObj, &boolVal);
     if (unlikely(result != TCL_OK)) {
       return result;
     }
@@ -24649,7 +24649,7 @@ NsfConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *valueObj) {
     Tcl_SetBooleanObj(Tcl_GetObjResult(interp),
                       (RUNTIME_STATE(interp)->doFilters));
     if (valueObj != NULL) {
-      RUNTIME_STATE(interp)->doFilters = bool;
+      RUNTIME_STATE(interp)->doFilters = boolVal;
     }
     break;
 
@@ -24658,7 +24658,7 @@ NsfConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *valueObj) {
                       (RUNTIME_STATE(interp)->doProfile));
     if (valueObj != NULL) {
 #if defined(NSF_PROFILE)
-      RUNTIME_STATE(interp)->doProfile = bool;
+      RUNTIME_STATE(interp)->doProfile = boolVal;
 #else
       NsfLog(interp, NSF_LOG_WARN, "No profile support compiled in");
 #endif
@@ -24670,11 +24670,11 @@ NsfConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *valueObj) {
                       (RUNTIME_STATE(interp)->doTrace));
     if (valueObj != NULL) {
 #if defined(NSF_PROFILE)
-      RUNTIME_STATE(interp)->doTrace = bool;
+      RUNTIME_STATE(interp)->doTrace = boolVal;
       /*
        * Turn automically profiling on&off, when trace is turned on/off
        */
-      RUNTIME_STATE(interp)->doProfile = bool;
+      RUNTIME_STATE(interp)->doProfile = boolVal;
 #else
       NsfLog(interp, NSF_LOG_WARN, "No profile support compiled in");
 #endif
@@ -24685,7 +24685,7 @@ NsfConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *valueObj) {
     Tcl_SetBooleanObj(Tcl_GetObjResult(interp),
                       (RUNTIME_STATE(interp)->doSoftrecreate));
     if (valueObj != NULL) {
-      RUNTIME_STATE(interp)->doSoftrecreate = bool;
+      RUNTIME_STATE(interp)->doSoftrecreate = boolVal;
     }
     break;
 
@@ -24693,7 +24693,7 @@ NsfConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *valueObj) {
     Tcl_SetBooleanObj(Tcl_GetObjResult(interp),
                       (RUNTIME_STATE(interp)->doKeepcmds));
     if (valueObj != NULL) {
-      RUNTIME_STATE(interp)->doKeepcmds = bool;
+      RUNTIME_STATE(interp)->doKeepcmds = boolVal;
     }
     break;
 
@@ -24701,7 +24701,7 @@ NsfConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *valueObj) {
     Tcl_SetBooleanObj(Tcl_GetObjResult(interp),
                       (RUNTIME_STATE(interp)->doCheckResults));
     if (valueObj != NULL) {
-      RUNTIME_STATE(interp)->doCheckResults = bool;
+      RUNTIME_STATE(interp)->doCheckResults = boolVal;
     }
     break;
 
@@ -24709,7 +24709,7 @@ NsfConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *valueObj) {
     Tcl_SetBooleanObj(Tcl_GetObjResult(interp),
                       (RUNTIME_STATE(interp)->doCheckArguments) != 0);
     if (valueObj != NULL) {
-      RUNTIME_STATE(interp)->doCheckArguments = (bool != 0) ? NSF_ARGPARSE_CHECK : 0;
+      RUNTIME_STATE(interp)->doCheckArguments = (boolVal != 0) ? NSF_ARGPARSE_CHECK : 0;
     }
     break;
   }
@@ -25724,13 +25724,13 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
       }
 
       if (valueObj != NULL) {
-        int bool, result;
+        int boolVal, result;
 
-        result = Tcl_GetBooleanFromObj(interp, valueObj, &bool);
+        result = Tcl_GetBooleanFromObj(interp, valueObj, &boolVal);
         if (unlikely(result != TCL_OK)) {
           return result;
         }
-        if (bool != 0) {
+        if (boolVal != 0) {
 
           /*
            * set flag
@@ -26164,9 +26164,9 @@ NsfObjectSystemCreateCmd(Tcl_Interp *interp, Tcl_Obj *Object, Tcl_Obj *Class, Tc
           osPtr->methods[idx] = arg_ov[0];
           osPtr->handles[idx] = arg_ov[1];
           if  (arg_oc == 3) {
-            int bool = 0;
-            Tcl_GetBooleanFromObj(interp, arg_ov[2], &bool);
-            osPtr->protected[idx] = bool;
+            int boolVal = 0;
+            Tcl_GetBooleanFromObj(interp, arg_ov[2], &boolVal);
+            osPtr->protected[idx] = boolVal;
           }
           INCR_REF_COUNT(osPtr->handles[idx]);
         }
