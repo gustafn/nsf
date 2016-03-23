@@ -439,7 +439,7 @@ $(PRJLIB): $(DLLOBJS)
 $**
 <<
 !else
-	$(link32) $(dlllflags) -base:@$(COFFBASE),thread -out:$@ $(baselibs) @<<
+	$(link32) $(dlllflags) -base:@$(COFFBASE),nsf -out:$@ $(baselibs) @<<
 $**
 <<
 	$(_VC_MANIFEST_EMBED_DLL)
