@@ -5,7 +5,7 @@
  *
  * Copyright (C) 1999-2015 Gustaf Neumann (a, b)
  * Copyright (C) 1999-2007 Uwe Zdun (a, b)
- * Copyright (C) 2011-2014 Stefan Sobernig (b)
+ * Copyright (C) 2011-2016 Stefan Sobernig (b)
  *
  * (a) University of Essen
  *     Specification of Software Systems
@@ -54,8 +54,14 @@ Tcl_Obj *NsfParamDefsSyntax(Tcl_Interp *interp, Nsf_Param const *paramsPtr,
  *
  * NsfDStringVPrintf --
  *
- *      Appends to a Tcl_DString a formatted value. This function
- *      iterates until it has sufficiently memory allocated.
+ *      Appends a formatted value to a Tcl_DString. This function
+ *      continues until having allocated sufficient memory.
+ *
+ *      Note: The current implementation assumes C99 compliant implementations
+ *      of vs*printf() for all runtimes other than MSVC. For MSVC, the pre-C99
+ *      vs*printf() implementations are explicitly set by Tcl internals (see
+ *      tclInt.h). For MinGW/MinGW-w64, __USE_MINGW_ANSI_STDIO must be set
+ *      (see nsfInt.h).
  *
  * Results:
  *      None.
@@ -72,7 +78,8 @@ NsfDStringVPrintf(Tcl_DString *dsPtr, const char *fmt, va_list vargs) {
   va_list  vargsCopy;
 
   /* Calculate the DString's anatomy */
-  offset = Tcl_DStringLength(dsPtr); 	/* current length *without* null terminating character (NTC)*/
+  offset = Tcl_DStringLength(dsPtr); 	/* current length *without* null
+                                           terminating character (NTC) */
 
 #if defined(_MSC_VER)
   avail = dsPtr->spaceAvl - offset - 1; /* Pre-C99: currently free storage, excluding NTC */
@@ -110,17 +117,16 @@ NsfDStringVPrintf(Tcl_DString *dsPtr, const char *fmt, va_list vargs) {
 
   if (likely(failure == 0)) {
     /*
-     * vsnprintf() has already copied all content,
-     * we have just to adjust the length.
+     * vsnprintf() copied all content, adjust the DString length.
      */
     Tcl_DStringSetLength(dsPtr, offset + result);
 
   } else {
     int addedStringLength;
     /*
-     * vsnprintf() has already not copied all content,
-     * we have to determine the required length (MS),
-     * adjust the DString size and copy again.
+     * vsnprintf() could not copy all content, content was truncated.
+     * Determine the required length (for MSVC), adjust the DString size, and
+     * copy again.
      */
 
 #if defined(_MSC_VER)
