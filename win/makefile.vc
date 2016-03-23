@@ -426,7 +426,9 @@ shell: setup $(PROJECT)
 !else
 	@set PATH=$(_TCLDIR)\win\$(BUILDDIRTOP);$(PATH)
 !endif
-	$(DEBUGGER) $(TCLSH) $(SCRIPT)
+	@echo lappend auto_path $(ROOT) .; puts $$auto_path; package req nx::shell; nx::shell run {*}$$argv; > nsfshell.tcl
+	$(DEBUGGER) $(TCLSH) nsfshell.tcl $(SCRIPT)
+	@del nsfshell.tcl
 
 setup:
 	@if not exist $(OUT_DIR)\nul mkdir $(OUT_DIR)
