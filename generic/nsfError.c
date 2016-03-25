@@ -92,7 +92,7 @@ NsfDStringVPrintf(Tcl_DString *dsPtr, const char *fmt, va_list vargs) {
    * 2) Run vsnprintf() eagerly.
    */
   va_copy(vargsCopy, vargs);
-  result = vsnprintf(dsPtr->string + offset, avail ,fmt, vargsCopy);
+  result = vsnprintf(dsPtr->string + offset, avail, fmt, vargsCopy);
   va_end(vargsCopy);
 
 #if defined(_MSC_VER)
@@ -109,7 +109,8 @@ NsfDStringVPrintf(Tcl_DString *dsPtr, const char *fmt, va_list vargs) {
      vs*printf() in C99 compliant runtimes (GCC, CLANG, MSVC in VS15 and
      newer, MinGW/MinGW-w64 with __USE_MINGW_ANSI_STDIO) returns the number of
      chars to be written if the buffer would be sufficiently large (excluding
-     NTC). A return value of -1 signals an encoding error.
+     NTC, the terminating null character). A return value of -1 signals an
+     encoding error.
   */
   assert(result > -1); /* no encoding error */
   failure = (result >= avail);

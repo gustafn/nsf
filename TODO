@@ -5786,14 +5786,14 @@ serializer:
 - Re-factored new hash-table infrastructure (based on function-pointer
   keys) to support method-definitions (and future uses as well).
 
+- Allow combination of "-trace get" with default value (was previously disallowed)
+- Extend regression test
+
 ========================================================================
 TODO:
 
 - Shouldn't we add debug/deprecated filters for "info methods", i.e.:
   ... info methods ?-debug? ?-deprecated? ?-callprotection all|public|protected|private? ?-closure? ?-type all|scripted|builtin|alias|forwarder|object|setter|nsfproc? ?-path? ?-source all|application|system? ?/pattern/?"
-
-- add regression tests for debug and deprecated in methods (behavior)
-- add regression tests for nsf::proc flags -debug and -deprecated (behavior)
 
 - add to doc:
 
@@ -5804,10 +5804,6 @@ TODO:
    nsf::method::property /obj/ ?-per-object? /method/ exists
    nsf::method::property /obj/ ?-per-object? /method/ debug ?0|1?
    nsf::method::property /obj/ ?-per-object? /method/ deprecated ?0|1?
-
-
-- gcc6:
-  * ISOBJ(methodObj); will raise a warning, when methodObj is declared as nonnull
 
 - maybe better handling of single-colon prefixed vars in trace procs,
   when passing values to nsf::var::set/get/...
