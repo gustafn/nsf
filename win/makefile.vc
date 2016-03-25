@@ -426,7 +426,9 @@ shell: setup $(PROJECT)
 !else
 	@set PATH=$(_TCLDIR)\win\$(BUILDDIRTOP);$(PATH)
 !endif
-	$(DEBUGGER) $(TCLSH) $(SCRIPT)
+	@echo lappend auto_path $(ROOT) .; puts $$auto_path; package req nx::shell; nx::shell run $$argc $$argv; > nsfshell.tcl
+	$(DEBUGGER) $(TCLSH) nsfshell.tcl $(SCRIPT)
+	@del nsfshell.tcl
 
 setup:
 	@if not exist $(OUT_DIR)\nul mkdir $(OUT_DIR)
@@ -439,7 +441,7 @@ $(PRJLIB): $(DLLOBJS)
 $**
 <<
 !else
-	$(link32) $(dlllflags) -base:@$(COFFBASE),thread -out:$@ $(baselibs) @<<
+	$(link32) $(dlllflags) -base:@$(COFFBASE),nsf -out:$@ $(baselibs) @<<
 $**
 <<
 	$(_VC_MANIFEST_EMBED_DLL)

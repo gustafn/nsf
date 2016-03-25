@@ -5,7 +5,7 @@
  *
  * Copyright (C) 1999-2015 Gustaf Neumann (a, b)
  * Copyright (C) 1999-2007 Uwe Zdun (a, b)
- * Copyright (C) 2011-2014 Stefan Sobernig (b)
+ * Copyright (C) 2011-2016 Stefan Sobernig (b)
  *
  * (a) University of Essen
  *     Specification of Software Systems
@@ -54,8 +54,14 @@ Tcl_Obj *NsfParamDefsSyntax(Tcl_Interp *interp, Nsf_Param const *paramsPtr,
  *
  * NsfDStringVPrintf --
  *
- *      Appends to a Tcl_DString a formatted value. This function
- *      iterates until it has sufficiently memory allocated.
+ *      Appends a formatted value to a Tcl_DString. This function
+ *      continues until having allocated sufficient memory.
+ *
+ *      Note: The current implementation assumes C99 compliant implementations
+ *      of vs*printf() for all runtimes other than MSVC. For MSVC, the pre-C99
+ *      vs*printf() implementations are explicitly set by Tcl internals (see
+ *      tclInt.h). For MinGW/MinGW-w64, __USE_MINGW_ANSI_STDIO must be set
+ *      (see nsfInt.h).
  *
  * Results:
  *      None.
@@ -68,51 +74,59 @@ Tcl_Obj *NsfParamDefsSyntax(Tcl_Interp *interp, Nsf_Param const *paramsPtr,
 
 void
 NsfDStringVPrintf(Tcl_DString *dsPtr, const char *fmt, va_list vargs) {
-  int      result, failure, offset = dsPtr->length, avail = dsPtr->spaceAvl;
+  int      result, failure, offset, avail;
   va_list  vargsCopy;
 
-  /*
-   * Work on a copy of the va_list so that the caller's copy is untouched
-   */
-  avail -= offset;
-  va_copy(vargsCopy, vargs);
-  result = vsnprintf(dsPtr->string + offset, avail, fmt, vargsCopy);
-  va_end(vargsCopy);
-
-  /*
-   * Trap C99+ incompatabilities of certain vsnprintf() implementations
-   * w.r.t. the result value: For example, old *nix implementations of
-   * vsnprintf() as well as C89 implementations (as current MS Visual Compiler
-   * runtimes) return -1 (or another negative number) upon overflowing the
-   * buffer (rather than the number of required bytes as required by C99) and
-   * upon other error conditions. This should not happen for the above size
-   * estimation, however. Also, for MS VC runtimes, we use the vendor-specific
-   * _vscprintf()
-   *
-   * Note: For MinGW and MinGW-w64, we assume that their ANSI-compliant
-   * version of vsnprintf() is used. See __USE_MINGW_ANSI_STDIO in nsfInt.h
-   */
+  /* Calculate the DString's anatomy */
+  offset = Tcl_DStringLength(dsPtr); 	/* current length *without* null
+                                           terminating character (NTC) */
 
 #if defined(_MSC_VER)
-  failure = (result == -1 && errno == ERANGE) || (result == avail) /* VC 12 */;
+  avail = dsPtr->spaceAvl - offset - 1; /* Pre-C99: currently free storage, excluding NTC */
 #else
-  assert(result > -1);
+  avail = dsPtr->spaceAvl - offset; /* C99: currently free storage, including NTC */
+#endif
+  
+  /*
+   * 1) Copy va_list so that the caller's copy is untouched.
+   * 2) Run vsnprintf() eagerly.
+   */
+  va_copy(vargsCopy, vargs);
+  result = vsnprintf(dsPtr->string + offset, avail ,fmt, vargsCopy);
+  va_end(vargsCopy);
+
+#if defined(_MSC_VER)
+  /* 
+     vs*printf() in pre-C99 runtimes (MSVC up to VS13, VS15 and newer in
+     backward-compat mode) return -1 upon overflowing the buffer.
+
+     Note: Tcl via tclInt.h precludes the use of pre-C99 mode even in VS15 and
+     newer (vsnprintf points to backward-compat, pre-C99 _vsnprintf).
+   */
+  failure = (result == -1);
+#else
+  /* 
+     vs*printf() in C99 compliant runtimes (GCC, CLANG, MSVC in VS15 and
+     newer, MinGW/MinGW-w64 with __USE_MINGW_ANSI_STDIO) returns the number of
+     chars to be written if the buffer would be sufficiently large (excluding
+     NTC). A return value of -1 signals an encoding error.
+  */
+  assert(result > -1); /* no encoding error */
   failure = (result >= avail);
 #endif
 
   if (likely(failure == 0)) {
     /*
-     * vsnprintf() has already copied all content,
-     * we have just to adjust the length.
+     * vsnprintf() copied all content, adjust the DString length.
      */
     Tcl_DStringSetLength(dsPtr, offset + result);
 
   } else {
     int addedStringLength;
     /*
-     * vsnprintf() has already not copied all content,
-     * we have to determine the required length (MS),
-     * adjust the DString size and copy again.
+     * vsnprintf() could not copy all content, content was truncated.
+     * Determine the required length (for MSVC), adjust the DString size, and
+     * copy again.
      */
 
 #if defined(_MSC_VER)
@@ -125,9 +139,20 @@ NsfDStringVPrintf(Tcl_DString *dsPtr, const char *fmt, va_list vargs) {
 
     Tcl_DStringSetLength(dsPtr, offset + addedStringLength);
 
+#if defined(_MSC_VER)
+    avail = dsPtr->spaceAvl - offset - 1; /* Pre-C99: currently free storage, excluding NTC */
+#else
+    avail = dsPtr->spaceAvl - offset; /* C99: currently free storage, including NTC */
+#endif
+    
     va_copy(vargsCopy, vargs);
-    result = vsnprintf(dsPtr->string + offset, dsPtr->spaceAvl - offset, fmt, vargsCopy);
+    result = vsnprintf(dsPtr->string + offset, avail, fmt, vargsCopy);
+#if defined(_MSC_VER)
     assert(result > -1);
+#else
+    assert(result > -1); /* no encoding error */
+    assert(result < avail); /* no overflow */
+#endif
     va_end(vargsCopy);
   }
 }
