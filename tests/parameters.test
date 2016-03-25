@@ -1326,7 +1326,13 @@ nx::test case copy-with-required {
 }
 
 
+#
+# basic slot trace tests
+#
 nx::test case slot-traces {
+  #
+  # basic tests for object slots
+  #
   ::nx::Object create o {
     :object property -accessor public -trace default a {
       :public object method value=default {obj var} {puts stderr V=DEFAULT; return 4 }
@@ -1351,6 +1357,10 @@ nx::test case slot-traces {
   ? {o b get} 44
   ? {o c set 5} 999
   ? {::nsf::object::property o2 hasperobjectslots} 1
+
+  #
+  # basic tests for class slots
+  #
 
   ::nx::Class create C {
     :property -accessor public -trace default a {
@@ -1399,8 +1409,8 @@ nx::test case slot-trace-interaction {
   ? {o eval {info exists :a}} 0
 
   ? {o eval {info exists :b}} 0
-  ? {o object property -trace get {b 0} { }} "'trace get' can't be used together with default value"
-  ? {o eval {info exists :b}} 0
+  ? {o object property -trace get {b:integer 0} { }} ""
+  ? {o eval {info exists :b}} 1
 
   ? {o eval {info exists :c}} 0
   ? {o object property -trace {default get} c { }} "'-trace default' and '-trace get' can't be used together"
@@ -1440,7 +1450,7 @@ nx::test case slot-trace-interaction {
 
   ? {Klass property -trace default {a 0} { }} "'-trace default' can't be used together with default value"
 
-  ? {Klass property -trace get {b 0} { }} "'trace get' can't be used together with default value"
+  ? {Klass property -trace get {b 0} { }} ""
 
   ? {Klass property -trace {default get} c { }} "'-trace default' and '-trace get' can't be used together"
 
@@ -3148,6 +3158,85 @@ nx::test case trace-meta-slot {
 
   ? {::f1 cget -x} "3"
 }
+
+#
+# test trace meta slot + default
+#
+nx::test case trace-meta-slot {
+
+  ::nx::MetaSlot create ::nsv::TraceVariableSlot -superclass ::nx::VariableSlot {
+    :property {trace {get set}}
+    :public method value=set {obj varName value} {
+      incr ::trace_set
+      #puts stderr "SET nsv_set $obj $varName $value"
+      next
+    }
+    :public method value=get {obj varName} {
+      incr ::trace_get
+      #puts stderr "GET nsv_set $obj $varName"
+      next
+    }
+  }
+
+  set ::trace_set 0
+  set ::trace_get 0
+  nx::Class create Foo {
+
+    :property -class ::nsv::TraceVariableSlot {x 123}
+    :property -class ::nsv::TraceVariableSlot {y 456}
+
+    :public method exists {var} { info exists :$var }
+    :public method vars {}      { :info vars}
+    :public method get {var}    { set :$var }
+    :public method foo {}       { incr :x }
+
+    :create ::f1
+  }
+
+  #
+  # State after creation
+  #
+
+  ? {set ::trace_set} 0
+  ? {set ::trace_get} 0
+  ? {lsort [::f1 vars]} "__initcmd x y"
+
+  #
+  # Change the value of ::f1.x via configure
+  #
+
+  ? {::f1 cget -x} "123"
+
+  ? {set ::trace_set} 0
+  ? {set ::trace_get} 2  ;# since the next triggers the default setter, which has no "-notrace"
+
+  set ::trace_set 0
+  set ::trace_get 0
+
+  #
+  # Change the value of ::f1.x via configure
+  #
+  ? {::f1 configure -x 2} ""
+
+  ? {set ::trace_set} 2 ;# since the next triggers the default setter, which has no "-notrace"
+  ? {set ::trace_get} 0
+
+  ? {::f1 cget -x} "2"
+
+  #
+  # Change the value of ::f1.x via variable changes
+  #
+  set ::trace_set 0
+  set ::trace_get 0
+
+  ? {::f1 foo} "3"
+  ? {set ::trace_set} 1
+  ? {set ::trace_get} 1
+
+  ? {::f1 cget -x} "3"
+}
+
+
 
 
 #

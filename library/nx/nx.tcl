@@ -1451,7 +1451,19 @@ namespace eval ::nx {
       if {[info exists :initblock]} {
 	if {[info exists :default]} {
 	  if {[llength $options] > 0} {
-	    ::nsf::is -complain [join $options ,] ${:default}
+            #
+            # In case the parameter options contain a "slotset", this
+            # options would not be allowed by nsf::is. Therefore, we
+            # remove this option before testing (we are already in the
+            # slot object).
+            #
+            set p [lsearch -exact $options "slotset" ]
+            if {$p > -1} {
+              set check_options [lreplace $options $p $p]
+            } else {
+              set check_options $options
+            }
+	    ::nsf::is -complain [join $check_options ,] ${:default}
 	    #puts stderr "::nsf::is -complain [join $options ,] ${:default} ==> OK"
 	  }
 	  append initblock "\n::nsf::var::set \[::nsf::self\] ${:name} [list ${:default}]\n"
@@ -1823,10 +1835,9 @@ namespace eval ::nx {
 
   ::nx::VariableSlot public method setCheckedInstVar {-nocomplain:switch object value} {
 
-    if {[::nsf::var::exists $object ${:name}] && !$nocomplain} {
-      return -code error \
-	  "object $object has already an instance variable named '${:name}'"
-    }
+    #if {[::nsf::var::exists $object ${:name}] && !$nocomplain} {
+    #  return -code error "object $object has already an instance variable named '${:name}'"
+    #}
     set options [:getParameterOptions -withMultiplicity true]
 
     if {[llength $options]} {
@@ -2083,10 +2094,10 @@ namespace eval ::nx {
         return -code error \
             "'-trace default' can't be used together with default value"
       }
-      if {"get" in ${:trace}} {
-        return -code error \
-            "'trace get' can't be used together with default value"
-      }
+      #if {"get" in ${:trace}} {
+      #  return -code error \
+      #      "'trace get' can't be used together with default value"
+      #}
     }
     if {"default" in ${:trace}} {
       #puts stderr "DEFAULTCMD [self] trace=${:trace}"
@@ -2246,6 +2257,7 @@ namespace eval ::nx {
 	  foreach o [split $parameterOptions ,] {
 	    if {$o ne "noconfig"} {lappend noptions $o}
 	  }
+
 	  set parameterOptions [join $noptions ,]
 	  ::nsf::is -complain $parameterOptions $defaultValue
 	} else {
