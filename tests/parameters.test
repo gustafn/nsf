@@ -1335,7 +1335,7 @@ nx::test case slot-traces {
   #
   ::nx::Object create o {
     :object property -accessor public -trace default a {
-      :public object method value=default {obj var} {puts stderr V=DEFAULT; return 4 }
+      :public object method value=default {obj var} {return 4 }
     }
     :object property -accessor public -trace get b {
       :public object method value=get {obj var} { return 44 }
@@ -1409,8 +1409,9 @@ nx::test case slot-trace-interaction {
   ? {o eval {info exists :a}} 0
 
   ? {o eval {info exists :b}} 0
-  ? {o object property -trace get {b:integer 0} { }} ""
+  ? {o object property -trace get {b:integer 123} { }} ""
   ? {o eval {info exists :b}} 1
+  ? {o object property -trace get {b:integer hello} { }} {expected integer but got "hello" for parameter "b"}
 
   ? {o eval {info exists :c}} 0
   ? {o object property -trace {default get} c { }} "'-trace default' and '-trace get' can't be used together"

@@ -1833,11 +1833,11 @@ namespace eval ::nx {
     {trace none}
   }
 
-  ::nx::VariableSlot public method setCheckedInstVar {-nocomplain:switch object value} {
+  ::nx::VariableSlot public method setCheckedInstVar {-nocomplain:switch -allowpreset:switch object value} {
 
-    #if {[::nsf::var::exists $object ${:name}] && !$nocomplain} {
-    #  return -code error "object $object has already an instance variable named '${:name}'"
-    #}
+    if {!$allowpreset && [::nsf::var::exists $object ${:name}] && !$nocomplain} {
+      return -code error "object $object has already an instance variable named '${:name}'"
+    }
     set options [:getParameterOptions -withMultiplicity true]
 
     if {[llength $options]} {
@@ -2234,9 +2234,9 @@ namespace eval ::nx {
     }
 
     if {![info exists trace] && [info exists :trace] && ${:trace} ne "none"} {
-      set trace ${:trace} 
+      set trace ${:trace}
     }
-    if {$initblock eq "" && !$configurable && !$incremental 
+    if {$initblock eq "" && !$configurable && !$incremental
         && $accessor eq "none" && ![info exists trace]} {
       #
       # Slot-less variable
@@ -2292,9 +2292,14 @@ namespace eval ::nx {
     if {$nocomplain} {$slot eval {set :nocomplain 1}}
     if {!$configurable} {$slot eval {set :configurable false}}
     if {[info exists defaultValue]} {
+      #
       # We could consider calling "configure" instead, but that would
-      # not work for true "variable" handlers
-      $slot setCheckedInstVar -nocomplain=$nocomplain [self] $defaultValue
+      # not work for true "variable" handlers.
+      #
+      # In case a get trace is activated, don't compain about
+      # pre-existing variables, which might be set via traces.
+      set allowpreset [expr {"get" in [$slot cget -trace] && [nsf::var::exists [self] $name]}]
+      $slot setCheckedInstVar -allowpreset=$allowpreset -nocomplain=$nocomplain [self] $defaultValue
       #set :__initblock($name) 1
     }
 
