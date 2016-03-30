@@ -5790,8 +5790,8 @@ serializer:
 - Extend regression test
 
 xotcl2:
-- added "-returns" flag similar instprocs/procs and method, very similar
-  to nx
+- added "-returns" flag to XOTcl's instprocs/procs and methods, 
+  very similar to "-returns" in nx
 - extended serializer to handle "-returns" flag
 - extended regression test
 
@@ -5801,7 +5801,9 @@ TODO:
 - Shouldn't we add debug/deprecated filters for "info methods", i.e.:
   ... info methods ?-debug? ?-deprecated? ?-callprotection all|public|protected|private? ?-closure? ?-type all|scripted|builtin|alias|forwarder|object|setter|nsfproc? ?-path? ?-source all|application|system? ?/pattern/?"
 
+
 - add to doc:
+   "-returns" flag for instproc/proc in XOTcl2
 
    # in case, when similar cmds are commented, add:
    #
