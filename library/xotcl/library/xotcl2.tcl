@@ -311,7 +311,7 @@ namespace eval ::xotcl {
   # define instproc and proc
   ::nsf::method::create Class instproc {
     -debug:switch -deprecated:switch
-    name arguments:parameter,0..* body precondition:optional postcondition:optional
+    name arguments:parameter,0..* -returns body precondition:optional postcondition:optional
   } {
     set conditions [list]
     if {[info exists precondition]}  {lappend conditions -precondition  $precondition}
@@ -319,12 +319,13 @@ namespace eval ::xotcl {
     set r [::nsf::method::create [self] $name $arguments $body {*}$conditions]
     if {$debug} {::nsf::method::property [self] $r debug true}
     if {$deprecated} {::nsf::method::property [self] $r deprecated true}
+    if {[info exists returns]} {::nsf::method::property [self] $r returns $returns}
     return $r
   }
 
   ::nsf::method::create Object proc {
-    -debug:switch -deprecated:switch
-    name arguments body precondition:optional postcondition:optional
+    -debug:switch -deprecated:switch 
+    name arguments -returns body precondition:optional postcondition:optional
   } {
     set conditions [list]
     if {[info exists precondition]}  {lappend conditions -precondition  $precondition}
@@ -332,26 +333,29 @@ namespace eval ::xotcl {
     set r [::nsf::method::create [self] -per-object $name $arguments $body {*}$conditions]
     if {$debug} {::nsf::method::property [self] $r debug true}
     if {$deprecated} {::nsf::method::property [self] $r deprecated true}
+    if {[info exists returns]} {::nsf::method::property [self] $r returns $returns}
     return $r
   }
 
   # define a minimal implementation of "method"
   Object instproc method {
-    -debug:switch -deprecated:switch
-    name arguments:parameter,0..* body
+    -debug:switch -deprecated:switch 
+    name arguments:parameter,0..* -returns body
   } {
-     :proc -debug=$debug -deprecated=$deprecated $name $arguments $body
-  }
+     set returns_flag [expr {[info exists returns] ? [list -returns $returns] : {}}]
+     :proc -debug=$debug -deprecated=$deprecated $name $arguments {*}$returns_flag $body
+   }
   Class instproc method {
     -debug:switch -deprecated:switch
     -per-object:switch name arguments:parameter,0..* body
   } {
-    if {${per-object}} {
-      :proc -debug=$debug -deprecated=$deprecated $name $arguments $body
-    } else {
-      :instproc -debug=$debug -deprecated=$deprecated $name $arguments $body
-    }
-  }
+     set returns_flag [expr {[info exists returns] ? [list -returns $returns] : {}}]
+     if {${per-object}} {
+       :proc -debug=$debug -deprecated=$deprecated $name $arguments {*}$returns_flag $body
+     } else {
+       :instproc -debug=$debug -deprecated=$deprecated $name $arguments {*}$returns_flag $body
+     }
+   }
 
   # define forward methods
   #

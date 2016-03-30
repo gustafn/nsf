@@ -1035,9 +1035,15 @@ namespace eval ::nx::serializer {
           regsub "^(.*) (public|protected|private) object alias" $def {::nsf::method::alias \1 -per-object} def
         }
       } else {
+        if {$perObject eq ""} {
+          set returns [::nsf::method::property $o $m returns]
+        } else {
+          set returns [::nsf::method::property $o -per-object $m returns]
+        }
         set arglist [$o ::nsf::methods::${scope}::info::method parameter $m]
         lappend def ${:targetName} ${prefix}proc $m \
             $arglist \
+            {*}[expr {$returns ne "" ? [list -returns $returns] : {}}] \
             [$o ::nsf::methods::${scope}::info::method body $m]
         foreach p {pre post} {
           set cond [$o ::nsf::methods::${scope}::info::method ${p}condition $m]

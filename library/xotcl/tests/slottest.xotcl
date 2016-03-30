@@ -710,6 +710,27 @@ nx::test case nx-serialize-debug-deprecated {
   ? {::nsf::method::property o obar debug} 1
 }
 
+nx::test case nx-retuns+serialize {
+
+  ::xotcl::Class create Context
+  ? {Context instproc default_form_loader {arg} -returns integer {
+    return $arg
+  }} "::nsf::classes::Context::default_form_loader"
+
+  Context create c
+  ? {c default_form_loader 0} 0
+  ? {c default_form_loader ""} {expected integer but got "" as return value}
+  
+  set ::string [Context serialize]
+  c destroy
+  Context destroy
+
+  ? {eval $::string} "::nsf::classes::Context::default_form_loader"
+  Context create c
+  ? {c default_form_loader 0} 0
+  ? {c default_form_loader ""} {expected integer but got "" as return value}
+}
+
 #
 # Local variables:
 #    mode: tcl

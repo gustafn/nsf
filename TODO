@@ -5789,6 +5789,12 @@ serializer:
 - Allow combination of "-trace get" with default value (was previously disallowed)
 - Extend regression test
 
+xotcl2:
+- added "-returns" flag similar instprocs/procs and method, very similar
+  to nx
+- extended serializer to handle "-returns" flag
+- extended regression test
+
 ========================================================================
 TODO:
 
