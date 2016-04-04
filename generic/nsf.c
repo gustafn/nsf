@@ -16936,6 +16936,9 @@ ProcessMethodArguments(ParseContext *pcPtr, Tcl_Interp *interp,
     fprintf(stderr, "ProcessMethodArguments before ArgumentParse %s (flags %.6x objc %d): ", ObjStr(methodNameObj), processFlags, objc);
     for(i = 0; i < objc; i++) {fprintf(stderr, " [%d]=%s,", i, ObjStr(objv[i]));}
     fprintf(stderr, "\n");
+
+    Tcl_Obj *listObj = ParamDefsList(interp, paramDefs->paramsPtr, NULL, NULL);
+    fprintf(stderr, "... got params <%s>\n", ObjStr(listObj));
   }
 #endif
 
@@ -16956,10 +16959,11 @@ ProcessMethodArguments(ParseContext *pcPtr, Tcl_Interp *interp,
       }
       for (i = fromArg; i < toArg; i++) {
         fprintf(stderr, "... pcPtr %p [%d] obj %p refCount %d (%s) flags %.6x & %p\n",
-                pcPtr, i,
-                pcPtr->objv[i] ? pcPtr->objv[i] : NULL,
+                (void*)pcPtr, i,
+                pcPtr->objv[i] ? (void*)pcPtr->objv[i] : NULL,
                 pcPtr->objv[i] ? pcPtr->objv[i]->refCount : -1,
-                pcPtr->objv[i] ? ObjStr(pcPtr->objv[i]) : "(null)", pcPtr->flags[i], &(pcPtr->flags[i]));
+                pcPtr->objv[i] ? ObjStr(pcPtr->objv[i]) : "(null)", pcPtr->flags[i],
+                (void*)&(pcPtr->flags[i]));
       }
     }
   }
@@ -27761,8 +27765,8 @@ ComputeParameterDefinition(Tcl_Interp *interp, Tcl_Obj *procNameObj,
     if (likely(result == TCL_OK)) {
       Tcl_Obj *rawConfArgs = Tcl_GetObjResult(interp);
 
-      /*fprintf(stderr, ".... rawConfArgs for %s => '%s'\n",
-        ObjectName(self), ObjStr(rawConfArgs));*/
+      /*      fprintf(stderr, ".... rawConfArgs for %s => '%s'\n",
+              ObjectName(self), ObjStr(rawConfArgs));*/
       INCR_REF_COUNT(rawConfArgs);
 
       /*
@@ -27865,7 +27869,7 @@ GetObjectParameterDefinition(Tcl_Interp *interp, Tcl_Obj *procNameObj,
     NsfParsedParam *objParsedParamPtr = object->opt->parsedParamPtr;
 
     /*fprintf(stderr, "reuse obj param for obj %p  %s paramPtr %p\n",
-      object, ObjectName(object), objParsedParamPtr);*/
+      (void *)object, ObjectName(object), (void *)objParsedParamPtr);*/
     parsedParamPtr->paramDefs = objParsedParamPtr->paramDefs;
     parsedParamPtr->possibleUnknowns = objParsedParamPtr->possibleUnknowns;
     result = TCL_OK;
@@ -28140,6 +28144,14 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
   /* Process the actual arguments based on the parameter definitions */
   paramDefs = parsedParam.paramDefs;
   ParamDefsRefCountIncr(paramDefs);
+
+#if 0
+  if (parsedParam.paramDefs != NULL) {
+    Tcl_Obj *listObj = ParamDefsList(interp, paramDefs->paramsPtr, NULL, NULL);
+    fprintf(stderr, "... got params <%s>\n", ObjStr(listObj));
+  }
+#endif
+
   result = ProcessMethodArguments(&pc, interp, object,
                                   NSF_ARGPARSE_START_ZERO, paramDefs,
                                   NsfGlobalObjs[NSF_CONFIGURE], objc, objv);
