@@ -15,8 +15,13 @@ array set ptrConverter {
   mongoc_gridfs_t 1
 }
 
-cmd json NsfMongoJson {
+# produce json string from triples
+cmd json::generate NsfMongoJsonGenerate {
   {-argName "list" -required 1 -type tclobj}
+}
+# parse json string into triples
+cmd json::parse NsfMongoJsonParse {
+  {-argName "json" -required 1 -type tclobj}
 }
 
 cmd close NsfMongoClose {

@@ -513,12 +513,12 @@ BsonAppendObjv(Tcl_Interp *interp, bson_t *bPtr, int objc, Tcl_Obj **objv) {
  * Define the api functions
  ***********************************************************************/
 /*
-cmd json NsfMongoJson {
+cmd json::generate NsfMongoJsonGenerate {
   {-argName "list" -required 1 -type tclobj}
 }
 */
 static int
-NsfMongoJson(Tcl_Interp *interp, Tcl_Obj *listObj) {
+NsfMongoJsonGenerate(Tcl_Interp *interp, Tcl_Obj *listObj) {
   bson_t list, *listPtr = &list;
   size_t length;
   char *jsonString;
@@ -541,6 +541,30 @@ NsfMongoJson(Tcl_Interp *interp, Tcl_Obj *listObj) {
     }
 
     bson_destroy( listPtr );
+  }
+
+  return result;
+}
+/*
+cmd json::parse NsfMongoJsonParse {
+  {-argName "json" -required 1 -type tclobj}
+}
+*/
+static int
+NsfMongoJsonParse(Tcl_Interp *interp, Tcl_Obj *jsonObj) {
+  bson_t bson, *bsonPtr = &bson;
+  const char *jsonString;
+  int result, jsonLength;
+  bson_error_t bsonError;
+
+  jsonString = Tcl_GetStringFromObj(jsonObj, &jsonLength);
+
+  if (bson_init_from_json (bsonPtr, jsonString,jsonLength, &bsonError) == true) {
+    Tcl_SetObjResult(interp, BsonToList(interp, bsonPtr, 0));
+    bson_destroy( bsonPtr );
+    result = TCL_OK;
+  } else {
+    result = NsfPrintError(interp, "mongo::json::parse: error: %s", bsonError.message);
   }
 
   return result;
