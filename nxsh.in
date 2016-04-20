@@ -20,4 +20,4 @@ package require nx::shell
 
 namespace import -force ::nx::*
 
-nx::shell run $argc $argv
+nx::shell2 run $argc $argv
