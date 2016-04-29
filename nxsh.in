@@ -8,8 +8,6 @@
     exec $INTERP "$0" ${1+"$@"}
 
 # -*- tcl -*-
-puts  [info nameofexecutable]
-
 #
 # Tiny scripted replacement of a binary nxsh. This script can be used
 # as interactive shell for testing or like a regular shell with the #!

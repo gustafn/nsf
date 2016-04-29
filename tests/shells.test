@@ -1,0 +1,55 @@
+# -*- Tcl -*-
+package require nx
+package require nx::test
+
+
+## for now, we do not have scripted shells for Windows environments
+## without a bash-like shell, so ...
+
+if {$tcl_platform(platform) eq "windows"} return;
+
+nx::test case nxsh {
+  set rootDir [file join {*}[lrange [file split [file normalize [info script]]] 0 end-2]]
+  set nxsh [file join $rootDir nxsh]
+
+  set run {puts $argc-[join $argv -]}
+  
+  ? [list file exists $nxsh] 1
+  ? [list file executable $nxsh] 1
+   ## stdin is in interactive mode (just a smoke test)
+  ? [list exec $nxsh << "$run; exit"] "% 0-"
+  ## stdin is ignored
+  ? [list exec $nxsh NXSCRIPT.tcl << "$run; exit"] \
+      "couldn't read file \"NXSCRIPT.tcl\": no such file or directory"
+  ## non-interactive mode (-c)
+  ? [list exec $nxsh -c "$run" NXSCRIPT.tcl] \
+      "1-NXSCRIPT.tcl"
+  ? [list exec $nxsh -c << $run] "0-"
+  ? [list exec $nxsh -c $run a b c] "3-a-b-c"
+
+  set tmpfile [file join [::nsf::tmpdir] [pid]]
+  ? [list exec $nxsh $tmpfile] "couldn't read file \"$tmpfile\": no such file or directory"
+  ? [list exec $nxsh $tmpfile a b c] "couldn't read file \"$tmpfile\": no such file or directory"
+
+  set ch [open $tmpfile w+]
+  ? [list file exists $tmpfile] 1
+  ? [list file writable $tmpfile] 1
+  puts $ch $run
+  catch {close $ch}
+  ? [list exec $nxsh $tmpfile] "0-"
+  ? [list exec $nxsh $tmpfile -c "yyy" a b c] "5--c-yyy-a-b-c"
+
+  file delete -force $tmpfile
+
+  ## avoid pollution of global namespace
+  set tclsh [info nameofexecutable]
+  set gvars1 [exec $tclsh << {puts [info vars]}]
+  set gvars2 [exec $nxsh -c << {puts [info vars]}]
+  ? [list expr [list [lsort $gvars1] eq [lsort $gvars2]]] 1
+}
+
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:
