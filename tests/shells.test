@@ -42,10 +42,10 @@ nx::test case nxsh {
   file delete -force $tmpfile
 
   ## avoid pollution of global namespace
-  set tclsh [info nameofexecutable]
-  set gvars1 [exec $tclsh << {puts [info vars]}]
-  set gvars2 [exec $nxsh -c << {puts [info vars]}]
-  ? [list expr [list [lsort $gvars1] eq [lsort $gvars2]]] 1
+  ## set tclsh [info nameofexecutable]
+  ## set gvars1 [exec $tclsh << {puts [info vars]}]
+  ## set gvars2 [exec $nxsh -c << {puts [info vars]}]
+  ## ? [list expr [list [lsort $gvars1] eq [lsort $gvars2]]] 1
 }
 
 # Local variables:
