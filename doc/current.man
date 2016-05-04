@@ -1,6 +1,7 @@
 [comment {-*- tcl -*- nx::current manpage}]
 
-[manpage_begin nx::current 3 2.0.0]
+[include version.inc]
+[manpage_begin nx::current 3 [vset VERSION]]
 
 [copyright { 2014 Stefan Sobernig <stefan.sobernig@wu.ac.at>, Gustaf Neumann <gustaf.neumann@wu.ac.at>; available under the Creative Commons Attribution 3.0 Austria license (CC BY 3.0 AT).}]
 

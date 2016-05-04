@@ -2,7 +2,7 @@
 '\" Generated from file 'Class\&.man' by tcllib/doctools with format 'nroff'
 '\" Copyright (c) 2014 Stefan Sobernig <stefan\&.sobernig@wu\&.ac\&.at>, Gustaf Neumann <gustaf\&.neumann@wu\&.ac\&.at>; available under the Creative Commons Attribution 3\&.0 Austria license (CC BY 3\&.0 AT)\&.
 '\"
-.TH "nx::Class" 3 2\&.0\&.0 Class "NX API"
+.TH "nx::Class" 3 2\&.1\&.0 Class "NX API"
 .\" The -*- nroff -*- definitions below are for supplemental macros used
 .\" in Tcl/Tk manual entries.
 .\"
@@ -430,7 +430,7 @@ context of the called object, i\&.e\&., the object upon which the alias method i
 the colon-prefix notation for identifying object variables\&. If the
 value is \fBmethod\fR, then the aliased command will be executed as a regular method call\&. The command is aware of its called-object context; i\&.e\&., it can resolve \fB::nx::self\fR\&. In addition, the alias method has access to the method-call context (e\&.g\&., \fBnx::next\fR)\&. If \fB-frame\fR is omitted, and by default, the variable references will resolve in the context of the caller of the alias method\&.
 .sp
-To express deprecation of the alias method \fImethodName\fR, set the \fB-deprecated\fR flag\&. Deprecated methods remain usable from client code, but their usage will be signaled to the developer and/or can be tracked using \fB::nsf::deprecated\fR\&. To register \fImethodName\fR with the debugger, set the \fB-debug\fR flag\&. Entering and exiting a method flagged for debugging can be recorded using \fB::nsf::log\fR\&.
+To express deprecation of the alias method \fImethodName\fR, set the \fB-deprecated\fR flag\&. Deprecated methods remain usable from client code, but their usage will be signaled to the developer and/or can be tracked using \fB::nsf::deprecated\fR\&. To register \fImethodName\fR with the debugger, set the \fB-debug\fR flag\&.  Entering and exiting a method, which was flagged for debugging, is recorded by calling the redefinable callback procs \fB::nsf::debug::call\fR and \fB::nsf::debug::exit\fR, respectively\&. By default, these callbacks forward to \fB::nsf:log\fR, which can also be customized at the script level\&.
 .RE
 .TP
 \fB__class_configureparameter\fR
@@ -591,7 +591,7 @@ receiving the forward method call\&. This way, variable names
 used in the resulting execution of a command become resolved as
 object variables\&.
 .sp
-To express deprecation of the forward method \fImethodName\fR, set the \fB-deprecated\fR flag\&. Deprecated methods remain usable from client code, but their usage will be signaled to the developer and/or can be tracked using \fB::nsf::deprecated\fR\&. To register \fImethodName\fR with the debugger, set the \fB-debug\fR flag\&. Entering and exiting a method flagged for debugging can be recorded using \fB::nsf::log\fR\&.
+To express deprecation of the forward method \fImethodName\fR, set the \fB-deprecated\fR flag\&. Deprecated methods remain usable from client code, but their usage will be signaled to the developer and/or can be tracked using \fB::nsf::deprecated\fR\&. To register \fImethodName\fR with the debugger, set the \fB-debug\fR flag\&.  Entering and exiting a method, which was flagged for debugging, is recorded by calling the redefinable callback procs \fB::nsf::debug::call\fR and \fB::nsf::debug::exit\fR, respectively\&. By default, these callbacks forward to \fB::nsf:log\fR, which can also be customized at the script level\&.
 .sp
 The list of forwarder arguments \fIarg\fR can contain as its elements
 a mix of literal values and placeholders\&. Placeholders are prefixed
@@ -842,7 +842,7 @@ the switch \fB-checkalways\fR, value checking on
 arguments and return value is guaranteed to be performed, even if
 value checking is temporarily disabled; see \fBnx::configure\fR)\&.
 .sp
-To express deprecation of the method \fIname\fR, set the \fB-deprecated\fR flag\&. Deprecated methods remain usable from client code, but their usage will be signaled to the developer and/or can be tracked using \fB::nsf::deprecated\fR\&. To register \fIname\fR with the debugger, set the \fB-debug\fR flag\&. Entering and exiting a method flagged for debugging can be recorded using \fB::nsf::log\fR\&.
+To express deprecation of the method \fIname\fR, set the \fB-deprecated\fR flag\&. Deprecated methods remain usable from client code, but their usage will be signaled to the developer and/or can be tracked using \fB::nsf::deprecated\fR\&. To register \fIname\fR with the debugger, set the \fB-debug\fR flag\&. Entering and exiting a method, which was flagged for debugging, is recorded by calling the redefinable callback procs \fB::nsf::debug::call\fR and \fB::nsf::debug::exit\fR, respectively\&. By default, these callbacks forward to \fB::nsf:log\fR, which can also be customized at the script level\&.
 .sp
 A method closely resembles a Tcl \fBproc\fR, but it differs in some
 important aspects: First, a method can define non-positional

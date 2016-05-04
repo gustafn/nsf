@@ -9029,9 +9029,9 @@ eval "NSF_INCLUDE_DIR=\"$includedir\""
 # target, defined in Makefile.in
 #--------------------------------------------------------------------
 
-CONFIG_CLEAN_FILES="Makefile ${srcdir}/nsfConfig.sh ${srcdir}/library/xotcl/xotclsh ${srcdir}/library/xotcl/xowish ${srcdir}/unix/pkgIndex.unix nxsh nxwish autom4te.cache/"
+CONFIG_CLEAN_FILES="Makefile ${srcdir}/nsfConfig.sh ${srcdir}/library/xotcl/xotclsh ${srcdir}/library/xotcl/xowish ${srcdir}/unix/pkgIndex.unix nxsh nxwish ${srcdir}/doc/version.inc autom4te.cache/"
 
-ac_config_files="$ac_config_files Makefile ${srcdir}/nsfConfig.sh ${srcdir}/library/xotcl/xotclsh ${srcdir}/library/xotcl/xowish ${srcdir}/unix/pkgIndex.unix nxsh nxwish"
+ac_config_files="$ac_config_files Makefile ${srcdir}/nsfConfig.sh ${srcdir}/library/xotcl/xotclsh ${srcdir}/library/xotcl/xowish ${srcdir}/unix/pkgIndex.unix nxsh nxwish ${srcdir}/doc/version.inc"
 
 
 #--------------------------------------------------------------------
@@ -9758,6 +9758,7 @@ do
     "${srcdir}/unix/pkgIndex.unix") CONFIG_FILES="$CONFIG_FILES ${srcdir}/unix/pkgIndex.unix" ;;
     "nxsh") CONFIG_FILES="$CONFIG_FILES nxsh" ;;
     "nxwish") CONFIG_FILES="$CONFIG_FILES nxwish" ;;
+    "${srcdir}/doc/version.inc") CONFIG_FILES="$CONFIG_FILES ${srcdir}/doc/version.inc" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac
