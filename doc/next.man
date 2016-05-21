@@ -1,5 +1,7 @@
 [comment {-*- tcl -*- nx::next manpage}]
-[manpage_begin nx::next 3 2.0.0]
+
+[include version.inc]
+[manpage_begin nx::next 3 [vset VERSION]]
 
 [copyright {2014 Stefan Sobernig <stefan.sobernig@wu.ac.at>, Gustaf Neumann <gustaf.neumann@wu.ac.at>}]
 [titledesc {Skip to the next most specific method implementation}]
