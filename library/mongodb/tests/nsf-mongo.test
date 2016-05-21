@@ -44,7 +44,7 @@ if {1} {
     create string persons
     capped bool 1 
     size int32 100000
-  }} 1
+  }} "ok double 1.0"
 
   ? {set mongoColl [::mongo::collection::open $mongoConn tutorial persons]} "mongoc_collection_t:0"
   puts "Collection: $mongoColl"
@@ -91,6 +91,15 @@ puts stderr "\nProject members"
   llength [::mongo::collection::query $mongoColl \
 	       [list \$query document {projects string nsf} \$orderby document {name int 1}]]
 } 2
+
+
+package req nx::mongo
+nx::mongo::Class create C
+
+set result [::mongo::run $mongoConn tutorial {distinct string persons key string name}]
+
+puts stderr "\nDistinct Persons: [C bson pp $result]"
+
 
 puts stderr "\nProject members of nsf sorted by name"
 ? {
@@ -179,8 +188,6 @@ set stats [::mongo::collection::stats $mongoColl]
 ? {expr [llength $stats] > 0} 1
 
 if {[llength $stats] % 3 == 0} {
-  package req nx::mongo
-  nx::mongo::Class create C
   puts [C bson pp $stats]
 }
 

@@ -646,7 +646,7 @@ cmd run NsfMongoRunCmd {
 static int
 NsfMongoRunCmd(Tcl_Interp *interp, int withNocomplain, mongoc_client_t *clientPtr,
 	       CONST char *db, Tcl_Obj *cmdObj) {
-  bson_t cmd, *cmdPtr = &cmd, out, *outPtr = &out;
+  bson_t cmd, *cmdPtr = &cmd, reply, *replyPtr = &reply;
   mongoc_read_prefs_t *readPrefsPtr = NULL; /* TODO: not used */
   bson_error_t bsonError;
   int result, objc;
@@ -659,14 +659,17 @@ NsfMongoRunCmd(Tcl_Interp *interp, int withNocomplain, mongoc_client_t *clientPt
   BsonAppendObjv(interp, cmdPtr, objc, objv);
 
   /*mongo_clear_errors( connPtr );*/
-  result = mongoc_client_command_simple( clientPtr, db, cmdPtr, readPrefsPtr, outPtr, &bsonError);
+  result = mongoc_client_command_simple( clientPtr, db, cmdPtr, readPrefsPtr, replyPtr, &bsonError);
   bson_destroy( cmdPtr );
 
   if (withNocomplain == 0 && result == 0) {
-    return NsfPrintError(interp, "mongo::run: command '%s' returned error: %s", ObjStr(cmdObj), bsonError.message);
+    return NsfPrintError(interp, "mongo::run: command '%s' returned error: %s",
+                         ObjStr(cmdObj), bsonError.message);
   }
 
-  Tcl_SetObjResult(interp, Tcl_NewIntObj(result));
+  Tcl_SetObjResult(interp, BsonToList(interp, replyPtr, 0));
+  bson_destroy(replyPtr);
+
   return TCL_OK;
 }
 
