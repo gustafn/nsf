@@ -159,7 +159,7 @@ NsfDStringVPrintf(Tcl_DString *dsPtr, const char *fmt, va_list vargs) {
     assert(failure == 0);
     
     if (unlikely(failure != 0)) {
-      fprintf(stderr, "copying variable argument vector into dynamic string failed\n");
+      fprintf(stderr, "writing string-formatting output to a dynamic Tcl string failed\n");
     }
   }
 }
