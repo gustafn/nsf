@@ -25150,7 +25150,6 @@ cmd parseargs NsfParseArgsCmd {
 static int
 NsfParseArgsCmd(Tcl_Interp *interp, Tcl_Obj *argspecObj, Tcl_Obj *arglistObj) {
   NsfParsedParam   parsedParam;
-  unsigned int     processFlags = 0u;
   Tcl_Obj        **objv;
   int              result, objc;
 
@@ -25166,6 +25165,7 @@ NsfParseArgsCmd(Tcl_Interp *interp, Tcl_Obj *argspecObj, Tcl_Obj *arglistObj) {
   if (likely(result == TCL_OK)) {
     ParseContext  pc;
     NsfParamDefs *paramDefs = parsedParam.paramDefs;
+    unsigned int  processFlags = 0u;
 
     result = ArgumentParse(interp, objc, objv, NULL, NsfGlobalObjs[NSF_PARSE_ARGS],
                            paramDefs->paramsPtr, paramDefs->nrParams, paramDefs->serial,
