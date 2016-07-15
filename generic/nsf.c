@@ -20143,10 +20143,10 @@ SetInstVar(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj, Tcl_Obj *val
       varPtr = TclLookupVar(interp, ObjStr(nameObj), NULL, TCL_LEAVE_ERR_MSG|TCL_PARSE_PART1, "access",
                             /*createPart1*/ 1, /*createPart2*/ 0, &arrayPtr);
       oldValuePtr = varPtr->value.objPtr;
-      INCR_REF_COUNT(valueObj);
+      INCR_REF_COUNT2("SetInstVar", valueObj);
       varPtr->value.objPtr = valueObj;
       if (oldValuePtr != NULL) {
-        DECR_REF_COUNT(oldValuePtr);
+        DECR_REF_COUNT2("SetInstVar", oldValuePtr);
       }
       resultObj = valueObj;
     }
