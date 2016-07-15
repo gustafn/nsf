@@ -13970,6 +13970,22 @@ DispatchDestroyMethod(Tcl_Interp *interp, NsfObject *object, unsigned int flags)
 
   rst = RUNTIME_STATE(interp);
   /*
+   * If for some strange reason the runtime state is already deleted, don't
+   * crash.
+   */
+  if (unlikely(rst == NULL)) {
+
+    if ((Tcl_Interp_flags(interp) & DELETED)) {
+      return TCL_OK;
+    }
+  }
+  /*
+   * In all other cases (aside of the DELETED interp), we expect a runtime
+   * state. If this is violated, flag this via exception in development mode.
+   */
+  assert(rst != NULL);
+
+  /*
    * Don't call destroy after exit handler started physical
    * destruction, or when it was called already before
    */
