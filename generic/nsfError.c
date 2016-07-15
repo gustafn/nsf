@@ -158,7 +158,7 @@ NsfDStringVPrintf(Tcl_DString *dsPtr, const char *fmt, va_list vargs) {
 
 #if defined(NDEBUG)
     if (unlikely(failure != 0)) {
-      fprintf(stderr, "writing string-formatting output to a dynamic Tcl string failed\n");
+      Tcl_Panic("writing string-formatting output to a dynamic Tcl string failed");
     }
 #endif
     assert(failure == 0);
