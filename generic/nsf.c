@@ -25032,7 +25032,7 @@ NsfFinalizeCmd(Tcl_Interp *interp, int withKeepvars) {
   if (unlikely(result != TCL_OK)) {
     fprintf(stderr, "User defined exit handler contains errors!\n"
             "Error in line %d: %s\nExecution interrupted.\n",
-            Tcl_GetErrorLine(interp), ObjStr(Tcl_GetObjResult(interp)));
+            (int)Tcl_GetErrorLine(interp), ObjStr(Tcl_GetObjResult(interp)));
   }
 
   ObjectSystemsCleanup(interp, withKeepvars);
