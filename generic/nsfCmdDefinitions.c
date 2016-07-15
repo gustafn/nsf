@@ -162,7 +162,8 @@ Register(Tcl_Interp *interp, Nsf_methodDefinition *methodDefinition) {
   nonnull_assert(interp != NULL);
   nonnull_assert(methodDefinition != NULL);
 
-  //fprintf(stderr, "=== Register proc %p with name %s\n", methodDefinition->proc, methodDefinition->methodName);
+  /* fprintf(stderr, "=== Register proc %p with name %s\n", 
+     methodDefinition->proc, methodDefinition->methodName); */
   /* cmdEntry.proc = methodDefinition->proc; */
   NsfMutexLock(&cmdDefinitonMutex);
   hPtr = Nsf_CreateFunPtrHashEntry(cmdDefinitonHashTablePtr, (Nsf_AnyFun *)methodDefinition->proc, &isNew); /* Tcl_CreateHashEntry(cmdDefinitonHashTablePtr, (const char *)&cmdEntry, &isNew);*/

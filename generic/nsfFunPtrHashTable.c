@@ -93,7 +93,8 @@ FunPtrKey(
   funPtrEntry_t  *e = (funPtrEntry_t *)keyPtr;
   Nsf_AnyFun *value  = e->funPtr;
 
-  //fprintf(stderr, "=== hash from %p = %u // 0x%x\n", (void *)value, PTR2UINT(value), PTR2UINT(value));
+  /* fprintf(stderr, "=== hash from %p = %u // 0x%x\n", (void *)value, 
+     PTR2UINT(value), PTR2UINT(value)); */
   /*
    * This is a very simple approach for obtaining a hash value. Maybe one
    * needs a more sophisticated approach with wierd endians machines.

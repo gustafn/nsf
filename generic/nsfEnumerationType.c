@@ -174,7 +174,7 @@ Register(Tcl_Interp *interp, const char *domain, Nsf_TypeConverter *converter) {
 
   NsfMutexLock(&enumerationMutex);
   hPtr = Nsf_CreateFunPtrHashEntry(enumerationHashTablePtr, (Nsf_AnyFun *)converter, &isNew);
-  // hPtr = Tcl_CreateHashEntry(enumerationHashTablePtr, domain, &isNew);
+  /* hPtr = Tcl_CreateHashEntry(enumerationHashTablePtr, domain, &isNew); */
   NsfMutexUnlock(&enumerationMutex);
 
   if (isNew != 0) {

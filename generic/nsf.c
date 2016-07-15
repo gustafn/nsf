@@ -16826,7 +16826,7 @@ NsfProcAdd(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
   tcd->paramDefs = paramDefs;
   tcd->flags = (checkAlwaysFlag != 0 ? NSF_PROC_FLAG_CHECK_ALWAYS : 0u) | (with_ad != 0 ? NSF_PROC_FLAG_AD : 0u);
   tcd->cmd = NULL;
-  tcd->wrapperCmd = cmd;  // TODO should we preserve?
+  tcd->wrapperCmd = cmd;  /* TODO should we preserve? */
 
   //assert(paramDefs != NULL);
 
