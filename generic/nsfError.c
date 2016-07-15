@@ -148,13 +148,19 @@ NsfDStringVPrintf(Tcl_DString *dsPtr, const char *fmt, va_list vargs) {
     
     va_copy(vargsCopy, vargs);
     result = vsnprintf(dsPtr->string + offset, avail, fmt, vargsCopy);
-#if defined(_MSC_VER)
-    assert(result > -1);
-#else
-    assert(result > -1); /* no encoding error */
-    assert(result < avail); /* no overflow */
-#endif
     va_end(vargsCopy);
+    
+#if defined(_MSC_VER)
+    failure = (result == -1);
+#else
+    failure = (result == -1 || result >= avail);
+#endif
+
+    assert(failure == 0);
+    
+    if (unlikely(failure != 0)) {
+      fprintf(stderr, "writing string-formatting output to a dynamic Tcl string failed\n");
+    }
   }
 }
 
