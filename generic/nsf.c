@@ -25181,6 +25181,7 @@ NsfParseArgsCmd(Tcl_Interp *interp, Tcl_Obj *argspecObj, Tcl_Obj *arglistObj) {
   if (likely(result == TCL_OK)) {
     ParseContext  pc;
     NsfParamDefs *paramDefs = parsedParam.paramDefs;
+    ParamDefsRefCountIncr(paramDefs);
     unsigned int  processFlags = 0u;
 
     result = ArgumentParse(interp, objc, objv, NULL, NsfGlobalObjs[NSF_PARSE_ARGS],
@@ -25205,10 +25206,9 @@ NsfParseArgsCmd(Tcl_Interp *interp, Tcl_Obj *argspecObj, Tcl_Obj *arglistObj) {
           }
         }
       }
-
-      ParseContextRelease(&pc);
     }
-
+    ParamDefsRefCountDecr(paramDefs);
+    ParseContextRelease(&pc);
   }
   return result;
 }
