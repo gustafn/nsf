@@ -16828,7 +16828,7 @@ NsfProcAdd(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
   tcd->paramDefs = paramDefs;
   tcd->flags = (checkAlwaysFlag != 0 ? NSF_PROC_FLAG_CHECK_ALWAYS : 0u) | (with_ad != 0 ? NSF_PROC_FLAG_AD : 0u);
   tcd->cmd = NULL;
-  tcd->wrapperCmd = cmd;  // TODO should we preserve?
+  tcd->wrapperCmd = cmd;  /* TODO should we preserve? */
 
   //assert(paramDefs != NULL);
 
@@ -20145,10 +20145,10 @@ SetInstVar(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj, Tcl_Obj *val
       varPtr = TclLookupVar(interp, ObjStr(nameObj), NULL, TCL_LEAVE_ERR_MSG|TCL_PARSE_PART1, "access",
                             /*createPart1*/ 1, /*createPart2*/ 0, &arrayPtr);
       oldValuePtr = varPtr->value.objPtr;
-      INCR_REF_COUNT(valueObj);
+      INCR_REF_COUNT2("SetInstVar", valueObj);
       varPtr->value.objPtr = valueObj;
       if (oldValuePtr != NULL) {
-        DECR_REF_COUNT(oldValuePtr);
+        DECR_REF_COUNT2("SetInstVar", oldValuePtr);
       }
       resultObj = valueObj;
     }
@@ -25071,7 +25071,7 @@ NsfFinalizeCmd(Tcl_Interp *interp, int withKeepvars) {
   if (unlikely(result != TCL_OK)) {
     fprintf(stderr, "User defined exit handler contains errors!\n"
             "Error in line %d: %s\nExecution interrupted.\n",
-            Tcl_GetErrorLine(interp), ObjStr(Tcl_GetObjResult(interp)));
+            (int)Tcl_GetErrorLine(interp), ObjStr(Tcl_GetObjResult(interp)));
   }
 
   ObjectSystemsCleanup(interp, withKeepvars);
@@ -25220,6 +25220,7 @@ NsfParseArgsCmd(Tcl_Interp *interp, Tcl_Obj *argspecObj, Tcl_Obj *arglistObj) {
   if (likely(result == TCL_OK)) {
     ParseContext  pc;
     NsfParamDefs *paramDefs = parsedParam.paramDefs;
+    ParamDefsRefCountIncr(paramDefs);
     unsigned int  processFlags = 0u;
 
     result = ArgumentParse(interp, objc, objv, NULL, NsfGlobalObjs[NSF_PARSE_ARGS],
@@ -25244,10 +25245,9 @@ NsfParseArgsCmd(Tcl_Interp *interp, Tcl_Obj *argspecObj, Tcl_Obj *arglistObj) {
           }
         }
       }
-
-      ParseContextRelease(&pc);
     }
-
+    ParamDefsRefCountDecr(paramDefs);
+    ParseContextRelease(&pc);
   }
   return result;
 }

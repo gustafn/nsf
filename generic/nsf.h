@@ -220,7 +220,7 @@
 # define NSF_MEM_COUNT 1
 #endif
 
-  //  if ((cmd) != NULL) {fprintf(stderr, "METHOD %s cmd %p flags %.8x (%.8x)\n", (method), (cmd), Tcl_Command_flags((cmd)), NSF_CMD_DEPRECATED_METHOD);}
+/*  if ((cmd) != NULL) {fprintf(stderr, "METHOD %s cmd %p flags %.8x (%.8x)\n", (method), (cmd), Tcl_Command_flags((cmd)), NSF_CMD_DEPRECATED_METHOD);} */
 #if defined(NSF_PROFILE)
 # define CscInit(cscPtr, object, cl, cmd, frametype, flags, method) \
   CscInit_((cscPtr), (object), (cl), (cmd), (frametype), (flags)); (cscPtr)->methodName = (method); \
