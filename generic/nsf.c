@@ -10939,9 +10939,11 @@ ByteCompiled(Tcl_Interp *interp, unsigned int *flagsPtr,
 #endif
 
     *flagsPtr |= NSF_CSC_CALL_IS_COMPILE;
+    /*fprintf(stderr, "compiling '%s' with ns %s\n", procName, nsPtr->name);*/
     result = TclProcCompileProc(interp, procPtr, bodyObj,
                               (Namespace *) nsPtr, "body of proc",
                               procName);
+    /*fprintf(stderr, "compiling '%s' with ns %s DONE\n", procName, nsPtr->name);*/
     *flagsPtr &= ~NSF_CSC_CALL_IS_COMPILE;
 
     return result;
@@ -22724,6 +22726,8 @@ static int ListMethod(Tcl_Interp *interp,
                       int withPer_object)
   nonnull(1) nonnull(4) nonnull(5);
 
+
+
 static int
 ListMethod(Tcl_Interp *interp,
            NsfObject *regObject,
@@ -22891,6 +22895,30 @@ ListMethod(Tcl_Interp *interp,
       ListProcBody(interp, GetTclProcFromCommand(cmd), methodName);
       break;
 
+#ifdef HAVE_TCL_DISASSAEMBLE_BYTE_CODE
+      /*
+       * In order to get the case label, add |disassemble 3x (to
+       * infomethodsubcmd and methodgetcmd) in nsfAPI.decls and
+       * add "info method disassemble" and per-object variant
+       */
+    case InfomethodsubcmdDisassembleIdx:
+      {
+        Proc *procPtr = GetTclProcFromCommand(cmd);
+
+	if (procPtr == NULL) {
+          Tcl_SetObjResult(interp, Tcl_NewStringObj("body not available for this kind of method", -1));
+          return TCL_ERROR;
+	}
+	if (procPtr->bodyPtr->typePtr == Nsf_OT_byteCodeType) {
+          EXTERN Tcl_Obj *Tcl_DisassembleByteCodeObj(Tcl_Interp *interp, Tcl_Obj *objPtr);
+
+          Tcl_SetObjResult(interp, Tcl_DisassembleByteCodeObj(interp, procPtr->bodyPtr));
+          //ByteCode *codePtr = (ByteCode*)(procPtr->bodyPtr->internalRep.twoPtrValue.ptr1);
+          //char*p=NULL; *p=1;
+          // p codePtr->objArrayPtr[8]
+      }
+      break;
+#endif
     case InfomethodsubcmdDefinitionIdx:
       {
         resultObj = Tcl_NewListObj(0, NULL);
@@ -24309,7 +24337,18 @@ NsfDebugShowObj(Tcl_Interp *interp, Tcl_Obj *objPtr) {
       fprintf(stderr, "... cmd %p flags %.6x\n", (void *)cmd, Tcl_Command_flags(cmd));
       assert(((Command *)cmd)->objProc != NULL);
     }
-    assert( currentMethodEpoch >= mcPtr->methodEpoch);
+    assert(currentMethodEpoch >= mcPtr->methodEpoch);
+
+  } else if (objPtr->typePtr == Nsf_OT_tclCmdNameType) {
+    Tcl_Command cmd = Tcl_GetCommandFromObj(interp, objPtr);
+
+    if (likely(cmd != NULL)) {
+      Command *procPtr = (Command *)cmd;
+      char    *tail = Tcl_GetHashKey(procPtr->hPtr->tablePtr, procPtr->hPtr);
+
+      fprintf(stderr, "... cmd %p flags %.6x name '%s' ns '%s'\n",
+              (void *)cmd, Tcl_Command_flags(cmd), tail, procPtr->nsPtr->name);
+    }
   }
   return TCL_OK;
 }
@@ -32010,6 +32049,8 @@ Nsf_SafeInit(Tcl_Interp *interp) {
   /*** dummy for now **/
   return Nsf_Init(interp);
 }
+
+
 
 /*
  * Local Variables:

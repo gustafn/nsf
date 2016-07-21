@@ -890,6 +890,7 @@ namespace eval ::nx {
     #:alias "info method" ::nsf::methods::class::info::method
     :method "info method args"         {name} {: ::nsf::methods::class::info::method args $name}
     :method "info method body"         {name} {: ::nsf::methods::class::info::method body $name}
+    #:method "info method disassemble"  {name} {: ::nsf::methods::class::info::method disassemble $name}
     :method "info method definition"   {name} {: ::nsf::methods::class::info::method definition $name}
     :method "info method exists"       {name} {: ::nsf::methods::class::info::method exists $name}
     :method "info method handle"       {name} {: ::nsf::methods::class::info::method definitionhandle $name}

@@ -1,0 +1,104 @@
+# -*- Tcl -*-
+#
+# testing cmd resolution
+#
+package require nx
+package require XOTcl
+package require nx::test
+
+#
+# Tests leading to bug-report concerning shared cmd literals in the
+# global literal pool: http://core.tcl.tk/tcl/tktview?name=d4e7780ca1
+#
+::nx::test case cmd-resolver-1 {
+
+  namespace eval ::xowiki {}
+  
+  nx::Class create ::xowiki::C {
+    :public method foo {} {return [self]}
+    :create c1
+  }
+  
+  #
+  # By calling foo, the body of this method is compiled, and the cmd
+  # literal "self" is resolved against "nx::self" in the namespace
+  # "::xowiki".
+  #
+  ? {c1 foo} ::c1
+  
+  xotcl::Class create xowiki::Link
+  xowiki::Link instproc init {} {
+    #namespace which self
+    catch {set c [self class]} errorMsg
+    #nsf::__db_show_obj self
+    set class [self class]
+  }
+  
+  # When creating an instance of the xotcl class "xowiki::Link", the
+  # constructor "init" is compiled. In this step the command literal
+  # "self" in the constructor has to be resolved against the
+  # underlying object system (here xotcl::self) without interacting
+  # with "nx::self" from above.
+  
+  ? {xowiki::Link create l1} ::l1
+
+  # xowiki::Link ::nsf::methods::class::info::method disassemble init
+}
+
+
+::nx::test case cmd-resolver-2 {
+  
+  namespace eval ::xowiki {}
+
+  #
+  # This test is similar to cmd-resolver-1, be we test now for "self"
+  # and "next"
+  #
+  nx::Class create xowiki::C1 {
+    :public method foo {x y} {set s [self]; return $x-$y-C1}
+  }
+  nx::Class create xowiki::C2 -superclass xowiki::C1 {
+    :public method foo {x y} {return [next [list $x $y]]}
+  }
+
+  #
+  # During the execution of the command below, "next" and "self" are
+  # added to the global command literal pool for the namespace
+  # "xowiki".
+  #
+  ? {[xowiki::C2 new] foo 1 2} 1-2-C1
+
+  #
+  # Create similar classes for XOTcl
+  #
+  xotcl::Class create xowiki::X1
+  xowiki::X1 instproc foo {x y} {
+    return $x-$y-[self class]
+  }
+  xotcl::Class create xowiki::X2 -superclass xowiki::X1
+  xowiki::X2 instproc foo {x y} {
+    return [next $x $y]
+  }
+
+  #
+  # Bytecompile and execute the "foo" methods containing the cmd
+  # literals "self" and "next" in the xotcl classes
+  #
+  ? {[xowiki::X2 new] foo 1 2} 1-2-::xowiki::X1
+
+  #
+  # Any kind of shimmering in the global literal pool would no help,
+  # since C2 still needs the nx variants of "self" and "next".
+  #
+  ? {[xowiki::C2 new] foo 1 2} 1-2-C1
+    
+  # xowiki::Link ::nsf::methods::class::info::method disassemble init
+}
+
+
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:
