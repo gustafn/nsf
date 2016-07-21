@@ -249,15 +249,15 @@ nx::test case apply {
       "hello-hello world-world"
 }
 
-? {info commands "::@"} ""
-? {namespace which @} ""
-? {@} {invalid command name "@"}
-
 nx::test case bug-3418547 {
   #
   # See http://core.tcl.tk/tcl/tktview?name=3418547fff
   # 
 
+  ? {info commands "::@"} ""
+  ? {namespace which @} ""
+  ? {@} {invalid command name "@"}
+  
   #
   # 1) Provide @ for interp resolver in NX root namespace
   #
