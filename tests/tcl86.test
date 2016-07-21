@@ -249,10 +249,52 @@ nx::test case apply {
       "hello-hello world-world"
 }
 
+? {info commands "::@"} ""
+? {namespace which @} ""
+? {@} {invalid command name "@"}
+
+nx::test case bug-3418547 {
+  #
+  # See http://core.tcl.tk/tcl/tktview?name=3418547fff
+  # 
+
+  #
+  # 1) Provide @ for interp resolver in NX root namespace
+  #
+  proc ::nx::@ {} {
+    return ::nx::@
+  }
+  nx::Object create ::o {
+    :public object method foo {} {
+      @; # Should resolve against ::nx::@ (by interp resolver)
+    }
+  }
+  ? {::o foo} ::nx::@; # Trigger bc-compilation, resolve & execute 
+  
+  #
+  # 2) Provide alternative @
+  #
+  proc ::@ {} {
+    return ::@
+  }
+  
+  ? {info commands ::@} "::@"
+  
+  ? {::@} ::@; # no CmdLiteral -> OK!
+  ? {@} ::@; #  "Oops! CmdLiteral vs. Resolver at work: @ should resolve to ::@, not ::nx::@ !!!"
+  ? {namespace eval :: ::@} ::@
+  ? {namespace eval :: @} ::@
+  
+  
+  ? {namespace origin @} ::@; # Hugh! Now the cmd resolution is reported correctly!
+  ? {namespace origin ::@} ::@
+  
+  ? {@} ::@; # Still misguided ... 
+}
+
 #
 # Local variables:
 #    mode: tcl
 #    tcl-indent-level: 2
 #    indent-tabs-mode: nil
 # End:
-
