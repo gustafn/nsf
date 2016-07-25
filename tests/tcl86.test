@@ -255,8 +255,16 @@ nx::test case bug-3418547 {
   # 
 
   ? {info commands "::@"} ""
+
+  proc getType {x} {dict get [::nsf::__db_get_obj @] type}
+
+  ? {getType @} ""            ;# "@" has no type
   ? {namespace which @} ""
+  ? {getType @} "cmdName"     ;# "@" is of type "cmdName"
+  
   ? {@} {invalid command name "@"}
+  ? {getType @} "bytecode"    ;# "@" is of type "bytecode"  
+
   
   #
   # 1) Provide @ for interp resolver in NX root namespace
@@ -264,12 +272,18 @@ nx::test case bug-3418547 {
   proc ::nx::@ {} {
     return ::nx::@
   }
+
   nx::Object create ::o {
     :public object method foo {} {
       @; # Should resolve against ::nx::@ (by interp resolver)
     }
   }
-  ? {::o foo} ::nx::@; # Trigger bc-compilation, resolve & execute 
+
+  ? {getType @} "bytecode"        ;# "@" is still of type "bytecode"
+  ::o foo
+  ? {getType @} "bytecode"        ;# "@" is still of type "bytecode"  (byte code compilation should not leak)
+
+  ? {::o foo} ::nx::@             ;# "@" is resolved in the nx context, therefore we get nx::@
   
   #
   # 2) Provide alternative @
@@ -279,22 +293,119 @@ nx::test case bug-3418547 {
   }
   
   ? {info commands ::@} "::@"
+  ? {::@} ::@
+  ? {getType @} "bytecode"        ;# "@" is still of type "bytecode"
+
+  set x [@]                       ;# execute "@" in an nx environment ("eval" of the test case)
+  ? {getType @} "cmdName"         ;# "@" is of type "cmdName"
+
+  ? [list $x] ::nx::@
   
-  ? {::@} ::@; # no CmdLiteral -> OK!
-  ? {@} ::@; #  "Oops! CmdLiteral vs. Resolver at work: @ should resolve to ::@, not ::nx::@ !!!"
-  ? {namespace eval :: ::@} ::@
-  ? {namespace eval :: @} ::@
+  ? @ ::@                         ;# proc "?" interprets "@" as a script and turns "@"
+                                  ;# into type "bytecode". The proc leaves the nx context
+                                  ;# by using a "namespace eval", therefore we see ::@
+  ? {getType @} "bytecode"        ;# "@" is of type "bytecode"
   
+  ? {namespace eval :: @} ::@     ;# exercise the same "namespace eval" as described above
+  ? {namespace eval :: ::@} ::@   ;# the same with the global namespace qualifier
   
-  ? {namespace origin @} ::@; # Hugh! Now the cmd resolution is reported correctly!
+  ? {getType @} "bytecode"        ;# "@" is of type "bytecode"
+  ? {getType ::@} "bytecode"      ;# "::@" is of type "bytecode"
+  
+  ? {namespace origin @} ::@      ;# "namespace origin" converts literal "@" from "bytecode" to "cmdName"
+  ? {getType @} "cmdName"
+
   ? {namespace origin ::@} ::@
+  ? {getType @}   "cmdName"
+  ? {getType ::@} "cmdName"
   
-  ? {@} ::@; # Still misguided ... 
+  ? {@} ::@                   ;# the result is still the same as everywhere, since we are in an nx context XXX
 }
 
 #
-# Local variables:
-#    mode: tcl
-#    tcl-indent-level: 2
-#    indent-tabs-mode: nil
-# End:
+# Without nx context
+#
+nx::test case bug-3418547-no-context
+proc getType {x} {dict get [::nsf::__db_get_obj @] type}
+
+# delete the commands
+rename @ ""
+rename ::nx::@ ""
+
+? {info commands "::@"} ""
+
+? {getType @}   ""
+? {namespace which @} ""
+? {getType @}   "cmdName"
+
+? {@} {invalid command name "@"}
+
+#
+# 1) Provide proc @
+#
+proc ::@ {} {
+  return ::@
+}
+
+? {@} ::@
+? {getType @}   "cmdName"
+
+#
+# 2) Provide @ for interp resolver in NX root namespace
+#
+proc ::nx::@ {} {
+  return ::nx::@
+}
+
+set r [@]       ;# "@" is not executed in an nx environment (no testcase eval), therefore resolved globally
+? {set r} ::@
+? {getType @}   "cmdName"
+
+nx::Object create ::o {
+  :public object method foo {} {
+    @          ; # resolve against ::nx::@ (via interp resolver)
+  }
+}
+
+set r [::o foo]
+? {set r} ::nx::@
+? {getType @}   "cmdName"
+
+? {::o foo} ::nx::@
+
+set r [@]       ;# "@" is not executed in an nx environment (no testcase eval), therefore resolves globally
+? {set r} ::@
+? {@} ::@       ;# "@" is executed in an "namespace eval ::", therefore no nx context
+
+# cleanup
+rename ::nx::@ ""
+rename @ ""
+
+
+#
+# Try to reconstruct test case of Tcl's resolver.test 1.6
+#
+nx::test case resolver-1.6
+
+proc ::@@ {} {return ::@@}
+proc ::nx::@ {} {
+  return ::nx::@
+}
+
+nx::Object create ::o {
+  :public object method foo {} {
+    @          ; # resolve against ::nx::@ (via interp resolver)
+  }
+}
+
+set r [::o foo]
+? {set r} ::nx::@
+
+interp alias {} ::nx::@ {} ::@@
+
+# call the new aliased definition
+? {::nx::@} ::@@
+
+# see consistent results from method foo
+set r [::o foo]
+? {set r} ::@@

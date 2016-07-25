@@ -5795,6 +5795,17 @@ xotcl2:
 - extended serializer to handle "-returns" flag
 - extended regression test
 
+cmd resolver work
+- fix test, when OS specific cmd resolver is used
+  from a NSF_CSC_CALL_IS_COMPILE frame
+- improved output from __db_show_obj: put results into one line
+  instead of multiple lines
+- new debug function __db_get_obj: return into about a tcl_obj in form
+  of a dict (in general, one should not rely on Tcl_Obj internals,
+  especially when upgrading over major Tcl versions, but for
+  testing/understanding behavior etc., such a command is helpful).
+- extend regression test
+
 ========================================================================
 TODO:
 

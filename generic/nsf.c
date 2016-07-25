@@ -5118,8 +5118,8 @@ static int InterpColonCmdResolver(Tcl_Interp *interp, const char *cmdName, Tcl_N
 static int
 InterpColonCmdResolver(Tcl_Interp *interp, const char *cmdName, Tcl_Namespace *UNUSED(nsPtr),
                        unsigned int flags, Tcl_Command *cmdPtr) {
-  CallFrame *varFramePtr;
-  int frameFlags;
+  CallFrame   *varFramePtr;
+  unsigned int frameFlags;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(cmdName != NULL);
@@ -5142,14 +5142,18 @@ InterpColonCmdResolver(Tcl_Interp *interp, const char *cmdName, Tcl_Namespace *U
    * stuff into the call flags of the proc frame during the
    * compilation step NSF_CSC_CALL_IS_COMPILE.
    */
-  if (frameFlags == 0 && Tcl_CallFrame_callerPtr(varFramePtr)) {
+  if ((frameFlags == 0u) && (Tcl_CallFrame_callerPtr(varFramePtr) != NULL)) {
+    ClientData clientData;
+
     varFramePtr = (CallFrame *)Tcl_CallFrame_callerPtr(varFramePtr);
     frameFlags = Tcl_CallFrame_isProcCallFrame(varFramePtr);
+    clientData = varFramePtr->clientData;
 
-    if ((frameFlags & (FRAME_IS_NSF_METHOD)) == 0u
-        || (((NsfCallStackContent *)varFramePtr->clientData)->flags & NSF_CSC_CALL_IS_COMPILE) == 0u
-        ) {
-      frameFlags = 0;
+    if ( (frameFlags != 0u)
+         && (clientData != NULL)
+         && ((((NsfCallStackContent *)clientData)->flags & NSF_CSC_CALL_IS_COMPILE) == 0u)
+         ) {
+      frameFlags = 0u;
     } else {
 #if defined(CMD_RESOLVER_TRACE)
       fprintf(stderr, "InterpColonCmdResolver got parent frame cmdName %s flags %.6x, frame flags %.6x\n",
@@ -5197,6 +5201,7 @@ InterpColonCmdResolver(Tcl_Interp *interp, const char *cmdName, Tcl_Namespace *U
       } else {
         object = NULL;
       }
+
       if (object != NULL) {
         Tcl_HashEntry *entryPtr;
         Tcl_HashTable *cmdTablePtr;
@@ -5208,9 +5213,10 @@ InterpColonCmdResolver(Tcl_Interp *interp, const char *cmdName, Tcl_Namespace *U
         entryPtr = Tcl_CreateHashEntry(cmdTablePtr, cmdName, NULL);
         /*fprintf(stderr, "InterpColonCmdResolver OS specific resolver tried to lookup %s for os %s in ns %s\n",
           cmdName, ClassName(osPtr->rootClass), ((Command *)cmd)->nsPtr->fullName);*/
+
         if (entryPtr != NULL) {
-          /*fprintf(stderr, "InterpColonCmdResolver OS specific resolver found %s::%s\n",
-            ((Command *)cmd)->nsPtr->fullName, cmdName);*/
+          /*fprintf(stderr, "InterpColonCmdResolver OS specific resolver found %s::%s frameFlags %.6x\n",
+            ((Command *)cmd)->nsPtr->fullName, cmdName, frameFlags);*/
           *cmdPtr = Tcl_GetHashValue(entryPtr);
           return TCL_OK;
         }
@@ -24316,7 +24322,7 @@ NsfDebugShowObj(Tcl_Interp *interp, Tcl_Obj *objPtr) {
   nonnull_assert(interp != NULL);
   nonnull_assert(objPtr != NULL);
 
-  fprintf(stderr, "*** obj %p refCount %d type <%s>\n",
+  fprintf(stderr, "*** obj %p refCount %d type <%s> ",
           (void *)objPtr, objPtr->refCount, (objPtr->typePtr != NULL) ? objPtr->typePtr->name : "");
 
   if (objPtr->typePtr == &NsfObjectMethodObjType
@@ -24328,7 +24334,7 @@ NsfDebugShowObj(Tcl_Interp *interp, Tcl_Obj *objPtr) {
       RUNTIME_STATE(interp)->instanceMethodEpoch;
     Tcl_Command cmd = mcPtr->cmd;
 
-    fprintf(stderr, "   method epoch %d max %d cmd %p objProc 0x%x flags %.6x\n",
+    fprintf(stderr, "   method epoch %d max %d cmd %p objProc 0x%x flags %.6x",
             mcPtr->methodEpoch, currentMethodEpoch,
             (void *)cmd,
             (cmd != NULL) ? PTR2UINT(((Command *)cmd)->objProc) : 0u,
@@ -24346,10 +24352,41 @@ NsfDebugShowObj(Tcl_Interp *interp, Tcl_Obj *objPtr) {
       Command *procPtr = (Command *)cmd;
       char    *tail = Tcl_GetHashKey(procPtr->hPtr->tablePtr, procPtr->hPtr);
 
-      fprintf(stderr, "... cmd %p flags %.6x name '%s' ns '%s'\n",
+      fprintf(stderr, "... cmd %p flags %.6x name '%s' ns '%s'",
               (void *)cmd, Tcl_Command_flags(cmd), tail, procPtr->nsPtr->name);
     }
   }
+  fprintf(stderr, "\n");
+
+  return TCL_OK;
+}
+ 
+/*
+cmd __db_get_obj NsfDebugGetDict {
+  {-argName "obj"    -required 1 -type tclobj}
+}
+*/
+
+static int NsfDebugGetDict(Tcl_Interp *interp, Tcl_Obj *objPtr) nonnull(1) nonnull(2);
+
+static int
+NsfDebugGetDict(Tcl_Interp *interp, Tcl_Obj *objPtr) {
+  Tcl_Obj    *resultObj;
+  const char *typeString;
+
+  nonnull_assert(interp != NULL);
+  nonnull_assert(objPtr != NULL);
+
+  typeString = (objPtr->typePtr != NULL) ? objPtr->typePtr->name : "";
+
+  resultObj = Tcl_NewListObj(4, NULL);
+  Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("type", -1));
+  Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj(typeString, -1));
+  Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("refcount", -1));
+  Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewIntObj(objPtr->refCount));
+
+  Tcl_SetObjResult(interp, resultObj);
+
   return TCL_OK;
 }
 

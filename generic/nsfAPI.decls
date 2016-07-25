@@ -54,6 +54,9 @@ cmd __db_show_stack NsfShowStackCmd {}
 cmd __db_show_obj NsfDebugShowObj {
   {-argName "obj"    -required 1 -type tclobj}
 }
+cmd __db_get_obj NsfDebugGetDict {
+  {-argName "obj"    -required 1 -type tclobj}
+}
 cmd __profile_clear NsfProfileClearDataStub {} 
 cmd __profile_get NsfProfileGetDataStub {}
 cmd __profile_trace NsfProfileTraceStub {

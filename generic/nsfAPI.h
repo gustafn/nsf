@@ -295,7 +295,7 @@ static int ConvertToInfoobjectparametersubcmd(Tcl_Interp *interp, Tcl_Obj *objPt
     
 
 /* just to define the symbol */
-static Nsf_methodDefinition method_definitions[114];
+static Nsf_methodDefinition method_definitions[115];
   
 static const char *method_command_namespace_names[] = {
   "::nsf::methods::object::info",
@@ -360,6 +360,8 @@ static int NsfConfigureCmdStub(ClientData clientData, Tcl_Interp *interp, int ob
 static int NsfCurrentCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv)
   NSF_nonnull(2) NSF_nonnull(4);
 static int NsfDebugCompileEpochStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv)
+  NSF_nonnull(2) NSF_nonnull(4);
+static int NsfDebugGetDictStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv)
   NSF_nonnull(2) NSF_nonnull(4);
 static int NsfDebugRunAssertionsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv)
   NSF_nonnull(2) NSF_nonnull(4);
@@ -588,6 +590,8 @@ static int NsfCurrentCmd(Tcl_Interp *interp, int option)
   NSF_nonnull(1);
 static int NsfDebugCompileEpoch(Tcl_Interp *interp)
   NSF_nonnull(1);
+static int NsfDebugGetDict(Tcl_Interp *interp, Tcl_Obj *obj)
+  NSF_nonnull(1) NSF_nonnull(2);
 static int NsfDebugRunAssertionsCmd(Tcl_Interp *interp)
   NSF_nonnull(1);
 static int NsfDebugShowObj(Tcl_Interp *interp, Tcl_Obj *obj)
@@ -787,6 +791,7 @@ enum {
  NsfConfigureCmdIdx,
  NsfCurrentCmdIdx,
  NsfDebugCompileEpochIdx,
+ NsfDebugGetDictIdx,
  NsfDebugRunAssertionsCmdIdx,
  NsfDebugShowObjIdx,
  NsfDirectDispatchCmdIdx,
@@ -1644,6 +1649,22 @@ NsfDebugCompileEpochStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
       }
     
     return NsfDebugCompileEpoch(interp);
+
+}
+
+static int
+NsfDebugGetDictStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv) {
+  (void)clientData;
+
+    
+
+      if (objc != 2) {
+	return NsfArgumentError(interp, "wrong # of arguments:",
+			     method_definitions[NsfDebugGetDictIdx].paramDefs,
+			     NULL, objv[0]);
+      }
+    
+    return NsfDebugGetDict(interp, objv[1]);
 
 }
 
@@ -3502,7 +3523,7 @@ NsfObjInfoVarsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
   }
 }
 
-static Nsf_methodDefinition method_definitions[114] = {
+static Nsf_methodDefinition method_definitions[115] = {
 {"::nsf::methods::class::alloc", NsfCAllocMethodStub, 1, {
   {"objectName", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
@@ -3629,6 +3650,9 @@ static Nsf_methodDefinition method_definitions[114] = {
 },
 {"::nsf::__db_compile_epoch", NsfDebugCompileEpochStub, 0, {
   {NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+},
+{"::nsf::__db_get_obj", NsfDebugGetDictStub, 1, {
+  {"obj", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::__db_run_assertions", NsfDebugRunAssertionsCmdStub, 0, {
   {NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
