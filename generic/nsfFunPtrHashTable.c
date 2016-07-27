@@ -93,26 +93,12 @@ FunPtrKey(
   funPtrEntry_t  *e = (funPtrEntry_t *)keyPtr;
   Nsf_AnyFun *value  = e->funPtr;
 
-  /* fprintf(stderr, "=== hash from %p = %u // 0x%x\n", (void *)value, 
-     PTR2UINT(value), PTR2UINT(value)); */
   /*
    * This is a very simple approach for obtaining a hash value. Maybe one
    * needs a more sophisticated approach with wierd endians machines.
    */
   return PTR2UINT(value);
 
-  /*
-    as a reference: tcl's string hash functions
-
-    register unsigned int result;
-    register int c;
-    result = 0;
-
-    for (c=*string++ ; c ; c=*string++) {
-    result += (result<<3) + c;
-    }
-    return result;
-  */
 }
 
 /*
@@ -141,8 +127,6 @@ CompareFunPtrKeys(
   Nsf_AnyFun *existingValue;
 
   memcpy(&existingValue, &hPtr->key.oneWordValue, sizeof(Nsf_AnyFun *));
-
-  //fprintf(stderr, "=== compare new %p existing %p\n", (void *)cmdPtr->proc, (void *)existingValue);
 
   return e->funPtr == existingValue;
 }
@@ -176,11 +160,8 @@ AllocFunPtrEntry(
   if (size < sizeof(Tcl_HashEntry)) {
     size = sizeof(Tcl_HashEntry);
   }
-  /* fprintf(stderr, "=== alloc entry %p\n", (void *)value); */
   hPtr = (Tcl_HashEntry *) ckalloc(size);
 
-  /* fprintf(stderr, "=== trying to copy %ld bytes from %p to %p\n", 
-     sizeof(Nsf_AnyFun *), (void *)value, &hPtr->key.oneWordValue); */
   memcpy(&hPtr->key.oneWordValue, &value, sizeof(Nsf_AnyFun *));
 
   hPtr->clientData = 0;

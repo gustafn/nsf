@@ -66,8 +66,6 @@ Nsf_CmdDefinitionInit(Tcl_Interp *interp) {
   NsfMutexLock(&cmdDefinitonMutex);
 
   if (cmdDefinitonRefCount == 0) {
-    /* Tcl_InitHashTable(cmdDefinitonHashTablePtr, TCL_ONE_WORD_KEYS); */
-    /* Tcl_InitCustomHashTable(cmdDefinitonHashTablePtr, TCL_CUSTOM_PTR_KEYS, &cmdPtrHashKeyType); */
     Nsf_InitFunPtrHashTable(cmdDefinitonHashTablePtr);
   }
   cmdDefinitonRefCount++;
@@ -124,8 +122,6 @@ Nsf_CmdDefinitionGet(Tcl_ObjCmdProc *proc) {
 
   nonnull_assert(proc != NULL);
 
-  //fprintf(stderr, "=== Lookup proc %p\n", proc);
-
   NsfMutexLock(&cmdDefinitonMutex);
   hPtr = Nsf_FindFunPtrHashEntry(cmdDefinitonHashTablePtr, (Nsf_AnyFun *)proc);
   NsfMutexUnlock(&cmdDefinitonMutex);
@@ -157,16 +153,12 @@ static int
 Register(Tcl_Interp *interp, Nsf_methodDefinition *methodDefinition) {
   Tcl_HashEntry *hPtr;
   int isNew;
-  /* cmdPtrEntry_t cmdEntry; */
 
   nonnull_assert(interp != NULL);
   nonnull_assert(methodDefinition != NULL);
 
-  /* fprintf(stderr, "=== Register proc %p with name %s\n", 
-     methodDefinition->proc, methodDefinition->methodName); */
-  /* cmdEntry.proc = methodDefinition->proc; */
   NsfMutexLock(&cmdDefinitonMutex);
-  hPtr = Nsf_CreateFunPtrHashEntry(cmdDefinitonHashTablePtr, (Nsf_AnyFun *)methodDefinition->proc, &isNew); /* Tcl_CreateHashEntry(cmdDefinitonHashTablePtr, (const char *)&cmdEntry, &isNew);*/
+  hPtr = Nsf_CreateFunPtrHashEntry(cmdDefinitonHashTablePtr, (Nsf_AnyFun *)methodDefinition->proc, &isNew); 
   NsfMutexUnlock(&cmdDefinitonMutex);
   
   if (isNew != 0) {

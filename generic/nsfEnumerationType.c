@@ -65,7 +65,6 @@ Nsf_EnumerationTypeInit(Tcl_Interp *interp) {
   NsfMutexLock(&enumerationMutex);
 
   if (enumerationTypeRefCount == 0) {
-    /* Tcl_InitHashTable(enumerationHashTablePtr, TCL_STRING_KEYS); */
     Nsf_InitFunPtrHashTable(enumerationHashTablePtr);
   }
   enumerationTypeRefCount++;
@@ -130,16 +129,6 @@ Nsf_EnumerationTypeGetDomain(Nsf_TypeConverter *converter) {
 
   NsfMutexLock(&enumerationMutex);
   hPtr = Nsf_FindFunPtrHashEntry(enumerationHashTablePtr, (Nsf_AnyFun *)converter);
-  /* for (hPtr = Tcl_FirstHashEntry(enumerationHashTablePtr, &hSrch); hPtr != NULL;
-       hPtr = Tcl_NextHashEntry(&hSrch)) {
-    Nsf_TypeConverter *ptr = (Nsf_TypeConverter *)Tcl_GetHashValue(hPtr);
-
-    if (ptr == converter) {
-      domain = Tcl_GetHashKey(enumerationHashTablePtr, hPtr);
-      break;
-    }
-  }
-  */
   NsfMutexUnlock(&enumerationMutex);
 
   if (hPtr != NULL) {
@@ -174,7 +163,6 @@ Register(Tcl_Interp *interp, const char *domain, Nsf_TypeConverter *converter) {
 
   NsfMutexLock(&enumerationMutex);
   hPtr = Nsf_CreateFunPtrHashEntry(enumerationHashTablePtr, (Nsf_AnyFun *)converter, &isNew);
-  /* hPtr = Tcl_CreateHashEntry(enumerationHashTablePtr, domain, &isNew); */
   NsfMutexUnlock(&enumerationMutex);
 
   if (isNew != 0) {
