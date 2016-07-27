@@ -715,8 +715,9 @@ nsfUtil.$(OBJEXT): $(src_generic_dir)/nsfUtil.c $(PKG_HEADERS)
 # Target to regenerate header files and stub files from the *.decls tables.
 #
 
-TCL_SRC_DIR_85=/usr/local/src/tcl8.5.17
-TCL_SRC_DIR_86=/usr/local/src/tcl8.6.2
+TCL_SRC_DIR_85=/usr/local/src/tcl8.5.19
+TCL_SRC_DIR_86=/usr/local/src/core-8-6-6-rc
+TCL_SRC_DIR_87=/usr/local/src/tcl-trunk
 
 genstubs:
 	mkdir -p $(src_generic_dir)/stubs8.5
@@ -724,6 +725,9 @@ genstubs:
 		$(src_generic_dir)/nsf.decls $(src_generic_dir)/nsfInt.decls
 	mkdir -p $(src_generic_dir)/stubs8.6
 	tclsh8.6 $(TCL_SRC_DIR_86)/tools/genStubs.tcl $(src_generic_dir)/stubs8.6 \
+		$(src_generic_dir)/nsf.decls $(src_generic_dir)/nsfInt.decls
+	mkdir -p $(src_generic_dir)/stubs8.7
+	tclsh8.7 $(TCL_SRC_DIR_87)/tools/genStubs.tcl $(src_generic_dir)/stubs8.7 \
 		$(src_generic_dir)/nsf.decls $(src_generic_dir)/nsfInt.decls
 
 getstubs:
