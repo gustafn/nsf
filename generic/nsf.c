@@ -16479,9 +16479,11 @@ NsfProcStubDeleteProc(ClientData clientData) {
 
   DECR_REF_COUNT2("procNameObj", tcd->procName);
   if (tcd->cmd != NULL) {
-    /* Re-wire the original namespace into the shadowed cmd, to prevent
-       namespace references from becoming dangling and to keep the involved
-       namespaces' refcount books balanced. */
+    /*
+     * Re-wire the original namespace into the shadowed cmd, to prevent
+     * namespace references from becoming dangling and to keep the involved
+     * namespaces' refcount books balanced.
+     */
     ((Command *)tcd->cmd)->nsPtr = (Namespace *)tcd->origNsPtr;
     NSNamespaceRelease(tcd->origNsPtr);
     NsfCommandRelease(tcd->cmd);
@@ -16903,8 +16905,10 @@ NsfProcAdd(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
     Tcl_Command procCmd = Tcl_GetCommandFromObj(interp, procNameObj);
 
     assert(procCmd != NULL);
-    /* Preserve the shadowed cmd's original namespace (::nsf::procs::*) for
-       later re-wiring in NsfProcStubDeleteProc() */
+    /*
+     * Preserve the shadowed cmd's original namespace (::nsf::procs::*) for
+     * later re-wiring in NsfProcStubDeleteProc()
+     */
     tcd->origNsPtr = Tcl_Command_nsPtr(procCmd);
     NSNamespacePreserve(tcd->origNsPtr);
     ((Command *)procCmd)->nsPtr = (Namespace *)cmdNsPtr;
