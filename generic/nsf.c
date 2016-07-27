@@ -16843,8 +16843,6 @@ NsfProcAdd(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
   tcd->cmd = NULL;
   tcd->wrapperCmd = cmd;  /* TODO should we preserve? */
 
-  //assert(paramDefs != NULL);
-
   /*fprintf(stderr, "NsfProcAdd %s tcd %p paramdefs %p\n",
     ObjStr(procNameObj), tcd, tcd->paramDefs);*/
 
@@ -22932,9 +22930,6 @@ ListMethod(Tcl_Interp *interp,
           EXTERN Tcl_Obj *Tcl_DisassembleByteCodeObj(Tcl_Interp *interp, Tcl_Obj *objPtr);
 
           Tcl_SetObjResult(interp, Tcl_DisassembleByteCodeObj(interp, procPtr->bodyPtr));
-          //ByteCode *codePtr = (ByteCode*)(procPtr->bodyPtr->internalRep.twoPtrValue.ptr1);
-          //char*p=NULL; *p=1;
-          // p codePtr->objArrayPtr[8]
       }
       break;
 #endif
@@ -25270,9 +25265,9 @@ NsfParseArgsCmd(Tcl_Interp *interp, Tcl_Obj *argspecObj, Tcl_Obj *arglistObj) {
   if (likely(result == TCL_OK)) {
     ParseContext  pc;
     NsfParamDefs *paramDefs = parsedParam.paramDefs;
-    ParamDefsRefCountIncr(paramDefs);
     unsigned int  processFlags = 0u;
 
+    ParamDefsRefCountIncr(paramDefs);
     result = ArgumentParse(interp, objc, objv, NULL, NsfGlobalObjs[NSF_PARSE_ARGS],
                            paramDefs->paramsPtr, paramDefs->nrParams, paramDefs->serial,
                            processFlags|NSF_ARGPARSE_START_ZERO|RUNTIME_STATE(interp)->doCheckArguments,
