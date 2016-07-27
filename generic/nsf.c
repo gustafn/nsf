@@ -5195,7 +5195,9 @@ InterpColonCmdResolver(Tcl_Interp *interp, const char *cmdName, Tcl_Namespace *U
       NsfObjectSystem *osPtr;
 
       if ((frameFlags & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) != 0u) {
-        object = ((NsfCallStackContent *)varFramePtr->clientData)->self;
+        NsfCallStackContent *cscPtr = (NsfCallStackContent *)varFramePtr->clientData;
+        assert(cscPtr != NULL);
+        object = cscPtr->self;
       } else if ((frameFlags & (FRAME_IS_NSF_OBJECT)) != 0u) {
         object = (NsfObject *)(varFramePtr->clientData);
       } else {
