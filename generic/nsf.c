@@ -1878,6 +1878,8 @@ GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
       /*fprintf(stderr, "..... final cmd %p, cls %p\n", cmd , cls);*/
       if (nameObj != objPtr) {
         DECR_REF_COUNT(nameObj);
+        /* Make objName pointing to an intact value beyond this point */
+        objName = ObjStr(objPtr);
       }
     }
 #endif
