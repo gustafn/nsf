@@ -9957,32 +9957,37 @@ static void FilterSearchAgain(Tcl_Interp *interp, NsfCmdList **filters,
 static void
 FilterSearchAgain(Tcl_Interp *interp, NsfCmdList **filters,
                   NsfObject *startingObject, NsfClass *startingClass) {
-  NsfCmdList *cmdList, *del;
+  NsfCmdList *cmdList = NULL, *del = NULL;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(filters != NULL);
 
   CmdListRemoveDeleted(filters, GuardDel);
-  for (cmdList = *filters; cmdList; cmdList = cmdList->nextPtr) {
+  cmdList = *filters;
+  
+  while (cmdList != NULL) {
     NsfClass *cl = NULL;
     const char *simpleName = Tcl_GetCommandName(interp, cmdList->cmdPtr);
-    Tcl_Command cmd = FilterSearch(simpleName, startingObject, startingClass, &cl);
+    Tcl_Command cmd = FilterSearch(simpleName, startingObject, startingClass,
+                                   &cl);
 
     if (cmd == NULL) {
       del = CmdListRemoveFromList(filters, cmdList);
-      CmdListDeleteCmdListEntry(del, GuardDel);
+      /* actual deletion via CmdListDeleteCmdListEntry is deferred to the end
+         of the loop block, otherwise for del == cmdList, we risk running into
+         an invalid pointer access. */
     } else if (cmd != cmdList->cmdPtr) {
       CmdListReplaceCmd(cmdList, cmd, cl);
     }
+
+    cmdList = cmdList->nextPtr;
+
+    if (del != NULL) {
+      CmdListDeleteCmdListEntry(del, GuardDel);
+      del = NULL;
+    }
   }
-
-  /*
-   * some entries might be NULL now, if they are not found anymore
-   *  -> delete those
-   *  CmdListRemoveNulledEntries(filters, GuardDel);
-   */
 }
-
 
 /*
  *----------------------------------------------------------------------
