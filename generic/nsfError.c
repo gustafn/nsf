@@ -452,7 +452,7 @@ NsfUnexpectedNonposArgumentError(Tcl_Interp *interp,
   Tcl_DStringAppend(dsPtr, "invalid non-positional argument '", -1);
   Tcl_DStringAppend(dsPtr, argumentString, -1);
   Tcl_DStringAppend(dsPtr, "', valid are : ", -1);
-  for (pPtr = currentParamPtr; pPtr->name && *pPtr->name == '-'; pPtr ++) {
+  for (pPtr = currentParamPtr; (pPtr->name != NULL) && (*pPtr->name == '-'); pPtr ++) {
     if (pPtr->flags & NSF_ARG_NOCONFIG) {
       continue;
     }

@@ -421,7 +421,7 @@ typedef struct NsfCmdList {
   struct NsfCmdList *nextPtr;
 } NsfCmdList;
 
-typedef void (NsfFreeCmdListClientData) _ANSI_ARGS_((NsfCmdList*));
+typedef void (NsfFreeCmdListClientData) (NsfCmdList*);
 
 /* for incr string */
 typedef struct NsfStringIncrStruct {
@@ -1056,7 +1056,7 @@ EXTERN void NsfProfileTraceCallAppend(Tcl_Interp *interp, const char *label)
 EXTERN void NsfProfileTraceExitAppend(Tcl_Interp *interp, const char *label, double duration)
   nonnull(1) nonnull(2);
 
-EXTERN NsfCallStackContent *NsfCallStackGetTopFrame(Tcl_Interp *interp, Tcl_CallFrame **framePtrPtr)
+EXTERN NsfCallStackContent *NsfCallStackGetTopFrame(const Tcl_Interp *interp, Tcl_CallFrame **framePtrPtr)
   nonnull(1);
 #endif
 

@@ -63,19 +63,19 @@ declare 2 generic {
   struct Nsf_Class *NsfIsClass(Tcl_Interp *interp, ClientData cd)
 }
 declare 3 generic {
-  struct Nsf_Object *NsfGetObject(Tcl_Interp *interp, CONST char *name)
+  struct Nsf_Object *NsfGetObject(Tcl_Interp *interp, const char *name)
 }
 declare 4 generic {
-  struct Nsf_Class *NsfGetClass(Tcl_Interp *interp, CONST char *name)
+  struct Nsf_Class *NsfGetClass(Tcl_Interp *interp, const char *name)
 }
 declare 5 generic {
   int NsfDeleteObject(Tcl_Interp *interp, struct Nsf_Object *object)
 }
 declare 6 generic {
-  int NsfRemoveObjectMethod(Tcl_Interp *interp, struct Nsf_Object *object, CONST char *nm)
+  int NsfRemoveObjectMethod(Tcl_Interp *interp, struct Nsf_Object *object, const char *nm)
 }
 declare 7 generic {
-  int NsfRemoveClassMethod(Tcl_Interp *interp, struct Nsf_Class *cl, CONST char *nm)
+  int NsfRemoveClassMethod(Tcl_Interp *interp, struct Nsf_Class *cl, const char *nm)
 }
 declare 8 generic {
   Tcl_Obj *Nsf_ObjSetVar2(struct Nsf_Object *object,
@@ -89,21 +89,21 @@ declare 9 generic {
 }
 declare 10 generic {
   int Nsf_UnsetVar2(struct Nsf_Object *object, Tcl_Interp *interp, 
-		    CONST char *name1, CONST char *name2, unsigned int flags)
+		    const char *name1, const char *name2, unsigned int flags)
 }
 declare 11 generic {
-  void NsfDStringVPrintf(Tcl_DString *dsPtr, CONST char *fmt, va_list apSrc)
+  void NsfDStringVPrintf(Tcl_DString *dsPtr, const char *fmt, va_list apSrc)
 }
 declare 12 generic {
-  int NsfPrintError(Tcl_Interp *interp, CONST char *fmt, ...)
+  int NsfPrintError(Tcl_Interp *interp, const char *fmt, ...)
 }
 declare 13 generic {
   int NsfErrInProc (Tcl_Interp *interp, Tcl_Obj *objName,
-		    Tcl_Obj *clName, CONST char *procName)
+		    Tcl_Obj *clName, const char *procName)
 }
 declare 14 generic {
-  int NsfObjErrType(Tcl_Interp *interp, CONST char *context, 
-		    Tcl_Obj *value, CONST char *type, Nsf_Param CONST *pPtr)
+  int NsfObjErrType(Tcl_Interp *interp, const char *context, 
+		    Tcl_Obj *value, const char *type, Nsf_Param const *pPtr)
 }
 declare 15 generic {
   void NsfStackDump (Tcl_Interp *interp)
@@ -149,50 +149,50 @@ declare 25 generic {
 		  unsigned int processFlags, Nsf_ParseContext *pcPtr)
 }
 declare 26 generic {
-  void NsfLog(Tcl_Interp *interp, int requiredLevel, CONST char *fmt, ...)
+  void NsfLog(Tcl_Interp *interp, int requiredLevel, const char *fmt, ...)
 }
 
 declare 27 generic {
-  int Nsf_PointerAdd(Tcl_Interp *interp, char *buffer, CONST char *typeName, void *valuePtr)
+  int Nsf_PointerAdd(Tcl_Interp *interp, char *buffer, const char *typeName, void *valuePtr)
 }
 
 declare 28 generic {
   int Nsf_PointerDelete(CONST char *key, void *valuePtr, int free)
 }
 declare 29 generic {
-  int Nsf_PointerTypeRegister(Tcl_Interp *interp, CONST char* typeName, int *counterPtr)
+  int Nsf_PointerTypeRegister(Tcl_Interp *interp, const char* typeName, int *counterPtr)
 }
 
 declare 30 generic {
-  int Nsf_ConvertToBoolean(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
+  int Nsf_ConvertToBoolean(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
 			   ClientData *clientData, Tcl_Obj **outObjPtr)
 }
 declare 31 generic {
-  int Nsf_ConvertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
+  int Nsf_ConvertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
 			   ClientData *clientData, Tcl_Obj **outObjPtr)
 }
 declare 32 generic {
-  int Nsf_ConvertToInt32(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
+  int Nsf_ConvertToInt32(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
 			   ClientData *clientData, Tcl_Obj **outObjPtr)
 }
 declare 33 generic {
-  int Nsf_ConvertToInteger(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
+  int Nsf_ConvertToInteger(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
 			   ClientData *clientData, Tcl_Obj **outObjPtr)
 }
 declare 34 generic {
-  int Nsf_ConvertToObject(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
+  int Nsf_ConvertToObject(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
 			 ClientData *clientData, Tcl_Obj **outObjPtr)
 }
 declare 35 generic {
-  int Nsf_ConvertToPointer(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
+  int Nsf_ConvertToPointer(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
 			  ClientData *clientData, Tcl_Obj **outObjPtr)
 }
 declare 36 generic {
-  int Nsf_ConvertToString(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
+  int Nsf_ConvertToString(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
 			  ClientData *clientData, Tcl_Obj **outObjPtr)
 }
 declare 37 generic {
-  int Nsf_ConvertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
+  int Nsf_ConvertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
 			  ClientData *clientData, Tcl_Obj **outObjPtr)
 }
 declare 38 generic {
@@ -202,7 +202,7 @@ declare 39 generic {
   int Nsf_CmdDefinitionRegister(Tcl_Interp *interp, Nsf_methodDefinition *definitionRecords)
 }
 declare 40 generic {
-  int NsfArgumentError(Tcl_Interp *interp, CONST char *errorMsg, Nsf_Param CONST *paramPtr,
+  int NsfArgumentError(Tcl_Interp *interp, const char *errorMsg, Nsf_Param const *paramPtr,
 		       Tcl_Obj *cmdNameObj, Tcl_Obj *methodPathObj)
 }
 declare 41 generic {

@@ -5807,6 +5807,15 @@ cmd resolver work
 - extend regression test
 
 - make effects of namespace-imported classes more local
+
+remove various code smells:
+- add const declarations
+- prefer boolean tests
+- don't write "for" loops without a block
+- don't pass non-initialized value in an array on index [0]
+- reduce variable scope
+- prefer single returns statements in functions
+- dont't use CONST unless defined by Tcl-API
 ========================================================================
 TODO:
 
