@@ -5806,6 +5806,7 @@ cmd resolver work
   testing/understanding behavior etc., such a command is helpful).
 - extend regression test
 
+- make effects of namespace-imported classes more local
 ========================================================================
 TODO:
 

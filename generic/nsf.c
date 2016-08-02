@@ -1843,7 +1843,6 @@ GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
 
   if (cmd != NULL) {
     cls = NsfGetClassFromCmdPtr(cmd);
-#if 1
     if (cls == NULL) {
       /*
        * We have a cmd, but no class; namespace-imported classes are already
@@ -1851,23 +1850,27 @@ GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
        * alias".
        */
       Tcl_Interp *alias_interp;
-      const char *alias_cmd_name;
-      Tcl_Obj *nameObj = objPtr;
-      Tcl_Obj **alias_ov;
-      int alias_oc = 0;
+      const char *alias_cmd_name, *qualifiedObjName;
+      Tcl_Obj    *nameObj = objPtr;
+      Tcl_Obj   **alias_ov;
+      int         alias_oc = 0;
 
       if (!isAbsolutePath(objName)) {
         nameObj = NameInNamespaceObj(objName, CallingNameSpace(interp));
-        objName = ObjStr(nameObj);
+        qualifiedObjName = ObjStr(nameObj);
         INCR_REF_COUNT(nameObj);
+      } else {
+        qualifiedObjName = objName;
       }
 
-      result = Tcl_GetAliasObj(interp, objName,
+      result = Tcl_GetAliasObj(interp, qualifiedObjName,
                                &alias_interp, &alias_cmd_name, &alias_oc, &alias_ov);
       Tcl_ResetResult(interp);
 
-      /* we only want interp-aliases with 0 args */
-      if (likely(result == TCL_OK) && alias_oc == 0) {
+      /*
+       * We only want interp-aliases with 0 args
+       */
+      if (likely(result == TCL_OK) && likely(alias_oc == 0)) {
         cmd = NSFindCommand(interp, alias_cmd_name);
         /*fprintf(stderr, "..... alias arg 0 '%s' cmd %p\n", alias_cmd_name, cmd);*/
         if (cmd != NULL) {
@@ -1878,11 +1881,9 @@ GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
       /*fprintf(stderr, "..... final cmd %p, cls %p\n", cmd , cls);*/
       if (nameObj != objPtr) {
         DECR_REF_COUNT(nameObj);
-        /* Make objName pointing to an intact value beyond this point */
-        objName = ObjStr(objPtr);
       }
     }
-#endif
+
     if (likely(cls != NULL)) {
       *clPtr = cls;
       return TCL_OK;
