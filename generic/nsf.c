@@ -31706,9 +31706,12 @@ ExitHandler(ClientData clientData) {
   NsfStringIncrFree(&rst->iss);
 
   /*
-   * Free all data in the pointer converter.
+   * Free all data in the hash tables managing pointer converters,
+   * enumerations, and method definitions.
    */
   Nsf_PointerExit(interp);
+  Nsf_EnumerationTypeRelease(interp);
+  Nsf_CmdDefinitionRelease(interp);
 
 #if defined(NSF_PROFILE)
   NsfProfileFree(interp);
@@ -31753,9 +31756,6 @@ ExitHandler(ClientData clientData) {
     }
   }
 #endif
-
-  Nsf_EnumerationTypeRelease(interp);
-  Nsf_CmdDefinitionRelease(interp);
   
   Tcl_Interp_flags(interp) = flags;
   Tcl_Release(interp);

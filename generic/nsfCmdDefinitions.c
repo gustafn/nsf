@@ -1,8 +1,9 @@
 /*
  * nsfCmdDefinitions.c --
  *
- *      Provide an API for registering method definitions
- *      and obtaining these meta-data for introspection.
+ *      Provide an API for registering method definitions and obtaining these
+ *      meta-data for introspection. Method definitions are shared by all
+ *      threads/interps. Access is governed by a mutex lock.
  *
  * Copyright (C) 2014-2016 Gustaf Neumann
  * Copyright (C) 2016 Stefan Sobernig
