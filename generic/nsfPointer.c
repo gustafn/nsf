@@ -162,7 +162,8 @@ Nsf_PointerGetHptr(void *valuePtr) {
 
   nonnull_assert(valuePtr != NULL);
 
-  for (hPtr = Tcl_FirstHashEntry(pointerHashTablePtr, &hSrch); hPtr;
+  for (hPtr = Tcl_FirstHashEntry(pointerHashTablePtr, &hSrch);
+       hPtr != NULL;
        hPtr = Tcl_NextHashEntry(&hSrch)) {
     void *ptr = Tcl_GetHashValue(hPtr);
     if (ptr == valuePtr) {
@@ -198,7 +199,8 @@ Nsf_PointerDelete(const char *key, void *valuePtr, int free) {
   nonnull_assert(valuePtr != NULL);
 
   NsfMutexLock(&pointerMutex);
-  hPtr = (key != NULL) ? Tcl_CreateHashEntry(pointerHashTablePtr, key, NULL)
+  hPtr = (key != NULL)
+    ? Tcl_CreateHashEntry(pointerHashTablePtr, key, NULL)
     : Nsf_PointerGetHptr(valuePtr);
   if (hPtr != NULL) {
     if (free != 0) {
@@ -313,7 +315,7 @@ Nsf_PointerTypeRegister(Tcl_Interp *interp, const char* typeName, int *counterPt
 
 void *
 Nsf_PointerTypeLookup(Tcl_Interp *interp, const char* typeName) {
-  Tcl_HashEntry *hPtr;
+  const Tcl_HashEntry *hPtr;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(typeName != NULL);
@@ -386,12 +388,13 @@ Nsf_PointerExit(Tcl_Interp *interp) {
 
     if (RUNTIME_STATE(interp)->debugLevel >= 2) {
       Tcl_HashSearch hSrch;
-      Tcl_HashEntry *hPtr;
+      const Tcl_HashEntry *hPtr;
 
-      for (hPtr = Tcl_FirstHashEntry(pointerHashTablePtr, &hSrch); hPtr;
+      for (hPtr = Tcl_FirstHashEntry(pointerHashTablePtr, &hSrch);
+           hPtr != NULL;
 	   hPtr = Tcl_NextHashEntry(&hSrch)) {
-	char *key = Tcl_GetHashKey(pointerHashTablePtr, hPtr);
-	void *valuePtr = Tcl_GetHashValue(hPtr);
+	const char *key      = Tcl_GetHashKey(pointerHashTablePtr, hPtr);
+	const void *valuePtr = Tcl_GetHashValue(hPtr);
 
 	/*
 	 * We can't use NsfLog here any more, since the Tcl procs are

@@ -223,7 +223,7 @@ NsfStringIncrInit(NsfStringIncrStruct *iss) {
 
   nonnull_assert(iss != NULL);
 
-  for (p=alphabet; *p; p++) {
+  for (p=alphabet; *p != '\0'; p++) {
     chartable[(int)*p] = ++i;
   }
 
