@@ -1,8 +1,9 @@
 /*
  * nsfEnumerationType.c --
  *
- *      Provide an API for registering enumeration types
- *      and obtaining their domains.
+ *      Provide an API for registering enumeration types and obtaining their
+ *      domains. Enumeration types are shared by all threads/interps. Access
+ *      is governed by a mutex lock.
  *
  * Copyright (C) 2014 Gustaf Neumann
  * Copyright (C) 2016 Stefan Sobernig
@@ -71,6 +72,36 @@ Nsf_EnumerationTypeInit(Tcl_Interp *interp) {
 
   NsfMutexUnlock(&enumerationMutex);
 }
+
+/*
+ *----------------------------------------------------------------------
+ * Nsf_EnumerationTypeRelease --
+ *
+ *    Release and, eventually, delete the hash table for enumeration-type
+ *    converters.
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+void
+Nsf_EnumerationTypeRelease(Tcl_Interp *interp) {
+
+  nonnull_assert(interp != NULL);
+
+  NsfMutexLock(&enumerationMutex);
+
+  if (--enumerationTypeRefCount < 1) {
+    Tcl_DeleteHashTable(enumerationHashTablePtr);
+  }
+
+  NsfMutexUnlock(&enumerationMutex);
+}
+
 
 /*
  *----------------------------------------------------------------------

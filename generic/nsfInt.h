@@ -1240,6 +1240,9 @@ EXTERN Tcl_HashEntry *Nsf_FindFunPtrHashEntry(Tcl_HashTable *tablePtr, Nsf_AnyFu
 EXTERN void Nsf_EnumerationTypeInit(Tcl_Interp *interp)
   nonnull(1);
 
+EXTERN void Nsf_EnumerationTypeRelease(Tcl_Interp *interp)
+  nonnull(1);
+
 EXTERN const char *Nsf_EnumerationTypeGetDomain(Nsf_TypeConverter *converter)
   nonnull(1);
 
@@ -1247,6 +1250,9 @@ EXTERN const char *Nsf_EnumerationTypeGetDomain(Nsf_TypeConverter *converter)
  * NSF command definitions interface
  */
 EXTERN void Nsf_CmdDefinitionInit(Tcl_Interp *interp)
+  nonnull(1);
+
+EXTERN void Nsf_CmdDefinitionRelease(Tcl_Interp *interp)
   nonnull(1);
 
 EXTERN Nsf_methodDefinition *Nsf_CmdDefinitionGet(Tcl_ObjCmdProc *proc)

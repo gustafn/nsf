@@ -56,6 +56,7 @@ static unsigned int FunPtrKey(Tcl_HashTable *tablePtr, VOID *keyPtr);
 static int CompareFunPtrKeys(VOID *keyPtr, Tcl_HashEntry *hPtr);
 static Tcl_HashEntry *AllocFunPtrEntry(Tcl_HashTable *tablePtr, VOID *keyPtr);
 
+
 typedef struct funPtrEntry_t {
   Nsf_AnyFun *funPtr;
 } funPtrEntry_t;
@@ -66,7 +67,7 @@ static Tcl_HashKeyType funPtrHashKeyType = {
   FunPtrKey,         /* hashKeyProc*/
   CompareFunPtrKeys, /* compareKeysProc */
   AllocFunPtrEntry,  /* allocEntryProc */
-  NULL,              /* freeEntryProc */
+  NULL               /* freeEntryProc */
 };
 
 /*
@@ -168,6 +169,7 @@ AllocFunPtrEntry(
 
   return hPtr;
 }
+
 
 /*
  *----------------------------------------------------------------------
