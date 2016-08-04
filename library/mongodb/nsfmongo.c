@@ -1340,7 +1340,8 @@ cmd gridfile::create NsfMongoGridFileCreate {
 }
 */
 static int
-NsfMongoGridFileCreate(Tcl_Interp *interp, int withSource,
+NsfMongoGridFileCreate(Tcl_Interp *interp,
+                       GridfilesourceIdx_t withSource,
 		       mongoc_gridfs_t *gridfsPtr,
 		       CONST char *value, CONST char *name,
 		       CONST char *contenttype,

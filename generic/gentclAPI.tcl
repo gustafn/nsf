@@ -53,7 +53,7 @@ proc createconverter {type typename} {
   set enums [list ${name}NULL]
   foreach d $domain {lappend enums $name[string totitle [string map [list - _] $d]]Idx}
   subst {
-enum ${name}Idx {[join $enums {, }]};
+typedef enum {[join $enums {, }]} ${name}Idx_t;
 
 static int ConvertTo${name}(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
@@ -105,7 +105,6 @@ proc genifd {parameterDefinitions} {
 	if {![info exists (-typeName)]} {set (-typeName) $(-argName)}
         set converter [convertername $type $(-typeName)]
         append ::converter [createconverter $type $(-typeName)]
-        set (-argName) $type
         addFlags flags "NSF_ARG_IS_ENUMERATION"
       }
       default {
@@ -183,7 +182,9 @@ proc gencall {methodName fn parameterDefinitions clientData
     set cVar 1
     set (-argName) [string map [list - _] $(-argName)]
     if {[regexp {^_(.*)$} $(-argName) _ switchName]} {
+      #
       # non positional args
+      #
       set varName with[string totitle $switchName]
       set calledArg $varName
       set type "int "
@@ -196,11 +197,18 @@ proc gencall {methodName fn parameterDefinitions clientData
           "int"        {set type "Tcl_Obj *"}
           "int32"      {set type "int "}
           "boolean"    {set type "int "}
-          "*|*"        {set type "int "}
+          "*|*"        {
+            if {![info exists (-typeName)]} {set (-typeName) $(-argName)}
+            set type "[convertername $(-type) $(-typeName)]Idx_t "
+            #puts stderr "nonpos: (-typeName) <$(-typeName)> (-type) <$(-type)>    ==> type=<$type>"
+          }
           default      {error "type '$(-type)' not allowed for parameter"}
         }
       }
     } else {
+      #
+      # positionals
+      #
       set varName $(-argName)
       set calledArg $varName
       switch -glob $(-type) {
@@ -249,7 +257,10 @@ proc gencall {methodName fn parameterDefinitions clientData
           append cleanup \n$post
 	  # end of obj pattern
         }
-        *|* {set type "int "}
+        *|* {
+          if {![info exists (-typeName)]} {set (-typeName) $(-argName)}
+          set type "[convertername $(-type) $(-typeName)]Idx_t "
+        }
         default  {
 	  if {[info exists ::ptrConverter($(-type))]} {
 	    set type "$(-type) *"
@@ -272,7 +283,7 @@ proc gencall {methodName fn parameterDefinitions clientData
     }
     if {!$ifSet} {lappend if "$type$varName"}
     if {$cVar} {
-      if {$type eq "int "} {
+      if {$type eq "int " || [string match "*Idx " $type]} {
         lappend c [subst -nocommands {$type$varName = ($type)PTR2INT(pc.clientData[$i]);}]
       } else {
         lappend c [subst -nocommands {$type$varName = ($type)pc.clientData[$i];}]

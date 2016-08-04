@@ -64,7 +64,7 @@ int Nsf_ConvertTo_Tclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *
 
 
 
-enum InfomethodsubcmdIdx {InfomethodsubcmdNULL, InfomethodsubcmdArgsIdx, InfomethodsubcmdBodyIdx, InfomethodsubcmdDefinitionIdx, InfomethodsubcmdExistsIdx, InfomethodsubcmdRegistrationhandleIdx, InfomethodsubcmdDefinitionhandleIdx, InfomethodsubcmdOriginIdx, InfomethodsubcmdParameterIdx, InfomethodsubcmdSyntaxIdx, InfomethodsubcmdTypeIdx, InfomethodsubcmdPreconditionIdx, InfomethodsubcmdPostconditionIdx, InfomethodsubcmdSubmethodsIdx, InfomethodsubcmdReturnsIdx};
+typedef enum {InfomethodsubcmdNULL, InfomethodsubcmdArgsIdx, InfomethodsubcmdBodyIdx, InfomethodsubcmdDefinitionIdx, InfomethodsubcmdExistsIdx, InfomethodsubcmdRegistrationhandleIdx, InfomethodsubcmdDefinitionhandleIdx, InfomethodsubcmdOriginIdx, InfomethodsubcmdParameterIdx, InfomethodsubcmdSyntaxIdx, InfomethodsubcmdTypeIdx, InfomethodsubcmdPreconditionIdx, InfomethodsubcmdPostconditionIdx, InfomethodsubcmdSubmethodsIdx, InfomethodsubcmdReturnsIdx} InfomethodsubcmdIdx_t;
 
 static int ConvertToInfomethodsubcmd(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
@@ -77,20 +77,20 @@ static int ConvertToInfomethodsubcmd(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Pa
   return result;
 }
   
-enum CallprotectionIdx {CallprotectionNULL, CallprotectionAllIdx, CallprotectionPublicIdx, CallprotectionProtectedIdx, CallprotectionPrivateIdx};
+typedef enum {CallprotectionNULL, CallprotectionAllIdx, CallprotectionPublicIdx, CallprotectionProtectedIdx, CallprotectionPrivateIdx} CallprotectionIdx_t;
 
 static int ConvertToCallprotection(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
   static const char *opts[] = {"all", "public", "protected", "private", NULL};
   (void)pPtr;
-  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "-callprotection", 0, &index);
+  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "callprotection", 0, &index);
   *clientData = (ClientData) INT2PTR(index + 1);
   *outObjPtr = objPtr;
   return result;
 }
   
-enum MethodtypeIdx {MethodtypeNULL, MethodtypeAllIdx, MethodtypeScriptedIdx, MethodtypeBuiltinIdx, MethodtypeAliasIdx, MethodtypeForwarderIdx, MethodtypeObjectIdx, MethodtypeSetterIdx, MethodtypeNsfprocIdx};
+typedef enum {MethodtypeNULL, MethodtypeAllIdx, MethodtypeScriptedIdx, MethodtypeBuiltinIdx, MethodtypeAliasIdx, MethodtypeForwarderIdx, MethodtypeObjectIdx, MethodtypeSetterIdx, MethodtypeNsfprocIdx} MethodtypeIdx_t;
 
 static int ConvertToMethodtype(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
@@ -103,33 +103,33 @@ static int ConvertToMethodtype(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param co
   return result;
 }
   
-enum SourceIdx {SourceNULL, SourceAllIdx, SourceApplicationIdx, SourceSystemIdx};
+typedef enum {DefinitionsourceNULL, DefinitionsourceAllIdx, DefinitionsourceApplicationIdx, DefinitionsourceSystemIdx} DefinitionsourceIdx_t;
 
-static int ConvertToSource(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
+static int ConvertToDefinitionsource(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
   static const char *opts[] = {"all", "application", "system", NULL};
   (void)pPtr;
-  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "-source", 0, &index);
+  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "definitionsource", 0, &index);
   *clientData = (ClientData) INT2PTR(index + 1);
   *outObjPtr = objPtr;
   return result;
 }
   
-enum ScopeIdx {ScopeNULL, ScopeAllIdx, ScopeClassIdx, ScopeObjectIdx};
+typedef enum {MixinscopeNULL, MixinscopeAllIdx, MixinscopeClassIdx, MixinscopeObjectIdx} MixinscopeIdx_t;
 
-static int ConvertToScope(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
+static int ConvertToMixinscope(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
   static const char *opts[] = {"all", "class", "object", NULL};
   (void)pPtr;
-  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "-scope", 0, &index);
+  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "mixinscope", 0, &index);
   *clientData = (ClientData) INT2PTR(index + 1);
   *outObjPtr = objPtr;
   return result;
 }
   
-enum ConfigureoptionIdx {ConfigureoptionNULL, ConfigureoptionDebugIdx, ConfigureoptionDtraceIdx, ConfigureoptionFilterIdx, ConfigureoptionProfileIdx, ConfigureoptionTraceIdx, ConfigureoptionSoftrecreateIdx, ConfigureoptionObjectsystemsIdx, ConfigureoptionKeepcmdsIdx, ConfigureoptionCheckresultsIdx, ConfigureoptionCheckargumentsIdx};
+typedef enum {ConfigureoptionNULL, ConfigureoptionDebugIdx, ConfigureoptionDtraceIdx, ConfigureoptionFilterIdx, ConfigureoptionProfileIdx, ConfigureoptionTraceIdx, ConfigureoptionSoftrecreateIdx, ConfigureoptionObjectsystemsIdx, ConfigureoptionKeepcmdsIdx, ConfigureoptionCheckresultsIdx, ConfigureoptionCheckargumentsIdx} ConfigureoptionIdx_t;
 
 static int ConvertToConfigureoption(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
@@ -142,7 +142,7 @@ static int ConvertToConfigureoption(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Par
   return result;
 }
   
-enum CurrentoptionIdx {CurrentoptionNULL, CurrentoptionProcIdx, CurrentoptionMethodIdx, CurrentoptionMethodpathIdx, CurrentoptionObjectIdx, CurrentoptionClassIdx, CurrentoptionActivelevelIdx, CurrentoptionArgsIdx, CurrentoptionActivemixinIdx, CurrentoptionCalledprocIdx, CurrentoptionCalledmethodIdx, CurrentoptionCalledclassIdx, CurrentoptionCallingprocIdx, CurrentoptionCallingmethodIdx, CurrentoptionCallingclassIdx, CurrentoptionCallinglevelIdx, CurrentoptionCallingobjectIdx, CurrentoptionFilterregIdx, CurrentoptionIsnextcallIdx, CurrentoptionNextmethodIdx};
+typedef enum {CurrentoptionNULL, CurrentoptionProcIdx, CurrentoptionMethodIdx, CurrentoptionMethodpathIdx, CurrentoptionObjectIdx, CurrentoptionClassIdx, CurrentoptionActivelevelIdx, CurrentoptionArgsIdx, CurrentoptionActivemixinIdx, CurrentoptionCalledprocIdx, CurrentoptionCalledmethodIdx, CurrentoptionCalledclassIdx, CurrentoptionCallingprocIdx, CurrentoptionCallingmethodIdx, CurrentoptionCallingclassIdx, CurrentoptionCallinglevelIdx, CurrentoptionCallingobjectIdx, CurrentoptionFilterregIdx, CurrentoptionIsnextcallIdx, CurrentoptionNextmethodIdx} CurrentoptionIdx_t;
 
 static int ConvertToCurrentoption(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
@@ -155,20 +155,20 @@ static int ConvertToCurrentoption(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param
   return result;
 }
   
-enum FrameIdx {FrameNULL, FrameMethodIdx, FrameObjectIdx, FrameDefaultIdx};
+typedef enum {FrameNULL, FrameMethodIdx, FrameObjectIdx, FrameDefaultIdx} FrameIdx_t;
 
 static int ConvertToFrame(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
   static const char *opts[] = {"method", "object", "default", NULL};
   (void)pPtr;
-  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "-frame", 0, &index);
+  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "frame", 0, &index);
   *clientData = (ClientData) INT2PTR(index + 1);
   *outObjPtr = objPtr;
   return result;
 }
   
-enum ForwardpropertyIdx {ForwardpropertyNULL, ForwardpropertyPrefixIdx, ForwardpropertyTargetIdx, ForwardpropertyVerboseIdx};
+typedef enum {ForwardpropertyNULL, ForwardpropertyPrefixIdx, ForwardpropertyTargetIdx, ForwardpropertyVerboseIdx} ForwardpropertyIdx_t;
 
 static int ConvertToForwardproperty(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
@@ -181,20 +181,20 @@ static int ConvertToForwardproperty(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Par
   return result;
 }
   
-enum ProtectionIdx {ProtectionNULL, ProtectionCall_protectedIdx, ProtectionRedefine_protectedIdx, ProtectionNoneIdx};
+typedef enum {ProtectionNULL, ProtectionCall_protectedIdx, ProtectionRedefine_protectedIdx, ProtectionNoneIdx} ProtectionIdx_t;
 
 static int ConvertToProtection(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
   static const char *opts[] = {"call-protected", "redefine-protected", "none", NULL};
   (void)pPtr;
-  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "-protection", 0, &index);
+  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "protection", 0, &index);
   *clientData = (ClientData) INT2PTR(index + 1);
   *outObjPtr = objPtr;
   return result;
 }
   
-enum AssertionsubcmdIdx {AssertionsubcmdNULL, AssertionsubcmdCheckIdx, AssertionsubcmdObject_invarIdx, AssertionsubcmdClass_invarIdx};
+typedef enum {AssertionsubcmdNULL, AssertionsubcmdCheckIdx, AssertionsubcmdObject_invarIdx, AssertionsubcmdClass_invarIdx} AssertionsubcmdIdx_t;
 
 static int ConvertToAssertionsubcmd(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
@@ -207,7 +207,7 @@ static int ConvertToAssertionsubcmd(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Par
   return result;
 }
   
-enum MethodpropertyIdx {MethodpropertyNULL, MethodpropertyClass_onlyIdx, MethodpropertyCall_privateIdx, MethodpropertyCall_protectedIdx, MethodpropertyDebugIdx, MethodpropertyDeprecatedIdx, MethodpropertyExistsIdx, MethodpropertyRedefine_protectedIdx, MethodpropertyReturnsIdx};
+typedef enum {MethodpropertyNULL, MethodpropertyClass_onlyIdx, MethodpropertyCall_privateIdx, MethodpropertyCall_protectedIdx, MethodpropertyDebugIdx, MethodpropertyDeprecatedIdx, MethodpropertyExistsIdx, MethodpropertyRedefine_protectedIdx, MethodpropertyReturnsIdx} MethodpropertyIdx_t;
 
 static int ConvertToMethodproperty(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
@@ -220,7 +220,7 @@ static int ConvertToMethodproperty(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Para
   return result;
 }
   
-enum ObjectpropertyIdx {ObjectpropertyNULL, ObjectpropertyInitializedIdx, ObjectpropertyClassIdx, ObjectpropertyRootmetaclassIdx, ObjectpropertyRootclassIdx, ObjectpropertyVolatileIdx, ObjectpropertySlotcontainerIdx, ObjectpropertyHasperobjectslotsIdx, ObjectpropertyKeepcallerselfIdx, ObjectpropertyPerobjectdispatchIdx};
+typedef enum {ObjectpropertyNULL, ObjectpropertyInitializedIdx, ObjectpropertyClassIdx, ObjectpropertyRootmetaclassIdx, ObjectpropertyRootclassIdx, ObjectpropertyVolatileIdx, ObjectpropertySlotcontainerIdx, ObjectpropertyHasperobjectslotsIdx, ObjectpropertyKeepcallerselfIdx, ObjectpropertyPerobjectdispatchIdx} ObjectpropertyIdx_t;
 
 static int ConvertToObjectproperty(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
@@ -233,7 +233,7 @@ static int ConvertToObjectproperty(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Para
   return result;
 }
   
-enum ParametersubcmdIdx {ParametersubcmdNULL, ParametersubcmdDefaultIdx, ParametersubcmdListIdx, ParametersubcmdNameIdx, ParametersubcmdSyntaxIdx, ParametersubcmdTypeIdx};
+typedef enum {ParametersubcmdNULL, ParametersubcmdDefaultIdx, ParametersubcmdListIdx, ParametersubcmdNameIdx, ParametersubcmdSyntaxIdx, ParametersubcmdTypeIdx} ParametersubcmdIdx_t;
 
 static int ConvertToParametersubcmd(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
@@ -246,7 +246,7 @@ static int ConvertToParametersubcmd(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Par
   return result;
 }
   
-enum RelationtypeIdx {RelationtypeNULL, RelationtypeObject_mixinIdx, RelationtypeClass_mixinIdx, RelationtypeObject_filterIdx, RelationtypeClass_filterIdx, RelationtypeClassIdx, RelationtypeSuperclassIdx, RelationtypeRootclassIdx};
+typedef enum {RelationtypeNULL, RelationtypeObject_mixinIdx, RelationtypeClass_mixinIdx, RelationtypeObject_filterIdx, RelationtypeClass_filterIdx, RelationtypeClassIdx, RelationtypeSuperclassIdx, RelationtypeRootclassIdx} RelationtypeIdx_t;
 
 static int ConvertToRelationtype(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
@@ -259,7 +259,7 @@ static int ConvertToRelationtype(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param 
   return result;
 }
   
-enum InfoobjectparametersubcmdIdx {InfoobjectparametersubcmdNULL, InfoobjectparametersubcmdDefinitionsIdx, InfoobjectparametersubcmdListIdx, InfoobjectparametersubcmdNamesIdx, InfoobjectparametersubcmdSyntaxIdx};
+typedef enum {InfoobjectparametersubcmdNULL, InfoobjectparametersubcmdDefinitionsIdx, InfoobjectparametersubcmdListIdx, InfoobjectparametersubcmdNamesIdx, InfoobjectparametersubcmdSyntaxIdx} InfoobjectparametersubcmdIdx_t;
 
 static int ConvertToInfoobjectparametersubcmd(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
@@ -275,7 +275,6 @@ static int ConvertToInfoobjectparametersubcmd(Tcl_Interp *interp, Tcl_Obj *objPt
 
       static Nsf_EnumeratorConverterEntry enumeratorConverterEntries[] = {
   {ConvertToInfoobjectparametersubcmd, "definitions|list|names|syntax"},
-  {ConvertToScope, "all|class|object"},
   {ConvertToInfomethodsubcmd, "args|body|definition|exists|registrationhandle|definitionhandle|origin|parameter|syntax|type|precondition|postcondition|submethods|returns"},
   {ConvertToCallprotection, "all|public|protected|private"},
   {ConvertToMethodtype, "all|scripted|builtin|alias|forwarder|object|setter|nsfproc"},
@@ -283,12 +282,13 @@ static int ConvertToInfoobjectparametersubcmd(Tcl_Interp *interp, Tcl_Obj *objPt
   {ConvertToCurrentoption, "proc|method|methodpath|object|class|activelevel|args|activemixin|calledproc|calledmethod|calledclass|callingproc|callingmethod|callingclass|callinglevel|callingobject|filterreg|isnextcall|nextmethod"},
   {ConvertToMethodproperty, "class-only|call-private|call-protected|debug|deprecated|exists|redefine-protected|returns"},
   {ConvertToRelationtype, "object-mixin|class-mixin|object-filter|class-filter|class|superclass|rootclass"},
-  {ConvertToSource, "all|application|system"},
+  {ConvertToDefinitionsource, "all|application|system"},
   {ConvertToForwardproperty, "prefix|target|verbose"},
   {ConvertToConfigureoption, "debug|dtrace|filter|profile|trace|softrecreate|objectsystems|keepcmds|checkresults|checkarguments"},
   {ConvertToObjectproperty, "initialized|class|rootmetaclass|rootclass|volatile|slotcontainer|hasperobjectslots|keepcallerself|perobjectdispatch"},
   {ConvertToAssertionsubcmd, "check|object-invar|class-invar"},
   {ConvertToParametersubcmd, "default|list|name|syntax|type"},
+  {ConvertToMixinscope, "all|class|object"},
   {ConvertToProtection, "call-protected|redefine-protected|none"},
   {NULL, NULL}
 };
@@ -560,17 +560,17 @@ static int NsfClassInfoHeritageMethod(Tcl_Interp *interp, NsfClass *cl, const ch
   NSF_nonnull(1) NSF_nonnull(2);
 static int NsfClassInfoInstancesMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, const char *patternString, NsfObject *patternObject)
   NSF_nonnull(1) NSF_nonnull(2);
-static int NsfClassInfoMethodMethod(Tcl_Interp *interp, NsfClass *cl, int subcmd, Tcl_Obj *name)
+static int NsfClassInfoMethodMethod(Tcl_Interp *interp, NsfClass *cl, InfomethodsubcmdIdx_t subcmd, Tcl_Obj *name)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(4);
-static int NsfClassInfoMethodsMethod(Tcl_Interp *interp, NsfClass *cl, int withCallprotection, int withClosure, int withType, int withPath, int withSource, const char *pattern)
+static int NsfClassInfoMethodsMethod(Tcl_Interp *interp, NsfClass *cl, CallprotectionIdx_t withCallprotection, int withClosure, MethodtypeIdx_t withType, int withPath, DefinitionsourceIdx_t withSource, const char *pattern)
   NSF_nonnull(1) NSF_nonnull(2);
-static int NsfClassInfoMixinOfMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, int withScope, const char *patternString, NsfObject *patternObject)
+static int NsfClassInfoMixinOfMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, MixinscopeIdx_t withScope, const char *patternString, NsfObject *patternObject)
   NSF_nonnull(1) NSF_nonnull(2);
 static int NsfClassInfoMixinguardMethod(Tcl_Interp *interp, NsfClass *cl, const char *mixin)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
 static int NsfClassInfoMixinsMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, int withGuards, int withHeritage, const char *patternString, NsfObject *patternObject)
   NSF_nonnull(1) NSF_nonnull(2);
-static int NsfClassInfoSlotobjectsMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, int withSource, NsfClass *withType, const char *pattern)
+static int NsfClassInfoSlotobjectsMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, DefinitionsourceIdx_t withSource, NsfClass *withType, const char *pattern)
   NSF_nonnull(1) NSF_nonnull(2);
 static int NsfClassInfoSubclassMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, int withDependent, const char *patternString, NsfObject *patternObject)
   NSF_nonnull(1) NSF_nonnull(2);
@@ -580,13 +580,13 @@ static int NsfAsmMethodCreateCmd(Tcl_Interp *interp, NsfObject *object, int with
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(7) NSF_nonnull(8) NSF_nonnull(9);
 static int NsfAsmProcCmd(Tcl_Interp *interp, int withAd, int withCheckalways, Tcl_Obj *procName, Tcl_Obj *arguments, Tcl_Obj *body)
   NSF_nonnull(1) NSF_nonnull(4) NSF_nonnull(5) NSF_nonnull(6);
-static int NsfCmdInfoCmd(Tcl_Interp *interp, int subcmd, NsfObject *withContext, Tcl_Obj *methodName, const char *pattern)
+static int NsfCmdInfoCmd(Tcl_Interp *interp, InfomethodsubcmdIdx_t subcmd, NsfObject *withContext, Tcl_Obj *methodName, const char *pattern)
   NSF_nonnull(1) NSF_nonnull(4);
 static int NsfColonCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv)
   NSF_nonnull(1);
-static int NsfConfigureCmd(Tcl_Interp *interp, int option, Tcl_Obj *value)
+static int NsfConfigureCmd(Tcl_Interp *interp, ConfigureoptionIdx_t option, Tcl_Obj *value)
   NSF_nonnull(1);
-static int NsfCurrentCmd(Tcl_Interp *interp, int option)
+static int NsfCurrentCmd(Tcl_Interp *interp, CurrentoptionIdx_t option)
   NSF_nonnull(1);
 static int NsfDebugCompileEpoch(Tcl_Interp *interp)
   NSF_nonnull(1);
@@ -596,29 +596,29 @@ static int NsfDebugRunAssertionsCmd(Tcl_Interp *interp)
   NSF_nonnull(1);
 static int NsfDebugShowObj(Tcl_Interp *interp, Tcl_Obj *obj)
   NSF_nonnull(1) NSF_nonnull(2);
-static int NsfDirectDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withFrame, Tcl_Obj *command, int nobjc, Tcl_Obj *CONST* nobjv)
+static int NsfDirectDispatchCmd(Tcl_Interp *interp, NsfObject *object, FrameIdx_t withFrame, Tcl_Obj *command, int nobjc, Tcl_Obj *CONST* nobjv)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(4);
 static int NsfDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withIntrinsic, int withSystem, Tcl_Obj *command, int nobjc, Tcl_Obj *CONST* nobjv)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(5);
 static int NsfFinalizeCmd(Tcl_Interp *interp, int withKeepvars)
   NSF_nonnull(1);
-static int NsfForwardPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj *methodName, int forwardProperty, Tcl_Obj *value)
+static int NsfForwardPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj *methodName, ForwardpropertyIdx_t forwardProperty, Tcl_Obj *value)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(4);
 static int NsfInterpObjCmd(Tcl_Interp *interp, const char *name, int objc, Tcl_Obj *CONST* objv)
   NSF_nonnull(1) NSF_nonnull(2);
 static int NsfIsCmd(Tcl_Interp *interp, int withComplain, int withConfigure, const char *withName, Tcl_Obj *constraint, Tcl_Obj *value)
   NSF_nonnull(1) NSF_nonnull(5) NSF_nonnull(6);
-static int NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, const char *methodName, int withFrame, int withProtection, Tcl_Obj *cmdName)
+static int NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, const char *methodName, FrameIdx_t withFrame, ProtectionIdx_t withProtection, Tcl_Obj *cmdName)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(4) NSF_nonnull(7);
-static int NsfMethodAssertionCmd(Tcl_Interp *interp, NsfObject *object, int subcmd, Tcl_Obj *arg)
+static int NsfMethodAssertionCmd(Tcl_Interp *interp, NsfObject *object, AssertionsubcmdIdx_t subcmd, Tcl_Obj *arg)
   NSF_nonnull(1) NSF_nonnull(2);
 static int NsfMethodCreateCmd(Tcl_Interp *interp, NsfObject *object, int withCheckalways, int withInner_namespace, int withPer_object, NsfObject *withReg_object, Tcl_Obj *methodName, Tcl_Obj *arguments, Tcl_Obj *body, Tcl_Obj *withPrecondition, Tcl_Obj *withPostcondition)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(7) NSF_nonnull(8) NSF_nonnull(9);
 static int NsfMethodDeleteCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj *methodName)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(4);
-static int NsfMethodForwardCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj *method, Tcl_Obj *withDefault, int withEarlybinding, Tcl_Obj *withOnerror, Tcl_Obj *withPrefix, int withFrame, int withVerbose, Tcl_Obj *target, int nobjc, Tcl_Obj *CONST* nobjv)
+static int NsfMethodForwardCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj *method, Tcl_Obj *withDefault, int withEarlybinding, Tcl_Obj *withOnerror, Tcl_Obj *withPrefix, FrameIdx_t withFrame, int withVerbose, Tcl_Obj *target, int nobjc, Tcl_Obj *CONST* nobjv)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(4);
-static int NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj *methodName, int methodProperty, Tcl_Obj *value)
+static int NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj *methodName, MethodpropertyIdx_t methodProperty, Tcl_Obj *value)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(4);
 static int NsfMethodRegisteredCmd(Tcl_Interp *interp, Tcl_Obj *handle)
   NSF_nonnull(1) NSF_nonnull(2);
@@ -634,7 +634,7 @@ static int NsfObjectAllocCmd(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *name,
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
 static int NsfObjectExistsCmd(Tcl_Interp *interp, Tcl_Obj *value)
   NSF_nonnull(1) NSF_nonnull(2);
-static int NsfObjectPropertyCmd(Tcl_Interp *interp, NsfObject *objectName, int objectProperty, Tcl_Obj *value)
+static int NsfObjectPropertyCmd(Tcl_Interp *interp, NsfObject *objectName, ObjectpropertyIdx_t objectProperty, Tcl_Obj *value)
   NSF_nonnull(1) NSF_nonnull(2);
 static int NsfObjectQualifyCmd(Tcl_Interp *interp, Tcl_Obj *objectName)
   NSF_nonnull(1) NSF_nonnull(2);
@@ -644,7 +644,7 @@ static int NsfParameterCacheClassInvalidateCmd(Tcl_Interp *interp, NsfClass *cla
   NSF_nonnull(1) NSF_nonnull(2);
 static int NsfParameterCacheObjectInvalidateCmd(Tcl_Interp *interp, NsfObject *object)
   NSF_nonnull(1) NSF_nonnull(2);
-static int NsfParameterInfoCmd(Tcl_Interp *interp, int subcmd, Tcl_Obj *spec, Tcl_Obj *varname)
+static int NsfParameterInfoCmd(Tcl_Interp *interp, ParametersubcmdIdx_t subcmd, Tcl_Obj *spec, Tcl_Obj *varname)
   NSF_nonnull(1) NSF_nonnull(3);
 static int NsfParameterSpecsCmd(Tcl_Interp *interp, int withConfigure, int withNonposargs, Tcl_Obj *slotobjs)
   NSF_nonnull(1) NSF_nonnull(4);
@@ -658,9 +658,9 @@ static int NsfProfileGetDataStub(Tcl_Interp *interp)
   NSF_nonnull(1);
 static int NsfProfileTraceStub(Tcl_Interp *interp, int withEnable, int withVerbose, int withDontsave, Tcl_Obj *withBuiltins)
   NSF_nonnull(1);
-static int NsfRelationGetCmd(Tcl_Interp *interp, NsfObject *object, int type)
+static int NsfRelationGetCmd(Tcl_Interp *interp, NsfObject *object, RelationtypeIdx_t type)
   NSF_nonnull(1) NSF_nonnull(2);
-static int NsfRelationSetCmd(Tcl_Interp *interp, NsfObject *object, int type, Tcl_Obj *value)
+static int NsfRelationSetCmd(Tcl_Interp *interp, NsfObject *object, RelationtypeIdx_t type, Tcl_Obj *value)
   NSF_nonnull(1) NSF_nonnull(2);
 static int NsfSelfCmd(Tcl_Interp *interp)
   NSF_nonnull(1);
@@ -734,15 +734,15 @@ static int NsfObjInfoLookupFiltersMethod(Tcl_Interp *interp, NsfObject *obj, int
   NSF_nonnull(1) NSF_nonnull(2);
 static int NsfObjInfoLookupMethodMethod(Tcl_Interp *interp, NsfObject *obj, Tcl_Obj *name)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
-static int NsfObjInfoLookupMethodsMethod(Tcl_Interp *interp, NsfObject *obj, int withCallprotection, int withIncontext, int withType, int withNomixins, int withPath, int withSource, const char *pattern)
+static int NsfObjInfoLookupMethodsMethod(Tcl_Interp *interp, NsfObject *obj, CallprotectionIdx_t withCallprotection, int withIncontext, MethodtypeIdx_t withType, int withNomixins, int withPath, DefinitionsourceIdx_t withSource, const char *pattern)
   NSF_nonnull(1) NSF_nonnull(2);
 static int NsfObjInfoLookupMixinsMethod(Tcl_Interp *interp, NsfObject *obj, int withGuards, const char *patternString, NsfObject *patternObject)
   NSF_nonnull(1) NSF_nonnull(2);
-static int NsfObjInfoLookupSlotsMethod(Tcl_Interp *interp, NsfObject *obj, int withSource, NsfClass *withType, const char *pattern)
+static int NsfObjInfoLookupSlotsMethod(Tcl_Interp *interp, NsfObject *obj, DefinitionsourceIdx_t withSource, NsfClass *withType, const char *pattern)
   NSF_nonnull(1) NSF_nonnull(2);
-static int NsfObjInfoMethodMethod(Tcl_Interp *interp, NsfObject *obj, int subcmd, Tcl_Obj *name)
+static int NsfObjInfoMethodMethod(Tcl_Interp *interp, NsfObject *obj, InfomethodsubcmdIdx_t subcmd, Tcl_Obj *name)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(4);
-static int NsfObjInfoMethodsMethod(Tcl_Interp *interp, NsfObject *obj, int withCallprotection, int withType, int withPath, const char *pattern)
+static int NsfObjInfoMethodsMethod(Tcl_Interp *interp, NsfObject *obj, CallprotectionIdx_t withCallprotection, MethodtypeIdx_t withType, int withPath, const char *pattern)
   NSF_nonnull(1) NSF_nonnull(2);
 static int NsfObjInfoMixinguardMethod(Tcl_Interp *interp, NsfObject *obj, const char *mixin)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
@@ -750,7 +750,7 @@ static int NsfObjInfoMixinsMethod(Tcl_Interp *interp, NsfObject *obj, int withGu
   NSF_nonnull(1) NSF_nonnull(2);
 static int NsfObjInfoNameMethod(Tcl_Interp *interp, NsfObject *obj)
   NSF_nonnull(1) NSF_nonnull(2);
-static int NsfObjInfoObjectparameterMethod(Tcl_Interp *interp, NsfObject *obj, int subcmd, const char *pattern)
+static int NsfObjInfoObjectparameterMethod(Tcl_Interp *interp, NsfObject *obj, InfoobjectparametersubcmdIdx_t subcmd, const char *pattern)
   NSF_nonnull(1) NSF_nonnull(2);
 static int NsfObjInfoParentMethod(Tcl_Interp *interp, NsfObject *obj)
   NSF_nonnull(1) NSF_nonnull(2);
@@ -1251,7 +1251,7 @@ NsfClassInfoMethodMethodStub(ClientData clientData, Tcl_Interp *interp, int objc
                      method_definitions[NsfClassInfoMethodMethodIdx].paramDefs,
                      method_definitions[NsfClassInfoMethodMethodIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
-    int subcmd = (int )PTR2INT(pc.clientData[0]);
+    InfomethodsubcmdIdx_t subcmd = (InfomethodsubcmdIdx_t )pc.clientData[0];
     Tcl_Obj *name = (Tcl_Obj *)pc.clientData[1];
 
     assert(pc.status == 0);
@@ -1277,11 +1277,11 @@ NsfClassInfoMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int obj
                      method_definitions[NsfClassInfoMethodsMethodIdx].paramDefs,
                      method_definitions[NsfClassInfoMethodsMethodIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
-    int withCallprotection = (int )PTR2INT(pc.clientData[0]);
+    CallprotectionIdx_t withCallprotection = (CallprotectionIdx_t )pc.clientData[0];
     int withClosure = (int )PTR2INT(pc.clientData[1]);
-    int withType = (int )PTR2INT(pc.clientData[2]);
+    MethodtypeIdx_t withType = (MethodtypeIdx_t )pc.clientData[2];
     int withPath = (int )PTR2INT(pc.clientData[3]);
-    int withSource = (int )PTR2INT(pc.clientData[4]);
+    DefinitionsourceIdx_t withSource = (DefinitionsourceIdx_t )pc.clientData[4];
     const char *pattern = (const char *)pc.clientData[5];
 
     assert(pc.status == 0);
@@ -1308,7 +1308,7 @@ NsfClassInfoMixinOfMethodStub(ClientData clientData, Tcl_Interp *interp, int obj
                      method_definitions[NsfClassInfoMixinOfMethodIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     int withClosure = (int )PTR2INT(pc.clientData[0]);
-    int withScope = (int )PTR2INT(pc.clientData[1]);
+    MixinscopeIdx_t withScope = (MixinscopeIdx_t )pc.clientData[1];
     const char *patternString = NULL;
     NsfObject *patternObject = NULL;
     Tcl_Obj *pattern = (Tcl_Obj *)pc.clientData[2];
@@ -1426,7 +1426,7 @@ NsfClassInfoSlotobjectsMethodStub(ClientData clientData, Tcl_Interp *interp, int
                      method_definitions[NsfClassInfoSlotobjectsMethodIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     int withClosure = (int )PTR2INT(pc.clientData[0]);
-    int withSource = (int )PTR2INT(pc.clientData[1]);
+    DefinitionsourceIdx_t withSource = (DefinitionsourceIdx_t )pc.clientData[1];
     NsfClass *withType = (NsfClass *)pc.clientData[2];
     const char *pattern = (const char *)pc.clientData[3];
 
@@ -1571,7 +1571,7 @@ NsfCmdInfoCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
                      method_definitions[NsfCmdInfoCmdIdx].paramDefs,
                      method_definitions[NsfCmdInfoCmdIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
-    int subcmd = (int )PTR2INT(pc.clientData[0]);
+    InfomethodsubcmdIdx_t subcmd = (InfomethodsubcmdIdx_t )pc.clientData[0];
     NsfObject *withContext = (NsfObject *)pc.clientData[1];
     Tcl_Obj *methodName = (Tcl_Obj *)pc.clientData[2];
     const char *pattern = (const char *)pc.clientData[3];
@@ -1604,7 +1604,7 @@ NsfConfigureCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
                      method_definitions[NsfConfigureCmdIdx].paramDefs,
                      method_definitions[NsfConfigureCmdIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
-    int option = (int )PTR2INT(pc.clientData[0]);
+    ConfigureoptionIdx_t option = (ConfigureoptionIdx_t )pc.clientData[0];
     Tcl_Obj *value = (Tcl_Obj *)pc.clientData[1];
 
     assert(pc.status == 0);
@@ -1625,7 +1625,7 @@ NsfCurrentCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
                      method_definitions[NsfCurrentCmdIdx].paramDefs,
                      method_definitions[NsfCurrentCmdIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
-    int option = (int )PTR2INT(pc.clientData[0]);
+    CurrentoptionIdx_t option = (CurrentoptionIdx_t )pc.clientData[0];
 
     assert(pc.status == 0);
     return NsfCurrentCmd(interp, option);
@@ -1710,7 +1710,7 @@ NsfDirectDispatchCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
                      method_definitions[NsfDirectDispatchCmdIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     NsfObject *object = (NsfObject *)pc.clientData[0];
-    int withFrame = (int )PTR2INT(pc.clientData[1]);
+    FrameIdx_t withFrame = (FrameIdx_t )pc.clientData[1];
     Tcl_Obj *command = (Tcl_Obj *)pc.clientData[2];
 
     assert(pc.status == 0);
@@ -1777,7 +1777,7 @@ NsfForwardPropertyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, T
     NsfObject *object = (NsfObject *)pc.clientData[0];
     int withPer_object = (int )PTR2INT(pc.clientData[1]);
     Tcl_Obj *methodName = (Tcl_Obj *)pc.clientData[2];
-    int forwardProperty = (int )PTR2INT(pc.clientData[3]);
+    ForwardpropertyIdx_t forwardProperty = (ForwardpropertyIdx_t )pc.clientData[3];
     Tcl_Obj *value = (Tcl_Obj *)pc.clientData[4];
 
     assert(pc.status == 0);
@@ -1845,8 +1845,8 @@ NsfMethodAliasCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
     NsfObject *object = (NsfObject *)pc.clientData[0];
     int withPer_object = (int )PTR2INT(pc.clientData[1]);
     const char *methodName = (const char *)pc.clientData[2];
-    int withFrame = (int )PTR2INT(pc.clientData[3]);
-    int withProtection = (int )PTR2INT(pc.clientData[4]);
+    FrameIdx_t withFrame = (FrameIdx_t )pc.clientData[3];
+    ProtectionIdx_t withProtection = (ProtectionIdx_t )pc.clientData[4];
     Tcl_Obj *cmdName = (Tcl_Obj *)pc.clientData[5];
 
     assert(pc.status == 0);
@@ -1868,7 +1868,7 @@ NsfMethodAssertionCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, T
                      method_definitions[NsfMethodAssertionCmdIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     NsfObject *object = (NsfObject *)pc.clientData[0];
-    int subcmd = (int )PTR2INT(pc.clientData[1]);
+    AssertionsubcmdIdx_t subcmd = (AssertionsubcmdIdx_t )pc.clientData[1];
     Tcl_Obj *arg = (Tcl_Obj *)pc.clientData[2];
 
     assert(pc.status == 0);
@@ -1947,7 +1947,7 @@ NsfMethodForwardCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
     int withEarlybinding = (int )PTR2INT(pc.clientData[4]);
     Tcl_Obj *withOnerror = (Tcl_Obj *)pc.clientData[5];
     Tcl_Obj *withPrefix = (Tcl_Obj *)pc.clientData[6];
-    int withFrame = (int )PTR2INT(pc.clientData[7]);
+    FrameIdx_t withFrame = (FrameIdx_t )pc.clientData[7];
     int withVerbose = (int )PTR2INT(pc.clientData[8]);
     Tcl_Obj *target = (Tcl_Obj *)pc.clientData[9];
 
@@ -1972,7 +1972,7 @@ NsfMethodPropertyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
     NsfObject *object = (NsfObject *)pc.clientData[0];
     int withPer_object = (int )PTR2INT(pc.clientData[1]);
     Tcl_Obj *methodName = (Tcl_Obj *)pc.clientData[2];
-    int methodProperty = (int )PTR2INT(pc.clientData[3]);
+    MethodpropertyIdx_t methodProperty = (MethodpropertyIdx_t )pc.clientData[3];
     Tcl_Obj *value = (Tcl_Obj *)pc.clientData[4];
 
     assert(pc.status == 0);
@@ -2130,7 +2130,7 @@ NsfObjectPropertyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
                      method_definitions[NsfObjectPropertyCmdIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     NsfObject *objectName = (NsfObject *)pc.clientData[0];
-    int objectProperty = (int )PTR2INT(pc.clientData[1]);
+    ObjectpropertyIdx_t objectProperty = (ObjectpropertyIdx_t )pc.clientData[1];
     Tcl_Obj *value = (Tcl_Obj *)pc.clientData[2];
 
     assert(pc.status == 0);
@@ -2229,7 +2229,7 @@ NsfParameterInfoCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
                      method_definitions[NsfParameterInfoCmdIdx].paramDefs,
                      method_definitions[NsfParameterInfoCmdIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
-    int subcmd = (int )PTR2INT(pc.clientData[0]);
+    ParametersubcmdIdx_t subcmd = (ParametersubcmdIdx_t )pc.clientData[0];
     Tcl_Obj *spec = (Tcl_Obj *)pc.clientData[1];
     Tcl_Obj *varname = (Tcl_Obj *)pc.clientData[2];
 
@@ -2376,7 +2376,7 @@ NsfRelationGetCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
                      method_definitions[NsfRelationGetCmdIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     NsfObject *object = (NsfObject *)pc.clientData[0];
-    int type = (int )PTR2INT(pc.clientData[1]);
+    RelationtypeIdx_t type = (RelationtypeIdx_t )pc.clientData[1];
 
     assert(pc.status == 0);
     return NsfRelationGetCmd(interp, object, type);
@@ -2397,7 +2397,7 @@ NsfRelationSetCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
                      method_definitions[NsfRelationSetCmdIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     NsfObject *object = (NsfObject *)pc.clientData[0];
-    int type = (int )PTR2INT(pc.clientData[1]);
+    RelationtypeIdx_t type = (RelationtypeIdx_t )pc.clientData[1];
     Tcl_Obj *value = (Tcl_Obj *)pc.clientData[2];
 
     assert(pc.status == 0);
@@ -3177,12 +3177,12 @@ NsfObjInfoLookupMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int
                      method_definitions[NsfObjInfoLookupMethodsMethodIdx].paramDefs,
                      method_definitions[NsfObjInfoLookupMethodsMethodIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
-    int withCallprotection = (int )PTR2INT(pc.clientData[0]);
+    CallprotectionIdx_t withCallprotection = (CallprotectionIdx_t )pc.clientData[0];
     int withIncontext = (int )PTR2INT(pc.clientData[1]);
-    int withType = (int )PTR2INT(pc.clientData[2]);
+    MethodtypeIdx_t withType = (MethodtypeIdx_t )pc.clientData[2];
     int withNomixins = (int )PTR2INT(pc.clientData[3]);
     int withPath = (int )PTR2INT(pc.clientData[4]);
-    int withSource = (int )PTR2INT(pc.clientData[5]);
+    DefinitionsourceIdx_t withSource = (DefinitionsourceIdx_t )pc.clientData[5];
     const char *pattern = (const char *)pc.clientData[6];
 
     assert(pc.status == 0);
@@ -3251,7 +3251,7 @@ NsfObjInfoLookupSlotsMethodStub(ClientData clientData, Tcl_Interp *interp, int o
                      method_definitions[NsfObjInfoLookupSlotsMethodIdx].paramDefs,
                      method_definitions[NsfObjInfoLookupSlotsMethodIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
-    int withSource = (int )PTR2INT(pc.clientData[0]);
+    DefinitionsourceIdx_t withSource = (DefinitionsourceIdx_t )pc.clientData[0];
     NsfClass *withType = (NsfClass *)pc.clientData[1];
     const char *pattern = (const char *)pc.clientData[2];
 
@@ -3277,7 +3277,7 @@ NsfObjInfoMethodMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, 
                      method_definitions[NsfObjInfoMethodMethodIdx].paramDefs,
                      method_definitions[NsfObjInfoMethodMethodIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
-    int subcmd = (int )PTR2INT(pc.clientData[0]);
+    InfomethodsubcmdIdx_t subcmd = (InfomethodsubcmdIdx_t )pc.clientData[0];
     Tcl_Obj *name = (Tcl_Obj *)pc.clientData[1];
 
     assert(pc.status == 0);
@@ -3302,8 +3302,8 @@ NsfObjInfoMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc,
                      method_definitions[NsfObjInfoMethodsMethodIdx].paramDefs,
                      method_definitions[NsfObjInfoMethodsMethodIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
-    int withCallprotection = (int )PTR2INT(pc.clientData[0]);
-    int withType = (int )PTR2INT(pc.clientData[1]);
+    CallprotectionIdx_t withCallprotection = (CallprotectionIdx_t )pc.clientData[0];
+    MethodtypeIdx_t withType = (MethodtypeIdx_t )pc.clientData[1];
     int withPath = (int )PTR2INT(pc.clientData[2]);
     const char *pattern = (const char *)pc.clientData[3];
 
@@ -3417,7 +3417,7 @@ NsfObjInfoObjectparameterMethodStub(ClientData clientData, Tcl_Interp *interp, i
                      method_definitions[NsfObjInfoObjectparameterMethodIdx].paramDefs,
                      method_definitions[NsfObjInfoObjectparameterMethodIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
-    int subcmd = (int )PTR2INT(pc.clientData[0]);
+    InfoobjectparametersubcmdIdx_t subcmd = (InfoobjectparametersubcmdIdx_t )pc.clientData[0];
     const char *pattern = (const char *)pc.clientData[1];
 
     assert(pc.status == 0);
@@ -3583,12 +3583,12 @@ static Nsf_methodDefinition method_definitions[115] = {
   {"-closure", 0, 0, Nsf_ConvertTo_Boolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
   {"-type", NSF_ARG_IS_ENUMERATION, 1, ConvertToMethodtype, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-path", 0, 0, Nsf_ConvertTo_Boolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
-  {"-source", NSF_ARG_IS_ENUMERATION, 1, ConvertToSource, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-source", NSF_ARG_IS_ENUMERATION, 1, ConvertToDefinitionsource, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"pattern", 0, 1, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::class::info::mixinof", NsfClassInfoMixinOfMethodStub, 3, {
   {"-closure", 0, 0, Nsf_ConvertTo_Boolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
-  {"-scope", NSF_ARG_IS_ENUMERATION, 1, ConvertToScope, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-scope", NSF_ARG_IS_ENUMERATION, 1, ConvertToMixinscope, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"pattern", 0, 1, ConvertToObjpattern, NULL,NULL,"objpattern",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::class::info::mixinguard", NsfClassInfoMixinguardMethodStub, 1, {
@@ -3602,7 +3602,7 @@ static Nsf_methodDefinition method_definitions[115] = {
 },
 {"::nsf::methods::class::info::slotobjects", NsfClassInfoSlotobjectsMethodStub, 4, {
   {"-closure", 0, 0, Nsf_ConvertTo_Boolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
-  {"-source", NSF_ARG_IS_ENUMERATION, 1, ConvertToSource, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-source", NSF_ARG_IS_ENUMERATION, 1, ConvertToDefinitionsource, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-type", 0, 1, Nsf_ConvertTo_Class, NULL,NULL,"class",NULL,NULL,NULL,NULL,NULL},
   {"pattern", 0, 1, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
@@ -3971,7 +3971,7 @@ static Nsf_methodDefinition method_definitions[115] = {
   {"-type", NSF_ARG_IS_ENUMERATION, 1, ConvertToMethodtype, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-nomixins", 0, 0, Nsf_ConvertTo_Boolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
   {"-path", 0, 0, Nsf_ConvertTo_Boolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
-  {"-source", NSF_ARG_IS_ENUMERATION, 1, ConvertToSource, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-source", NSF_ARG_IS_ENUMERATION, 1, ConvertToDefinitionsource, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"pattern", 0, 1, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::info::lookupmixins", NsfObjInfoLookupMixinsMethodStub, 2, {
@@ -3979,7 +3979,7 @@ static Nsf_methodDefinition method_definitions[115] = {
   {"pattern", 0, 1, ConvertToObjpattern, NULL,NULL,"objpattern",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::info::lookupslots", NsfObjInfoLookupSlotsMethodStub, 3, {
-  {"-source", NSF_ARG_IS_ENUMERATION, 1, ConvertToSource, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-source", NSF_ARG_IS_ENUMERATION, 1, ConvertToDefinitionsource, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-type", 0, 1, Nsf_ConvertTo_Class, NULL,NULL,"class",NULL,NULL,NULL,NULL,NULL},
   {"pattern", 0, 1, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },

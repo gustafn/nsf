@@ -85,7 +85,7 @@ cmd colon NsfColonCmd {
 }
 cmd "directdispatch" NsfDirectDispatchCmd {
   {-argName "object"     -required 1 -type object}
-  {-argName "-frame"     -required 0 -type "method|object|default" -default "default"}
+  {-argName "-frame"     -typeName "frame" -required 0 -type "method|object|default" -default "default"}
   {-argName "command"    -required 1 -type tclobj}
   {-argName "args"       -type args}
 }
@@ -155,8 +155,8 @@ cmd "method::alias" NsfMethodAliasCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-per-object" -required 0 -nrargs 0 -type switch}
   {-argName "methodName" -required 1}
-  {-argName "-frame" -required 0 -type "method|object|default" -default "default"}
-  {-argName "-protection" -required 0 -type "call-protected|redefine-protected|none" -default "none"}
+  {-argName "-frame" -required 0 -typeName "frame" -type "method|object|default" -default "default"}
+  {-argName "-protection" -required 0 -typeName "protection" -type "call-protected|redefine-protected|none" -default "none"}
   {-argName "cmdName" -required 1 -type tclobj}
 } {-nxdoc 1}
 cmd "method::assertion" NsfMethodAssertionCmd {
@@ -201,7 +201,7 @@ cmd "method::forward" NsfMethodForwardCmd {
   {-argName "-earlybinding" -nrargs 0 -type switch}
   {-argName "-onerror" -type tclobj}
   {-argName "-prefix" -type tclobj}
-  {-argName "-frame" -nrargs 1 -type "object|method|default" -default default}
+  {-argName "-frame" -nrargs 1 -typeName "frame" -type "method|object|default" -default default}
   {-argName "-verbose" -nrargs 0 -type switch}
   {-argName "target" -type tclobj}
   {-argName "args" -type args}
@@ -489,12 +489,12 @@ objectInfoMethod lookupmethod NsfObjInfoLookupMethodMethod {
   {-argName "name" -required 1 -type tclobj}
 }
 objectInfoMethod lookupmethods NsfObjInfoLookupMethodsMethod {
-  {-argName "-callprotection" -type "all|public|protected|private" -default all}
+  {-argName "-callprotection" -typeName "callprotection" -type "all|public|protected|private" -default all}
   {-argName "-incontext" -nrargs 0 -type switch}
   {-argName "-type" -typeName "methodtype" -type "all|scripted|builtin|alias|forwarder|object|setter|nsfproc"}
   {-argName "-nomixins" -nrargs 0 -type switch}
   {-argName "-path" -nrargs 0 -type switch}
-  {-argName "-source" -type "all|application|system" -default all}
+  {-argName "-source" -typeName "definitionsource" -type "all|application|system" -default all}
   {-argName "pattern" -required 0}
 }
 objectInfoMethod lookupmixins NsfObjInfoLookupMixinsMethod {
@@ -502,7 +502,7 @@ objectInfoMethod lookupmixins NsfObjInfoLookupMixinsMethod {
   {-argName "pattern" -type objpattern}
 }
 objectInfoMethod lookupslots NsfObjInfoLookupSlotsMethod {
-  {-argName "-source" -type "all|application|system" -default all}
+  {-argName "-source" -typeName "definitionsource" -type "all|application|system" -default all}
   {-argName "-type" -required 0 -type class}
   {-argName "pattern" -required 0}
 }
@@ -511,7 +511,7 @@ objectInfoMethod method NsfObjInfoMethodMethod {
   {-argName "name" -required 1 -type tclobj}
 }
 objectInfoMethod methods NsfObjInfoMethodsMethod {
-  {-argName "-callprotection" -type "all|public|protected|private" -default all}
+  {-argName "-callprotection" -typeName "callprotection" -type "all|public|protected|private" -default all}
   {-argName "-type"  -typeName "methodtype" -type "all|scripted|builtin|alias|forwarder|object|setter|nsfproc"}
   {-argName "-path" -nrargs 0 -type switch}
   {-argName "pattern" -required 0}
@@ -571,11 +571,11 @@ classInfoMethod method NsfClassInfoMethodMethod {
   {-argName "name" -required 1 -type tclobj}
 }
 classInfoMethod methods NsfClassInfoMethodsMethod {
-  {-argName "-callprotection" -type "all|public|protected|private" -default all}
+  {-argName "-callprotection" -typeName "callprotection" -type "all|public|protected|private" -default all}
   {-argName "-closure" -nrargs 0 -type switch}
   {-argName "-type" -nrargs 1 -typeName "methodtype" -type "all|scripted|builtin|alias|forwarder|object|setter|nsfproc"}
   {-argName "-path" -nrargs 0 -type switch}
-  {-argName "-source" -nrargs 1 -type "all|application|system" -default all}
+  {-argName "-source" -nrargs 1 -typeName "definitionsource" -type "all|application|system" -default all}
   {-argName "pattern"}
 }
 classInfoMethod mixins NsfClassInfoMixinsMethod {
@@ -589,12 +589,12 @@ classInfoMethod mixinguard NsfClassInfoMixinguardMethod {
 }
 classInfoMethod mixinof  NsfClassInfoMixinOfMethod {
   {-argName "-closure" -nrargs 0 -type switch}
-  {-argName "-scope" -required 0 -type "all|class|object"}
+  {-argName "-scope" -typeName "mixinscope" -required 0 -type "all|class|object"}
   {-argName "pattern" -type objpattern}
 }
 classInfoMethod slotobjects NsfClassInfoSlotobjectsMethod {
   {-argName "-closure" -nrargs 0 -type switch}
-  {-argName "-source" -type "all|application|system" -default all}
+  {-argName "-source" -typeName "definitionsource" -type "all|application|system" -default all}
   {-argName "-type" -required 0 -type class}
   {-argName "pattern" -required 0}
  }

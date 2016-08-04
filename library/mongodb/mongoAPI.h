@@ -64,7 +64,7 @@ int Nsf_ConvertTo_Tclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *
 
 
 
-enum GridfilesourceIdx {GridfilesourceNULL, GridfilesourceFileIdx, GridfilesourceStringIdx};
+typedef enum {GridfilesourceNULL, GridfilesourceFileIdx, GridfilesourceStringIdx} GridfilesourceIdx_t;
 
 static int ConvertToGridfilesource(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
@@ -187,7 +187,7 @@ static int NsfMongoGridFSOpen(Tcl_Interp *interp, mongoc_client_t *connPtr, cons
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3) NSF_nonnull(4);
 static int NsfMongoGridFileClose(Tcl_Interp *interp, mongoc_gridfs_file_t *gridfilePtr, Tcl_Obj *gridfileObj)
   NSF_nonnull(1) NSF_nonnull(2);
-static int NsfMongoGridFileCreate(Tcl_Interp *interp, int withSource, mongoc_gridfs_t *gfsPtr, const char *value, const char *name, const char *contenttype, Tcl_Obj *withMetadata)
+static int NsfMongoGridFileCreate(Tcl_Interp *interp, GridfilesourceIdx_t withSource, mongoc_gridfs_t *gfsPtr, const char *value, const char *name, const char *contenttype, Tcl_Obj *withMetadata)
   NSF_nonnull(1) NSF_nonnull(3) NSF_nonnull(4) NSF_nonnull(5) NSF_nonnull(6);
 static int NsfMongoGridFileDelete(Tcl_Interp *interp, mongoc_gridfs_t *gfsPtr, Tcl_Obj *query)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
@@ -648,7 +648,7 @@ NsfMongoGridFileCreateStub(ClientData clientData, Tcl_Interp *interp, int objc, 
                      method_definitions[NsfMongoGridFileCreateIdx].paramDefs,
                      method_definitions[NsfMongoGridFileCreateIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
-    int withSource = (int )PTR2INT(pc.clientData[0]);
+    GridfilesourceIdx_t withSource = (GridfilesourceIdx_t )pc.clientData[0];
     mongoc_gridfs_t *gfsPtr = (mongoc_gridfs_t *)pc.clientData[1];
     const char *value = (const char *)pc.clientData[2];
     const char *name = (const char *)pc.clientData[3];

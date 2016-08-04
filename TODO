@@ -5816,6 +5816,10 @@ remove various code smells:
 - reduce variable scope
 - prefer single returns statements in functions
 - dont't use CONST unless defined by Tcl-API
+
+code generator changes:
+- create enum types instead of enum values for nsf API
+- use enum types in code
 ========================================================================
 TODO:
 
