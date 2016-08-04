@@ -73,6 +73,34 @@ Nsf_CmdDefinitionInit(Tcl_Interp *interp) {
   NsfMutexUnlock(&cmdDefinitonMutex);
 }
 
+/*----------------------------------------------------------------------
+* Nsf_EnumerationTypeRelease --
+*
+*    Release and, eventually, delete the hash table for method definitions.
+*
+* Results:
+*    None.
+*
+* Side effects:
+*    None.
+*
+*----------------------------------------------------------------------
+*/
+void
+Nsf_CmdDefinitionRelease(Tcl_Interp *interp) {
+  
+  nonnull_assert(interp != NULL);
+  
+  NsfMutexLock(&cmdDefinitonMutex);
+  
+  if (cmdDefinitonRefCount-- < 1) {
+    Tcl_DeleteHashTable(cmdDefinitonHashTablePtr);
+  }
+  
+  NsfMutexUnlock(&cmdDefinitonMutex);
+}
+
+
 
 /*
  *----------------------------------------------------------------------

@@ -74,6 +74,36 @@ Nsf_EnumerationTypeInit(Tcl_Interp *interp) {
 
 /*
  *----------------------------------------------------------------------
+ * Nsf_EnumerationTypeRelease --
+ *
+ *    Release and, eventually, delete the hash table for enumeration-type
+ *    converters.
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+void
+Nsf_EnumerationTypeRelease(Tcl_Interp *interp) {
+
+  nonnull_assert(interp != NULL);
+
+  NsfMutexLock(&enumerationMutex);
+
+  if (enumerationTypeRefCount-- < 1) {
+    Tcl_DeleteHashTable(enumerationHashTablePtr);
+  }
+
+  NsfMutexUnlock(&enumerationMutex);
+}
+
+
+/*
+ *----------------------------------------------------------------------
  * Nsf_EnumerationTypeRegister --
  *
  *    Registers an array of enumeration types upon NSF initialization.

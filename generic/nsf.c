@@ -31720,9 +31720,12 @@ ExitHandler(ClientData clientData) {
   }
 #endif
 
+  Nsf_EnumerationTypeRelease(interp);
+  Nsf_CmdDefinitionRelease(interp);
+  
   Tcl_Interp_flags(interp) = flags;
   Tcl_Release(interp);
-
+  
   MEM_COUNT_RELEASE();
 }
 
