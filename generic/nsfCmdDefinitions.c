@@ -93,7 +93,7 @@ Nsf_CmdDefinitionRelease(Tcl_Interp *interp) {
   
   NsfMutexLock(&cmdDefinitionMutex);
   
-  if (cmdDefinitionRefCount-- < 1) {
+  if (--cmdDefinitionRefCount < 1) {
     Tcl_DeleteHashTable(cmdDefinitionHashTablePtr);
   }
   

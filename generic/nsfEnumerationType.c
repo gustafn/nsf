@@ -94,7 +94,7 @@ Nsf_EnumerationTypeRelease(Tcl_Interp *interp) {
 
   NsfMutexLock(&enumerationMutex);
 
-  if (enumerationTypeRefCount-- < 1) {
+  if (--enumerationTypeRefCount < 1) {
     Tcl_DeleteHashTable(enumerationHashTablePtr);
   }
 

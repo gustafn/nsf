@@ -68,7 +68,7 @@ static Tcl_HashKeyType funPtrHashKeyType = {
   FunPtrKey,         /* hashKeyProc*/
   CompareFunPtrKeys, /* compareKeysProc */
   AllocFunPtrEntry,  /* allocEntryProc */
-  FreeFunPtrEntry  /* freeEntryProc */
+  FreeFunPtrEntry    /* freeEntryProc */
 };
 
 /*
@@ -189,9 +189,10 @@ AllocFunPtrEntry(
 static void
 FreeFunPtrEntry(Tcl_HashEntry *hPtr)        
 {
-    Nsf_AnyFun *keyVal = (Nsf_AnyFun *) hPtr->key.oneWordValue;
-    ckfree(keyVal);
-    ckfree(hPtr);
+  fprintf(stderr, "FreeFunPtrEntry is called!\n");
+  Nsf_AnyFun *keyVal = (Nsf_AnyFun *) hPtr->key.oneWordValue;
+  //ckfree(keyVal);
+  ckfree(hPtr);
 }
 
 
