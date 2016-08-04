@@ -55,6 +55,8 @@
 static unsigned int FunPtrKey(Tcl_HashTable *tablePtr, VOID *keyPtr);
 static int CompareFunPtrKeys(VOID *keyPtr, Tcl_HashEntry *hPtr);
 static Tcl_HashEntry *AllocFunPtrEntry(Tcl_HashTable *tablePtr, VOID *keyPtr);
+static void FreeFunPtrEntry(Tcl_HashEntry *hPtr);
+
 
 typedef struct funPtrEntry_t {
   Nsf_AnyFun *funPtr;
@@ -66,7 +68,7 @@ static Tcl_HashKeyType funPtrHashKeyType = {
   FunPtrKey,         /* hashKeyProc*/
   CompareFunPtrKeys, /* compareKeysProc */
   AllocFunPtrEntry,  /* allocEntryProc */
-  NULL,              /* freeEntryProc */
+  FreeFunPtrEntry  /* freeEntryProc */
 };
 
 /*
@@ -168,6 +170,30 @@ AllocFunPtrEntry(
 
   return hPtr;
 }
+
+/*----------------------------------------------------------------------
+ *
+ * FreeFunPtrEntry --
+ *
+ *      Frees space for a Tcl_HashEntry containing the Nsf_AnyFun * key.
+ *
+ * Results:
+ *      None.
+ *
+ * Side effects:
+ *      Frees memory for the hash entry and its key.
+ *
+ *----------------------------------------------------------------------
+ */
+
+static void
+FreeFunPtrEntry(Tcl_HashEntry *hPtr)        
+{
+    Nsf_AnyFun *keyVal = (Nsf_AnyFun *) hPtr->key.oneWordValue;
+    ckfree(keyVal);
+    ckfree(hPtr);
+}
+
 
 /*
  *----------------------------------------------------------------------
