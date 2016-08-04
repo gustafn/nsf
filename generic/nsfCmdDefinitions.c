@@ -38,9 +38,9 @@
 
 #include "nsfInt.h"
 
-static Tcl_HashTable cmdDefinitonHashTable, *cmdDefinitonHashTablePtr = &cmdDefinitonHashTable;
-static int cmdDefinitonRefCount = 0;
-static NsfMutex cmdDefinitonMutex = 0;
+static Tcl_HashTable cmdDefinitionHashTable, *cmdDefinitionHashTablePtr = &cmdDefinitionHashTable;
+static int cmdDefinitionRefCount = 0;
+static NsfMutex cmdDefinitionMutex = 0;
 
 static int Register(Tcl_Interp *interp, Nsf_methodDefinition *methodDefinition);
 
@@ -63,14 +63,14 @@ Nsf_CmdDefinitionInit(Tcl_Interp *interp) {
 
   nonnull_assert(interp != NULL);
 
-  NsfMutexLock(&cmdDefinitonMutex);
+  NsfMutexLock(&cmdDefinitionMutex);
 
-  if (cmdDefinitonRefCount == 0) {
-    Nsf_InitFunPtrHashTable(cmdDefinitonHashTablePtr);
+  if (cmdDefinitionRefCount == 0) {
+    Nsf_InitFunPtrHashTable(cmdDefinitionHashTablePtr);
   }
-  cmdDefinitonRefCount++;
+  cmdDefinitionRefCount++;
 
-  NsfMutexUnlock(&cmdDefinitonMutex);
+  NsfMutexUnlock(&cmdDefinitionMutex);
 }
 
 /*----------------------------------------------------------------------
@@ -91,13 +91,13 @@ Nsf_CmdDefinitionRelease(Tcl_Interp *interp) {
   
   nonnull_assert(interp != NULL);
   
-  NsfMutexLock(&cmdDefinitonMutex);
+  NsfMutexLock(&cmdDefinitionMutex);
   
-  if (cmdDefinitonRefCount-- < 1) {
-    Tcl_DeleteHashTable(cmdDefinitonHashTablePtr);
+  if (cmdDefinitionRefCount-- < 1) {
+    Tcl_DeleteHashTable(cmdDefinitionHashTablePtr);
   }
   
-  NsfMutexUnlock(&cmdDefinitonMutex);
+  NsfMutexUnlock(&cmdDefinitionMutex);
 }
 
 
@@ -106,7 +106,7 @@ Nsf_CmdDefinitionRelease(Tcl_Interp *interp) {
  *----------------------------------------------------------------------
  * Nsf_CmdDefinitionRegister --
  *
- *    Register an array of cmd definitons
+ *    Register an array of cmd definitions
  *
  * Results:
  *    TCL_OK
@@ -134,7 +134,7 @@ Nsf_CmdDefinitionRegister(Tcl_Interp *interp, Nsf_methodDefinition *definitionRe
  *----------------------------------------------------------------------
  * Nsf_CmdDefinitionGet --
  *
- *    Obtain the definiton for a previously registered proc.
+ *    Obtain the definition for a previously registered proc.
  *
  * Results:
  *    A pointer to a Method definition or NULL.
@@ -150,9 +150,9 @@ Nsf_CmdDefinitionGet(Tcl_ObjCmdProc *proc) {
 
   nonnull_assert(proc != NULL);
 
-  NsfMutexLock(&cmdDefinitonMutex);
-  hPtr = Nsf_FindFunPtrHashEntry(cmdDefinitonHashTablePtr, (Nsf_AnyFun *)proc);
-  NsfMutexUnlock(&cmdDefinitonMutex);
+  NsfMutexLock(&cmdDefinitionMutex);
+  hPtr = Nsf_FindFunPtrHashEntry(cmdDefinitionHashTablePtr, (Nsf_AnyFun *)proc);
+  NsfMutexUnlock(&cmdDefinitionMutex);
 
   if (hPtr != NULL) {
     return Tcl_GetHashValue(hPtr);
@@ -185,9 +185,9 @@ Register(Tcl_Interp *interp, Nsf_methodDefinition *methodDefinition) {
   nonnull_assert(interp != NULL);
   nonnull_assert(methodDefinition != NULL);
 
-  NsfMutexLock(&cmdDefinitonMutex);
-  hPtr = Nsf_CreateFunPtrHashEntry(cmdDefinitonHashTablePtr, (Nsf_AnyFun *)methodDefinition->proc, &isNew); 
-  NsfMutexUnlock(&cmdDefinitonMutex);
+  NsfMutexLock(&cmdDefinitionMutex);
+  hPtr = Nsf_CreateFunPtrHashEntry(cmdDefinitionHashTablePtr, (Nsf_AnyFun *)methodDefinition->proc, &isNew); 
+  NsfMutexUnlock(&cmdDefinitionMutex);
   
   if (isNew != 0) {
     Tcl_SetHashValue(hPtr, methodDefinition);
