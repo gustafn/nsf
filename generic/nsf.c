@@ -11137,7 +11137,7 @@ ObjectSystemsCheckSystemMethod(Tcl_Interp *interp, const char *methodName, NsfOb
         if (defObject != object) {
           int result;
 
-          NsfLog(interp, NSF_LOG_NOTICE, "Define automatically alias %s for %s",
+          NsfLog(interp, NSF_LOG_DEBUG, "Define automatically alias %s for %s",
                  ObjStr(osPtr->handles[i]), Nsf_SystemMethodOpts[i]);
 
           result = NsfMethodAliasCmd(interp, defObject, 0, methodName, 0,
@@ -31728,7 +31728,7 @@ ExitHandler(ClientData clientData) {
 
   nonnull_assert(clientData != NULL);
 
-  /*fprintf(stderr, "ExitHandler\n");*/
+  /*fprintf(stderr, "+++ ExitHandler interp %p deleted %d\n", interp, (Tcl_Interp_flags(interp) & DELETED));*/
 
   /*
    * Don't use exit handler, if the interpreter is already destroyed.
@@ -31757,6 +31757,7 @@ ExitHandler(ClientData clientData) {
   Tcl_Interp_flags(interp) &= ~DELETED;
 
   CallStackPopAll(interp);
+
 
   if (rst->exitHandlerDestroyRound == NSF_EXITHANDLER_OFF) {
     NsfFinalizeCmd(interp, 0);
@@ -31798,6 +31799,7 @@ ExitHandler(ClientData clientData) {
   /*
    * Free runtime state.
    */
+  /*fprintf(stderr, "+++ ExiHandler frees runtime state of interp %p\n",interp);*/
   ckfree((char *) RUNTIME_STATE(interp));
 #if USE_ASSOC_DATA
   Tcl_DeleteAssocData(interp, "NsfRuntimeState");
@@ -31825,10 +31827,10 @@ ExitHandler(ClientData clientData) {
     }
   }
 #endif
-  
+
   Tcl_Interp_flags(interp) = flags;
   Tcl_Release(interp);
-  
+
   MEM_COUNT_RELEASE();
 }
 
@@ -31845,8 +31847,9 @@ Nsf_ThreadExitProc(ClientData clientData) {
 
   nonnull_assert(clientData != NULL);
 
-  /*fprintf(stderr, "+++ Nsf_ThreadExitProc\n");*/
+  /* fprintf(stderr, "+++ Nsf_ThreadExitProc %p\n", clientData);*/
 
+  Tcl_DeleteThreadExitHandler(Nsf_ThreadExitProc, clientData);
   Tcl_DeleteExitHandler(Nsf_ExitProc, clientData);
   ExitHandler(clientData);
 }
@@ -31862,8 +31865,9 @@ Nsf_ExitProc(ClientData clientData) {
 
   nonnull_assert(clientData != NULL);
 
-  /*fprintf(stderr, "+++ Nsf_ExitProc\n");*/
+  /*fprintf(stderr, "+++ Nsf_ExitProc %p\n", clientData);*/
 #if defined(TCL_THREADS)
+  Tcl_DeleteExitHandler(Nsf_ExitProc, clientData);
   Tcl_DeleteThreadExitHandler(Nsf_ThreadExitProc, clientData);
 #endif
   ExitHandler(clientData);
