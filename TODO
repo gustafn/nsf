@@ -5827,7 +5827,7 @@ code generator changes:
   "nsf::configure debugLevel 3" will print just error messages and omit warnings etc.)
 - this is not a change in sematics, but removes some confusion in the code.
   therefore the configure name was not changed
-- Remove 2 occurances of deprecated Tcl Call Tcl_AppendResult() in nsfStubLib
+- Remove occurrences of deprecated Tcl Call Tcl_AppendResult() in overall code
 
 ========================================================================
 TODO:
