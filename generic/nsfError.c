@@ -250,7 +250,7 @@ NsfPrintError(Tcl_Interp *interp, const char *fmt, ...) {
   NsfDStringVPrintf(&ds, fmt, ap);
   va_end(ap);
 
-  Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_DStringValue(&ds), -1));
+  Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_DStringValue(&ds), Tcl_DStringLength(&ds)));
   Tcl_DStringFree(&ds);
 
   return TCL_ERROR;
