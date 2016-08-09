@@ -420,11 +420,12 @@ NsfUnexpectedNonposArgumentError(Tcl_Interp *interp,
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(4) NSF_nonnull(5) NSF_nonnull(6);
 
 /*
- * logging
+ * logging severities
  */
-#define NSF_LOG_WARN 2
+#define NSF_LOG_ERROR  3
+#define NSF_LOG_WARN   2
 #define NSF_LOG_NOTICE 1
-#define NSF_LOG_DEBUG 0
+#define NSF_LOG_DEBUG  0
 
 EXTERN void
 NsfLog(Tcl_Interp *interp, int requiredLevel, CONST char *fmt, ...)

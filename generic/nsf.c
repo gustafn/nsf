@@ -595,7 +595,7 @@ NsfLog(Tcl_Interp *interp, int requiredLevel, const char *fmt, ...) {
   nonnull_assert(interp != NULL);
   nonnull_assert(fmt != NULL);
 
-  if (RUNTIME_STATE(interp)->debugLevel >= requiredLevel) {
+  if (requiredLevel >= RUNTIME_STATE(interp)->logSeverity) {
     Tcl_DString cmdString, ds;
     const char *level;
     va_list ap;
@@ -14469,7 +14469,7 @@ Nsf_ConvertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
   } else {
     result = TCL_OK;
 #if defined(NSF_WITH_VALUE_WARNINGS)
-    if (RUNTIME_STATE(interp)->debugLevel > 0) {
+    if (RUNTIME_STATE(interp)->logSeverity == NSF_LOG_DEBUG) {
       const char *value = ObjStr(objPtr);
       if (unlikely(*value == '-'
                    && (pPtr->flags & NSF_ARG_CHECK_NONPOS) != 0u
@@ -24760,17 +24760,17 @@ NsfConfigureCmd(Tcl_Interp *interp, ConfigureoptionIdx_t configureoption, Tcl_Ob
   }
 
   if (configureoption == ConfigureoptionDebugIdx) {
-    int level;
 
     if (valueObj != NULL) {
-      int result = Tcl_GetIntFromObj(interp, valueObj, &level);
+      int level, result = Tcl_GetIntFromObj(interp, valueObj, &level);
+
       if (unlikely(result != TCL_OK)) {
         return result;
       }
-      RUNTIME_STATE(interp)->debugLevel = level;
+      RUNTIME_STATE(interp)->logSeverity = level;
     }
     Tcl_SetIntObj(Tcl_GetObjResult(interp),
-                  RUNTIME_STATE(interp)->debugLevel);
+                  RUNTIME_STATE(interp)->logSeverity);
 
     return TCL_OK;
   }
@@ -32016,6 +32016,7 @@ Nsf_Init(Tcl_Interp *interp) {
   NsfProfileInit(interp);
 #endif
   rst = RUNTIME_STATE(interp);
+  rst->logSeverity = NSF_LOG_NOTICE;
   rst->doFilters = 1;
   rst->doCheckResults = 1;
   rst->doCheckArguments = NSF_ARGPARSE_CHECK;

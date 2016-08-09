@@ -108,9 +108,8 @@ Nsf_InitStubs(Tcl_Interp *interp, const char *version, int exact) {
       version, exact, actualVersion, clientData);*/
 
     if (clientData == NULL) {
-      Tcl_ResetResult(interp);
-      Tcl_AppendResult(interp, "Error loading package ", packageName,
-		       ": package not present or incomplete", NULL);
+      NsfPrintError(interp, "Error loading package %s: "
+                    "package not present or incomplete", packageName);
         return NULL;
     } else {
       CONST86 NsfStubs * const stubsPtr = clientData;
@@ -125,9 +124,9 @@ Nsf_InitStubs(Tcl_Interp *interp, const char *version, int exact) {
         static char *errMsg = "missing stubInt table pointer";
 
         Tcl_ResetResult(interp);
-        Tcl_AppendResult(interp, "Error loading package", packageName,
-                         ": (requested version '", version, "', loaded version '",
-                         actualVersion, "'): ", errMsg, NULL);
+        NsfPrintError(interp, "Error loading package %s: "
+                      "(requested version '%s', loaded version '%s'): %s",
+                      packageName, version, actualVersion, errMsg);
         return NULL;
       }
 

@@ -1006,7 +1006,7 @@ static void CallStackPopAll(Tcl_Interp *interp) {
 
   nonnull_assert(interp != NULL);
 
-  if (RUNTIME_STATE(interp)->debugLevel > 2) {
+  if (RUNTIME_STATE(interp)->logSeverity == NSF_LOG_DEBUG) {
     NsfShowStack(interp);
   }
 
@@ -1051,7 +1051,7 @@ static void CallStackPopAll(Tcl_Interp *interp) {
       nextCscPtr = (unstackedEntries != NULL) ? unstackedEntries->nextPtr : NULL;
     }
 
-    if (count>0 && RUNTIME_STATE(interp)->debugLevel > 0) {
+    if (count>0 && RUNTIME_STATE(interp)->logSeverity > 0) {
       fprintf(stderr, "+++ unwind removed %d unstacked csc entries\n", count);
     }
   }
