@@ -934,7 +934,7 @@ typedef struct NsfRuntimeState {
    * bitarray, but we have only one state per interp, so the win on
    * memory is very little.
    */
-  int debugLevel;
+  int logSeverity;
   int debugCallingDepth;
   int doCheckArguments;
   int doCheckResults;

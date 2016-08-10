@@ -5820,8 +5820,19 @@ remove various code smells:
 code generator changes:
 - create enum types instead of enum values for nsf API
 - use enum types in code
+
+- improve variable for logging from "debugLevel" to "logSeverity"
+  (print logging messages which have a severity larger equal the then given value;
+  so; "nsf::configure debugLevel 0" will print everything, and
+  "nsf::configure debugLevel 3" will print just error messages and omit warnings etc.)
+- this is not a change in sematics, but removes some confusion in the code.
+  therefore the configure name was not changed
+- Remove occurrences of deprecated Tcl Call Tcl_AppendResult() in overall code
+
 ========================================================================
 TODO:
+- maybe add "nsf::configure logSeverity" as a new name for "debugLevel"
+  and mark the latter as deprecated.
 
 - Shouldn't we add debug/deprecated filters for "info methods", i.e.:
   ... info methods ?-debug? ?-deprecated? ?-callprotection all|public|protected|private? ?-closure? ?-type all|scripted|builtin|alias|forwarder|object|setter|nsfproc? ?-path? ?-source all|application|system? ?/pattern/?"

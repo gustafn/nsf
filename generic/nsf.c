@@ -595,7 +595,7 @@ NsfLog(Tcl_Interp *interp, int requiredLevel, const char *fmt, ...) {
   nonnull_assert(interp != NULL);
   nonnull_assert(fmt != NULL);
 
-  if (RUNTIME_STATE(interp)->debugLevel >= requiredLevel) {
+  if (requiredLevel >= RUNTIME_STATE(interp)->logSeverity) {
     Tcl_DString cmdString, ds;
     const char *level;
     va_list ap;
@@ -11137,7 +11137,7 @@ ObjectSystemsCheckSystemMethod(Tcl_Interp *interp, const char *methodName, NsfOb
         if (defObject != object) {
           int result;
 
-          NsfLog(interp, NSF_LOG_NOTICE, "Define automatically alias %s for %s",
+          NsfLog(interp, NSF_LOG_DEBUG, "Define automatically alias %s for %s",
                  ObjStr(osPtr->handles[i]), Nsf_SystemMethodOpts[i]);
 
           result = NsfMethodAliasCmd(interp, defObject, 0, methodName, 0,
@@ -14469,7 +14469,7 @@ Nsf_ConvertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
   } else {
     result = TCL_OK;
 #if defined(NSF_WITH_VALUE_WARNINGS)
-    if (RUNTIME_STATE(interp)->debugLevel > 0) {
+    if (RUNTIME_STATE(interp)->logSeverity == NSF_LOG_DEBUG) {
       const char *value = ObjStr(objPtr);
       if (unlikely(*value == '-'
                    && (pPtr->flags & NSF_ARG_CHECK_NONPOS) != 0u
@@ -24760,17 +24760,17 @@ NsfConfigureCmd(Tcl_Interp *interp, ConfigureoptionIdx_t configureoption, Tcl_Ob
   }
 
   if (configureoption == ConfigureoptionDebugIdx) {
-    int level;
 
     if (valueObj != NULL) {
-      int result = Tcl_GetIntFromObj(interp, valueObj, &level);
+      int level, result = Tcl_GetIntFromObj(interp, valueObj, &level);
+
       if (unlikely(result != TCL_OK)) {
         return result;
       }
-      RUNTIME_STATE(interp)->debugLevel = level;
+      RUNTIME_STATE(interp)->logSeverity = level;
     }
     Tcl_SetIntObj(Tcl_GetObjResult(interp),
-                  RUNTIME_STATE(interp)->debugLevel);
+                  RUNTIME_STATE(interp)->logSeverity);
 
     return TCL_OK;
   }
@@ -31728,7 +31728,7 @@ ExitHandler(ClientData clientData) {
 
   nonnull_assert(clientData != NULL);
 
-  /*fprintf(stderr, "ExitHandler\n");*/
+  /*fprintf(stderr, "+++ ExitHandler interp %p deleted %d\n", interp, (Tcl_Interp_flags(interp) & DELETED));*/
 
   /*
    * Don't use exit handler, if the interpreter is already destroyed.
@@ -31757,6 +31757,7 @@ ExitHandler(ClientData clientData) {
   Tcl_Interp_flags(interp) &= ~DELETED;
 
   CallStackPopAll(interp);
+
 
   if (rst->exitHandlerDestroyRound == NSF_EXITHANDLER_OFF) {
     NsfFinalizeCmd(interp, 0);
@@ -31798,6 +31799,7 @@ ExitHandler(ClientData clientData) {
   /*
    * Free runtime state.
    */
+  /*fprintf(stderr, "+++ ExiHandler frees runtime state of interp %p\n",interp);*/
   ckfree((char *) RUNTIME_STATE(interp));
 #if USE_ASSOC_DATA
   Tcl_DeleteAssocData(interp, "NsfRuntimeState");
@@ -31825,10 +31827,10 @@ ExitHandler(ClientData clientData) {
     }
   }
 #endif
-  
+
   Tcl_Interp_flags(interp) = flags;
   Tcl_Release(interp);
-  
+
   MEM_COUNT_RELEASE();
 }
 
@@ -31845,8 +31847,9 @@ Nsf_ThreadExitProc(ClientData clientData) {
 
   nonnull_assert(clientData != NULL);
 
-  /*fprintf(stderr, "+++ Nsf_ThreadExitProc\n");*/
+  /* fprintf(stderr, "+++ Nsf_ThreadExitProc %p\n", clientData);*/
 
+  Tcl_DeleteThreadExitHandler(Nsf_ThreadExitProc, clientData);
   Tcl_DeleteExitHandler(Nsf_ExitProc, clientData);
   ExitHandler(clientData);
 }
@@ -31862,8 +31865,9 @@ Nsf_ExitProc(ClientData clientData) {
 
   nonnull_assert(clientData != NULL);
 
-  /*fprintf(stderr, "+++ Nsf_ExitProc\n");*/
+  /*fprintf(stderr, "+++ Nsf_ExitProc %p\n", clientData);*/
 #if defined(TCL_THREADS)
+  Tcl_DeleteExitHandler(Nsf_ExitProc, clientData);
   Tcl_DeleteThreadExitHandler(Nsf_ThreadExitProc, clientData);
 #endif
   ExitHandler(clientData);
@@ -32012,6 +32016,7 @@ Nsf_Init(Tcl_Interp *interp) {
   NsfProfileInit(interp);
 #endif
   rst = RUNTIME_STATE(interp);
+  rst->logSeverity = NSF_LOG_NOTICE;
   rst->doFilters = 1;
   rst->doCheckResults = 1;
   rst->doCheckArguments = NSF_ARGPARSE_CHECK;

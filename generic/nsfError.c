@@ -250,7 +250,7 @@ NsfPrintError(Tcl_Interp *interp, const char *fmt, ...) {
   NsfDStringVPrintf(&ds, fmt, ap);
   va_end(ap);
 
-  Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_DStringValue(&ds), -1));
+  Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_DStringValue(&ds), Tcl_DStringLength(&ds)));
   Tcl_DStringFree(&ds);
 
   return TCL_ERROR;
@@ -317,35 +317,41 @@ int
 NsfObjWrongArgs(Tcl_Interp *interp, const char *msg, Tcl_Obj *cmdNameObj,
 		Tcl_Obj *methodPathObj, char *arglist) {
   int need_space = 0;
+  Tcl_DString ds;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(msg != NULL);
 
-  Tcl_ResetResult(interp);
-  Tcl_AppendResult(interp, msg, " should be \"", (char *) NULL);
+  Tcl_DStringInit(&ds);
+
+  Nsf_DStringPrintf(&ds, "%s should be \"", msg);
   if (cmdNameObj != NULL) {
-    Tcl_AppendResult(interp, ObjStr(cmdNameObj), (char *) NULL);
+    Tcl_DStringAppend(&ds, ObjStr(cmdNameObj), -1);
     need_space = 1;
   }
 
   if (methodPathObj != NULL) {
     if (need_space != 0) {
-      Tcl_AppendResult(interp, " ", (char *) NULL);
+      Tcl_DStringAppend(&ds, " ", 1);
     }
 
     INCR_REF_COUNT(methodPathObj);
-    Tcl_AppendResult(interp, ObjStr(methodPathObj), (char *) NULL);
+    Tcl_DStringAppend(&ds, ObjStr(methodPathObj), -1);
     DECR_REF_COUNT(methodPathObj);
 
     need_space = 1;
   }
   if (arglist != NULL) {
     if (need_space != 0) {
-      Tcl_AppendResult(interp, " ", (char *) NULL);
+      Tcl_DStringAppend(&ds, " ", 1);
     }
-    Tcl_AppendResult(interp, arglist, (char *) NULL);
+    Tcl_DStringAppend(&ds, arglist, -1);
   }
-  Tcl_AppendResult(interp, "\"", (char *) NULL);
+  Tcl_DStringAppend(&ds, "\"", 1);
+
+  Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_DStringValue(&ds), Tcl_DStringLength(&ds)));
+  Tcl_DStringFree(&ds);
+
   return TCL_ERROR;
 }
 
@@ -547,24 +553,33 @@ NsfObjErrType(Tcl_Interp *interp,
 	      const char *type,
 	      Nsf_Param const *paramPtr)
 {
-  int named = (paramPtr && (paramPtr->flags & NSF_ARG_UNNAMED) == 0);
-  int returnValue = !named && paramPtr && (paramPtr->flags & NSF_ARG_IS_RETURNVALUE);
-  char *prevErrMsg = ObjStr(Tcl_GetObjResult(interp));
+  int   named       = (paramPtr && (paramPtr->flags & NSF_ARG_UNNAMED) == 0);
+  int   returnValue = !named && paramPtr && (paramPtr->flags & NSF_ARG_IS_RETURNVALUE);
+  int   errMsgLen;
+  char *prevErrMsg  = Tcl_GetStringFromObj(Tcl_GetObjResult(interp), &errMsgLen);
+  Tcl_DString ds;
 
-  if (*prevErrMsg != '\0') {
-    Tcl_AppendResult(interp, " 2nd error: ",  (char *) NULL);
+  Tcl_DStringInit(&ds);
+  if (errMsgLen > 0) {
+    Tcl_DStringAppend(&ds, prevErrMsg, errMsgLen);
+    Tcl_DStringAppend(&ds, " 2nd error: ", -1);
   }
 
-  /*Tcl_ResetResult(interp);*/
   if (context != NULL) {
-    Tcl_AppendResult(interp, context, ": ",  (char *) NULL);
+    Tcl_DStringAppend(&ds, context, -1);
+    Tcl_DStringAppend(&ds, ": ", 2);
   }
-  Tcl_AppendResult(interp,"expected ", type, " but got \"",  ObjStr(value), "\"", (char *) NULL);
+
+  Nsf_DStringPrintf(&ds, "expected %s but got \"%s\"", type, ObjStr(value));
   if (named != 0) {
-    Tcl_AppendResult(interp," for parameter \"", paramPtr->name, "\"", (char *) NULL);
+    Nsf_DStringPrintf(&ds, " for parameter \"%s\"", paramPtr->name);
   } else if (returnValue != 0) {
-    Tcl_AppendResult(interp," as return value", (char *) NULL);
+    Tcl_DStringAppend(&ds, " as return value", -1);
   }
+
+  Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_DStringValue(&ds), Tcl_DStringLength(&ds)));
+  Tcl_DStringFree(&ds);
+
   return TCL_ERROR;
 }
 

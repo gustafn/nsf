@@ -386,7 +386,7 @@ Nsf_PointerExit(Tcl_Interp *interp) {
   NsfMutexLock(&pointerMutex);
   if (--pointerTableRefCount == 0) {
 
-    if (RUNTIME_STATE(interp)->debugLevel >= 2) {
+    if (RUNTIME_STATE(interp)->logSeverity == NSF_LOG_DEBUG) {
       Tcl_HashSearch hSrch;
       const Tcl_HashEntry *hPtr;
 
