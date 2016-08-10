@@ -17828,11 +17828,10 @@ NextGetArguments(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
       }
     }
 
-    if (objc > 0) {
+    if (objc > 0 && (objv != NULL || cscPtr->objv != NULL)) {
       /*
        * Copy the remaining argument vector
        */
-      assert((objv != NULL) || (cscPtr->objv != NULL));
       memcpy(nobjv + methodNameLength, objv == NULL ? cscPtr->objv : objv, sizeof(Tcl_Obj *) * objc);
     }
 
