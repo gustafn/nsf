@@ -16357,7 +16357,7 @@ MakeProc(Tcl_Namespace *nsPtr, NsfAssertionStore *aStore, Tcl_Interp *interp,
   Tcl_PopCallFrame(interp);
 
 #if defined(NSF_WITH_ASSERTIONS)
-  if (result == TCL_OK && (precondition || postcondition)) {
+  if (result == TCL_OK && aStore != NULL /* (precondition || postcondition)*/) {
     AssertionAddProc(interp, methodName, aStore, precondition, postcondition);
   }
 #endif
