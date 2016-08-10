@@ -5829,6 +5829,12 @@ code generator changes:
   therefore the configure name was not changed
 - Remove occurrences of deprecated Tcl Call Tcl_AppendResult() in overall code
 
+- Remove unused NsfObjInfoObjectparameterMethod()
+  (:nsf::methods::object::info::objectparameter). Makes CID 88775
+  obsolete. Entails removal of the then unused NsfParamDefsFilter()
+  (which has been effectively replaced by performed by
+  ::nsf::parameter::filter at the script level).
+
 ========================================================================
 TODO:
 - maybe add "nsf::configure logSeverity" as a new name for "debugLevel"
