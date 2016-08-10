@@ -5837,6 +5837,12 @@ code generator changes:
 
 ========================================================================
 TODO:
+
+- Why is the following warning popping up?
+
+% Object info method parameters configure x*
+Warning: Could not find value checker type=virtualobjectargs defined on ::nx::methodParameterSlot
+
 - maybe add "nsf::configure logSeverity" as a new name for "debugLevel"
   and mark the latter as deprecated.
 
