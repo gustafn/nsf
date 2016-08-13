@@ -2371,38 +2371,37 @@ NsfClassListUnlink(NsfClasses **firstPtrPtr, const void *key) {
 
 /*
  *----------------------------------------------------------------------
- * TopoSort --
+ * TopoSortSub --
  *
- *    Perform a topological sort of the class hierarchies. Depending on the
- *    argument "direction" it performs the sort on the transitive list of
- *    superclasses or subclasses. The resulting list contains no duplicates or
- *    cycles and is returned in the class member "order". During the
- *    computation it colors the processed nodes in WHITE, GRAY or BLACK.
+ *    Performs a topological sort of the subclass hierarchy of a given
+ *    class. The resulting list contains no duplicates or cycles and is
+ *    returned in the class member "order". During computation, it colors
+ *    the processed nodes in WHITE, GRAY or BLACK.
  *
- * Results:
- *    Boolean value indicating success.
+ * Results: 
+ *    Indicates whether a cycle was detected (0) or not (1); and,
+ *    therefore, whether the sort failed (0) or suceeded (1).
  *
  * Side effects:
- *    Allocating class list.
+ *    Allocates class list.
  *
  *----------------------------------------------------------------------
  */
 
 enum colors { WHITE, GRAY, BLACK };
-typedef enum { SUPER_CLASSES, SUB_CLASSES } ClassDirection;
 
-static int TopoSort(NsfClass *cl, NsfClass *baseClass, ClassDirection direction, int withMixinOfs)
+static int TopoSortSub(NsfClass *cl, NsfClass *baseClass, int withMixinOfs)
   nonnull(1) nonnull(2);
 
 static int
-TopoSort(NsfClass *cl, NsfClass *baseClass, ClassDirection direction, int withMixinOfs) {
+TopoSortSub(NsfClass *cl, NsfClass *baseClass, int withMixinOfs) {
   NsfClasses *sl, *pl;
   int isAcyclic = 1;
 
   nonnull_assert(cl != NULL);
   nonnull_assert(baseClass != NULL);
 
-  sl = direction == SUPER_CLASSES ? cl->super : cl->sub;
+  sl = cl->sub;
 
   /*
    * Be careful to reset the color of unreported classes to
@@ -2418,19 +2417,13 @@ TopoSort(NsfClass *cl, NsfClass *baseClass, ClassDirection direction, int withMi
   for (; sl != NULL; sl = sl->nextPtr) {
     NsfClass *sc = sl->cl;
 
-    if (sc->color == GRAY) { cl->color = WHITE; return 0; }
-    if (unlikely(sc->color == WHITE &&
-                 !TopoSort(sc, baseClass, direction, withMixinOfs))) {
-      cl->color = WHITE;
-      if (cl == baseClass) {
-        const register NsfClasses *pc;
-        for (pc = cl->order; pc != NULL; pc = pc->nextPtr) {
-          pc->cl->color = WHITE;
-        }
-      }
+    if (sc->color == GRAY ||
+        unlikely(sc->color == WHITE &&
+                 !TopoSortSub(sc, baseClass, withMixinOfs))) {
       isAcyclic = 0;
       break;
     }
+    
   }
   
   if (isAcyclic && withMixinOfs != 0) {
@@ -2441,7 +2434,7 @@ TopoSort(NsfClass *cl, NsfClass *baseClass, ClassDirection direction, int withMi
 
       if (likely(sc != NULL)
           && unlikely(sc->color == WHITE &&
-                      !TopoSort(sc, baseClass, direction, withMixinOfs))) {
+                      !TopoSortSub(sc, baseClass, withMixinOfs))) {
         NsfLog(sc->object.teardown, NSF_LOG_WARN,
                "cycle in the mixin graph list detected for class %s",
                ClassName_(sc));
@@ -2454,7 +2447,7 @@ TopoSort(NsfClass *cl, NsfClass *baseClass, ClassDirection direction, int withMi
   pl->nextPtr = baseClass->order;
   baseClass->order = pl;
   if (unlikely(cl == baseClass)) {
-    register NsfClasses *pc;
+    const register NsfClasses *pc;
     for (pc = cl->order; pc; pc = pc->nextPtr) { pc->cl->color = WHITE; }
     assert(isAcyclic && baseClass->order != NULL);
   }
@@ -2989,7 +2982,7 @@ TransitiveSubClasses(NsfClass *cl) {
   savedOrder = cl->order;
   cl->order = NULL;
 
-  (void)TopoSort(cl, cl, SUB_CLASSES, 0);
+  (void)TopoSortSub(cl, cl, 0);
 
   order = cl->order;
   assert(order != NULL);
@@ -3032,7 +3025,7 @@ DependentSubClasses(NsfClass *cl) {
   savedOrder = cl->order;
   cl->order = NULL;
 
-  (void)TopoSort(cl, cl, SUB_CLASSES, 1);
+  (void)TopoSortSub(cl, cl, 1);
 
   order = cl->order;
   assert(order != NULL);
