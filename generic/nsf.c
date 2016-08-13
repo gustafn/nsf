@@ -2397,6 +2397,7 @@ static int TopoSort(NsfClass *cl, NsfClass *baseClass, ClassDirection direction,
 static int
 TopoSort(NsfClass *cl, NsfClass *baseClass, ClassDirection direction, int withMixinOfs) {
   NsfClasses *sl, *pl;
+  int isAcyclic = 1;
 
   nonnull_assert(cl != NULL);
   nonnull_assert(baseClass != NULL);
@@ -2418,23 +2419,29 @@ TopoSort(NsfClass *cl, NsfClass *baseClass, ClassDirection direction, int withMi
     NsfClass *sc = sl->cl;
 
     if (sc->color == GRAY) { cl->color = WHITE; return 0; }
-    if (unlikely(sc->color == WHITE && !TopoSort(sc, baseClass, direction, withMixinOfs))) {
+    if (unlikely(sc->color == WHITE &&
+                 !TopoSort(sc, baseClass, direction, withMixinOfs))) {
       cl->color = WHITE;
       if (cl == baseClass) {
         const register NsfClasses *pc;
-        for (pc = cl->order; pc != NULL; pc = pc->nextPtr) { pc->cl->color = WHITE; }
+        for (pc = cl->order; pc != NULL; pc = pc->nextPtr) {
+          pc->cl->color = WHITE;
+        }
       }
-      return 0;
+      isAcyclic = 0;
+      break;
     }
   }
-  if (withMixinOfs != 0) {
+  
+  if (isAcyclic && withMixinOfs != 0) {
     NsfCmdList *classMixins = ((cl->opt != NULL) && cl->opt->isClassMixinOf) ? cl->opt->isClassMixinOf : NULL;
 
     for (; classMixins != NULL; classMixins = classMixins->nextPtr) {
       NsfClass *sc = NsfGetClassFromCmdPtr(classMixins->cmdPtr);
 
       if (likely(sc != NULL)
-          && unlikely(sc->color == WHITE && !TopoSort(sc, baseClass, direction, withMixinOfs))) {
+          && unlikely(sc->color == WHITE &&
+                      !TopoSort(sc, baseClass, direction, withMixinOfs))) {
         NsfLog(sc->object.teardown, NSF_LOG_WARN,
                "cycle in the mixin graph list detected for class %s",
                ClassName_(sc));
@@ -2449,8 +2456,9 @@ TopoSort(NsfClass *cl, NsfClass *baseClass, ClassDirection direction, int withMi
   if (unlikely(cl == baseClass)) {
     register NsfClasses *pc;
     for (pc = cl->order; pc; pc = pc->nextPtr) { pc->cl->color = WHITE; }
+    assert(isAcyclic && baseClass->order != NULL);
   }
-  return 1;
+  return isAcyclic;
 }
 
 
@@ -2965,7 +2973,8 @@ PrecedenceOrder(NsfClass *cl) {
  *----------------------------------------------------------------------
  */
 
-NSF_INLINE static NsfClasses * TransitiveSubClasses(NsfClass *cl) nonnull(1);
+NSF_INLINE static NsfClasses * TransitiveSubClasses(NsfClass *cl)
+  nonnull(1) returns_nonnull;
 
 NSF_INLINE static NsfClasses *
 TransitiveSubClasses(NsfClass *cl) {
@@ -2975,24 +2984,16 @@ TransitiveSubClasses(NsfClass *cl) {
 
   /*
    * Since TopoSort() places its result in cl->order, we have to save the old
-   * cl->order, perform the computation and restore the old order.
+   * cl->order, perform the computation, and restore the old order.
    */
   savedOrder = cl->order;
   cl->order = NULL;
 
-  if (likely(TopoSort(cl, cl, SUB_CLASSES, 0))) {
-    order = cl->order;
-  } else {
-    if (cl->order != NULL) {
-      NsfClassListFree(cl->order);
-    }
-    order = NULL;
-  }
+  (void)TopoSort(cl, cl, SUB_CLASSES, 0);
 
-  /*
-   * TODO: if this holds, we can change the fn to returns_nonnull and the else-branch is not needed
-   */
+  order = cl->order;
   assert(order != NULL);
+
   AssertOrderIsWhite(order);
 
   cl->order = savedOrder;
@@ -3015,7 +3016,8 @@ TransitiveSubClasses(NsfClass *cl) {
  *
  *----------------------------------------------------------------------
  */
-NSF_INLINE static NsfClasses *DependentSubClasses(NsfClass *cl) nonnull(1);
+NSF_INLINE static NsfClasses *DependentSubClasses(NsfClass *cl)
+  nonnull(1) returns_nonnull;
 
 NSF_INLINE static NsfClasses *
 DependentSubClasses(NsfClass *cl) {
@@ -3030,20 +3032,11 @@ DependentSubClasses(NsfClass *cl) {
   savedOrder = cl->order;
   cl->order = NULL;
 
-  if (likely(TopoSort(cl, cl, SUB_CLASSES, 1))) {
-    order = cl->order;
-  } else {
-    if (cl->order != NULL) {
-      NsfClassListFree(cl->order);
-    }
-    order = NULL;
-  }
+  (void)TopoSort(cl, cl, SUB_CLASSES, 1);
 
-  /*
-   * TODO: if this holds, we can change the fn to returns_nonnull and the else-branch is not needed
-   */
-
+  order = cl->order;
   assert(order != NULL);
+  
   AssertOrderIsWhite(order);
 
   cl->order = savedOrder;
