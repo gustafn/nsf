@@ -2951,26 +2951,33 @@ PrecedenceOrder(NsfClass *cl) {
 
 /*
  *----------------------------------------------------------------------
- * TransitiveSubClasses --
+ * GetSubClasses --
  *
- *    Return a class list containing the transitive list of sub-classes
- *    starting with (and containing) the provided class.The caller has to free
- *    the returned class list.
+ *    Return a class list containing the transitive or dependent subclasses
+ *    starting with (and containing) the provided class. The caller has to
+ *    free the returned class list.
  *
  * Results:
- *    Class list or NULL if cycles are detected
+ *    Class list, at least with one element (i.e., the provided class).
  *
  * Side effects:
- *    Just indirect.
+ *    None.
  *
  *----------------------------------------------------------------------
  */
 
-NSF_INLINE static NsfClasses * TransitiveSubClasses(NsfClass *cl)
+NSF_INLINE static NsfClasses *
+GetSubClasses(NsfClass *cl, int withMixinOfs)
   nonnull(1) returns_nonnull;
 
+#define TransitiveSubClasses(cl)                         \
+  GetSubClasses((cl), 0)
+
+#define DependentSubClasses(cl)                         \
+  GetSubClasses((cl), 1)
+
 NSF_INLINE static NsfClasses *
-TransitiveSubClasses(NsfClass *cl) {
+GetSubClasses(NsfClass *cl, int withMixinOfs) {
   NsfClasses *order, *savedOrder;
 
   nonnull_assert(cl != NULL);
@@ -2982,7 +2989,7 @@ TransitiveSubClasses(NsfClass *cl) {
   savedOrder = cl->order;
   cl->order = NULL;
 
-  (void)TopoSortSub(cl, cl, 0);
+  (void)TopoSortSub(cl, cl, withMixinOfs);
 
   order = cl->order;
   assert(order != NULL);
@@ -2992,50 +2999,6 @@ TransitiveSubClasses(NsfClass *cl) {
   cl->order = savedOrder;
   return order;
 }
-
-/*
- *----------------------------------------------------------------------
- * DependentSubClasses --
- *
- *    Return a class list containing all dependent classes (i.e. classes that
- *    inherit via intrinsic or mixin hierarchy) starting with (and containing)
- *    the provided class.The caller has to free the returned class list.
- *
- * Results:
- *    Class list or NULL if cycles are detected
- *
- * Side effects:
- *    Just indirect.
- *
- *----------------------------------------------------------------------
- */
-NSF_INLINE static NsfClasses *DependentSubClasses(NsfClass *cl)
-  nonnull(1) returns_nonnull;
-
-NSF_INLINE static NsfClasses *
-DependentSubClasses(NsfClass *cl) {
-  NsfClasses *order, *savedOrder;
-
-  nonnull_assert(cl != NULL);
-
-  /*
-   * Since TopoSort() places its result in cl->order, we have to save the old
-   * cl->order, perform the computation and restore the old order.
-   */
-  savedOrder = cl->order;
-  cl->order = NULL;
-
-  (void)TopoSortSub(cl, cl, 1);
-
-  order = cl->order;
-  assert(order != NULL);
-  
-  AssertOrderIsWhite(order);
-
-  cl->order = savedOrder;
-  return order;
-}
-
 
 /*
  *----------------------------------------------------------------------
