@@ -2426,7 +2426,7 @@ TopoSortSub(NsfClass *cl, NsfClass *baseClass, int withMixinOfs) {
     
   }
   
-  if (isAcyclic && withMixinOfs != 0) {
+  if (isAcyclic != 0 && withMixinOfs != 0) {
     NsfCmdList *classMixins = ((cl->opt != NULL) && cl->opt->isClassMixinOf) ? cl->opt->isClassMixinOf : NULL;
 
     for (; classMixins != NULL; classMixins = classMixins->nextPtr) {
@@ -2449,7 +2449,7 @@ TopoSortSub(NsfClass *cl, NsfClass *baseClass, int withMixinOfs) {
   if (unlikely(cl == baseClass)) {
     const register NsfClasses *pc;
     for (pc = cl->order; pc; pc = pc->nextPtr) { pc->cl->color = WHITE; }
-    assert(isAcyclic && baseClass->order != NULL);
+    assert(isAcyclic != 0 && baseClass->order != NULL);
   }
   return isAcyclic;
 }
