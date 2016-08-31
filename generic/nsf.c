@@ -11767,7 +11767,7 @@ static Tcl_Obj * ParamDefsNames(Tcl_Interp *interp, Nsf_Param const *paramsPtr, 
 
 static Tcl_Obj *
 ParamDefsNames(Tcl_Interp *interp, Nsf_Param const *paramsPtr, NsfObject *contextObject, const char *pattern) {
-  Tcl_Obj *listObj = Tcl_NewListObj(0, NULL), *obj;
+  Tcl_Obj *listObj = Tcl_NewListObj(0, NULL);
 
   nonnull_assert(interp != NULL);
   nonnull_assert(paramsPtr != NULL);
@@ -11775,6 +11775,8 @@ ParamDefsNames(Tcl_Interp *interp, Nsf_Param const *paramsPtr, NsfObject *contex
   INCR_REF_COUNT2("paramDefsObj", listObj);
 
   for (; likely(paramsPtr->name != NULL); paramsPtr++) {
+    const char* paramName;
+
     if ((paramsPtr->flags & NSF_ARG_NOCONFIG) != 0u) {
       continue;
     }
@@ -11782,12 +11784,12 @@ ParamDefsNames(Tcl_Interp *interp, Nsf_Param const *paramsPtr, NsfObject *contex
       continue;
     }
 
-    obj = (paramsPtr->nameObj != NULL) ? paramsPtr->nameObj : Tcl_NewStringObj(paramsPtr->name, -1);
-    if (pattern && !Tcl_StringMatch(ObjStr(obj), pattern)) {
+    paramName = *paramsPtr->name == '-' ? paramsPtr->name+1 : paramsPtr->name;
+    if (pattern && !Tcl_StringMatch(paramName, pattern)) {
       continue;
     }
-
-    Tcl_ListObjAppendElement(interp, listObj, obj);
+    Tcl_ListObjAppendElement(interp, listObj, (paramsPtr->nameObj != NULL) ?
+                             paramsPtr->nameObj : Tcl_NewStringObj(paramsPtr->name, -1));
   }
 
   return listObj;
