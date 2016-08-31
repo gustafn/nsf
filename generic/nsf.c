@@ -7319,7 +7319,7 @@ static void
 AssertionAddProc(Tcl_Interp *interp, const char *name, NsfAssertionStore *aStore,
                  Tcl_Obj *pre, Tcl_Obj *post) {
   int new = 0;
-  Tcl_HashEntry *hPtr = NULL;
+  Tcl_HashEntry *hPtr;
   NsfProcAssertion *procs = NEW(NsfProcAssertion);
 
   nonnull_assert(interp != NULL);
