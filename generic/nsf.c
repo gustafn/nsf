@@ -20317,10 +20317,13 @@ NsfForwardPrintError(Tcl_Interp *interp, ForwardCmdClientData *tcd,
     if (tcd->object != NULL) {
       cmd = Tcl_DuplicateObj(tcd->object->cmdName);
       if (objc > 0) {
-        Tcl_ListObjAppendList(interp, cmd,
-                              NsfMethodNamePath(interp,
-                                                CallStackGetTclFrame(interp, NULL, 1),
-                                                MethodName(objv[0])));
+        Tcl_Obj *methodObjPath = NsfMethodNamePath(interp,
+                                                   CallStackGetTclFrame(interp, NULL, 1),
+                                                   MethodName(objv[0]));
+        INCR_REF_COUNT(methodObjPath);
+        Tcl_ListObjAppendList(interp, cmd, methodObjPath);
+        DECR_REF_COUNT(methodObjPath);
+        
         if (objc > 1) {
           Tcl_ListObjAppendElement(interp, cmd,  Tcl_NewListObj(objc-1, objv+1));
         }
