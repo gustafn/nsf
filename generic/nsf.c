@@ -21742,13 +21742,17 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 #endif
 
     if (unlikely(currentParamPtr > lastParamPtr)) {
+      int result;
       Tcl_Obj *methodPathObj;
 
       methodPathObj = NsfMethodNamePath(interp,
                                         CallStackGetTclFrame(interp, NULL, 0),
                                         NsfMethodName(procNameObj));
-      return NsfUnexpectedArgumentError(interp, ObjStr(argumentObj), (Nsf_Object*)object,
+      INCR_REF_COUNT(methodPathObj);
+      result = NsfUnexpectedArgumentError(interp, ObjStr(argumentObj), (Nsf_Object*)object,
                                         paramPtr, methodPathObj);
+      DECR_REF_COUNT(methodPathObj);
+      return result;
     }
 
     if (*currentParamPtr->name == '-') {
@@ -21927,13 +21931,17 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
               }
 
               if (nonposArgError != 0) {
+                int result;
                 Tcl_Obj *methodPathObj = NsfMethodNamePath(interp,
                                                            CallStackGetTclFrame(interp, NULL, 0),
                                                            NsfMethodName(procNameObj));
-                return NsfUnexpectedNonposArgumentError(interp, argumentString,
-                                                        (Nsf_Object *)object,
-                                                        currentParamPtr, paramPtr,
-                                                        methodPathObj);
+                INCR_REF_COUNT(methodPathObj);
+                result = NsfUnexpectedNonposArgumentError(interp, argumentString,
+                                                          (Nsf_Object *)object,
+                                                          currentParamPtr, paramPtr,
+                                                          methodPathObj);
+                DECR_REF_COUNT(methodPathObj);
+                return result;
               }
               pPtr = currentParamPtr = nextParamPtr;
             }
@@ -21951,14 +21959,18 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
      * parameter, valueObj might be already provided for valueInArgument.
      */
     if (unlikely(pPtr > lastParamPtr)) {
+      int result;
       Tcl_Obj *methodPathObj;
 
       methodPathObj = NsfMethodNamePath(interp, CallStackGetTclFrame(interp, NULL, 0),
                                         NsfMethodName(procNameObj));
+      INCR_REF_COUNT(methodPathObj);
       /*fprintf(stderr, "call NsfUnexpectedArgumentError 2\n");*/
-      return NsfUnexpectedArgumentError(interp, ObjStr(argumentObj),
+      result = NsfUnexpectedArgumentError(interp, ObjStr(argumentObj),
                                         (Nsf_Object *)object, paramPtr,
                                         methodPathObj);
+      DECR_REF_COUNT(methodPathObj);
+      return result;
     }
 
     /*
