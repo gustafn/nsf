@@ -4382,8 +4382,9 @@ NsfMethodName(Tcl_Obj *methodObj) {
  *    Compute the full method name for error messages containing the
  *    ensemble root.
  *
- * Results:
- *    Tcl_Obj, caller has to take care for ref-counting
+ * Results: 
+ *    Tcl_Obj of reference count 0, caller has to take care for
+ *    refcounting
  *
  * Side effects:
  *    None.
@@ -4396,14 +4397,15 @@ NsfMethodNamePath(Tcl_Interp *interp,
                   Tcl_CallFrame *framePtr,
                   const char *methodName) {
 
-  Tcl_Obj *resultObj = Tcl_NewListObj(0, NULL);
-
+  Tcl_Obj *resultObj;
+  
   nonnull_assert(interp != NULL);
   nonnull_assert(methodName != NULL);
-
+  
   if (framePtr != NULL) {
-    Tcl_ListObjAppendList(interp, resultObj,
-                          CallStackMethodPath(interp, framePtr));
+    resultObj = CallStackMethodPath(interp, framePtr);
+  } else {
+    resultObj = Tcl_NewListObj(0, NULL);
   }
 
   Tcl_ListObjAppendElement(interp, resultObj,
