@@ -207,7 +207,7 @@ TCLSH_ENV	= TCL_LIBRARY=`@CYGPATH@ $(TCL_SRC_DIR)/library` \
 		  TCLLIBPATH="$(top_builddir) ${srcdir} $(TCLLIBPATH)"
 TCLSH_PROG	= @TCLSH_PROG@
 TCLSH		= $(TCLSH_ENV) $(TCLSH_PROG)
-#TCLSH		= $(TCLSH_ENV) valgrind --dsymutil=yes $(TCLSH_PROG)
+# TCLSH		= $(TCLSH_ENV) LD_PRELOAD="$(srcdir)/$(PKG_LIB_FILE)" valgrind --log-fd=9 --leak-check=full --track-origins=yes --show-possibly-lost=no $(TCLSH_PROG) 9>>valgrind.out
 SHARED_BUILD	= @SHARED_BUILD@
 
 INCLUDES	= @PKG_INCLUDES@ @TCL_INCLUDES@ @NSF_BUILD_INCLUDE_SPEC@
