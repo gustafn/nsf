@@ -12791,6 +12791,7 @@ ObjectCmdMethodDispatch(NsfObject *invokedObject, Tcl_Interp *interp, int objc, 
       Tcl_CallFrame *varFramePtr, *tclFramePtr = CallStackGetTclFrame(interp,(Tcl_CallFrame *)framePtr, 1);
       int pathLength, pathLength0 = 0, getPath = 1, unknownIndex;
       Tcl_Obj *pathObj = NsfMethodNamePath(interp, tclFramePtr, MethodName(objv[0]));
+      INCR_REF_COUNT(pathObj);
 
       /*
        * The "next" call could not resolve the unknown subcommand. At this
@@ -12837,6 +12838,7 @@ ObjectCmdMethodDispatch(NsfObject *invokedObject, Tcl_Interp *interp, int objc, 
           getPath = 1;
         } else if (getPath == 1) {
           Tcl_Obj *pathObj1 = CallStackMethodPath(interp, varFramePtr);
+          INCR_REF_COUNT(pathObj1);
           int pathLength1;
 
           getPath = 0;
@@ -12847,6 +12849,8 @@ ObjectCmdMethodDispatch(NsfObject *invokedObject, Tcl_Interp *interp, int objc, 
             }
             pathObj    = pathObj1;
             pathLength = pathLength1;
+          } else {
+            DECR_REF_COUNT(pathObj1);
           }
         }
       }
@@ -12864,6 +12868,7 @@ ObjectCmdMethodDispatch(NsfObject *invokedObject, Tcl_Interp *interp, int objc, 
       result = DispatchUnknownMethod(interp, invokedObject, objc-1, objv+1, callInfoObj,
                                      objv[1], NSF_CM_NO_OBJECT_METHOD|NSF_CSC_IMMEDIATE);
       DECR_REF_COUNT(callInfoObj);
+      DECR_REF_COUNT(pathObj);
     }
   }
   Nsf_PopFrameCsc(interp, framePtr);
