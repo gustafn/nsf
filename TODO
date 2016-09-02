@@ -5838,6 +5838,23 @@ code generator changes:
 ========================================================================
 TODO:
 
+- Add Rosetta examples:
+
+  (for the sake of completeness)
+  https://rosettacode.org/wiki/Multiple_distinct_objects	
+  https://rosettacode.org/wiki/Add_a_variable_to_a_class_instance_at_runtime
+  https://rosettacode.org/wiki/Inheritance/Single
+  https://rosettacode.org/wiki/Inheritance/Multiple#Tcl
+  https://rosettacode.org/wiki/Polymorphic_copy#Tcl
+
+  (more substantial)
+  https://rosettacode.org/wiki/Tokenize_a_string_with_escaping
+  https://rosettacode.org/wiki/Tree_traversal
+  https://rosettacode.org/wiki/Active_object
+
+  ? https://rosettacode.org/wiki/Window_creation/X11
+  ? https://rosettacode.org/wiki/Scope_modifiers
+
 - Why is the following warning popping up?
 
 % Object info method parameters configure x*
