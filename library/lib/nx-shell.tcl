@@ -27,7 +27,7 @@ nx::Object create ::nx::shell2 {
   :protected object method evalScript {-exit:switch script} {
     set script [list catch [string trim $script] [current]::result [current]::opts]
     set r [uplevel #0 $script]
-    if {$r} {
+    if {$r == 1} {
       puts stderr [dict get ${:opts} -errorinfo]
       if {$exit} {
         exit 1
