@@ -257,6 +257,7 @@ EXAMPLE_SCRIPTS = \
 	$(src_doc_dir)/example-scripts/tk-spread.html \
 	$(src_doc_dir)/example-scripts/traits-composite.html \
 	$(src_doc_dir)/example-scripts/traits-simple.html \
+	$(src_doc_dir)/example-scripts/rosetta-tokenizer.html
 
 
 %.html : %.tcl

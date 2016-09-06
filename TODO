@@ -5835,6 +5835,8 @@ code generator changes:
   (which has been effectively replaced by performed by
   ::nsf::parameter::filter at the script level).
 
+- Added Rosetta example: https://rosettacode.org/wiki/Tokenize_a_string_with_escaping
+
 ========================================================================
 TODO:
 
@@ -5848,7 +5850,6 @@ TODO:
   https://rosettacode.org/wiki/Polymorphic_copy#Tcl
 
   (more substantial)
-  https://rosettacode.org/wiki/Tokenize_a_string_with_escaping
   https://rosettacode.org/wiki/Tree_traversal
   https://rosettacode.org/wiki/Active_object
 
