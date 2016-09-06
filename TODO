@@ -5840,6 +5840,16 @@ code generator changes:
 ========================================================================
 TODO:
 
+- Should we add exists to the Variableslot-Interface, to surface ::nsf::var::exists.
+
++  ::nx::VariableSlot public method value=exists {obj prop -nocomplain:switch} {
++    ::nsf::var::exists $obj $prop
++  }
+
+  Right now, one has to resort to a "low-level" /obj/ eval {info
+  exists :/propVar/} or the like for checks before calling /obj/
+  /prop/ get|set ...
+
 - Add Rosetta examples:
 
   (for the sake of completeness)
