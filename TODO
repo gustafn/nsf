@@ -5837,12 +5837,14 @@ code generator changes:
 
 - Added Rosetta example: https://rosettacode.org/wiki/Tokenize_a_string_with_escaping
 
+- Added Rosetta example: https://rosettacode.org/wiki/Tree_traversal
+
 ========================================================================
 TODO:
 
 - Should we add exists to the Variableslot-Interface, to surface ::nsf::var::exists.
 
-+  ::nx::VariableSlot public method value=exists {obj prop -nocomplain:switch} {
++  ::nx::VariableSlot public method value=exists {obj prop} {
 +    ::nsf::var::exists $obj $prop
 +  }
 
@@ -5860,7 +5862,6 @@ TODO:
   https://rosettacode.org/wiki/Polymorphic_copy#Tcl
 
   (more substantial)
-  https://rosettacode.org/wiki/Tree_traversal
   https://rosettacode.org/wiki/Active_object
 
   ? https://rosettacode.org/wiki/Window_creation/X11
