@@ -5842,6 +5842,11 @@ code generator changes:
 ========================================================================
 TODO:
 
+- Under core-8-5-branch, make test --enable-development yields an assertion failure:
+
+  ./tests/parameters.test
+  Assertion failed: (ISOBJ(objv[pcPtr->lastObjc-1])), function ArgumentParse, file ./generic/nsf.c, line 22155.
+
 - Should we add exists to the Variableslot-Interface, to surface ::nsf::var::exists.
 
 +  ::nx::VariableSlot public method value=exists {obj prop} {
