@@ -25070,7 +25070,7 @@ NsfFinalizeCmd(Tcl_Interp *interp, int withKeepvars) {
   }
 #endif
 
-  /*fprintf(stderr, "+++ call tcl-defined exit handler\n");*/
+    fprintf(stderr, "+++ call tcl-defined exit handler (%lx)\n", pthread_self());
 
   /*
    * Evaluate user-defined exit handler.
