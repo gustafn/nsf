@@ -257,7 +257,8 @@ EXAMPLE_SCRIPTS = \
 	$(src_doc_dir)/example-scripts/tk-spread.html \
 	$(src_doc_dir)/example-scripts/traits-composite.html \
 	$(src_doc_dir)/example-scripts/traits-simple.html \
-	$(src_doc_dir)/example-scripts/rosetta-tokenizer.html
+	$(src_doc_dir)/example-scripts/rosetta-tokenizer.html \
+	$(src_doc_dir)/example-scripts/rosetta-tree.html
 
 
 %.html : %.tcl
@@ -588,6 +589,8 @@ test-core: $(TCLSH_PROG)
 	$(TCLSH) $(src_doc_dir_native)/example-scripts/ruby-mixins.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_doc_dir_native)/example-scripts/traits-composite.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_doc_dir_native)/example-scripts/traits-simple.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_doc_dir_native)/example-scripts/rosetta-tokenizer.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_doc_dir_native)/example-scripts/rosetta-tree.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 
 test-xotcl: $(TCLSH_PROG)
 	$(TCLSH) $(xotcl_src_test_dir)/testo.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)

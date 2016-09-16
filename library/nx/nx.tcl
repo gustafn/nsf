@@ -2191,7 +2191,7 @@ namespace eval ::nx {
   }
 
   ::nx::VariableSlot public method value=delete {-nocomplain:switch obj prop value} {
-    set old [::nsf::var::set $obj $prop]
+    set old [::nsf::var::get $obj $prop]
     set p [lsearch -glob $old $value]
     if {$p>-1} {::nsf::var::set $obj $prop [lreplace $old $p $p]} else {
       return -code error "$value is not a $prop of $obj (valid are: $old)"

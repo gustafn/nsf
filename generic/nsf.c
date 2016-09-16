@@ -407,6 +407,9 @@ static NsfClasses ** NsfClassListAdd(NsfClasses **firstPtrPtr, NsfClass *cl, Cli
 static int SetInstVar(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj, Tcl_Obj *valueObj, unsigned int flags)
   nonnull(1) nonnull(2) nonnull(3);
 
+static int UnsetInstVar(Tcl_Interp *interp, int withNocomplain, NsfObject *object, const char *name)
+  nonnull(1) nonnull(3) nonnull(4);
+
 static int ListDefinedMethods(Tcl_Interp *interp, NsfObject *object, const char *pattern,
                               int withPer_object, int methodType, int withCallproctection,
                               int withPath)
@@ -5648,9 +5651,113 @@ NSDeleteChildren(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
   }
 }
 
+
 /*
- * delete all vars & procs in a namespace
+ *----------------------------------------------------------------------
+ * UnsetTracedVars --
+ *
+ *   This is a helper function which, as a first pass, attempts to unset
+ *   traced object variables before TclDeleteVars() performs a second pass.
+ *   This two-pass deletion of object variables is necessary because an unset
+ *   trace might bring back the object variable currently being deleted. A
+ *   single pass risks leaking so-revived Var structures. TclDeleteVars()
+ *   requires variables under deletion to be untraced.
+ *
+ *   As Tcl does not provide access to the neccessary lower-level Var API to
+ *   extensions (ideally: TclDeleteNamespaceVars or TclPtrUnsetVar), we resort
+ *   to a mix of navigating the variable table and calling high-level unset
+ *   operations (UnsetInstVar).
+ *
+ *   With the fix to ticket http://core.tcl.tk/tcl/info/4dbdd9af144dbdd9af14,
+ *   Tcl itself provides for two deletion passes for namespace variables (see
+ *   TclDeleteNamespaceVars).
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    Triggers the unset traces, if any.
+ *
+ *----------------------------------------------------------------------
  */
+
+static void UnsetTracedVars(Tcl_Interp *interp, NsfObject *object) nonnull(1) nonnull(2);
+
+static void
+UnsetTracedVars(
+    Tcl_Interp *interp,  /* Interpreter to which object belongs. */
+    NsfObject *object)  /* Object to which variables belong. */
+{
+    Tcl_HashSearch search;
+    Tcl_HashEntry *entryPtr;
+    TclVarHashTable *varTablePtr;
+    Interp *iPtr = (Interp *)interp;
+
+    varTablePtr = (object->nsPtr != NULL) ?
+      Tcl_Namespace_varTablePtr(object->nsPtr) :
+      object->varTablePtr;
+
+    if (varTablePtr != NULL) {
+      for (entryPtr = Tcl_FirstHashEntry((Tcl_HashTable *)varTablePtr, &search);
+           entryPtr != NULL;
+           entryPtr = Tcl_NextHashEntry(&search)) {
+        Tcl_Obj *nameObj;
+        Var *varPtr;
+        GetVarAndNameFromHash(entryPtr, &varPtr, &nameObj);
+        if ((varPtr->flags & VAR_TRACED_UNSET) != 0u /* TclIsVarTraced(varPtr) */) {
+
+          VarHashRefCount(varPtr)++;
+          (void)UnsetInstVar(interp, 1 /* no error msg */, object, ObjStr(nameObj));
+
+          /* The variable might have been brought back by an unset trace, plus
+             newly created unset traces; deactivate *all* traces on revived vars. */
+          if (TclIsVarTraced(varPtr)) {
+            Tcl_HashEntry *tPtr = Tcl_FindHashEntry(&iPtr->varTraces, varPtr);
+            VarTrace *tracePtr = Tcl_GetHashValue(tPtr);
+            ActiveVarTrace *activePtr;
+            
+            while (tracePtr) {
+              VarTrace *prevPtr = tracePtr;
+              
+              tracePtr = tracePtr->nextPtr;
+              prevPtr->nextPtr = NULL;
+              Tcl_EventuallyFree(prevPtr, TCL_DYNAMIC);
+            }
+            Tcl_DeleteHashEntry(tPtr);
+            varPtr->flags &= ~VAR_ALL_TRACES;
+            for (activePtr = iPtr->activeVarTracePtr; activePtr != NULL;
+                 activePtr = activePtr->nextPtr) {
+              if (activePtr->varPtr == varPtr) {
+                activePtr->nextTracePtr = NULL;
+              }
+            }
+          }
+          VarHashRefCount(varPtr)--;
+        }
+      }
+    }
+}
+
+/*
+ *----------------------------------------------------------------------
+ * NSCleanupNamespace --
+ *
+ *   Cleans up an object or class namespace by deleting 1) its variables, 2)
+ *   resetting the var table, and 3) deleting user-defined namespace procs.
+ *
+ *   For namespaces holding variables with possible unset traces, make sure
+ *   that UnsetTracedVars is called just before NSCleanupNamespace().
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects: 
+ *    Re-initializes the variable table of the cleaned-up namespace
+ *    (TclInitVarHashTable).
+ *
+ *----------------------------------------------------------------------
+ */
+
 static void NSCleanupNamespace(Tcl_Interp *interp, Tcl_Namespace *nsPtr) nonnull(1) nonnull(2);
 
 static void
@@ -5668,8 +5775,9 @@ NSCleanupNamespace(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
   fprintf(stderr, "NSCleanupNamespace %p %.6x varTablePtr %p\n", nsPtr, ((Namespace *)nsPtr)->flags, varTablePtr);
 #endif
   /*
-   * Delete all variables and initialize var table again
-   * (DeleteVars frees the var-table)
+   * Delete all variables and initialize var table again (TclDeleteVars frees
+   * the var table). Any unset-traced variable has been deleted before
+   * (UnsetTracedVars).
    */
   TclDeleteVars((Interp *)interp, varTablePtr);
   TclInitVarHashTable(varTablePtr, (Namespace *)nsPtr);
@@ -18483,12 +18591,17 @@ CleanupDestroyObject(Tcl_Interp *interp, NsfObject *object, int softrecreate) {
     }
   }
 
+  /* Unset object variables with unset traces pre-emptively. */ 
+  UnsetTracedVars(interp, object);
+  
   if (object->nsPtr != NULL) {
     NSCleanupNamespace(interp, object->nsPtr);
     NSDeleteChildren(interp, object->nsPtr);
   }
 
   if (object->varTablePtr != NULL) {
+    /* Any unset-traced variable has been deleted before
+       (UnsetTracedVars) */
     TclDeleteVars(((Interp *)interp), object->varTablePtr);
 
     ckfree((char *)object->varTablePtr);
@@ -20184,8 +20297,6 @@ SetInstArray(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *arrayNameObj, Tcl_O
  *
  *----------------------------------------------------------------------
  */
-static int UnsetInstVar(Tcl_Interp *interp, int withNocomplain, NsfObject *object, const char *name)
-  nonnull(1) nonnull(3) nonnull(4);
 
 static int
 UnsetInstVar(Tcl_Interp *interp, int withNocomplain, NsfObject *object, const char *name) {
