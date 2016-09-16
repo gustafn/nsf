@@ -25070,7 +25070,7 @@ NsfFinalizeCmd(Tcl_Interp *interp, int withKeepvars) {
   }
 #endif
 
-    fprintf(stderr, "+++ call tcl-defined exit handler (%lx)\n", pthread_self());
+  /*fprintf(stderr, "+++ call tcl-defined exit handler (%x)\n", PTR2INT(pthread_self()));*/
 
   /*
    * Evaluate user-defined exit handler.
@@ -31466,7 +31466,19 @@ FreeAllNsfObjectsAndClasses(Tcl_Interp *interp, NsfCmdList **instances) {
         continue;
       }
 
-      /*fprintf(stderr, "cl key = %s %p\n", ClassName(cl), cl); */
+      /*fprintf(stderr, "### cl key = %s %p\n", ClassName(cl), cl); */
+
+      /*
+       * Remove manually mixinRegObjs to achieve correct deletion
+       * order. Otherwise, refcount checking for NsfObjects complains during
+       * shutdown (and dangling references would be a consequence).
+       */
+      if (cl->opt != NULL && cl->opt->mixinRegObjs != NULL) {
+        NsfMixinregInvalidate(interp, cl->opt->mixinRegObjs);
+        DECR_REF_COUNT2("mixinRegObjs", cl->opt->mixinRegObjs);
+        cl->opt->mixinRegObjs = NULL;
+      }
+
       if (!ObjectHasChildren((NsfObject *)cl)
           && !ClassHasInstances(cl)
           && !ClassHasSubclasses(cl)
