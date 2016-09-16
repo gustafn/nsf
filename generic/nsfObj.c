@@ -557,7 +557,7 @@ NsfMixinregGet(Tcl_Interp *interp, Tcl_Obj *obj, NsfClass **clPtr, Tcl_Obj **gua
  *
  *      MixinClasses keep a list of Tcl_Objs of type mixinReg.
  *      When a class is deleted, this call makes sure, that
- *      non-of these have th chance to point to a stale entry.
+ *      non-of these have the chance to point to a stale entry.
  *
  * Results:
  *      Tcl result code
