@@ -945,6 +945,38 @@ nx::test case unset-traces-during-cleanup-with-reset {
 }
 
 #
+# Test on UnsetTracedVars() under revived vars & unset traces
+#
+nx::test case unset-traces-during-cleanup-with-reset-2 {
+  global i
+  set i [interp create]
+  $i eval {
+    package req nx
+    set ::called(reset) 0
+    proc ::reset {obj var value} {
+      #
+      # ... revive object variable 'x' and add yet another unset trace
+      #
+      ::nsf::var::set $obj $var $value
+      $obj eval [list ::trace add variable :$var unset \
+                     "incr ::called(reset); ::reset $obj $var $value; #"]
+    }
+    nx::Object create ::o 
+    ::reset ::o x 100
+  }
+  ? {$i eval {::nsf::object::exists ::o}} 1
+  ? {$i eval {info commands ::o}} ::o
+  ? {$i eval {set ::called(reset)}} 0
+  $i eval {::nsf::finalize -keepvars}
+  ? {$i eval {info commands ::o}} ""
+  ? {$i eval {set ::called(reset)}} 1; # unset trace, also re-registered, is only called once!
+
+  interp delete $i
+  unset i
+}
+
+
+#
 # Exercise renaming of cmds which are used as methods
 #
 nx::test case rename-cached-method {
