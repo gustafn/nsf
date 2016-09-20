@@ -5842,6 +5842,26 @@ code generator changes:
 ========================================================================
 TODO:
 
+- Bad interaction between colon-prefix and {*} operator?
+
+Object new {
+    :object method foo {a b c args} {;}
+    :{*}[list foo 1 2 3 4 5 6]; # Should be equivalend to ':foo 1 2 3 4 5 6', but isn't
+}
+
+... gives:
+
+::nsf::__#0: unable to dispatch method 'unknown'
+    while executing
+":{*}[list foo 1 2 3 4 5 6]"
+    ::nx::Object ::nx::Class->new
+    invoked from within
+"Object new {
+    :object method foo {a b c args} {;}
+    :{*}[list foo 1 2 3 4 5 6]
+    :foo 1 2 3 4 5 6
+}"
+
 - Under core-8-5-branch, make test --enable-development yields an assertion failure:
 
   ./tests/parameters.test
