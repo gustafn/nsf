@@ -249,6 +249,13 @@ nx::test case apply {
       "hello-hello world-world"
 }
 
+
+#
+# The corrected cmd-literal semantics regarding cmd resolvers will
+# only be released starting from and including 8.6.7.
+#
+if {![package vsatisfies [package req Tcl] 8.6.7]} {return}
+
 nx::test case bug-3418547 {
   #
   # See http://core.tcl.tk/tcl/tktview?name=3418547fff
