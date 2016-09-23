@@ -75,18 +75,18 @@ Nsf_CmdDefinitionInit(Tcl_Interp *interp) {
 }
 
 /*----------------------------------------------------------------------
-* Nsf_EnumerationTypeRelease --
-*
-*    Release and, eventually, delete the hash table for method definitions.
-*
-* Results:
-*    None.
-*
-* Side effects:
-*    None.
-*
-*----------------------------------------------------------------------
-*/
+ * Nsf_CmdDefinitionRelease --
+ *
+ *    Release and, eventually, delete the hash table for method definitions.
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
 void
 Nsf_CmdDefinitionRelease(Tcl_Interp *interp) {
   

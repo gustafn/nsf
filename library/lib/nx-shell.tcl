@@ -86,8 +86,8 @@ nx::Object create ::nx::shell2 {
       # non-interactive mode: script
       set ::argv [lassign $args argv0]
       incr ::argc -1
-      if {[catch {uplevel #0 [list source $argv0]} msg]} {
-        puts stderr $msg
+      if {[catch {uplevel #0 [list source $argv0]} msg opts]} {
+        puts [dict get $opts -errorinfo]
         exit 1
       }
     }
