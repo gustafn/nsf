@@ -25160,6 +25160,9 @@ static int
 NsfFinalizeCmd(Tcl_Interp *interp, int withKeepvars) {
   int result;
 
+  /* fprintf(stderr, "#### (%lx) NsfFinalizeCmd exitHandlerRound %d\n",
+     (long)(void*)pthread_self(),RUNTIME_STATE(interp)->exitHandlerDestroyRound );*/
+
   nonnull_assert(interp != NULL);
 
 #if defined(NSF_PROFILE)
@@ -31686,12 +31689,14 @@ static void ExitHandler(ClientData clientData) nonnull(1);
 static void
 ExitHandler(ClientData clientData) {
   Tcl_Interp *interp = (Tcl_Interp *)clientData;
-  int i, flags;
+  int flags;
   NsfRuntimeState *rst = RUNTIME_STATE(interp);
 
   nonnull_assert(clientData != NULL);
 
-  /*fprintf(stderr, "+++ ExitHandler interp %p deleted %d\n", interp, (Tcl_Interp_flags(interp) & DELETED));*/
+  /*fprintf(stderr, "+++ (%lx) ExitHandler interp %p deleted %d exitHandlerDestroyRound %d\n",
+          (long)(void*)pthread_self(), interp, (Tcl_Interp_flags(interp) & DELETED),
+          rst->exitHandlerDestroyRound);*/
 
   /*
    * Don't use exit handler, if the interpreter is already destroyed.
@@ -31721,7 +31726,6 @@ ExitHandler(ClientData clientData) {
 
   CallStackPopAll(interp);
 
-
   if (rst->exitHandlerDestroyRound == NSF_EXITHANDLER_OFF) {
     NsfFinalizeCmd(interp, 0);
   }
@@ -31732,9 +31736,12 @@ ExitHandler(ClientData clientData) {
   MEM_COUNT_FREE("Tcl_InitHashTable", &rst->activeFilterTablePtr);
   Tcl_DeleteHashTable(&rst->activeFilterTablePtr);
 
-  /* free global objects */
-  for (i = 0; i < nr_elements(NsfGlobalStrings); i++) {
-    DECR_REF_COUNT(NsfGlobalObjs[i]);
+  /* free "global" (per main interp) objects */
+  {
+    int i;
+    for (i = 0; i < nr_elements(NsfGlobalStrings); i++) {
+      DECR_REF_COUNT(NsfGlobalObjs[i]);
+    }
   }
   NsfStringIncrFree(&rst->iss);
 
@@ -31810,7 +31817,7 @@ Nsf_ThreadExitProc(ClientData clientData) {
 
   nonnull_assert(clientData != NULL);
 
-  /* fprintf(stderr, "+++ Nsf_ThreadExitProc %p\n", clientData);*/
+  /*fprintf(stderr, "+++ (%lx) Nsf_ThreadExitProc %p\n", (long)(void*)pthread_self(), clientData);*/
 
   Tcl_DeleteThreadExitHandler(Nsf_ThreadExitProc, clientData);
   Tcl_DeleteExitHandler(Nsf_ExitProc, clientData);
@@ -31828,14 +31835,13 @@ Nsf_ExitProc(ClientData clientData) {
 
   nonnull_assert(clientData != NULL);
 
-  /*fprintf(stderr, "+++ Nsf_ExitProc %p\n", clientData);*/
+  /*fprintf(stderr, "+++ (%lx) Nsf_ExitProc %p\n", (long)(void*)pthread_self(), clientData);*/
 #if defined(TCL_THREADS)
   Tcl_DeleteExitHandler(Nsf_ExitProc, clientData);
   Tcl_DeleteThreadExitHandler(Nsf_ThreadExitProc, clientData);
 #endif
   ExitHandler(clientData);
 }
-
 
 /*
  * Registers thread/application exit handlers.
