@@ -1,5 +1,5 @@
 #
-# == Rosetta example:https://rosettacode.org/wiki/Tree_traversal
+# == Rosetta example: https://rosettacode.org/wiki/Tree_traversal
 #
 #
 # Implement a binary tree structure, with each node carrying an

@@ -46,5 +46,5 @@ for {set i 0} {$i<$n} {incr i} {
     lappend theList [Klass new]
 }
 
-? {llength [Klass info instances]} $n;
-? {llength [lsort -unique $theList]} $n;
+? {llength [Klass info instances]} 100;
+? {llength [lsort -unique $theList]} 100;
