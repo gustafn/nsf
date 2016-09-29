@@ -19,7 +19,12 @@ nx::test case nxsh {
    ## stdin is in interactive mode (just a smoke test)
   ? [list exec $nxsh << "$run; exit"] "% 0-"
   ## stdin is ignored
-  ? [list exec $nxsh NXSCRIPT.tcl << "$run; exit"] \
+  proc getFirstLine {cmd} {
+    catch [list uplevel 1 $cmd] res opts
+    set lines [split $res \n]
+    return [string trim [lindex $lines 0]]
+  }
+  ? [list getFirstLine [list exec $nxsh NXSCRIPT.tcl << "$run; exit"]] \
       "couldn't read file \"NXSCRIPT.tcl\": no such file or directory"
   ## non-interactive mode (-c)
   ? [list exec $nxsh -c "$run" NXSCRIPT.tcl] \
@@ -28,8 +33,8 @@ nx::test case nxsh {
   ? [list exec $nxsh -c $run a b c] "3-a-b-c"
 
   set tmpfile [file join [::nsf::tmpdir] [pid]]
-  ? [list exec $nxsh $tmpfile] "couldn't read file \"$tmpfile\": no such file or directory"
-  ? [list exec $nxsh $tmpfile a b c] "couldn't read file \"$tmpfile\": no such file or directory"
+  ? [list getFirstLine [list exec $nxsh $tmpfile]] "couldn't read file \"$tmpfile\": no such file or directory"
+  ? [list getFirstLine [list exec $nxsh $tmpfile a b c]] "couldn't read file \"$tmpfile\": no such file or directory"
 
   set ch [open $tmpfile w+]
   ? [list file exists $tmpfile] 1
