@@ -259,7 +259,8 @@ EXAMPLE_SCRIPTS = \
 	$(src_doc_dir)/example-scripts/traits-simple.html \
 	$(src_doc_dir)/example-scripts/rosetta-tokenizer.html \
 	$(src_doc_dir)/example-scripts/rosetta-tree.html \
-	$(src_doc_dir)/example-scripts/rosetta-multiple-distinct.html
+	$(src_doc_dir)/example-scripts/rosetta-multiple-distinct.html \
+	$(src_doc_dir)/example-scripts/rosetta-add-variable.html
 
 %.html : %.tcl
 	$(TCLSH) $(src_app_dir_native)/utils/source-doc-beautifier.tcl $<
@@ -591,7 +592,8 @@ test-core: $(TCLSH_PROG)
 	$(TCLSH) $(src_doc_dir_native)/example-scripts/traits-simple.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_doc_dir_native)/example-scripts/rosetta-tokenizer.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_doc_dir_native)/example-scripts/rosetta-tree.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
-	$(TCLSH) $(src_doc_dir_native)/example-scripts/rosetta-multiple-distinct.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)	
+	$(TCLSH) $(src_doc_dir_native)/example-scripts/rosetta-multiple-distinct.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_doc_dir_native)/example-scripts/rosetta-add-variable.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)	
 
 test-xotcl: $(TCLSH_PROG)
 	$(TCLSH) $(xotcl_src_test_dir)/testo.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)

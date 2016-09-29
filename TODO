@@ -5841,6 +5841,7 @@ code generator changes:
 
 - Added Rosetta example:  https://rosettacode.org/wiki/Multiple_distinct_objects
 
+- Added Rosetta example: https://rosettacode.org/wiki/Add_a_variable_to_a_class_instance_at_runtime
 
 ========================================================================
 TODO:
@@ -5875,10 +5876,9 @@ catch {={*}[list foo 1 2 3 4 5 6]} msg; puts msg=$msg
 - Add Rosetta examples:
 
   (for the sake of completeness)
-  https://rosettacode.org/wiki/Add_a_variable_to_a_class_instance_at_runtime
+  https://rosettacode.org/wiki/Polymorphic_copy#Tcl
   https://rosettacode.org/wiki/Inheritance/Single
   https://rosettacode.org/wiki/Inheritance/Multiple#Tcl
-  https://rosettacode.org/wiki/Polymorphic_copy#Tcl
 
   (more substantial)
   https://rosettacode.org/wiki/Active_object
