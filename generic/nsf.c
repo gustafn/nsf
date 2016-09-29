@@ -14207,23 +14207,24 @@ DispatchUnknownMethod(Tcl_Interp *interp, NsfObject *object,
 
   } else { /* no unknown called, this is the built-in unknown handler */
     Tcl_Obj *tailMethodObj = NULL;
-
     if (objc > 1 && ((*methodName) == '-' || (unknownObj && objv[0] == unknownObj))) {
       int length;
-      if (Tcl_ListObjLength(interp, objv[1], &length) == TCL_OK && length > 0) {
-        Tcl_ListObjIndex(interp, objv[1], length - 1, &tailMethodObj);
+      tailMethodObj = objv[1];
+      if (Tcl_ListObjLength(interp, objv[1], &length) == TCL_OK) {
+        if (length > 1) {
+          Tcl_ListObjIndex(interp, objv[1], length - 1, &tailMethodObj);
+        } 
       }
     }
-
     result = NsfPrintError(interp, "%s: unable to dispatch method '%s'",
                            ObjectName_(object), (tailMethodObj != NULL) ? MethodName(tailMethodObj) : methodName);
   }
-
+  
   /*
    * Reset interp state, unknown has been fired.
    */
   rst->unknown = 0;
-
+  
   return result;
 }
 

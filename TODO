@@ -5843,20 +5843,20 @@ code generator changes:
 
 - Added Rosetta example: https://rosettacode.org/wiki/Add_a_variable_to_a_class_instance_at_runtime
 
-========================================================================
-TODO:
-
 - Improve error message with {*} operator, not 'unknown'.
 
 Object new {
     :object method foo {a b c args} { puts --[current method]}
-    {*}[list :foo 1 2 3 4 5 6]; # Should be equivalendt to ':foo 1 2 3 4 5 6', but isn't
-    : {*}[list foo 1 2 3 4 5 6]; # Should be equivalent to ':foo 1 2 3 4 5 6', but isn't
+    {*}[list :foo 1 2 3 4 5 6]; 
+    : {*}[list foo 1 2 3 4 5 6];
     catch {:{*}[list foo 1 2 3 4 5 6]} msg; puts msg=$msg
 }
 
 proc =foo {a b c args} { puts foo }
 catch {={*}[list foo 1 2 3 4 5 6]} msg; puts msg=$msg
+
+========================================================================
+TODO:
 
 - Under core-8-5-branch, make test --enable-development yields an assertion failure:
 

@@ -230,6 +230,60 @@ nx::test case colondispatch {
   ? {o eval :foo} "::o: unable to dispatch method 'foo'" 
 }
 
+nx::test case colon-unknown {
+  set o [nx::Object new {
+    :object method foo {a b c args} { return [current method]-ok }
+
+    ## Expansion to valid method calls (messages)
+    :object method expand-non-empty-list-1 {} {
+      {*}[list :foo 1 2 3 4 5 6];
+    }
+    :object method expand-non-empty-list-2 {} {
+      : {*}[list foo 1 2 3 4 5 6];
+    }
+    :object method expand-self-call-1 {} {
+      {*}[list :];
+    }
+    :object method expand-self-call-2 {} {
+      : {*}[list];
+    }
+
+    ## (Non-)expansion & unknown
+    :object method expand-unknown-1 {} {
+      :{*}[list foo 1 2 3 4 5 6]; # no expansion, yielding invalid list as method name
+    }
+    :object method expand-unknown-2 {} {
+      :{*}[list]; # no expansion, yielding invalid list as method name
+    }
+    :object method expand-unknown-3 {} {
+      :{*}; # no expansion, yielding invalid list as method name
+    }
+    :object method expand-unknown-4 {} {
+      :{*}{}; # no expansion, yielding invalid list as method name
+    }
+    :object method expand-unknown-5 {} {
+      :{\}}; # yet another invalid list (no expansion op)
+    }
+  }]
+
+  ? [list $o expand-non-empty-list-1] "foo-ok"
+  ? [list $o expand-non-empty-list-2] "foo-ok"
+  ? [list $o expand-self-call-1] $o
+  ? [list $o expand-self-call-2] $o
+
+  #
+  # Keep unknown messages compatible with Tcl's 'invalid command'
+  # messages in the cases below, e.g.: 
+  #
+  # proc =foo {args} {;}; ={*}[list foo 1 2 3 4 5 6]
+  #
+  ? [list $o expand-unknown-1] "$o: unable to dispatch method '{*}foo 1 2 3 4 5 6'"
+  ? [list $o expand-unknown-2] "$o: unable to dispatch method '{*}'"
+  ? [list $o expand-unknown-3] "$o: unable to dispatch method '{*}'"
+  ? [list $o expand-unknown-4] "$o: unable to dispatch method '{*}{}'"
+  ? [list $o expand-unknown-5] "$o: unable to dispatch method '{\}}'"
+}
+
 nx::test case mixinguards {
   # define a Class C and mixin class M
   nx::Class create C
