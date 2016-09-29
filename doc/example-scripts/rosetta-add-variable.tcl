@@ -10,7 +10,7 @@ package req nx
 package req nx::test
 
 #
-# The class +Empty+ does not provide any structural or behaviora
+# The class +Empty+ does not provide any structural or behavioral
 # features on behalf of future instances, they will remain empty.
 #
 
