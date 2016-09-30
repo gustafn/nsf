@@ -262,13 +262,15 @@ can be provided.
 
 [list_begin definitions]
 
-[call [arg obj] [method copy] [arg newObjectName]]
+[call [arg obj] [method copy] [opt [arg newObjectName]]]
 
 Creates a full and deep copy of a source object [arg obj]. The
-object's copy [arg newObjectName] features all structural and
-behavioral properties of the source object, including object
-variables, per-object methods, nested objects, slot objects,
-namespaces, filters, mixins, and traces.
+object's copy features all structural and behavioral properties of the
+source object, including object variables, per-object methods, nested
+objects, slot objects, namespaces, filters, mixins, and traces. The
+copy can be named explicitly, if [arg newObjectName] is provided,
+or it is named automatically (in the spirit of [method new] of
+[cmd nx::Class]).
 
 [list_end]
 

@@ -286,7 +286,7 @@ nx::Object \- API reference of the base class in the NX object system
 .sp
 \fIobj\fR \fBcontains\fR ?-withnew \fItrueFalse\fR? ?-object \fIobjectName\fR? ?-class \fIclassName\fR? \fIcmds\fR
 .sp
-\fIobj\fR \fBcopy\fR \fInewObjectName\fR
+\fIobj\fR \fBcopy\fR ?\fInewObjectName\fR?
 .sp
 \fIobj\fR \fBdelete object\fR \fIfeature\fR \fIarg\fR
 .sp
@@ -577,12 +577,14 @@ can be provided\&.
 \fBcopy\fR
 .RS
 .TP
-\fIobj\fR \fBcopy\fR \fInewObjectName\fR
+\fIobj\fR \fBcopy\fR ?\fInewObjectName\fR?
 Creates a full and deep copy of a source object \fIobj\fR\&. The
-object's copy \fInewObjectName\fR features all structural and
-behavioral properties of the source object, including object
-variables, per-object methods, nested objects, slot objects,
-namespaces, filters, mixins, and traces\&.
+object's copy features all structural and behavioral properties of the
+source object, including object variables, per-object methods, nested
+objects, slot objects, namespaces, filters, mixins, and traces\&. The
+copy can be named explicitly, if \fInewObjectName\fR is provided,
+or it is named automatically (in the spirit of \fBnew\fR of
+\fBnx::Class\fR)\&.
 .RE
 .TP
 \fBdelete\fR
