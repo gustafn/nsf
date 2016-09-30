@@ -3096,7 +3096,7 @@ RemoveInstance(NsfObject *object, NsfClass *cl) {
    */
   if ((cl->object.flags & NSF_DURING_DELETE) != 0u) {
     NsfLog(cl->object.teardown, NSF_LOG_WARN,
-           "Class which should loose instance is currently being deleted: %s",
+           "The class %s, from which an instance is to be removed, is currently under deletion",
             ObjStr((cl)->object.cmdName));
   } else {
     Tcl_HashEntry *hPtr = Tcl_CreateHashEntry(&cl->instances, (char *)object, NULL);
