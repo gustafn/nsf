@@ -5855,6 +5855,8 @@ Object new {
 proc =foo {a b c args} { puts foo }
 catch {={*}[list foo 1 2 3 4 5 6]} msg; puts msg=$msg
 
+- Added Rosetta example: https://rosettacode.org/wiki/Polymorphic_copy#Tcl
+
 ========================================================================
 TODO:
 
@@ -5876,7 +5878,6 @@ TODO:
 - Add Rosetta examples:
 
   (for the sake of completeness)
-  https://rosettacode.org/wiki/Polymorphic_copy#Tcl
   https://rosettacode.org/wiki/Inheritance/Single
   https://rosettacode.org/wiki/Inheritance/Multiple#Tcl
 
