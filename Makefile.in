@@ -261,7 +261,8 @@ EXAMPLE_SCRIPTS = \
 	$(src_doc_dir)/example-scripts/rosetta-tree.html \
 	$(src_doc_dir)/example-scripts/rosetta-multiple-distinct.html \
 	$(src_doc_dir)/example-scripts/rosetta-add-variable.html \
-	$(src_doc_dir)/example-scripts/rosetta-clone.html
+	$(src_doc_dir)/example-scripts/rosetta-clone.html \
+	$(src_doc_dir)/example-scripts/rosetta-multiple-inheritance.html
 
 %.html : %.tcl
 	$(TCLSH) $(src_app_dir_native)/utils/source-doc-beautifier.tcl $<
@@ -596,6 +597,7 @@ test-core: $(TCLSH_PROG)
 	$(TCLSH) $(src_doc_dir_native)/example-scripts/rosetta-multiple-distinct.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_doc_dir_native)/example-scripts/rosetta-add-variable.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_doc_dir_native)/example-scripts/rosetta-clone.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_doc_dir_native)/example-scripts/rosetta-multiple-inheritance.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 
 test-xotcl: $(TCLSH_PROG)
 	$(TCLSH) $(xotcl_src_test_dir)/testo.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)

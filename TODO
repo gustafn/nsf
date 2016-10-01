@@ -5857,6 +5857,8 @@ catch {={*}[list foo 1 2 3 4 5 6]} msg; puts msg=$msg
 
 - Added Rosetta example: https://rosettacode.org/wiki/Polymorphic_copy#Tcl
 
+- Added Rosetta example: https://rosettacode.org/wiki/Inheritance/Multiple#Tcl
+
 ========================================================================
 TODO:
 
@@ -5879,7 +5881,6 @@ TODO:
 
   (for the sake of completeness)
   https://rosettacode.org/wiki/Inheritance/Single
-  https://rosettacode.org/wiki/Inheritance/Multiple#Tcl
 
   (more substantial)
   https://rosettacode.org/wiki/Active_object
