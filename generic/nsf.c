@@ -364,8 +364,8 @@ static int GetObjectParameterDefinition(Tcl_Interp *interp, Tcl_Obj *procNameObj
                                         NsfParsedParam *parsedParamPtr)
   nonnull(1) nonnull(2) nonnull(5);
 
-typedef Tcl_Obj *(NsfFormatFunction) _ANSI_ARGS_((Tcl_Interp *interp, Nsf_Param const *paramsPtr,
-                                                  NsfObject *contextObject, const char *pattern));
+typedef Tcl_Obj *(NsfFormatFunction)(Tcl_Interp *interp, Nsf_Param const *paramsPtr,
+                                      NsfObject *contextObject, const char *pattern);
 
 static Tcl_Obj *NsfParamDefsVirtualFormat(Tcl_Interp *interp, Nsf_Param const *pPtr,
                                           NsfObject *contextObject,  const char *pattern,
@@ -10881,8 +10881,7 @@ VarExists(Tcl_Interp *interp, NsfObject *object, const char *name1, const char *
   if ((flags & NSF_VAR_TRIGGER_TRACE) != 0u) {
     varPtr = TclVarTraceExists(interp, name1);
   } else {
-    unsigned int flags = (name2 == NULL) ? TCL_PARSE_PART1 : 0u;
-    varPtr = TclLookupVar(interp, name1, name2, flags, "access",
+    varPtr = TclLookupVar(interp, name1, name2, 0, "access",
                           /*createPart1*/ 0, /*createPart2*/ 0, &arrayPtr);
   }
   /*
@@ -20194,7 +20193,7 @@ SetInstVar(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj, Tcl_Obj *val
 
     if (likely(valueObj == NULL)) {
 
-      varPtr = TclLookupVar(interp, ObjStr(nameObj), NULL, TCL_LEAVE_ERR_MSG|TCL_PARSE_PART1, "access",
+      varPtr = TclLookupVar(interp, ObjStr(nameObj), NULL, TCL_LEAVE_ERR_MSG, "access",
                             /*createPart1*/ 0, /*createPart2*/ 0, &arrayPtr);
       if (likely(varPtr != NULL)) {
         resultObj = varPtr->value.objPtr;
@@ -20205,7 +20204,7 @@ SetInstVar(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj, Tcl_Obj *val
     } else {
       Tcl_Obj *oldValuePtr;
 
-      varPtr = TclLookupVar(interp, ObjStr(nameObj), NULL, TCL_LEAVE_ERR_MSG|TCL_PARSE_PART1, "access",
+      varPtr = TclLookupVar(interp, ObjStr(nameObj), NULL, TCL_LEAVE_ERR_MSG, "access",
                             /*createPart1*/ 1, /*createPart2*/ 0, &arrayPtr);
       oldValuePtr = varPtr->value.objPtr;
       INCR_REF_COUNT2("SetInstVar", valueObj);
@@ -25362,7 +25361,7 @@ NsfParseArgsCmd(Tcl_Interp *interp, Tcl_Obj *argspecObj, Tcl_Obj *arglistObj) {
 
         if (valueObj != NsfGlobalObjs[NSF___UNKNOWN__]) {
           /*fprintf(stderr, "param %s -> <%s>\n", paramPtr->name,  ObjStr(valueObj));*/
-          resultObj = Tcl_ObjSetVar2(interp, paramPtr->nameObj, NULL, valueObj, TCL_LEAVE_ERR_MSG|TCL_PARSE_PART1);
+          resultObj = Tcl_ObjSetVar2(interp, paramPtr->nameObj, NULL, valueObj, TCL_LEAVE_ERR_MSG);
           if (resultObj == NULL) {
             result = TCL_ERROR;
             break;
@@ -26765,7 +26764,7 @@ NsfParameterInfoCmd(Tcl_Interp *interp, ParametersubcmdIdx_t parametersubcmd, Tc
       if (varname != NULL) {
         Tcl_Obj *resultObj = Tcl_ObjSetVar2(interp, varname, NULL,
                                             paramsPtr->defaultValue,
-                                            TCL_LEAVE_ERR_MSG|TCL_PARSE_PART1);
+                                            TCL_LEAVE_ERR_MSG);
         if (unlikely(resultObj == NULL)) {
           ParamDefsRefCountDecr(parsedParam.paramDefs);
           return TCL_ERROR;
@@ -28414,7 +28413,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
        * we do not have to check for existing variables.
        */
       if ((paramPtr->flags & NSF_ARG_METHOD_INVOCATION) == 0u) {
-        Tcl_Obj *varObj = Tcl_ObjGetVar2(interp, paramPtr->nameObj, NULL, TCL_PARSE_PART1);
+        Tcl_Obj *varObj = Tcl_ObjGetVar2(interp, paramPtr->nameObj, NULL, 0);
 
         if (varObj != NULL) {
           /*
@@ -28451,7 +28450,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
        * parameter states.
        */
 
-      Tcl_Obj *varObj = Tcl_ObjGetVar2(interp, paramPtr->nameObj, NULL, TCL_PARSE_PART1);
+      Tcl_Obj *varObj = Tcl_ObjGetVar2(interp, paramPtr->nameObj, NULL, 0);
       if (unlikely(varObj == NULL)) {
         Tcl_Obj *paramDefsObj = NsfParamDefsSyntax(interp, paramDefs->paramsPtr, object, NULL);
 
@@ -28628,7 +28627,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
         /*
          * Plain set of the variable.
          */
-        resultObj = Tcl_ObjSetVar2(interp, paramPtr->nameObj, NULL, newValue, TCL_LEAVE_ERR_MSG|TCL_PARSE_PART1);
+        resultObj = Tcl_ObjSetVar2(interp, paramPtr->nameObj, NULL, newValue, TCL_LEAVE_ERR_MSG);
         if (unlikely(resultObj == NULL)) {
           /*
            * When the setting of the variable failed (e.g. caused by variable
