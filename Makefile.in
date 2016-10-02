@@ -241,8 +241,6 @@ EXAMPLE_SCRIPTS = \
 	$(src_doc_dir)/example-scripts/rosetta-classes.html \
 	$(src_doc_dir)/example-scripts/rosetta-constraint-genericity.html \
 	$(src_doc_dir)/example-scripts/rosetta-delegates.html \
-	$(src_doc_dir)/example-scripts/rosetta-distinct-objects.html \
-	$(src_doc_dir)/example-scripts/rosetta-polymorphic-copy.html \
 	$(src_doc_dir)/example-scripts/rosetta-polymorphism.html \
 	$(src_doc_dir)/example-scripts/rosetta-serialization.html \
 	$(src_doc_dir)/example-scripts/rosetta-singleton.html \
@@ -583,8 +581,6 @@ test-core: $(TCLSH_PROG)
 	$(TCLSH) $(src_doc_dir_native)/example-scripts/rosetta-classes.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_doc_dir_native)/example-scripts/rosetta-constraint-genericity.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_doc_dir_native)/example-scripts/rosetta-delegates.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
-	$(TCLSH) $(src_doc_dir_native)/example-scripts/rosetta-distinct-objects.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
-	$(TCLSH) $(src_doc_dir_native)/example-scripts/rosetta-polymorphic-copy.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_doc_dir_native)/example-scripts/rosetta-polymorphism.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_doc_dir_native)/example-scripts/rosetta-serialization.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_doc_dir_native)/example-scripts/rosetta-singleton.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
