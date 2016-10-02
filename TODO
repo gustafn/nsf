@@ -5856,8 +5856,9 @@ proc =foo {a b c args} { puts foo }
 catch {={*}[list foo 1 2 3 4 5 6]} msg; puts msg=$msg
 
 - Added Rosetta example: https://rosettacode.org/wiki/Polymorphic_copy#Tcl
-
 - Added Rosetta example: https://rosettacode.org/wiki/Inheritance/Multiple#Tcl
+
+- make nsf compilable with "-DTCL_NO_DEPRECATED"
 
 ========================================================================
 TODO:

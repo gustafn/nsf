@@ -500,7 +500,7 @@ EXTERN int  Nsf_CmdDefinitionRegister(Tcl_Interp *interp, Nsf_methodDefinition *
 EXTERN "C"
 # endif
 CONST char *
-Nsf_InitStubs _ANSI_ARGS_((Tcl_Interp *interp, CONST char *version, int exact));
+Nsf_InitStubs(Tcl_Interp *interp, CONST char *version, int exact);
 #else
 # define Nsf_InitStubs(interp, version, exact) \
       Tcl_PkgRequire(interp, "nx", version, exact)
