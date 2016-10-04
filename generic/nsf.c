@@ -26753,9 +26753,9 @@ NsfParameterInfoCmd(Tcl_Interp *interp, ParametersubcmdIdx_t parametersubcmd, Tc
 
   /*
    * Since we are passing in a parameter definition in Tcl syntax, and we want
-   * to extract information from that syntax, it make limited sense to provide
-   * a context object for virutal parameter expansion. At least, we do not
-   * allow this so far.
+   * to extract information from that syntax, it makes limited sense to
+   * provide a context object for virtual parameter expansion. At least, we do
+   * not allow this so far.
    */
 
   switch (parametersubcmd) {
