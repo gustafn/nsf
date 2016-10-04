@@ -15433,6 +15433,9 @@ ParamOptionParse(Tcl_Interp *interp, const char *argString,
     }
     INCR_REF_COUNT(paramPtr->method);
 
+  } else if (strncmp(option, "virtualobjectargs", 17) == 0 ||
+             strncmp(option, "virtualclassargs", 16) == 0) {
+    result = ParamOptionSetConverter(interp, paramPtr, option, ConvertToNothing);
   } else {
     Tcl_DString ds, *dsPtr = &ds;
 
