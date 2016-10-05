@@ -13,7 +13,7 @@ package req nx::test
 #
 # NX offers class-based and mixin-based multiple inheritance. The
 # search order of features (methods, properties) along the class
-# hierarchy is computed using a scheme equivalent with L3
+# hierarchy is computed using a scheme equivalent with C3
 # linearization.
 #
 
