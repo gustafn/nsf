@@ -5870,6 +5870,8 @@ catch {={*}[list foo 1 2 3 4 5 6]} msg; puts msg=$msg
   ConvertToNothing to match the intended semantics and to avoid false
   warnings (e.g., missing type=virtualobjectargs type checker)
 
+- Added Rosetta example: https://rosettacode.org/wiki/Inheritance/Single
+
 ========================================================================
 TODO:
 
@@ -5889,9 +5891,6 @@ TODO:
   /prop/ get|set ...
 
 - Add Rosetta examples:
-
-  (for the sake of completeness)
-  https://rosettacode.org/wiki/Inheritance/Single
 
   (more substantial)
   https://rosettacode.org/wiki/Active_object
