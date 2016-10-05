@@ -944,17 +944,30 @@ three-element list for each mixin class: \fIclassName\fR
 -guard \fIguardExpr\fR\&. The returned mixin classes can be
 limited to those whose names match \fInamePattern\fR (see \fBstring match\fR)\&.
 .TP
+\fIobj\fR \fBinfo lookup parameters\fR \fImethodName\fR ?\fInamePattern\fR?
+Returns the parameter specification of the method \fImethodName\fR callable
+on \fIobj\fR as a list of parameter names and type specifications\&. The
+resulting parameter specification can be limited to those
+parameters whose names match \fInamePattern\fR (see \fBstring match\fR)\&.
+.TP
 \fIobj\fR \fBinfo lookup slots\fR ?\fB-type\fR \fIclassName\fR? ?\fB-source\fR all | application | system? ?\fInamePattern\fR?
 Returns the command names of all slot objects responsible for
 managing properties, variables, and relations of \fIobj\fR\&. The
 returned slot objects can be limited according to any or a
 combination of the following criteria: First, slot objects
-can be filtered based on their command names matching \fInamePattern\fR (see \fBstring
-match\fR)\&. Second, \fB-type\fR allows one to select
+can be filtered based on their command names matching \fInamePattern\fR (see
+\fBstring match\fR)\&. Second, \fB-type\fR allows one to select
 slot objects which are instantiated from a subclass \fIclassName\fR of \fBnx::Slot\fR (default: \fBnx::Slot\fR) \&. Third, \fB-source\fR restricts slot objects returned according to their provenance in either the NX \fIsystem\fR classes or the \fIapplication\fR classes present in the linearisation list of \fIobj\fR (default: \fIall\fR)\&.
 .sp
 To extract details of each slot object, use the \fBinfo\fR
 submethods available for each slot object\&.
+.TP
+\fIobj\fR \fBinfo lookup syntax\fR \fImethodName\fR ?\fInamePattern\fR?
+Returns the method parameters of the method \fImethodName\fR callable
+on \fIobj\fR as a concrete-syntax description to be used in
+human-understandable messages (e\&.g\&., errors or warnings, documentation
+strings)\&. The result can be limited to those parameters matching the
+\fInamePattern\fR (see \fBstring match\fR)\&.
 .TP
 \fIobj\fR \fBinfo lookup variables\fR
 Returns the command names of all slot objects responsible for
