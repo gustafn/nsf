@@ -27463,7 +27463,7 @@ NsfRelationSetCmd(Tcl_Interp *interp, NsfObject *object,
 
 /*
 cmd current NsfCurrentCmd {
-  {-argName "currentoption" -required 0 -type "proc|method|methodpath|object|class|activelevel|args|activemixin|calledproc|calledmethod|calledclass|callingproc|callingmethod|callingclass|callinglevel|callingobject|filterreg|isnextcall|next"}
+  {-argName "option" -required 0 -typeName "currentoption" -type "proc|method|methodpath|object|class|activelevel|args|activemixin|calledproc|calledmethod|calledclass|callingproc|callingmethod|callingclass|callinglevel|callingobject|filterreg|isnextcall|nextmethod" -default object}
 }
 */
 static int
@@ -27587,7 +27587,7 @@ NsfCurrentCmd(Tcl_Interp *interp, CurrentoptionIdx_t selfoption) {
 
   case CurrentoptionCallinglevelIdx:
     if (object == NULL) {
-      Tcl_SetIntObj(Tcl_GetObjResult(interp), 1);
+      Tcl_SetIntObj(Tcl_GetObjResult(interp), 0);
     } else {
       Tcl_SetObjResult(interp, ComputeLevelObj(interp, CALLING_LEVEL));
     }

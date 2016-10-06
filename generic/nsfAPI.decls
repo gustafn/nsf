@@ -301,7 +301,7 @@ cmd relation::set NsfRelationSetCmd {
 
 
 cmd current NsfCurrentCmd {
-  {-argName "option" -required 0 -typeName "currentoption" -type "proc|method|methodpath|object|class|activelevel|args|activemixin|calledproc|calledmethod|calledclass|callingproc|callingmethod|callingclass|callinglevel|callingobject|filterreg|isnextcall|nextmethod"}
+  {-argName "option" -required 0 -typeName "currentoption" -type "proc|method|methodpath|object|class|activelevel|args|activemixin|calledproc|calledmethod|calledclass|callingproc|callingmethod|callingclass|callinglevel|callingobject|filterreg|isnextcall|nextmethod" -default object}
 } {-nxdoc 1}
 cmd self NsfSelfCmd {
 } {-nxdoc 1}
