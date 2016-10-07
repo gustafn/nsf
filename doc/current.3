@@ -1,6 +1,6 @@
 '\"
 '\" Generated from file 'current\&.man' by tcllib/doctools with format 'nroff'
-'\" Copyright (c) 2014 Stefan Sobernig <stefan\&.sobernig@wu\&.ac\&.at>, Gustaf Neumann <gustaf\&.neumann@wu\&.ac\&.at>; available under the Creative Commons Attribution 3\&.0 Austria license (CC BY 3\&.0 AT)\&.
+'\" Copyright (c) 2014-2016 Stefan Sobernig <stefan\&.sobernig@wu\&.ac\&.at>, Gustaf Neumann <gustaf\&.neumann@wu\&.ac\&.at>; available under the Creative Commons Attribution 3\&.0 Austria license (CC BY 3\&.0 AT)\&.
 '\"
 .TH "nx::current" 3 2\&.1\&.0 current "NX API"
 .\" The -*- nroff -*- definitions below are for supplemental macros used
@@ -283,9 +283,12 @@ nx::current \- Return information about the method callstack
 This introspection command provides information about various details,
 to be identified using \fIoption\fR, on the callstack\&. The command is
 invoked from a method body\&. If \fIoption\fR is not provided, \fBnx::current\fR will
-default to option \fBobject\fR (see below)\&. \fBnx::current\fR operates on the
-Tcl callstack and is aware of NX-specific callstack and stackframe
-details\&. \fIoption\fR can be any of the following:
+default to option \fBobject\fR (see
+below)\&. \fBnx::current\fR operates on the Tcl callstack and is aware
+of NX-specific callstack and stackframe details\&. Except for the
+options \fBcallinglevel\fR and \fBlevel\fR, calling \fBnx::current\fR outside
+an NX object or method will result in an error\&. \fIoption\fR can be
+any of the following:
 .RS
 .IP \(bu
 \fBactivelevel\fR returns the actual callstack level which
@@ -315,7 +318,8 @@ implementation\&. Callstack levels introduced by method interception
 (e\&.g\&., filters) and by method combination (\fBnx::next\fR) are
 ignored\&. The level is reported as an absolute level number (\fB#\fR followed
 by a digit) to be directly used as the first argument to \fBuplevel\fR
-or \fBupvar\fR\&. See also \fBactivelevel\fR\&.
+or \fBupvar\fR\&. See also \fBactivelevel\fR\&. If called outside NX,
+\fB1\fR is returned (which is the default for \fBupvar\fR and \fBuplevel\fR)\&.
 .IP \(bu
 \fBcallingobject\fR returns the name of the object which is
 calling into the currently executing method\&. See also \fBcallingclass\fR\&.
@@ -332,6 +336,12 @@ available from within filter methods)\&.
 .IP \(bu
 \fBisnextcall\fR will return 1, if the currently executing
 method implementation was invoked via \fBnx::next\fR; 0 otherwise\&.
+.IP \(bu
+\fBlevel\fR will return a number indicating the stack
+level of the invoking method or script, or an empty string when
+executed outside an NX context (e\&.g\&., in a Tcl proc or a namespace
+script)\&. The resulting value can be directly passed as \fIlevel\fR to
+\fBinfo level\fR)\&.
 .IP \(bu
 \fBmethod\fR returns the name of the currently executing
 method\&. If an ensemble-method call, the name of the bottom-most
@@ -351,6 +361,6 @@ currently executing method implementation is evaluated\&.
 .PP
 .SH COPYRIGHT
 .nf
-Copyright (c)  2014 Stefan Sobernig <stefan\&.sobernig@wu\&.ac\&.at>, Gustaf Neumann <gustaf\&.neumann@wu\&.ac\&.at>; available under the Creative Commons Attribution 3\&.0 Austria license (CC BY 3\&.0 AT)\&.
+Copyright (c)  2014-2016 Stefan Sobernig <stefan\&.sobernig@wu\&.ac\&.at>, Gustaf Neumann <gustaf\&.neumann@wu\&.ac\&.at>; available under the Creative Commons Attribution 3\&.0 Austria license (CC BY 3\&.0 AT)\&.
 
 .fi

@@ -3,7 +3,7 @@
 [include version.inc]
 [manpage_begin nx::current 3 [vset VERSION]]
 
-[copyright { 2014 Stefan Sobernig <stefan.sobernig@wu.ac.at>, Gustaf Neumann <gustaf.neumann@wu.ac.at>; available under the Creative Commons Attribution 3.0 Austria license (CC BY 3.0 AT).}]
+[copyright { 2014-2016 Stefan Sobernig <stefan.sobernig@wu.ac.at>, Gustaf Neumann <gustaf.neumann@wu.ac.at>; available under the Creative Commons Attribution 3.0 Austria license (CC BY 3.0 AT).}]
 
 [titledesc {Return information about the method callstack}]
 [moddesc {NX API}]
@@ -17,11 +17,12 @@
 This introspection command provides information about various details,
 to be identified using [arg option], on the callstack. The command is
 invoked from a method body. If [arg option] is not provided, [cmd nx::current] will
-default to option [option "object"] (see below). [cmd nx::current] operates on the
-Tcl callstack and is aware of NX-specific callstack and stackframe
-details. [arg option] can be any of the following:
-
-[comment {activelevel activemixin args calledclass calledmethod calledproc callingclass callinglevel callingmethod callingobject callingproc class filterreg isnextcall method methodpath nextmethod object proc}]
+default to option [option "object"] (see
+below). [cmd nx::current] operates on the Tcl callstack and is aware
+of NX-specific callstack and stackframe details. Except for the
+options [option callinglevel] and [option level], calling [cmd "nx::current"] outside
+an NX object or method will result in an error. [arg option] can be
+any of the following:
 
 [list_begin itemized]
 
@@ -54,7 +55,8 @@ implementation. Callstack levels introduced by method interception
 (e.g., filters) and by method combination ([cmd nx::next]) are
 ignored. The level is reported as an absolute level number ([const #] followed
 by a digit) to be directly used as the first argument to [cmd uplevel]
-or [cmd upvar]. See also [option "activelevel"].
+or [cmd upvar]. See also [option "activelevel"]. If called outside NX,
+[const 1] is returned (which is the default for [cmd upvar] and [cmd uplevel]).
 
 [item] [option "callingobject"] returns the name of the object which is
 calling into the currently executing method. See also [option "callingclass"].
@@ -71,6 +73,12 @@ available from within filter methods).
 
 [item] [option "isnextcall"] will return 1, if the currently executing
 method implementation was invoked via [cmd nx::next]; 0 otherwise.
+
+[item] [option "level"] will return a number indicating the stack
+level of the invoking method or script, or an empty string when
+executed outside an NX context (e.g., in a Tcl proc or a namespace
+script). The resulting value can be directly passed as [arg "level"] to
+[cmd "info level"]).
 
 [item] [option method] returns the name of the currently executing
 method. If an ensemble-method call, the name of the bottom-most
