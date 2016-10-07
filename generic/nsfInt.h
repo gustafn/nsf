@@ -198,7 +198,7 @@ typedef struct NsfMemCounter {
 # define NEW(type) \
   (type *)ckalloc(sizeof(type)); MEM_COUNT_ALLOC(#type, NULL)
 # define NEW_ARRAY(type,n) \
-  (type *)ckalloc(sizeof(type)*(n)); MEM_COUNT_ALLOC(#type "*", NULL)
+  (type *)ckalloc(sizeof(type)*(size_t)(n)); MEM_COUNT_ALLOC(#type "*", NULL)
 # define FREE(type, var) \
   ckfree((char*) (var)); MEM_COUNT_FREE(#type,(var))
 
@@ -394,10 +394,13 @@ typedef struct NsfAssertionStore {
 } NsfAssertionStore;
 
 typedef enum { /* powers of 2; add to ALL, if default; */
-  CHECK_NONE  = 0, CHECK_CLINVAR = 1, CHECK_OBJINVAR = 2,
-  CHECK_PRE   = 4, CHECK_POST = 8,
-  CHECK_INVAR = CHECK_CLINVAR + CHECK_OBJINVAR,
-  CHECK_ALL   = CHECK_INVAR   + CHECK_PRE + CHECK_POST
+  CHECK_NONE     = 0,
+  CHECK_CLINVAR  = 1,
+  CHECK_OBJINVAR = 2,
+  CHECK_PRE      = 4,
+  CHECK_POST     = 8,
+  CHECK_INVAR    = CHECK_CLINVAR + CHECK_OBJINVAR,
+  CHECK_ALL      = CHECK_INVAR   + CHECK_PRE + CHECK_POST
 } CheckOptions;
 
 void NsfAssertionRename(Tcl_Interp *interp, Tcl_Command cmd,
@@ -461,33 +464,33 @@ typedef struct NsfStringIncrStruct {
  */
 
 /* DESTROY_CALLED indicates that destroy was called on obj */
-#define NSF_DESTROY_CALLED                 0x0001
+#define NSF_DESTROY_CALLED                 0x0001u
 /* INIT_CALLED indicates that init was called on obj */
-#define NSF_INIT_CALLED                    0x0002
+#define NSF_INIT_CALLED                    0x0002u
 /* MIXIN_ORDER_VALID set when mixin order is valid */
-#define NSF_MIXIN_ORDER_VALID              0x0004
+#define NSF_MIXIN_ORDER_VALID              0x0004u
 /* MIXIN_ORDER_DEFINED set, when mixins are defined for obj */
-#define NSF_MIXIN_ORDER_DEFINED            0x0008
-#define NSF_MIXIN_ORDER_DEFINED_AND_VALID  0x000c
+#define NSF_MIXIN_ORDER_DEFINED            0x0008u
+#define NSF_MIXIN_ORDER_DEFINED_AND_VALID  0x000cu
 /* FILTER_ORDER_VALID set, when filter order is valid */
-#define NSF_FILTER_ORDER_VALID             0x0010
+#define NSF_FILTER_ORDER_VALID             0x0010u
 /* FILTER_ORDER_DEFINED set, when filters are defined for obj */
-#define NSF_FILTER_ORDER_DEFINED           0x0020
-#define NSF_FILTER_ORDER_DEFINED_AND_VALID 0x0030
+#define NSF_FILTER_ORDER_DEFINED           0x0020u
+#define NSF_FILTER_ORDER_DEFINED_AND_VALID 0x0030u
 /* class and object properties for objects */
-#define NSF_IS_CLASS                       0x0040
-#define NSF_IS_ROOT_META_CLASS             0x0080
-#define NSF_IS_ROOT_CLASS                  0x0100
-#define NSF_IS_SLOT_CONTAINER              0x0200
-#define NSF_KEEP_CALLER_SELF               0x0400
-#define NSF_PER_OBJECT_DISPATCH            0x0800
-#define NSF_HAS_PER_OBJECT_SLOTS           0x1000
+#define NSF_IS_CLASS                       0x0040u
+#define NSF_IS_ROOT_META_CLASS             0x0080u
+#define NSF_IS_ROOT_CLASS                  0x0100u
+#define NSF_IS_SLOT_CONTAINER              0x0200u
+#define NSF_KEEP_CALLER_SELF               0x0400u
+#define NSF_PER_OBJECT_DISPATCH            0x0800u
+#define NSF_HAS_PER_OBJECT_SLOTS           0x1000u
 /* deletion states */
-#define NSF_DESTROY_CALLED_SUCCESS       0x010000 /* requires flags to be int, not short */
-#define NSF_DURING_DELETE                0x020000
-#define NSF_DELETED                      0x040000
-#define NSF_RECREATE                     0x080000
-#define NSF_TCL_DELETE                   0x100000
+#define NSF_DESTROY_CALLED_SUCCESS       0x010000u /* requires flags to be int, not short */
+#define NSF_DURING_DELETE                0x020000u
+#define NSF_DELETED                      0x040000u
+#define NSF_RECREATE                     0x080000u
+#define NSF_TCL_DELETE                   0x100000u
 
 
 /* method invocations */
@@ -560,7 +563,7 @@ typedef struct NsfObjectOpt {
   int classParamPtrEpoch;
 #endif
   CONST char *volatileVarName;
-  short checkoptions;
+  CheckOptions checkoptions;
 } NsfObjectOpt;
 
 typedef struct NsfObject {
@@ -936,7 +939,7 @@ typedef struct NsfRuntimeState {
    */
   int logSeverity;
   int debugCallingDepth;
-  int doCheckArguments;
+  unsigned int doCheckArguments;
   int doCheckResults;
   int doFilters;
   int doKeepcmds;
