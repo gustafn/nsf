@@ -142,12 +142,12 @@ static int ConvertToConfigureoption(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Par
   return result;
 }
   
-typedef enum {CurrentoptionNULL, CurrentoptionProcIdx, CurrentoptionMethodIdx, CurrentoptionMethodpathIdx, CurrentoptionObjectIdx, CurrentoptionClassIdx, CurrentoptionActivelevelIdx, CurrentoptionArgsIdx, CurrentoptionActivemixinIdx, CurrentoptionCalledprocIdx, CurrentoptionCalledmethodIdx, CurrentoptionCalledclassIdx, CurrentoptionCallingprocIdx, CurrentoptionCallingmethodIdx, CurrentoptionCallingclassIdx, CurrentoptionCallinglevelIdx, CurrentoptionCallingobjectIdx, CurrentoptionFilterregIdx, CurrentoptionIsnextcallIdx, CurrentoptionNextmethodIdx} CurrentoptionIdx_t;
+typedef enum {CurrentoptionNULL, CurrentoptionActivelevelIdx, CurrentoptionActivemixinIdx, CurrentoptionArgsIdx, CurrentoptionCalledclassIdx, CurrentoptionCalledmethodIdx, CurrentoptionCalledprocIdx, CurrentoptionCallingclassIdx, CurrentoptionCallinglevelIdx, CurrentoptionCallingmethodIdx, CurrentoptionCallingobjectIdx, CurrentoptionCallingprocIdx, CurrentoptionClassIdx, CurrentoptionFilterregIdx, CurrentoptionIsnextcallIdx, CurrentoptionLevelIdx, CurrentoptionMethodpathIdx, CurrentoptionMethodIdx, CurrentoptionNextmethodIdx, CurrentoptionObjectIdx, CurrentoptionProcIdx} CurrentoptionIdx_t;
 
 static int ConvertToCurrentoption(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
-  static const char *opts[] = {"proc", "method", "methodpath", "object", "class", "activelevel", "args", "activemixin", "calledproc", "calledmethod", "calledclass", "callingproc", "callingmethod", "callingclass", "callinglevel", "callingobject", "filterreg", "isnextcall", "nextmethod", NULL};
+  static const char *opts[] = {"activelevel", "activemixin", "args", "calledclass", "calledmethod", "calledproc", "callingclass", "callinglevel", "callingmethod", "callingobject", "callingproc", "class", "filterreg", "isnextcall", "level", "methodpath", "method", "nextmethod", "object", "proc", NULL};
   (void)pPtr;
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "currentoption", 0, &index);
   *clientData = (ClientData) INT2PTR(index + 1);
@@ -265,7 +265,7 @@ static int ConvertToRelationtype(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param 
   {ConvertToCallprotection, "all|public|protected|private"},
   {ConvertToMethodtype, "all|scripted|builtin|alias|forwarder|object|setter|nsfproc"},
   {ConvertToFrame, "method|object|default"},
-  {ConvertToCurrentoption, "proc|method|methodpath|object|class|activelevel|args|activemixin|calledproc|calledmethod|calledclass|callingproc|callingmethod|callingclass|callinglevel|callingobject|filterreg|isnextcall|nextmethod"},
+  {ConvertToCurrentoption, "activelevel|activemixin|args|calledclass|calledmethod|calledproc|callingclass|callinglevel|callingmethod|callingobject|callingproc|class|filterreg|isnextcall|level|methodpath|method|nextmethod|object|proc"},
   {ConvertToMethodproperty, "class-only|call-private|call-protected|debug|deprecated|exists|redefine-protected|returns"},
   {ConvertToRelationtype, "object-mixin|class-mixin|object-filter|class-filter|class|superclass|rootclass"},
   {ConvertToDefinitionsource, "all|application|system"},

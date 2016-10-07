@@ -27463,30 +27463,53 @@ NsfRelationSetCmd(Tcl_Interp *interp, NsfObject *object,
 
 /*
 cmd current NsfCurrentCmd {
-  {-argName "option" -required 0 -typeName "currentoption" -type "proc|method|methodpath|object|class|activelevel|args|activemixin|calledproc|calledmethod|calledclass|callingproc|callingmethod|callingclass|callinglevel|callingobject|filterreg|isnextcall|nextmethod" -default object}
+  {-argName "option" -required 0 -typeName "currentoption" -type "activelevel|activemixin|args|calledclass|calledmethod|calledproc|callingclass|callinglevel|callingmethod|callingobject|callingproc|class|filterreg|isnextcall|level|methodpath|method|nextmethod|object|proc" -default object}
 }
 */
 static int
 NsfCurrentCmd(Tcl_Interp *interp, CurrentoptionIdx_t selfoption) {
-  NsfObject *object = GetSelfObj(interp);
+  NsfObject           *object;
   NsfCallStackContent *cscPtr;
-  Tcl_CallFrame *framePtr;
-  int result = TCL_OK;
+  Tcl_CallFrame       *framePtr;
+  int                  result = TCL_OK;
 
   nonnull_assert(interp != NULL);
 
+  object = GetSelfObj(interp);
+
+  /*
+   * The first two clauses can succeed even it we are outside an nsf context
+   * (no object known). The commands are "nsf::current", "nsf::current
+   * object", "nsf::current level", and "nsf::current activelevel"
+   */
   if (selfoption == CurrentoptionNULL || selfoption == CurrentoptionObjectIdx) {
     if (likely(object != NULL)) {
       Tcl_SetObjResult(interp, object->cmdName);
-      return TCL_OK;
     } else {
-      return NsfNoCurrentObjectError(interp, NULL);
+      result = NsfNoCurrentObjectError(interp, NULL);
     }
+    return result;
   }
 
-  if (unlikely(object == NULL && selfoption != CurrentoptionCallinglevelIdx)) {
-    return NsfNoCurrentObjectError(interp, NULL);
+  if (unlikely(object == NULL)) {
+    if (selfoption == CurrentoptionCallinglevelIdx) {
+      Tcl_SetIntObj(Tcl_GetObjResult(interp), 1);
+    } else if (selfoption == CurrentoptionLevelIdx) {
+      /*
+       * Return empty, if we are not on a nsf level.
+       */
+      Tcl_ResetResult(interp);
+    } else {
+      result = NsfNoCurrentObjectError(interp, NULL);
+    }
+    return result;
   }
+  
+  /*
+   * From here on, we have to be on a valid nsf frame/level, object has to be
+   * know.
+   */
+  assert(object != NULL);
 
   switch (selfoption) {
   case CurrentoptionMethodIdx: /* fall through */
@@ -27586,11 +27609,10 @@ NsfCurrentCmd(Tcl_Interp *interp, CurrentoptionIdx_t selfoption) {
     break;
 
   case CurrentoptionCallinglevelIdx:
-    if (object == NULL) {
-      Tcl_SetIntObj(Tcl_GetObjResult(interp), 0);
-    } else {
-      Tcl_SetObjResult(interp, ComputeLevelObj(interp, CALLING_LEVEL));
-    }
+    /* 
+     * Special case of object==NULL handeled above.
+     */
+    Tcl_SetObjResult(interp, ComputeLevelObj(interp, CALLING_LEVEL));
     break;
 
   case CurrentoptionCallingobjectIdx:
@@ -27617,6 +27639,14 @@ NsfCurrentCmd(Tcl_Interp *interp, CurrentoptionIdx_t selfoption) {
                       (cscPtr != NULL && ((cscPtr->flags & NSF_CSC_CALL_IS_NEXT) != 0u)));
     break;
   }
+
+  case CurrentoptionLevelIdx:
+    /*
+     * We have an "object", therefore we are on a nsf-frame/level. In this
+     * case, "nsf level" behaves like "info level" (without arguments).
+     */
+    Tcl_SetObjResult(interp, Tcl_NewIntObj(Tcl_CallFrame_level(Tcl_Interp_varFramePtr(interp))));
+    break;
 
   case CurrentoptionNextmethodIdx:
     result = FindSelfNext(interp);
