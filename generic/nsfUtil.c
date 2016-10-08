@@ -147,8 +147,8 @@ Nsf_ltoa(char *buf, long i, int *lengthPtr) {
 static char *alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 static size_t blockIncrement = 8u;
 /*
-static char *alphabet = "ab";
-static int blockIncrement = 2;
+  static char *alphabet = "ab";
+  static int blockIncrement = 2;
 */
 static unsigned char chartable[255] = {0};
 
@@ -176,7 +176,7 @@ NsfStringIncr(NsfStringIncrStruct *iss) {
 	if (currentChar == iss->buffer) {
 	  size_t newBufSize = iss->bufSize + blockIncrement;
 	  char  *newBuffer = ckalloc(newBufSize);
-	  
+
 	  currentChar = newBuffer+blockIncrement;
 	  /*memset(newBuffer, 0, blockIncrement);*/
 	  memcpy(currentChar, iss->buffer, iss->bufSize);
@@ -235,8 +235,8 @@ NsfStringIncrInit(NsfStringIncrStruct *iss) {
   iss->length   = 1;
   /*
     for (i=1; i<50; i++) {
-      NsfStringIncr(iss);
-      fprintf(stderr, "string '%s' (%d)\n",  iss->start, iss->length);
+    NsfStringIncr(iss);
+    fprintf(stderr, "string '%s' (%d)\n",  iss->start, iss->length);
     }
   */
 }
@@ -249,3 +249,11 @@ NsfStringIncrFree(NsfStringIncrStruct *iss) {
   ckfree(iss->buffer);
 }
 
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 2
+ * fill-column: 78
+ * indent-tabs-mode: nil
+ * End:
+ */

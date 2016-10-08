@@ -78,8 +78,8 @@
  * Feature activation/deactivation
  */
 
-/* 
- * The following features are controlled via 
+/*
+ * The following features are controlled via
  * configure flags
  *
  *   --with-dtrace
@@ -115,7 +115,7 @@
 */
 
 /* Activate/deactivate C-level assert()
-   Activated automatically when 
+   Activated automatically when
    NSF_DEVELOPMENT is set
 #define NDEBUG 1
 */
@@ -369,7 +369,7 @@ typedef struct Nsf_Param {
 #endif
 
 #if __GNUC_PREREQ(6, 0)
-# define NSF_nonnull_assert(assertion) 
+# define NSF_nonnull_assert(assertion)
 #else
 # define NSF_nonnull_assert(assertion) assert((assertion))
 #endif

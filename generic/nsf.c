@@ -2388,7 +2388,7 @@ NsfClassListUnlink(NsfClasses **firstPtrPtr, const void *key) {
  *    returned in the class member "order". During computation, it colors
  *    the processed nodes in WHITE, GRAY or BLACK.
  *
- * Results: 
+ * Results:
  *    Indicates whether a cycle was detected (0) or not (1); and,
  *    therefore, whether the sort failed (0) or suceeded (1).
  *
@@ -2433,9 +2433,9 @@ TopoSortSub(NsfClass *cl, NsfClass *baseClass, int withMixinOfs) {
       isAcyclic = 0;
       break;
     }
-    
+
   }
-  
+
   if (isAcyclic != 0 && withMixinOfs != 0) {
     NsfCmdList *classMixins = ((cl->opt != NULL) && cl->opt->isClassMixinOf) ? cl->opt->isClassMixinOf : NULL;
 
@@ -3284,7 +3284,7 @@ GetRegObject(Tcl_Interp *interp, Tcl_Command cmd, const char *methodName,
 
   if (objNameLength > 0) {
     Tcl_DString ds, *dsPtr = &ds;
-    
+
     /* obtain parent name */
     Tcl_DStringInit(dsPtr);
     Tcl_DStringAppend(dsPtr, methodName, (int)objNameLength);
@@ -4393,7 +4393,7 @@ NsfMethodName(Tcl_Obj *methodObj) {
  *    Compute the full method name for error messages containing the
  *    ensemble root.
  *
- * Results: 
+ * Results:
  *    Tcl_Obj of reference count 0, caller has to take care for
  *    refcounting
  *
@@ -4409,10 +4409,10 @@ NsfMethodNamePath(Tcl_Interp *interp,
                   const char *methodName) {
 
   Tcl_Obj *resultObj;
-  
+
   nonnull_assert(interp != NULL);
   nonnull_assert(methodName != NULL);
-  
+
   if (framePtr != NULL) {
     resultObj = CallStackMethodPath(interp, framePtr);
   } else {
@@ -5727,10 +5727,10 @@ UnsetTracedVars(
             Tcl_HashEntry *tPtr = Tcl_FindHashEntry(&iPtr->varTraces, (const char *)varPtr);
             VarTrace *tracePtr = Tcl_GetHashValue(tPtr);
             ActiveVarTrace *activePtr;
-            
+
             while (tracePtr) {
               VarTrace *prevPtr = tracePtr;
-              
+
               tracePtr = tracePtr->nextPtr;
               prevPtr->nextPtr = NULL;
               Tcl_EventuallyFree(prevPtr, TCL_DYNAMIC);
@@ -5763,7 +5763,7 @@ UnsetTracedVars(
  * Results:
  *    None.
  *
- * Side effects: 
+ * Side effects:
  *    Re-initializes the variable table of the cleaned-up namespace
  *    (TclInitVarHashTable).
  *
@@ -6593,7 +6593,7 @@ AutonameIncr(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfObject *object,
       firstChar = *(nextChars ++);
       if (isupper((int)firstChar)) {
         char buffer[1];
-        
+
         buffer[0] = (char)tolower((int)firstChar);
         resultObj = Tcl_NewStringObj(buffer, 1);
         INCR_REF_COUNT2("autoname", resultObj);
@@ -14238,18 +14238,18 @@ DispatchUnknownMethod(Tcl_Interp *interp, NsfObject *object,
       if (Tcl_ListObjLength(interp, objv[1], &length) == TCL_OK) {
         if (length > 1) {
           Tcl_ListObjIndex(interp, objv[1], length - 1, &tailMethodObj);
-        } 
+        }
       }
     }
     result = NsfPrintError(interp, "%s: unable to dispatch method '%s'",
                            ObjectName_(object), (tailMethodObj != NULL) ? MethodName(tailMethodObj) : methodName);
   }
-  
+
   /*
    * Reset interp state, unknown has been fired.
    */
   rst->unknown = 0;
-  
+
   return result;
 }
 
@@ -18626,9 +18626,9 @@ CleanupDestroyObject(Tcl_Interp *interp, NsfObject *object, int softrecreate) {
     }
   }
 
-  /* Unset object variables with unset traces pre-emptively. */ 
+  /* Unset object variables with unset traces pre-emptively. */
   UnsetTracedVars(interp, object);
-  
+
   if (object->nsPtr != NULL) {
     NSCleanupNamespace(interp, object->nsPtr);
     NSDeleteChildren(interp, object->nsPtr);
@@ -20476,7 +20476,7 @@ NsfForwardPrintError(Tcl_Interp *interp, ForwardCmdClientData *tcd,
         INCR_REF_COUNT(methodObjPath);
         Tcl_ListObjAppendList(interp, cmd, methodObjPath);
         DECR_REF_COUNT(methodObjPath);
-        
+
         if (objc > 1) {
           Tcl_ListObjAppendElement(interp, cmd,  Tcl_NewListObj(objc-1, objv+1));
         }
@@ -20915,7 +20915,7 @@ NsfForwardMethod(ClientData clientData, Tcl_Interp *interp,
   } else {
     Tcl_Obj **ov, *freeList = NULL;
     int       j, outputincr, outputArg = 0, firstPosArg=1,
-              totalargs = objc + tcd->nr_args + 3;              
+              totalargs = objc + tcd->nr_args + 3;
 
     ALLOC_ON_STACK(Tcl_Obj*, totalargs, OV);
     ALLOC_ON_STACK(long, totalargs, objvmap);
@@ -21013,7 +21013,7 @@ NsfForwardMethod(ClientData clientData, Tcl_Interp *interp,
       for (j = 0; j < totalargs; j++) {
         Tcl_Obj *tmp;
         long     pos = objvmap[j], i;
-        
+
         if (pos == -1 || pos == j) {
           continue;
         }
@@ -21047,7 +21047,7 @@ NsfForwardMethod(ClientData clientData, Tcl_Interp *interp,
     */
     if (tcd->prefix && objc > 1) {
         Tcl_Obj *methodName = Tcl_DuplicateObj(tcd->prefix);
-        
+
         Tcl_AppendObjToObj(methodName, ov[1]);
         ov[1] = methodName;
         INCR_REF_COUNT(ov[1]);
@@ -27547,7 +27547,7 @@ NsfCurrentCmd(Tcl_Interp *interp, CurrentoptionIdx_t selfoption) {
     }
     return result;
   }
-  
+
   /*
    * From here on, we have to be on a valid nsf frame/level, object has to be
    * know.
@@ -27652,7 +27652,7 @@ NsfCurrentCmd(Tcl_Interp *interp, CurrentoptionIdx_t selfoption) {
     break;
 
   case CurrentoptionCallinglevelIdx:
-    /* 
+    /*
      * Special case of object==NULL handeled above.
      */
     Tcl_SetObjResult(interp, ComputeLevelObj(interp, CALLING_LEVEL));

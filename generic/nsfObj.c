@@ -430,22 +430,22 @@ MixinregSetFromAny(
     /* invalid Tcl list */
     return result;
   }
-  
+
   if (oc == 1) {
     nameObj = ov[0];
-    
+
     /*} else if (oc == 2) {
       nameObj = ov[0];
       guardObj = ov[1];*/
-    
+
   } else if (oc == 3 && !strcmp(ObjStr(ov[1]), NsfGlobalStrings[NSF_GUARD_OPTION])) {
     nameObj = ov[0];
     guardObj = ov[2];
-    
+
   } else {
     nameObj = objPtr;
   }
-  
+
   /*
    * Syntax was ok. Try to lookup mixin classes:
    */
@@ -662,7 +662,7 @@ FilterregDupInternalRep(
 
   srcPtr = (Filterreg *)srcObjPtr->internalRep.twoPtrValue.ptr1;
   assert(srcPtr != NULL);
-  
+
 #if defined(METHOD_OBJECT_TRACE)
   fprintf(stderr, "FilterregDupInternalRep src %p dst %p\n", srcObjPtr, dstObjPtr);
 #endif

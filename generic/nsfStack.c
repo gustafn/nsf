@@ -820,9 +820,8 @@ static Tcl_Obj* CallStackMethodPath(Tcl_Interp *interp, Tcl_CallFrame *framePtr)
 
 static Tcl_Obj*
 CallStackMethodPath(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
-  int elements;
-  Tcl_Obj *resultObj;
-  Tcl_Obj *methodPathObj = Tcl_NewListObj(0, NULL);
+  int      elements;
+  Tcl_Obj *resultObj, *methodPathObj = Tcl_NewListObj(0, NULL);
 
   nonnull_assert(interp != NULL);
   nonnull_assert(framePtr != NULL);
@@ -834,7 +833,7 @@ CallStackMethodPath(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
        ((unsigned int)Tcl_CallFrame_isProcCallFrame(framePtr) & (FRAME_IS_NSF_CMETHOD|FRAME_IS_NSF_METHOD)) != 0u;
        framePtr = Tcl_CallFrame_callerPtr(framePtr)) {
     const NsfCallStackContent *cscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(framePtr);
-    
+
     assert(cscPtr != NULL);
 
     /*fprintf(stderr,	"--- frame %p cmdPtr %p cmd %s NSF_CSC_TYPE_ENSEMBLE %d \
