@@ -5699,7 +5699,6 @@ UnsetTracedVars(
     NsfObject *object)  /* Object to which variables belong. */
 {
     Tcl_HashSearch search;
-    Tcl_HashEntry *entryPtr;
     TclVarHashTable *varTablePtr;
     Interp *iPtr = (Interp *)interp;
 
@@ -5708,11 +5707,14 @@ UnsetTracedVars(
       object->varTablePtr;
 
     if (varTablePtr != NULL) {
+      Tcl_HashEntry *entryPtr;
+
       for (entryPtr = Tcl_FirstHashEntry((Tcl_HashTable *)varTablePtr, &search);
            entryPtr != NULL;
            entryPtr = Tcl_NextHashEntry(&search)) {
         Tcl_Obj *nameObj;
         Var *varPtr;
+
         GetVarAndNameFromHash(entryPtr, &varPtr, &nameObj);
         if ((varPtr->flags & VAR_TRACED_UNSET) != 0u /* TclIsVarTraced(varPtr) */) {
 
@@ -6050,10 +6052,10 @@ NSF_INLINE static Tcl_Namespace *NSCheckNamespace(Tcl_Interp *interp, const char
 
 NSF_INLINE static Tcl_Namespace *
 NSCheckNamespace(Tcl_Interp *interp, const char *nameString, Tcl_Namespace *parentNsPtr1) {
-  Namespace *nsPtr, *dummy1Ptr, *dummy2Ptr, *parentNsPtr = (Namespace *)parentNsPtr1;
-  const char *parentName, *dummy, *n;
+  Namespace   *nsPtr, *dummy1Ptr, *dummy2Ptr, *parentNsPtr = (Namespace *)parentNsPtr1;
+  const char  *parentName, *dummy;
   Tcl_DString ds, *dsPtr = &ds;
-  int parentNameLength;
+  int         parentNameLength;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(nameString != NULL);
@@ -6095,12 +6097,16 @@ NSCheckNamespace(Tcl_Interp *interp, const char *nameString, Tcl_Namespace *pare
     /*fprintf(stderr, "NSCheckNamespace parentNs %s parentName of '%s' => '%s'\n",
       parentNsPtr->fullName, nameString, parentName);*/
   } else {
-    n = nameString + strlen(nameString);
+    const char *n = nameString + strlen(nameString);
     /*
      * search for last '::'
      */
-    while ((*n != ':' || *(n-1) != ':') && n-1 > nameString) {n--; }
-    if (*n == ':' && n > nameString && *(n-1) == ':') {n--;}
+    while ((*n != ':' || *(n-1) != ':') && n-1 > nameString) {
+      n--;
+    }
+    if (*n == ':' && n > nameString && *(n-1) == ':') {
+      n--;
+    }
     parentNameLength = (int)(n - nameString);
     if (parentNameLength > 0) {
       DSTRING_INIT(dsPtr);
@@ -6113,6 +6119,7 @@ NSCheckNamespace(Tcl_Interp *interp, const char *nameString, Tcl_Namespace *pare
 
   if (parentName != NULL) {
     NsfObject *parentObj;
+
     parentObj = (NsfObject *) GetObjectFromString(interp, parentName);
     /*fprintf(stderr, "parentName %s parentObj %p\n", parentName, parentObj);*/
 
@@ -6199,7 +6206,7 @@ static int ReverseLookupCmdFromCmdTable(Tcl_Interp *interp /* needed? */, Tcl_Co
 static int
 ReverseLookupCmdFromCmdTable(Tcl_Interp *interp /* needed? */, Tcl_Command searchCmdPtr,
                              Tcl_HashTable *cmdTablePtr) {
-  Tcl_HashSearch search;
+  Tcl_HashSearch       search;
   const Tcl_HashEntry *hPtr;
 
   nonnull_assert(searchCmdPtr != NULL);
