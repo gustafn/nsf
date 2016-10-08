@@ -55,27 +55,31 @@
  */
 #ifndef HAVE_STRNSTR
 char *strnstr(const char *buffer, const char *needle, size_t buffer_len) {
-  char *p;
-  size_t remainder, needle_len;
+  char *result = NULL;
 
   if (*needle == '\0') {
-    return (char *)buffer;
+    result = (char *)buffer;
+
+  } else {
+    size_t remainder, needle_len;
+    char  *p;
+
+    needle_len = strlen(needle);
+    for (p = (char *)buffer, remainder = buffer_len;
+	 p != NULL;
+	 p = memchr(p + 1, *needle, remainder-1)) {
+      remainder = buffer_len - (size_t)(p - buffer);
+      if (remainder < needle_len) {
+	break;
+      }
+      if (strncmp(p, needle, needle_len) == 0) {
+	result = p;
+	break;
+      }
+    }
   }
 
-  needle_len = strlen(needle);
-  for (p = (char *)buffer, remainder = buffer_len;
-       p != NULL;
-       p = memchr(p + 1, *needle, remainder-1)) {
-    remainder = buffer_len - (p - buffer);
-    if (remainder < needle_len) {
-      break;
-    }
-    if (strncmp(p, needle, needle_len) == 0) {
-      return p;
-    }
-  }
-
-  return NULL;
+  return result;
 }
 #endif
 
