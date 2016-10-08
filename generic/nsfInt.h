@@ -431,7 +431,7 @@ typedef struct NsfStringIncrStruct {
   char *buffer;
   char *start;
   size_t bufSize;
-  int length;
+  size_t length;
 } NsfStringIncrStruct;
 
 
@@ -505,13 +505,13 @@ typedef struct NsfStringIncrStruct {
 #define NSF_DISALLOWED_ARG_VALUECHECK	     (NSF_ARG_SUBST_DEFAULT|NSF_ARG_METHOD_INVOCATION|NSF_ARG_SWITCH|NSF_ARG_CURRENTLY_UNKNOWN|NSF_ARG_SLOTSET|NSF_ARG_SLOTINITIALIZE)
 
 /* flags for ParseContext */
-#define NSF_PC_MUST_DECR		     0x0001
-#define NSF_PC_IS_DEFAULT		     0x0002
-#define NSF_PC_INVERT_DEFAULT	     	     0x0010
+#define NSF_PC_MUST_DECR		     0x0001u
+#define NSF_PC_IS_DEFAULT		     0x0002u
+#define NSF_PC_INVERT_DEFAULT	     	     0x0010u
 
-#define NSF_PC_STATUS_MUST_DECR		     0x0001
-#define NSF_PC_STATUS_FREE_OBJV		     0x0002
-#define NSF_PC_STATUS_FREE_CD		     0x0004
+#define NSF_PC_STATUS_MUST_DECR		     0x0001u
+#define NSF_PC_STATUS_FREE_OBJV		     0x0002u
+#define NSF_PC_STATUS_FREE_CD		     0x0004u
 
 
 /* method types */
@@ -940,7 +940,7 @@ typedef struct NsfRuntimeState {
   int logSeverity;
   int debugCallingDepth;
   unsigned int doCheckArguments;
-  int doCheckResults;
+  unsigned int doCheckResults;
   int doFilters;
   int doKeepcmds;
   int doProfile;
@@ -1173,7 +1173,7 @@ EXTERN int NsfDStringEval(Tcl_Interp *interp, Tcl_DString *dsPtr, const char *co
 EXTERN Tcl_ObjType NsfFlagObjType;
 EXTERN int NsfFlagObjSet(Tcl_Interp *interp, Tcl_Obj *objPtr, 
 			 Nsf_Param CONST *baseParamPtr, int serial,
-			 Nsf_Param CONST *paramPtr, Tcl_Obj *payload, int flags);
+			 Nsf_Param CONST *paramPtr, Tcl_Obj *payload, unsigned int flags);
 typedef struct {
   CONST Nsf_Param *signature;
   int serial;

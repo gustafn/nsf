@@ -112,7 +112,7 @@ Nsf_ltoa(char *buf, long i, int *lengthPtr) {
   }
   do {
     nr_written++;
-    *pointer++ = i%10 + '0';
+    *pointer++ = (char)(i%10 + '0');
     i/=10;
   } while (i);
 
@@ -145,7 +145,7 @@ Nsf_ltoa(char *buf, long i, int *lengthPtr) {
  */
 
 static char *alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-static int blockIncrement = 8;
+static size_t blockIncrement = 8u;
 /*
 static char *alphabet = "ab";
 static int blockIncrement = 2;
@@ -175,7 +175,8 @@ NsfStringIncr(NsfStringIncrStruct *iss) {
 	iss->length++;
 	if (currentChar == iss->buffer) {
 	  size_t newBufSize = iss->bufSize + blockIncrement;
-	  char *newBuffer = ckalloc(newBufSize);
+	  char  *newBuffer = ckalloc(newBufSize);
+	  
 	  currentChar = newBuffer+blockIncrement;
 	  /*memset(newBuffer, 0, blockIncrement);*/
 	  memcpy(currentChar, iss->buffer, iss->bufSize);
@@ -217,14 +218,14 @@ NsfStringIncr(NsfStringIncrStruct *iss) {
 
 void
 NsfStringIncrInit(NsfStringIncrStruct *iss) {
-  char *p;
-  int i = 0;
+  char        *p;
+  int          i = 0;
   const size_t bufSize = (blockIncrement > 2) ? blockIncrement : 2;
 
   nonnull_assert(iss != NULL);
 
   for (p=alphabet; *p != '\0'; p++) {
-    chartable[(int)*p] = ++i;
+    chartable[(int)*p] = (unsigned char)(++i);
   }
 
   iss->buffer = ckalloc(bufSize);

@@ -276,7 +276,7 @@ NsfFlagObjSet(
     int serial,				/* interface serial */
     Nsf_Param const *paramPtr,  	/* a single parameter */
     Tcl_Obj *payload,  			/* payload */
-    int flags  				/* detail infos */
+    unsigned int flags 			/* detail infos */
 	      )
 {
   NsfFlag *flagPtr;
