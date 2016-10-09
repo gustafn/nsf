@@ -5877,6 +5877,10 @@ catch {={*}[list foo 1 2 3 4 5 6]} msg; puts msg=$msg
 ========================================================================
 TODO:
 
+- under core-8-5-branch, nxsh yields on exit:
+  % exit
+  Warning: RefCount for obj 0x7fc98a050890 4 (name ::nx::shell2) > 1
+
 - Under core-8-5-branch, make test --enable-development yields an assertion failure:
 
   ./tests/parameters.test
