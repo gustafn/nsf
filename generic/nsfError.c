@@ -74,17 +74,25 @@ Tcl_Obj *NsfParamDefsSyntax(Tcl_Interp *interp, Nsf_Param const *paramsPtr,
 
 void
 NsfDStringVPrintf(Tcl_DString *dsPtr, const char *fmt, va_list vargs) {
-  int      result, failure, offset, avail;
+  int      result, failure, avail, offset;
   va_list  vargsCopy;
 
-  /* Calculate the DString's anatomy */
-  offset = Tcl_DStringLength(dsPtr); 	/* current length *without* null
-                                           terminating character (NTC) */
+  /* 
+   * Tcl_DStringLength returns the current length *without* the terminating
+   * character (NTC).
+   */
+  offset = Tcl_DStringLength(dsPtr);
 
 #if defined(_MSC_VER)
-  avail = dsPtr->spaceAvl - offset - 1; /* Pre-C99: currently free storage, excluding NTC */
+  /* 
+   * Pre-C99: currently free storage, excluding NTC 
+   */
+  avail = dsPtr->spaceAvl - offset - 1;
 #else
-  avail = dsPtr->spaceAvl - offset; /* C99: currently free storage, including NTC */
+  /* 
+   * C99: currently free storage, including NTC 
+   */
+  avail = dsPtr->spaceAvl - offset;
 #endif
   
   /*
@@ -92,28 +100,28 @@ NsfDStringVPrintf(Tcl_DString *dsPtr, const char *fmt, va_list vargs) {
    * 2) Run vsnprintf() eagerly.
    */
   va_copy(vargsCopy, vargs);
-  result = vsnprintf(dsPtr->string + offset, avail, fmt, vargsCopy);
+  result = vsnprintf(dsPtr->string + offset, (size_t)avail, fmt, vargsCopy);
   va_end(vargsCopy);
 
 #if defined(_MSC_VER)
   /* 
-     vs*printf() in pre-C99 runtimes (MSVC up to VS13, VS15 and newer in
-     backward-compat mode) return -1 upon overflowing the buffer.
-
-     Note: Tcl via tclInt.h precludes the use of pre-C99 mode even in VS15 and
-     newer (vsnprintf points to backward-compat, pre-C99 _vsnprintf).
+   *  vs*printf() in pre-C99 runtimes (MSVC up to VS13, VS15 and newer in
+   *  backward-compat mode) return -1 upon overflowing the buffer.
+   *
+   *  Note: Tcl via tclInt.h precludes the use of pre-C99 mode even in VS15
+   *  and newer (vsnprintf points to backward-compat, pre-C99 _vsnprintf).
    */
   failure = (result == -1);
 #else
   /* 
-     vs*printf() in C99 compliant runtimes (GCC, CLANG, MSVC in VS15 and
-     newer, MinGW/MinGW-w64 with __USE_MINGW_ANSI_STDIO) returns the number of
-     chars to be written if the buffer would be sufficiently large (excluding
-     NTC, the terminating null character). A return value of -1 signals an
-     encoding error.
-  */
+   *  vs*printf() in C99 compliant runtimes (GCC, CLANG, MSVC in VS15 and
+   *  newer, MinGW/MinGW-w64 with __USE_MINGW_ANSI_STDIO) returns the number
+   *  of chars to be written if the buffer would be sufficiently large
+   *  (excluding NTC, the terminating null character). A return value of -1
+   *  signals an encoding error.
+   */
   assert(result > -1); /* no encoding error */
-  failure = (result >= avail);
+  failure = (result >= (int)avail);
 #endif
 
   if (likely(failure == 0)) {
@@ -147,7 +155,7 @@ NsfDStringVPrintf(Tcl_DString *dsPtr, const char *fmt, va_list vargs) {
 #endif
     
     va_copy(vargsCopy, vargs);
-    result = vsnprintf(dsPtr->string + offset, avail, fmt, vargsCopy);
+    result = vsnprintf(dsPtr->string + offset, (size_t)avail, fmt, vargsCopy);
     va_end(vargsCopy);
     
 #if defined(_MSC_VER)

@@ -300,15 +300,18 @@ Nsf_InfoFrameObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
   result = NsfCallCommand(interp, NSF_INFO_FRAME, objc, objv);
 
   if (result == TCL_OK && objc == 2) {
-    int level, topLevel, frameFlags;
-    CmdFrame *framePtr = Tcl_Interp_cmdFramePtr(interp);
-    CallFrame *varFramePtr = Tcl_Interp_varFramePtr(interp);
-    Tcl_Obj *resultObj = Tcl_GetObjResult(interp);
+    int          level, topLevel;
+    unsigned int frameFlags;
+    CmdFrame    *framePtr = Tcl_Interp_cmdFramePtr(interp);
+    CallFrame   *varFramePtr = Tcl_Interp_varFramePtr(interp);
+    Tcl_Obj     *resultObj = Tcl_GetObjResult(interp);
 
-    /* level must be ok, otherwise we would not have a TCL_OK */
+    /* 
+     * Level must be ok, otherwise we would not have a TCL_OK.
+     */
     Tcl_GetIntFromObj(interp, objv[1], &level);
 
-    /* todo: coroutine level messing is missing */
+    /* todo: coroutine level messing is missing. needed? */
     topLevel = (framePtr == NULL) ? 0 :  framePtr->level;
 
     if (level > 0) {
@@ -320,7 +323,7 @@ Nsf_InfoFrameObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
       varFramePtr = varFramePtr->callerPtr;
     }
 
-    frameFlags = (varFramePtr != NULL) ? Tcl_CallFrame_isProcCallFrame(varFramePtr) : 0;
+    frameFlags = (varFramePtr != NULL) ? (unsigned int)Tcl_CallFrame_isProcCallFrame(varFramePtr) : 0u;
     /*fprintf(stderr, " ... frame %p varFramePtr %p frameFlags %.6x\n",
       framePtr, varFramePtr, frameFlags);
       Tcl85showStack(interp);*/
@@ -332,7 +335,10 @@ Nsf_InfoFrameObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
       int oc, i;
 
       listObj = Tcl_NewListObj(0, NULL);
-      /* remove "proc" element from list, if provided */
+      
+      /* 
+       * Remove "proc" element from list, if provided.
+       */
       Tcl_ListObjGetElements(interp, resultObj, &oc, &ov);
       for (i=0; i<oc; i += 2) {
 	if (!strcmp(ObjStr(ov[i]), "proc")) {
@@ -478,7 +484,7 @@ int NsfCallCommand(Tcl_Interp *interp, NsfGlobalNames name,
   */
   ov[0] = NsfGlobalObjs[name];
   if (objc > 1) {
-    memcpy(ov+1, objv+1, sizeof(Tcl_Obj *)*(objc-1));
+    memcpy(ov+1, objv+1, sizeof(Tcl_Obj *) * ((size_t)objc - 1u));
   }
   result = Tcl_NRCallObjProc(interp, ti->proc, ti->clientData, objc, objv);
   FREE_ON_STACK(Tcl_Obj *, ov);

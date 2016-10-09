@@ -1,4 +1,4 @@
-/* 
+/*
  *  nsfInt.h --
  *
  *      Declarations of the internally used API Functions of the Next
@@ -47,8 +47,8 @@
 #define _nsf_int_h_
 
 #if defined(HAVE_STDINT_H)
-# define HAVE_INTPTR_T 
-# define HAVE_UINTPTR_T 
+# define HAVE_INTPTR_T
+# define HAVE_UINTPTR_T
 #endif
 
 /*
@@ -79,7 +79,7 @@
 
 #if __GNUC_PREREQ(2, 95)
 /* Use gcc branch prediction hint to minimize cost of e.g. DTrace
- * ENABLED checks. 
+ * ENABLED checks.
  */
 #  define unlikely(x) (__builtin_expect((x), 0))
 #  define likely(x) (__builtin_expect((x), 1))
@@ -198,7 +198,7 @@ typedef struct NsfMemCounter {
 # define NEW(type) \
   (type *)ckalloc(sizeof(type)); MEM_COUNT_ALLOC(#type, NULL)
 # define NEW_ARRAY(type,n) \
-  (type *)ckalloc(sizeof(type)*(n)); MEM_COUNT_ALLOC(#type "*", NULL)
+  (type *)ckalloc(sizeof(type)*(size_t)(n)); MEM_COUNT_ALLOC(#type "*", NULL)
 # define FREE(type, var) \
   ckfree((char*) (var)); MEM_COUNT_FREE(#type,(var))
 
@@ -344,7 +344,7 @@ typedef struct NsfMemCounter {
   (e.g., "if(NsfConfigEnabled(...))")
 */
 
-#define NsfConfigEnabled__NOOP(...) 
+#define NsfConfigEnabled__NOOP(...)
 #define NsfConfigEnabled__open (
 #define NsfConfigEnabled__close )
 #define NsfConfigEnabled__caller(macro, args) macro args
@@ -394,10 +394,13 @@ typedef struct NsfAssertionStore {
 } NsfAssertionStore;
 
 typedef enum { /* powers of 2; add to ALL, if default; */
-  CHECK_NONE  = 0, CHECK_CLINVAR = 1, CHECK_OBJINVAR = 2,
-  CHECK_PRE   = 4, CHECK_POST = 8,
-  CHECK_INVAR = CHECK_CLINVAR + CHECK_OBJINVAR,
-  CHECK_ALL   = CHECK_INVAR   + CHECK_PRE + CHECK_POST
+  CHECK_NONE     = 0,
+  CHECK_CLINVAR  = 1,
+  CHECK_OBJINVAR = 2,
+  CHECK_PRE      = 4,
+  CHECK_POST     = 8,
+  CHECK_INVAR    = CHECK_CLINVAR + CHECK_OBJINVAR,
+  CHECK_ALL      = CHECK_INVAR   + CHECK_PRE + CHECK_POST
 } CheckOptions;
 
 void NsfAssertionRename(Tcl_Interp *interp, Tcl_Command cmd,
@@ -428,11 +431,11 @@ typedef struct NsfStringIncrStruct {
   char *buffer;
   char *start;
   size_t bufSize;
-  int length;
+  size_t length;
 } NsfStringIncrStruct;
 
 
-/* 
+/*
  * cmd flags
  */
 
@@ -461,33 +464,33 @@ typedef struct NsfStringIncrStruct {
  */
 
 /* DESTROY_CALLED indicates that destroy was called on obj */
-#define NSF_DESTROY_CALLED                 0x0001
+#define NSF_DESTROY_CALLED                 0x0001u
 /* INIT_CALLED indicates that init was called on obj */
-#define NSF_INIT_CALLED                    0x0002
+#define NSF_INIT_CALLED                    0x0002u
 /* MIXIN_ORDER_VALID set when mixin order is valid */
-#define NSF_MIXIN_ORDER_VALID              0x0004
+#define NSF_MIXIN_ORDER_VALID              0x0004u
 /* MIXIN_ORDER_DEFINED set, when mixins are defined for obj */
-#define NSF_MIXIN_ORDER_DEFINED            0x0008
-#define NSF_MIXIN_ORDER_DEFINED_AND_VALID  0x000c
+#define NSF_MIXIN_ORDER_DEFINED            0x0008u
+#define NSF_MIXIN_ORDER_DEFINED_AND_VALID  0x000cu
 /* FILTER_ORDER_VALID set, when filter order is valid */
-#define NSF_FILTER_ORDER_VALID             0x0010
+#define NSF_FILTER_ORDER_VALID             0x0010u
 /* FILTER_ORDER_DEFINED set, when filters are defined for obj */
-#define NSF_FILTER_ORDER_DEFINED           0x0020
-#define NSF_FILTER_ORDER_DEFINED_AND_VALID 0x0030
+#define NSF_FILTER_ORDER_DEFINED           0x0020u
+#define NSF_FILTER_ORDER_DEFINED_AND_VALID 0x0030u
 /* class and object properties for objects */
-#define NSF_IS_CLASS                       0x0040
-#define NSF_IS_ROOT_META_CLASS             0x0080
-#define NSF_IS_ROOT_CLASS                  0x0100
-#define NSF_IS_SLOT_CONTAINER              0x0200
-#define NSF_KEEP_CALLER_SELF               0x0400
-#define NSF_PER_OBJECT_DISPATCH            0x0800
-#define NSF_HAS_PER_OBJECT_SLOTS           0x1000
+#define NSF_IS_CLASS                       0x0040u
+#define NSF_IS_ROOT_META_CLASS             0x0080u
+#define NSF_IS_ROOT_CLASS                  0x0100u
+#define NSF_IS_SLOT_CONTAINER              0x0200u
+#define NSF_KEEP_CALLER_SELF               0x0400u
+#define NSF_PER_OBJECT_DISPATCH            0x0800u
+#define NSF_HAS_PER_OBJECT_SLOTS           0x1000u
 /* deletion states */
-#define NSF_DESTROY_CALLED_SUCCESS       0x010000 /* requires flags to be int, not short */
-#define NSF_DURING_DELETE                0x020000
-#define NSF_DELETED                      0x040000
-#define NSF_RECREATE                     0x080000
-#define NSF_TCL_DELETE                   0x100000
+#define NSF_DESTROY_CALLED_SUCCESS       0x010000u /* requires flags to be int, not short */
+#define NSF_DURING_DELETE                0x020000u
+#define NSF_DELETED                      0x040000u
+#define NSF_RECREATE                     0x080000u
+#define NSF_TCL_DELETE                   0x100000u
 
 
 /* method invocations */
@@ -502,13 +505,13 @@ typedef struct NsfStringIncrStruct {
 #define NSF_DISALLOWED_ARG_VALUECHECK	     (NSF_ARG_SUBST_DEFAULT|NSF_ARG_METHOD_INVOCATION|NSF_ARG_SWITCH|NSF_ARG_CURRENTLY_UNKNOWN|NSF_ARG_SLOTSET|NSF_ARG_SLOTINITIALIZE)
 
 /* flags for ParseContext */
-#define NSF_PC_MUST_DECR		     0x0001
-#define NSF_PC_IS_DEFAULT		     0x0002
-#define NSF_PC_INVERT_DEFAULT	     	     0x0010
+#define NSF_PC_MUST_DECR		     0x0001u
+#define NSF_PC_IS_DEFAULT		     0x0002u
+#define NSF_PC_INVERT_DEFAULT	     	     0x0010u
 
-#define NSF_PC_STATUS_MUST_DECR		     0x0001
-#define NSF_PC_STATUS_FREE_OBJV		     0x0002
-#define NSF_PC_STATUS_FREE_CD		     0x0004
+#define NSF_PC_STATUS_MUST_DECR		     0x0001u
+#define NSF_PC_STATUS_FREE_OBJV		     0x0002u
+#define NSF_PC_STATUS_FREE_CD		     0x0004u
 
 
 /* method types */
@@ -560,7 +563,7 @@ typedef struct NsfObjectOpt {
   int classParamPtrEpoch;
 #endif
   CONST char *volatileVarName;
-  short checkoptions;
+  CheckOptions checkoptions;
 } NsfObjectOpt;
 
 typedef struct NsfObject {
@@ -630,15 +633,15 @@ typedef struct NsfProcClientData {
 
 typedef enum SystemMethodsIdx {
   NSF_c_alloc_idx,
-  NSF_c_create_idx, 
+  NSF_c_create_idx,
   NSF_c_dealloc_idx,
-  NSF_c_configureparameter_idx, 
-  NSF_c_recreate_idx, 
-  NSF_o_cleanup_idx, 
+  NSF_c_configureparameter_idx,
+  NSF_c_recreate_idx,
+  NSF_o_cleanup_idx,
   NSF_o_configure_idx,
   NSF_o_configureparameter_idx,
-  NSF_o_defaultmethod_idx, 
-  NSF_o_destroy_idx, 
+  NSF_o_defaultmethod_idx,
+  NSF_o_destroy_idx,
   NSF_o_init_idx,
   NSF_o_move_idx,
   NSF_o_unknown_idx,
@@ -648,7 +651,7 @@ typedef enum SystemMethodsIdx {
 
 #if !defined(NSF_C)
 EXTERN CONST char *Nsf_SystemMethodOpts[];
-#else 
+#else
 CONST char *Nsf_SystemMethodOpts[] = {
   "-class.alloc",
   "-class.create",
@@ -681,8 +684,8 @@ typedef struct NsfObjectSystem {
 } NsfObjectSystem;
 
 
-/* 
- * Next Scripting global names and strings 
+/*
+ * Next Scripting global names and strings
  *
  * We provide enums for efficient lookup for corresponding string
  * names and Tcl_Objs via global arrays. The "constant" Tcl_Objs are
@@ -697,18 +700,18 @@ typedef enum {
   /* var names */
   NSF_AUTONAMES, NSF_DEFAULTMETACLASS, NSF_DEFAULTSUPERCLASS,
   NSF_ARRAY_INITCMD, NSF_ARRAY_CMD,
-  NSF_ARRAY_ALIAS, NSF_ARRAY_PARAMETERSYNTAX, 
+  NSF_ARRAY_ALIAS, NSF_ARRAY_PARAMETERSYNTAX,
   NSF_POSITION, NSF_POSITIONAL, NSF_CONFIGURABLE, NSF_PARAMETERSPEC,
   /* object/class names */
-  NSF_METHOD_PARAMETER_SLOT_OBJ, 
+  NSF_METHOD_PARAMETER_SLOT_OBJ,
   /* constants */
-  NSF_ALIAS, NSF_ARGS, NSF_CMD, NSF_FILTER, NSF_FORWARD, 
+  NSF_ALIAS, NSF_ARGS, NSF_CMD, NSF_FILTER, NSF_FORWARD,
   NSF_METHOD,  NSF_OBJECT, NSF_SETTER, NSF_SETTERNAME, NSF_VALUECHECK,
   NSF_GUARD_OPTION, NSF___UNKNOWN__, NSF_ARRAY, NSF_GET, NSF_SET, NSF_OPTION_STRICT,
   NSF_OBJECT_UNKNOWN_HANDLER, NSF_ARGUMENT_UNKNOWN_HANDLER,
   NSF_PARSE_ARGS,
   /* Partly redefined Tcl commands; leave them together at the end */
-  NSF_EXPR, NSF_FORMAT, NSF_INFO_BODY, NSF_INFO_FRAME, NSF_INTERP, 
+  NSF_EXPR, NSF_FORMAT, NSF_INFO_BODY, NSF_INFO_FRAME, NSF_INTERP,
   NSF_STRING_IS, NSF_EVAL,
   NSF_RENAME
 } NsfGlobalNames;
@@ -727,7 +730,7 @@ char *NsfGlobalStrings[] = {
   /* object/class names */
   "::nx::methodParameterSlot",
   /* constants */
-  "alias", "args", "cmd", "filter",  "forward", 
+  "alias", "args", "cmd", "filter",  "forward",
   "method", "object", "setter", "settername", "valuecheck",
   "-guard", "__unknown__", "::array", "get", "set", "-strict",
   /* nsf tcl commands */
@@ -735,7 +738,7 @@ char *NsfGlobalStrings[] = {
   "::nsf::argument::unknown",
   "::nsf::parseargs",
   /* tcl commands */
-  "expr", "format", "::tcl::info::body", "::tcl::info::frame", "interp", 
+  "expr", "format", "::tcl::info::body", "::tcl::info::frame", "interp",
   "::tcl::string::is", "::eval",
   "rename"
 };
@@ -747,7 +750,7 @@ char *NsfGlobalStrings[] = {
 EXTERN Tcl_ObjType NsfMixinregObjType;
 EXTERN int NsfMixinregGet(Tcl_Interp *interp, Tcl_Obj *obj, NsfClass **clPtr, Tcl_Obj **guardObj)
   nonnull(1) nonnull(2) nonnull(3) nonnull(4);
-EXTERN int NsfMixinregInvalidate(Tcl_Interp *interp, Tcl_Obj *obj) 
+EXTERN int NsfMixinregInvalidate(Tcl_Interp *interp, Tcl_Obj *obj)
   nonnull(1) nonnull(2);
 
 EXTERN Tcl_ObjType NsfFilterregObjType;
@@ -766,7 +769,7 @@ typedef struct NsfShadowTclCommandInfo {
 typedef enum {SHADOW_LOAD=1, SHADOW_UNLOAD=0, SHADOW_REFETCH=2} NsfShadowOperations;
 
 
-typedef enum {NSF_PARAMS_NAMES, NSF_PARAMS_LIST, 
+typedef enum {NSF_PARAMS_NAMES, NSF_PARAMS_LIST,
 	      NSF_PARAMS_PARAMETER, NSF_PARAMS_SYNTAX} NsfParamsPrintStyle;
 
 int NsfCallCommand(Tcl_Interp *interp, NsfGlobalNames name,
@@ -898,7 +901,7 @@ typedef struct NsfProfile {
 #else
 # define NSF_PROFILE_TIME_DATA
 # define NSF_PROFILE_CALL(interp, object, methodName)
-# define NSF_PROFILE_EXIT(interp, object, methodName) 
+# define NSF_PROFILE_EXIT(interp, object, methodName)
 #endif
 
 typedef struct NsfRuntimeState {
@@ -908,7 +911,7 @@ typedef struct NsfRuntimeState {
   struct NsfObjectSystem *objectSystems;
   /*
    * namespaces and cmds
-   */ 
+   */
   Tcl_Namespace *NsfNS;           /* the ::nsf namespace */
   Tcl_Namespace *NsfClassesNS;    /* the ::nsf::classes namespace, where classes are created physically */
   Tcl_ObjCmdProc *objInterpProc;  /* cached result of TclGetObjInterpProc() */
@@ -929,15 +932,15 @@ typedef struct NsfRuntimeState {
   int errorCount;        /* keep track of number of errors to avoid potential error loops */
   int unknown;           /* keep track whether an unknown method is currently called */
   unsigned int overloadedMethods; /* bitarray for tracking overloaded methods */
-  /* 
+  /*
    * Configure options. The following do*-flags could be moved into a
    * bitarray, but we have only one state per interp, so the win on
    * memory is very little.
    */
   int logSeverity;
   int debugCallingDepth;
-  int doCheckArguments;
-  int doCheckResults;
+  unsigned int doCheckArguments;
+  unsigned int doCheckResults;
   int doFilters;
   int doKeepcmds;
   int doProfile;
@@ -1120,8 +1123,8 @@ EXTERN int NsfObjDispatch(ClientData cd, Tcl_Interp *interp,
 			  int objc, Tcl_Obj *CONST objv[])
   nonnull(1) nonnull(2) nonnull(4);
 
-EXTERN int NsfObjWrongArgs(Tcl_Interp *interp, CONST char *msg, 
-			   Tcl_Obj *cmdName, Tcl_Obj *methodName, 
+EXTERN int NsfObjWrongArgs(Tcl_Interp *interp, CONST char *msg,
+			   Tcl_Obj *cmdName, Tcl_Obj *methodName,
 			   char *arglist)
   nonnull(1) nonnull(2);
 
@@ -1133,8 +1136,8 @@ EXTERN void NsfReportVars(Tcl_Interp *interp)
 EXTERN void NsfDStringArgv(Tcl_DString *dsPtr, int objc, Tcl_Obj *CONST objv[])
   nonnull(1) nonnull(3);
 
-EXTERN Tcl_Obj *NsfMethodNamePath(Tcl_Interp *interp, 
-				  Tcl_CallFrame *framePtr, 
+EXTERN Tcl_Obj *NsfMethodNamePath(Tcl_Interp *interp,
+				  Tcl_CallFrame *framePtr,
 				  const char *methodName)
   nonnull(1) nonnull(3) returns_nonnull;
 
@@ -1164,13 +1167,13 @@ EXTERN int NsfDStringEval(Tcl_Interp *interp, Tcl_DString *dsPtr, const char *co
 # define NsfClassParamPtrEpochIncr(msg)
 #endif
 
-/* 
+/*
  * NsfFlag type
  */
 EXTERN Tcl_ObjType NsfFlagObjType;
-EXTERN int NsfFlagObjSet(Tcl_Interp *interp, Tcl_Obj *objPtr, 
+EXTERN int NsfFlagObjSet(Tcl_Interp *interp, Tcl_Obj *objPtr,
 			 Nsf_Param CONST *baseParamPtr, int serial,
-			 Nsf_Param CONST *paramPtr, Tcl_Obj *payload, int flags);
+			 Nsf_Param CONST *paramPtr, Tcl_Obj *payload, unsigned int flags);
 typedef struct {
   CONST Nsf_Param *signature;
   int serial;
@@ -1182,12 +1185,12 @@ typedef struct {
 #define NSF_FLAG_DASHDAH		0x01
 #define NSF_FLAG_CONTAINS_VALUE		0x02
 
-/* 
+/*
  * NsfMethodContext type
  */
 EXTERN Tcl_ObjType NsfInstanceMethodObjType;
 EXTERN Tcl_ObjType NsfObjectMethodObjType;
-EXTERN int NsfMethodObjSet(Tcl_Interp *interp, Tcl_Obj *objPtr, 
+EXTERN int NsfMethodObjSet(Tcl_Interp *interp, Tcl_Obj *objPtr,
 			   Tcl_ObjType *objectType,
 			   void *context, int methodEpoch,
 			   Tcl_Command cmd, NsfClass *cl, unsigned int flags)
@@ -1263,7 +1266,7 @@ EXTERN Nsf_methodDefinition *Nsf_CmdDefinitionGet(Tcl_ObjCmdProc *proc)
 char *strnstr(const char *buffer, const char *needle, size_t buffer_len);
 #endif
 
-/* 
+/*
    In ANSI mode (ISO C89/90) compilers such as gcc and clang do not
    define the va_copy macro. However, they *do* in reasonably recent
    versions provide a prefixed (__*) one. The by-feature test below
@@ -1271,7 +1274,7 @@ char *strnstr(const char *buffer, const char *needle, size_t buffer_len);
    more general fallback to a simple assignment; this is primarily for
    MSVC; admittedly, this simplifcation is not generally portable to
    platform/compiler combos other then x86, but the best I can think of right
-   now. One might constrain the assignment-fallback to a platform and 
+   now. One might constrain the assignment-fallback to a platform and
    leave va_copy undefined in uncaught platform cases (?).
 */
 #ifndef va_copy

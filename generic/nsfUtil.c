@@ -55,27 +55,31 @@
  */
 #ifndef HAVE_STRNSTR
 char *strnstr(const char *buffer, const char *needle, size_t buffer_len) {
-  char *p;
-  size_t remainder, needle_len;
+  char *result = NULL;
 
   if (*needle == '\0') {
-    return (char *)buffer;
+    result = (char *)buffer;
+
+  } else {
+    size_t remainder, needle_len;
+    char  *p;
+
+    needle_len = strlen(needle);
+    for (p = (char *)buffer, remainder = buffer_len;
+	 p != NULL;
+	 p = memchr(p + 1, *needle, remainder-1)) {
+      remainder = buffer_len - (size_t)(p - buffer);
+      if (remainder < needle_len) {
+	break;
+      }
+      if (strncmp(p, needle, needle_len) == 0) {
+	result = p;
+	break;
+      }
+    }
   }
 
-  needle_len = strlen(needle);
-  for (p = (char *)buffer, remainder = buffer_len;
-       p != NULL;
-       p = memchr(p + 1, *needle, remainder-1)) {
-    remainder = buffer_len - (p - buffer);
-    if (remainder < needle_len) {
-      break;
-    }
-    if (strncmp(p, needle, needle_len) == 0) {
-      return p;
-    }
-  }
-
-  return NULL;
+  return result;
 }
 #endif
 
@@ -112,7 +116,7 @@ Nsf_ltoa(char *buf, long i, int *lengthPtr) {
   }
   do {
     nr_written++;
-    *pointer++ = i%10 + '0';
+    *pointer++ = (char)(i%10 + '0');
     i/=10;
   } while (i);
 
@@ -145,10 +149,10 @@ Nsf_ltoa(char *buf, long i, int *lengthPtr) {
  */
 
 static char *alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-static int blockIncrement = 8;
+static size_t blockIncrement = 8u;
 /*
-static char *alphabet = "ab";
-static int blockIncrement = 2;
+  static char *alphabet = "ab";
+  static int blockIncrement = 2;
 */
 static unsigned char chartable[255] = {0};
 
@@ -175,7 +179,8 @@ NsfStringIncr(NsfStringIncrStruct *iss) {
 	iss->length++;
 	if (currentChar == iss->buffer) {
 	  size_t newBufSize = iss->bufSize + blockIncrement;
-	  char *newBuffer = ckalloc(newBufSize);
+	  char  *newBuffer = ckalloc(newBufSize);
+
 	  currentChar = newBuffer+blockIncrement;
 	  /*memset(newBuffer, 0, blockIncrement);*/
 	  memcpy(currentChar, iss->buffer, iss->bufSize);
@@ -217,14 +222,14 @@ NsfStringIncr(NsfStringIncrStruct *iss) {
 
 void
 NsfStringIncrInit(NsfStringIncrStruct *iss) {
-  char *p;
-  int i = 0;
+  char        *p;
+  int          i = 0;
   const size_t bufSize = (blockIncrement > 2) ? blockIncrement : 2;
 
   nonnull_assert(iss != NULL);
 
   for (p=alphabet; *p != '\0'; p++) {
-    chartable[(int)*p] = ++i;
+    chartable[(int)*p] = (unsigned char)(++i);
   }
 
   iss->buffer = ckalloc(bufSize);
@@ -234,8 +239,8 @@ NsfStringIncrInit(NsfStringIncrStruct *iss) {
   iss->length   = 1;
   /*
     for (i=1; i<50; i++) {
-      NsfStringIncr(iss);
-      fprintf(stderr, "string '%s' (%d)\n",  iss->start, iss->length);
+    NsfStringIncr(iss);
+    fprintf(stderr, "string '%s' (%d)\n",  iss->start, iss->length);
     }
   */
 }
@@ -248,3 +253,11 @@ NsfStringIncrFree(NsfStringIncrStruct *iss) {
   ckfree(iss->buffer);
 }
 
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 2
+ * fill-column: 78
+ * indent-tabs-mode: nil
+ * End:
+ */

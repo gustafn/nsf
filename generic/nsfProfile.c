@@ -291,7 +291,7 @@ NsfProfileFillTable(Tcl_HashTable *table, const char *keyStr, double totalMicroS
   } else {
     value = (NsfProfileData *)Tcl_GetHashValue (hPtr);
   }
-  value->microSec += totalMicroSec;
+  value->microSec += (long)totalMicroSec;
   value->count ++;
 }
 
@@ -625,7 +625,7 @@ NsfProfileTraceExit(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, const c
     struct Tcl_Time trt;
 
     Tcl_GetTime(&trt);
-    totalMicroSec = (trt.sec - callTime->sec) * 1000000 + (trt.usec - callTime->usec);
+    totalMicroSec = (double)((trt.sec - callTime->sec) * 1000000 + (trt.usec - callTime->usec));
 
     Tcl_DStringInit(&ds);
     NsfProfileObjectLabel(&ds, object);
@@ -679,8 +679,8 @@ NsfProfileRecordMethodData(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
   rst = RUNTIME_STATE(interp);
   profilePtr = &rst->profile;
 
-  totalMicroSec = (trt.sec - cscPtr->startSec) * 1000000 + (trt.usec - cscPtr->startUsec);
-  profilePtr->overallTime += totalMicroSec;
+  totalMicroSec = (double)((trt.sec - cscPtr->startSec) * 1000000 + (trt.usec - cscPtr->startUsec));
+  profilePtr->overallTime += (long)totalMicroSec;
 
   obj = cscPtr->self;
   if (obj->teardown == 0 || !obj->id) {
@@ -766,8 +766,8 @@ NsfProfileRecordProcData(Tcl_Interp *interp, const char *methodName, long startS
 
   Tcl_GetTime(&trt);
 
-  totalMicroSec = (trt.sec - startSec) * 1000000 + (trt.usec - startUsec);
-  profilePtr->overallTime += totalMicroSec;
+  totalMicroSec = (double)((trt.sec - startSec) * 1000000 + (trt.usec - startUsec));
+  profilePtr->overallTime += (long)totalMicroSec;
 
   if (rst->doTrace) {
     NsfProfileTraceExitAppend(interp, methodName, totalMicroSec);
@@ -878,8 +878,8 @@ NsfProfileGetTable(Tcl_Interp *interp, Tcl_HashTable *table) {
     Tcl_Obj        *subList = Tcl_NewListObj(0, NULL);
 
     Tcl_ListObjAppendElement(interp, subList, Tcl_NewStringObj(key, -1));
-    Tcl_ListObjAppendElement(interp, subList, Tcl_NewIntObj(value->microSec));
-    Tcl_ListObjAppendElement(interp, subList, Tcl_NewIntObj(value->count));
+    Tcl_ListObjAppendElement(interp, subList, Tcl_NewLongObj(value->microSec));
+    Tcl_ListObjAppendElement(interp, subList, Tcl_NewLongObj(value->count));
     Tcl_ListObjAppendElement(interp, list, subList);
   }
   return list;
@@ -915,8 +915,8 @@ NsfProfileGetData(Tcl_Interp *interp) {
   Tcl_GetTime(&trt);
   totalMicroSec = (trt.sec - profilePtr->startSec) * 1000000 + (trt.usec - profilePtr->startUSec);
 
-  Tcl_ListObjAppendElement(interp, list, Tcl_NewIntObj(totalMicroSec));
-  Tcl_ListObjAppendElement(interp, list, Tcl_NewIntObj(profilePtr->overallTime));
+  Tcl_ListObjAppendElement(interp, list, Tcl_NewLongObj((long)totalMicroSec));
+  Tcl_ListObjAppendElement(interp, list, Tcl_NewLongObj(profilePtr->overallTime));
   Tcl_ListObjAppendElement(interp, list, NsfProfileGetTable(interp, &profilePtr->objectData));
   Tcl_ListObjAppendElement(interp, list, NsfProfileGetTable(interp, &profilePtr->methodData));
   Tcl_ListObjAppendElement(interp, list, NsfProfileGetTable(interp, &profilePtr->procData));
