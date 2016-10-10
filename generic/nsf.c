@@ -21890,7 +21890,14 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
     }
     fprintf(stderr, "\n");
     fprintf(stderr, "BEGIN (%d) [0]%s ", objc, ObjStr(procNameObj));
-    for (o = fromArg; o < objc; o++) {fprintf(stderr, "[%d]%s ", o, ObjStr(objv[o]));}
+    for (o = fromArg; o < objc; o++) {
+      Tcl_Obj *obj = objv[o];
+      if (obj->bytes == NULL) {
+        fprintf(stderr, "[%d]unk(%s) ", o, obj->typePtr->name);
+      } else {
+        fprintf(stderr, "[%d]%s ", o, ObjStr(obj));
+      }
+    }
     fprintf(stderr, "\n");
   }
 #endif
@@ -22175,7 +22182,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 
 
 #if defined(PARSE_TRACE_FULL)
-      fprintf(stderr, "... args found o %d objc %d is dashdash %d [%d] <%s>\n", o, objc, dashdash, j, ObjStr(argumentObj));
+      fprintf(stderr, "... args found o %d objc %d is dashdash %d [%ld] <%s>\n", o, objc, dashdash, j, ObjStr(argumentObj));
 #endif
       break;
 
@@ -22210,7 +22217,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
     }
 
 #if defined(PARSE_TRACE_FULL)
-    fprintf(stderr, "... setting parameter %s pos %d valueObj '%s'\n",
+    fprintf(stderr, "... setting parameter %s pos %ld valueObj '%s'\n",
             pPtr->name, j,
             valueObj == argumentObj ? "=" : ObjStr(valueObj));
 #endif
@@ -24979,7 +24986,7 @@ NsfColonCmd(Tcl_Interp *interp, int nobjc, Tcl_Obj *CONST nobjv[]) {
     /*
      * No need to parse arguments (local, intrinsic, ...).
      */
-    return ObjectDispatch(self, interp, nobjc, nobjv, 0);
+    return ObjectDispatch(self, interp, nobjc, nobjv, 0u);
   } else {
     ParseContext pc;
     int          withIntrinsic, withLocal, withSystem;

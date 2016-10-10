@@ -271,10 +271,10 @@ typedef struct NsfMemCounter {
 #if !defined(NDEBUG)
 # if defined(PRE86)
 #  define ISOBJ(o) ((o) != NULL && ISOBJ_(o))
-#  define ISOBJ_(o) ((o) != (void*)0xdeadbeaf && ((o)->typePtr ? (o)->typePtr->name != NULL : 1) && (o)->length >= -1 && ((o)->length > 0 ? (o)->bytes!= NULL : 1) && (o)->refCount >= 0)
+#  define ISOBJ_(o) ((o) != (void*)0xdeadbeaf && ((o)->typePtr ? ((o)->typePtr->name != NULL) : ((o)->bytes != NULL)) && (o)->length >= -1 && (o)->refCount >= 0)
 #  else
 #  define ISOBJ(o) ((o) != NULL && ISOBJ_(o))
-#  define ISOBJ_(o) ((o) != (void*)0xdeadbeaf && ((o)->typePtr ? (o)->typePtr->name != NULL : 1) && ((o)->bytes != NULL ? (o)->length >= 0 : 1) && (o)->refCount >= 0)
+#  define ISOBJ_(o) ((o) != (void*)0xdeadbeaf && ((o)->typePtr ? (o)->typePtr->name != NULL : ((o)->bytes != NULL)) && ((o)->bytes != NULL ? (o)->length >= 0 : 1) && (o)->refCount >= 0)
 # endif
 #else
 # define ISOBJ(o) ((o) != NULL && ISOBJ_(o))
