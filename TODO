@@ -5875,14 +5875,12 @@ catch {={*}[list foo 1 2 3 4 5 6]} msg; puts msg=$msg
 - new subcommand "nsf::current level", returns empty, if we are not on a nsf frame/level.
 - improve sanity test in ISOBJ(): obj->bytes might only be NULL when type is given.
 
-========================================================================
-TODO:
-
 - under core-8-5-branch, nxsh yields on exit:
   % exit
   Warning: RefCount for obj 0x7fc98a050890 4 (name ::nx::shell2) > 1
 
-- Under core-8-5-branch, make test --enable-development yields an assertion failure:
+========================================================================
+TODO:
 
 - Should we add exists to the Variableslot-Interface, to surface ::nsf::var::exists.
 
