@@ -7,8 +7,8 @@ nx::Object create ::nx::shell2 {
   :public object method onRead {{chan stdin}} {
     append :line [read $chan]
     if {[eof $chan]} {
+        set :forever 0
         fileevent $chan readable {}
-        set :forever eof
     }
     if {${:line} eq "\n"} {
       unset :line
