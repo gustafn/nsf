@@ -47,14 +47,25 @@ nx::test case nxsh {
   file delete -force $tmpfile
 
   # exit and exit codes
+
+  ? [list exec [info nameofexecutable] << "exit 0"] ""
+  ? [list exec [info nameofexecutable] << "exit 1"] "child process exited abnormally"
+
+  ? [list exec [info nameofexecutable] << "package req nx;exit 0"] ""
+  ? [list exec [info nameofexecutable] << "package req nx;exit 1"] "child process exited abnormally"
+
   ? [list exec $nxsh -c "exit 0"] ""
   ? [list exec $nxsh -c "exit 1"] "child process exited abnormally"
   ? [list exec $nxsh -c "exit 2"] "child process exited abnormally"
   ? [list exec $nxsh -c "exit 5"] "child process exited abnormally"
+
   ? [list catch [list exec $nxsh -c "exit 5"] ::res ::opts] "1"
+  ? [list catch [list exec $nxsh -c "exit 5"] ::res ::opts] "0"
   ? {set ::res} "child process exited abnormally"
+  ? {set ::res} ""
   ? {lindex [dict get $::opts -errorcode] end} "5"
   unset ::res; unset ::opts
+
   ? [list exec $nxsh -c << "exit 0"] ""
   ? [list exec $nxsh -c << "exit 1"] "child process exited abnormally"
   ? [list exec $nxsh -c << "catch {exit 1}"] "child process exited abnormally"
@@ -67,6 +78,8 @@ nx::test case nxsh {
   ## ? [list expr [list [lsort $gvars1] eq [lsort $gvars2]]] 1
 }
 
+
+puts exec=[info nameofexecutable]
 # Local variables:
 #    mode: tcl
 #    tcl-indent-level: 2

@@ -5879,6 +5879,9 @@ catch {={*}[list foo 1 2 3 4 5 6]} msg; puts msg=$msg
   % exit
   Warning: RefCount for obj 0x7fc98a050890 4 (name ::nx::shell2) > 1
 
+- don't call tcl eval operations from NsfLog() in phyical destroy round
+- extend regression test for shell with tests in [info nameofexecutable] rather than in nxhs
+
 ========================================================================
 TODO:
 

@@ -606,9 +606,10 @@ NsfLog(Tcl_Interp *interp, int requiredLevel, const char *fmt, ...) {
   nonnull_assert(fmt != NULL);
 
   if (requiredLevel >= RUNTIME_STATE(interp)->logSeverity) {
-    Tcl_DString cmdString, ds;
-    const char *level;
-    va_list ap;
+    int          destroyRound = RUNTIME_STATE(interp)->exitHandlerDestroyRound;
+    Tcl_DString  cmdString, ds;
+    const char  *level;
+    va_list      ap;
 
     switch (requiredLevel) {
     case NSF_LOG_DEBUG: level = "Debug"; break;
@@ -625,7 +626,16 @@ NsfLog(Tcl_Interp *interp, int requiredLevel, const char *fmt, ...) {
     Tcl_DStringAppendElement(&cmdString, "::nsf::log");
     Tcl_DStringAppendElement(&cmdString, level);
     Tcl_DStringAppendElement(&cmdString, Tcl_DStringValue(&ds));
-    NsfDStringEval(interp, &cmdString, "log command", (NSF_EVAL_LOG|NSF_EVAL_NOPROFILE));
+
+    if (destroyRound != NSF_EXITHANDLER_ON_PHYSICAL_DESTROY) {
+      NsfDStringEval(interp, &cmdString, "log command", (NSF_EVAL_LOG|NSF_EVAL_NOPROFILE));
+    } else {
+      /*
+       * On physical destroy, we can't rely on NsfDStringEval() working
+       * proplerly.
+       */
+      fprintf(stderr, "%s", cmdString.string);
+    }
     Tcl_DStringFree(&cmdString);
     Tcl_DStringFree(&ds);
   }
@@ -31333,12 +31343,13 @@ FinalObjectDeletion(Tcl_Interp *interp, NsfObject *object) {
 #endif
 
 #if !defined(NDEBUG)
-  if (unlikely(object->activationCount != 0)) {
-    fprintf(stderr, "FinalObjectDeletion obj %p activationcount %d\n",
-            (void *)object, object->activationCount);
+  if (RUNTIME_STATE(interp)->exitHandlerDestroyRound != NSF_EXITHANDLER_ON_PHYSICAL_DESTROY) {
+    assert(object->activationCount == 0);
+  } else if (object->activationCount != 0) {
+    NsfLog(interp, NSF_LOG_WARN, "FinalObjectDeletion obj %p activationcount %d\n",
+           (void *)object, object->activationCount);
   }
 #endif
-  assert(object->activationCount == 0);
 
   if (likely(object->id != NULL)) {
     /*fprintf(stderr, "  ... cmd dealloc %p final delete refCount %d\n",
