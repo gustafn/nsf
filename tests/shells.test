@@ -54,15 +54,16 @@ nx::test case nxsh {
   ? [list exec [info nameofexecutable] << "package req nx;exit 0"] ""
   ? [list exec [info nameofexecutable] << "package req nx;exit 1"] "child process exited abnormally"
 
+  ? [list exec -ignorestderr [info nameofexecutable] << "package req nx;nx::Object new {exit 0}"] ""
+  ? [list exec -ignorestderr [info nameofexecutable] << "package req nx;nx::Object new {exit 1}"] "child process exited abnormally"
+
   ? [list exec $nxsh -c "exit 0"] ""
   ? [list exec $nxsh -c "exit 1"] "child process exited abnormally"
   ? [list exec $nxsh -c "exit 2"] "child process exited abnormally"
   ? [list exec $nxsh -c "exit 5"] "child process exited abnormally"
 
   ? [list catch [list exec $nxsh -c "exit 5"] ::res ::opts] "1"
-  ? [list catch [list exec $nxsh -c "exit 5"] ::res ::opts] "0"
   ? {set ::res} "child process exited abnormally"
-  ? {set ::res} ""
   ? {lindex [dict get $::opts -errorcode] end} "5"
   unset ::res; unset ::opts
 
