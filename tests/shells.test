@@ -57,6 +57,8 @@ nx::test case nxsh {
   unset ::res; unset ::opts
   ? [list exec $nxsh -c << "exit 0"] ""
   ? [list exec $nxsh -c << "exit 1"] "child process exited abnormally"
+  ? [list exec $nxsh -c << "catch {exit 1}"] "child process exited abnormally"
+  ? [list exec $nxsh -c << "catch {nx::Object eval {exit 1}}"] "child process exited abnormally"
 
   ## avoid pollution of global namespace
   ## set tclsh [info nameofexecutable]
