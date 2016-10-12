@@ -111,32 +111,45 @@ nx::Object create ::nx::shell2 {
     }
   }
   
-  :public object method onCatch {-shell:switch args} {
+  :public object method onCatch {args} {
     set r [uplevel 1 [list interp invokehidden {} catch {*}$args]]
     if {$r == 2 && [info exists :statusCode]} {
       return -code return
     }
     return $r
   }
-  
-  # :public object method exitOn {} {
-  #   if {[interp alias {} ::exit] eq ""} {
-  #     interp hide {} exit {};
-  #     interp alias {} ::exit {} [current] onExit
-  #     interp hide {} catch;
-  #     interp alias {} ::catch {} [current] onCatch
-  #   }
-  # }
-  
-  # :public object method exitOff {} {
-  #   if {[interp alias {} ::exit] ne ""} {
-  #     interp alias {} ::exit {}
-  #     interp expose {} exit;
-  #     interp alias {} ::catch {}
-  #     interp expose {} catch;
-  #   }
-  # }
 
+  # 8.6 only
+  if {[info commands ::try] ne ""} {
+    :public object method onHandler {script} {
+      if {[info exists :statusCode]} {
+        return -code return -level 2
+      }
+      uplevel 1 $script
+    }
+
+    :public object method onTry {script args} {
+      set l [llength $args]
+      for {set i 0; set j 1} {$i < $l} {incr i; set j [expr {$i+1}]} {
+        # watch out for the finally handler
+        if {$i == [expr {$l-2}] && [lindex $args $i] eq "finally"} {
+          set finallyScript [lindex $args $j]
+          lset args $j [list [current] onHandler $finallyScript]
+          break
+        }
+        # watch out for on-return handlers
+        if {$i < [expr {$l-3}] && [lindex $args $i] eq "on" && [lindex $args $j] in {return 2}} {
+          # imputate a wrapped return script
+          set idx [expr {$i+3}]
+          set returnScript [lindex $args $idx]
+          lset args $idx [list [current] onHandler $returnScript]
+          incr i 3
+        }
+      }
+      uplevel 1 [list interp invokehidden {} try $script {*}$args]
+    }
+  }
+  
   :public object method exitOn {} {
     if {[info commands ::_exit] eq ""} {
       #
@@ -147,6 +160,11 @@ nx::Object create ::nx::shell2 {
       interp hide {} catch;
       interp alias {} ::catch {} [current] onCatch
     }
+    if {[info commands ::try] ne ""} {
+      # 8.6 only
+      interp hide {} try;
+      interp alias {} ::try {} [current] onTry
+    }
   }
   
   :public object method exitOff {} {
@@ -155,6 +173,11 @@ nx::Object create ::nx::shell2 {
       rename ::_exit ::exit
       interp alias {} ::catch {}
       interp expose {} catch;
+      if {[interp alias {} ::try] ne ""} {
+        # 8.6 only
+        interp alias {} ::try {}
+        interp expose {} try;
+      }
     }
   } 
   
