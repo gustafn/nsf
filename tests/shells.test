@@ -60,9 +60,7 @@ nx::test case nxsh {
   ? [list exec $nxsh -c "exit 5"] "child process exited abnormally"
 
   ? [list catch [list exec $nxsh -c "exit 5"] ::res ::opts] "1"
-  ? [list catch [list exec $nxsh -c "exit 5"] ::res ::opts] "0"
   ? {set ::res} "child process exited abnormally"
-  ? {set ::res} ""
   ? {lindex [dict get $::opts -errorcode] end} "5"
   unset ::res; unset ::opts
 
