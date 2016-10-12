@@ -54,6 +54,9 @@ nx::test case nxsh {
   ? [list exec [info nameofexecutable] << "package req nx;exit 0"] ""
   ? [list exec [info nameofexecutable] << "package req nx;exit 1"] "child process exited abnormally"
 
+  ? [list exec -ignorestderr [info nameofexecutable] << "package req nx;nx::Object new {exit 0}"] ""
+  ? [list exec -ignorestderr [info nameofexecutable] << "package req nx;nx::Object new {exit 1}"] "child process exited abnormally"
+
   ? [list exec $nxsh -c "exit 0"] ""
   ? [list exec $nxsh -c "exit 1"] "child process exited abnormally"
   ? [list exec $nxsh -c "exit 2"] "child process exited abnormally"
