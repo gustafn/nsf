@@ -17,8 +17,9 @@
 #
 
 package require XOTcl 2
-package require nx::shell
+package require nx::shell 1.1
 
 namespace import -force ::xotcl::*
 
-nx::shell2 run $argc $argv
+set exitCode [nx::shell2 run $argc $argv]
+exit $exitCode

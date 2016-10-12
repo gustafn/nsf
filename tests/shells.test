@@ -46,6 +46,18 @@ nx::test case nxsh {
 
   file delete -force $tmpfile
 
+  # exit and exit codes
+  ? [list exec $nxsh -c "exit 0"] ""
+  ? [list exec $nxsh -c "exit 1"] "child process exited abnormally"
+  ? [list exec $nxsh -c "exit 2"] "child process exited abnormally"
+  ? [list exec $nxsh -c "exit 5"] "child process exited abnormally"
+  ? [list catch [list exec $nxsh -c "exit 5"] ::res ::opts] "1"
+  ? {set ::res} "child process exited abnormally"
+  ? {lindex [dict get $::opts -errorcode] end} "5"
+  unset ::res; unset ::opts
+  ? [list exec $nxsh -c << "exit 0"] ""
+  ? [list exec $nxsh -c << "exit 1"] "child process exited abnormally"
+
   ## avoid pollution of global namespace
   ## set tclsh [info nameofexecutable]
   ## set gvars1 [exec $tclsh << {puts [info vars]}]

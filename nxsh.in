@@ -14,8 +14,10 @@
 # markup in the first line of a script. It is designed to work with
 # multiple installed Tcl shells during development.
 #
-package require nx::shell
+package require nx::shell 1.1
 
 namespace import -force ::nx::*
 
-nx::shell2 run $argc $argv
+set exitCode [nx::shell2 run $argc $argv]
+exit $exitCode
+

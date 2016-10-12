@@ -1,6 +1,6 @@
 package require nx
 
-package provide nx::shell 1.0
+package provide nx::shell 1.1
 
 nx::Object create ::nx::shell2 {
 
@@ -25,14 +25,22 @@ nx::Object create ::nx::shell2 {
   }
 
   :protected object method evalScript {-exit:switch script} {
-    set script [list catch [string trim $script] [current]::result [current]::opts]
+    set script [list interp invokehidden {} catch [string trim $script] [current]::result [current]::opts]
     set r [uplevel #0 $script]
     if {$r == 1} {
       puts stderr [dict get ${:opts} -errorinfo]
       if {$exit} {
-        exit 1
+        :onExit -shell 1
       } else {
         unset :opts;
+      }
+    } elseif {$r == 2 && [info exists :statusCode]} {
+      set sc ${:statusCode}
+      unset :statusCode
+      if {$exit} {
+        :onExit -shell $sc
+      } else {
+        set :forever $sc
       }
     } else {
       if {${:result} ne ""} {
@@ -48,23 +56,21 @@ nx::Object create ::nx::shell2 {
   }
 
   :public object method run {argc argv} {
-    if {[catch {
-      if {$argc == 0} {
+    :exitOn
+    if {$argc == 0} {
         # interactive mode
         :prompt stdout
         fconfigure stdin -blocking 0 -buffering line
         fileevent stdin readable [list [current] onRead]
         vwait :forever
         fileevent stdin readable {}
-        exit
+        :onExit -shell ${:forever}
       } else {
         # non-interactive modes
         :nonInteract {*}$argv
       }
-    } msg]} {
-      puts stderr "[current] failed unexpectedly with '$msg'"
-      exit 2
-    }
+    :exitOff
+    return 0
   }
 
   :protected object method nonInteract {-c:switch args} {
@@ -92,6 +98,66 @@ nx::Object create ::nx::shell2 {
       }
     }
   }
+
+  :public object method onExit {-shell:switch {statusCode 0}} {
+    if {$shell} {
+      :exitOff
+      # outer (shell) exit
+      return -code ok -level [info level] $statusCode
+    } else {
+      # inner (script) exit
+      set :statusCode $statusCode
+      return -code return -level [info level]
+    }
+  }
+  
+  :public object method onCatch {-shell:switch args} {
+    set r [uplevel 1 [list interp invokehidden {} catch {*}$args]]
+    if {$r == 2 && [info exists :statusCode]} {
+      return -code return
+    }
+    return $r
+  }
+  
+  # :public object method exitOn {} {
+  #   if {[interp alias {} ::exit] eq ""} {
+  #     interp hide {} exit {};
+  #     interp alias {} ::exit {} [current] onExit
+  #     interp hide {} catch;
+  #     interp alias {} ::catch {} [current] onCatch
+  #   }
+  # }
+  
+  # :public object method exitOff {} {
+  #   if {[interp alias {} ::exit] ne ""} {
+  #     interp alias {} ::exit {}
+  #     interp expose {} exit;
+  #     interp alias {} ::catch {}
+  #     interp expose {} catch;
+  #   }
+  # }
+
+  :public object method exitOn {} {
+    if {[info commands ::_exit] eq ""} {
+      #
+      # exit is already aliased/hidden by nx::test
+      # 
+      rename ::exit ::_exit
+      proc ::exit {{exitCode 0}} "[current] onExit \$exitCode"
+      interp hide {} catch;
+      interp alias {} ::catch {} [current] onCatch
+    }
+  }
+  
+  :public object method exitOff {} {
+    if {[info commands ::_exit] ne ""} {
+      rename ::exit ""
+      rename ::_exit ::exit
+      interp alias {} ::catch {}
+      interp expose {} catch;
+    }
+  } 
+  
 }
 
 nx::Object create ::nx::shell {
@@ -129,7 +195,7 @@ nx::Object create ::nx::shell {
   }
 }
 
-package provide nx::shell 1.0
+package provide nx::shell 1.1
 
 # Local variables:
 #    mode: tcl
