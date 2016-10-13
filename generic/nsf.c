@@ -31248,7 +31248,6 @@ DeleteProcsAndVars(Tcl_Interp *interp, Tcl_Namespace *nsPtr, int withKeepvars) {
   Tcl_HashTable *varTablePtr, *cmdTablePtr, *childTablePtr;
   Tcl_HashSearch search;
   Tcl_Command cmd;
-  const Var *varPtr;
   register Tcl_HashEntry *entryPtr;
 
   nonnull_assert(interp != NULL);
@@ -31276,6 +31275,7 @@ DeleteProcsAndVars(Tcl_Interp *interp, Tcl_Namespace *nsPtr, int withKeepvars) {
          entryPtr != NULL;
          entryPtr = Tcl_NextHashEntry(&search)) {
       Tcl_Obj *nameObj;
+      Var *varPtr;
       GetVarAndNameFromHash(entryPtr, &varPtr, &nameObj);
       if (!TclIsVarUndefined(varPtr) || TclIsVarNamespaceVar(varPtr)) {
         /* fprintf(stderr, "unsetting var %s\n", ObjStr(nameObj));*/
