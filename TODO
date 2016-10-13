@@ -5885,6 +5885,22 @@ catch {={*}[list foo 1 2 3 4 5 6]} msg; puts msg=$msg
 ========================================================================
 TODO:
 
+- the 'consider' recommendation of nx::Class->unknown message is irritating:
+
+  % Class create Book
+  ::Book
+  % Book price set 10
+  method 'price' unknown for ::Book; consider '::Book create price set 10' instead of '::Book price set 10'
+    ::Book ::nx::Class->unknown
+    invoked from within
+  "Book price set 10"
+  ...
+
+  "::Book create price set 10" is per se a likely invalid call. Just:
+  "::Book create price"? Or, just drop the unknown message at all? As
+  this is only relevant for someone with XOTcl legacy in mind, NX is
+  not about source compatibility with XOTcl anyways.
+ 
 - Investigate NsfMethodContext mem-bookkeeping/ possible leak:
 
   $ tclsh 
