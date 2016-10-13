@@ -4069,7 +4069,8 @@ ObjectSystemsCleanup(Tcl_Interp *interp, int withKeepvars) {
 
   /* now, turn of filters, all destroy callbacks are done */
   RUNTIME_STATE(interp)->doFilters = 0;
-
+  (void)Tcl_RemoveInterpResolvers(interp, "nsf");
+  
 #ifdef DO_CLEANUP
   FreeAllNsfObjectsAndClasses(interp, &instances);
 # ifdef DO_FULL_CLEANUP
