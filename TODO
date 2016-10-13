@@ -5885,6 +5885,29 @@ catch {={*}[list foo 1 2 3 4 5 6]} msg; puts msg=$msg
 ========================================================================
 TODO:
 
+- Investigate NsfMethodContext mem-bookkeeping/ possible leak:
+
+  $ tclsh 
+  % package req nx; nx::Object new
+  ::nsf::__#0
+  % exit
+  ******** NSF MEM Count *********
+  *  count peak
+  *    0      1 INCR_REF_COUNT-converterNameObj
+  *    0     14 Tcl_InitHashTable
+  *    0      1 INCR_REF_COUNTkeyObj
+  *     0      7 INCR_REF_COUNTtcd->onerror
+  *    0      6 INCR_REF_COUNTcmdName
+  *    0      1 INCR_REF_COUNTfullParamObj
+  *    0     12 object.activationCount
+  *    0      1 NsfClass**
+  *    0     56 NsfParamDefs
+  *    0      2 INCR_REF_COUNTnameObj
+  *    1     18 NsfMethodContext
+
+  (without "nx::Object new", "package req" only, the NsfMethodContext
+  counts are balanced)
+
 - Should we add exists to the Variableslot-Interface, to surface ::nsf::var::exists.
 
 +  ::nx::VariableSlot public method value=exists {obj prop} {
