@@ -146,7 +146,7 @@ NsfMethodObjSet(
           (objPtr->typePtr != NULL) ? objPtr->typePtr->name : "none", flags);
 #endif
   /*
-   * Free or reuse the old interal representation and store own
+   * Free or reuse the old internal representation and store own
    * structure as internal representation.
    */
   if (objPtr->typePtr != objectType) {
@@ -166,7 +166,7 @@ NsfMethodObjSet(
   } else {
     mcPtr = (NsfMethodContext *)objPtr->internalRep.twoPtrValue.ptr1;
 #if defined(METHOD_OBJECT_TRACE)
-    fprintf(stderr, "... NsfMethodObjSet %p reuses interal rep, serial (%d/%d) refCount %d\n",
+    fprintf(stderr, "... NsfMethodObjSet %p reuses internal rep, serial (%d/%d) refCount %d\n",
 	    objPtr, mcPtr->methodEpoch, methodEpoch, objPtr->refCount);
 #endif
   }
@@ -264,7 +264,7 @@ FlagDupInternalRep(
  *
  *  NsfFlagObjSet --
  *
- *      Convert the provided Tcl_Obj into the type of an nsf flag.
+ *      Convert the provided Tcl_Obj into the type of an NSF flag.
  *
  *----------------------------------------------------------------------
  */
@@ -285,7 +285,7 @@ NsfFlagObjSet(
     objPtr, ObjStr(objPtr), baseParamPtr, serial, paramPtr, payload, flags);*/
 
   /*
-   * Free or reuse the old interal representation and store own
+   * Free or reuse the old internal representation and store own
    * structure as internal representation.
    */
   if (objPtr->typePtr != &NsfFlagObjType) {
@@ -299,7 +299,7 @@ NsfFlagObjSet(
   } else {
     flagPtr = (NsfFlag *)objPtr->internalRep.twoPtrValue.ptr1;
 
-    /*fprintf(stderr, "NsfFlagObjSet %p reuses interal rep, serial (%d/%d)\n",
+    /*fprintf(stderr, "NsfFlagObjSet %p reuses internal rep, serial (%d/%d)\n",
       objPtr, flagPtr->serial, serial);*/
 
     if (flagPtr->payload != NULL) {DECR_REF_COUNT2("flagPtr->payload", flagPtr->payload);}
@@ -325,7 +325,7 @@ NsfFlagObjSet(
  *
  *  Mixinreg Tcl_Obj type --
  *
- *      The mixin registration type is an Tcl_Obj type carrying a
+ *      The mixin registration type is a Tcl_Obj type carrying a
  *      class and a guard object. The string representation might have
  *      the form "/cls/" or "/cls/ -guard /expr/". When no guard
  *      expression is provided (first form), the guard entry is NULL.
@@ -468,7 +468,7 @@ MixinregSetFromAny(
   if (guardObj != NULL) {INCR_REF_COUNT2("mixinRegPtr->guardObj", guardObj);}
 
   /*
-   * Build list of tcl-objs per mixin class for invalidation.
+   * Build list of Tcl_Objs per mixin class for invalidation.
    */
   { NsfClassOpt *clOpt = NsfRequireClassOpt(mixin);
     if (clOpt->mixinRegObjs == NULL) {
@@ -483,7 +483,7 @@ MixinregSetFromAny(
     mixinRegPtr, mixinRegPtr->mixin, mixinRegPtr->guardObj, ((&mixin->object)->refCount));*/
 
   /*
-   * Free the old interal representation and store own structure as internal
+   * Free the old internal representation and store own structure as internal
    * representation.
    */
   TclFreeIntRep(objPtr);
@@ -499,8 +499,8 @@ MixinregSetFromAny(
  *
  * NsfMixinregGet --
  *
- *      Return the internal representation of a mixinreg obj type to
- *      keep internal rep local to this file.
+ *      Return the internal representation of a Mixinreg Tcl_Obj to
+ *      keep it local to this file.
  *
  * Results:
  *      Tcl result code, arg two and three on success.
@@ -523,13 +523,13 @@ NsfMixinregGet(Tcl_Interp *interp, Tcl_Obj *obj, NsfClass **clPtr, Tcl_Obj **gua
     Mixinreg *mixinRegPtr = obj->internalRep.twoPtrValue.ptr1;
 
     /*
-     * We got a mixin with an included cmd, but both might be already deleted.
+     * We got a mixin with an included cmd, but both might have been deleted already.
      */
     if ((mixinRegPtr->mixin->object.flags & NSF_DELETED) != 0u
         || (Tcl_Command_flags(mixinRegPtr->mixin->object.id) & CMD_IS_DELETED) != 0u) {
 
       /*
-       * The cmd is deleted. retry to refetch it.
+       * The cmd is deleted. Try to refetch it.
        */
       /*fprintf(stderr, "### we have to refetch internal rep of obj %p refCount %d\n",
         obj, obj->refCount);*/
@@ -555,7 +555,7 @@ NsfMixinregGet(Tcl_Interp *interp, Tcl_Obj *obj, NsfClass **clPtr, Tcl_Obj **gua
  *
  * NsfMixinregInvalidate --
  *
- *      MixinClasses keep a list of Tcl_Objs of type mixinReg.
+ *      MixinClasses keep a list of Tcl_Objs of type Mixinreg.
  *      When a class is deleted, this call makes sure, that
  *      non-of these have the chance to point to a stale entry.
  *
@@ -590,12 +590,12 @@ NsfMixinregInvalidate(Tcl_Interp *interp, Tcl_Obj *obj) {
  *
  *  Filterreg Tcl_Obj type --
  *
- *      The filter registration type is an Tcl_Obj type carrying a the
+ *      The filter registration type is a Tcl_Obj type carrying the
  *      name of a filter and a guard object. The string representation
  *      might have the form "/filter/" or "/filter/ -guard
  *      /expr/". When no guard expression is provided (first form),
  *      the guard entry is NULL. The primary purpose of this converter
- *      is to provide symmetry to mixinregs and to provide meaningful
+ *      is to provide symmetry to Mixinregs and to provide meaningful
  *      type names for introspection.
  *
  *----------------------------------------------------------------------
@@ -733,7 +733,7 @@ FilterregSetFromAny(
     filterregPtr, filterregPtr->filterObj, filterregPtr->guardObj);*/
 
   /*
-   * Free the old interal representation and store own structure as internal
+   * Free the old internal representation and store own structure as internal
    * representation.
    */
   TclFreeIntRep(objPtr);
@@ -748,8 +748,8 @@ FilterregSetFromAny(
  *
  * NsfFilterregGet --
  *
- *      Return the internal representation of a filterreg obj type to
- *      keep internal rep local to this file.
+ *      Return the internal representation of a Filterreg Tcl_Obj to
+ *      keep it local to this file.
  *
  * Results:
  *      Tcl result code, arg two and three on success.
