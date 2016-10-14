@@ -271,7 +271,8 @@ namespace eval ::nx {
     # define unknown handler for class
     :method unknown {methodName args} {
       return -code error "method '$methodName' unknown for [::nsf::self];\
-	consider '[::nsf::self] create $methodName $args' instead of '[::nsf::self] $methodName $args'"
+	in order to create an instance of class [::nsf::self], consider using\
+	'[::nsf::self] create $methodName $args'"
     }
     # protected is not yet defined
     ::nsf::method::property [::nsf::self] unknown call-protected true
