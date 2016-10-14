@@ -126,7 +126,7 @@ NsfDStringVPrintf(Tcl_DString *dsPtr, const char *fmt, va_list vargs) {
 
   if (likely(failure == 0)) {
     /*
-     * vsnprintf() copied all content, adjust the DString length.
+     * vsnprintf() copied all content, adjust the Tcl_DString length.
      */
     Tcl_DStringSetLength(dsPtr, offset + result);
 
@@ -134,7 +134,7 @@ NsfDStringVPrintf(Tcl_DString *dsPtr, const char *fmt, va_list vargs) {
     int addedStringLength;
     /*
      * vsnprintf() could not copy all content, content was truncated.
-     * Determine the required length (for MSVC), adjust the DString size, and
+     * Determine the required length (for MSVC), adjust the Tcl_DString size, and
      * copy again.
      */
 
@@ -237,7 +237,7 @@ NsfDStringArgv(Tcl_DString *dsPtr, int objc, Tcl_Obj *CONST objv[]) {
  *
  * NsfPrintError --
  *
- *      Produce a formatted error message with a printf like semantics
+ *      Produce a formatted error message with a printf-like semantics
  *
  * Results:
  *      TCL_ERROR
@@ -269,7 +269,7 @@ NsfPrintError(Tcl_Interp *interp, const char *fmt, ...) {
  *
  * NsfErrInProc --
  *
- *      Produce a general error message when an error occurs in a scripted nsf
+ *      Produce a general error message when an error occurs in a scripted NSF
  *      method.
  *
  * Results:
@@ -310,7 +310,7 @@ NsfErrInProc(Tcl_Interp *interp, Tcl_Obj *objName,
  *
  * NsfObjWrongArgs --
  *
- *      Produce a general error message when a nsf method is called with an
+ *      Produce a general error message when a NSF method is called with an
  *      invalid argument list (wrong number of arguments).
  *
  * Results:
@@ -369,7 +369,7 @@ NsfObjWrongArgs(Tcl_Interp *interp, const char *msg, Tcl_Obj *cmdNameObj,
  *
  * NsfArgumentError --
  *
- *      Produce a wrong number of argument error based on a parameter definition
+ *      Produce a wrong-number-of-arguments error based on a parameter definition.
  *
  * Results:
  *      TCL_ERROR
@@ -399,7 +399,7 @@ NsfArgumentError(Tcl_Interp *interp, const char *errorMsg, Nsf_Param const *para
  *
  * NsfUnexpectedArgumentError --
  *
- *      Produce an error message about an unexpected argument (most likely,
+ *      Produce an error message on an unexpected argument (most likely,
  *      too many arguments)
  *
  * Results:
@@ -436,7 +436,7 @@ NsfUnexpectedArgumentError(Tcl_Interp *interp, const char *argumentString,
  *
  * NsfUnexpectedNonposArgumentError --
  *
- *      Produce an error message about an invalid nonposistional argument.
+ *      Produce an error message on an invalid non-positional argument.
  *
  * Results:
  *      TCL_ERROR
@@ -487,7 +487,7 @@ NsfUnexpectedNonposArgumentError(Tcl_Interp *interp,
  *
  * NsfDispatchClientDataError --
  *
- *      Produce a error message when method was not dispatched on an object
+ *      Produce an error message when a method was not dispatched on an object.
  *
  * Results:
  *      TCL_ERROR
@@ -518,8 +518,8 @@ NsfDispatchClientDataError(Tcl_Interp *interp, ClientData clientData,
  *
  * NsfNoCurrentObjectError --
  *
- *      Produce a error message when method was called outside the context of
- *      a method
+ *      Produce an error message when a command was called outside the context
+ *      of an object or a method.
  *
  * Results:
  *      TCL_ERROR
@@ -543,7 +543,7 @@ NsfNoCurrentObjectError(Tcl_Interp *interp, const char *what) {
  *
  * NsfObjErrType --
  *
- *      Produce a general error message when a nsf method is called with an
+ *      Produce a general error message when a NSF method is called with an
  *      invalid value for some argument.
  *
  * Results:
