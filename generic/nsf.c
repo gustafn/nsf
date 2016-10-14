@@ -4067,7 +4067,9 @@ ObjectSystemsCleanup(Tcl_Interp *interp, int withKeepvars) {
     }
   }
 
-  /* now, turn of filters, all destroy callbacks are done */
+  /*
+   * Now turn off filters, all destroy callbacks are done.
+   */
   RUNTIME_STATE(interp)->doFilters = 0;
   (void)Tcl_RemoveInterpResolvers(interp, "nsf");
   
@@ -4078,14 +4080,18 @@ ObjectSystemsCleanup(Tcl_Interp *interp, int withKeepvars) {
 # endif
 #endif
 
-  /* now free all objects systems with their root classes */
+  /*
+   * Free all objects systems with their root classes.
+   */
   for (osPtr = RUNTIME_STATE(interp)->objectSystems; osPtr != NULL; osPtr = nPtr) {
     nPtr = osPtr->nextPtr;
     ObjectSystemFree(interp, osPtr);
   }
 
 #ifdef DO_CLEANUP
-  /* finally, free all nsfprocs */
+  /*
+   * Finally, free all nsfprocs.
+   */
   DeleteNsfProcs(interp, NULL);
 #endif
 
@@ -26360,13 +26366,17 @@ NsfObjectPropertyCmd(Tcl_Interp *interp, NsfObject *object, ObjectpropertyIdx_t 
       if (objectproperty == ObjectpropertySlotcontainerIdx) {
         assert(object->nsPtr != NULL);
         if (flagValue != 0) {
-          /* turn on SlotContainerCmdResolver */
+          /*
+           * Turn on SlotContainerCmdResolver.
+           */
           Tcl_SetNamespaceResolvers(object->nsPtr,
                                     (Tcl_ResolveCmdProc *)SlotContainerCmdResolver,
                                     NsColonVarResolver,
                                     (Tcl_ResolveCompiledVarProc *)NULL);
         } else {
-          /* turn off SlotContainerCmdResolver */
+          /*
+           * Turn off SlotContainerCmdResolver.
+           */
           Tcl_SetNamespaceResolvers(object->nsPtr,
                                     (Tcl_ResolveCmdProc *)NULL,
                                     NsColonVarResolver,
