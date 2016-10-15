@@ -3,7 +3,7 @@
  *
  *      Error reporting functions for the Next Scripting Framework.
  *
- * Copyright (C) 1999-2015 Gustaf Neumann (a, b)
+ * Copyright (C) 1999-2016 Gustaf Neumann (a, b)
  * Copyright (C) 1999-2007 Uwe Zdun (a, b)
  * Copyright (C) 2011-2016 Stefan Sobernig (b)
  *
@@ -57,11 +57,12 @@ Tcl_Obj *NsfParamDefsSyntax(Tcl_Interp *interp, Nsf_Param const *paramsPtr,
  *      Appends a formatted value to a Tcl_DString. This function
  *      continues until having allocated sufficient memory.
  *
- *      Note: The current implementation assumes C99 compliant implementations
- *      of vs*printf() for all runtimes other than MSVC. For MSVC, the pre-C99
- *      vs*printf() implementations are explicitly set by Tcl internals (see
- *      tclInt.h). For MinGW/MinGW-w64, __USE_MINGW_ANSI_STDIO must be set
- *      (see nsfInt.h).
+ *      Note: The current implementation assumes C99 compliant
+ *      implementations of vs*printf() for all runtimes other than
+ *      MSVC. For MSVC, the pre-C99 vs*printf() implementations are
+ *      explicitly set by Tcl internals (see tclInt.h). For
+ *      MinGW/MinGW-w64, __USE_MINGW_ANSI_STDIO must be set (see
+ *      nsfInt.h).
  *
  * Results:
  *      None.
@@ -77,24 +78,24 @@ NsfDStringVPrintf(Tcl_DString *dsPtr, const char *fmt, va_list vargs) {
   int      result, failure, avail, offset;
   va_list  vargsCopy;
 
-  /* 
-   * Tcl_DStringLength returns the current length *without* the terminating
-   * character (NTC).
+  /*
+   * Tcl_DStringLength returns the current length *without* the
+   * terminating character (NTC).
    */
   offset = Tcl_DStringLength(dsPtr);
 
 #if defined(_MSC_VER)
-  /* 
-   * Pre-C99: currently free storage, excluding NTC 
+  /*
+   * Pre-C99: currently free storage, excluding NTC
    */
   avail = dsPtr->spaceAvl - offset - 1;
 #else
-  /* 
-   * C99: currently free storage, including NTC 
+  /*
+   * C99: currently free storage, including NTC
    */
   avail = dsPtr->spaceAvl - offset;
 #endif
-  
+
   /*
    * 1) Copy va_list so that the caller's copy is untouched.
    * 2) Run vsnprintf() eagerly.
@@ -104,21 +105,22 @@ NsfDStringVPrintf(Tcl_DString *dsPtr, const char *fmt, va_list vargs) {
   va_end(vargsCopy);
 
 #if defined(_MSC_VER)
-  /* 
-   *  vs*printf() in pre-C99 runtimes (MSVC up to VS13, VS15 and newer in
-   *  backward-compat mode) return -1 upon overflowing the buffer.
+  /*
+   *  vs*printf() in pre-C99 runtimes (MSVC up to VS13, VS15 and newer
+   *  in backward-compat mode) return -1 upon overflowing the buffer.
    *
-   *  Note: Tcl via tclInt.h precludes the use of pre-C99 mode even in VS15
-   *  and newer (vsnprintf points to backward-compat, pre-C99 _vsnprintf).
+   *  Note: Tcl via tclInt.h precludes the use of pre-C99 mode even in
+   *  VS15 and newer (vsnprintf points to backwards compatible, pre-C99
+   *  _vsnprintf).
    */
   failure = (result == -1);
 #else
-  /* 
-   *  vs*printf() in C99 compliant runtimes (GCC, CLANG, MSVC in VS15 and
-   *  newer, MinGW/MinGW-w64 with __USE_MINGW_ANSI_STDIO) returns the number
-   *  of chars to be written if the buffer would be sufficiently large
-   *  (excluding NTC, the terminating null character). A return value of -1
-   *  signals an encoding error.
+  /*
+   *  vs*printf() in C99 compliant runtimes (GCC, CLANG, MSVC in VS15
+   *  and newer, MinGW/MinGW-w64 with __USE_MINGW_ANSI_STDIO) returns
+   *  the number of chars to be written if the buffer would be
+   *  sufficiently large (excluding NTC, the terminating null
+   *  character). A return value of -1 signals an encoding error.
    */
   assert(result > -1); /* no encoding error */
   failure = (result >= (int)avail);
@@ -134,8 +136,8 @@ NsfDStringVPrintf(Tcl_DString *dsPtr, const char *fmt, va_list vargs) {
     int addedStringLength;
     /*
      * vsnprintf() could not copy all content, content was truncated.
-     * Determine the required length (for MSVC), adjust the Tcl_DString size, and
-     * copy again.
+     * Determine the required length (for MSVC), adjust the Tcl_DString
+     * size, and copy again.
      */
 
 #if defined(_MSC_VER)
@@ -149,15 +151,21 @@ NsfDStringVPrintf(Tcl_DString *dsPtr, const char *fmt, va_list vargs) {
     Tcl_DStringSetLength(dsPtr, offset + addedStringLength);
 
 #if defined(_MSC_VER)
-    avail = dsPtr->spaceAvl - offset - 1; /* Pre-C99: currently free storage, excluding NTC */
+    /* 
+     * Pre-C99: currently free storage, excluding NTC 
+     */
+    avail = dsPtr->spaceAvl - offset - 1; 
 #else
-    avail = dsPtr->spaceAvl - offset; /* C99: currently free storage, including NTC */
+    /* 
+     * C99: currently free storage, including NTC 
+     */
+    avail = dsPtr->spaceAvl - offset;
 #endif
-    
+
     va_copy(vargsCopy, vargs);
     result = vsnprintf(dsPtr->string + offset, (size_t)avail, fmt, vargsCopy);
     va_end(vargsCopy);
-    
+
 #if defined(_MSC_VER)
     failure = (result == -1);
 #else
@@ -237,7 +245,7 @@ NsfDStringArgv(Tcl_DString *dsPtr, int objc, Tcl_Obj *CONST objv[]) {
  *
  * NsfPrintError --
  *
- *      Produce a formatted error message with a printf-like semantics
+ *      Produce a formatted error message with a printf-like semantics.
  *
  * Results:
  *      TCL_ERROR
@@ -269,8 +277,8 @@ NsfPrintError(Tcl_Interp *interp, const char *fmt, ...) {
  *
  * NsfErrInProc --
  *
- *      Produce a general error message when an error occurs in a scripted NSF
- *      method.
+ *      Produce a general error message when an error occurs in a
+ *      scripted NSF method.
  *
  * Results:
  *      TCL_ERROR
@@ -284,7 +292,7 @@ int
 NsfErrInProc(Tcl_Interp *interp, Tcl_Obj *objName,
                Tcl_Obj *clName, const char *procName) {
   Tcl_DString errMsg;
-  char *cName, *space;
+  const char *cName, *space;
 
   Tcl_DStringInit(&errMsg);
   Tcl_DStringAppend(&errMsg, "\n    ", -1);
@@ -293,9 +301,9 @@ NsfErrInProc(Tcl_Interp *interp, Tcl_Obj *objName,
     space = " ";
   } else {
     cName = "";
-    space ="";
+    space = "";
   }
-  Tcl_DStringAppend(&errMsg, ObjStr(objName),-1);
+  Tcl_DStringAppend(&errMsg, ObjStr(objName), -1);
   Tcl_DStringAppend(&errMsg, space, -1);
   Tcl_DStringAppend(&errMsg, cName, -1);
   Tcl_DStringAppend(&errMsg, "->", 2);
@@ -310,8 +318,8 @@ NsfErrInProc(Tcl_Interp *interp, Tcl_Obj *objName,
  *
  * NsfObjWrongArgs --
  *
- *      Produce a general error message when a NSF method is called with an
- *      invalid argument list (wrong number of arguments).
+ *      Produce a general error message when a NSF method is called with
+ *      an invalid argument list (wrong number of arguments).
  *
  * Results:
  *      TCL_ERROR
@@ -369,7 +377,8 @@ NsfObjWrongArgs(Tcl_Interp *interp, const char *msg, Tcl_Obj *cmdNameObj,
  *
  * NsfArgumentError --
  *
- *      Produce a wrong-number-of-arguments error based on a parameter definition.
+ *      Produce a wrong-number-of-arguments error based on a parameter
+ *      definition.
  *
  * Results:
  *      TCL_ERROR
@@ -422,9 +431,7 @@ NsfUnexpectedArgumentError(Tcl_Interp *interp, const char *argumentString,
   nonnull_assert(methodPathObj != NULL);
 
   DSTRING_INIT(dsPtr);
-  Tcl_DStringAppend(dsPtr, "invalid argument '", -1);
-  Tcl_DStringAppend(dsPtr, argumentString, -1);
-  Tcl_DStringAppend(dsPtr, "', maybe too many arguments;", -1);
+  Nsf_DStringPrintf(dsPtr, "invalid argument '%s', maybe too many arguments;", argumentString);
   NsfArgumentError(interp, Tcl_DStringValue(dsPtr), paramPtr, (object != NULL) ? object->cmdName : NULL,
 		   methodPathObj);
   DSTRING_FREE(dsPtr);
@@ -454,7 +461,7 @@ NsfUnexpectedNonposArgumentError(Tcl_Interp *interp,
 				 Nsf_Param const *paramPtr,
 				 Tcl_Obj *methodPathObj) {
   Tcl_DString ds, *dsPtr = &ds;
-  Nsf_Param const *pPtr;
+  const Nsf_Param *pPtr;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(argumentString != NULL);
@@ -463,9 +470,7 @@ NsfUnexpectedNonposArgumentError(Tcl_Interp *interp,
   nonnull_assert(methodPathObj != NULL);
 
   DSTRING_INIT(dsPtr);
-  Tcl_DStringAppend(dsPtr, "invalid non-positional argument '", -1);
-  Tcl_DStringAppend(dsPtr, argumentString, -1);
-  Tcl_DStringAppend(dsPtr, "', valid are : ", -1);
+  Nsf_DStringPrintf(dsPtr, "invalid non-positional argument '%s', valud are: ", argumentString);
   for (pPtr = currentParamPtr; (pPtr->name != NULL) && (*pPtr->name == '-'); pPtr ++) {
     if (pPtr->flags & NSF_ARG_NOCONFIG) {
       continue;
@@ -487,7 +492,8 @@ NsfUnexpectedNonposArgumentError(Tcl_Interp *interp,
  *
  * NsfDispatchClientDataError --
  *
- *      Produce an error message when a method was not dispatched on an object.
+ *      Produce an error message when a method was not dispatched on an
+ *      object.
  *
  * Results:
  *      TCL_ERROR
@@ -518,8 +524,10 @@ NsfDispatchClientDataError(Tcl_Interp *interp, ClientData clientData,
  *
  * NsfNoCurrentObjectError --
  *
- *      Produce an error message when a command was called outside the context
- *      of an object or a method.
+ *      Produce an error message when a method/command was called
+ *      outside the context of an object or a method. The passed in
+ *      methodName is NULL when e.g. "self" is called outside of a NSF
+ *      context.
  *
  * Results:
  *      TCL_ERROR
@@ -530,12 +538,12 @@ NsfDispatchClientDataError(Tcl_Interp *interp, ClientData clientData,
  *----------------------------------------------------------------------
  */
 int
-NsfNoCurrentObjectError(Tcl_Interp *interp, const char *what) {
+NsfNoCurrentObjectError(Tcl_Interp *interp, const char *methodName) {
 
   nonnull_assert(interp != NULL);
 
   return NsfPrintError(interp, "no current object; %s called outside the context of a Next Scripting method",
-                       (what != NULL) ? what : "command");
+                       (methodName != NULL) ? methodName : "command");
 }
 
 /*
@@ -543,8 +551,8 @@ NsfNoCurrentObjectError(Tcl_Interp *interp, const char *what) {
  *
  * NsfObjErrType --
  *
- *      Produce a general error message when a NSF method is called with an
- *      invalid value for some argument.
+ *      Produce a general error message when a NSF method is called with
+ *      an invalid value for some argument.
  *
  * Results:
  *      TCL_ERROR
@@ -561,10 +569,10 @@ NsfObjErrType(Tcl_Interp *interp,
 	      const char *type,
 	      Nsf_Param const *paramPtr)
 {
-  int   named       = (paramPtr && (paramPtr->flags & NSF_ARG_UNNAMED) == 0);
-  int   returnValue = !named && paramPtr && (paramPtr->flags & NSF_ARG_IS_RETURNVALUE);
-  int   errMsgLen;
-  char *prevErrMsg  = Tcl_GetStringFromObj(Tcl_GetObjResult(interp), &errMsgLen);
+  int         named       = (paramPtr && (paramPtr->flags & NSF_ARG_UNNAMED) == 0);
+  int         returnValue = !named && paramPtr && (paramPtr->flags & NSF_ARG_IS_RETURNVALUE);
+  int         errMsgLen;
+  const char *prevErrMsg  = Tcl_GetStringFromObj(Tcl_GetObjResult(interp), &errMsgLen);
   Tcl_DString ds;
 
   Tcl_DStringInit(&ds);
@@ -595,7 +603,7 @@ NsfObjErrType(Tcl_Interp *interp,
  * Local Variables:
  * mode: c
  * c-basic-offset: 2
- * fill-column: 78
+ * fill-column: 72
  * indent-tabs-mode: nil
  * End:
  */

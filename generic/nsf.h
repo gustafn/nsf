@@ -401,7 +401,7 @@ NsfDispatchClientDataError(Tcl_Interp *interp, ClientData clientData,
   NSF_nonnull(1) NSF_nonnull(3) NSF_nonnull(4);
 
 EXTERN int
-NsfNoCurrentObjectError(Tcl_Interp *interp, CONST char *what)
+NsfNoCurrentObjectError(Tcl_Interp *interp, CONST char *methodName)
   NSF_nonnull(1);
 
 EXTERN int
