@@ -470,7 +470,7 @@ NsfUnexpectedNonposArgumentError(Tcl_Interp *interp,
   nonnull_assert(methodPathObj != NULL);
 
   DSTRING_INIT(dsPtr);
-  Nsf_DStringPrintf(dsPtr, "invalid non-positional argument '%s', valud are: ", argumentString);
+  Nsf_DStringPrintf(dsPtr, "invalid non-positional argument '%s', valid are: ", argumentString);
   for (pPtr = currentParamPtr; (pPtr->name != NULL) && (*pPtr->name == '-'); pPtr ++) {
     if (pPtr->flags & NSF_ARG_NOCONFIG) {
       continue;

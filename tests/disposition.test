@@ -200,7 +200,7 @@ puts stderr ===3
   ? {[C new -single-np [list -x]] eval {set :single-np}} \
       "value for parameter '-x' expected"
   ? {[C new -single-np [list -x X]] eval {set :single-np}} \
-      "invalid non-positional argument '-x X', valid are : -x;
+      "invalid non-positional argument '-x X', valid are: -x;
  should be \"::__%&singleton single-np -x /value/\""
 
   #

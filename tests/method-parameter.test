@@ -17,15 +17,15 @@ nx::test case method-params-0 {
   ? {p1 -x} {value for parameter '-x' expected}
   ? {p1 -x 1} 1
   ? {p1 -x 1 2} {invalid argument '2', maybe too many arguments; should be "p1 ?-x /value/?"}
-  ? {p1 -x 1 -y} {invalid non-positional argument '-y', valid are : -x;
+  ? {p1 -x 1 -y} {invalid non-positional argument '-y', valid are: -x;
  should be "p1 ?-x /value/?"}
   ? {p1 a} {invalid argument 'a', maybe too many arguments; should be "p1 ?-x /value/?"}
   ? {p1 a -x} {invalid argument 'a', maybe too many arguments; should be "p1 ?-x /value/?"}
 
   ? {p1 --} 0
-  ? {p1 -y} {invalid non-positional argument '-y', valid are : -x;
+  ? {p1 -y} {invalid non-positional argument '-y', valid are: -x;
  should be "p1 ?-x /value/?"}
-  ? {p1 -y --} {invalid non-positional argument '-y', valid are : -x;
+  ? {p1 -y --} {invalid non-positional argument '-y', valid are: -x;
  should be "p1 ?-x /value/?"}
 
   #
@@ -55,14 +55,14 @@ nx::test case nodashalnum {
   ? {p2a -x 1 -y} {1 -y}
   ? {p2a -x 1 -100} {1 -100}
 
-  ? {p2b -x 1 -y} {invalid non-positional argument '-y', valid are : -x;
+  ? {p2b -x 1 -y} {invalid non-positional argument '-y', valid are: -x;
  should be "p2b ?-x /value/? ?/arg .../?"}
   ? {p2b -x 1 -100} {1 -100}
 
   nsf::proc p3a {a -x -y b:nodashalnum -z} {return [list $a [info exists x] [info exists y] $b]}
 
   ? {p3a 100 -x 1 -y 1 200} {100 1 1 200}
-  ? {p3a 100 -xx 1 -y 1 200} {invalid non-positional argument '-xx', valid are : -x, -y;
+  ? {p3a 100 -xx 1 -y 1 200} {invalid non-positional argument '-xx', valid are: -x, -y;
  should be "p3a /a/ ?-x /value/? ?-y /value/? /b/ ?-z /value/?"}
 }
 
@@ -76,7 +76,7 @@ nx::test case unknown-handler {
     :public method p1 {-x} {return [list [info exists x]]}
     :create c1
   }
-  ? {c1 p1 -x 1 -y} {invalid non-positional argument '-y', valid are : -x;
+  ? {c1 p1 -x 1 -y} {invalid non-positional argument '-y', valid are: -x;
  should be "::c1 p1 ?-x /value/?"}
 
   proc ::nsf::argument::unknown {method arg args} {
@@ -84,7 +84,7 @@ nx::test case unknown-handler {
     return ""
   }
 
-  ? {c1 p1 -x 1 -y} {invalid non-positional argument '-y', valid are : -x;
+  ? {c1 p1 -x 1 -y} {invalid non-positional argument '-y', valid are: -x;
  should be "::c1 p1 ?-x /value/?"}
 
   if {0} {
@@ -95,7 +95,7 @@ nx::test case unknown-handler {
       return ""
     }
 
-    ? {c1 p1 -x 1 -y} {invalid non-positional argument '-y', valid are : -x;
+    ? {c1 p1 -x 1 -y} {invalid non-positional argument '-y', valid are: -x;
  should be "::c1 p1 ?-x /value/?"}
   }
 }
@@ -147,11 +147,11 @@ nx::test case info-subclass-error-messages {
   # variable), then the following command would be perfectly fine.
   #
   ? {C info subclasses -a} \
-      {invalid non-positional argument '-a', valid are : -closure, -dependent;
+      {invalid non-positional argument '-a', valid are: -closure, -dependent;
  should be "::C info subclasses ?-closure? ?-dependent? ?/pattern/?"}
 
   ? {C info subclasses -a --} \
-      {invalid non-positional argument '-a', valid are : -closure, -dependent;
+      {invalid non-positional argument '-a', valid are: -closure, -dependent;
  should be "::C info subclasses ?-closure? ?-dependent? ?/pattern/?"}
 
   ? {C info subclasses -- -a} ""
@@ -178,18 +178,18 @@ nx::test case info-subclass-error-messages {
   # first flag
 
   ? {C info subclasses -a b} \
-      {invalid non-positional argument '-a', valid are : -closure, -dependent;
+      {invalid non-positional argument '-a', valid are: -closure, -dependent;
  should be "::C info subclasses ?-closure? ?-dependent? ?/pattern/?"}
 
   ? {C info subclasses -- -a b} \
       {invalid argument 'b', maybe too many arguments; should be "::C info subclasses ?-closure? ?-dependent? ?/pattern/?"}
 
   ? {C info subclasses -a -- b} \
-      {invalid non-positional argument '-a', valid are : -closure, -dependent;
+      {invalid non-positional argument '-a', valid are: -closure, -dependent;
  should be "::C info subclasses ?-closure? ?-dependent? ?/pattern/?"}
 
   ? {C info subclasses -a b --} \
-      {invalid non-positional argument '-a', valid are : -closure, -dependent;
+      {invalid non-positional argument '-a', valid are: -closure, -dependent;
  should be "::C info subclasses ?-closure? ?-dependent? ?/pattern/?"}
 
   # second flag
@@ -209,18 +209,18 @@ nx::test case info-subclass-error-messages {
   # both flag
 
   ? {C info subclasses -a -b} \
-      {invalid non-positional argument '-a', valid are : -closure, -dependent;
+      {invalid non-positional argument '-a', valid are: -closure, -dependent;
  should be "::C info subclasses ?-closure? ?-dependent? ?/pattern/?"}
 
   ? {C info subclasses -- -a -b} \
       {invalid argument '-b', maybe too many arguments; should be "::C info subclasses ?-closure? ?-dependent? ?/pattern/?"}
 
   ? {C info subclasses -a -- -b} \
-      {invalid non-positional argument '-a', valid are : -closure, -dependent;
+      {invalid non-positional argument '-a', valid are: -closure, -dependent;
  should be "::C info subclasses ?-closure? ?-dependent? ?/pattern/?"}
 
   ? {C info subclasses -a -b --} \
-      {invalid non-positional argument '-a', valid are : -closure, -dependent;
+      {invalid non-positional argument '-a', valid are: -closure, -dependent;
  should be "::C info subclasses ?-closure? ?-dependent? ?/pattern/?"}
 
 }
@@ -340,11 +340,11 @@ nx::test case info-with-dash-class-names {
   # one argument
   #
   ? {C info subclasses -a} \
-      {invalid non-positional argument '-a', valid are : -closure, -dependent;
+      {invalid non-positional argument '-a', valid are: -closure, -dependent;
  should be "::C info subclasses ?-closure? ?-dependent? ?/pattern/?"}
 
   ? {C info subclasses -a --} \
-      {invalid non-positional argument '-a', valid are : -closure, -dependent;
+      {invalid non-positional argument '-a', valid are: -closure, -dependent;
  should be "::C info subclasses ?-closure? ?-dependent? ?/pattern/?"}
 
   ? {C info subclasses -- -a} "::-a"
@@ -372,7 +372,7 @@ nx::test case abbrevs {
   nsf::proc y {-aaa1 -aa1 -a1 -a} { return [info exists aaa1]-[info exists aa1]-[info exists a1]-[info exists a] }
 
   ? {y -a 1} "0-0-0-1"
-  ? {y -aa 1} {invalid non-positional argument '-aa', valid are : -aaa1, -aa1, -a1, -a;
+  ? {y -aa 1} {invalid non-positional argument '-aa', valid are: -aaa1, -aa1, -a1, -a;
  should be "y ?-aaa1 /value/? ?-aa1 /value/? ?-a1 /value/? ?-a /value/?"}
   ? {y -aaa 1} "1-0-0-0"
   ? {y -aa1 1} "0-1-0-0"

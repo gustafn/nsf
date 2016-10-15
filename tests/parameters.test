@@ -2362,7 +2362,7 @@ nx::test case class-level-variable {
 
   ? {C create c2 -a 10} ::c2
   ? {C create c2 -v 10} \
-      {invalid non-positional argument '-v', valid are : -a, -object-mixins, -object-filters, -class;
+      {invalid non-positional argument '-v', valid are: -a, -object-mixins, -object-filters, -class;
  should be "::c2 configure ?-a /value/? ?-object-mixins /mixinreg .../? ?-object-filters /filterreg .../? ?-class /class/? ?/__initblock/?"}
 
   #
