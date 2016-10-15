@@ -272,7 +272,7 @@ namespace eval ::nx {
     :method unknown {methodName args} {
       return -code error "method '$methodName' unknown for [::nsf::self];\
 	in order to create an instance of class [::nsf::self], consider using\
-	'[::nsf::self] create $methodName $args'"
+	'[::nsf::self] create $methodName ?/option/ /value/ ...?'"
     }
     # protected is not yet defined
     ::nsf::method::property [::nsf::self] unknown call-protected true
