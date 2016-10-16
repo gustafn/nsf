@@ -101,7 +101,7 @@ CscListRemove(const Tcl_Interp *interp, const NsfCallStackContent *cscPtr, NsfCl
  *----------------------------------------------------------------------
  * NsfShowStack --
  *
- *    Print the contents of the call-stack to stderr. This function is
+ *    Print the contents of the callstack to stderr. This function is
  *    for debugging purposes only.
  *
  * Results:
@@ -169,7 +169,7 @@ void NsfShowStack(Tcl_Interp *interp) {
  *----------------------------------------------------------------------
  * Nsf_PushFrameObj, Nsf_PopFrameObj --
  *
- *    Push or pop a frame with a call-stack content as an OBJECT
+ *    Push or pop a frame with a callstack content as an OBJECT
  *    frame.
  *
  * Results:
@@ -224,7 +224,7 @@ static void Nsf_PopFrameObj(Tcl_Interp *interp, CallFrame *framePtr) {
  *----------------------------------------------------------------------
  * Nsf_PushFrameCsc, Nsf_PopFrameCsc --
  *
- *    Push or pop a frame with a call-stack content as a CMETHOD
+ *    Push or pop a frame with a callstack content as a CMETHOD
  *    frame.
  *
  * Results:
@@ -592,7 +592,7 @@ NsfCallStackFindLastInvocation(const Tcl_Interp *interp, int offset, Tcl_CallFra
  *----------------------------------------------------------------------
  * NsfCallStackFindActiveFrame --
  *
- *    Search for the first active frame on the call-stack.
+ *    Search for the first active frame on the callstack.
  *
  * Results:
  *    Call stack content or NULL.
@@ -714,10 +714,10 @@ CallStackRestoreSavedFrames(Tcl_Interp *interp, callFrameContext *ctx) {
  *----------------------------------------------------------------------
  * CallStackFindActiveFilter --
  *
- *    Return the call-stack content of the currently active filter
+ *    Return the callstack content of the currently active filter
  *
  * Results:
- *    Call-stack content or NULL, if no filter is active
+ *    Callstack content or NULL, if no filter is active
  *
  * Side effects:
  *    None.
@@ -749,11 +749,11 @@ CallStackFindActiveFilter(const Tcl_Interp *interp) {
  *----------------------------------------------------------------------
  * CallStackFindEnsembleCsc --
  *
- *    Return the call-stack content and the optionally the stack frame
+ *    Return the callstack content and the optionally the stack frame
  *    of the last ensemble invocation.
  *
  * Results:
- *    call-stack content
+ *    Callstack content
  *
  * Side effects:
  *    None.
@@ -785,7 +785,7 @@ CallStackFindEnsembleCsc(const Tcl_CallFrame *framePtr, Tcl_CallFrame **framePtr
 	    (cscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE) != 0,
 	    (cscPtr->frameType & NSF_CSC_TYPE_INACTIVE) != 0);*/
     /*
-     * The "root" frame in a call-stack branch resulting from an ensemble
+     * The "root" frame in a callstack branch resulting from an ensemble
      * dispatch is not typed as an NSF_CSC_TYPE_ENSEMBLE frame, the call type
      * /is/ NSF_CSC_CALL_IS_ENSEMBLE.
      */
@@ -868,7 +868,7 @@ CallStackMethodPath(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
     elements++;
 
     /*
-     * The "root" frame in a call-stack branch resulting from an ensemble
+     * The "root" frame in a callstack branch resulting from an ensemble
      * dispatch is not typed as an NSF_CSC_TYPE_ENSEMBLE frame, the call type
      * /is/ NSF_CSC_CALL_IS_ENSEMBLE (as checked above).
      */
@@ -945,7 +945,7 @@ FilterActiveOnObj(const Tcl_Interp *interp, const NsfObject *object, Tcl_Command
  * CallStackReplaceVarTableReferences --
  *
  *    Replace all references to the old var table (arg 1) by
- *    references to a new var table (arg 2) on the call-stack.
+ *    references to a new var table (arg 2) on the callstack.
  *    This function is e.g. used by require namespace.
  *
  * Results:
@@ -988,9 +988,9 @@ CallStackReplaceVarTableReferences(const Tcl_Interp *interp, TclVarHashTable *ol
  *----------------------------------------------------------------------
  * CallStackPopAll --
  *
- *    Unwind the stack and pop all call-stack entries that are still
+ *    Unwind the stack and pop all callstack entries that are still
  *    alive (e.g.  if "exit" is called and we were jumping out of the
- *    call-frame).
+ *    callframe).
  *
  * Results:
  *    None.
@@ -1062,7 +1062,7 @@ static void CallStackPopAll(Tcl_Interp *interp) {
  *----------------------------------------------------------------------
  * CscAlloc --
  *
- *    Allocate the csc structure either from the stack or via
+ *    Allocate the CSC structure either from the stack or via
  *    StackAlloc (the latter is recorded in the callType). The Alloc
  *    operation requires a CscFinish operation later.
  *
@@ -1305,7 +1305,7 @@ CscFinish_(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
  *    Currently not used.
  *
  * Results:
- *    Call-frame ptr
+ *    Callframe ptr
  *
  * Side effects:
  *    None.
