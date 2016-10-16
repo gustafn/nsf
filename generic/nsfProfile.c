@@ -1,7 +1,7 @@
 /*
  * nsfProfile.c --
  *
- *      Provides profiling information about Next Scripting Framework internals.
+ *      Provides profiling on Next Scripting Framework internals.
  *      For turning on profiling, NSF_PROFILE must be configured.
  *
  * Copyright (C) 2010-2016 Gustaf Neumann
@@ -56,7 +56,7 @@ typedef struct NsfProfileData {
  *    None
  *
  * Side effects:
- *    Initializes and fills the passed DString,
+ *    Initializes and fills the passed Tcl_DString,
  *
  *----------------------------------------------------------------------
  */
@@ -407,7 +407,7 @@ GetPair(Tcl_Interp *interp, Tcl_Obj *objPtr, int verbose, Tcl_Obj **nameObjPtr, 
  *----------------------------------------------------------------------
  * NsfProfileTrace --
  *
- *    Function callable via tcl to control trace behavior.
+ *    Function to control trace behavior callable via Tcl.
  *
  * Results:
  *    OK
@@ -435,7 +435,7 @@ NsfProfileTrace(Tcl_Interp *interp, int withEnable, int withVerbose, int withDon
   rst->doTrace = withEnable;
 
   /*
-   * Turn automically profiling on&off, when trace is turned on/off
+   * Turn automatically profiling on&off, when trace is turned on/off
    */
   if (withEnable == 1) {
     if (rst->doProfile == 1) {
@@ -446,7 +446,7 @@ NsfProfileTrace(Tcl_Interp *interp, int withEnable, int withVerbose, int withDon
        */
       if (builtinObjs != NULL) {
         /*
-         * A list of cammands was provided
+         * A list of commands was provided
          */
         if (Tcl_ListObjGetElements(interp, builtinObjs, &oc, &ov) != TCL_OK) {
           NsfLog(interp, NSF_LOG_WARN, "nsfprofile: argument '%s' is not a list of commands", ObjStr(builtinObjs));
@@ -519,7 +519,7 @@ NsfProfileTrace(Tcl_Interp *interp, int withEnable, int withVerbose, int withDon
  *----------------------------------------------------------------------
  * NsfProfileTraceCallAppend, NsfProfileTraceExitAppend --
  *
- *    Low level function to add entries to the trace dstring when functions ar
+ *    Low level function to add entries to the trace Tcl_DString when functions ar
  *    called or exited.
  *
  * Results:
@@ -575,9 +575,9 @@ NsfProfileTraceExitAppend(Tcl_Interp *interp, const char *label, double duration
  *----------------------------------------------------------------------
  * NsfProfileTraceCall, NsfProfileTraceExit --
  *
- *    Add entries to the trace dstring when methods/procs are called or
+ *    Add entries to the trace Tcl_DString when methods/procs are called or
  *    exited.  This function builds the labels for invocation strings in the
- *    same way as for profiling and calls the lower level function, which does
+ *    same way as for profiling and calls the lower-level function, which does
  *    the recording.
  *
  * Results:
@@ -707,7 +707,7 @@ NsfProfileRecordMethodData(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
   }
 
   /*
-   * Append method to object key as needed by statisitics (but not by trace)
+   * Append method to object key as needed by statistics (but not by trace)
    */
   Tcl_DStringAppendElement(&objectKey, cscPtr->methodName);
 
@@ -856,7 +856,7 @@ NsfProfileClearData(Tcl_Interp *interp) {
  *    Tcl List
  *
  * Side effects:
- *    Nne.
+ *    None.
  *
  *----------------------------------------------------------------------
  */
