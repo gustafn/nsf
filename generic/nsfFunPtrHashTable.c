@@ -1,8 +1,8 @@
 /*
  * nsfFunPtrHashTable.c --
  *
- *      Provide a custom Tcl hash table type, using function pointers
- *      as hash keys, and a slim wrapper around Tcl's HashTable
+ *      Provide a custom Tcl hashtable type, using function pointers
+ *      as hash keys, and a slim wrapper around Tcl's hashtable
  *      API to manage them.
  *
  * Copyright (C) 2016 Gustaf Neumann
@@ -41,7 +41,7 @@
 #include "nsfInt.h"
 
 /*
- * Defintions for HashType funPtr.
+ * Definitions for HashType funPtr.
  *
  * Background: since it is not guaranteed that sizeof(function
  * pointer) == sizeof(data pointer) (or sizeof(function pointer) <=
@@ -96,7 +96,7 @@ FunPtrKey(
 
   /*
    * This is a very simple approach for obtaining a hash value. Maybe one
-   * needs a more sophisticated approach with wierd endians machines.
+   * needs a more sophisticated approach with weird endians machines.
    */
   return PTR2UINT(value);
 
