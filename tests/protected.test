@@ -842,12 +842,12 @@ nx::test case protected-priv-class-object-property {
   }
 
   ? {C a get} a1
-  ? {C b get} {method 'b' unknown for ::C; in order to create an instance of class ::C, consider using '::C create b ?/option/ /value/ ...?'}
-  ? {C c get} {method 'c' unknown for ::C; in order to create an instance of class ::C, consider using '::C create c ?/option/ /value/ ...?'}
+  ? {C b get} {method 'b' unknown for ::C; in order to create an instance of class ::C, consider using '::C create b ?...?'}
+  ? {C c get} {method 'c' unknown for ::C; in order to create an instance of class ::C, consider using '::C create c ?...?'}
 
   ? {C foo a} a1
   ? {C foo b} b1
-  ? {C foo c} {method 'c' unknown for ::C; in order to create an instance of class ::C, consider using '::C create c ?/option/ /value/ ...?'}
+  ? {C foo c} {method 'c' unknown for ::C; in order to create an instance of class ::C, consider using '::C create c ?...?'}
 
   ? {C bar a} a1
   ? {C bar b} b1

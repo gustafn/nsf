@@ -264,8 +264,8 @@ nx::test case unexport {
     :class unexport create new
   }
 
-  ? {AbstractQueue new} {method 'new' unknown for ::AbstractQueue; in order to create an instance of class ::AbstractQueue, consider using '::AbstractQueue create new ?/option/ /value/ ...?'}
-  ? {AbstractQueue create aQueue} {method 'create' unknown for ::AbstractQueue; in order to create an instance of class ::AbstractQueue, consider using '::AbstractQueue create create ?/option/ /value/ ...?'}
+  ? {AbstractQueue new} {method 'new' unknown for ::AbstractQueue; in order to create an instance of class ::AbstractQueue, consider using '::AbstractQueue create new ?...?'}
+  ? {AbstractQueue create aQueue} {method 'create' unknown for ::AbstractQueue; in order to create an instance of class ::AbstractQueue, consider using '::AbstractQueue create create ?...?'}
   
 }
 

@@ -1056,7 +1056,7 @@ nx::test case rename-cached-method {
   # Delete the proc and call "new" again
   #
   rename ::nsf::classes::nx::Class::new ""
-  ? {A new} "method 'new' unknown for ::A; in order to create an instance of class ::A, consider using '::A create new ?/option/ /value/ ...?'"
+  ? {A new} "method 'new' unknown for ::A; in order to create an instance of class ::A, consider using '::A create new ?...?'"
   
   #
   # Restore the original state

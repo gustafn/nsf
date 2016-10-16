@@ -11,9 +11,9 @@ nx::test case class-methods-0 {
     :public object method f args {next}
   }
   ? {::C class mixins set M1} \
-      "method 'class' unknown for ::C; in order to create an instance of class ::C, consider using '::C create class ?/option/ /value/ ...?'"
+      "method 'class' unknown for ::C; in order to create an instance of class ::C, consider using '::C create class ?...?'"
   ? {::C class filter f} \
-      "method 'class' unknown for ::C; in order to create an instance of class ::C, consider using '::C create class ?/option/ /value/ ...?'"
+      "method 'class' unknown for ::C; in order to create an instance of class ::C, consider using '::C create class ?...?'"
 
   ? {lsort [::C info object methods]} "f"
   ? {lsort [::C info]} \
@@ -59,7 +59,7 @@ nx::test case class-methods-1 {
   ? {::C class info slots} "::C::per-object-slot::v2 ::C::per-object-slot::p"
   
   ? {::C pm1} \
-      "method 'pm1' unknown for ::C; in order to create an instance of class ::C, consider using '::C create pm1 ?/option/ /value/ ...?'"
+      "method 'pm1' unknown for ::C; in order to create an instance of class ::C, consider using '::C create pm1 ?...?'"
   ? {::C foo} "pm1"
   ? {::C a} "pm1"
   ? {::C fwd} "pm1"

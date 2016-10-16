@@ -157,7 +157,7 @@ nx::test case class-object-level-forwards {
 
 # class level setter
 nx::test case class-object-level-setter {
-  ? {C plain_object_setter 1} {method 'plain_object_setter' unknown for ::C; in order to create an instance of class ::C, consider using '::C create plain_object_setter ?/option/ /value/ ...?'}
+  ? {C plain_object_setter 1} {method 'plain_object_setter' unknown for ::C; in order to create an instance of class ::C, consider using '::C create plain_object_setter ?...?'}
   #? {C plain_object_setter 1} "1"
   ? {C public_object_setter set 2} "2"
   ? {catch {C protected_object_setter set 3}} 1
@@ -431,10 +431,10 @@ nx::test case property-method {
 
   ? {C A set 2} 2
   ? {C A get} 2
-  ? {C B} {method 'B' unknown for ::C; in order to create an instance of class ::C, consider using '::C create B ?/option/ /value/ ...?'}
+  ? {C B} {method 'B' unknown for ::C; in order to create an instance of class ::C, consider using '::C create B ?...?'}
   #? {C B} B2
   ? {C C get} C2
-  ? {C D} {method 'D' unknown for ::C; in order to create an instance of class ::C, consider using '::C create D ?/option/ /value/ ...?'}
+  ? {C D} {method 'D' unknown for ::C; in order to create an instance of class ::C, consider using '::C create D ?...?'}
 
   nx::Object create o {
     set x [:object property -accessor public a]
@@ -552,7 +552,7 @@ nx::test case errormessage {
   ? {C protected Object method bar {x} {return $x}} \
       "'Object' is not a method defining method"
   ? {C Object method bar {x} {return $x}} \
-      {method 'Object' unknown for ::C; in order to create an instance of class ::C, consider using '::C create Object ?/option/ /value/ ...?'}
+      {method 'Object' unknown for ::C; in order to create an instance of class ::C, consider using '::C create Object ?...?'}
   #? {C public object Object method bar {x} {return $x}} "'Object' not allowed to be modified by 'class'"
   #? {C public object Object method bar {x} {return $x}} \
       {'Object' is not a method defining method}
