@@ -5902,11 +5902,12 @@ catch {={*}[list foo 1 2 3 4 5 6]} msg; puts msg=$msg
     For the time being, I've made the hint even more verbose.
  
 
-========================================================================
-TODO:
-
-
-- Investigate NsfMethodContext mem-bookkeeping/ possible leak:
+- Investigate NsfMethodContext mem-bookkeeping/ possible leak: Turned
+  out to be false positives due to Tcl history retaining references
+  beyond NsfFinalizeCmd. An explicit script [exit] in interactive Tcl
+  shells will still lead to unbalanced refcounts (NsfMethodContext),
+  no way around that. But at least for exit-free scripts in tclshs, we
+  should be fine.
 
   $ tclsh 
   % package req nx; nx::Object new
@@ -5928,6 +5929,10 @@ TODO:
 
   (without "nx::Object new", "package req" only, the NsfMethodContext
   counts are balanced)
+
+
+========================================================================
+TODO:
 
 - Should we add exists to the Variableslot-Interface, to surface ::nsf::var::exists.
 
