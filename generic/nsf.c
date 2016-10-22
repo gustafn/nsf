@@ -25254,6 +25254,25 @@ NsfFinalizeCmd(Tcl_Interp *interp, int withKeepvars) {
   }
 #endif
 
+#if defined(NSF_MEM_COUNT)
+  /* The Tcl history list (which internally stores commands and scripts in the
+     array ::tcl::history) can retain Tcl_Obj references beyond the scope of
+     our shutdown procedures (::nsf::finalize, ExitHandler). Therefore, on
+     MEM_COUNT_RELEASE(), we might see unbalanced refcounts which are false
+     positives. Therefore, we aim at clearing the history list at this point.
+
+     See also Tcl bug report 1ae12987cb.
+  */
+  result = Tcl_Eval(interp, "::history clear");
+  
+  if (unlikely(result != TCL_OK)) {
+    NsfLog(interp, NSF_LOG_WARN, "Clearing the Tcl history list failed! "
+           "Memcounts could be reported as unbalanced on MEM_COUNT_RELEASE(). "
+           "Error: %s\n",
+           ObjStr(Tcl_GetObjResult(interp)));
+  }
+#endif
+
   /*fprintf(stderr, "+++ call tcl-defined exit handler (%x)\n", PTR2INT(pthread_self()));*/
 
   /*
