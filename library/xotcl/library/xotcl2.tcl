@@ -418,7 +418,7 @@ namespace eval ::xotcl {
 
   Class instproc unknown {args} {
     #puts stderr "use '[self] create $args', not '[self] $args'"
-    uplevel [list [self] create {*}$args]
+    :uplevel [list [self] create {*}$args]
   }
 
   Object instproc unknown {m args} {
