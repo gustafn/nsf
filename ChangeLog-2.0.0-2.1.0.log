@@ -192,220 +192,169 @@
 
 2016-09-29  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-	nsf.c, methods.test:
-	- DispatchUnknownMethod: Make sure that arcane method names make
-	it into proper unknown error mesages (incl. names representing
-	invalid Tcl lists); tests included; checked by valgrind [4b78042]
+	* nsf.c, methods.test (DispatchUnknownMethod): Make sure that
+	arcane method names make it into proper unknown error mesages
+	incl. names representing invalid Tcl lists; tests included;
+	checked by valgrind [4b78042]
 
-	Documentation:
-	- Adding yet another Rosetta example: Add object variable
-	   dynamically. [ed0f5cb]
-	- Fix typo [e33e0a2]
+	* Documentation
+	(rosetta-add-variable.tcl): Adding yet another Rosetta example: Add object variable
+	dynamically. [ed0f5cb]
+	(rosetta-add-variable.tcl): Fix typo [e33e0a2]
 
-	shells.test:
-	- Adjust shell tests for latest changes to stacktrace formatting
-	   [56f9658] triggered by [2c896da]
+	* shells.test: Adjust shell tests for latest changes to stacktrace
+	formatting. [56f9658] triggered by [2c896da]
 
 2016-09-28  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-	Documentation:
-	- Improve output spec in Rosetta example. [8648ec7]
-	- Adding another Rosetta example: Multiple distinct objects. [cc85907]
+	* Documentation:
+	(rosetta-multiple-distinct.tcl, rosetta-tree.tcl): Improve output
+	spec in Rosetta example. [8648ec7]
+	(rosetta-multiple-distinct.tcl): Adding another Rosetta example:
+	Multiple distinct objects. [cc85907]
 
 2016-09-23  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	nsf.c:
-	- Add thread IDs to debug lines (in threaded builds). [e20e1c1]
+	* nsf.c: Add thread IDs to debug lines (in threaded builds). [e20e1c1]
 
 2016-09-21  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-	Test suite:
-	- tcl86.test: Make cmd-literal tests conditional on a (future) Tcl release: 8.6.7
-	   [40ff115]
-	- destroy.test: Adding a second UnsetTracedVars test, this time
+	* Testsuite:
+	(tcl86.test): Make cmd-literal tests conditional on a (future) Tcl release: 8.6.7
+	[40ff115]
+	(destroy.test): Adding a second UnsetTracedVars test, this time
 	for the per-object namespace case. [2330f51]
 
 2016-09-20  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-	destroy.test:
-	- Add missing test on UnsetTracedVars. [c29e5d3]
+	* destroy.test: Add missing test on UnsetTracedVars. [c29e5d3]
 
 2016-09-19  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-	- Nsf_CmdDefinitionRelease(): Fix documentation [23581e9]
+	* nsfCmdDefinitions.c (Nsf_CmdDefinitionRelease): Fix
+	documentation [23581e9]
 
-
-	- nx::shell2: Provide complete errorinfo, not just top-level line
-	  [2c896da]
+	* nx-shell.tcl (nx::shell2): Provide complete errorinfo, not just
+	top-level line [2c896da]
 
 2016-09-16  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
+	* nsf.c (NsfFinalizeCmd): Remove manually mixinRegObjs during
+	cleanup to silence sanity checking for object refcounts. [9395752]
 
-	-
-	- Remove manually mixinRegObjs during cleanup to silence sanity
-	  checking for object refcounts. [9395752]
-
-
-	-
-	- fix typo [73a82fc]
+	* nsfObj.c (NsfMixinregGet): Fix typo in comment. [73a82fc]
 
 2016-09-15  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
-	- add pthread id to debug message [b36a57b]
+	* nsf.c (NsfFinalizeCmd): Add pthread id to debug message [b36a57b]
 
 2016-09-13  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	- UnsetTracedVars(): Provide for a two-pass deletion logic during
-	object shutdown, to account for unset traces possibly reviving an
-	object variable under deletion. This corresponds to a recent memleak
-	fix to Tcl itself (see
-	http://core.tcl.tk/tcl/info/4dbdd9af144dbdd9af14). [d710110]
-
-2016-09-12  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
-
-
-	- Add a to-do on an assertion failure under 8.5 [839e421]
+	* nsf.c (UnsetTracedVars): Provide for a two-pass deletion logic
+	during object shutdown, to account for unset traces possibly
+	reviving an object variable under deletion. This corresponds to a
+	recent memleak fix to Tcl itself. See also Tcl Fossil ticket
+	4dbdd9af144dbdd9af14. [d710110]
 
 2016-09-09  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
+	* nx.tcl (VariableSlot->value=get): Substitute set for get, which
+	is a tick faster. [bb688b8]
 
-	- Substitute set for get, which is a tick faster [bb688b8]
-
-
-	- Adding another Rosetta example: Tree traversal [f769aa3]
+	* Documentation (rosetta-tree.tcl): Rosetta example: Tree
+	traversal. [f769aa3]
 
 2016-09-06  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
+	* nx-shell.tcl (::nx::shell2): Harden nx::shell against inlined
+	return statements. [da0791d]
 
-	- Add to-do on variable slots [3941350]
+	* Documentation (rosetta-tokenizer.tcl): Added first additional
+	Rosetta example. [b689afd]
 
-
-	- Harden nx::shell against inlined return statements [da0791d]
-
-
-	- Added first additional Rosetta example [b689afd]
-
-
-	- Make src highlighter independent from Tcl version [8e929f8]
-
-2016-09-02  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
-
-
-	- Adding some minor todos [9422ecb]
+	* source-highlight-with-pp: Make src highlighter independent from
+	Tcl version. [8e929f8]
 
 2016-09-01  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
+	* Makefile.in: Keep valgrind settings for the future. [0187626]
 
-	- Keep valgrind settings for the future [0187626]
-
-
-	- ObjectCmdMethodDispatch(): Get refcounting on method-path lists
-	right, fixing one actual (valgrind) and another potential Tcl_Obj
-	leak [6cb02ec]
+	* nsf.c (ObjectCmdMethodDispatch): Get refcounting on method-path
+	lists right, fixing one actual (valgrind) and another potential
+	Tcl_Obj leak. [6cb02ec]
 
 2016-08-31  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	- ParamDefsNames(): Fix another Tcl_Obj leak and optimize code slightly
-	(Tcl_Obj is only allocated once the string-matching operation
-	suceeded) [253e9e6]
-
-
-	- NsfForwardPrintError(): Fix another instance of the NsfMethodNamePath
-	  leak [0739b93]
-
-
-	- NsfMethodName(): Avoid unnecessary append operation between lists,
-	  previously leaking the source list Tcl_Obj [8a650e1]
-
-
-	- ArgumentParse(): Addressing a series of Tcl_Obj leaks (valgrind)
-	  [2dbfbf4]
+	* nsf.c
+	(ParamDefsNames): Fix another Tcl_Obj leak and optimize
+	code slightly, Tcl_Obj is only allocated once the string-matching
+	operation suceeded. [253e9e6]
+	(NsfForwardPrintError): Fix another instance of the
+	NsfMethodNamePath leak. [0739b93]
+	(NsfMethodName): Avoid unnecessary append operation between lists,
+	previously leaking the source list Tcl_Obj. [8a650e1]
+	(ArgumentParse): Addressing a series of Tcl_Obj leaks (valgrind). [2dbfbf4]
 
 2016-08-22  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
-	- removing dead assignment [1e25f4b]
+	* nsf.c (AssertionAddProc): Removing dead assignment. [1e25f4b]
 
 2016-08-14  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	- TopoSortSub(): Make intended true/false comparisons based on int
-	  explicit [ce32c79]
-
-
-	- TopoSort(): cleanup (pt. 3): re-factored TransitiveSubClasses() and
-	DependentSubClasses() into one caller function of TopoSortSub()
-	[a9057d3]
-
-
-	- TopoSort(): cleanup (pt. 2): renamed TopoSort() TopoSortSub() (to
-	  match TopoSortSuper) [49bad0b]
+	* nsf.c:
+	(TopoSortSub): Make intended true/false comparisons based on int
+	explicit. [ce32c79]
+	(TopoSort): cleanup (pt. 3): re-factored TransitiveSubClasses()
+	and DependentSubClasses() into one caller function of
+	TopoSortSub(). [a9057d3]
+	(TopoSort): cleanup (pt. 2): renamed TopoSort() to TopoSortSub() to
+	match TopoSortSuper. [49bad0b]
 
 2016-08-13  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	- TopoSort(): cleanup (pt. 1) [2caa518]
+	* nsf.c (TopoSort): cleanup (pt. 1). [2caa518]
 
 2016-08-10  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	- Add TODO [adb6c74]
-
-
-	- GetNextArguments(): Address CID 102646 [e982277]
-
-
-	- Removed two unused functions: NsfObjInfoObjectparameterMethod() and
-	  NsfParamDefsFilter(). Makes CID 88775 obsolete [308a912]
-
-
-	- Address CID 88770 [566ca93]
+	* nsf.c
+	(GetNextArguments): Address CID 102646. [e982277]
+	(NsfObjInfoObjectparameterMethod, NsfParamDefsFilter): Removed two
+	unused functions: NsfObjInfoObjectparameterMethod() and
+	NsfParamDefsFilter(). Makes CID 88775 obsolete.[308a912]
+	(MakeProc): Address CID 88770. [566ca93]
 
 2016-08-09  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
+	* nsfError.c
+	(NsfObjWrongArgs, NsfObjErrType): Remove occurrences
+	of deprecated Tcl_AppendResult() in overall code. [299a221]
+	(NsfPrintError): Avoid computing string length twice. [b8fe2d4]
 
-	-
-	- Remove occurrences of deprecated Tcl Call Tcl_AppendResult() in
-	  overall code [299a221]
+	* nsfStubLib.c: Remove 2 occurrences of deprecated
+	Tcl_AppendResult. [8e079b5]
 
-
-	-
-	- improve variable for logging from "debugLevel" to
-	  "logSeverity" (print logging messages which have a
-	  severity larger equal the then given value; so;
-	  "nsf::configure debugLevel 0" will print everything, and
-	  "nsf::configure debugLevel 3" will print just error
-	  messages and omit warnings etc.)
-	- this is not a change in sematics, but removes some
-	  confusion in the code. therefore the configure name was
-	  not changed
-	- Remove 2 occurrences of deprecated Tcl Call Tcl_AppendResult() in
-	  nsfStubLib [8e079b5]
-
-
-	-
-	- don't compute string length twice [b8fe2d4]
+	* nsf.c, nsfInt.h (NsfLog, RUNTIME_STATE): Small logging reform,
+	renaming "debugLevel" to "logSeverity" and introduce logging
+	messages which have a severity larger or equal than a given log
+	severity; so; "nsf::configure debugLevel 0" will print everything,
+	and "nsf::configure debugLevel 3" will print just error messages
+	while omiting warnings etc. This is not a change in logging
+	semantics, but removes some confusion at the C level. Therefore, the
+	nsf::configure option "debugLevel" was not changed.
 
 2016-08-07  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- Address potential double freeing problem of runtime
-	  states:
-	- the ExitHander() should never be called twice on the same interp.
-	Therefore delete in the ExitProc the ExitHandler AND the
-	ThreadExitHandler and in the ThreadExitProc also both. [4ff9a50]
+	* nsf.c (ExitHandler): Address potential double freeing problem of
+	runtime states. ExitHander should never be called twice on the
+	same interp. Therefore, provide for deleting ExitHandler in the
+	ExitProc, as well as for deleting ExitHandler and
+	ThreadExitHandler in the ThreadExitProc. [4ff9a50]
 
 2016-08-04  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- code generator changes:
-	- create enum types instead of enum values for nsf API
-	- use enum types in code [aa5b3f4]
+	* gentclAPI.tcl, nsfAPI.decls: Code generator was changed to
+	create enum types instead of enum values for NSF API, use enum
+	types in code. [aa5b3f4]
 
 2016-08-04  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
