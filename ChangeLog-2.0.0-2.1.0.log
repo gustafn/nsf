@@ -197,83 +197,66 @@
 
 2016-10-02  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	- make nsf compilable with "-DTCL_NO_DEPRECATED" [9cce0c1]
+	nsf.c, nsf.h:
+	- Make NSF compilable with "-DTCL_NO_DEPRECATED". [9cce0c1]
 
 2016-10-01  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	- Remove redundant Rosetta example implementations [14d4d3a]
-
-
-	- Added another Rosetta example: multiple inheritance [92c1ac3]
+	Documentation:
+	- Remove redundant Rosetta example implementations. [14d4d3a]
+	- Added another Rosetta example: multiple inheritance. [92c1ac3]
 
 2016-09-30  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
+	nsf.c:
 	- RemoveInstance(): Fix typo and improve wording of nsf::log warning
-	  slightly [8a106d9]
+	   slightly. [8a106d9]
 
-
-	- Object.man: Correct the documentation bit on Object->copy [4b2d241]
-
-
+	Documentation:
+	- Object.man: Correct the documentation bit on Object->copy. [4b2d241]
 	- Added another Rosetta example: Polymorphic copy [922c0ab]
 
 2016-09-29  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
+	nsf.c, methods.test:
+	- DispatchUnknownMethod: Make sure that arcane method names make
+	it into proper unknown error mesages (incl. names representing
+	invalid Tcl lists); tests included; checked by valgrind [4b78042]
 
-	- DispatchUnknownMethod(): Make sure that arcane method names make it
-	into proper unknown error mesages (incl. names representing invalid
-	Tcl lists); tests included; checked by valgrind [4b78042]
-
-
+	Documentation:
+	- Adding yet another Rosetta example: Add object variable
+	   dynamically. [ed0f5cb]
 	- Fix typo [e33e0a2]
 
-
+	shells.test:
 	- Adjust shell tests for latest changes to stacktrace formatting
-	  [56f9658]
-
-
-	- Adding yet another Rosetta example: Add object variable dynamically
-	  [ed0f5cb]
+	   [56f9658] triggered by [2c896da]
 
 2016-09-28  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	- Improve output spec in Rosetta example [8648ec7]
-
-
-	- Adding another Rosetta example: Multiple distinct objects [cc85907]
+	Documentation:
+	- Improve output spec in Rosetta example. [8648ec7]
+	- Adding another Rosetta example: Multiple distinct objects. [cc85907]
 
 2016-09-23  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
-	- add thread IDs to debug lines [e20e1c1]
+	nsf.c:
+	- Add thread IDs to debug lines (in threaded builds). [e20e1c1]
 
 2016-09-21  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	- Make cmd-literal tests conditional on a (future) Tcl release: 8.6.7
-	  [40ff115]
-
-
-	- Adding a second UnsetTracedVars test, this time for the per-object
-	  namespace case [2330f51]
+	Test suite:
+	- tcl86.test: Make cmd-literal tests conditional on a (future) Tcl release: 8.6.7
+	   [40ff115]
+	- destroy.test: Adding a second UnsetTracedVars test, this time
+	for the per-object namespace case. [2330f51]
 
 2016-09-20  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	- Add missing test on UnsetTracedVars() [c29e5d3]
-
-
-	- Update to-do [4421b3a]
-
-
-	- Add to-do [9b68b62]
+	destroy.test:
+	- Add missing test on UnsetTracedVars. [c29e5d3]
 
 2016-09-19  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
-
 
 	- Nsf_CmdDefinitionRelease(): Fix documentation [23581e9]
 
