@@ -1,0 +1,1747 @@
+2016-10-27  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	xotcl2.tcl:
+	- Fix regressions due to uplevel mambo-jumbo. [020d3d6]
+	- Make sure that Class->unknown bypasses filter and mixin
+	   frames. [9dcea26]
+
+2016-10-26  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	nsf.c
+	- ExitHandler(): Re-locate clearing history from finalize to
+	   ExitHandler. [59b4e8c]
+
+2016-10-22  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	nsf.c:
+	- NsfFinalizeCmd(): Clear Tcl's history list explicitly before
+	   finalizing NSF. See also Tcl ticket 1ae12987cb. [6be629e]
+
+2016-10-16  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	nx.tcl:
+	- nx::Class->unknown: Rewrite unknown message to include '?...?'.
+	   [371cc41]
+
+	nsfStack.c:
+	- Unify writing style. [114df8b]
+
+	nsfProfile.c:
+	- Fix typos in code comments. [5447fe0]
+
+	nsfFunPtrHashTable.c:
+	- Fix typos in code comments. [6e37cdb]
+
+2016-10-15  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	nsfError.c:
+	- Cleanup: remove spurious blank in error message, fix typo in
+	   print string. [e0da9e0]
+
+2016-10-15  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	nx.tcl:
+	- Commit missing unknown message change. [dafe310]
+
+2016-10-15  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	nsf.h, nsfError.c:
+	- NsfNoCurrentObjectError: Improve comment and signature. [5abaa15]
+	- Improve wording of other commends, keep comments within the limits of
+	  the header/trailer line. [5abaa15]
+
+2016-10-14  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	Test suite:
+	- Adjust the test suite for the latest rewording of the
+	   nx::Class unknown message. [2717622]
+
+	nsfError.c:
+	- Fixed typos and unified writing style in code comments.
+	   [f139db6]
+
+	nsfObj.c:
+	- Fix some typos and align writing style. [1ce1f6a]
+
+2016-10-14  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	nsf.c:
+	- Fix typos in comments, align commenting style. [5ba5873]
+
+	nx.tcl:
+	- Make xotcl::Class->unknown hint more explicit and
+	verbose. [4dda010]
+
+2016-10-13  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	nsf.c:
+	- ObjectSystemsCleanup: Remove interp resolvers explicitly before
+	   the physical cleanup round. [371e0e3]
+	- DeleteProcsAndVars: Silence compiler warning and reduce variable
+	  scope (spotted with memtracking on). [7992ec4]
+
+2016-10-12  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	shells.test:
+	- Add two tests on try/finally. [ce511c8]
+
+	nx-shell.tcl
+	- Extend the exit wrapper to include Tcl 8.6 try [8f55f92]
+	- Make sure that the proper exit code is provided when
+	   leaving the -c stdin mode. [f83d0a1]
+
+2016-10-12  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	shells.test:
+	- Add two more tests of plain tclsh. [0c79f62]
+	- Remove superfluous (and incorrect) tests. [3f7e49e] reverting
+           [152c1d3]
+
+	nsf.c:
+	- Don't call tcl eval operations from NsfLog() in phyical
+	   destroy round.
+	- Extend regression test for shell with tests in [info
+	   nameofexecutable] rather than in nxsh [152c1d3]
+
+2016-10-12  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	shells.test:
+	- Add some more tests [31727ed]
+
+	nx-shell.tcl:
+	- nx::shell2: Rewrote in-shell exit support to avoid Tcl's native
+	   exit and to unwind gracefully to avoid NSF refcount leaks on exit;
+	   bumped package number. [0956bd0]
+
+2016-10-10  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	nsf.c, nsfInt.h:
+	- Improve sanity test in ISOBJ(): obj->bytes might only be NULL
+	   when type is given. [472a3c5]
+
+2016-10-09  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	TEA:
+	- Updated m4/tcl.m4 to most recent TEA version: 3.10, regenerated
+	autotools artifacts. [4a30a3a]
+
+2016-10-08  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	nsfUtil.c:
+	- Cleanup of strnstr() (when the clib function is not available).
+	  [a8b3805]
+
+	generic/*:
+	- Cleaning up white spaces (mostly strip trailing spaces, remove a
+	   few tabs). [77ba24e]
+	- Cleanup of type conversions. [1d1ca56]
+	- Reduce variable scopes. [fbd52e6]
+
+2016-10-07  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	nsf.c:
+	- Cleanup of type conversions in first ~18000 lines. [4e70d6d]
+
+2016-10-07  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	current.man:
+	- Extend doc on nx::current to include 'nx::current level'
+	  [d49b5f9]
+
+2016-10-07  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	nsf.c:
+	- Cleanup of type conversions in first ~6000 lines. [099e1ee]
+
+	nsf.c, nsfAPI.*:
+	- New subcommand "nsf::current level", which returns an empty
+	   string when outside an NSF frame/level. [8465a13]
+	- Keep compatibility with traditional "nsf::current activelevel"
+	   (continue to return 1, if we are not on an NSF frame). [8465a13]
+	   reverting [dbd850e].
+
+2016-10-06  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	nsf.c:
+	- Return from "nsf::current callinglevel" the value 0 (instead of
+	   1), when it is called outside of an NSF frame, which has an NSF
+	   object associated. [dbd850e]
+
+2016-10-05  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	nsf.c:
+	- UnsetTracedVars: Silence compiler warning under 8.5 by providing
+	an explicit cast. [abfaf40]
+
+	Documentation:
+	- Add another Rosetta example: Inheritance/Single [c7738a3]
+	- rosetta-multiple-inheritance.tcl: Fix typo L3 -> C3 [3617b69]
+	- Object.man: Include missing doc in 'info lookup parameters' and 'info
+	  lookup syntax' [4bfe0ad]
+
+2016-10-04  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	nsf.c:
+	- ParamOptionParse: 'virtualobjectargs' and 'virtualclassargs'
+	   defaulted to ConvertViaCmd when parsed from Tcl spec; explicitly
+           set ConvertToNothing to match the intended semantics and to avoid
+	   false warnings (e.g., missing type=virtualobjectargs type checker).
+	   [03b838a]
+	- NsfParameterInfoCmd: Correct two typos in in-code
+	   comment. [6d563e2]
+
+2016-10-02  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	Makefile.in:
+	- Register Rosetta examples. [ec6103a]
+
+2016-10-02  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- make nsf compilable with "-DTCL_NO_DEPRECATED" [9cce0c1]
+
+2016-10-01  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- Remove redundant Rosetta example implementations [14d4d3a]
+
+
+	- Added another Rosetta example: multiple inheritance [92c1ac3]
+
+2016-09-30  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- RemoveInstance(): Fix typo and improve wording of nsf::log warning
+	  slightly [8a106d9]
+
+
+	- Object.man: Correct the documentation bit on Object->copy [4b2d241]
+
+
+	- Added another Rosetta example: Polymorphic copy [922c0ab]
+
+2016-09-29  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- DispatchUnknownMethod(): Make sure that arcane method names make it
+	into proper unknown error mesages (incl. names representing invalid
+	Tcl lists); tests included; checked by valgrind [4b78042]
+
+
+	- Fix typo [e33e0a2]
+
+
+	- Adjust shell tests for latest changes to stacktrace formatting
+	  [56f9658]
+
+
+	- Adding yet another Rosetta example: Add object variable dynamically
+	  [ed0f5cb]
+
+2016-09-28  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- Improve output spec in Rosetta example [8648ec7]
+
+
+	- Adding another Rosetta example: Multiple distinct objects [cc85907]
+
+2016-09-23  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- add thread IDs to debug lines [e20e1c1]
+
+2016-09-21  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- Make cmd-literal tests conditional on a (future) Tcl release: 8.6.7
+	  [40ff115]
+
+
+	- Adding a second UnsetTracedVars test, this time for the per-object
+	  namespace case [2330f51]
+
+2016-09-20  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- Add missing test on UnsetTracedVars() [c29e5d3]
+
+
+	- Update to-do [4421b3a]
+
+
+	- Add to-do [9b68b62]
+
+2016-09-19  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- Nsf_CmdDefinitionRelease(): Fix documentation [23581e9]
+
+
+	- nx::shell2: Provide complete errorinfo, not just top-level line
+	  [2c896da]
+
+2016-09-16  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- Remove manually mixinRegObjs during cleanup to silence sanity
+	  checking for object refcounts. [9395752]
+
+
+	-
+	- fix typo [73a82fc]
+
+2016-09-15  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- add pthread id to debug message [b36a57b]
+
+2016-09-13  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- UnsetTracedVars(): Provide for a two-pass deletion logic during
+	object shutdown, to account for unset traces possibly reviving an
+	object variable under deletion. This corresponds to a recent memleak
+	fix to Tcl itself (see
+	http://core.tcl.tk/tcl/info/4dbdd9af144dbdd9af14). [d710110]
+
+2016-09-12  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- Add a to-do on an assertion failure under 8.5 [839e421]
+
+2016-09-09  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- Substitute set for get, which is a tick faster [bb688b8]
+
+
+	- Adding another Rosetta example: Tree traversal [f769aa3]
+
+2016-09-06  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- Add to-do on variable slots [3941350]
+
+
+	- Harden nx::shell against inlined return statements [da0791d]
+
+
+	- Added first additional Rosetta example [b689afd]
+
+
+	- Make src highlighter independent from Tcl version [8e929f8]
+
+2016-09-02  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- Adding some minor todos [9422ecb]
+
+2016-09-01  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- Keep valgrind settings for the future [0187626]
+
+
+	- ObjectCmdMethodDispatch(): Get refcounting on method-path lists
+	right, fixing one actual (valgrind) and another potential Tcl_Obj
+	leak [6cb02ec]
+
+2016-08-31  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- ParamDefsNames(): Fix another Tcl_Obj leak and optimize code slightly
+	(Tcl_Obj is only allocated once the string-matching operation
+	suceeded) [253e9e6]
+
+
+	- NsfForwardPrintError(): Fix another instance of the NsfMethodNamePath
+	  leak [0739b93]
+
+
+	- NsfMethodName(): Avoid unnecessary append operation between lists,
+	  previously leaking the source list Tcl_Obj [8a650e1]
+
+
+	- ArgumentParse(): Addressing a series of Tcl_Obj leaks (valgrind)
+	  [2dbfbf4]
+
+2016-08-22  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- removing dead assignment [1e25f4b]
+
+2016-08-14  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- TopoSortSub(): Make intended true/false comparisons based on int
+	  explicit [ce32c79]
+
+
+	- TopoSort(): cleanup (pt. 3): re-factored TransitiveSubClasses() and
+	DependentSubClasses() into one caller function of TopoSortSub()
+	[a9057d3]
+
+
+	- TopoSort(): cleanup (pt. 2): renamed TopoSort() TopoSortSub() (to
+	  match TopoSortSuper) [49bad0b]
+
+2016-08-13  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- TopoSort(): cleanup (pt. 1) [2caa518]
+
+2016-08-10  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- Add TODO [adb6c74]
+
+
+	- GetNextArguments(): Address CID 102646 [e982277]
+
+
+	- Removed two unused functions: NsfObjInfoObjectparameterMethod() and
+	  NsfParamDefsFilter(). Makes CID 88775 obsolete [308a912]
+
+
+	- Address CID 88770 [566ca93]
+
+2016-08-09  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- Remove occurrences of deprecated Tcl Call Tcl_AppendResult() in
+	  overall code [299a221]
+
+
+	-
+	- improve variable for logging from "debugLevel" to
+	  "logSeverity" (print logging messages which have a
+	  severity larger equal the then given value; so;
+	  "nsf::configure debugLevel 0" will print everything, and
+	  "nsf::configure debugLevel 3" will print just error
+	  messages and omit warnings etc.)
+	- this is not a change in sematics, but removes some
+	  confusion in the code. therefore the configure name was
+	  not changed
+	- Remove 2 occurrences of deprecated Tcl Call Tcl_AppendResult() in
+	  nsfStubLib [8e079b5]
+
+
+	-
+	- don't compute string length twice [b8fe2d4]
+
+2016-08-07  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- Address potential double freeing problem of runtime
+	  states:
+	- the ExitHander() should never be called twice on the same interp.
+	Therefore delete in the ExitProc the ExitHandler AND the
+	ThreadExitHandler and in the ThreadExitProc also both. [4ff9a50]
+
+2016-08-04  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- code generator changes:
+	- create enum types instead of enum values for nsf API
+	- use enum types in code [aa5b3f4]
+
+2016-08-04  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- Improve comment wording and cleanup [6a52879]
+
+
+	- FreeFunPtrEntry is not needed actually [2cec82c]
+
+
+	- Fix refcounting [a2021fc]
+
+
+	- FreeFunPtrEntry(): Add deletion handler for cmddef and
+	  enumeration-type hash entries [2124b26]
+
+
+	- nsfCmdDefinitions.c: Fix typos [b4d254a]
+
+
+	- Provide for releasing/deleting the hash tables for cmd definitions
+	  and enumeration-type converters in ExitHandler [843e576]
+
+2016-08-02  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- remove various code smells:
+	- add const declarations
+	- prefer boolean tests
+	- don't write "for" loops without a block
+	- don't pass non-initialized value in an array on index [0]
+	- reduce variable scope
+	- prefer single returns statements in functions
+	- dont't use CONST unless defined by Tcl-API [8eecbe5]
+
+
+	-
+	- make effects of namespace-imported classes more local [3b5f62d]
+
+2016-08-01  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- FilterSearchAgain(): Avoid running into an invalid pointer access,
+	when the physical deletion of "del" conflicts with following the next
+	link in the cmdList in the loop's increment statement (only iff del ==
+	cmdList). Re-organized for into a while loop, to avoid redundant code.
+	[0311e86]
+
+2016-07-28  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- GetClassFromObj(): Fix invalid memory access (valgrind) [a9448f8]
+
+2016-07-27  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- make intentions about clientData clear to static checker [1663346]
+
+
+	-
+	- remove commented code from the previous implementation [7243f88]
+
+
+	-
+	- move declarations to the begin of a code block
+	- remove debug code [abc4952]
+
+
+	-
+	- add pre-8.7 Makefile.in (missed in last commit) [ae36129]
+
+
+	-
+	- use consistent comment styles [e13bc9e]
+
+2016-07-26  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	-
+	- NsfProcStubDeleteProc(): Protect against potentially dangling
+	namespace references from within ::nsf::procs::*. The wrapper cmd's
+	namespace of an nsf::proc might already have been deleted when
+	  ::nsf::procs::* shuts down finally. This showed up during a Tcl_Exit
+	(NSF's ExitHandler) as an invalid memory access via (dangling)
+	namespace pointers (valgrind). [c39e939]
+
+2016-07-26  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- let nsf compile under tcl 8.7 (current trunk version of Tcl) [56d1814]
+
+2016-07-25  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- cmd resolver work
+	- fix test, when OS specific cmd resolver is used from a
+	  NSF_CSC_CALL_IS_COMPILE frame
+	- improved output from __db_show_obj: put results into one
+	  line instead of multiple lines
+	- new debug function __db_get_obj: return into about a
+	  tcl_obj in form of a dict (in general, one should not
+	  rely on Tcl_Obj internals, especially when upgrading over
+	  major Tcl versions, but for testing/understanding
+	  behavior etc., such a command is helpful).
+	- extend regression test [21686b8]
+
+2016-07-21  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- Shift some atomic tests into test case [7f8ee0b]
+
+
+	- Revive and include test case on Bug 3418547 [f5b034e]
+
+2016-07-21  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- add test for the global cmd literal sharing
+	- keep experimental code for disassembling methods [3dbd5a1]
+
+2016-07-17  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- NsfParseArgsCmd: Fix memory leak [ae50486]
+
+2016-07-16  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- memcount: correct book-keeping in SetInstVar [6a3890e]
+
+2016-07-15  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- Avoid inline comment style [34c49c5]
+
+
+	- Suppress cppcheck warning: adding explicit int cast [9fc2766]
+
+
+	- Promote log statement to Tcl panic [c7b7511]
+
+
+	- NsfDStringVPrintf: Make log statement conditional on NDEBUG [2a16d79]
+
+2016-07-15  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- handle case that showed up with Zoran during final shutdown: in case,
+	an object is deleted after the interp is deleted (which should not
+	happen), don't crash. [800c3a0]
+
+2016-07-15  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- Rephrase err message [8d2096e]
+
+2016-07-14  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- Suppress cppcheck warning: unused variable assignment [34e5bc1]
+
+
+	- Suppress cppcheck warning: reduce variable scope [8fd1f04]
+
+2016-05-21  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- return the result of ::mongo::run [4dccd3f]
+
+2016-05-04  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- Docs: Link version numbering in man pages to autoconf tooling
+	(similar to the NaviServer setup), update copyright dates in man
+	pages where needed [0228cdf]
+
+2016-04-30  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- Deactivate one test for now [1b1bbfc]
+
+
+	- Update man page for nxsh [30cf844]
+
+2016-04-29  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- Register shells.test [be3c675]
+
+
+	- Some cleanup and adding basic test cases [3ee0ac9]
+
+2016-04-21  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- nx::shell reform: Provide an alternative nx::shell impl (nx::shell2),
+	used by all four shell scripts. nx::shell2 builds on Tcl's event
+	loop, rather than while + update. This avoids blocking the Tk main
+	window (update). In addition, nx::shell2 is closer to Tcl's native
+	shells (e.g., no extra lines on enter, catches EOF). [2a5945f]
+
+2016-04-19  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- Improved mongodb interface for json/bson parsing:
+	- rename function mongo::json to mongo::json::generate
+	- introduce mongo::json::parse [e3e8f37]
+
+2016-04-08  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- Fix doc on introspection for configure options [4276fbd]
+
+2016-04-04  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- cleanup up and improve debug statements
+	- add generated code [96f4410]
+
+
+	-
+	- remove redundant line [e365540]
+
+
+	-
+	- improve indentation [a41b0fa]
+
+2016-03-30  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- updated TODO [6d3a6ca]
+
+
+	- xotcl2:
+	- added "-returns" flag to XOTcl's instprocs/procs and
+	  methods, very similar to "-returns" in nx
+	- extended serializer to handle "-returns" flag
+	- extended regression test [353fdf4]
+
+2016-03-26  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- fix one case in interaction between get-trace and default value
+	  [f6ddb05]
+
+2016-03-25  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- Make XOTcl tests runnable again from plain tarball/git checkout
+	  [20e59a8]
+
+2016-03-25  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- minor cleanup [4f44840]
+
+
+	-
+	- Allow combination of "-trace get" with default value (was
+	  previously disallowed)
+	- Extend regression test [7e20ec3]
+
+2016-03-23  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- Custom shell target for win makefile.vc [842266c]
+
+
+	- Custom shell target for win makefile.vc [da35de9]
+
+
+	- Add base-address support (see
+	  http://core.tcl.tk/tcl/tktview?name=0ef5e653) [3a06b2c]
+
+
+	- Improve documentation on NsfDStringVPrintf() [b75b19b]
+
+
+	- Another attempt to sort out the vs*printf() mess between runtimes
+	  [626a121]
+
+2016-03-18  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- Update win compilation units [a8c598f]
+
+
+	- Rename one more 'bool' identifier [90b08e1]
+
+
+	- In MSVC 14 (Visual Studio 2015) and newer, 'bool' is a proper type,
+	not a typedef anymore. 'bool' cannot be used as identifier anymore
+	(C2632) [40e347d]
+
+2016-03-18  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- add new command nsf::parseargs to parse an argument
+	  vector against a parameter definition and to set the
+	  resulting variables in the current scope
+	- extend regression test [546f8dd]
+
+
+	-
+	- change "struct timeval" to "Tcl_Time" and gettimeofday() to
+	Tcl_GetTime() in profiling code to improve portability (esp windows)
+	[dc4e227]
+
+2016-03-16  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- newer versions of gcc6 handle now as well nonnull asserts gracefully,
+	  show we can turn off its deactivation for gcc6 [433266d]
+
+2016-03-07  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- fix serializing of info internals for XOTcl [f9f501f]
+
+2016-03-05  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- nsf mongodb: reduce verbosity
+	- white-space changes [4ca97ca]
+
+2016-02-19  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- Address two more gcc6 pedantic warnings [ab19daf]
+
+
+	- update to-dos [37b3e36]
+
+
+	- Re-factored new hash-table infrastructure (based on function-pointer
+	keys) to support method-definitions (and future uses as well).
+	[c01b411]
+
+2016-02-15  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- added Tcl_HashKeyType cmdPtrHashKeyType for command pointers [760d5e6]
+
+2016-02-12  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- move initializations after nonnull asserts [67efaa6]
+
+
+	-
+	- move initializations after nonnull asserts [acee8b7]
+
+2016-02-11  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- ease life of static checkers [f382a52]
+
+2016-02-10  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- removed one more possible NULL comparison with a non-null value
+	  [8e97011]
+
+2016-02-03  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- Updating doc fragments on debug/deprecated methods [f56a194]
+
+
+	- Add a todo item [cd557a4]
+
+
+	- Adding some missing test on recently added introspection methods
+	  [3c1482d]
+
+2016-02-03  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- fix comment [6d1f42a]
+
+2016-02-03  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- Adding doc fragments for new info submethods, as well as deprecated
+	  and debug flags [74410fa]
+
+2016-02-01  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- improve robustness of serializer, otherwise
+	  "::nx::Object::slot::__info" triggers an exception [494410d]
+
+2016-01-27  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- adding refcount handling before+after the call of
+	  NsfCallObjectUnknownHandler() [e05bd93]
+
+2016-01-26  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- Let nsf create classes with ::nsf::object::unknown handler in the
+	fly, when c-function are called with objects of type class. This is
+	necessary for triggering creation attempts in ttrace via
+	::nsf::object::alloc SOMECLASS SOMEOBJ [6c041dc]
+
+2016-01-25  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- bump version number of XOTcl to 2.1 [52a6105]
+
+2016-01-22  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- turned all for-loops controlled over a nonnull value into
+	  while loops
+	- updated TODO, copyright notices, version number [4fa580a]
+
+
+	-
+	- add editor hint [5fe3bf0]
+
+
+	-
+	- move assignment aster nonnull assertions [a3fe572]
+
+
+	-
+	- turned all for-loops controlled over a nonnull value into while
+	  loops. [e5a42b6]
+
+
+	-
+	- upadte version numbers in README [4468c69]
+
+
+	-
+	- fix description [1a70aea]
+
+2016-01-19  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- Slot trace reform:
+	- redesign of slot interface of traces from
+	  * variables contains cmds and variable references to
+	  * slot specific methods with the same interface as
+	  slot-setters
+	- new:
+	  * specify flag "-trace" with a list of values "get", "set",
+	  "default"
+	  * when flag is set, a trace will be registered calling
+	  methods value=get obj variable value=set obj variable
+	  value value=default obj variable on the slot (actually
+	  the first two are identical with the methods used for
+	  slot-defined accessors)
+	- updated regression test
+	  * new flag "-notrace" for "nsf::var::set" and "nsf::var::get" [dadf28e]
+
+2016-01-12  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- xotclsh, xowish: Make sure minor versions >2.1 are accepted [286f946]
+
+
+	- nx::shell: Have xotclsh and xowish use nx::shell [4b92980]
+
+
+	- nx::shell: Have nxsh and nxwish use nx::shell [4bf0e8a]
+
+
+	- nx::shell: Avoid poluting global namespace [f1bfcbc]
+
+
+	- Started refactoring scripted shell environment into a single, package
+	location (nx::shell) to ease sharing between nxsh & friends, as well
+	as to facilitate implementingNX/XOTcl shells in wrapped applications
+	(tclkits) [6c6f313]
+
+2016-01-11  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- update release hints [2c69f59]
+
+2016-01-08  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- make sure to reset prevPreventRecursionFlags to value before the call
+	  [7ca41c6]
+
+
+	-
+	- added flags "-debug" and "-deprecated" to XOTcl 2 "instproc", "proc",
+	  "instforward" and "forward" methods [ccca1a5]
+
+
+	-
+	- changed interface of NsfDStringEval to control behavior
+	  via bitflags (this is after all more readable than a
+	  argument list of "0" and "1"s)
+	- added optional recursion prevention for functions called
+	  via NsfDStringEval (handling NSF_EVAL_DEBUG,
+	  NSF_EVAL_LOG, NSF_EVAL_DEPRECATED)
+	- added regression tests for potential recursive calls [e367957]
+
+2016-01-07  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- add absolute path in returned proc defintion to regression test
+	  [a775d31]
+
+
+	-
+	- add result in debug exit calls [2771c4c]
+
+2016-01-05  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- return fully qualified name for "::nsf::cmd::info definition" when
+	  called on plain procs [fd0f246]
+
+2015-12-30  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- generalize method serialization of forwarders [8cbd921]
+
+2015-12-29  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- fix compilation when DTRACE but no PROFILE is activated [74b39c5]
+
+
+	-
+	- prefer boolean expressions in assert() statements [a529b8f]
+
+
+	-
+	- make sure, we do not pass null values to nonnull arguments [22f4e55]
+
+
+	-
+	- add etags target [bce3456]
+
+2015-12-25  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- replace all remaning ObjectName and ClassName with
+	  variant with trailing "_" when appropriate
+	- allow nsf::procs with zero arguments or plain arguments
+	  (when "-debug" is used
+	- extended regression test
+	- bump version number to 2.1 [a0faba2]
+
+
+	-
+	- provide backward compatibility in method-serializer [c04d6db]
+
+2015-12-22  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- fix potential memory corruption bug in NsfDStringVPrintf() [cf9bbe0]
+
+2015-12-19  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- serializer:
+	- added handling of "-debug" and "-deprecated" in serializer
+	- allow export of nsfprocs via "exportMethods declaration"
+	  in order to keep otherwise excluded cmds in the result.
+	    this allows us to keep nsf::debug::* or nsf::deprecated
+	  definitions in the blueprint in OpenACS.
+	- hardened serializer (use e.g. "::namespace" instead of
+	  "namespace" when there is a potential conflict with a
+	  method named "namespace", prefer nsf::directdispatch,
+	  etc.)
+	- extended regression test [6a55e4e]
+
+
+	-
+	- nx: added flag "-debug" and "-deprecated" to methods "method" "object
+	method" "alias" "object alias" "forward" "object forward" such one
+	can use e.g. /cls/ public alias -deprecated|-debug /method/ ... /cls/
+	public forward -deprecated|-debug /method/ ... /cls/ public method
+	-deprecated|-debug /method/ ... /obj/ public object alias
+	-deprecated|-debug /method/ ... /obj/ public object forward
+	-deprecated|-debug /method/ ... /obj/ public object method
+	-deprecated|-debug /method/ ... [183cd0a]
+
+2015-12-18  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- nx: added options "-debug" and "-deprecated" to methods
+	  "method" and "obejct method", such one can use e.g. C
+	  public method -deprecated bar {} {return 1}
+	- extended regression test [2d609d0]
+
+
+	-
+	- nx: added new introspection options /cls/ info method
+	  debug /cls/ info method deprecated /obj/ info object
+	  method debug /obj/ info object method deprecated
+	- extended regression test [53113de]
+
+
+	-
+	- update TODO [87fd900]
+
+
+	-
+	- describe next steps [b3c6192]
+
+
+	-
+	- handling "deprecated" and "debug" properties for nsf::proc (in
+	  "nsf::cmd::info definition /proc/" and serializer) [63fb7c1]
+
+
+	-
+	- documented purpose of TODO-file
+	- fixed typos in TODO [e24d276]
+
+2015-12-17  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- added nsf::method::property /obj/ /method/ debug ?0|1? when debug is
+	activated, a debug line written to the log file when the function is
+	called and exited [8854eef]
+
+
+	-
+	- update file name [471b3b3]
+
+2015-12-13  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- new introspection method: "/obj/ info baseclass"
+	- extended regression test [5a162b0]
+
+
+	-
+	- new introspection methods: "/obj/ info object method
+	  callprotection /m/" "/cls/ info method callprotection /m/"
+	- extended regression test [07b40a4]
+
+2015-12-12  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- fix ::Serializer->methodSerialize when called for per-object methods
+	  [2f76d3a]
+
+
+	-
+	- fix editing bug in documentation [c105770]
+
+2015-11-30  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- New macros NSF_nonnull_assert() and nonnull_assert() Background: The
+	unreleased gcc6 with "-pedantic" complaints since recently about
+	asserts, in which nonnull conditions implied by nonnull declarations
+	are explicitly tested, and spits out warnings like ... warning: nonnull
+	argument ... compared to NULL ... The new macros turns off asserts,
+	when gcc6 is used. [16a0288]
+
+
+	- Profile trace enhancements:
+	- add optional argument "-builtins" to nsf::__profile_trace
+	  to trace a selected list of builtins. Every element of
+	  the list passed to "-builtins" might contain a cmd name
+	  and optionally a maximum number of arguments to be shown
+	  (typically 0 or 1)
+	  - generalized NsfReplaceCommand* logic to become more general usable
+	  (e.g. for the builtins mechanism of nsf::__profile_trace) [19c8474]
+
+2015-11-27  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- remove redundant prototype [f1ac62f]
+
+
+	-
+	- update change history in todo [7da6935]
+
+
+	-
+	- Use standard logging for nsf::__profile_trace ...
+	  -verbose true ... By using the standard logging
+	  mechanism, we can redefining ::nsf::log to output e.g.
+	  trace in a GUI.
+	- Add argument "-dontsave" to nsf::__profile_trace to avoid
+	  saving trace in memory
+	- Refactor trace and debug output to deliver lists. This makes it
+	  easier to postprocess the results from Tcl. [55c89d7]
+
+
+	-
+	- place arguments of preprocessor macros into parens [6953255]
+
+2015-11-23  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- silence cppcheck 1.71 [a792884]
+
+2015-11-08  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- keep Tcl error messages, when Tcl_ObjSetVar2() fails. [74d126b]
+
+
+	-
+	- handle result of Tcl_ObjSetVar2() in all cases [2d42793]
+
+
+	-
+	- don't swallow errors triggered from variable write traces in
+	  configure [a709e3e]
+
+2015-11-06  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- Fixed a bug that disallowed the combination of valuecmd and
+	valuechangedcmd for a single property (many thanks to Zoran for
+	pointing this out) [3946480]
+
+
+	-
+	- white space change [dbe0bb3]
+
+2015-11-05  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- whitespace change [aca62da]
+
+2015-10-16  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+
+	- In certain build situations, we might still run under Tcl 8.4
+	(because it comes as a legacy OS battery). Tcl modules are >= 8.5
+	only. [b137911]
+
+2015-10-01  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- new command nsf::method::forward::property in analogy to
+	  nsf::method::property for reading+writing introspection
+	  of forwarders (important for serializer, when different
+	  target objects are specified, to map the per-object
+	  forwarder)
+	- extended regression test
+	- bumped version number of serializer to 2.1 [f31c1a0]
+
+2015-09-27  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- reduce implicit conversions
+	- wite body of if-statements as blocks
+	- whitespace changes
+	- prefer boolean expressions
+	- add likely/unlikely hints [afbb465]
+
+2015-09-26  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- prefer boolean expressions
+	- reduce implicit conversions
+	- wite body of if-statements as blocks
+	- whitespace changes
+	- update licenses [2e1a88e]
+
+2015-09-21  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- support building nsd from some other directory than the
+	  root directory
+	- raise no error, when nsf is built with mongo + profile enabled
+	  [1c9684a]
+
+2015-08-11  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- improve robustness of destroy: in case an error happened in a destroy
+	method in implicit delete operations, a crash was possible, since the
+	state of the object to be delete was somewhat unclear (it might or
+	might not have been deleted). Now, the object is explicitly kept longer
+	around to allow proper handling). [19058de]
+
+
+	-
+	- don't raise an error, but add warning in cases, slot data is
+	  inconsistent [71a3245]
+
+2015-07-29  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- don't define variables inside a block [9e1cdbe]
+
+
+	-
+	- address coverty CID 102646, second attempt [f3ca6a1]
+
+
+	-
+	- address coverty CID 102646 [f4c0008]
+
+
+	-
+	- address covertiy CID 88773 [f90a7fa]
+
+
+	-
+	- move assignmetns after assertions in generated code [cad3e31]
+
+
+	-
+	- revert overeager part of the change [ec070e9]
+
+
+	-
+	- remove logically dead code as flagged by coverity [0e247f6]
+
+2015-07-29  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+
+	- Adding details how to upload Coverity builds [6d4bc2b]
+
+2015-07-29  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- remove expression which were always true [bd4d7d0]
+
+
+	-
+	- turn for() loop into a repeat-until loop, since in first iteration,
+	  the loop controlling expression was always true [33aa1b2]
+
+
+	-
+	- address coverty CID 88774 [6adb5d9]
+
+
+	-
+	- address coverty issue 88776 [1a7f8ba]
+
+2015-07-28  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+
+	- Adding Coverity instructions [b43b9e2]
+
+2015-07-28  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- move assertion after assingment [9f90d6b]
+
+
+	-
+	- move dereferencing of members after assertions [00186f9]
+
+
+	-
+	- fix potential bug on tcl-triggered cmd-delete operations, where
+	destroy returns non-TCL_OK and name of the object could not be
+	retrieved anymore in error message. [92d76b8]
+
+
+	-
+	- attempt to make Coverty happy (CID 88769) [a4eaf4e]
+
+
+	-
+	- removed NsfParamDefs.slotObj (and single occurance for
+	  memory-management) since it is not used for the time being [08dedac]
+
+
+	-
+	- remove test, since it is covered already by assertions [accdf4b]
+
+
+	-
+	- write body-blocks of if on separate lines
+	- change variable name "validCscPtr" to "isValidCsc", since
+	  it is a boolean and not a ptr (tcl coding guidelines)
+	- prefer explicit comparisons [6c7bb9b]
+
+2015-07-28  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+
+	- MethodDispatch(): Fix compiler warning on typecast mismatch [4e2b21c]
+
+
+	- MixinregSetFromAny(): Re-arrange control flow as to match other uses
+	  in the code base (CID 88777) [1527180]
+
+2015-07-27  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+
+	- ResolveMethodName(): Guard against potential null pointer dereference
+	  (CID 88771). [ca7f760]
+
+
+	- FreeAllNsfObjectsAndClasses(): Remove unneeded NULL check as
+	dereferencing already occurred before; check for NULL earlier (CID
+	88780) [2638eb9]
+
+2015-07-23  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+
+	- MixinregSetFromAny(): Fix crash through explicit null dereferencing
+	when an invalid list string-rep is provided as mixinreg (CID 88777);
+	added tests [207a8f5]
+
+
+	- MakeProc(): Silence false-positive warning, due to missing
+	  returns_nonnull annotation (CID 88770). [a757c1a]
+
+2015-07-17  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+
+	- nsf.c: Check return values of GetObjectFromObj explicitly (CID 88763,
+	  88764, 88765). [8357e61]
+
+
+	- ObjectSystemsCheckSystemMethod(): Mark TCL_ERROR path as unlikely
+	  [c0e1053]
+
+
+	- ObjectSystemsCheckSystemMethod(): Re-order control flow to remove
+	  otherwise dead IF-branch (CID 88768) [1eaf0a3]
+
+
+	- NsfMethodPropertyCmd(): Dropped option 'slotobj' as it is obsolete.
+	  Also fixes CID 88767. See TODO for further cleanup steps. [6c9eb2e]
+
+
+	- info.man.inc: Make empty-string ambiguity explicit for 'info method
+	  *' [497451f]
+
+
+	- ListMethod(): Make sure that 'info method exists' returns 0 for
+	  (plain) NX objects; added some tests [0b1ac7f]
+
+
+	- ListCmdParams(): Removed logically dead code (CID 88779). [c2e5725]
+
+2015-07-16  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+
+	- NsfShowStack(): Removed logically dead code. CID 88766. [caee18f]
+
+2015-04-07  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- fix compilation when compiled without --enable-profile [6c58e11]
+
+2015-04-06  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- Improve profiling support
+	- added profile support for undispatched methods (i.e.
+	  implemented via CallDirectly)
+	- new function for controlling profile trace nsf:__profile_trace
+	  -enable /bool/ ?-verbose /bool/? [c5f2227]
+
+2015-04-03  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+
+	- Silence varargs warning (-Wgnu-zero-variadic-macro-arguments) under
+	clang --std=c99 -pedantic, tested under gcc, clang 3.6, and MSVC;
+	added tests [714726d]
+
+2015-04-01  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- changed trace facility to append to a variable to
+	  minimize interactions for results and return codes, which
+	  happen via nsf::log.
+	- added more convenient function for adding to DStrings:
+	  Nsf_DStringPrintf
+	- renamed NsfDStringPrintf to NsfDStringVPrintf
+	- replaced complex macros for tracing by functions [453ad27]
+
+2015-03-31  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- added experimental "nsf::configure trace" feature, which can be
+	enabled when compiled with profile support. trace turns on
+	automatically profile [e1c25b4]
+
+2015-01-22  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- improve cleanness of compilation when "-pedantic" is used [bf951b5]
+
+2015-01-05  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- move assignments after assertions [658c5ca]
+
+
+	-
+	- add -DNDEBUG=1 to flags passed to cppcheck, since cppcheck reports
+	  checked cases as warnings [efb84f6]
+
+2015-01-02  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- prefer const over CONST unless Tcl API [dbd95b0]
+
+2015-01-01  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- strip old content from announce file [5bdfdb7]
+
+2014-12-13  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- use same definition for ObjCmds as in tcl
+	- prefer "const" over "CONST" unless in Tcl interface [62beaf1]
+
+
+	-
+	- regenerate doc pages with asciidoc 8.6.9
+	- fix paths [24cb8f4]
+
+
+	-
+	- align log levels with NaviServer/AOLserver [6b00c4e]
+
+2014-12-11  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- fix all complaints from clang static analyzer 3.6 [919f731]
+
+2014-12-06  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- update date in documentation [d725e5e]
+
+
+	-
+	- make sure to rm .o files in stub directory [4f7f7c1]
+
+
+	-
+	- make sure to omit Mac OS X hidden file from tar balls [9fe4a51]
+
+2014-12-04  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- prefer boolean expression in tests over expressions of other types
+	  [24571ae]
+
+2014-12-01  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- add const declarations
+	- improve compilation with --std=c99 -pedantic [9e00fd1]
+
+
+	-
+	- make compilation clean with clang 3.6 [81a1f96]
+
+
+	-
+	- make compilation clean under clang 3.6 [1173a57]
+
+2014-11-25  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- add NsfArgumentError() to stub interface, since this
+	  might be used by c packages using the interface generator
+	- add mong::json to the interface
+	- bump version number for mongo interface to 0.4. [9e8610b]
+
+2014-10-29  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+
+	- Fix PDF rendering and man markup [83b89fe]
+
+2014-10-28  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+
+	- Revise announcement text slightly, add entry about manpages [04d83e1]
+
+2014-10-28  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- update changelog [f92aea6]
+
+
+	-
+	- Don't complain at final ObjectDeletion about object refcounts unless
+	  we are in development mode [6af7268]
+
+
+	-
+	- adding .3 man pages to ease installation [216bad6]
+
+
+	-
+	- adding .1 man pages to ease installation [5ea59ff]
+
+2014-10-28  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+
+	- Effectively remove getstubs from makefile.vc [c17a765]
+
+
+	  - Apply stubs* resolution withouh getstubs to makefile.vc [f446b1c]
+
+2014-10-27  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- update ChangeLog [db4cb3c]
+
+
+	-
+	- use newset versions, re-generated stub files [2ff112f]
+
+
+	-
+	- adjust genstubs target to subdir logic [e494dcc]
+
+
+	-
+	- handle nsfUtil.c from version-specific subdirectory [8d8e1ba]
+
+
+	-
+	- binor polishing [49cffe6]
+
+2014-10-27  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+
+	- NsfDStringPrintf(): Fix vargs processing under VC 12 [ada0c34]
+
+2014-10-27  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- get rid of getstubs [8c6ae48]
+
+
+	-
+	- provide actual pkgIndex files [96a1e6b]
+
+
+	-
+	- keep an internal list of Tcl_Objs of type mixinrefs for classes used
+	as mixins. This list is used for avoiding stale entries in cases the
+	mixin class is destroyed. [36b29a9]
+
+
+	-
+	- remove redundant and different prototype [15beef0]
+
+2014-10-27  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+
+	- Left comment block unbalanced, fix [a553acc]
+
+
+	- Bump version numbers in nx.tcl and xotcl2.tcl; adjust license
+	  statements [87e9176]
+
+
+	- Rearrange 'make getstubs' slightly, so that we do not require the
+	  stub files present in generic/* for the build machinery to work
+	properly [4619c8c]
+
+
+	  - Done revising license statements in generic/* [cbcfec7]
+
+2014-10-27  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- fix a heisenbug probably showing sometimes up due to more aggressive
+	  Tcl_Obj sharing in newer versions of tcl 8.6 [5163190]
+
+2014-10-27  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+
+	- Correct and unify licensing statements in header files [481023b]
+
+
+	  - Fix copyright statements in stubs* files [6d2855a]
+
+
+	- Fix copyright dates [f5cbe77]
+
+2014-10-26  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+
+	- Silence instructions, do not install xowish.in/ xotclsh.in [2f8dfd2]
+
+
+	- Bump version number in win build files [d5e628d]
+
+
+	- Trigger generation of pgk index scripts [dbddf13]
+
+
+	- Trigger generation of pgk index scripts [bb58731]
+
+
+	- Trigger generation of pgk index scripts [4d489c5]
+
+
+	- Trigger generation of pgk index scripts [fa62f3a]
+
+
+	- Adding another missing obj target [0f10c4b]
+
+
+	- Irgh! Fix file extension [67ab2c4]
+
+
+	- Add EXTERN to calm VC12, add missing C files from makefile.vc
+	  [0e9d5de]
+
+2014-10-25  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+
+	- Use correct slashing [dcdddbf]
+
+
+	- Render file paths in a platform-independent manner [ce20199]
+
+
+	- Make sure genstub.tcl is called in makefile.vc [a166e33]
+
+
+	- Update nmakehlp (required for VC 12+) [4e113a8]

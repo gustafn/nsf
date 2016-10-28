@@ -1,0 +1,75 @@
+Dear Community,
+
+We are pleased to announce the availability of the Next Scripting
+Framework (NSF) 2.1.0.
+
+This is a maintenance release. Since the release of 2.0.0, there have
+been more than 360 commits to our code repository. The Next Scripting
+Framework was tested with Tcl 8.5.19 and Tcl 8.6.6 on Linux, Mac OS X,
+and in Windows enviroments (MinGW, VC).
+
+Diff stats since 2.0.0:
+
+171 files changed, 30137 insertions(+), 13932 deletions(-)   
+
+Major changes relative to 2.0.0 are:
+
+a) 
+
+b) 
+
+c) 
+
+d) 
+   
+e) Updated MongoDB interface:
+   
+   ...
+
+f) API changes:
+
+    Dropped methods:
+
+    Added methods:
+
+
+    Added (sub-)commands:
+
+       ::nsf::current level
+
+g) Documentation (API and examples):
+
+   Added:
+
+	- New Rosetta implementations:
+
+	  Inheritance/Single
+	  
+
+   Updated:
+
+	- Object.man: Added description on 'info lookup parameters' and
+	  'info lookup syntax'.
+
+	- current.man: Added description of 'level' option.
+
+h) Code changes (C):
+
+   * Removed all implicit type-conversions, signed/unsigned
+     comparisons as flagged by the following gcc/clang flags (ensure
+     cleanness on 64bit) -Wconversion -Wsign-conversion
+     -Wfloat-conversion -Wsign-compare.
+   * Reduced variable scopes.
+
+i) Packaging: Updated TEA to 3.10
+
+The Next Scripting Framework 2.1.0 (containing NX and XOTcl 2.1.0) can
+be obtained from https://next-scripting.org/.
+
+The detailed ChangeLog is available at
+https://next-scripting.org/xowiki/download/file/ChangeLog-2.0.0-2.1.0
+
+Best regards
+- Gustaf Neumann
+- Stefan Sobernig
+
