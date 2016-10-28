@@ -200,7 +200,7 @@ nx::Class create Die {
 	# Roll the dice and animate rolling
 	#
 	# wiggle: amount, pick one of eight wiggle directions
-	set dwig [expr ${:size}/5]
+	set dwig [expr {${:size}/5}]
 	for {set i 10} {$i<100} {incr i 10} {
 	    :set [expr {int(rand() * 6) + 1}]
 	    set wig [random:select {0,1 0,-1 1,0 -1,0 1,1 -1,1 1,-1 -1,-1}]
@@ -340,13 +340,13 @@ nx::Class create Board {
 	if {$x0 eq $x1} {
 	    # vertical
 	    set f [expr {$y1<$y0 ? -1.25 : 1.25}]
-	    for {set i 0} {$i < [expr {int(abs($y1-$y0)/($d*1.25))}]} {incr i} {
+	    for {set i 0} {$i < int(abs($y1-$y0)/($d*1.25))} {incr i} {
 		:point $x0 $y0+$i*$d*$f $d
 	    }
 	} else {
 	    # horizontal
 	    set f [expr {$x1<$x0 ? -1.25 : 1.25}]
-	    for {set i 0} {$i < [expr {int(abs($x1-$x0)/($d*1.25))}]} {incr i} {
+	    for {set i 0} {$i < int(abs($x1-$x0)/($d*1.25))} {incr i} {
 		:point $x0+$i*$d*$f $y0 $d -number
 	    }
 	}
@@ -391,7 +391,7 @@ nx::Class create Board {
 	:pnest $m+$o-$d $m+$o-$d $d2 1 -1 -2.5 
 	:pnest $d15     $m+$o-$d $d2 2  1 -2.5 
 	:pnest $d15     $m-$o+$d $d2 3  1  3
-	for {set i 0;set y [expr $d*2]} {$i<4} {incr i;set y [expr {$y+$d}]} {
+	for {set i 0; set y [expr $d*2]} {$i<4} {incr i;set y [expr {$y+$d}]} {
 	    lappend p(0) [:point $m      $y      $d2 -fill [lindex ${:colors} 0]]
 	    lappend p(1) [:point $m*2-$y $m      $d2 -fill [lindex ${:colors} 1]]
 	    lappend p(2) [:point $m      $m*2-$y $d2 -fill [lindex ${:colors} 2]]
