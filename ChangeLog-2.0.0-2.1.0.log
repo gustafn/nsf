@@ -1,220 +1,194 @@
 2016-10-27  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-	xotcl2.tcl:
-	- Fix regressions due to uplevel mambo-jumbo. [020d3d6]
-	- Make sure that Class->unknown bypasses filter and mixin
-	   frames. [9dcea26]
+	* xotcl2.tcl
+	(Class->unknown): Fix regressions due to uplevel mambo-jumbo. [020d3d6]
+	(Class->unknown): Make sure that Class->unknown bypasses filter and mixin
+	frames. [9dcea26]
 
 2016-10-26  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-	nsf.c
-	- ExitHandler(): Re-locate clearing history from finalize to
-	   ExitHandler. [59b4e8c]
+	* nsf.c (ExitHandler): Re-locate clearing history from finalize to
+	ExitHandler. [59b4e8c]
 
 2016-10-22  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-	nsf.c:
-	- NsfFinalizeCmd(): Clear Tcl's history list explicitly before
-	   finalizing NSF. See also Tcl ticket 1ae12987cb. [6be629e]
+	* nsf.c (NsfFinalizeCmd): Clear Tcl's history list explicitly
+	before finalizing NSF. See also Tcl ticket 1ae12987cb. [6be629e]
 
 2016-10-16  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-	nx.tcl:
-	- nx::Class->unknown: Rewrite unknown message to include '?...?'.
-	   [371cc41]
+	* nx.tcl (nx::Class->unknown): Rewrite unknown message to include
+	'?...?'. [371cc41]
 
-	nsfStack.c:
-	- Unify writing style. [114df8b]
+	* nsfStack.c: Unify writing style. [114df8b]
 
-	nsfProfile.c:
-	- Fix typos in code comments. [5447fe0]
+	* nsfProfile.c: Fix typos in code comments. [5447fe0]
 
-	nsfFunPtrHashTable.c:
-	- Fix typos in code comments. [6e37cdb]
+	* nsfFunPtrHashTable.c: Fix typos in code comments. [6e37cdb]
 
 2016-10-15  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	nsfError.c:
-	- Cleanup: remove spurious blank in error message, fix typo in
-	   print string. [e0da9e0]
+	* nsfError.c: Cleanup: remove spurious blank in error message, fix
+	typo in print string. [e0da9e0]
 
 2016-10-15  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-	nx.tcl:
-	- Commit missing unknown message change. [dafe310]
+	* nx.tcl: Commit missing unknown message change. [dafe310]
 
 2016-10-15  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	nsf.h, nsfError.c:
-	- NsfNoCurrentObjectError: Improve comment and signature. [5abaa15]
-	- Improve wording of other commends, keep comments within the limits of
-	  the header/trailer line. [5abaa15]
+	* nsf.h, nsfError.c:
+	(NsfNoCurrentObjectError): Improve comment and signature. [5abaa15]
+	Improve wording of other comments, keep comments within the limits of
+	the header/trailer line. [5abaa15]
 
 2016-10-14  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-	Test suite:
-	- Adjust the test suite for the latest rewording of the
-	   nx::Class unknown message. [2717622]
+	* Testsuite: Adjust the test suite for the latest rewording of
+	the nx::Class unknown message. [2717622]
 
-	nsfError.c:
-	- Fixed typos and unified writing style in code comments.
-	   [f139db6]
+	* nsfError.c: Fixed typos and unified writing style in code comments.
+	[f139db6]
 
-	nsfObj.c:
-	- Fix some typos and align writing style. [1ce1f6a]
+	* nsfObj.c: Fix some typos and align writing style. [1ce1f6a]
 
 2016-10-14  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	nsf.c:
-	- Fix typos in comments, align commenting style. [5ba5873]
+	* nsf.c: Fix typos in comments, align commenting style. [5ba5873]
 
-	nx.tcl:
-	- Make xotcl::Class->unknown hint more explicit and
+	* nx.tcl: Make xotcl::Class->unknown hint more explicit and
 	verbose. [4dda010]
 
 2016-10-13  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-	nsf.c:
-	- ObjectSystemsCleanup: Remove interp resolvers explicitly before
-	   the physical cleanup round. [371e0e3]
-	- DeleteProcsAndVars: Silence compiler warning and reduce variable
-	  scope (spotted with memtracking on). [7992ec4]
+	* nsf.c:
+	(ObjectSystemsCleanup): Remove interp resolvers explicitly before
+	the physical cleanup round. [371e0e3]
+	(DeleteProcsAndVars): Silence compiler warning and reduce variable
+	scope (spotted with memtracking on). [7992ec4]
 
 2016-10-12  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-	shells.test:
-	- Add two tests on try/finally. [ce511c8]
+	* shells.test:  Add two tests on try/finally. [ce511c8]
 
-	nx-shell.tcl
-	- Extend the exit wrapper to include Tcl 8.6 try [8f55f92]
-	- Make sure that the proper exit code is provided when
-	   leaving the -c stdin mode. [f83d0a1]
+	* nx-shell.tcl:
+	Extend the exit wrapper to include Tcl 8.6 try [8f55f92]
+	Make sure that the proper exit code is provided when
+	leaving the -c stdin mode. [f83d0a1]
 
 2016-10-12  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	shells.test:
-	- Add two more tests of plain tclsh. [0c79f62]
-	- Remove superfluous (and incorrect) tests. [3f7e49e] reverting
-           [152c1d3]
+	* shells.test:
+	Add two more tests of plain tclsh. [0c79f62]
+	Remove superfluous (and incorrect) tests. [3f7e49e] reverting
+        [152c1d3]
+	Extend regression test for shell with tests in [info
+	nameofexecutable] rather than in nxsh [152c1d3]
 
-	nsf.c:
-	- Don't call tcl eval operations from NsfLog() in phyical
-	   destroy round.
-	- Extend regression test for shell with tests in [info
-	   nameofexecutable] rather than in nxsh [152c1d3]
+	* nsf.c (NsfLog): Don't call Tcl eval operations from NsfLog() in phyical
+	destroy round.
 
 2016-10-12  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-	shells.test:
-	- Add some more tests [31727ed]
+	* shells.test: Add some more tests. [31727ed]
 
-	nx-shell.tcl:
-	- nx::shell2: Rewrote in-shell exit support to avoid Tcl's native
-	   exit and to unwind gracefully to avoid NSF refcount leaks on exit;
-	   bumped package number. [0956bd0]
+	* nx-shell.tcl (nx::shell2): Rewrote in-shell exit support to
+	avoid Tcl's native exit and to unwind gracefully to avoid NSF
+	refcount leaks on exit; bumped package number. [0956bd0]
 
 2016-10-10  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	nsf.c, nsfInt.h:
-	- Improve sanity test in ISOBJ(): obj->bytes might only be NULL
-	   when type is given. [472a3c5]
+	* nsf.c, nsfInt.h: Improve sanity test in ISOBJ(): obj->bytes
+	might only be NULL when type is given. [472a3c5]
 
 2016-10-09  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-	TEA:
-	- Updated m4/tcl.m4 to most recent TEA version: 3.10, regenerated
-	autotools artifacts. [4a30a3a]
+	* TEA (tcl.m4): Updated m4/tcl.m4 to most recent TEA version:
+	3.10, regenerated autotools artifacts. [4a30a3a]
 
 2016-10-08  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	nsfUtil.c:
-	- Cleanup of strnstr() (when the clib function is not available).
-	  [a8b3805]
+	* nsfUtil.c: Cleanup of strnstr() (when the clib function is not available).
+	[a8b3805]
 
-	generic/*:
-	- Cleaning up white spaces (mostly strip trailing spaces, remove a
-	   few tabs). [77ba24e]
-	- Cleanup of type conversions. [1d1ca56]
-	- Reduce variable scopes. [fbd52e6]
+	* generic/*:
+	Cleaning up white spaces (mostly strip trailing spaces, remove a
+	few tabs). [77ba24e]
+	Cleanup of type conversions. [1d1ca56]
+	Reduce variable scopes. [fbd52e6]
 
 2016-10-07  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	nsf.c:
-	- Cleanup of type conversions in first ~18000 lines. [4e70d6d]
+	* nsf.c: Cleanup of type conversions in first ~18000 lines. [4e70d6d]
 
 2016-10-07  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-	current.man:
-	- Extend doc on nx::current to include 'nx::current level'
-	  [d49b5f9]
+	* current.man (current.man): Extend doc on nx::current to include
+	nx::current level [d49b5f9]
 
 2016-10-07  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	nsf.c:
-	- Cleanup of type conversions in first ~6000 lines. [099e1ee]
+	* nsf.c: Cleanup of type conversions in first ~6000 lines. [099e1ee]
 
-	nsf.c, nsfAPI.*:
-	- New subcommand "nsf::current level", which returns an empty
-	   string when outside an NSF frame/level. [8465a13]
-	- Keep compatibility with traditional "nsf::current activelevel"
-	   (continue to return 1, if we are not on an NSF frame). [8465a13]
-	   reverting [dbd850e].
+	* nsf.c, nsfAPI.*
+	(NsfCurrentCmd): New subcommand "nsf::current level", which
+	returns an empty string when outside an NSF frame/level. [8465a13]
+	(NsfCurrentCmd): Keep compatibility with traditional "nsf::current
+	activelevel" by returning 1, if we are not on an NSF
+	frame. [8465a13] reverting [dbd850e].
 
 2016-10-06  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	nsf.c:
-	- Return from "nsf::current callinglevel" the value 0 (instead of
-	   1), when it is called outside of an NSF frame, which has an NSF
-	   object associated. [dbd850e]
+	* nsf.c (NsfCurrentCmd): Return from "nsf::current callinglevel"
+	the value 0 (instead of 1), when it is called outside of an NSF
+	frame, which has an NSF object associated. [dbd850e]
 
 2016-10-05  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-	nsf.c:
-	- UnsetTracedVars: Silence compiler warning under 8.5 by providing
+	* nsf.c (UnsetTracedVars): Silence compiler warning under 8.5 by providing
 	an explicit cast. [abfaf40]
 
-	Documentation:
-	- Add another Rosetta example: Inheritance/Single [c7738a3]
-	- rosetta-multiple-inheritance.tcl: Fix typo L3 -> C3 [3617b69]
-	- Object.man: Include missing doc in 'info lookup parameters' and 'info
-	  lookup syntax' [4bfe0ad]
+	* Documentation
+	(rosetta-single-inheritance.tcl):Add another Rosetta example:
+	Inheritance/Single [c7738a3]
+	(rosetta-multiple-inheritance.tcl): Fix typo L3 -> C3 [3617b69]
+	(Object.man): Include missing doc in 'info lookup parameters' and 'info
+	lookup syntax' [4bfe0ad]
 
 2016-10-04  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-	nsf.c:
-	- ParamOptionParse: 'virtualobjectargs' and 'virtualclassargs'
-	   defaulted to ConvertViaCmd when parsed from Tcl spec; explicitly
-           set ConvertToNothing to match the intended semantics and to avoid
-	   false warnings (e.g., missing type=virtualobjectargs type checker).
-	   [03b838a]
-	- NsfParameterInfoCmd: Correct two typos in in-code
-	   comment. [6d563e2]
+	* nsf.c:
+	(ParamOptionParse): 'virtualobjectargs' and 'virtualclassargs'
+	defaulted to ConvertViaCmd when parsed from Tcl spec; explicitly
+        set ConvertToNothing to match the intended semantics and to avoid
+	false warnings (e.g., missing type=virtualobjectargs type checker).
+	[03b838a]
+	(NsfParameterInfoCmd): Correct two typos in in-code
+	comment. [6d563e2]
 
 2016-10-02  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-	Makefile.in:
-	- Register Rosetta examples. [ec6103a]
+	* Makefile.in: Register Rosetta examples. [ec6103a]
 
 2016-10-02  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	nsf.c, nsf.h:
-	- Make NSF compilable with "-DTCL_NO_DEPRECATED". [9cce0c1]
+	* nsf.c, nsf.h: Make NSF compilable with "-DTCL_NO_DEPRECATED". [9cce0c1]
 
 2016-10-01  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-	Documentation:
-	- Remove redundant Rosetta example implementations. [14d4d3a]
-	- Added another Rosetta example: multiple inheritance. [92c1ac3]
+	* Documentation:
+	Remove redundant Rosetta example implementations. [14d4d3a]
+	(rosetta-multiple-inheritance.tcl): Added another Rosetta example:
+	multiple inheritance. [92c1ac3]
 
 2016-09-30  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-	nsf.c:
-	- RemoveInstance(): Fix typo and improve wording of nsf::log warning
-	   slightly. [8a106d9]
+	* nsf.c (RemoveInstance): Fix typo and improve wording of nsf::log warning
+        slightly. [8a106d9]
 
-	Documentation:
-	- Object.man: Correct the documentation bit on Object->copy. [4b2d241]
-	- Added another Rosetta example: Polymorphic copy [922c0ab]
+	* Documentation
+	(Object.man): Correct the documentation bit on Object->copy. [4b2d241]
+	(rosetta-clone.tcl): Added another Rosetta example: Polymorphic copy [922c0ab]
 
 2016-09-29  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
