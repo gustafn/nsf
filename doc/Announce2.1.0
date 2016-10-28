@@ -20,7 +20,22 @@ b)
 
 c) 
 
-d) 
+d) Improved robustness:
+
+   * Tcl command resolvers and command literals:
+
+   Up to and including Tcl 8.6.6, there were subtle and unwanted
+   interactions between Tcl's command resolvers in certain corner
+   cases (which are used by NSF dispatcher for colon-prefixed messages
+   and helper commands) and Tcl's command literals. The issue and patches
+   were reported upstream to the Tcl core by Gustaf Neumann and will
+   enter an upcoming patch release (8.6.7). Our regression test-suite
+   was extended accordingly to track the issue.
+
+   See Tcl Fossil tickets ... and ...
+
+   * UnsetTracedVars:
+   
    
 e) Updated MongoDB interface:
    
@@ -43,15 +58,25 @@ g) Documentation (API and examples):
 
 	- New Rosetta implementations:
 
-	  Inheritance/Single
-	  
+	  Inheritance/single
+	  Add object variable dynamically
 
    Updated:
 
-	- Object.man: Added description on 'info lookup parameters' and
+	- Object.man:
+
+	  * Added missing description on 'info lookup parameters' and
 	  'info lookup syntax'.
 
+	  * Correct description of Object->copy.
+
 	- current.man: Added description of 'level' option.
+
+	- Extended/ updated Rosetta implementations:
+
+	  Inheritance/multiple
+	  Polymorphic copy
+	  Multiple distinct objects
 
 h) Code changes (C):
 
