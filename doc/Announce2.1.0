@@ -58,8 +58,8 @@ o) Minor logging reform at the C-level (NsfLog, interp) so that
    a level equal or greater than the given severity (0, 1, 2, 3). For
    example, "nsf::configure debugLevel 0" will print everything, and
    "nsf::configure debugLevel 3" will print just error messages while
-   omiting warnings etc. This is not entail changed logging semantics,
-   but helped remove some confusion at the C level.
+   omiting warnings etc. This does not entail changed logging
+   semantics, but helped remove some confusion at the C level.
 
 o) Improved NSF/C code generator: Allows for specifying and generating
    enum types.
