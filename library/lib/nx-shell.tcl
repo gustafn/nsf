@@ -130,17 +130,17 @@ nx::Object create ::nx::shell2 {
 
     :public object method onTry {script args} {
       set l [llength $args]
-      for {set i 0; set j 1} {$i < $l} {incr i; set j [expr {$i+1}]} {
+      for {set i 0; set j 1} {$i < $l} {incr i; set j [expr {$i + 1}]} {
         # watch out for the finally handler
-        if {$i == [expr {$l-2}] && [lindex $args $i] eq "finally"} {
+        if {$i == $l - 2 && [lindex $args $i] eq "finally"} {
           set finallyScript [lindex $args $j]
           lset args $j [list [current] onHandler $finallyScript]
           break
         }
         # watch out for on-return handlers
-        if {$i < [expr {$l-3}] && [lindex $args $i] eq "on" && [lindex $args $j] in {return 2}} {
+        if {$i < $l - 3 && [lindex $args $i] eq "on" && [lindex $args $j] in {return 2}} {
           # imputate a wrapped return script
-          set idx [expr {$i+3}]
+          set idx [expr {$i + 3}]
           set returnScript [lindex $args $idx]
           lset args $idx [list [current] onHandler $returnScript]
           incr i 3
