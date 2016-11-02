@@ -417,10 +417,10 @@ namespace eval ::xotcl {
 
 
   Class instproc unknown {args} {
-    #puts stderr "use '[self] create $args', not '[self] $args'"
+    # puts stderr "use '[self] create $args', not '[self] $args'"
     set lvl 1
-    if {[self isnext]} {
-      set lvl [self callinglevel]
+    if {[::nsf::current isnextcall]} {
+      set lvl [::nsf::current callinglevel]
     }
     uplevel $lvl [list [self] create {*}$args]
   }
