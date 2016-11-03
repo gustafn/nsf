@@ -811,39 +811,39 @@ typedef struct NsfCallStackContent {
 #endif
 } NsfCallStackContent;
 
-#define NSF_CSC_TYPE_PLAIN                    0U
-#define NSF_CSC_TYPE_ACTIVE_MIXIN             1U
-#define NSF_CSC_TYPE_ACTIVE_FILTER            2U
-#define NSF_CSC_TYPE_INACTIVE                 4U
-#define NSF_CSC_TYPE_INACTIVE_MIXIN           5U
-#define NSF_CSC_TYPE_INACTIVE_FILTER          6U
-#define NSF_CSC_TYPE_GUARD                 0x10U
-#define NSF_CSC_TYPE_ENSEMBLE              0x20U
+#define NSF_CSC_TYPE_PLAIN                    0u
+#define NSF_CSC_TYPE_ACTIVE_MIXIN             1u
+#define NSF_CSC_TYPE_ACTIVE_FILTER            2u
+#define NSF_CSC_TYPE_INACTIVE                 4u
+#define NSF_CSC_TYPE_INACTIVE_MIXIN           5u
+#define NSF_CSC_TYPE_INACTIVE_FILTER          6u
+#define NSF_CSC_TYPE_GUARD                 0x10u
+#define NSF_CSC_TYPE_ENSEMBLE              0x20u
 
-#define NSF_CSC_CALL_IS_NEXT                  1U
-#define NSF_CSC_CALL_IS_GUARD                 2U
-#define NSF_CSC_CALL_IS_ENSEMBLE              4U
-#define NSF_CSC_CALL_IS_COMPILE               8U
+#define NSF_CSC_CALL_IS_NEXT                  1u
+#define NSF_CSC_CALL_IS_GUARD                 2u
+#define NSF_CSC_CALL_IS_ENSEMBLE              4u
+#define NSF_CSC_CALL_IS_COMPILE               8u
 
 
-#define NSF_CSC_IMMEDIATE           0x000000100U
-#define NSF_CSC_FORCE_FRAME         0x000000200U
-#define NSF_CSC_CALL_NO_UNKNOWN     0x000000400U
-#define NSF_CSC_CALL_IS_NRE         0x000002000U
-#define NSF_CSC_MIXIN_STACK_PUSHED  0x000004000U
-#define NSF_CSC_FILTER_STACK_PUSHED 0x000008000U
-#define NSF_CSC_METHOD_IS_UNKNOWN   0x000010000U
+#define NSF_CSC_IMMEDIATE           0x000000100u
+#define NSF_CSC_FORCE_FRAME         0x000000200u
+#define NSF_CSC_CALL_NO_UNKNOWN     0x000000400u
+#define NSF_CSC_CALL_IS_NRE         0x000002000u
+#define NSF_CSC_MIXIN_STACK_PUSHED  0x000004000u
+#define NSF_CSC_FILTER_STACK_PUSHED 0x000008000u
+#define NSF_CSC_METHOD_IS_UNKNOWN   0x000010000u
 
 /* flags for call method */
-#define NSF_CM_NO_UNKNOWN           0x000000001U
-#define NSF_CM_NO_SHIFT             0x000000002U
-#define NSF_CM_IGNORE_PERMISSIONS   0x000000004U
-#define NSF_CM_NO_OBJECT_METHOD     0x000000008U
-#define NSF_CM_SYSTEM_METHOD        0x000000010U
-#define NSF_CM_LOCAL_METHOD         0x000000020U
-#define NSF_CM_INTRINSIC_METHOD     0x000000040U
-#define NSF_CM_KEEP_CALLER_SELF     0x000000080U
-#define NSF_CM_ENSEMBLE_UNKNOWN     0x008000000U
+#define NSF_CM_NO_UNKNOWN           0x000000001u
+#define NSF_CM_NO_SHIFT             0x000000002u
+#define NSF_CM_IGNORE_PERMISSIONS   0x000000004u
+#define NSF_CM_NO_OBJECT_METHOD     0x000000008u
+#define NSF_CM_SYSTEM_METHOD        0x000000010u
+#define NSF_CM_LOCAL_METHOD         0x000000020u
+#define NSF_CM_INTRINSIC_METHOD     0x000000040u
+#define NSF_CM_KEEP_CALLER_SELF     0x000000080u
+#define NSF_CM_ENSEMBLE_UNKNOWN     0x008000000u
 
 
 #define NSF_CSC_COPY_FLAGS          (NSF_CSC_MIXIN_STACK_PUSHED|NSF_CSC_FILTER_STACK_PUSHED|NSF_CSC_IMMEDIATE|NSF_CSC_FORCE_FRAME|NSF_CM_LOCAL_METHOD)
