@@ -687,6 +687,42 @@ nx::test case space-in-classname {
   # check the result of the mixin class
   ? {c1 foo} "next-::M1 b"
 }
+
+nx::test case filtered-unknowns {
+  package req XOTcl
+
+  ? {info exists ::filtersCalled} 0
+  
+  xotcl::Class create C
+  
+  xotcl::Object instproc f {args} {
+    if {[self] eq "::C" && [lindex $args 0] eq "::c1111"} {
+      lappend ::filtersCalled "[self proc] ([self calledproc])"
+    }
+    next
+  }
+    
+  xotcl::Class instproc f2 {args} {
+    if {[self] eq "::C" && [lindex $args 0] eq "::c1111"} {
+      lappend ::filtersCalled "[self proc] ([self calledproc])"
+    }
+    next
+  }
+
+  ? {info commands ::c1111} ""
+  
+  ? {xotcl::Object instfilter f; xotcl::Class instfilter f2; C ::c1111} ::c1111
+
+  ? {info exists ::filtersCalled} 1
+  ? {set ::filtersCalled} {{f2 (unknown)} {f (unknown)}\
+                                         {f2 (create)} {f (create)}\
+                                         {f2 (alloc)} {f (alloc)}}
+
+  xotcl::Object instfilter ""
+  xotcl::Class instfilter ""
+
+  unset -nocomplain ::filtersCalled
+}
 #
 # Local variables:
 #    mode: tcl
