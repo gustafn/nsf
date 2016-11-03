@@ -5934,6 +5934,33 @@ catch {={*}[list foo 1 2 3 4 5 6]} msg; puts msg=$msg
 ========================================================================
 TODO:
 
+- XOTcl2, creates via unknown "fails" (does not trigger
+  create/recreate) if intercepted by filters (because ::c1 is
+  considered an existing cmd and ::c1 defaultmethod is dispatched):
+
+package req XOTcl
+
+xotcl::Class create C
+
+xotcl::Object instproc f args {
+    puts f([self calledproc]); next
+}
+
+xotcl::Object instfilter f; # turn off to see regular behavior.
+
+puts [C ::c1]; # Class->unknown is called!
+puts ---
+puts [C ::c1]; # With filter 'f' on, Class->unknown is *not* called anymore. It should, otherwise (re-)create etc. is never triggered ...
+
+Some background: NextSearchAndInvoke() on a filter next does not check
+for dispatches based on object commands (as ObjectDispatch() *after*
+filter processing), but introducing a:
+
+ if (cmd != NULL && CmdIsNsfObject(cmd)) { /* ... */ cmd = NULL; } 
+
+leads to unwanted interactions with ensemble objects/methods.
+
+
 - Should we add exists to the Variableslot-Interface, to surface ::nsf::var::exists.
 
 +  ::nx::VariableSlot public method value=exists {obj prop} {
