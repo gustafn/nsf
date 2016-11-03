@@ -13423,8 +13423,13 @@ ObjectDispatchFinalize(Tcl_Interp *interp, NsfCallStackContent *cscPtr,
    */
   if (likely(result == TCL_OK)) {
 
+    /*
+     * When triggered via filter, we might have cases with NRE, where the
+     * filter is called from a filter, leading to an unknown cscPtr->objv);
+     * however, there is no need to dispatch in such a case the unknown method.
+     */
     if (unlikely(((flags & NSF_CSC_METHOD_IS_UNKNOWN) != 0u)
-                 || ((cscPtr->frameType == NSF_CSC_TYPE_ACTIVE_FILTER) && rst->unknown)
+                 || ((cscPtr->frameType == NSF_CSC_TYPE_ACTIVE_FILTER) && rst->unknown && (cscPtr->objv != NULL))
                  )) {
       result = DispatchUnknownMethod(interp, object,
                                      cscPtr->objc, cscPtr->objv, NULL, cscPtr->objv[0],
@@ -14251,6 +14256,7 @@ DispatchUnknownMethod(Tcl_Interp *interp, NsfObject *object,
     Tcl_Obj *tailMethodObj = NULL;
     if (objc > 1 && ((*methodName) == '-' || (unknownObj && objv[0] == unknownObj))) {
       int length;
+
       tailMethodObj = objv[1];
       if (Tcl_ListObjLength(interp, objv[1], &length) == TCL_OK) {
         if (length > 1) {
@@ -25241,7 +25247,7 @@ NsfFinalizeCmd(Tcl_Interp *interp, int withKeepvars) {
    * Interestingly, NsfLog() seems to be unavaliable at this place.
    */
   if (RUNTIME_STATE(interp)->doTrace == 1) {
-    NsfLog(interp, NSF_LOG_WARN, "tracing is still running, deactivate due to cleanup");
+    NsfLog(interp, NSF_LOG_WARN, "tracing is still active; deactivate it due to cleanup.");
     NsfProfileTrace(interp, 0, 0, 0, NULL);
   }
 #endif
