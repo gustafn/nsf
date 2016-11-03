@@ -50,8 +50,20 @@ o) Improved robustness:
    Tcl itself. See also Tcl Fossil ticket 4dbdd9af144dbdd9af14.   
    
 o) Improved scripted shells (e.g., nxsh, xotclsh):
-   
-   * Don't quit due to inner [return] calls.
+
+   * There is now an alternative implementation of nx::shell:
+   nx::shell2. It is used by all four shell scripts. nx::shell2 builds
+   on Tcl's event loop, rather than while + update. This avoids
+   blocking the Tk main window (update). In addition, nx::shell2 is
+   closer to Tcl's native shells (e.g., no extra lines on enter,
+   catches EOF).
+
+   * The improved shells now accept stdin input (-c option).
+
+   * They are more robust: Don't quit due to inner [return] calls,
+     [exit] is handled gracefully.
+
+   * Shell tests were added (shells.test).
 
 o) Minor logging reform at the C-level (NsfLog, interp) so that
    "nsf::configure debugLevel /severity/" will print error messages at

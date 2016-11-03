@@ -358,223 +358,175 @@
 
 2016-08-04  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
+	* nsf.c, nsfCmdDefinitions.c, nsfEnumerationType.c
+	(ExitHandler, Nsf_CmdDefinitionRelease): Provide for
+	releasing/deleting the hash table for cmd definitions. [843e576]
+	(ExitHandler, Nsf_EnumerationTypeRelease): Provide for
+	releasing/deleting the hash table for enumeration-type converters
+	in ExitHandler. [843e576]
 
-	- Improve comment wording and cleanup [6a52879]
-
-
-	- FreeFunPtrEntry is not needed actually [2cec82c]
-
-
-	- Fix refcounting [a2021fc]
-
-
-	- FreeFunPtrEntry(): Add deletion handler for cmddef and
-	  enumeration-type hash entries [2124b26]
-
-
-	- nsfCmdDefinitions.c: Fix typos [b4d254a]
-
-
-	- Provide for releasing/deleting the hash tables for cmd definitions
-	  and enumeration-type converters in ExitHandler [843e576]
+	* nsfFunPtrHashTable.c (FreeFunPtrEntry): Remove deletion handler
+	for cmddef and enumeration-type hash entries, not needed
+	currently.
 
 2016-08-02  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
+	* generic/**.c: Code cleanup (remove various code smells by
+	adding const declarations, preferring boolean tests, avoid "for"
+	loops without a block, don't pass non-initialized value in an
+	array on index [0], reducing variable scope, preferring single
+	returns statements in functions, dont't use CONST unless defined
+	by Tcl API. [8eecbe5]
 
-	- remove various code smells:
-	- add const declarations
-	- prefer boolean tests
-	- don't write "for" loops without a block
-	- don't pass non-initialized value in an array on index [0]
-	- reduce variable scope
-	- prefer single returns statements in functions
-	- dont't use CONST unless defined by Tcl-API [8eecbe5]
-
-
-	-
-	- make effects of namespace-imported classes more local [3b5f62d]
+	* nsf.c: Limit effects of namespace-imported classes. [3b5f62d]
 
 2016-08-01  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	- FilterSearchAgain(): Avoid running into an invalid pointer access,
-	when the physical deletion of "del" conflicts with following the next
-	link in the cmdList in the loop's increment statement (only iff del ==
-	cmdList). Re-organized for into a while loop, to avoid redundant code.
-	[0311e86]
+	* nsf.c (FilterSearchAgain): Avoid running into an invalid pointer
+	access, when the physical deletion of "del" conflicts with
+	following the next link in the cmdList in the loop's increment
+	statement (only iff del == cmdList). Re-organized for into a while
+	loop, to avoid otherwise redundant code. [0311e86]
 
 2016-07-28  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	- GetClassFromObj(): Fix invalid memory access (valgrind) [a9448f8]
+	* nsf.c (GetClassFromObj): Fix invalid memory access as indicated
+	by valgrind. [a9448f8]
 
 2016-07-27  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
+	* nsf.c
+	(InterpColonCmdResolver): Make intentions about clientData
+	clear to static checker. [1663346]
+	(NsfProcStubDeleteProc, NsfProcAdd): Use consistent comment
+	styles. [e13bc9e]
+	(NsfProcAdd, ListMethod, NsfParseArgsCmd): Move declarations to
+	the begin of a code block, remove debug code. [abc4952]
 
-	-
-	- make intentions about clientData clear to static checker [1663346]
+	* nsfCmdDefinitions.c, nsfEnumerationType.c, nsfFunPtrHashTable.c:
+	Remove commented code from the previous implementation. [7243f88]
 
-
-	-
-	- remove commented code from the previous implementation [7243f88]
-
-
-	-
-	- move declarations to the begin of a code block
-	- remove debug code [abc4952]
-
-
-	-
-	- add pre-8.7 Makefile.in (missed in last commit) [ae36129]
-
-
-	-
-	- use consistent comment styles [e13bc9e]
+	* Makefile.in: Add pre-8.7 Makefile.in (missed in last commit). [ae36129]
 
 2016-07-26  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	-
-	- NsfProcStubDeleteProc(): Protect against potentially dangling
-	namespace references from within ::nsf::procs::*. The wrapper cmd's
-	namespace of an nsf::proc might already have been deleted when
-	  ::nsf::procs::* shuts down finally. This showed up during a Tcl_Exit
-	(NSF's ExitHandler) as an invalid memory access via (dangling)
-	namespace pointers (valgrind). [c39e939]
+	* nsf.c, nsfInt.h (NsfProcStubDeleteProc): Protect against
+	potentially dangling namespace references from within
+	::nsf::procs::*. The wrapper cmd's namespace of an nsf::proc might
+	already have been deleted when ::nsf::procs::* shuts down
+	finally. This showed up during a Tcl_Exit (NSF's ExitHandler) as
+	an invalid memory access via (dangling) namespace pointers
+	as indicated by valgrind. [c39e939]
 
 2016-07-26  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
-	- let nsf compile under tcl 8.7 (current trunk version of Tcl) [56d1814]
+	* generic/stubs8.7/: Let NSF compile against Tcl 8.7 (current
+	trunk version of Tcl). [56d1814]
 
 2016-07-25  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- cmd resolver work
-	- fix test, when OS specific cmd resolver is used from a
-	  NSF_CSC_CALL_IS_COMPILE frame
-	- improved output from __db_show_obj: put results into one
-	  line instead of multiple lines
-	- new debug function __db_get_obj: return into about a
-	  tcl_obj in form of a dict (in general, one should not
-	  rely on Tcl_Obj internals, especially when upgrading over
-	  major Tcl versions, but for testing/understanding
-	  behavior etc., such a command is helpful).
-	- extend regression test [21686b8]
+	* nsf.c, tcl86.test: Continued work on cmd resolvers: Fix test,
+	when OS specific cmd resolver is used from a
+	NSF_CSC_CALL_IS_COMPILE frame; improved output from __db_show_obj:
+	put results into one line instead of multiple lines; new debug
+	function __db_get_obj: return into about a tcl_obj in form of a
+	dict (in general, one should not rely on Tcl_Obj internals,
+	especially when upgrading over major Tcl versions, but for
+	testing/understanding behavior etc., such a command is helpful;
+	extended regression test. [21686b8]
 
 2016-07-21  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	- Shift some atomic tests into test case [7f8ee0b]
-
-
-	- Revive and include test case on Bug 3418547 [f5b034e]
+	* tcl86.test: Revive and include test case on Bug 3418547. [f5b034e]
 
 2016-07-21  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
+	* tcl86.test: Add test for the global cmd literal sharing. [3dbd5a1]
 
-	-
-	- add test for the global cmd literal sharing
-	- keep experimental code for disassembling methods [3dbd5a1]
+	* nx.tcl: Adding "/obj/ info method disassemble" for disassembling
+	methods. [ 3dbd5a1]
 
 2016-07-17  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	- NsfParseArgsCmd: Fix memory leak [ae50486]
+	* nsf.c (NsfParseArgsCmd): Fix memory leak. [ae50486]
 
 2016-07-16  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	- memcount: correct book-keeping in SetInstVar [6a3890e]
+	* nsf.c (SetInstVar): Correct book-keeping for NSF's memcount
+	feature. [6a3890e]
 
 2016-07-15  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
+	* nsfCmdDefinitions.c (Register): Avoid inline comment style.
+	[34c49c5]
 
-	- Avoid inline comment style [34c49c5]
+	* nsf.c (NsfFinalizeCmd): Suppress cppcheck warning: adding
+	explicit int cast. [9fc2766]
 
-
-	- Suppress cppcheck warning: adding explicit int cast [9fc2766]
-
-
-	- Promote log statement to Tcl panic [c7b7511]
-
-
-	- NsfDStringVPrintf: Make log statement conditional on NDEBUG [2a16d79]
+	* nsfError.c
+	(NsfDStringVPrintf): Promote log statement to Tcl panic. [c7b7511]
+	(NsfDStringVPrintf): Make log statement conditional on NDEBUG. [2a16d79]
 
 2016-07-15  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
-	- handle case that showed up with Zoran during final shutdown: in case,
-	an object is deleted after the interp is deleted (which should not
-	happen), don't crash. [800c3a0]
+	* nsf.c (DispatchDestroyMethod): Handle cases of objects becoming
+	deleted after the interp (which should not happen) more
+	gracefully. [800c3a0]
 
 2016-07-15  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	- Rephrase err message [8d2096e]
+	* nsfError.c (NsfDStringVPrintf): Rephrase err message. [8d2096e]
 
 2016-07-14  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
+	* nsfError.c (NsfDStringVPrintf): Suppress cppcheck warning:
+	unused variable assignment. [34e5bc1]
 
-	- Suppress cppcheck warning: unused variable assignment [34e5bc1]
-
-
-	- Suppress cppcheck warning: reduce variable scope [8fd1f04]
+	* nsf.c (NsfParseArgsCmd): Suppress cppcheck warning: reduce
+	variable scope. [8fd1f04]
 
 2016-05-21  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
-	- return the result of ::mongo::run [4dccd3f]
+	* nsfmongo.c (NsfMongoRunCmd): return the result of
+	::mongo::run. [4dccd3f]
 
 2016-05-04  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	- Docs: Link version numbering in man pages to autoconf tooling
-	(similar to the NaviServer setup), update copyright dates in man
-	pages where needed [0228cdf]
+	* Documentation: Link version numbering in man pages to autoconf
+	tooling, similar to the NaviServer setup, update copyright dates
+	in man pages where needed. [0228cdf]
 
 2016-04-30  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	- Deactivate one test for now [1b1bbfc]
-
-
-	- Update man page for nxsh [30cf844]
+	* Documentation (nxsh.man): Update man page for nxsh, adding
+	description of -c option. [30cf844]
 
 2016-04-29  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	- Register shells.test [be3c675]
-
-
-	- Some cleanup and adding basic test cases [3ee0ac9]
+	* Testsuite
+	(Makefile.in): Register shells.test. [be3c675]
+	(shells.test): Some cleanup and adding basic test cases. [3ee0ac9]
 
 2016-04-21  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	- nx::shell reform: Provide an alternative nx::shell impl (nx::shell2),
-	used by all four shell scripts. nx::shell2 builds on Tcl's event
-	loop, rather than while + update. This avoids blocking the Tk main
-	window (update). In addition, nx::shell2 is closer to Tcl's native
-	shells (e.g., no extra lines on enter, catches EOF). [2a5945f]
+	* Shells (nxsh, xotclsh): Scripted shell reform which provides an
+	alternative nx::shell impl (nx::shell2), used by all four shell
+	scripts. nx::shell2 builds on Tcl's event loop, rather than while
+	+ update. This avoids blocking the Tk main window (update). In
+	addition, nx::shell2 is closer to Tcl's native shells (e.g., no
+	extra lines on enter, catches EOF). [2a5945f]
 
 2016-04-19  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- Improved mongodb interface for json/bson parsing:
-	- rename function mongo::json to mongo::json::generate
-	- introduce mongo::json::parse [e3e8f37]
+	* nsfmongo.c, mongoAPI.*: Improved mongodb interface for json/bson
+	parsing; rename function mongo::json to mongo::json::generate;
+	introduce mongo::json::parse. [e3e8f37]
 
 2016-04-08  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	- Fix doc on introspection for configure options [4276fbd]
+	* Object.man: Fix doc on introspection for configure options. [4276fbd]
 
 2016-04-04  Gustaf Neumann  <neumann@wu-wien.ac.at>
-
 
 	-
 	- cleanup up and improve debug statements
