@@ -18,7 +18,7 @@ o)
 
 o) 
 
-o) 
+o) Variable-traces reform: ...
 
 o) Improved robustness:
 
@@ -78,14 +78,31 @@ o) Improved NSF/C code generator: Allows for specifying and generating
 
 o) API changes:
 
-    Dropped methods:
+   NX:
 
-    Added methods:
+    Dropped:
 
+    Added:
 
-    Added (sub-)commands:
+    * property/ variable ?-trace set|get|default? 
 
-       ::nsf::current level
+   XOTcl2:
+
+    Dropped:
+
+    Added:
+
+    * instproc/proc ?-returns ...?: XOTcl2 methods can now specify a
+      return-value checker, similar to NX methods.
+
+    NSF:
+
+     Dropped:
+
+     Added:
+
+     * ::nsf::parseargs
+     * ::nsf::current level
 
 o) Documentation (API and examples):
 
@@ -134,7 +151,10 @@ o) Code changes (C):
      used in generated function signatures and the respective control
      structures (switch).
 
-o) Packaging: Updated TEA to 3.10
+o) Packaging:
+
+   * Updated TEA to 3.10
+   * Support for MSVC 14 (VS 2015; win/makefile.vc)
 
 The Next Scripting Framework 2.1.0 (containing NX and XOTcl 2.1.0) can
 be obtained from https://next-scripting.org/.

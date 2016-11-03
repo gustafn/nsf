@@ -528,107 +528,76 @@
 
 2016-04-04  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	-
-	- cleanup up and improve debug statements
-	- add generated code [96f4410]
+	* nsf.c (ComputeParameterDefinition, ProcessMethodArguments):
+	Cleanup up and improve debug statements. [96f4410]
 
+	* nsfAPI.decls (__profile_get): Remove redundant spec
+	line. [e365540]
 
-	-
-	- remove redundant line [e365540]
-
-
-	-
-	- improve indentation [a41b0fa]
+	* nsf.tcl (volatile): Improve indentation. [a41b0fa]
 
 2016-03-30  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
-	- updated TODO [6d3a6ca]
-
-
-	- xotcl2:
-	- added "-returns" flag to XOTcl's instprocs/procs and
-	  methods, very similar to "-returns" in nx
-	- extended serializer to handle "-returns" flag
-	- extended regression test [353fdf4]
+	* xotcl2.tcl: Added "-returns" flag to XOTcl's instprocs/procs,
+	very similar to "-returns" in NX. Extended serializer to handle
+	"-returns" flag and extended regression test,
+	accordingly. [353fdf4]
 
 2016-03-26  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
-	- fix one case in interaction between get-trace and default value
-	  [f6ddb05]
+	* nx.tcl (setCheckedInstVar): Fix one case in interaction between
+	get-trace and default value. [f6ddb05]
 
 2016-03-25  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	- Make XOTcl tests runnable again from plain tarball/git checkout
-	  [20e59a8]
+	* Testsuite (library/pkgIndex.tcl): Make XOTcl tests runnable
+	again from plain tarball/git checkout. [20e59a8]
 
 2016-03-25  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
+	* nx.tcl (setCheckedInstVar): Allow combination of "-trace get"
+	with default value (was previously disallowed); extended
+	regression tests. [7e20ec3]
 
-	-
-	- minor cleanup [4f44840]
-
-
-	-
-	- Allow combination of "-trace get" with default value (was
-	  previously disallowed)
-	- Extend regression test [7e20ec3]
+	* nsfError.c (NsfDStringVPrintf): Minor cleanup. [4f44840]
 
 2016-03-23  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
+	* TEA
+	(makefile.vc): Custom shell target. [842266c, da35de9]
+	(makefile.vc): Add base-address support; see
+	http://core.tcl.tk/tcl/tktview?name=0ef5e653. [3a06b2c]
 
-	- Custom shell target for win makefile.vc [842266c]
-
-
-	- Custom shell target for win makefile.vc [da35de9]
-
-
-	- Add base-address support (see
-	  http://core.tcl.tk/tcl/tktview?name=0ef5e653) [3a06b2c]
-
-
-	- Improve documentation on NsfDStringVPrintf() [b75b19b]
-
-
-	- Another attempt to sort out the vs*printf() mess between runtimes
-	  [626a121]
+	* nsfError.c
+	(NsfDStringVPrintf): Improve documentation. [b75b19b]
+	(NsfDStringVPrintf): Another attempt to sort out the vs*printf()
+	mess between runtimes. [626a121]
 
 2016-03-18  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
+	* TEA:
+	(makefile.vc): Update win compilation units. [a8c598f]
 
-	- Update win compilation units [a8c598f]
-
-
-	- Rename one more 'bool' identifier [90b08e1]
-
-
-	- In MSVC 14 (Visual Studio 2015) and newer, 'bool' is a proper type,
-	not a typedef anymore. 'bool' cannot be used as identifier anymore
-	(C2632) [40e347d]
+	* nsf.c (Nsf_ConvertToBoolean, NsfConfigureCmd, ArgumentDefaults)
+	(NsfObjectSystemCreateCmd): Rename one more 'bool' identifier. In
+	MSVC 14 (Visual Studio 2015) and newer, 'bool' is a proper type,
+	not a typedef anymore. 'bool' cannot be used as identifier
+	anymore; see C2632. [90b08e1,40e347d]
 
 2016-03-18  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
 
-	-
-	- add new command nsf::parseargs to parse an argument
-	  vector against a parameter definition and to set the
-	  resulting variables in the current scope
-	- extend regression test [546f8dd]
+	* nsfAPI.*, nsf.c (NsfParseArgsCmd): Add new command
+	"nsf::parseargs" to parse an argument vector against a parameter
+	definition and to set the resulting variables in the current
+	scope; extended regression test. [546f8dd]
 
-
-	-
-	- change "struct timeval" to "Tcl_Time" and gettimeofday() to
-	Tcl_GetTime() in profiling code to improve portability (esp windows)
-	[dc4e227]
+	* nsf.c, nsfStack.c, nsfProfile.c: Substitue"struct timeval" for
+	"Tcl_Time" and gettimeofday() to Tcl_GetTime() in profiling code
+	to improve portability; esp. Windows. [dc4e227]
 
 2016-03-16  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
 	- newer versions of gcc6 handle now as well nonnull asserts gracefully,
 	  show we can turn off its deactivation for gcc6 [433266d]
 
