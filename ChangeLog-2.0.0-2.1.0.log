@@ -761,46 +761,35 @@
 
 2015-12-30  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	- generalize method serialization of forwarders [8cbd921]
+	* nx.tcl, serializer.tcl: Generalize method serialization of
+	forwarders. [8cbd921]
 
 2015-12-29  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
+	* nsf.h: Fix compilation when DTRACE but no PROFILE is
+	activated. [74b39c5]
 
-	-
-	- fix compilation when DTRACE but no PROFILE is activated [74b39c5]
+	* nsf.c, nsfProfile.c: Prefer boolean expressions in assert()
+	statements. Make sure, we do not pass null values to nonnull
+	arguments. [a529b8f, 22f4e55]
 
-
-	-
-	- prefer boolean expressions in assert() statements [a529b8f]
-
-
-	-
-	- make sure, we do not pass null values to nonnull arguments [22f4e55]
-
-
-	-
-	- add etags target [bce3456]
+	* Makefile.in: Add etags target. [bce3456]
 
 2015-12-25  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
+	* nsf.c, nsfInt.h, nsfProfile.c, configure.ac: Substitue all
+	remaning ObjectName and ClassName for variant with trailing "_",
+	where appropriate; allow nsf::procs with zero arguments or plain
+	arguments (when "-debug" is used); extended regression test; bump
+	version number to 2.1. [a0faba2]
 
-	-
-	- replace all remaning ObjectName and ClassName with
-	  variant with trailing "_" when appropriate
-	- allow nsf::procs with zero arguments or plain arguments
-	  (when "-debug" is used
-	- extended regression test
-	- bump version number to 2.1 [a0faba2]
-
-
-	-
-	- provide backward compatibility in method-serializer [c04d6db]
+	* serializer.tcl: Provide for backward compatibility in
+	method serializer. [c04d6db]
 
 2015-12-22  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
-	- fix potential memory corruption bug in NsfDStringVPrintf() [cf9bbe0]
+	* nsfError.c (NsfDStringVPrintf): Fix potential memory corruption
+	bug in NsfDStringVPrintf. [cf9bbe0]
 
 2015-12-19  Gustaf Neumann  <neumann@wu-wien.ac.at>
 

@@ -14,12 +14,6 @@ Diff stats since 2.0.0:
 
 Major changes relative to 2.0.0 are:
 
-o) 
-
-o) 
-
-o) Variable-traces reform: ...
-
 o) Improved robustness:
 
    * Tcl command resolvers and command literals:
@@ -47,16 +41,26 @@ o) Improved robustness:
    Provide for a two-pass deletion logic during object shutdown, to
    account for unset traces possibly reviving an object variable
    under deletion. This corresponds to a recent memleak fix to
-   Tcl itself. See also Tcl Fossil ticket 4dbdd9af144dbdd9af14.   
+   Tcl itself. See also Tcl Fossil ticket 4dbdd9af144dbdd9af14.
+
+   * Serializer:
+
+   The combined NX and XOTcl2 serializer has been extended to cover
+   newly added features (esp., NSF procs, method flags) and has been
+   improved based on experiences in multi-threaded Tcl applications
+   (NaviServer). Improvements and fixes relate to "info" methods and
+   forwarders.
+
+o) Slot-traces reform: ...
    
 o) Improved scripted shells (e.g., nxsh, xotclsh):
 
    * There is now an alternative implementation of nx::shell:
    nx::shell2. It is used by all four shell scripts. nx::shell2 builds
    on Tcl's event loop, rather than while + update. This avoids
-   blocking the Tk main window (update). In addition, nx::shell2 is
-   closer to Tcl's native shells (e.g., no extra lines on enter,
-   catches EOF).
+   blocking the Tk main window (update). In addition, nx::shell2's
+   behavior is more akin to Tcl's native shells (e.g., no extra lines
+   on enter, catches EOF).
 
    * The improved shells now accept stdin input (-c option).
 
@@ -164,7 +168,7 @@ o) Documentation (API and examples):
 
 	  * Correct description of Object->copy.
 
-	  * info baseclase (TODO: check)
+	  * info baseclass (TODO: check)
 
        - alias/forward/method: added debug/ deprecated switches,
 
@@ -198,16 +202,20 @@ o) Code changes (C):
      used in generated function signatures and the respective control
      structures (switch).
 
-o) Packaging:
+o) Packaging & distribution:
 
    * Updated TEA to 3.10
    * Support for MSVC 14 (VS 2015; win/makefile.vc)
+   * Debian package:
+   * MacPorts port: 
+   * Part of the KitCreator battery: https://kitcreator.rkeene.org/fossil/
+   * Part of the kbskit battery: https://sourceforge.net/projects/kbskit/
 
-The Next Scripting Framework 2.1.0 (containing NX and XOTcl 2.1.0) can
-be obtained from https://next-scripting.org/.
+The Next Scripting Framework 2.1.0 (containing NX 2.1.0 and XOTcl
+2.1.0) can be obtained from https://next-scripting.org/.
 
-The detailed ChangeLog is available at
-https://next-scripting.org/xowiki/download/file/ChangeLog-2.0.0-2.1.0
+The detailed changelog is available at
+https://next-scripting.org/xowiki/download/file/ChangeLog-2.0.0-2.1.0.log
 
 Best regards
 - Gustaf Neumann
