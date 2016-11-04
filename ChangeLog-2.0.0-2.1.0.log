@@ -586,242 +586,178 @@
 
 2016-03-18  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	* nsfAPI.*, nsf.c (NsfParseArgsCmd): Add new command
 	"nsf::parseargs" to parse an argument vector against a parameter
 	definition and to set the resulting variables in the current
 	scope; extended regression test. [546f8dd]
 
-	* nsf.c, nsfStack.c, nsfProfile.c: Substitue"struct timeval" for
-	"Tcl_Time" and gettimeofday() to Tcl_GetTime() in profiling code
+	* nsf.c, nsfStack.c, nsfProfile.c: Substitute Tcl_Time for "struct
+	timeval" as well as Tcl_GetTime for gettimeofday in profiling code
 	to improve portability; esp. Windows. [dc4e227]
 
 2016-03-16  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	- newer versions of gcc6 handle now as well nonnull asserts gracefully,
-	  show we can turn off its deactivation for gcc6 [433266d]
+	* nsfInt.h: Newer versions of GCC 6 handle now as well nonnull
+	asserts gracefully, so we can turn off its deactivation for GCC
+	6. [433266d]
 
 2016-03-07  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
-	- fix serializing of info internals for XOTcl [f9f501f]
+	* serializer.tcl: Fix serializing of info internals for XOTcl2. [f9f501f]
 
 2016-03-05  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
-	- nsf mongodb: reduce verbosity
-	- white-space changes [4ca97ca]
+	* nsfmongo.c: Reduce verbosity and apply white-space
+	changes. [4ca97ca ]
 
 2016-02-19  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
+	* nsf.c (NSGetFreshNamespace, NsfDebugShowObj): Address two more
+	GCC 6 pedantic warnings. [ab19daf]
 
-	- Address two more gcc6 pedantic warnings [ab19daf]
-
-
-	- update to-dos [37b3e36]
-
-
-	- Re-factored new hash-table infrastructure (based on function-pointer
-	keys) to support method-definitions (and future uses as well).
-	[c01b411]
+	* nsfFunPtrHashTable.c, nsfCmdDefinitions.c, nsfEnumerationType.c:
+	Re-factored new hashtable infrastructure (based on
+	function-pointer keys) to support method-definitions (and future
+	uses as well). [c01b411]
 
 2016-02-15  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
-	- added Tcl_HashKeyType cmdPtrHashKeyType for command pointers [760d5e6]
+	* nsfCmdDefinitions.c: Added Tcl_HashKeyType cmdPtrHashKeyType for
+	command pointers. [760d5e6]
 
 2016-02-12  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
-	- move initializations after nonnull asserts [67efaa6]
-
-
-	-
-	- move initializations after nonnull asserts [acee8b7]
+	* nsf.c, nsfDebug.c: Move initializations after nonnull asserts. [67efaa6, acee8b7]
 
 2016-02-11  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
-	- ease life of static checkers [f382a52]
+	* nsf.c (NsfParamDefsVirtualFormat): Ease life of static
+	checkers. [f382a52]
 
 2016-02-10  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
-	- removed one more possible NULL comparison with a non-null value
-	  [8e97011]
+	* nsf.c (GetAllInstances): Removed one more possible NULL
+	comparison with a non-null value. [8e97011]
 
 2016-02-03  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
+	* Documentation (alias.man.inc, forward.man.inc, method.man.inc): Updating
+	doc fragments on debug/deprecated methods. [f56a194]
 
-	- Updating doc fragments on debug/deprecated methods [f56a194]
-
-
-	- Add a todo item [cd557a4]
-
-
-	- Adding some missing test on recently added introspection methods
-	  [3c1482d]
+	* methods.test, object-system.test: Adding some missing test on
+	recently added introspection methods. [3c1482d]
 
 2016-02-03  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
-	- fix comment [6d1f42a]
+	* nsfProfile.c: (NsfProfileDeprecatedCall): Fix comment. [6d1f42a]
 
 2016-02-03  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	- Adding doc fragments for new info submethods, as well as deprecated
-	  and debug flags [74410fa]
+	* Object.man, forward.man.inc, alias.man.inc, method.forward.inc, info.man.inc: Adding
+	doc fragments for new info submethods, as well as deprecated and
+	debug flags. [74410fa]
 
 2016-02-01  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
-	- improve robustness of serializer, otherwise
-	  "::nx::Object::slot::__info" triggers an exception [494410d]
+	* serializer.tcl: Improve robustness of serializer, otherwise
+	"::nx::Object::slot::__info" triggers an exception. [494410d]
 
 2016-01-27  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
-	- adding refcount handling before+after the call of
-	  NsfCallObjectUnknownHandler() [e05bd93]
+	* nsf.c (GetClassFromObj): Provide for refcounting before and
+	after the call tp NsfCallObjectUnknownHandler. [e05bd93 ]
 
 2016-01-26  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
-	- Let nsf create classes with ::nsf::object::unknown handler in the
-	fly, when c-function are called with objects of type class. This is
-	necessary for triggering creation attempts in ttrace via
-	::nsf::object::alloc SOMECLASS SOMEOBJ [6c041dc]
+	* nsf.c (Nsf_ConvertToClass, NsfRuntimeState): Let NSF create
+	classes with ::nsf::object::unknown handler on the fly, when
+	C functions are called with objects of type class. This is
+	necessary for triggering creation attempts in trace via
+	::nsf::object::alloc /cls/ /obj/. [6c041dc]
 
 2016-01-25  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
-	- bump version number of XOTcl to 2.1 [52a6105]
+	* xotcl2.tcl, pkgIndex.tcl, serializer.tcl: Bump version number of
+	XOTcl to 2.1. [52a6105]
 
 2016-01-22  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
+	* generic/*.c: Updated copyright notices, version
+	number. [4fa580a]
 
-	-
-	- turned all for-loops controlled over a nonnull value into
-	  while loops
-	- updated TODO, copyright notices, version number [4fa580a]
+	* accessor.tcl: Add editor hint. [5fe3bf0]
 
+	* nsfUtil.c: Move assignment aster nonnull assertions. [a3fe572]
 
-	-
-	- add editor hint [5fe3bf0]
+	* nsf.c (MixinInvalidateObjOrders, MixinSearchMethodByName): Turned
+	all for-loops controlled over a nonnull value into while
+	loops. [e5a42b6]
 
+	* README: Update version numbers in README. [4468c69]
 
-	-
-	- move assignment aster nonnull assertions [a3fe572]
-
-
-	-
-	- turned all for-loops controlled over a nonnull value into while
-	  loops. [e5a42b6]
-
-
-	-
-	- upadte version numbers in README [4468c69]
-
-
-	-
-	- fix description [1a70aea]
+	* README.release: Fix description. [1a70aea]
 
 2016-01-19  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
+	* nsf.c, nsfAPI.*, nsfCmdPtr.c, nx.tcl, slottest.xotcl,
+	accessor.test, cget.test, parameters.test: Slot trace reform
+	incl. a redesign of slot interface of traces. Variables contain
+	cmds and variable references to slot-specific methods with the
+	same interface as slot-setters. When new flag -trace is set, a
+	trace will be registered calling either:
 
-	- Slot trace reform:
-	- redesign of slot interface of traces from
-	  * variables contains cmds and variable references to
-	  * slot specific methods with the same interface as
-	  slot-setters
-	- new:
-	  * specify flag "-trace" with a list of values "get", "set",
-	  "default"
-	  * when flag is set, a trace will be registered calling
-	  methods value=get obj variable value=set obj variable
-	  value value=default obj variable on the slot (actually
-	  the first two are identical with the methods used for
-	  slot-defined accessors)
-	- updated regression test
-	  * new flag "-notrace" for "nsf::var::set" and "nsf::var::get" [dadf28e]
+	value=get /obj/ /variableName/ or
+	value=set /obj/ /variableName/ /value/ or
+	value value=default /obj/ /variable/ on the slot.
+
+	Updated regression test accordingly. [dadf28e]
 
 2016-01-12  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
+	* xotclsh.in, xowish.in: Make sure minor versions >2.1 are
+	accepted. [286f946]
 
-	- xotclsh, xowish: Make sure minor versions >2.1 are accepted [286f946]
+	* xotclsh.in, xowish.in:  Use nx::shell. [4b92980]
 
+	* nxsh.in, nxwish.in: Use nx::shell. [4bf0e8a]
 
-	- nx::shell: Have xotclsh and xowish use nx::shell [4b92980]
-
-
-	- nx::shell: Have nxsh and nxwish use nx::shell [4bf0e8a]
-
-
-	- nx::shell: Avoid poluting global namespace [f1bfcbc]
-
-
-	- Started refactoring scripted shell environment into a single, package
+	* nx-shell.tcl:
+	(nx::shell): Started refactoring scripted shell environment into a single, package
 	location (nx::shell) to ease sharing between nxsh & friends, as well
 	as to facilitate implementingNX/XOTcl shells in wrapped applications
-	(tclkits) [6c6f313]
+	(tclkits). [6c6f313]
+	(nx::shell): Avoid poluting global namespace. [f1bfcbc]
 
 2016-01-11  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
-	- update release hints [2c69f59]
+	* README.release: Update release hints. [2c69f59]
 
 2016-01-08  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
+	* nsf.c
+	(NsfDStringEval): Make sure to reset prevPreventRecursionFlags to
+	value before the call. [7ca41c6]
+	(NsfDStringEval): Changed interface of to control behavior via
+	bitflags (this is after all more readable than a argument list of
+	"0" and "1"s); added optional recursion prevention for functions
+	called via NsfDStringEval (handling NSF_EVAL_DEBUG, NSF_EVAL_LOG,
+	NSF_EVAL_DEPRECATED); added regression tests for potential
+	recursive calls. [e367957]
 
-	-
-	- make sure to reset prevPreventRecursionFlags to value before the call
-	  [7ca41c6]
-
-
-	-
-	- added flags "-debug" and "-deprecated" to XOTcl 2 "instproc", "proc",
-	  "instforward" and "forward" methods [ccca1a5]
-
-
-	-
-	- changed interface of NsfDStringEval to control behavior
-	  via bitflags (this is after all more readable than a
-	  argument list of "0" and "1"s)
-	- added optional recursion prevention for functions called
-	  via NsfDStringEval (handling NSF_EVAL_DEBUG,
-	  NSF_EVAL_LOG, NSF_EVAL_DEPRECATED)
-	- added regression tests for potential recursive calls [e367957]
+	* xotcl2.tcl: Added flags "-debug" and "-deprecated" to XOTcl 2
+	"instproc", "proc", "instforward" and "forward" methods. [ccca1a5]
 
 2016-01-07  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
+	* nsf-cmd.test: Add absolute path in returned proc defintion to
+	regression test. [a775d31]
 
-	-
-	- add absolute path in returned proc defintion to regression test
-	  [a775d31]
-
-
-	-
-	- add result in debug exit calls [2771c4c]
+	* nsf.tcl: Add result in debug exit calls. [2771c4c]
 
 2016-01-05  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
-	- return fully qualified name for "::nsf::cmd::info definition" when
-	  called on plain procs [fd0f246]
+	* nsf.c (ListMethod): Return fully qualified name for
+	"::nsf::cmd::info definition" when called on plain procs. [fd0f246]
 
 2015-12-30  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
