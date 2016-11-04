@@ -80,29 +80,67 @@ o) API changes:
 
    NX:
 
-    Dropped:
+    Features added:
 
-    Added:
+    /obj/ object property|variable ?-trace set|get|default? ...
+    /cls/ property|variable ?-trace set|get|default? ...
 
-    * property/ variable ?-trace set|get|default? 
+    /obj/ info baseclass
+
+    /cls/ info method callprotection
+    /cls/ info method debug
+    /cls/ info method deprecated
+    /obj/ info baseclass
+    /obj/ info object method callprotection
+    /obj/ info object method debug
+    /obj/ info object method deprecated
+    /cls/ public alias   -deprecated|-debug /method/ ...
+    /cls/ public forward -deprecated|-debug /method/ ...
+    /cls/ public method  -deprecated|-debug /method/ ...
+    /obj/ public object alias   -deprecated|-debug /method/ ...
+    /obj/ public object forward -deprecated|-debug /method/ ...
+    /obj/ public object method  -deprecated|-debug /method/ ...
+
+    Features removed: none
+
+    Changes to existing features: none 
 
    XOTcl2:
 
-    Dropped:
+    Features added:
 
-    Added:
+    * New -return flag: XOTcl2 methods can now specify a return-value
+      checker, similar to NX methods.
 
-    * instproc/proc ?-returns ...?: XOTcl2 methods can now specify a
-      return-value checker, similar to NX methods.
+    /cls/ instproc -returns /method/ ...
+    /obj/ proc -returns /method/ ...
+
+    (TODO: what about instforward/ forward?)
+
+    * New -deprecated and -debug flags:
+    
+    /cls/ instforward -deprecated|-debug /method/ ...
+    /cls/ instproc  -deprecated|-debug /method/ ...
+    
+    /obj/ forward -deprecated|-debug /method/ ...
+    /obj/ proc  -deprecated|-debug /method/ ...
+
+
+    Features removed: none
+
+    Changes to existing features: none 
 
     NSF:
 
-     Dropped:
-
-     Added:
+    Features added:
 
      * ::nsf::parseargs
      * ::nsf::current level
+     * new flag "-notrace" for "nsf::var::set" and "nsf::var::get"
+
+    Features removed: none
+
+    Changes to existing features: none 
 
 o) Documentation (API and examples):
 
@@ -124,6 +162,10 @@ o) Documentation (API and examples):
 
 	  * Correct description of Object->copy.
 
+	  * info baseclase (TODO: check)
+
+       - alias/forward/method: added debug/ deprecated switches,
+
 	- current.man: Added description of 'level' option.
 
 	- Extended/ updated Rosetta implementations:
@@ -134,6 +176,9 @@ o) Documentation (API and examples):
 
 o) Code changes (C):
 
+   * Refactoring: There is now a common infrastructure for hashtables
+     using function pointers as keys (as required for NSF/C command
+     definitions and enumerations).
    * Removed all implicit type-conversions, signed/unsigned
      comparisons as flagged by the following gcc/clang flags (ensure
      cleanness on 64bit) -Wconversion -Wsign-conversion
