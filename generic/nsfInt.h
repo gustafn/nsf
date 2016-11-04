@@ -6,7 +6,7 @@
  *
  *  Copyright (C) 1999-2016 Gustaf Neumann (a, b)
  *  Copyright (C) 1999-2007 Uwe Zdun (a, b)
- *  Copyright (C) 2011-2013 Stefan Sobernig (b)
+ *  Copyright (C) 2011-2016 Stefan Sobernig (b)
  *
  * (a) University of Essen
  *     Specification of Software Systems

@@ -706,9 +706,9 @@
 	same interface as slot-setters. When new flag -trace is set, a
 	trace will be registered calling either:
 
-	value=get /obj/ /variableName/ or
-	value=set /obj/ /variableName/ /value/ or
-	value value=default /obj/ /variable/ on the slot.
+	value=get /obj/ /variableName/; or
+	value=set /obj/ /variableName/ /value/; or
+	value=default /obj/ /variable/; on the slot.
 
 	Updated regression test accordingly. [dadf28e]
 
@@ -761,8 +761,6 @@
 
 2015-12-30  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
 	- generalize method serialization of forwarders [8cbd921]
 
 2015-12-29  Gustaf Neumann  <neumann@wu-wien.ac.at>

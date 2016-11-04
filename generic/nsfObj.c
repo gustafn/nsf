@@ -1,9 +1,10 @@
 /*
- * nsfError.c --
+ * nsfObj.c --
  *
  *      Tcl_Obj types provided by the Next Scripting Framework.
  *
- * Copyright (C) 1999-2014 Gustaf Neumann
+ * Copyright (C) 1999-2016 Gustaf Neumann
+ * Copyright (C) 2016 Stefan Sobernig
  *
  * Vienna University of Economics and Business
  * Institute of Information Systems and New Media
