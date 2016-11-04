@@ -3,7 +3,7 @@
 [include version.inc]
 [manpage_begin nx::next 3 [vset VERSION]]
 
-[copyright {2014 Stefan Sobernig <stefan.sobernig@wu.ac.at>, Gustaf Neumann <gustaf.neumann@wu.ac.at>}]
+[copyright {2014-16 Stefan Sobernig <stefan.sobernig@wu.ac.at>, Gustaf Neumann <gustaf.neumann@wu.ac.at>}]
 [titledesc {Skip to the next most specific method implementation}]
 [moddesc {NX API}]
 
