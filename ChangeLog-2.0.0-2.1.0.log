@@ -793,342 +793,220 @@
 
 2015-12-19  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
+	* serializer.tcl: Added handling of "-debug" and "-deprecated" in
+	serializer; allow export of nsfprocs via "exportMethods
+	declaration" in order to keep otherwise excluded cmds in the
+	result. Hardened serializer (use e.g. "::namespace" instead of
+	"namespace" when there is a potential conflict with a method named
+	"namespace", prefer nsf::directdispatch, etc.); extended
+	regression test. [6a55e4e]
 
-	- serializer:
-	- added handling of "-debug" and "-deprecated" in serializer
-	- allow export of nsfprocs via "exportMethods declaration"
-	  in order to keep otherwise excluded cmds in the result.
-	    this allows us to keep nsf::debug::* or nsf::deprecated
-	  definitions in the blueprint in OpenACS.
-	- hardened serializer (use e.g. "::namespace" instead of
-	  "namespace" when there is a potential conflict with a
-	  method named "namespace", prefer nsf::directdispatch,
-	  etc.)
-	- extended regression test [6a55e4e]
-
-
-	-
-	- nx: added flag "-debug" and "-deprecated" to methods "method" "object
-	method" "alias" "object alias" "forward" "object forward" such one
-	can use e.g. /cls/ public alias -deprecated|-debug /method/ ... /cls/
-	public forward -deprecated|-debug /method/ ... /cls/ public method
-	-deprecated|-debug /method/ ... /obj/ public object alias
-	-deprecated|-debug /method/ ... /obj/ public object forward
-	-deprecated|-debug /method/ ... /obj/ public object method
-	-deprecated|-debug /method/ ... [183cd0a]
+	* nx.tcl: Added flags "-debug" and "-deprecated" to further NX
+	method-defining methods. [183cd0a]
 
 2015-12-18  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
+	* nx.tcl
+	(nx::Class, nx::Object): Added flags "-debug" and "-deprecated" to "?object?
+	method"; extended regression test. [2d609d0]
+	(nx::Class, nx::Object): Added new introspection options; extended regression test:
+	/cls/ info method debug
+	/cls/ info method deprecated
+	/obj/ info object method debug
+	/obj/ info object method deprecated
+	[53113de]
 
-	-
-	- nx: added options "-debug" and "-deprecated" to methods
-	  "method" and "obejct method", such one can use e.g. C
-	  public method -deprecated bar {} {return 1}
-	- extended regression test [2d609d0]
-
-
-	-
-	- nx: added new introspection options /cls/ info method
-	  debug /cls/ info method deprecated /obj/ info object
-	  method debug /obj/ info object method deprecated
-	- extended regression test [53113de]
-
-
-	-
-	- update TODO [87fd900]
-
-
-	-
-	- describe next steps [b3c6192]
-
-
-	-
-	- handling "deprecated" and "debug" properties for nsf::proc (in
-	  "nsf::cmd::info definition /proc/" and serializer) [63fb7c1]
-
-
-	-
-	- documented purpose of TODO-file
-	- fixed typos in TODO [e24d276]
+	* nsf.c, serializer.tcl, nsf-cmd.test: Handling "deprecated" and
+	"debug" properties for nsf::proc (in "nsf::cmd::info definition
+	/proc/" and serializer). [63fb7c1]
 
 2015-12-17  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
-	- added nsf::method::property /obj/ /method/ debug ?0|1? when debug is
-	activated, a debug line written to the log file when the function is
-	called and exited [8854eef]
-
-
-	-
-	- update file name [471b3b3]
+	* nsf.c, nsf.tcl, nsfAPI.*, nsfProfile.c, nsfStack.c: New method properties
+	nsf::method::property /obj/ /method/ debug ?0|1?
+	nsf::method::property /obj/ /method/ deprecated ?0|1?
+	[8854eef]
 
 2015-12-13  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
-	- new introspection method: "/obj/ info baseclass"
-	- extended regression test [5a162b0]
-
-
-	-
-	- new introspection methods: "/obj/ info object method
-	  callprotection /m/" "/cls/ info method callprotection /m/"
-	- extended regression test [07b40a4]
+	* nsf.c, nsfAPI.*, nx.tcl
+	(nx::Object): New introspection method "/obj/ info
+	baseclass"; extended regression test. [5a162b0]
+	(nx::Object, nx::Class): new introspection methods "/obj/ info object method
+	callprotection /m/" and "/cls/ info method callprotection /m/";
+	extended regression test. [07b40a4] 
 
 2015-12-12  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
+	* serializer.tcl: Fix ::Serializer->methodSerialize when called
+	for per-object methods. [2f76d3a]
 
-	-
-	- fix ::Serializer->methodSerialize when called for per-object methods
-	  [2f76d3a]
-
-
-	-
-	- fix editing bug in documentation [c105770]
+	* next-migration.txt: Fix editing bug in documentation. [c105770]
 
 2015-11-30  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
+	* generic/*, gentclAPI.tcl: New macros NSF_nonnull_assert() and
+	nonnull_assert(). Background: The unreleased gcc6 with "-pedantic"
+	complaints since recently about asserts, in which nonnull
+	conditions implied by nonnull declarations are explicitly tested,
+	and spits out warnings like "warning: nonnull argument
+	[...] compared to NULL". The new macros turns off asserts, when
+	gcc6 is used. [16a0288]
 
-	-
-	- New macros NSF_nonnull_assert() and nonnull_assert() Background: The
-	unreleased gcc6 with "-pedantic" complaints since recently about
-	asserts, in which nonnull conditions implied by nonnull declarations
-	are explicitly tested, and spits out warnings like ... warning: nonnull
-	argument ... compared to NULL ... The new macros turns off asserts,
-	when gcc6 is used. [16a0288]
-
-
-	- Profile trace enhancements:
-	- add optional argument "-builtins" to nsf::__profile_trace
-	  to trace a selected list of builtins. Every element of
-	  the list passed to "-builtins" might contain a cmd name
-	  and optionally a maximum number of arguments to be shown
-	  (typically 0 or 1)
-	  - generalized NsfReplaceCommand* logic to become more general usable
-	  (e.g. for the builtins mechanism of nsf::__profile_trace) [19c8474]
+	* nsf.c, nsfAPI.*, nsfInt.h, nsfProfile.c, nsfShadow.c: Profile
+	trace enhancements, add optional argument "-builtins" to
+	"nsf::__profile_trace" to trace a selected list of built-ins. Every
+	element of the list passed to "-builtins" might contain a cmd name
+	and optionally a maximum number of arguments to be shown
+	,typically 0 or 1. Generalized NsfReplaceCommand* logic to become
+	more general usable (e.g. for the builtins mechanism of
+	nsf::__profile_trace). [19c8474]
 
 2015-11-27  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
+	* nsfProfile.c: Remove redundant prototype. [f1ac62f]
 
-	-
-	- remove redundant prototype [f1ac62f]
+	* nsf.c, nsfInt.h, nsfProfile.c, nsfAPI.*: Use standard logging
+	for "nsf::__profile_trace -verbose true" by using the standard
+	logging mechanism, we can redefining "::nsf::log" to output e.g.
+	trace in a GUI.  Add argument "-dontsave" to nsf::__profile_trace
+	to avoid saving trace in memory. Refactor trace and debug output
+	to deliver lists. This makes it easier to postprocess the results
+	from Tcl. [55c89d7]
 
-
-	-
-	- update change history in todo [7da6935]
-
-
-	-
-	- Use standard logging for nsf::__profile_trace ...
-	  -verbose true ... By using the standard logging
-	  mechanism, we can redefining ::nsf::log to output e.g.
-	  trace in a GUI.
-	- Add argument "-dontsave" to nsf::__profile_trace to avoid
-	  saving trace in memory
-	- Refactor trace and debug output to deliver lists. This makes it
-	  easier to postprocess the results from Tcl. [55c89d7]
-
-
-	-
-	- place arguments of preprocessor macros into parens [6953255]
+	* nsf.h: Place arguments of preprocessor macros into
+	parentheses. [6953255]
 
 2015-11-23  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
-	- silence cppcheck 1.71 [a792884]
+	* nsfInt.h (NsfObjectSystem): Silence cppcheck 1.71. [a792884]
 
 2015-11-08  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
-	- keep Tcl error messages, when Tcl_ObjSetVar2() fails. [74d126b]
-
-
-	-
-	- handle result of Tcl_ObjSetVar2() in all cases [2d42793]
-
-
-	-
-	- don't swallow errors triggered from variable write traces in
-	  configure [a709e3e]
+	* nsf.c
+	(ParameterMethodDispatch, NsfNSCopyVarsCmd, NsfOConfigureMethod): Keep
+	Tcl error messages, when Tcl_ObjSetVar2 fails. [74d126b]
+	(AutonameIncr, NsfOConfigureMethod, ParameterMethodDispatch):
+	Handle result of Tcl_ObjSetVar2() in all cases. [2d42793]
+	(NsfOConfigureMethod, NsfOCgetMethod): Don't swallow errors
+	triggered from variable write traces in configure. [a709e3e]
 
 2015-11-06  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
+	* nx.tcl, xotcl2.tcl: Fixed a bug that disallowed the combination
+	of valuecmd and valuechangedcmd for a single property (many thanks
+	to Zoran for pointing this out). [3946480]
 
-	-
-	- Fixed a bug that disallowed the combination of valuecmd and
-	valuechangedcmd for a single property (many thanks to Zoran for
-	pointing this out) [3946480]
-
-
-	-
-	- white space change [dbe0bb3]
+	* nsf.c (Nsf_ThreadExitProc, ArgumentDefaults): White-space
+	changes. [dbe0bb3]
 
 2015-11-05  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
-	- whitespace change [aca62da]
+	* parameters.test: Whitespace change. [aca62da]
 
 2015-10-16  ssoberni  <stefan.sobernig@wu-wien.ac.at>
 
-
-	- In certain build situations, we might still run under Tcl 8.4
-	(because it comes as a legacy OS battery). Tcl modules are >= 8.5
-	only. [b137911]
+	* mkIndex.tcl: In certain build situations, we might still run
+	under Tcl 8.4 because it comes as a legacy OS battery. Tcl modules
+	are >= 8.5 only. [b137911]
 
 2015-10-01  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
-	- new command nsf::method::forward::property in analogy to
-	  nsf::method::property for reading+writing introspection
-	  of forwarders (important for serializer, when different
-	  target objects are specified, to map the per-object
-	  forwarder)
-	- extended regression test
-	- bumped version number of serializer to 2.1 [f31c1a0]
+	* nsf.c, nsfAPI.*, nx.tcl, serializer.tcl: New command
+	"nsf::method::forward::property" in analogy to
+	"nsf::method::property" for reading+writing introspection of
+	forwarders (important for serializer, when different target
+	objects are specified, to map the per-object forwarder); extended
+	regression test; bumped version number of serializer to 2.1. [f31c1a0]
 
 2015-09-27  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
-	- reduce implicit conversions
-	- wite body of if-statements as blocks
-	- whitespace changes
-	- prefer boolean expressions
-	- add likely/unlikely hints [afbb465]
+	* nsf.c, nsfInt.h: Reduce implicit conversions, write body of
+	if-statements as blocks, whitespace changes, prefer boolean
+	expressions, add likely/unlikely hints. [afbb465]
 
 2015-09-26  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
-	- prefer boolean expressions
-	- reduce implicit conversions
-	- wite body of if-statements as blocks
-	- whitespace changes
-	- update licenses [2e1a88e]
+	* generic/*.c: Prefer boolean expressions, reduce implicit
+	conversions, write body of if-statements as blocks, whitespace
+	changes, update licenses. [2e1a88e]
 
 2015-09-21  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
-	- support building nsd from some other directory than the
-	  root directory
-	- raise no error, when nsf is built with mongo + profile enabled
-	  [1c9684a]
+	* Makefile.in, autogen.sh, configure.ac: Support building NSF from
+	some other directory than the root directory; raise no error,
+	when NSF is built with mongo + profile enabled. [1c9684a]
 
 2015-08-11  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
+	* nsf.c (NSDeleteChild, DispatchDestroyMethod): Improve robustness
+	of destroy: in case an error happened in a destroy method in
+	implicit delete operations, a crash was possible, since the state
+	of the object to be delete was somewhat unclear: it might or might
+	not have been deleted. Now, the object is explicitly kept longer
+	around to allow proper handling. [19058de]
 
-	-
-	- improve robustness of destroy: in case an error happened in a destroy
-	method in implicit delete operations, a crash was possible, since the
-	state of the object to be delete was somewhat unclear (it might or
-	might not have been deleted). Now, the object is explicitly kept longer
-	around to allow proper handling). [19058de]
-
-
-	-
-	- don't raise an error, but add warning in cases, slot data is
-	  inconsistent [71a3245]
+	* nx.tcl: Don't raise an error, but add warning in cases, slot
+	data is inconsistent. [71a3245]
 
 2015-07-29  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
+	* nsf.c
+	(ObjectSystemsCheckSystemMethod): Don't define variables
+	inside a block. [9e1cdbe]
+	(NextGetArguments): Address coverty CID 102646, second attempt.
+	[f3ca6a1]
+	(ObjectDispatch): Address covertiy CID 88773. [f90a7fa]
 
-	-
-	- don't define variables inside a block [9e1cdbe]
-
-
-	-
-	- address coverty CID 102646, second attempt [f3ca6a1]
-
-
-	-
-	- address coverty CID 102646 [f4c0008]
-
-
-	-
-	- address covertiy CID 88773 [f90a7fa]
-
-
-	-
-	- move assignmetns after assertions in generated code [cad3e31]
-
-
-	-
-	- revert overeager part of the change [ec070e9]
-
-
-	-
-	- remove logically dead code as flagged by coverity [0e247f6]
+	* gentclAPI.tcl, nsfAPI.h: Revert overeager part of the
+	change. Remove logically dead code as flagged by Coverity. Move
+	assignments after assertions in generated code.
+	[cad3e31,ec070e9,0e247f6]
 
 2015-07-29  ssoberni  <stefan.sobernig@wu-wien.ac.at>
 
-
-	- Adding details how to upload Coverity builds [6d4bc2b]
+	* README.release: Adding details how to upload Coverity builds.
+	[6d4bc2b]
 
 2015-07-29  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
-	- remove expression which were always true [bd4d7d0]
-
-
-	-
-	- turn for() loop into a repeat-until loop, since in first iteration,
-	  the loop controlling expression was always true [33aa1b2]
-
-
-	-
-	- address coverty CID 88774 [6adb5d9]
-
-
-	-
-	- address coverty issue 88776 [1a7f8ba]
+	* nsf.c
+	(FilterInvalidateObjOrders): Remove expressions which were
+	always true. [bd4d7d0]
+	(FilterInvalidateObjOrders): Turn for() loop into a repeat-until
+	loop, since in first iteration, the loop controlling expression
+	was always true. [33aa1b2]
+	(CleanupDestroyClass): Address coverty CID 88774. [6adb5d9]
+	(NsfOResidualargsMethod): Address CID 88776. [1a7f8ba]
 
 2015-07-28  ssoberni  <stefan.sobernig@wu-wien.ac.at>
 
-
-	- Adding Coverity instructions [b43b9e2]
+	* README.release: Adding Coverity instructions. [b43b9e2]
 
 2015-07-28  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
+	* nsf.c: Move dereferencing of members after assertions. [00186f9]
 
-	-
-	- move assertion after assingment [9f90d6b]
+	* nsf.c
+	(NsfRelationClassMixinsSet): Move assertion after
+	assignment. [9f90d6b]
+	(NSDeleteChild): Fix potential bug on Tcl-triggered
+	cmd-delete operations, where destroy returns non-TCL_OK and name
+	of the object could not be retrieved anymore in error
+	message. [92d76b8]
+	(ParameterMethodDispatch): Attempt to make Coverty happy (CID
+	88769). [a4eaf4e]
+	(FreeAllNsfObjectsAndClasses): Remove test, since it is covered
+	already by assertions. [accdf4b]
 
-
-	-
-	- move dereferencing of members after assertions [00186f9]
-
-
-	-
-	- fix potential bug on tcl-triggered cmd-delete operations, where
-	destroy returns non-TCL_OK and name of the object could not be
-	retrieved anymore in error message. [92d76b8]
-
-
-	-
-	- attempt to make Coverty happy (CID 88769) [a4eaf4e]
-
-
-	-
-	- removed NsfParamDefs.slotObj (and single occurance for
-	  memory-management) since it is not used for the time being [08dedac]
-
-
-	-
-	- remove test, since it is covered already by assertions [accdf4b]
-
-
-	-
-	- write body-blocks of if on separate lines
-	- change variable name "validCscPtr" to "isValidCsc", since
-	  it is a boolean and not a ptr (tcl coding guidelines)
-	- prefer explicit comparisons [6c7bb9b]
+	* nsf.c, nsfInt.h
+	(NsfParamDefs): Removed NsfParamDefs.slotObj and
+	single occurance for memory-management since it is not used for
+	the time being [08dedac]
+	(NsfProcClientData, MethodDispatch, ObjectDispatch): Write
+	body-blocks of if on separate lines; change variable name
+	"validCscPtr" to "isValidCsc", since it is a boolean and not a ptr
+	Tcl coding guidelines; prefer explicit comparisons. [6c7bb9b]
 
 2015-07-28  ssoberni  <stefan.sobernig@wu-wien.ac.at>
 
