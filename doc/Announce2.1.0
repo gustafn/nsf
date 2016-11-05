@@ -47,7 +47,7 @@ o) Improved robustness:
 
    The combined NX and XOTcl2 serializer has been extended to cover
    newly added features (esp., NSF procs, method flags) and has been
-   improved based on experiences in multi-threaded Tcl applications
+   improved based on experiences from multi-threaded NSF/Tcl applications
    (NaviServer). Improvements and fixes relate to "info" methods and
    forwarders.
 
@@ -143,6 +143,10 @@ o) API changes:
      * ::nsf::parseargs
      * ::nsf::current level
      * new flag "-notrace" for "nsf::var::set" and "nsf::var::get"
+     * new flags "-debug" and "-deprecated" for "nsf::proc"
+     * New option: nsf::method::property /obj/ /method/ deprecated ?0|1?
+     * New option: nsf::method::property /obj/ /method/ debug ?0|1?
+     * New proc:   nsf::method::forward::property
 
     Features removed: none
 
