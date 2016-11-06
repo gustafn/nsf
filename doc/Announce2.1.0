@@ -147,6 +147,8 @@ o) API changes:
      * New option: nsf::method::property /obj/ /method/ deprecated ?0|1?
      * New option: nsf::method::property /obj/ /method/ debug ?0|1?
      * New proc:   nsf::method::forward::property
+     * New proc:   nsf:__profile_trace -enable /bool/ ?-verbose /bool/?
+     * New option: nsf::configure trace
 
     Features removed: none
 
