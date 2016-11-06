@@ -200,9 +200,9 @@ o) Code changes (C):
      NsfMethodNamePath(), as indicated by valgrind.
    * Refactored functions for topological sorting (TopoSort()) to
      avoid redundancies.
-   * Addressed 16 code-quality issues as indicated by Coverity Scan,
-     incl. control-flow issues (risking NULL dereferencing), dead code
-     branches, etc.
+   * Addressed more than 18 code-quality issues as indicated by
+     Coverity Scan, incl. control-flow issues (risking NULL
+     dereferencing), dead code branches, etc.
    * Removed uses of deprecated functions: Tcl_AppendResult, ...
    * Based on the improve NSF/C code generator, proper enum types are
      used in generated function signatures and the respective control
