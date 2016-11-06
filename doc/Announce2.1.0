@@ -10,9 +10,11 @@ and in Windows enviroments (MinGW, VC).
 
 Diff stats since 2.0.0:
 
-171 files changed, 30137 insertions(+), 13932 deletions(-)   
+173 files changed, 30540 insertions(+), 14264 deletions(-)
 
 Major changes relative to 2.0.0 are:
+
+o) Slot-traces reform: (TODO: ...)
 
 o) Improved robustness:
 
@@ -26,7 +28,7 @@ o) Improved robustness:
    and will enter an upcoming patch release (8.6.7). Our regression
    test-suite was extended accordingly to track the issue.
 
-   See Tcl Fossil tickets ... and ...
+   See Tcl Fossil tickets d4e7780ca1 and 3418547.
 
    * Finalizing NSF and NSF object systems:
 
@@ -50,8 +52,6 @@ o) Improved robustness:
    improved based on experiences from multi-threaded NSF/Tcl applications
    (NaviServer). Improvements and fixes relate to "info" methods and
    forwarders.
-
-o) Slot-traces reform: ...
    
 o) Improved scripted shells (e.g., nxsh, xotclsh):
 
@@ -178,9 +178,9 @@ o) Documentation (API and examples):
 
        - alias/forward/method: added debug/ deprecated switches,
 
-	- current.man: Added description of 'level' option.
+       - current.man: Added description of 'level' option.
 
-	- Extended/ updated Rosetta implementations:
+       - Extended/ updated Rosetta implementations:
 
 	  Inheritance/multiple
 	  Polymorphic copy
@@ -212,8 +212,8 @@ o) Packaging & distribution:
 
    * Updated TEA to 3.10
    * Support for MSVC 14 (VS 2015; win/makefile.vc)
-   * Debian package:
-   * MacPorts port: 
+   * Debian package: https://packages.qa.debian.org/n/nsf.html
+   * MacPorts port: https://trac.macports.org/browser/trunk/dports/lang/nsf/Portfile
    * Part of the KitCreator battery: https://kitcreator.rkeene.org/fossil/
    * Part of the kbskit battery: https://sourceforge.net/projects/kbskit/
 
@@ -226,4 +226,3 @@ https://next-scripting.org/xowiki/download/file/ChangeLog-2.0.0-2.1.0.log
 Best regards
 - Gustaf Neumann
 - Stefan Sobernig
-
