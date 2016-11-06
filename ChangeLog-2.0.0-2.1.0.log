@@ -904,7 +904,7 @@
 
 	* parameters.test: Whitespace change. [aca62da]
 
-2015-10-16  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+2015-10-16  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
 	* mkIndex.tcl: In certain build situations, we might still run
 	under Tcl 8.4 because it comes as a legacy OS battery. Tcl modules
@@ -963,7 +963,7 @@
 	assignments after assertions in generated code.
 	[cad3e31,ec070e9,0e247f6]
 
-2015-07-29  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+2015-07-29  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
 	* README.release: Adding details how to upload Coverity builds.
 	[6d4bc2b]
@@ -979,7 +979,7 @@
 	(CleanupDestroyClass): Address coverty CID 88774. [6adb5d9]
 	(NsfOResidualargsMethod): Address CID 88776. [1a7f8ba]
 
-2015-07-28  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+2015-07-28  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
 	* README.release: Adding Coverity instructions. [b43b9e2]
 
@@ -1008,368 +1008,167 @@
 	"validCscPtr" to "isValidCsc", since it is a boolean and not a ptr
 	Tcl coding guidelines; prefer explicit comparisons. [6c7bb9b]
 
-2015-07-28  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+2015-07-28  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
+	* nsf.c (MethodDispatch): Fix compiler warning on typecast
+	mismatch. [4e2b21c]
 
-	- MethodDispatch(): Fix compiler warning on typecast mismatch [4e2b21c]
+	* nsfObj.c (MixinregSetFromAny): Re-arrange control flow as to match other
+	uses in the code base (CID 88777). [1527180]
 
+2015-07-27  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-	- MixinregSetFromAny(): Re-arrange control flow as to match other uses
-	  in the code base (CID 88777) [1527180]
-
-2015-07-27  ssoberni  <stefan.sobernig@wu-wien.ac.at>
-
-
-	- ResolveMethodName(): Guard against potential null pointer dereference
-	  (CID 88771). [ca7f760]
-
-
-	- FreeAllNsfObjectsAndClasses(): Remove unneeded NULL check as
+	* nsf.c
+	(ResolveMethodName): Guard against potential null pointer
+	dereference (CID 88771). [ca7f760]
+	(FreeAllNsfObjectsAndClasses): Remove unneeded NULL check as
 	dereferencing already occurred before; check for NULL earlier (CID
-	88780) [2638eb9]
+	88780). [2638eb9]
 
-2015-07-23  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+2015-07-23  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	- MixinregSetFromAny(): Fix crash through explicit null dereferencing
+	* nsfObj.c (MixinregSetFromAny): Fix crash through explicit null dereferencing
 	when an invalid list string-rep is provided as mixinreg (CID 88777);
 	added tests [207a8f5]
 
+	* nsf.c (MakeProc): Silence false-positive warning, due to missing
+	returns_nonnull annotation (CID 88770). [a757c1a]
 
-	- MakeProc(): Silence false-positive warning, due to missing
-	  returns_nonnull annotation (CID 88770). [a757c1a]
+2015-07-17  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-2015-07-17  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+	* nsf.c:
+	(ConvertViaCmd, ConvertToObjpattern, GetSlotObject): Check return
+	values of GetObjectFromObj explicitly (CID 88763, 88764,
+	88765). [8357e61]
+	(ObjectSystemsCheckSystemMethod): Mark TCL_ERROR path as unlikely.
+	[c0e1053]
+	(ObjectSystemsCheckSystemMethod): Re-order control flow to remove
+	otherwise dead IF-branch (CID 88768). [1eaf0a3]
+	(NsfMethodPropertyCmd): Dropped option 'slotobj' as it is
+	obsolete.  Also fixes CID 88767. [6c9eb2e]
+	(ListMethod): Make sure that 'info method exists' returns 0 for
+	(plain) NX objects; added some tests. [0b1ac7f]
+	(ListCmdParams): Removed logically dead code (CID
+	88779). [c2e5725]
 
+	* Documentation (info.man.inc): Make empty-string ambiguity
+	explicit for 'info method *'. [497451f]
 
-	- nsf.c: Check return values of GetObjectFromObj explicitly (CID 88763,
-	  88764, 88765). [8357e61]
+2015-07-16  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	- ObjectSystemsCheckSystemMethod(): Mark TCL_ERROR path as unlikely
-	  [c0e1053]
-
-
-	- ObjectSystemsCheckSystemMethod(): Re-order control flow to remove
-	  otherwise dead IF-branch (CID 88768) [1eaf0a3]
-
-
-	- NsfMethodPropertyCmd(): Dropped option 'slotobj' as it is obsolete.
-	  Also fixes CID 88767. See TODO for further cleanup steps. [6c9eb2e]
-
-
-	- info.man.inc: Make empty-string ambiguity explicit for 'info method
-	  *' [497451f]
-
-
-	- ListMethod(): Make sure that 'info method exists' returns 0 for
-	  (plain) NX objects; added some tests [0b1ac7f]
-
-
-	- ListCmdParams(): Removed logically dead code (CID 88779). [c2e5725]
-
-2015-07-16  ssoberni  <stefan.sobernig@wu-wien.ac.at>
-
-
-	- NsfShowStack(): Removed logically dead code. CID 88766. [caee18f]
+	* nsfStack.c (NsfShowStack): Removed logically dead code. CID
+	88766. [caee18f]
 
 2015-04-07  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
-	- fix compilation when compiled without --enable-profile [6c58e11]
+	* nsfInt.h: Fix compilation when compiled without --enable-profile.
+	[6c58e11]
 
 2015-04-06  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
+	* gentclAPI.tcl, nsf.c, nsfProfile.c: Improve profiling support
+	and added profile support for undispatched methods (i.e.
+	implemented via CallDirectly). New function for controlling
+	profile trace "nsf:__profile_trace -enable /bool/ ?-verbose
+	/bool/?". [c5f2227]
 
-	- Improve profiling support
-	- added profile support for undispatched methods (i.e.
-	  implemented via CallDirectly)
-	- new function for controlling profile trace nsf:__profile_trace
-	  -enable /bool/ ?-verbose /bool/? [c5f2227]
+2015-04-03  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-2015-04-03  ssoberni  <stefan.sobernig@wu-wien.ac.at>
-
-
-	- Silence varargs warning (-Wgnu-zero-variadic-macro-arguments) under
-	clang --std=c99 -pedantic, tested under gcc, clang 3.6, and MSVC;
-	added tests [714726d]
+	* nsfDebug.c, nsfInt.h, nsf-cmd.test: Silence varargs warning
+	-Wgnu-zero-variadic-macro-arguments under clang --std=c99
+	-pedantic, tested under gcc, clang 3.6, and MSVC; added tests.
+	[714726d]
 
 2015-04-01  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
-	- changed trace facility to append to a variable to
-	  minimize interactions for results and return codes, which
-	  happen via nsf::log.
-	- added more convenient function for adding to DStrings:
-	  Nsf_DStringPrintf
-	- renamed NsfDStringPrintf to NsfDStringVPrintf
-	- replaced complex macros for tracing by functions [453ad27]
+	* nsf.c, nsfError.c, nsfProfile.c: Changed trace facility to
+	append to a variable to minimize interactions for results and
+	return codes, which happen via nsf::log; added more convenient
+	function for adding to DStrings: Nsf_DStringPrintf; renamed
+	NsfDStringPrintf to NsfDStringVPrintf; replaced complex macros
+	for tracing by functions. [453ad27]
 
 2015-03-31  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
-	- added experimental "nsf::configure trace" feature, which can be
-	enabled when compiled with profile support. trace turns on
-	automatically profile [e1c25b4]
+	* nsf.c, nsfAPI.*, nsfInt.h, nsfProfile.c: Added experimental
+	"nsf::configure trace" feature, which can be enabled when compiled
+	with profile support. trace turns on automatically profile.
+	[e1c25b4]
 
 2015-01-22  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
-	- improve cleanness of compilation when "-pedantic" is used [bf951b5]
+	* nsf.c, nsfDebug.c, nsfStack.c: Improve cleanness of compilation
+	when "-pedantic" is used. [bf951b5]
 
 2015-01-05  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
+	* nsf.c, nsfDebug.c, nsfObj.c: Assignments after assertions.
+	[658c5ca]
 
-	-
-	- move assignments after assertions [658c5ca]
-
-
-	-
-	- add -DNDEBUG=1 to flags passed to cppcheck, since cppcheck reports
-	  checked cases as warnings [efb84f6]
+	* Makefile.in: Add -DNDEBUG=1 to flags passed to cppcheck, since
+	cppcheck reports checked cases as warnings. [efb84f6]
 
 2015-01-02  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
-	- prefer const over CONST unless Tcl API [dbd95b0]
+	* generic/*.c: Prefer const over CONST unless Tcl API. [dbd95b0]
 
 2015-01-01  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
-	- strip old content from announce file [5bdfdb7]
+	* Documentation: Strip old content from announce file. [5bdfdb7]
 
 2014-12-13  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
+	* gentclAPI.tcl, nsfAPI.h, mongoAPI.h: Use same definition for
+	ObjCmds as in Tcl; prefer "const" over "CONST" unless in Tcl
+	interface. [62beaf1]
 
-	-
-	- use same definition for ObjCmds as in tcl
-	- prefer "const" over "CONST" unless in Tcl interface [62beaf1]
+	* Documentation (doc/example-scripts/*): Regenerate doc pages with
+	asciidoc 8.6.9, fix paths. [24cb8f4]
 
-
-	-
-	- regenerate doc pages with asciidoc 8.6.9
-	- fix paths [24cb8f4]
-
-
-	-
-	- align log levels with NaviServer/AOLserver [6b00c4e]
+	* nsf.c, nsf.h (NsfLog): Align log levels with
+	NaviServer/AOLserver. [6b00c4e]
 
 2014-12-11  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
-	- fix all complaints from clang static analyzer 3.6 [919f731]
+	* nsf.c, nsfmongo.c: Fix all complaints from clang static analyzer
+	3.6. [919f731]
 
 2014-12-06  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
+	* Documentation (next-migration.txt, next-tutorial.txt): Update
+	date in documentation. [d725e5e]
 
-	-
-	- update date in documentation [d725e5e]
+	* Makefile.in: Make sure to rm .o files in stub directory.
+	[4f7f7c1]
 
-
-	-
-	- make sure to rm .o files in stub directory [4f7f7c1]
-
-
-	-
-	- make sure to omit Mac OS X hidden file from tar balls [9fe4a51]
+	* mktar.sh: Make sure to omit Mac OS X hidden file from tarballs.
+	[9fe4a51]
 
 2014-12-04  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
-	- prefer boolean expression in tests over expressions of other types
-	  [24571ae]
+	* generic/*.c:  Prefer boolean expression in tests over expressions of
+	other types. [24571ae]
 
 2014-12-01  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
+	* aolstub.c, nsf.c, nsfEnumerationType.c, nsfInt.h: Add const
+	declarations, improve compilation with --std=c99
+	-pedantic. [9e00fd1]
 
-	-
-	- add const declarations
-	- improve compilation with --std=c99 -pedantic [9e00fd1]
+	* nsfInt.h, nsfUtil.c, nsfmongo.c: Make compilation clean with
+	clang 3.6. [81a1f96]
 
-
-	-
-	- make compilation clean with clang 3.6 [81a1f96]
-
-
-	-
-	- make compilation clean under clang 3.6 [1173a57]
+	* nsf.c, nsfStack.c: Make compilation clean under clang
+	3.6. [1173a57]
 
 2014-11-25  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
-	- add NsfArgumentError() to stub interface, since this
-	  might be used by c packages using the interface generator
-	- add mong::json to the interface
-	- bump version number for mongo interface to 0.4. [9e8610b]
-
-2014-10-29  ssoberni  <stefan.sobernig@wu-wien.ac.at>
-
-
-	- Fix PDF rendering and man markup [83b89fe]
-
-2014-10-28  ssoberni  <stefan.sobernig@wu-wien.ac.at>
-
-
-	- Revise announcement text slightly, add entry about manpages [04d83e1]
-
-2014-10-28  Gustaf Neumann  <neumann@wu-wien.ac.at>
-
-
-	-
-	- update changelog [f92aea6]
-
-
-	-
-	- Don't complain at final ObjectDeletion about object refcounts unless
-	  we are in development mode [6af7268]
-
-
-	-
-	- adding .3 man pages to ease installation [216bad6]
-
-
-	-
-	- adding .1 man pages to ease installation [5ea59ff]
-
-2014-10-28  ssoberni  <stefan.sobernig@wu-wien.ac.at>
-
-
-	- Effectively remove getstubs from makefile.vc [c17a765]
-
-
-	  - Apply stubs* resolution withouh getstubs to makefile.vc [f446b1c]
-
-2014-10-27  Gustaf Neumann  <neumann@wu-wien.ac.at>
-
-
-	-
-	- update ChangeLog [db4cb3c]
-
-
-	-
-	- use newset versions, re-generated stub files [2ff112f]
-
-
-	-
-	- adjust genstubs target to subdir logic [e494dcc]
-
-
-	-
-	- handle nsfUtil.c from version-specific subdirectory [8d8e1ba]
-
-
-	-
-	- binor polishing [49cffe6]
-
-2014-10-27  ssoberni  <stefan.sobernig@wu-wien.ac.at>
-
-
-	- NsfDStringPrintf(): Fix vargs processing under VC 12 [ada0c34]
-
-2014-10-27  Gustaf Neumann  <neumann@wu-wien.ac.at>
-
-
-	-
-	- get rid of getstubs [8c6ae48]
-
-
-	-
-	- provide actual pkgIndex files [96a1e6b]
-
-
-	-
-	- keep an internal list of Tcl_Objs of type mixinrefs for classes used
-	as mixins. This list is used for avoiding stale entries in cases the
-	mixin class is destroyed. [36b29a9]
-
-
-	-
-	- remove redundant and different prototype [15beef0]
-
-2014-10-27  ssoberni  <stefan.sobernig@wu-wien.ac.at>
-
-
-	- Left comment block unbalanced, fix [a553acc]
-
-
-	- Bump version numbers in nx.tcl and xotcl2.tcl; adjust license
-	  statements [87e9176]
-
-
-	- Rearrange 'make getstubs' slightly, so that we do not require the
-	  stub files present in generic/* for the build machinery to work
-	properly [4619c8c]
-
-
-	  - Done revising license statements in generic/* [cbcfec7]
-
-2014-10-27  Gustaf Neumann  <neumann@wu-wien.ac.at>
-
-
-	-
-	- fix a heisenbug probably showing sometimes up due to more aggressive
-	  Tcl_Obj sharing in newer versions of tcl 8.6 [5163190]
-
-2014-10-27  ssoberni  <stefan.sobernig@wu-wien.ac.at>
-
-
-	- Correct and unify licensing statements in header files [481023b]
-
-
-	  - Fix copyright statements in stubs* files [6d2855a]
-
-
-	- Fix copyright dates [f5cbe77]
-
-2014-10-26  ssoberni  <stefan.sobernig@wu-wien.ac.at>
-
-
-	- Silence instructions, do not install xowish.in/ xotclsh.in [2f8dfd2]
-
-
-	- Bump version number in win build files [d5e628d]
-
-
-	- Trigger generation of pgk index scripts [dbddf13]
-
-
-	- Trigger generation of pgk index scripts [bb58731]
-
-
-	- Trigger generation of pgk index scripts [4d489c5]
-
-
-	- Trigger generation of pgk index scripts [fa62f3a]
-
-
-	- Adding another missing obj target [0f10c4b]
-
-
-	- Irgh! Fix file extension [67ab2c4]
-
-
-	- Add EXTERN to calm VC12, add missing C files from makefile.vc
-	  [0e9d5de]
-
-2014-10-25  ssoberni  <stefan.sobernig@wu-wien.ac.at>
-
-
-	- Use correct slashing [dcdddbf]
-
-
-	- Render file paths in a platform-independent manner [ce20199]
-
-
-	- Make sure genstub.tcl is called in makefile.vc [a166e33]
-
-
-	- Update nmakehlp (required for VC 12+) [4e113a8]
+	* nsf.decls: Add NsfArgumentError() to stub interface, since this
+	might be used by C packages using the interface generator. [9e8610b]
+	* nsfmongo.c: Add mong::json to the interface, bump version number
+	for mongo interface to 0.4. [9e8610b]
+
+2014-10-29  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* Documentation (doc/*.man, man-princexml.css): Fix PDF rendering
+	and man markup. [83b89fe]
