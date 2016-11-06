@@ -1,3 +1,25 @@
+2016-11-03  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+        * interceptor-slot.test: Adding a first test case. [71f9dc8]
+
+2016-11-03  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsf.c (ObjectDispatchFinalize): Address potential crash when a
+	filter calls a filter which calls unknown. [641d41d]
+
+	* nsfInt.h: Prefer lower case "U" suffix to improve readability.
+	[4b4a734]
+
+2016-11-02  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+        * xotcl2.tcl (Class->unknown): Use ::nsf::current explicitly to avoid
+          NX/XOTcl2 self hickups. [a147560]
+
+2016-10-28  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* Documentation (tk-ludo.tcl): Regenerated documentation. [c8cc440]
+        * tk-ludo.tcl, nx-shell.tcl: Remove useless expr statements. [f691059]
+
 2016-10-27  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
 	* xotcl2.tcl
