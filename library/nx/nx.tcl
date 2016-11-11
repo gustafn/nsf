@@ -2238,6 +2238,11 @@ namespace eval ::nx {
     if {![info exists trace] && [info exists :trace] && ${:trace} ne "none"} {
       set trace ${:trace}
     }
+
+    if {$parameterOptions ne "" && "substdefault" in [split $parameterOptions ,]} {
+      set defaultValue [subst $defaultValue]
+    }
+
     if {$initblock eq "" && !$configurable && !$incremental
         && $accessor eq "none" && ![info exists trace]} {
       #
@@ -2257,7 +2262,7 @@ namespace eval ::nx {
 	  # we rely here that the nsf::is error message expresses the implementation limits
 	  set noptions {}
 	  foreach o [split $parameterOptions ,] {
-	    if {$o ne "noconfig"} {lappend noptions $o}
+	    if {$o ni {noconfig substdefault}} {lappend noptions $o}
 	  }
 
 	  set parameterOptions [join $noptions ,]

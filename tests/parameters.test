@@ -919,9 +919,9 @@ nx::test case substdefault {
 }
 
 #######################################################
-# testing substdefault for object parameters
+# testing substdefault for object parameters (per-class)
 #######################################################
-nx::test case substdefault-objparam {
+nx::test case substdefault-objparam-perclass {
 
   nx::Class create Bar {
 
@@ -944,6 +944,49 @@ nx::test case substdefault-objparam {
   ? {b cget -s2} "::b"
   ? {b cget -s3} "::b"
 }
+
+#######################################################
+# testing substdefault for object parameters (per-object)
+#######################################################
+nx::test case substdefault-objparam-perobj {
+
+  nx::Object create rab {
+
+    # no substdefault given
+    :object property {s0 "[current]"}
+
+    # explicit substdefault
+    :object property {s1:substdefault "[current]"}
+
+    # unneeded double substdefault
+    :object property {s2:substdefault,substdefault "[current]"}
+
+    # substdefault with incremental
+    :object property -incremental {s3:substdefault "[current]"}
+
+    # no substdefault given
+    :object variable s4 {[current]}
+
+    # explicit substdefault
+    :object variable s5:substdefault {[current]}
+
+    # unneeded double substdefault
+    :object variable s6:substdefault,substdefault {[current]}
+    
+    # substdefault with incremental
+    :object variable -incremental s7:substdefault {[current]}
+  }
+
+  ? {rab cget -s0} {[current]}
+  ? {rab cget -s1} "::rab"
+  ? {rab cget -s2} "::rab"
+  ? {rab cget -s3} "::rab"
+  ? {rab eval {set :s4}} {[current]}
+  ? {rab eval {set :s5}} "::rab"
+  ? {rab eval {set :s6}} "::rab"
+  ? {rab eval {set :s7}} "::rab"
+}
+
 
 #
 # Test call of configure within constructor
