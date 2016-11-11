@@ -1847,7 +1847,8 @@ namespace eval ::nx {
     }
 
     set restore [:removeTraces $object *]
-    ::nsf::var::set $object ${:name} ${:default}
+    # was: ::nsf::var::set $object ${:name} ${:default}
+    ::nsf::var::set $object ${:name} $value
     if {[info exists restore]} { {*}$restore }
   }
 
