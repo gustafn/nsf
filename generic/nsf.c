@@ -25568,7 +25568,7 @@ NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
          * Flush old byte code
          */
         /*fprintf(stderr, "flush byte code\n");*/
-        bodyObj->typePtr->freeIntRepProc(bodyObj);
+        TclFreeIntRep(bodyObj);
       }
     }
 
