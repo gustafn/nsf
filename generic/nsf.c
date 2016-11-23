@@ -1708,15 +1708,19 @@ GetObjectFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfObject **objectPtr) {
   /*fprintf(stderr, "GetObjectFromObj obj %p %s is of type %s\n",
     objPtr, ObjStr(objPtr), (objPtr->typePtr != NULL) ? objPtr->typePtr->name : "(null)");*/
 
-  /* in case, objPtr was not of type cmdName, try to convert */
+  /*
+   * In case, objPtr was not of type cmdName, try to convert.
+   */
   cmd = Tcl_GetCommandFromObj(interp, objPtr);
-  /*fprintf(stderr, "GetObjectFromObj obj %s => cmd=%p (%d)\n",
-    ObjStr(objPtr), cmd, (cmd != NULL) ? Tcl_Command_refCount(cmd):-1);*/
+  /*fprintf(stderr, "GetObjectFromObj obj %p %s (type %p) => cmd=%p (refCount %d)\n",
+    objPtr, ObjStr(objPtr), objPtr->typePtr, cmd, (cmd != NULL) ? Tcl_Command_refCount(cmd) : -1);*/
+
   if (cmd != NULL) {
     NsfObject *object = NsfGetObjectFromCmdPtr(cmd);
 
-    /*fprintf(stderr, "GetObjectFromObj obj %s, o is %p objProc %p NsfObjDispatch %p\n", ObjStr(objPtr),
-      object, Tcl_Command_objProc(cmd), NsfObjDispatch);*/
+    /* fprintf(stderr, "GetObjectFromObj obj %s, o is %p objProc %p NsfObjDispatch %p\n",
+       ObjStr(objPtr), object, Tcl_Command_objProc(cmd), NsfObjDispatch);*/
+
     if (likely(object != NULL)) {
       *objectPtr = object;
       return TCL_OK;
@@ -1733,7 +1737,7 @@ GetObjectFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfObject **objectPtr) {
   if (isAbsolutePath(string)) {
     object = NULL;
   } else {
-    Tcl_Obj *tmpName = NameInNamespaceObj(string, CallingNameSpace(interp));
+    Tcl_Obj    *tmpName = NameInNamespaceObj(string, CallingNameSpace(interp));
     const char *nsString = ObjStr(tmpName);
 
     INCR_REF_COUNT(tmpName);
@@ -4072,7 +4076,7 @@ ObjectSystemsCleanup(Tcl_Interp *interp, int withKeepvars) {
    */
   RUNTIME_STATE(interp)->doFilters = 0;
   (void)Tcl_RemoveInterpResolvers(interp, "nsf");
-  
+
 #ifdef DO_CLEANUP
   FreeAllNsfObjectsAndClasses(interp, &instances);
 # ifdef DO_FULL_CLEANUP
@@ -15393,7 +15397,9 @@ ParamOptionParse(Tcl_Interp *interp, const char *argString,
       return NsfPrintError(interp,
                            "parameter option 'arg=' only allowed for user-defined converter");
     }
-    if (paramPtr->converterArg != NULL) {DECR_REF_COUNT(paramPtr->converterArg);}
+    if (paramPtr->converterArg != NULL) {
+      DECR_REF_COUNT(paramPtr->converterArg);
+    }
     paramPtr->converterArg = Tcl_NewStringObj(option + 4, (int)optionLength - 4);
     /*
      * In case, we know that we have to unescape double commas, do it here...
@@ -15452,10 +15458,13 @@ ParamOptionParse(Tcl_Interp *interp, const char *argString,
     result = ParamOptionSetConverter(interp, paramPtr, "parameter", Nsf_ConvertToParameter);
 
   } else if (optionLength >= 6 && strncmp(option, "type=", 5) == 0) {
-    if (paramPtr->converter != Nsf_ConvertToObject &&
-        paramPtr->converter != Nsf_ConvertToClass)
-        return NsfPrintError(interp, "parameter option 'type=' only allowed for parameter types 'object' and 'class'");
-    if (paramPtr->converterArg != NULL) {DECR_REF_COUNT(paramPtr->converterArg);}
+    if (paramPtr->converter != Nsf_ConvertToObject
+        && paramPtr->converter != Nsf_ConvertToClass ) {
+      return NsfPrintError(interp, "parameter option 'type=' only allowed for parameter types 'object' and 'class'");
+    }
+    if (paramPtr->converterArg != NULL) {
+      DECR_REF_COUNT(paramPtr->converterArg);
+    }
     paramPtr->converterArg = Tcl_NewStringObj(option + 5, (int)optionLength - 5);
     if (unlikely(unescape)) {
       Unescape(paramPtr->converterArg);
@@ -15533,7 +15542,9 @@ ParamOptionParse(Tcl_Interp *interp, const char *argString,
       if (found > -1) {
         /* converter is stringType */
         result = ParamOptionSetConverter(interp, paramPtr, "stringtype", Nsf_ConvertToTclobj);
-        if (paramPtr->converterArg != NULL) {DECR_REF_COUNT(paramPtr->converterArg);}
+        if (paramPtr->converterArg != NULL) {
+          DECR_REF_COUNT(paramPtr->converterArg);
+        }
         paramPtr->converterArg = Tcl_NewStringObj(stringTypeOpts[i], -1);
         INCR_REF_COUNT(paramPtr->converterArg);
       } else {
@@ -19658,6 +19669,22 @@ PrimitiveCCreate(Tcl_Interp *interp, Tcl_Obj *nameObj, Tcl_Namespace *parentNsPt
                                    NsfObjDispatch,
                                    NsfObjDispatchNRE,
                                    cl, TclDeletesObject);
+
+#if TCL_MAJOR_VERSION==8 && TCL_MINOR_VERSION>6
+  /*
+   * It seems, that we have to invalidate the intRep of the Tcl_Obj, otherwise
+   * - at least when the incoming type is cmdName - a later call to
+   * Tcl_GetCommandFromObj() will pick up the wrong/old cmd. At least, we do
+   * not get the cmd we have created here (object->id).
+   */
+  if (nameObj->typePtr != NULL) {
+    if ((nameObj->typePtr != NULL) && (nameObj->typePtr->freeIntRepProc != NULL)) {
+      /*fprintf(stderr, "PrimitiveCCreate cmd %p invalidates intRep for nameObj %p type %s\n",
+        object->id, nameObj, nameObj->typePtr->name);*/
+      nameObj->typePtr->freeIntRepProc(nameObj);
+    }
+  }
+#endif
 #else
   object->id = Tcl_CreateObjCommand(interp, nameString, NsfObjDispatch,
                                     cl, TclDeletesObject);
@@ -29455,6 +29482,7 @@ NsfCAllocMethod_(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *nameObj, Tcl_Namespa
      * If the base class is an ordinary class, we create an object.
      */
     newObj = PrimitiveOCreate(interp, nameObj, parentNsPtr, cl);
+
   } else {
     /*
      * If the base class is a meta-class, we create a class.
@@ -29472,6 +29500,9 @@ NsfCAllocMethod_(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *nameObj, Tcl_Namespa
     NSF_DTRACE_OBJECT_ALLOC(ObjectName(newObj), ClassName(cl));
   }
 
+  /*fprintf(stderr, "PrimitiveCCreate returns nameObj %p typePtr %p %s\n",
+          nameObj, nameObj->typePtr,
+          nameObj->typePtr != NULL ? nameObj->typePtr->name : "NULL"); */
   Tcl_SetObjResult(interp, nameObj);
 
   return TCL_OK;
@@ -31843,10 +31874,10 @@ ExitHandler(ClientData clientData) {
      our shutdown procedures (::nsf::finalize, ExitHandler). Therefore, on
      MEM_COUNT_RELEASE(), we might see unbalanced refcounts which are false
      positives. Therefore, we aim at clearing the history list at this point.
-     
+
      See also Tcl bug report 1ae12987cb.
   */
-  
+
   if (unlikely(Tcl_Eval(interp, "::history clear") != TCL_OK)) {
     NsfLog(interp, NSF_LOG_WARN, "Clearing the Tcl history list failed! "
            "Memcounts could be reported as unbalanced on MEM_COUNT_RELEASE(). "
