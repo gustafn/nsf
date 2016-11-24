@@ -256,6 +256,8 @@ nx::test case apply {
 #
 if {![package vsatisfies [package req Tcl] 8.6.7]} {return}
 
+set tcl87 [package vsatisfies [package req Tcl] 8.7]
+
 nx::test case bug-3418547 {
   #
   # See http://core.tcl.tk/tcl/tktview?name=3418547fff
@@ -267,7 +269,9 @@ nx::test case bug-3418547 {
 
   ? {getType @} ""            ;# "@" has no type
   ? {namespace which @} ""
-  ? {getType @} "cmdName"     ;# "@" is of type "cmdName"
+  if {!$::tcl87} {
+      ? {getType @} "cmdName"     ;# "@" is of type "cmdName"
+  }
   
   ? {@} {invalid command name "@"}
   ? {getType @} "bytecode"    ;# "@" is of type "bytecode"  
@@ -343,7 +347,9 @@ rename ::nx::@ ""
 
 ? {getType @}   ""
 ? {namespace which @} ""
-? {getType @}   "cmdName"
+if {!$::tcl87} {
+    ? {getType @}   "cmdName"
+}
 
 ? {@} {invalid command name "@"}
 
@@ -355,7 +361,9 @@ proc ::@ {} {
 }
 
 ? {@} ::@
-? {getType @}   "cmdName"
+if {!$::tcl87} {
+    ? {getType @}   "cmdName"
+}
 
 #
 # 2) Provide @ for interp resolver in NX root namespace
@@ -366,7 +374,9 @@ proc ::nx::@ {} {
 
 set r [@]       ;# "@" is not executed in an nx environment (no testcase eval), therefore resolved globally
 ? {set r} ::@
-? {getType @}   "cmdName"
+if {!$::tcl87} {
+    ? {getType @}   "cmdName"
+}
 
 nx::Object create ::o {
   :public object method foo {} {
@@ -376,7 +386,9 @@ nx::Object create ::o {
 
 set r [::o foo]
 ? {set r} ::nx::@
-? {getType @}   "cmdName"
+if {!$::tcl87} {
+    ? {getType @}   "cmdName"
+}
 
 ? {::o foo} ::nx::@
 
