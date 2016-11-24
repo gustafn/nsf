@@ -19131,6 +19131,15 @@ PrimitiveOCreate(Tcl_Interp *interp, Tcl_Obj *nameObj, Tcl_Namespace *parentNsPt
                                    NsfObjDispatch,
                                    NsfObjDispatchNRE,
                                    object, TclDeletesObject);
+# if TCL_MAJOR_VERSION==8 && TCL_MINOR_VERSION>6
+  /*
+   * We have to invalidate the intRep of the Tcl_Obj, otherwise - at least
+   * when the incoming type is cmdName - a later call to
+   * Tcl_GetCommandFromObj() will not pick up the new cmd. At least, we do not
+   * get the cmd we have created here (object->id).
+   */
+  TclFreeIntRep(nameObj);
+# endif
 #else
   object->id = Tcl_CreateObjCommand(interp, nameString, NsfObjDispatch,
                                     object, TclDeletesObject);
@@ -19669,22 +19678,15 @@ PrimitiveCCreate(Tcl_Interp *interp, Tcl_Obj *nameObj, Tcl_Namespace *parentNsPt
                                    NsfObjDispatch,
                                    NsfObjDispatchNRE,
                                    cl, TclDeletesObject);
-
-#if TCL_MAJOR_VERSION==8 && TCL_MINOR_VERSION>6
+# if TCL_MAJOR_VERSION==8 && TCL_MINOR_VERSION>6
   /*
-   * It seems, that we have to invalidate the intRep of the Tcl_Obj, otherwise
-   * - at least when the incoming type is cmdName - a later call to
-   * Tcl_GetCommandFromObj() will pick up the wrong/old cmd. At least, we do
-   * not get the cmd we have created here (object->id).
+   * We have to invalidate the intRep of the Tcl_Obj, otherwise - at least
+   * when the incoming type is cmdName - a later call to
+   * Tcl_GetCommandFromObj() will not pick up the new cmd. At least, we do not
+   * get the cmd we have created here (object->id).
    */
-  if (nameObj->typePtr != NULL) {
-    if ((nameObj->typePtr != NULL) && (nameObj->typePtr->freeIntRepProc != NULL)) {
-      /*fprintf(stderr, "PrimitiveCCreate cmd %p invalidates intRep for nameObj %p type %s\n",
-        object->id, nameObj, nameObj->typePtr->name);*/
-      nameObj->typePtr->freeIntRepProc(nameObj);
-    }
-  }
-#endif
+  TclFreeIntRep(nameObj);
+# endif
 #else
   object->id = Tcl_CreateObjCommand(interp, nameString, NsfObjDispatch,
                                     cl, TclDeletesObject);
