@@ -1697,26 +1697,53 @@ static int GetObjectFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfObject **obj
 
 static int
 GetObjectFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfObject **objectPtr) {
-  NsfObject *object;
-  const char *string;
-  Tcl_Command cmd;
+  NsfObject         *object;
+  const char        *string;
+  Tcl_Command        cmd;
+#if TCL_MAJOR_VERSION==8 && TCL_MINOR_VERSION>6
+  const Tcl_ObjType *origTypePtr;
+#endif
 
   nonnull_assert(interp != NULL);
   nonnull_assert(objPtr != NULL);
   nonnull_assert(objectPtr != NULL);
 
+#if TCL_MAJOR_VERSION==8 && TCL_MINOR_VERSION>6
+  origTypePtr = objPtr->typePtr;
+#endif
   /*fprintf(stderr, "GetObjectFromObj obj %p %s is of type %s\n",
     objPtr, ObjStr(objPtr), (objPtr->typePtr != NULL) ? objPtr->typePtr->name : "(null)");*/
 
   /*
-   * In case, objPtr was not of type cmdName, try to convert.
+   * Use the standard Tcl_GetCommandFromObj() which might convert the objPtr
+   * to type cmdName.
    */
   cmd = Tcl_GetCommandFromObj(interp, objPtr);
+
   /*fprintf(stderr, "GetObjectFromObj obj %p %s (type %p) => cmd=%p (refCount %d)\n",
     objPtr, ObjStr(objPtr), objPtr->typePtr, cmd, (cmd != NULL) ? Tcl_Command_refCount(cmd) : -1);*/
 
   if (cmd != NULL) {
-    NsfObject *object = NsfGetObjectFromCmdPtr(cmd);
+    NsfObject *object;
+
+    /*
+     * Tcl returned us a command. At least in Tcl 8.7, we cannot trust that
+     * the returned cmd is still valid. Unfortunately, we can't check more
+     * details here, since "struct ResolvedCmdName" is defined locally in
+     * generic/tclObj.c. For cmd epochs>0 we take the conservative approach
+     * not to trust in internal representation and fetch the cmd new.
+     */
+#if TCL_MAJOR_VERSION==8 && TCL_MINOR_VERSION>6
+    if (origTypePtr == objPtr->typePtr && Tcl_Command_cmdEpoch(cmd) > 0) {
+
+      TclFreeIntRep(objPtr);
+      fprintf(stderr, ".... %p RETRY flags %.6x cmd epoch %d\n",
+              objPtr, Tcl_Command_flags(cmd), Tcl_Command_cmdEpoch(cmd));
+      return GetObjectFromObj(interp, objPtr, objectPtr);
+    }
+#endif
+
+    object = NsfGetObjectFromCmdPtr(cmd);
 
     /* fprintf(stderr, "GetObjectFromObj obj %s, o is %p objProc %p NsfObjDispatch %p\n",
        ObjStr(objPtr), object, Tcl_Command_objProc(cmd), NsfObjDispatch);*/
@@ -1726,7 +1753,6 @@ GetObjectFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfObject **objectPtr) {
       return TCL_OK;
     }
   }
-
   /*fprintf(stderr, "GetObjectFromObj convertFromAny for %s type %p %s\n", ObjStr(objPtr),
     objPtr->typePtr, (objPtr->typePtr != NULL) ? objPtr->typePtr->name : "(none)");*/
 
@@ -1734,6 +1760,7 @@ GetObjectFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfObject **objectPtr) {
    * argument is not fully qualified), we retry here.
    */
   string = ObjStr(objPtr);
+
   if (isAbsolutePath(string)) {
     object = NULL;
   } else {
@@ -6711,12 +6738,12 @@ CallStackDoDestroy(Tcl_Interp *interp, NsfObject *object) {
   oid = object->id;
   /* oid might be freed already, we can't even use (((Command *)oid)->flags & CMD_IS_DELETED) */
 
-  if (object->teardown && oid) {
+  if (object->teardown != NULL && oid != NULL) {
     /*
-     * PrimitiveDestroy() has to be before DeleteCommandFromToken(),
-     * otherwise e.g. unset traces on this object cannot be executed
-     * from Tcl. We make sure via refCounting that the object
-     * structure is kept until after DeleteCommandFromToken().
+     * PrimitiveDestroy() has to be called before DeleteCommandFromToken(),
+     * otherwise e.g. unset traces on this object cannot be executed from
+     * Tcl. We make sure via refCounting that the object structure is kept
+     * until after DeleteCommandFromToken().
      */
     NsfObjectRefCountIncr(object);
 
@@ -8738,7 +8765,7 @@ GetAllClassMixins(Tcl_Interp *interp, Tcl_HashTable *destTablePtr,
 
     for (m = startCl->opt->classMixins; m != NULL; m = m->nextPtr) {
 
-      /* we should have no deleted commands in the list */
+      /* We must not have deleted commands in the list */
       assert(((unsigned int)Tcl_Command_flags(m->cmdPtr) & CMD_IS_DELETED) == 0);
 
       cl = NsfGetClassFromCmdPtr(m->cmdPtr);
@@ -19131,15 +19158,6 @@ PrimitiveOCreate(Tcl_Interp *interp, Tcl_Obj *nameObj, Tcl_Namespace *parentNsPt
                                    NsfObjDispatch,
                                    NsfObjDispatchNRE,
                                    object, TclDeletesObject);
-# if TCL_MAJOR_VERSION==8 && TCL_MINOR_VERSION>6
-  /*
-   * We have to invalidate the intRep of the Tcl_Obj, otherwise - at least
-   * when the incoming type is cmdName - a later call to
-   * Tcl_GetCommandFromObj() will not pick up the new cmd. At least, we do not
-   * get the cmd we have created here (object->id).
-   */
-  TclFreeIntRep(nameObj);
-# endif
 #else
   object->id = Tcl_CreateObjCommand(interp, nameString, NsfObjDispatch,
                                     object, TclDeletesObject);
@@ -19678,15 +19696,6 @@ PrimitiveCCreate(Tcl_Interp *interp, Tcl_Obj *nameObj, Tcl_Namespace *parentNsPt
                                    NsfObjDispatch,
                                    NsfObjDispatchNRE,
                                    cl, TclDeletesObject);
-# if TCL_MAJOR_VERSION==8 && TCL_MINOR_VERSION>6
-  /*
-   * We have to invalidate the intRep of the Tcl_Obj, otherwise - at least
-   * when the incoming type is cmdName - a later call to
-   * Tcl_GetCommandFromObj() will not pick up the new cmd. At least, we do not
-   * get the cmd we have created here (object->id).
-   */
-  TclFreeIntRep(nameObj);
-# endif
 #else
   object->id = Tcl_CreateObjCommand(interp, nameString, NsfObjDispatch,
                                     cl, TclDeletesObject);
