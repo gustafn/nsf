@@ -1733,7 +1733,7 @@ GetObjectFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfObject **objectPtr) {
      * generic/tclObj.c. For cmd epochs>0 we take the conservative approach
      * not to trust in internal representation and fetch the cmd new.
      */
-#if TCL_MAJOR_VERSION==8 && TCL_MINOR_VERSION>6
+#if 0 && TCL_MAJOR_VERSION==8 && TCL_MINOR_VERSION>6 
     if (origTypePtr == objPtr->typePtr && Tcl_Command_cmdEpoch(cmd) > 0) {
 
       TclFreeIntRep(objPtr);
@@ -18844,10 +18844,16 @@ static void
 TclDeletesObject(ClientData clientData) {
   NsfObject *object;
   Tcl_Interp *interp;
-
+#if TCL_MAJOR_VERSION==8 && TCL_MINOR_VERSION>6
+  Command *cmdPtr;
+#endif
+  
   nonnull_assert(clientData != NULL);
 
   object = (NsfObject *)clientData;
+#if TCL_MAJOR_VERSION==8 && TCL_MINOR_VERSION>6
+  cmdPtr = (Command *)object->id;
+#endif
   /*
    * TODO: Actually, it seems like a good idea to flag a deletion from Tcl by
    * setting object->id to NULL. However, we seem to have some dependencies
@@ -18870,6 +18876,10 @@ TclDeletesObject(ClientData clientData) {
 # endif
 
   CallStackDestroyObject(interp, object);
+  
+#if TCL_MAJOR_VERSION==8 && TCL_MINOR_VERSION>6
+  cmdPtr->cmdEpoch++;
+#endif
 }
 
 
