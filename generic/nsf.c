@@ -1700,17 +1700,11 @@ GetObjectFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfObject **objectPtr) {
   NsfObject         *object;
   const char        *string;
   Tcl_Command        cmd;
-#if TCL_MAJOR_VERSION==8 && TCL_MINOR_VERSION>6
-  const Tcl_ObjType *origTypePtr;
-#endif
 
   nonnull_assert(interp != NULL);
   nonnull_assert(objPtr != NULL);
   nonnull_assert(objectPtr != NULL);
 
-#if TCL_MAJOR_VERSION==8 && TCL_MINOR_VERSION>6
-  origTypePtr = objPtr->typePtr;
-#endif
   /*fprintf(stderr, "GetObjectFromObj obj %p %s is of type %s\n",
     objPtr, ObjStr(objPtr), (objPtr->typePtr != NULL) ? objPtr->typePtr->name : "(null)");*/
 
@@ -1733,15 +1727,6 @@ GetObjectFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfObject **objectPtr) {
      * generic/tclObj.c. For cmd epochs>0 we take the conservative approach
      * not to trust in internal representation and fetch the cmd new.
      */
-#if 0 && TCL_MAJOR_VERSION==8 && TCL_MINOR_VERSION>6 
-    if (origTypePtr == objPtr->typePtr && Tcl_Command_cmdEpoch(cmd) > 0) {
-
-      TclFreeIntRep(objPtr);
-      fprintf(stderr, ".... %p RETRY flags %.6x cmd epoch %d\n",
-              objPtr, Tcl_Command_flags(cmd), Tcl_Command_cmdEpoch(cmd));
-      return GetObjectFromObj(interp, objPtr, objectPtr);
-    }
-#endif
 
     object = NsfGetObjectFromCmdPtr(cmd);
 
@@ -18844,16 +18829,11 @@ static void
 TclDeletesObject(ClientData clientData) {
   NsfObject *object;
   Tcl_Interp *interp;
-#if TCL_MAJOR_VERSION==8 && TCL_MINOR_VERSION>6
-  Command *cmdPtr;
-#endif
   
   nonnull_assert(clientData != NULL);
 
   object = (NsfObject *)clientData;
-#if TCL_MAJOR_VERSION==8 && TCL_MINOR_VERSION>6
-  cmdPtr = (Command *)object->id;
-#endif
+
   /*
    * TODO: Actually, it seems like a good idea to flag a deletion from Tcl by
    * setting object->id to NULL. However, we seem to have some dependencies
@@ -18876,10 +18856,6 @@ TclDeletesObject(ClientData clientData) {
 # endif
 
   CallStackDestroyObject(interp, object);
-  
-#if TCL_MAJOR_VERSION==8 && TCL_MINOR_VERSION>6
-  cmdPtr->cmdEpoch++;
-#endif
 }
 
 
