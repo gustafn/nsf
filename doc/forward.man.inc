@@ -35,7 +35,7 @@ used in the resulting execution of a command become resolved as
 object variables.
 
 [para]
-To express deprecation of the [term "forward method"] [arg methodName], set the [option "-deprecated"] flag. Deprecated methods remain usable from client code, but their usage will be signaled to the developer and/or can be tracked using [cmd ::nsf::deprecated]. To register [arg methodName] with the debugger, set the [option "-debug"] flag.  Entering and exiting a method, which was flagged for debugging, is recorded by calling the redefinable callback procs [cmd ::nsf::debug::call] and [cmd ::nsf::debug::exit], respectively. By default, these callbacks forward to [cmd ::nsf:log], which can also be customized at the script level.
+To express deprecation of the [term "forward method"] [arg methodName], set the [option "-deprecated"] flag. Deprecated methods remain usable from client code, but their usage will be signaled to the developer and/or can be tracked using [cmd ::nsf::deprecated]. To register [arg methodName] with the debugger, set the [option "-debug"] flag.  Entering and exiting a method, which was flagged for debugging, is recorded by calling the redefinable callback procs [cmd ::nsf::debug::call] and [cmd ::nsf::debug::exit], respectively. By default, these callbacks forward to [cmd ::nsf::log], which can also be customized at the script level.
 
 [para]
 
