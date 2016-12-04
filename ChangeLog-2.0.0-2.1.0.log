@@ -1,3 +1,38 @@
+2016-12-02  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* nsf.c (GetObjectFromObj, TclDeletesObject): Remove two earlier
+	fixes to deal with ::nsf::object::alloc failing under cmd
+	deletion/recreation. The issue has been tackled more generally by
+	a Tcl-side fix. Background: Since 2005 (commit fcb9ab1df3a9b2d1),
+	in Tcl the cmdEpoch state in delete traces and delete callbacks
+	has been compromised. Bumping the epoch of the cmd under deletion
+	before executing the traces and callbacks had the potential of
+	caching the cmd under in Tcl_Objs beyond its deletion (at least in
+	our code path). In July 2017 for 8.7a (commit 54fac92610d3bdd9),
+	this potential realised by removing a guard expression
+	on CMD_IS_DELETED in the Tcl_Obj cache invalidation logic, which
+	had protected from such invalid caches as a side effect. As of
+	today (8.7a, commit 71fa1f9c91), the underlying timing problem of
+	epoch bumping has been resolved. [f314d0a] reverts [bab0e88,
+	75a78fb, 646eda3]
+
+2016-11-23  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* nsf.c (NsfMethodAliasCmd): Tcl 8.7 is more picky about typePtr and
+	intrep being in line. We need to NULL the typePtr explicitly.
+	TclFreeIntRep does so for us as good Tcl citizens, rather than setting
+	bodyObj->typePtr == NULL directly. [438e614]
+
+2016-11-11  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* nx.tcl (VariableSlot->setCheckInstVar): Use method parameter
+	'value' rather than object variable 'default'. [361fa32]
+
+	* nx.tcl, parameters.test (Object->object variable): Support for
+	substdefault has been entirely missing so far. Added basic tests.
+	[7bcc1f1]
+
+
 2016-11-03  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
         * interceptor-slot.test: Adding a first test case. [71f9dc8]

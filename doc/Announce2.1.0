@@ -16,7 +16,7 @@ Major changes relative to 2.0.0 are:
 
 o) Slot-traces reform: (TODO: ...)
 
-o) Improved robustness:
+o) Improved robustness (under 8.6 and beyond):
 
    * Tcl command resolvers and command literals:
 
@@ -79,6 +79,10 @@ o) Minor logging reform at the C-level (NsfLog, interp) so that
 
 o) Improved NSF/C code generator: Allows for specifying and generating
    enum types.
+
+o) Preliminary support for a future Tcl 8.7 (as of Dec 2, 2016; commit
+   71fa1f9c91). NSF compiles under 8.7a0 and its regression tests
+   execute successfully.
 
 o) API changes:
 
