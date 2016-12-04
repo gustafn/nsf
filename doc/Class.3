@@ -1,6 +1,6 @@
 '\"
 '\" Generated from file 'Class\&.man' by tcllib/doctools with format 'nroff'
-'\" Copyright (c) 2014 Stefan Sobernig <stefan\&.sobernig@wu\&.ac\&.at>, Gustaf Neumann <gustaf\&.neumann@wu\&.ac\&.at>; available under the Creative Commons Attribution 3\&.0 Austria license (CC BY 3\&.0 AT)\&.
+'\" Copyright (c) 2014-2016 Stefan Sobernig <stefan\&.sobernig@wu\&.ac\&.at>, Gustaf Neumann <gustaf\&.neumann@wu\&.ac\&.at>; available under the Creative Commons Attribution 3\&.0 Austria license (CC BY 3\&.0 AT)\&.
 '\"
 .TH "nx::Class" 3 2\&.1\&.0 Class "NX API"
 .\" The -*- nroff -*- definitions below are for supplemental macros used
@@ -318,11 +318,11 @@ nx::Class \- API reference of the base-metaclass of the NX objectsystem
 .sp
 \fIcls\fR \fBnew\fR ?\fB-childof\fR \fIparentName\fR? ?\fIoption\fR \fIvalue\fR \fIoption\fR \fIvalue\fR \&.\&.\&.?
 .sp
-\fIcls\fR \fBproperty\fR ?\fB-accessor\fR \fBpublic\fR | \fBprotected\fR | \fBprivate\fR? ?\fB-configurable\fR \fItrueFalse\fR? ?\fB-incremental\fR? ?\fB-class\fR \fIclassName\fR? \fIspec\fR ?\fIinitBlock\fR?
+\fIcls\fR \fBproperty\fR ?\fB-accessor\fR \fBpublic\fR | \fBprotected\fR | \fBprivate\fR? ?\fB-class\fR \fIclassName\fR? ?\fB-configurable\fR \fItrueFalse\fR? ?\fB-incremental\fR? ?\fB-trace\fR \fBset\fR | \fBget\fR | \fBdefault\fR? \fIspec\fR ?\fIinitBlock\fR?
 .sp
 \fIcls\fR \fBrequire\fR ?\fBpublic\fR | \fBprotected\fR | \fBprivate\fR? \fB method\fR \fImethodName\fR
 .sp
-\fIcls\fR \fBvariable\fR ?\fB-accessor\fR \fBpublic\fR | \fBprotected\fR | \fBprivate\fR? ?\fB-incremental\fR? ?\fB-class\fR \fIclassName\fR? ?\fB-configurable\fR \fItrueFalse\fR? ?\fB-initblock\fR \fIscript\fR? \fIspec\fR ?\fIdefaultValue\fR?
+\fIcls\fR \fBvariable\fR ?\fB-accessor\fR \fBpublic\fR | \fBprotected\fR | \fBprivate\fR? ?\fB-incremental\fR? ?\fB-class\fR \fIclassName\fR? ?\fB-configurable\fR \fItrueFalse\fR? ?\fB-initblock\fR ?\fB-trace\fR \fBset\fR | \fBget\fR | \fBdefault\fR? \fIscript\fR? \fIspec\fR ?\fIdefaultValue\fR?
 .sp
 .BE
 .SH DESCRIPTION
@@ -430,7 +430,7 @@ context of the called object, i\&.e\&., the object upon which the alias method i
 the colon-prefix notation for identifying object variables\&. If the
 value is \fBmethod\fR, then the aliased command will be executed as a regular method call\&. The command is aware of its called-object context; i\&.e\&., it can resolve \fB::nx::self\fR\&. In addition, the alias method has access to the method-call context (e\&.g\&., \fBnx::next\fR)\&. If \fB-frame\fR is omitted, and by default, the variable references will resolve in the context of the caller of the alias method\&.
 .sp
-To express deprecation of the alias method \fImethodName\fR, set the \fB-deprecated\fR flag\&. Deprecated methods remain usable from client code, but their usage will be signaled to the developer and/or can be tracked using \fB::nsf::deprecated\fR\&. To register \fImethodName\fR with the debugger, set the \fB-debug\fR flag\&.  Entering and exiting a method, which was flagged for debugging, is recorded by calling the redefinable callback procs \fB::nsf::debug::call\fR and \fB::nsf::debug::exit\fR, respectively\&. By default, these callbacks forward to \fB::nsf:log\fR, which can also be customized at the script level\&.
+To express deprecation of the alias method \fImethodName\fR, set the \fB-deprecated\fR flag\&. Deprecated methods remain usable from client code, but their usage will be signaled to the developer and/or can be tracked using \fB::nsf::deprecated\fR\&. To register \fImethodName\fR with the debugger, set the \fB-debug\fR flag\&.  Entering and exiting a method, which was flagged for debugging, is recorded by calling the redefinable callback procs \fB::nsf::debug::call\fR and \fB::nsf::debug::exit\fR, respectively\&. By default, these callbacks forward to \fB::nsf::log\fR, which can also be customized at the script level\&.
 .RE
 .TP
 \fB__class_configureparameter\fR
@@ -591,7 +591,7 @@ receiving the forward method call\&. This way, variable names
 used in the resulting execution of a command become resolved as
 object variables\&.
 .sp
-To express deprecation of the forward method \fImethodName\fR, set the \fB-deprecated\fR flag\&. Deprecated methods remain usable from client code, but their usage will be signaled to the developer and/or can be tracked using \fB::nsf::deprecated\fR\&. To register \fImethodName\fR with the debugger, set the \fB-debug\fR flag\&.  Entering and exiting a method, which was flagged for debugging, is recorded by calling the redefinable callback procs \fB::nsf::debug::call\fR and \fB::nsf::debug::exit\fR, respectively\&. By default, these callbacks forward to \fB::nsf:log\fR, which can also be customized at the script level\&.
+To express deprecation of the forward method \fImethodName\fR, set the \fB-deprecated\fR flag\&. Deprecated methods remain usable from client code, but their usage will be signaled to the developer and/or can be tracked using \fB::nsf::deprecated\fR\&. To register \fImethodName\fR with the debugger, set the \fB-debug\fR flag\&.  Entering and exiting a method, which was flagged for debugging, is recorded by calling the redefinable callback procs \fB::nsf::debug::call\fR and \fB::nsf::debug::exit\fR, respectively\&. By default, these callbacks forward to \fB::nsf::log\fR, which can also be customized at the script level\&.
 .sp
 The list of forwarder arguments \fIarg\fR can contain as its elements
 a mix of literal values and placeholders\&. Placeholders are prefixed
@@ -842,7 +842,7 @@ the switch \fB-checkalways\fR, value checking on
 arguments and return value is guaranteed to be performed, even if
 value checking is temporarily disabled; see \fBnx::configure\fR)\&.
 .sp
-To express deprecation of the method \fIname\fR, set the \fB-deprecated\fR flag\&. Deprecated methods remain usable from client code, but their usage will be signaled to the developer and/or can be tracked using \fB::nsf::deprecated\fR\&. To register \fIname\fR with the debugger, set the \fB-debug\fR flag\&. Entering and exiting a method, which was flagged for debugging, is recorded by calling the redefinable callback procs \fB::nsf::debug::call\fR and \fB::nsf::debug::exit\fR, respectively\&. By default, these callbacks forward to \fB::nsf:log\fR, which can also be customized at the script level\&.
+To express deprecation of the method \fIname\fR, set the \fB-deprecated\fR flag\&. Deprecated methods remain usable from client code, but their usage will be signaled to the developer and/or can be tracked using \fB::nsf::deprecated\fR\&. To register \fIname\fR with the debugger, set the \fB-debug\fR flag\&. Entering and exiting a method, which was flagged for debugging, is recorded by calling the redefinable callback procs \fB::nsf::debug::call\fR and \fB::nsf::debug::exit\fR, respectively\&. By default, these callbacks forward to \fB::nsf::log\fR, which can also be customized at the script level\&.
 .sp
 A method closely resembles a Tcl \fBproc\fR, but it differs in some
 important aspects: First, a method can define non-positional
@@ -944,7 +944,7 @@ fly\&.
 \fBproperty\fR
 .RS
 .TP
-\fIcls\fR \fBproperty\fR ?\fB-accessor\fR \fBpublic\fR | \fBprotected\fR | \fBprivate\fR? ?\fB-configurable\fR \fItrueFalse\fR? ?\fB-incremental\fR? ?\fB-class\fR \fIclassName\fR? \fIspec\fR ?\fIinitBlock\fR?
+\fIcls\fR \fBproperty\fR ?\fB-accessor\fR \fBpublic\fR | \fBprotected\fR | \fBprivate\fR? ?\fB-class\fR \fIclassName\fR? ?\fB-configurable\fR \fItrueFalse\fR? ?\fB-incremental\fR? ?\fB-trace\fR \fBset\fR | \fBget\fR | \fBdefault\fR? \fIspec\fR ?\fIinitBlock\fR?
 Defines a property for the scope of the class\&. The \fIspec\fR provides
 the property specification as a \fBlist\fR holding at least one
 element or, maximum, two elements:
@@ -1002,6 +1002,16 @@ requested, the value managed by the property will have to be accessed
 and modified directly\&. If the property manages an object variable, its
 value will be readable and writable using \fBset\fR and \fBeval\fR\&.
 .sp
+The \fB-trace\fR option causes certain slot methods to be executed whenever \fBget\fR, \fBset\fR, or \fBdefault\fR operations are invoked on the property:
+.RS
+.IP \(bu
+\fBset\fR: \fIslot\fR \fBvalue=set\fR \fIobj\fR \fIpropertyName\fR \fIvalue\fR
+.IP \(bu
+\fBget\fR: \fIslot\fR \fBvalue=get\fR \fIobj\fR \fIpropertyName\fR
+.IP \(bu
+\fBdefault\fR: \fIslot\fR \fBvalue=default\fR \fIobj\fR \fIpropertyName\fR
+.RE
+.sp
 A property becomes implemented by a slot object under any of the following conditions:
 .RS
 .IP \(bu
@@ -1040,7 +1050,7 @@ not set explicitly\&.
 \fBvariable\fR
 .RS
 .TP
-\fIcls\fR \fBvariable\fR ?\fB-accessor\fR \fBpublic\fR | \fBprotected\fR | \fBprivate\fR? ?\fB-incremental\fR? ?\fB-class\fR \fIclassName\fR? ?\fB-configurable\fR \fItrueFalse\fR? ?\fB-initblock\fR \fIscript\fR? \fIspec\fR ?\fIdefaultValue\fR?
+\fIcls\fR \fBvariable\fR ?\fB-accessor\fR \fBpublic\fR | \fBprotected\fR | \fBprivate\fR? ?\fB-incremental\fR? ?\fB-class\fR \fIclassName\fR? ?\fB-configurable\fR \fItrueFalse\fR? ?\fB-initblock\fR ?\fB-trace\fR \fBset\fR | \fBget\fR | \fBdefault\fR? \fIscript\fR? \fIspec\fR ?\fIdefaultValue\fR?
 Defines a variable for the scope of the class\&. The \fIspec\fR provides
 the variable specification: \fIvariableName\fR?\fB:\fR\fItypeSpec\fR?\&. The
 \fIvariableName\fR will be used to name the underlying Tcl variable
@@ -1098,6 +1108,16 @@ the getter/setter methods\&. Alternatively, the underlying Tcl variable, which
 is represented by the variable, can always be accessed and modified
 directly, e\&.g\&., using \fBeval\fR\&. By default, \fB-configurable\fR is
 \fBfalse\fR\&.
+.sp
+The \fB-trace\fR option causes certain slot methods to be executed whenever \fBget\fR, \fBset\fR, or \fBdefault\fR operations are invoked on the variable:
+.RS
+.IP \(bu
+\fBset\fR: \fIslot\fR \fBvalue=set\fR \fIobj\fR \fIvariableName\fR \fIvalue\fR
+.IP \(bu
+\fBget\fR: \fIslot\fR \fBvalue=get\fR \fIobj\fR \fIvariableName\fR
+.IP \(bu
+\fBdefault\fR: \fIslot\fR \fBvalue=default\fR \fIobj\fR \fIvariableName\fR
+.RE
 .sp
 A variable becomes implemented by a slot object under any of the following conditions:
 .RS
@@ -1281,6 +1301,6 @@ of \fIcls\fR:
 .PP
 .SH COPYRIGHT
 .nf
-Copyright (c) 2014 Stefan Sobernig <stefan\&.sobernig@wu\&.ac\&.at>, Gustaf Neumann <gustaf\&.neumann@wu\&.ac\&.at>; available under the Creative Commons Attribution 3\&.0 Austria license (CC BY 3\&.0 AT)\&.
+Copyright (c) 2014-2016 Stefan Sobernig <stefan\&.sobernig@wu\&.ac\&.at>, Gustaf Neumann <gustaf\&.neumann@wu\&.ac\&.at>; available under the Creative Commons Attribution 3\&.0 Austria license (CC BY 3\&.0 AT)\&.
 
 .fi

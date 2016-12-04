@@ -678,7 +678,7 @@ Computes and returns the configuration options available for [arg obj], to be co
 
 [list_begin definitions]
 
-[call [arg obj] [method "object property"] [opt "[option -accessor] [const public] | [const protected] | [const private]"] [opt "[option -configurable] [arg trueFalse]"] [opt [option -incremental]] [opt "[option -class] [arg className]"] [opt [option -nocomplain]] [arg spec] [opt [arg initBlock]]]
+[call [arg obj] [method "object property"] [opt "[option -accessor] [const public] | [const protected] | [const private]"] [opt "[option -class] [arg className]"] [opt "[option -configurable] [arg trueFalse]"] [opt [option -incremental]] [opt [option -nocomplain]] [opt "[option -trace] [const set] | [const get] | [const default]"] [arg spec] [opt [arg initBlock]]]
 
 [include property.man.inc]
 
@@ -739,7 +739,7 @@ of [arg arg] of the indirected method invocation.
 
 [comment {::nx::Object variable ?-accessor /value/? ?-incremental? ?-class /value/? ?-configurable /boolean/? ?-initblock /value/? ?-nocomplain? /spec/ ?/defaultValue/?}]
 
-[call [arg obj] [method "object variable"] [opt "[option -accessor] [const public] | [const protected] | [const private]"] [opt [option -incremental]] [opt "[option -class] [arg className]"] [opt "[option -configurable] [arg trueFalse]"] [opt "[option -initblock] [arg script]"] [opt [option -nocomplain]] [arg spec] [opt [arg defaultValue]]]
+[call [arg obj] [method "object variable"] [opt "[option -accessor] [const public] | [const protected] | [const private]"] [opt [option -incremental]] [opt "[option -class] [arg className]"] [opt "[option -configurable] [arg trueFalse]"] [opt "[option -initblock] [arg script]"] [opt "[option -trace] [const set] | [const get] | [const default]"] [opt [option -nocomplain]] [arg spec] [opt [arg defaultValue]]]
 
 [include variable.man.inc]
 

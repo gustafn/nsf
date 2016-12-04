@@ -327,7 +327,7 @@ fly.
 
 [list_begin definitions]
 
-[call [arg cls] [method property] [opt "[option -accessor] [const public] | [const protected] | [const private]"] [opt "[option -configurable] [arg trueFalse]"] [opt [option -incremental]] [opt "[option -class] [arg className]"] [arg spec] [opt [arg initBlock]]]
+[call [arg cls] [method property] [opt "[option -accessor] [const public] | [const protected] | [const private]"] [opt "[option -class] [arg className]"] [opt "[option -configurable] [arg trueFalse]"] [opt [option -incremental]] [opt "[option -trace] [const set] | [const get] | [const default]"] [arg spec] [opt [arg initBlock]]]
 
 [include property.man.inc]
 
@@ -347,7 +347,7 @@ fly.
 
 [comment {::nx::Object variable ?-accessor /value/? ?-incremental? ?-class /value/? ?-configurable /boolean/? ?-initblock /value/? ?-nocomplain? /spec/ ?/defaultValue/?}]
 
-[call [arg cls] [method variable] [opt "[option -accessor] [const public] | [const protected] | [const private]"] [opt [option -incremental]] [opt "[option -class] [arg className]"] [opt "[option -configurable] [arg trueFalse]"] [opt "[option -initblock] [arg script]"] [arg spec] [opt [arg defaultValue]]]
+[call [arg cls] [method variable] [opt "[option -accessor] [const public] | [const protected] | [const private]"] [opt [option -incremental]] [opt "[option -class] [arg className]"] [opt "[option -configurable] [arg trueFalse]"] [opt "[option -initblock] [opt "[option -trace] [const set] | [const get] | [const default]"] [arg script]"] [arg spec] [opt [arg defaultValue]]]
 
 [include variable.man.inc]
 

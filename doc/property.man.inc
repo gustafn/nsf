@@ -76,6 +76,15 @@ value will be readable and writable using [cmd set] and [method eval].
 
 [para]
 
+The [option -trace] option causes certain slot methods to be executed whenever [const get], [const set], or [const default] operations are invoked on the [term property]:
+[list_begin itemized]
+[item] [const set]: [arg slot] [const value=set] [arg obj] [arg propertyName] [arg value]
+[item] [const get]: [arg slot] [const value=get] [arg obj] [arg propertyName]
+[item] [const default]: [arg slot] [const value=default] [arg obj] [arg propertyName]
+[list_end]
+
+[para]
+
 A [term property] becomes implemented by a [term "slot object"] under any of the following conditions:
 [list_begin itemized]
 [item] [option -configurable] equals [const true] (by default).

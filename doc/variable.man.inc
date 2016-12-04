@@ -70,6 +70,15 @@ directly, e.g., using [method eval]. By default, [option -configurable] is
 
 [para]
 
+The [option -trace] option causes certain slot methods to be executed whenever [const get], [const set], or [const default] operations are invoked on the [term variable]:
+[list_begin itemized]
+[item] [const set]: [arg slot] [const value=set] [arg obj] [arg variableName] [arg value]
+[item] [const get]: [arg slot] [const value=get] [arg obj] [arg variableName]
+[item] [const default]: [arg slot] [const value=default] [arg obj] [arg variableName]
+[list_end]
+
+[para]
+
 A [term variable] becomes implemented by a [term "slot object"] under any of the following conditions:
 [list_begin itemized]
 [item] [option -configurable] equals [const true].
