@@ -18829,7 +18829,7 @@ static void
 TclDeletesObject(ClientData clientData) {
   NsfObject *object;
   Tcl_Interp *interp;
-  
+
   nonnull_assert(clientData != NULL);
 
   object = (NsfObject *)clientData;
@@ -23078,11 +23078,11 @@ ListMethod(Tcl_Interp *interp,
       {
         Proc *procPtr = GetTclProcFromCommand(cmd);
 
-	if (procPtr == NULL) {
+        if (procPtr == NULL) {
           Tcl_SetObjResult(interp, Tcl_NewStringObj("body not available for this kind of method", -1));
           return TCL_ERROR;
-	}
-	if (procPtr->bodyPtr->typePtr == Nsf_OT_byteCodeType) {
+        }
+        if (procPtr->bodyPtr->typePtr == Nsf_OT_byteCodeType) {
           EXTERN Tcl_Obj *Tcl_DisassembleByteCodeObj(Tcl_Interp *interp, Tcl_Obj *objPtr);
 
           Tcl_SetObjResult(interp, Tcl_DisassembleByteCodeObj(interp, procPtr->bodyPtr));
