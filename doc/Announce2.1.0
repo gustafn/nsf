@@ -6,7 +6,7 @@ Framework (NSF) 2.1.0.
 This is a maintenance release. Since the release of 2.0.0, there have
 been 416 commits to our code repository. The Next Scripting Framework
 was tested with Tcl 8.5.19 and Tcl 8.6.6 on Linux, Mac OS X, and in
-Windows enviroments (MinGW, VC).
+Windows environments (MinGW, VC).
 
 Diff stats since 2.0.0:
 
@@ -14,17 +14,162 @@ Diff stats since 2.0.0:
 
 Major changes relative to 2.0.0 are:
 
+New Features
+
+- NSF:
+   * Improved debugging/tracing/profiling support:
+
+     + All NSF procs and method can be traced upon
+       invocation and exit, when profiling support is configured.
+       This can be controlled via
+
+         nsf:__profile_trace -enable /bool/ ?-verbose /bool/?
+	 nsf::configure trace
+
+       TODO: da fehlt noch eine erklärung, was die befehle genau machen
+
+     + Standardized messaging for reporting usage of deprecated procs
+       and methods, as well as for debugging. All procs defined via
+       "nsf::proc" and the NSF methods in NX and XOTcl2 support new
+       the new flags "-debug" and "-deprecated". The low level
+       interface enables introspection and selective enabling during
+       runtime.
+
+          nsf::proc ... ?-debug? ?-deprecated? ... /name/ /argspec/ /body/
+          nsf::method::property /obj/ /method/ deprecated ?0|1?
+          nsf::method::property /obj/ /method/ debug ?0|1?
+
+      % nsf::proc -debug foo {} {return 1}
+      % foo
+      Warning: DB call(1) -  foo
+      Warning: DB exit(1) -  foo 67 usec ->
+      1
+
+     TODO: das -debug verwendet "Warnings". Sollten da nicht "Notice" stehen.
+     TODO: das -deprecated gibt derzeit gar nichts aus. Das sollte vermutlich ein "Warning" sein.
+
+     %  nsf::proc -deprecated foo {} {return 1}
+     % foo
+     1
+
+     * Add ability to call the nsf argument parser also separately.
+       The command
+
+         ::nsf::parseargs /argspec/ /arglist/
+
+        can be used to parse arglist based on the argspec to set the
+        parsed arguments in the local context. For example, the command
+
+           nsf::parseargs {{-x:integer 1} y} {123}
+
+        will set the variables x to "1" and y to "123"
+
+    * Misc:
+
+       - new flag "-notrace" for "nsf::var::set" and "nsf::var::get"
+         to implement ability to use these low-level commands for
+         accessing variables without firing traces
+
+       - New cmd "nsf::method::forward::property" for reading and
+         writing introspection of forwarders (important for
+         serializer, when different target objects are specified, to
+         map the per-object forwarder)
+
+       - ::nsf::current level (TODO was steht in der doc)?
+
+
+- NX:
+
+    * Support for standardized messaging and debugging: the method
+      defining methods "alias", "forward", "method" accept now the
+      optional flags "-deprecated" and "-debug" (see above).
+
+       /cls/ public alias   ?-deprecated? ?-debug? /method/ ...
+       /cls/ public forward ?-deprecated? ?-debug? /method/ ...
+       /cls/ public method  ?-deprecated? ?-debug? /method/ ...
+       /obj/ public object alias   ?-deprecated? ?-debug? /method/ ...
+       /obj/ public object forward ?-deprecated? ?-debug? /method/ ...
+       /obj/ public object method  ?-deprecated? ?-debug? /method/ ...
+
+    * Improved introspection: The following subcommands complete the
+      set of introspection commands:
+
+       /cls/ info method callprotection
+       /cls/ info method debug
+       /cls/ info method deprecated
+       /obj/ info baseclass
+       /obj/ info object method callprotection
+       /obj/ info object method debug
+       /obj/ info object method deprecated
+
+
+    * Added a cleaner interface for the interaction of variable traces
+      and slots. It is now possible to specify in the definition of a
+      "property" or "variable" whether the slot-accessor methods
+      (value=get, value=set) should be fired, whenever a variable is
+      read/written or get a default value.
+
+          /obj/ object property|variable ?-trace set|get|default? ...
+          /cls/ property|variable ?-trace set|get|default? ...
+
+      This replaces the former rather experimental commands used in
+      XOTcl "initcmd", "valuecmd" and "valuechangedcmd".
+
+
+- XOTcl2:
+
+    * Support for standardized messaging and debugging: the method
+      defining methods "alias", "forward", "method" accept now the
+      optional flags "-deprecated" and "-debug" (see above).
+
+        /cls/ instforward -deprecated|-debug /method/ ...
+        /cls/ instproc  -deprecated|-debug /method/ ...
+
+        /obj/ forward -deprecated|-debug /method/ ...
+        /obj/ proc  -deprecated|-debug /method/ ...
+
+    Features added:
+
+    * New -return flag: XOTcl2 methods can now specify a return-value
+      checker, similar to NX methods.
+
+    /cls/ instproc -returns /method/ ...
+    /obj/ proc -returns /method/ ...
+
+    (TODO: what about instforward/ forward?)
+
+    * New -deprecated and -debug flags:
+
+
+
+    Features removed: none
+
+    (TODO: what about old trace interface: valuechangedcmd & friends?)
+
+    Changes to existing features: none
+
+
+    Features removed: none
+
+    Changes to existing features: none
+
+
+
+Bug Fixes
+
+Code Maintenance
+
+
 o) Slot-traces reform: (TODO: ...)
 
 o) Improved robustness (under 8.6 and beyond):
 
    * Tcl command resolvers and command literals:
 
-   Up to and including Tcl 8.6.6, there were subtle and unwanted
-   interactions between Tcl's command resolvers (which are used by NSF
-   dispatcher for colon-prefixed messages and helper commands) in
+   Between Tcl 8.6.0 and (including) Tcl 8.6.6, there was a problem in
+   the interaction between Tcl 8.6 and the command resolvers of NSF in
    certain corner cases and Tcl's command literals. The issue and
-   patches were reported upstream to the Tcl core by Gustaf Neumann
+   patches were reported upstream to the Tcl core team, was recognized
    and will enter an upcoming patch release (8.6.7). Our regression
    test-suite was extended accordingly to track the issue.
 
@@ -42,7 +187,7 @@ o) Improved robustness (under 8.6 and beyond):
 
    Provide for a two-pass deletion logic during object shutdown, to
    account for unset traces possibly reviving an object variable
-   under deletion. This corresponds to a recent memleak fix to
+   under deletion. This corresponds to a recent memory leak fix to
    Tcl itself. See also Tcl Fossil ticket 4dbdd9af144dbdd9af14.
 
    * Serializer:
@@ -52,7 +197,7 @@ o) Improved robustness (under 8.6 and beyond):
    improved based on experiences from multi-threaded NSF/Tcl applications
    (NaviServer). Improvements and fixes relate to "info" methods and
    forwarders.
-   
+
 o) Improved scripted shells (e.g., nxsh, xotclsh):
 
    * There is now an alternative implementation of nx::shell:
@@ -74,7 +219,7 @@ o) Minor logging reform at the C-level (NsfLog, interp) so that
    a level equal or greater than the given severity (0, 1, 2, 3). For
    example, "nsf::configure debugLevel 0" will print everything, and
    "nsf::configure debugLevel 3" will print just error messages while
-   omiting warnings etc. This does not entail changed logging
+   omitting warnings etc. This does not entail changed logging
    semantics, but helped remove some confusion at the C level.
 
 o) Improved NSF/C code generator: Allows for specifying and generating
@@ -86,77 +231,8 @@ o) Preliminary support for a future Tcl 8.7 (as of Dec 2, 2016; commit
 
 o) API changes:
 
-   NX:
-
-    Features added:
-
-    /obj/ object property|variable ?-trace set|get|default? ...
-    /cls/ property|variable ?-trace set|get|default? ...
-
-    /obj/ info baseclass
-
-    /cls/ info method callprotection
-    /cls/ info method debug
-    /cls/ info method deprecated
-    /obj/ info baseclass
-    /obj/ info object method callprotection
-    /obj/ info object method debug
-    /obj/ info object method deprecated
-    /cls/ public alias   -deprecated|-debug /method/ ...
-    /cls/ public forward -deprecated|-debug /method/ ...
-    /cls/ public method  -deprecated|-debug /method/ ...
-    /obj/ public object alias   -deprecated|-debug /method/ ...
-    /obj/ public object forward -deprecated|-debug /method/ ...
-    /obj/ public object method  -deprecated|-debug /method/ ...
-
-    Features removed: none
-
-    Changes to existing features: none 
-
-   XOTcl2:
-
-    Features added:
-
-    * New -return flag: XOTcl2 methods can now specify a return-value
-      checker, similar to NX methods.
-
-    /cls/ instproc -returns /method/ ...
-    /obj/ proc -returns /method/ ...
-
-    (TODO: what about instforward/ forward?)
-
-    * New -deprecated and -debug flags:
-    
-    /cls/ instforward -deprecated|-debug /method/ ...
-    /cls/ instproc  -deprecated|-debug /method/ ...
-    
-    /obj/ forward -deprecated|-debug /method/ ...
-    /obj/ proc  -deprecated|-debug /method/ ...
 
 
-    Features removed: none
-
-    (TODO: what about old trace interface: valuechangedcmd & friends?)
-
-    Changes to existing features: none 
-
-    NSF:
-
-    Features added:
-
-     * ::nsf::parseargs
-     * ::nsf::current level
-     * new flag "-notrace" for "nsf::var::set" and "nsf::var::get"
-     * new flags "-debug" and "-deprecated" for "nsf::proc"
-     * New option: nsf::method::property /obj/ /method/ deprecated ?0|1?
-     * New option: nsf::method::property /obj/ /method/ debug ?0|1?
-     * New proc:   nsf::method::forward::property
-     * New proc:   nsf:__profile_trace -enable /bool/ ?-verbose /bool/?
-     * New option: nsf::configure trace
-
-    Features removed: none
-
-    Changes to existing features: none 
 
 o) Documentation (API and examples):
 
@@ -192,7 +268,7 @@ o) Documentation (API and examples):
 
 o) Code changes (C):
 
-   * Refactoring: There is now a common infrastructure for hashtables
+   * Refactoring: There is now a common infrastructure for hash-tables
      using function pointers as keys (as required for NSF/C command
      definitions and enumerations).
    * Removed all implicit type-conversions, signed/unsigned
