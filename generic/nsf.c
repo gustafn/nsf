@@ -16819,6 +16819,7 @@ NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
       trt.usec = 0;
     }
 #endif
+
     if ((cmdFlags & NSF_CMD_DEPRECATED_METHOD) != 0) {
       NsfDeprecatedCmd(interp, "proc", ObjStr(objv[0]), "");
     }
@@ -27161,7 +27162,7 @@ NsfProcCmd(Tcl_Interp *interp, int with_ad, int with_checkAlways, int with_Debug
     return result;
   }
 
-  if (parsedParam.paramDefs != NULL || with_Debug != 0) {
+  if (parsedParam.paramDefs != NULL || with_Debug != 0 || with_Deprecated != 0) {
     /*
      * We need parameter handling. In such cases, a thin C-based layer
      * is added which handles the parameter passing and calls the proc
