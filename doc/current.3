@@ -338,10 +338,10 @@ available from within filter methods)\&.
 method implementation was invoked via \fBnx::next\fR; 0 otherwise\&.
 .IP \(bu
 \fBlevel\fR will return a number indicating the stack
-level of the invoking method or script, or an empty string when
+level of the currently executed method or script, or an empty string when
 executed outside an NX context (e\&.g\&., in a Tcl proc or a namespace
 script)\&. The resulting value can be directly passed as \fIlevel\fR to
-\fBinfo level\fR)\&.
+\fBinfo level\fR\&.
 .IP \(bu
 \fBmethod\fR returns the name of the currently executing
 method\&. If an ensemble-method call, the name of the bottom-most
