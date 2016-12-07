@@ -165,7 +165,6 @@ namespace eval ::nsf {
   }
   proc ::nsf::debug::exit {level objectInfo methodInfo result usec} {
     nsf::log Debug "exit($level) - $objectInfo $methodInfo $usec usec -> $result"
->>>>>>> master
   }
 
   #
