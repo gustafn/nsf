@@ -47,36 +47,57 @@ New Features
       
       % nsf::proc -debug foo {} {;}
       % foo
-      Notice: DB call(1) -  foo
-      Notice: DB exit(1) -  foo 53 usec ->
+      Debug: DB call(1) -  foo
+      Debug: DB exit(1) -  foo 53 usec ->
 
+      The enter and exit messages can be indirected at the script
+      level by (re-)defining "::nsf::debug::call" and
+      "::nsf::debug::exit", respectively.
+
+      To actively manage API evolution, NSF procs and methods can be
+      marked "deprecated". Using deprecated procs/ methods will result
+      in a warning:
+      
       % nsf::proc -deprecated foo {} {;}
       % foo
+      Warning: *** proc foo is deprecated.
 
-     * Add ability to call the nsf argument parser also separately.
+      The warning can be indirected at the script level by
+      (re-)defining a proc "::nsf::deprecated".
+
+     * Add script-level access to the NSF argument parser to
+       conveniently process, e.g., non-positional parameters/arguments
+       and value checkers. See
+       https://next-scripting.org/2.1.0/doc/nx/tutorial/index1#_parameters
+       for the details.
+       
        The command
 
-         ::nsf::parseargs /argspec/ /arglist/
+         ::nsf::parseargs /paramspec/ /arglist/
 
-        can be used to parse arglist based on the argspec to set the
-        parsed arguments in the local context. For example, the command
+       can be used to parse arglist based on the paramspec to set the
+       parsed arguments in the local context. For example, the command
 
-           nsf::parseargs {{-x:integer 1} y} {123}
+         ::nsf::parseargs {{-x:integer 1} y} {123}
 
-        will set the variables x to "1" and y to "123"
+       will define variables x holding "1" and y holding "123" for the
+       current Tcl scope.
 
     * Misc:
 
-       - new flag "-notrace" for "nsf::var::set" and "nsf::var::get"
+       - New flag "-notrace" for "nsf::var::set" and "nsf::var::get"
          to implement ability to use these low-level commands for
-         accessing variables without firing traces
+         accessing variables without firing Tcl traces.
 
-       - New cmd "nsf::method::forward::property" for reading and
-         writing introspection of forwarders (important for
-         serializer, when different target objects are specified, to
-         map the per-object forwarder)
+       - New cmd "nsf::method::forward::property" for reading for
+         writing introspection of forwarders. This is important for
+         the serializer to map the per-object forwarder when different
+         target objects are specified.
 
-       - ::nsf::current level (TODO was steht in der doc)?
+       - New option for callstack introspection: "::nsf::current
+         level". It returns the stack level of the currently executing
+         NSF method (like "info level"), or an empty string outside of
+         an NSF context.
 
 
 - NX:
