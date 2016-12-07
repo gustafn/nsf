@@ -24473,7 +24473,7 @@ NsfDebugCompileEpoch(Tcl_Interp *interp) {
 
   nonnull_assert(interp != NULL);
 
-  Tcl_SetObjResult(interp, Tcl_NewIntObj(((Interp *)interp)->compileEpoch));
+  Tcl_SetObjResult(interp, Tcl_NewIntObj((int)(((Interp *)interp)->compileEpoch)));
   return TCL_OK;
 }
 
