@@ -19,38 +19,39 @@ New Features
 - NSF:
    * Improved debugging/tracing/profiling support:
 
-     + All NSF procs and method can be traced upon
-       invocation and exit, when profiling support is configured.
-       This can be controlled via
+     + Entering and exiting NSF procs and methods can be tracked upon
+     invocation when profiling support is configured:
 
-         nsf:__profile_trace -enable /bool/ ?-verbose /bool/?
+     ./configure --enable-profile (default: disabled)
+
+     This can be controlled via
+
+         nsf::__profile_trace -enable /bool/ ?-verbose /bool/?
 	 nsf::configure trace
 
        TODO: da fehlt noch eine erklärung, was die befehle genau machen
 
-     + Standardized messaging for reporting usage of deprecated procs
-       and methods, as well as for debugging. All procs defined via
-       "nsf::proc" and the NSF methods in NX and XOTcl2 support new
-       the new flags "-debug" and "-deprecated". The low level
-       interface enables introspection and selective enabling during
-       runtime.
+     + NSF procs and methods can be marked "deprecated" and/or
+       "debug-enabled". For this, all NSF proc and method definitions
+       in NX and XOTcl2 now accept the new flags "-debug" and
+       "-deprecated". The low-level interface (nsf::method::property)
+       enables introspection and selective enabling during runtime.
 
           nsf::proc ... ?-debug? ?-deprecated? ... /name/ /argspec/ /body/
           nsf::method::property /obj/ /method/ deprecated ?0|1?
           nsf::method::property /obj/ /method/ debug ?0|1?
 
-      % nsf::proc -debug foo {} {return 1}
+      A debug-enabled NSF proc or method will be reported on entering
+      and exiting the proc and method (similar to a traced proc/
+      method incl. a time probe; see above):
+      
+      % nsf::proc -debug foo {} {;}
       % foo
-      Warning: DB call(1) -  foo
-      Warning: DB exit(1) -  foo 67 usec ->
-      1
+      Notice: DB call(1) -  foo
+      Notice: DB exit(1) -  foo 53 usec ->
 
-     TODO: das -debug verwendet "Warnings". Sollten da nicht "Notice" stehen.
-     TODO: das -deprecated gibt derzeit gar nichts aus. Das sollte vermutlich ein "Warning" sein.
-
-     %  nsf::proc -deprecated foo {} {return 1}
-     % foo
-     1
+      % nsf::proc -deprecated foo {} {;}
+      % foo
 
      * Add ability to call the nsf argument parser also separately.
        The command
