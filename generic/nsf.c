@@ -16819,6 +16819,7 @@ NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
       trt.usec = 0;
     }
 #endif
+
     if ((cmdFlags & NSF_CMD_DEPRECATED_METHOD) != 0) {
       NsfDeprecatedCmd(interp, "proc", ObjStr(objv[0]), "");
     }
@@ -18829,7 +18830,7 @@ static void
 TclDeletesObject(ClientData clientData) {
   NsfObject *object;
   Tcl_Interp *interp;
-  
+
   nonnull_assert(clientData != NULL);
 
   object = (NsfObject *)clientData;
@@ -23078,11 +23079,11 @@ ListMethod(Tcl_Interp *interp,
       {
         Proc *procPtr = GetTclProcFromCommand(cmd);
 
-	if (procPtr == NULL) {
+        if (procPtr == NULL) {
           Tcl_SetObjResult(interp, Tcl_NewStringObj("body not available for this kind of method", -1));
           return TCL_ERROR;
-	}
-	if (procPtr->bodyPtr->typePtr == Nsf_OT_byteCodeType) {
+        }
+        if (procPtr->bodyPtr->typePtr == Nsf_OT_byteCodeType) {
           EXTERN Tcl_Obj *Tcl_DisassembleByteCodeObj(Tcl_Interp *interp, Tcl_Obj *objPtr);
 
           Tcl_SetObjResult(interp, Tcl_DisassembleByteCodeObj(interp, procPtr->bodyPtr));
@@ -24472,7 +24473,7 @@ NsfDebugCompileEpoch(Tcl_Interp *interp) {
 
   nonnull_assert(interp != NULL);
 
-  Tcl_SetObjResult(interp, Tcl_NewIntObj(((Interp *)interp)->compileEpoch));
+  Tcl_SetObjResult(interp, Tcl_NewIntObj((int)(((Interp *)interp)->compileEpoch)));
   return TCL_OK;
 }
 
@@ -27161,7 +27162,7 @@ NsfProcCmd(Tcl_Interp *interp, int with_ad, int with_checkAlways, int with_Debug
     return result;
   }
 
-  if (parsedParam.paramDefs != NULL || with_Debug != 0) {
+  if (parsedParam.paramDefs != NULL || with_Debug != 0 || with_Deprecated != 0) {
     /*
      * We need parameter handling. In such cases, a thin C-based layer
      * is added which handles the parameter passing and calls the proc
