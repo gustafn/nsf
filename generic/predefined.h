@@ -66,11 +66,9 @@ static char cmd[] =
 "nsf::log Debug \"call($level) - $objectInfo $methodInfo $arglist\"}\n"
 "proc ::nsf::debug::exit {level objectInfo methodInfo result usec} {\n"
 "nsf::log Debug \"exit($level) - $objectInfo $methodInfo $usec usec -> $result\"}\n"
->>>>>>> master
 "proc ::nsf::deprecated {what oldCmd newCmd} {\n"
 "set msg \"*** $what $oldCmd is deprecated.\"\n"
 "if {$newCmd ne \"\"} {append msg \" use $newCmd instead.\"}\n"
-"puts stderr HERE\n"
 "nsf::log Warning $msg}\n"
 "proc tmpdir {} {\n"
 "foreach e [list TMPDIR TEMP TMP] {\n"
