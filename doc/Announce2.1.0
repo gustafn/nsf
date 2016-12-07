@@ -14,28 +14,35 @@ Diff stats since 2.0.0:
 
 Major changes relative to 2.0.0 are:
 
+- Improved debugging/tracing/profiling support (NSF)
+- Deprecated and debug modes for NSF procs and methods (NSF, NX, XOTcl2)
+- Script-level access to NSF parameter/argument parser (NSF).
+- Slot-trace reform (NX, XOTcl2)
+- ...
+
 New Features
 
 - NSF:
-   * Improved debugging/tracing/profiling support:
 
-     + Entering and exiting NSF procs and methods can be tracked upon
-     invocation when profiling support is configured:
+* Improved debugging/tracing/profiling support:
 
-     ./configure --enable-profile (default: disabled)
+    + Entering and exiting NSF procs and methods can be tracked upon
+      invocation when profiling support is configured:
 
-     This can be controlled via
+      ./configure --enable-profile (default: disabled)
+
+      This can be controlled via
 
          nsf::__profile_trace -enable /bool/ ?-verbose /bool/?
 	 nsf::configure trace
 
-       TODO: da fehlt noch eine erklärung, was die befehle genau machen
+      TODO: da fehlt noch eine erklärung, was die befehle genau machen
 
-     + NSF procs and methods can be marked "deprecated" and/or
-       "debug-enabled". For this, all NSF proc and method definitions
-       in NX and XOTcl2 now accept the new flags "-debug" and
-       "-deprecated". The low-level interface (nsf::method::property)
-       enables introspection and selective enabling during runtime.
+    + NSF procs and methods can be marked "deprecated" and/or
+      "debug-enabled". For this, all NSF proc and method definitions
+      in NX and XOTcl2 now accept the new flags "-debug" and
+      "-deprecated". The low-level interface (nsf::method::property)
+      enables introspection and selective enabling during runtime.
 
           nsf::proc ... ?-debug? ?-deprecated? ... /name/ /argspec/ /body/
           nsf::method::property /obj/ /method/ deprecated ?0|1?
@@ -45,10 +52,10 @@ New Features
       and exiting the proc and method (similar to a traced proc/
       method incl. a time probe; see above):
       
-      % nsf::proc -debug foo {} {;}
-      % foo
-      Debug: DB call(1) -  foo
-      Debug: DB exit(1) -  foo 53 usec ->
+          % nsf::proc -debug foo {} {;}
+      	  % foo
+      	  Debug: DB call(1) -  foo
+      	  Debug: DB exit(1) -  foo 53 usec ->
 
       The enter and exit messages can be indirected at the script
       level by (re-)defining "::nsf::debug::call" and
@@ -58,53 +65,56 @@ New Features
       marked "deprecated". Using deprecated procs/ methods will result
       in a warning:
       
-      % nsf::proc -deprecated foo {} {;}
-      % foo
-      Warning: *** proc foo is deprecated.
+          % nsf::proc -deprecated foo {} {;}
+          % foo
+          Warning: *** proc foo is deprecated.
 
       The warning can be indirected at the script level by
       (re-)defining a proc "::nsf::deprecated".
 
-     * Add script-level access to the NSF argument parser to
-       conveniently process, e.g., non-positional parameters/arguments
-       and value checkers. See
-       https://next-scripting.org/2.1.0/doc/nx/tutorial/index1#_parameters
-       for the details.
+  * Add script-level access to the NSF argument parser to conveniently
+    process, e.g., non-positional parameters/arguments and value
+    checkers. See
+    https://next-scripting.org/2.1.0/doc/nx/tutorial/index1#_parameters
+    for the details.
        
-       The command
+    The command
 
          ::nsf::parseargs /paramspec/ /arglist/
 
-       can be used to parse arglist based on the paramspec to set the
-       parsed arguments in the local context. For example, the command
+    can be used to parse arglist based on the paramspec to set the
+    parsed arguments in the local context. For example, the command
 
-         ::nsf::parseargs {{-x:integer 1} y} {123}
+    	 % nsf::parseargs {{-x:integer 1} y} {123}
+	 % set x
+	 1
+	 % set y
+	 123
 
-       will define variables x holding "1" and y holding "123" for the
-       current Tcl scope.
+     will define variables x holding "1" and y holding "123" for the
+     current Tcl scope.
 
-    * Misc:
+  * Misc:
 
-       - New flag "-notrace" for "nsf::var::set" and "nsf::var::get"
-         to implement ability to use these low-level commands for
-         accessing variables without firing Tcl traces.
+    + New flag "-notrace" for "nsf::var::set" and "nsf::var::get" to
+      implement ability to use these low-level commands for accessing
+      variables without firing Tcl traces.
 
-       - New cmd "nsf::method::forward::property" for reading for
-         writing introspection of forwarders. This is important for
-         the serializer to map the per-object forwarder when different
-         target objects are specified.
+    + New cmd "nsf::method::forward::property" for reading for writing
+      introspection of forwarders. This is important for the
+      serializer to map the per-object forwarder when different target
+      objects are specified.
 
-       - New option for callstack introspection: "::nsf::current
-         level". It returns the stack level of the currently executing
-         NSF method (like "info level"), or an empty string outside of
-         an NSF context.
-
+    + New option for callstack introspection: "::nsf::current
+      level". It returns the stack level of the currently executing
+      NSF method (like "info level"), or an empty string outside of an
+      NSF context.
 
 - NX:
 
-    * Support for standardized messaging and debugging: the method
-      defining methods "alias", "forward", "method" accept now the
-      optional flags "-deprecated" and "-debug" (see above).
+  * NX method definitions ("alias", "forward", and "method") now
+    accept the optional flags "-deprecated" and "-debug". See NSF
+    section above for usage details.
 
        /cls/ public alias   ?-deprecated? ?-debug? /method/ ...
        /cls/ public forward ?-deprecated? ?-debug? /method/ ...
@@ -113,8 +123,9 @@ New Features
        /obj/ public object forward ?-deprecated? ?-debug? /method/ ...
        /obj/ public object method  ?-deprecated? ?-debug? /method/ ...
 
-    * Improved introspection: The following subcommands complete the
-      set of introspection commands:
+  * Improved object and method introspection: Newly added
+    introspection subcommands complete the set of introspection
+    commands and reflect the newly introduced method options.
 
        /cls/ info method callprotection
        /cls/ info method debug
@@ -124,25 +135,26 @@ New Features
        /obj/ info object method debug
        /obj/ info object method deprecated
 
+  * Reform of traces on slot-managed object variables: Revised the
+    interface and semantics for the interaction of variable traces and
+    slots. It is now possible to specify in the definition of a
+    "property" or "variable" whether the slot-accessor methods
+    (value=get, value=set) should be fired whenever a variable is
+    read/written or when it is initialized to a default value for the
+    first time (value=default).
 
-    * Added a cleaner interface for the interaction of variable traces
-      and slots. It is now possible to specify in the definition of a
-      "property" or "variable" whether the slot-accessor methods
-      (value=get, value=set) should be fired, whenever a variable is
-      read/written or get a default value.
-
-          /obj/ object property|variable ?-trace set|get|default? ...
-          /cls/ property|variable ?-trace set|get|default? ...
-
-      This replaces the former rather experimental commands used in
-      XOTcl "initcmd", "valuecmd" and "valuechangedcmd".
-
+       /obj/ object property|variable ?-trace set|get|default? ...
+       /cls/ property|variable ?-trace set|get|default? ...
+	  
+    See the Object and Class manpages for details. This supersedes
+    the experimental interface available in XOTcl: "initcmd",
+    "valuecmd" and "valuechangedcmd".
 
 - XOTcl2:
 
-    * Support for standardized messaging and debugging: the method
-      defining methods "alias", "forward", "method" accept now the
-      optional flags "-deprecated" and "-debug" (see above).
+  * XOTcl2 method definitions ("proc", "instproc", "forward", and
+    "instforward") now accept the optional flags "-deprecated" and
+    "-debug". See NSF section above for usage details.
 
         /cls/ instforward -deprecated|-debug /method/ ...
         /cls/ instproc  -deprecated|-debug /method/ ...
@@ -150,39 +162,19 @@ New Features
         /obj/ forward -deprecated|-debug /method/ ...
         /obj/ proc  -deprecated|-debug /method/ ...
 
-    Features added:
-
-    * New -return flag: XOTcl2 methods can now specify a return-value
-      checker, similar to NX methods.
+  * New -return flag: XOTcl2 method definitions can now specify a
+    return-value checker, similar to NX methods.
 
     /cls/ instproc -returns /method/ ...
     /obj/ proc -returns /method/ ...
 
-    (TODO: what about instforward/ forward?)
-
-    * New -deprecated and -debug flags:
-
-
-
-    Features removed: none
-
-    (TODO: what about old trace interface: valuechangedcmd & friends?)
-
-    Changes to existing features: none
-
-
-    Features removed: none
-
-    Changes to existing features: none
-
-
-
 Bug Fixes
+
+...
 
 Code Maintenance
 
-
-o) Slot-traces reform: (TODO: ...)
+...
 
 o) Improved robustness (under 8.6 and beyond):
 
