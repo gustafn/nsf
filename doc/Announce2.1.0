@@ -311,11 +311,13 @@ o) Packaging & distribution:
    * Part of the KitCreator battery: https://kitcreator.rkeene.org/fossil/
    * Part of the kbskit battery: https://sourceforge.net/projects/kbskit/
 
-The Next Scripting Framework 2.1.0 (containing NX 2.1.0 and XOTcl
-2.1.0) can be obtained from https://next-scripting.org/.
-
 The detailed changelog is available at
 https://next-scripting.org/xowiki/download/file/ChangeLog-2.0.0-2.1.0.log
+
+The Next Scripting Framework 2.1.0 (containing NX 2.1.0 and XOTcl
+2.1.0) can be obtained from https://next-scripting.org/. Please report
+issues and wishes by opening a ticket at
+https://sourceforge.net/p/next-scripting/tickets/.
 
 Best regards
 - Gustaf Neumann
