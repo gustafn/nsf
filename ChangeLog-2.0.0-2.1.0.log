@@ -1,3 +1,9 @@
+2016-12-07  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsf.c (NsfProcStub):  Make sure that stub proc is used when
+	   "-deprecated" is set.
+        * nsf.tcl: Use "Debug" severity for -debug messages. [4befd49]
+
 2016-12-02  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
 	* nsf.c (GetObjectFromObj, TclDeletesObject): Remove two earlier
