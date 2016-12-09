@@ -12402,6 +12402,7 @@ static int ProcDispatchFinalize(ClientData data[], Tcl_Interp *interp, int resul
 static int
 ProcDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
   ParseContext *pcPtr = data[1];
+  Tcl_Time     *ttPtr = data[2];
 
   /*const char *methodName = data[0];
     fprintf(stderr, "ProcDispatchFinalize of method %s\n", methodName);*/
@@ -12409,28 +12410,26 @@ ProcDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
   nonnull_assert(data != NULL);
   nonnull_assert(interp != NULL);
 
-# if defined(NSF_PROFILE)
-  {
+  if (ttPtr != NULL) {
     const char      *methodName = data[0];
-    Tcl_Time        *ttPtr      = data[2];
     unsigned long    cmdFlags   = (unsigned long)data[3];
+#if defined(NSF_PROFILE)
     NsfRuntimeState *rst        = RUNTIME_STATE(interp);
-
+#endif
     /*fprintf(stderr, "ProcDispatchFinalize methodName %s flags %.6lx\n",
       methodName, (cmdFlags & NSF_CMD_DEBUG_METHOD));*/
     if ((cmdFlags & NSF_CMD_DEBUG_METHOD) != 0u) {
       NsfProfileDebugExit(interp, NULL, NULL, methodName, ttPtr->sec, ttPtr->usec);
     }
-
+#if defined(NSF_PROFILE)
     if (rst->doProfile != 0) {
       NsfProfileRecordProcData(interp, methodName, ttPtr->sec, ttPtr->usec);
     }
+#endif
     if (ttPtr != NULL) {
       ckfree(ttPtr);
     }
   }
-
-# endif
 
   ParseContextRelease(pcPtr);
   NsfTclStackFree(interp, pcPtr, "nsf::proc dispatch finalize release parse context");
@@ -16645,14 +16644,11 @@ static int
 InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, ParseContext *pcPtr,
                    struct Tcl_Time  *trtPtr, unsigned long cmdFlags) {
   Tcl_Obj       *CONST *objv;
-  int            objc, result;
+  int            objc, result, includeTiming;
   const char    *fullMethodName;
   Tcl_CallFrame *framePtr;
   Proc          *procPtr;
-#if defined(NSF_PROFILE)
   Tcl_Time      *ttPtr;
-#endif
-
 
   nonnull_assert(interp != NULL);
   nonnull_assert(procNameObj != NULL);
@@ -16713,23 +16709,27 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, Pa
     return result;
   }
 
+  includeTiming = ((cmdFlags & NSF_CMD_DEBUG_METHOD) != 0u);
+
+#if defined(NSF_PROFILE)
+  if (includeTiming == 0) {
+    NsfRuntimeState *rst = RUNTIME_STATE(interp);
+
+    /*fprintf(stderr, "InvokeShadowedProc %s cmdFlags %.6lx\n", fullMethodName, cmdFlags);*/
+    includeTiming = rst->doProfile;
+  }
+#endif
+
   Tcl_CallFrame_objc(framePtr) = objc;
   Tcl_CallFrame_objv(framePtr) = objv;
   Tcl_CallFrame_procPtr(framePtr) = procPtr;
 
-# if defined(NSF_PROFILE)
-  {
-    NsfRuntimeState *rst = RUNTIME_STATE(interp);
-
-    /*fprintf(stderr, "InvokeShadowedProc %s cmdFlags %.6lx\n", fullMethodName, cmdFlags);*/
-    if (rst->doProfile || (cmdFlags & NSF_CMD_DEBUG_METHOD) != 0u) {
-      ttPtr = (Tcl_Time *) ckalloc(sizeof(Tcl_Time));
-      memcpy(ttPtr, trtPtr, sizeof(Tcl_Time));
-    } else {
-      ttPtr = NULL;
-    }
+  if (includeTiming) {
+    ttPtr = (Tcl_Time *) ckalloc(sizeof(Tcl_Time));
+    memcpy(ttPtr, trtPtr, sizeof(Tcl_Time));
+  } else {
+    ttPtr = NULL;
   }
-#endif
 
 #if defined(NRE)
   /*fprintf(stderr, "CALL TclNRInterpProcCore proc '%s' %s nameObj %p %s\n",
@@ -16737,13 +16737,8 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, Pa
 
   Tcl_NRAddCallback(interp, ProcDispatchFinalize,
                     (ClientData)fullMethodName, pcPtr,
-# if defined(NSF_PROFILE)
                     (ClientData)ttPtr,
                     (ClientData)(unsigned long)cmdFlags
-# else
-                    NULL,
-                    NULL
-# endif
                     );
   result = TclNRInterpProcCore(interp, procNameObj, 1, &MakeProcError);
 #else
@@ -16751,13 +16746,8 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, Pa
   ClientData data[4] = {
     (ClientData)fullMethodName,
     pcPtr,
-# if defined(NSF_PROFILE)
     (ClientData)ttPtr,
     (ClientData)(unsigned long)cmdFlags
-# else
-    NULL,
-    NULL
-# endif
   };
   result = TclObjInterpProcCore(interp, procNameObj, 1, &MakeProcError);
   result = ProcDispatchFinalize(data, interp, result);
