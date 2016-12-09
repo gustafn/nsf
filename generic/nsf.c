@@ -12427,7 +12427,7 @@ ProcDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
     }
 #endif
     if (ttPtr != NULL) {
-      ckfree(ttPtr);
+      ckfree((char *)ttPtr);
     }
   }
 
