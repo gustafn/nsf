@@ -52,10 +52,10 @@ New Features
       and exiting the proc and method (similar to a traced proc/
       method incl. a time probe; see above):
       
-          % nsf::proc -debug foo {} {;}
+          % nsf::proc -debug foo {} {return 123}
       	  % foo
-      	  Debug: DB call(1) -  foo
-      	  Debug: DB exit(1) -  foo 53 usec ->
+          Debug: call(1) -  foo
+          Debug: exit(1) -  ::nsf::procs::foo 72 usec -> 123
 
       The enter and exit messages can be indirected at the script
       level by (re-)defining "::nsf::debug::call" and
