@@ -9232,14 +9232,14 @@ static int CanInvokeMixinMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Comma
 static int
 CanInvokeMixinMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Command cmd, NsfCmdList *cmdList) {
   int result = TCL_OK;
-  unsigned int cmdFlags = (unsigned int)Tcl_Command_flags(cmd);
+  unsigned long cmdFlags = (unsigned long)Tcl_Command_flags(cmd);
 
   nonnull_assert(interp != NULL);
   nonnull_assert(object != NULL);
   nonnull_assert(cmdList != NULL);
 
-  if ((cmdFlags & NSF_CMD_CALL_PRIVATE_METHOD) != 0 ||
-      ((cmdFlags & NSF_CMD_CLASS_ONLY_METHOD) != 0 && !NsfObjectIsClass(object))) {
+  if ((cmdFlags & NSF_CMD_CALL_PRIVATE_METHOD) != 0u ||
+      ((cmdFlags & NSF_CMD_CLASS_ONLY_METHOD) != 0u && !NsfObjectIsClass(object))) {
     /*
      * The command is not applicable for objects (i.e. might crash,
      * since it expects a class record); therefore skip it
@@ -12410,18 +12410,30 @@ ProcDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
   nonnull_assert(interp != NULL);
 
 # if defined(NSF_PROFILE)
-  long int startUsec = (long int)data[2];
-  long int startSec = (long int)data[3];
-  char *methodName = data[0];
-  NsfRuntimeState *rst = RUNTIME_STATE(interp);
-  if (rst->doProfile != 0) {
-    NsfProfileRecordProcData(interp, methodName, startSec, startUsec);
-  }
-# endif
+  {
+    const char      *methodName = data[0];
+    Tcl_Time        *ttPtr      = data[2];
+    unsigned long    cmdFlags   = (unsigned long)data[3];
+    NsfRuntimeState *rst        = RUNTIME_STATE(interp);
 
+    /*fprintf(stderr, "ProcDispatchFinalize methodName %s flags %.6lx\n",
+      methodName, (cmdFlags & NSF_CMD_DEBUG_METHOD));*/
+    if ((cmdFlags & NSF_CMD_DEBUG_METHOD) != 0u) {
+      NsfProfileDebugExit(interp, NULL, NULL, methodName, ttPtr->sec, ttPtr->usec);
+    }
+    
+    if (rst->doProfile != 0) {
+      NsfProfileRecordProcData(interp, methodName, ttPtr->sec, ttPtr->usec);
+    }
+    if (ttPtr != NULL) {
+      ckfree(ttPtr);
+    }
+  }
+  
+# endif
+  
   ParseContextRelease(pcPtr);
   NsfTclStackFree(interp, pcPtr, "nsf::proc dispatch finalize release parse context");
-
   return result;
 }
 
@@ -13883,7 +13895,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
    */
 
   if (likely(cmd && (flags & NSF_CM_IGNORE_PERMISSIONS) == 0u)) {
-    unsigned int cmdFlags = (unsigned int)Tcl_Command_flags(cmd);
+    unsigned long cmdFlags = (unsigned long)Tcl_Command_flags(cmd);
 
 #if !defined(NDEBUG)
     if (unlikely(((cmdFlags & NSF_CMD_CALL_PRIVATE_METHOD) != 0u)
@@ -16625,16 +16637,22 @@ NsfProcStubDeleteProc(ClientData clientData) {
  *
  *----------------------------------------------------------------------
  */
-static int InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, ParseContext *pcPtr, struct Tcl_Time *trtPtr)
+static int InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, ParseContext *pcPtr,
+                              struct Tcl_Time *trtPtr, unsigned long cmdFlags)
   nonnull(1) nonnull(2) nonnull(4) nonnull(3) nonnull(4);
 
 static int
-InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, ParseContext *pcPtr, struct Tcl_Time  *trtPtr) {
+InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, ParseContext *pcPtr,
+                   struct Tcl_Time  *trtPtr, unsigned long cmdFlags) {
   Tcl_Obj       *CONST *objv;
   int            objc, result;
   const char    *fullMethodName;
   Tcl_CallFrame *framePtr;
   Proc          *procPtr;
+#if defined(NSF_PROFILE)
+  Tcl_Time      *ttPtr;
+#endif  
+  
 
   nonnull_assert(interp != NULL);
   nonnull_assert(procNameObj != NULL);
@@ -16699,16 +16717,31 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, Pa
   Tcl_CallFrame_objv(framePtr) = objv;
   Tcl_CallFrame_procPtr(framePtr) = procPtr;
 
+# if defined(NSF_PROFILE)
+  {
+    NsfRuntimeState *rst = RUNTIME_STATE(interp);
+
+    /*fprintf(stderr, "InvokeShadowedProc %s cmdFlags %.6lx\n", fullMethodName, cmdFlags);*/
+    if (rst->doProfile || (cmdFlags & NSF_CMD_DEBUG_METHOD) != 0u) {
+      ttPtr = (Tcl_Time *) ckalloc(sizeof(Tcl_Time));
+      memcpy(ttPtr, trtPtr, sizeof(Tcl_Time));
+    } else {
+      ttPtr = NULL;
+    }
+  }
+#endif
+  
 #if defined(NRE)
   /*fprintf(stderr, "CALL TclNRInterpProcCore proc '%s' %s nameObj %p %s\n",
     ObjStr(objv[0]), fullMethodName, procNameObj, ObjStr(procNameObj));*/
+
   Tcl_NRAddCallback(interp, ProcDispatchFinalize,
                     (ClientData)fullMethodName, pcPtr,
 # if defined(NSF_PROFILE)
-                    (ClientData)(unsigned long)trtPtr->usec,
-                    (ClientData)(unsigned long)trtPtr->sec
+                    (ClientData)ttPtr,
+                    (ClientData)(unsigned long)cmdFlags
 # else
-                    NULL,
+                    NULL,                    
                     NULL
 # endif
                     );
@@ -16719,8 +16752,8 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, Pa
     (ClientData)fullMethodName,
     pcPtr,
 # if defined(NSF_PROFILE)
-    (ClientData)(unsigned long)trtPtr->usec,
-    (ClientData)(unsigned long)trtPtr->sec
+    (ClientData)ttPtr,
+    (ClientData)(unsigned long)cmdFlags
 # else
     NULL,
     NULL
@@ -16792,13 +16825,13 @@ NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
    * Check if the argument parsing was ok.
    */
   if (likely(result == TCL_OK)) {
-    Tcl_Command    cmd = tcd->wrapperCmd;
-    unsigned int   cmdFlags;
+    Tcl_Command     cmd = tcd->wrapperCmd;
+    unsigned long   cmdFlags;
     struct Tcl_Time trt;
 
     assert(cmd != NULL);
 
-    cmdFlags = (unsigned int)Tcl_Command_flags(cmd);
+    cmdFlags = (unsigned long)Tcl_Command_flags(cmd);
 
 #if defined(NSF_PROFILE)
     Tcl_GetTime(&trt);
@@ -16806,11 +16839,11 @@ NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
     if (RUNTIME_STATE(interp)->doTrace) {
       NsfProfileTraceCallAppend(interp, ObjStr(objv[0]));
     }
-    if ((cmdFlags & NSF_CMD_DEBUG_METHOD) != 0) {
+    if ((cmdFlags & NSF_CMD_DEBUG_METHOD) != 0u) {
       NsfProfileDebugCall(interp, NULL, NULL, ObjStr(objv[0]), objc-1, (Tcl_Obj **)objv+1);
     }
 #else
-    if ((cmdFlags & NSF_CMD_DEBUG_METHOD) != 0) {
+    if ((cmdFlags & NSF_CMD_DEBUG_METHOD) != 0u) {
       Tcl_GetTime(&trt);
 
       NsfProfileDebugCall(interp, NULL, NULL, ObjStr(objv[0]), objc-1, (Tcl_Obj **)objv+1);
@@ -16820,15 +16853,11 @@ NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
     }
 #endif
 
-    if ((cmdFlags & NSF_CMD_DEPRECATED_METHOD) != 0) {
+    if ((cmdFlags & NSF_CMD_DEPRECATED_METHOD) != 0u) {
       NsfDeprecatedCmd(interp, "proc", ObjStr(objv[0]), "");
     }
 
-    result = InvokeShadowedProc(interp, tcd->procName, tcd->cmd, pcPtr, &trt);
-
-    if ((cmdFlags & NSF_CMD_DEBUG_METHOD) != 0) {
-      NsfProfileDebugExit(interp, NULL, NULL, ObjStr(objv[0]), trt.sec, trt.usec);
-    }
+    result = InvokeShadowedProc(interp, tcd->procName, tcd->cmd, pcPtr, &trt, cmdFlags);
 
   } else {
     /*
@@ -23553,11 +23582,11 @@ static int ProtectionMatches(int withCallprotection, Tcl_Command cmd) nonnull(2)
 static int
 ProtectionMatches(int withCallprotection, Tcl_Command cmd) {
   int result, isProtected, isPrivate;
-  unsigned int cmdFlags;
+  unsigned long cmdFlags;
 
   nonnull_assert(cmd != NULL);
 
-  cmdFlags = (unsigned int)Tcl_Command_flags(cmd);
+  cmdFlags = (unsigned long)Tcl_Command_flags(cmd);
   isProtected = (cmdFlags & NSF_CMD_CALL_PROTECTED_METHOD) != 0u;
   isPrivate = (cmdFlags & NSF_CMD_CALL_PRIVATE_METHOD) != 0u;
 
