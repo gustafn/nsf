@@ -9232,7 +9232,7 @@ static int CanInvokeMixinMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Comma
 static int
 CanInvokeMixinMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Command cmd, NsfCmdList *cmdList) {
   int result = TCL_OK;
-  unsigned long cmdFlags = (unsigned long)Tcl_Command_flags(cmd);
+  unsigned int cmdFlags = (unsigned int)Tcl_Command_flags(cmd);
 
   nonnull_assert(interp != NULL);
   nonnull_assert(object != NULL);
@@ -12412,7 +12412,7 @@ ProcDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
 
   if (ttPtr != NULL) {
     const char      *methodName = data[0];
-    unsigned long    cmdFlags   = (unsigned long)data[3];
+    unsigned int     cmdFlags   = PTR2UINT(data[3]);
 #if defined(NSF_PROFILE)
     NsfRuntimeState *rst        = RUNTIME_STATE(interp);
 #endif
@@ -12427,7 +12427,7 @@ ProcDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
     }
 #endif
     if (ttPtr != NULL) {
-      ckfree(ttPtr);
+      ckfree((char *)ttPtr);
     }
   }
 
@@ -13894,7 +13894,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
    */
 
   if (likely(cmd && (flags & NSF_CM_IGNORE_PERMISSIONS) == 0u)) {
-    unsigned long cmdFlags = (unsigned long)Tcl_Command_flags(cmd);
+    unsigned int cmdFlags = (unsigned int)Tcl_Command_flags(cmd);
 
 #if !defined(NDEBUG)
     if (unlikely(((cmdFlags & NSF_CMD_CALL_PRIVATE_METHOD) != 0u)
@@ -16637,12 +16637,12 @@ NsfProcStubDeleteProc(ClientData clientData) {
  *----------------------------------------------------------------------
  */
 static int InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, ParseContext *pcPtr,
-                              struct Tcl_Time *trtPtr, unsigned long cmdFlags)
+                              struct Tcl_Time *trtPtr, unsigned int cmdFlags)
   nonnull(1) nonnull(2) nonnull(4) nonnull(3) nonnull(4);
 
 static int
 InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, ParseContext *pcPtr,
-                   struct Tcl_Time  *trtPtr, unsigned long cmdFlags) {
+                   struct Tcl_Time  *trtPtr, unsigned int cmdFlags) {
   Tcl_Obj       *CONST *objv;
   int            objc, result, includeTiming;
   const char    *fullMethodName;
@@ -16738,7 +16738,7 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, Pa
   Tcl_NRAddCallback(interp, ProcDispatchFinalize,
                     (ClientData)fullMethodName, pcPtr,
                     (ClientData)ttPtr,
-                    (ClientData)(unsigned long)cmdFlags
+                    (ClientData)UINT2PTR(cmdFlags)
                     );
   result = TclNRInterpProcCore(interp, procNameObj, 1, &MakeProcError);
 #else
@@ -16747,7 +16747,7 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, Pa
     (ClientData)fullMethodName,
     pcPtr,
     (ClientData)ttPtr,
-    (ClientData)(unsigned long)cmdFlags
+    (ClientData)UINT2PTR(cmdFlags)
   };
   result = TclObjInterpProcCore(interp, procNameObj, 1, &MakeProcError);
   result = ProcDispatchFinalize(data, interp, result);
@@ -16816,12 +16816,12 @@ NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
    */
   if (likely(result == TCL_OK)) {
     Tcl_Command     cmd = tcd->wrapperCmd;
-    unsigned long   cmdFlags;
+    unsigned int    cmdFlags;
     struct Tcl_Time trt;
 
     assert(cmd != NULL);
 
-    cmdFlags = (unsigned long)Tcl_Command_flags(cmd);
+    cmdFlags = (unsigned int)Tcl_Command_flags(cmd);
 
 #if defined(NSF_PROFILE)
     Tcl_GetTime(&trt);
@@ -23572,11 +23572,11 @@ static int ProtectionMatches(int withCallprotection, Tcl_Command cmd) nonnull(2)
 static int
 ProtectionMatches(int withCallprotection, Tcl_Command cmd) {
   int result, isProtected, isPrivate;
-  unsigned long cmdFlags;
+  unsigned int cmdFlags;
 
   nonnull_assert(cmd != NULL);
 
-  cmdFlags = (unsigned long)Tcl_Command_flags(cmd);
+  cmdFlags = (unsigned int)Tcl_Command_flags(cmd);
   isProtected = (cmdFlags & NSF_CMD_CALL_PROTECTED_METHOD) != 0u;
   isPrivate = (cmdFlags & NSF_CMD_CALL_PRIVATE_METHOD) != 0u;
 
