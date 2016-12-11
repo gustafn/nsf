@@ -18881,7 +18881,7 @@ TclDeletesObject(ClientData clientData) {
 #ifdef OBJDELETION_TRACE
   fprintf(stderr, "TclDeletesObject %p obj->id %p flags %.6x\n", object, object->id, object->flags);
 #endif
-  if ((object->flags & NSF_DURING_DELETE) != 0u || (object->teardown != NULL)) {
+  if ((object->flags & NSF_DURING_DELETE) != 0u || (object->teardown == NULL)) {
     return;
   }
   interp = object->teardown;
