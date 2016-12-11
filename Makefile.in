@@ -49,6 +49,7 @@ libsrc		= COPYRIGHT pkgIndex.tcl
 appdirs		= 
 appsrc		= COPYRIGHT 
 
+CPPCHECK        = cppcheck
 
 # XOTcl subpackage
 xotcl_srcdir	= ${srcdir}/library/xotcl
@@ -299,7 +300,7 @@ libraries: libraries-pkgindex
 	done; fi;
 
 cppcheck:
-	cppcheck --enable=all generic/*.c $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) \
+	$(CPPCHECK) --enable=all generic/*.c $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) \
 		-DNDEBUG=1 -I/usr/include -D__x86_64__
 
 etags:
