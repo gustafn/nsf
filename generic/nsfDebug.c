@@ -126,19 +126,24 @@ NsfStackDump(Tcl_Interp *interp) {
   v = iPtr->varFramePtr;
   varCmdObj = Tcl_NewObj();
   fprintf (stderr, "     TCL STACK:\n");
-  if (f == 0) {
+  if (f == NULL) {
     fprintf(stderr, "- ");
   }
-  while (f) {
+  while (f != NULL) {
     Tcl_Obj *cmdObj = Tcl_NewObj();
+    
     fprintf(stderr, "\tFrame=%p ", (void *)f);
-    if (f && f->isProcCallFrame && f->procPtr && f->procPtr->cmdPtr) {
+    if ((f != NULL)
+        && (f->isProcCallFrame != 0)
+        && (f->procPtr != NULL)
+        && (f->procPtr->cmdPtr != NULL)
+        ) {
       fprintf(stderr,"caller %p ", (void *)Tcl_CallFrame_callerPtr(f));
       fprintf(stderr,"callerV %p ", (void *)Tcl_CallFrame_callerVarPtr(f));
       Tcl_GetCommandFullName(interp, (Tcl_Command)f->procPtr->cmdPtr, cmdObj);
       fprintf(stderr, "%s (%p) lvl=%d\n", ObjStr(cmdObj), (void *)f->procPtr->cmdPtr, f->level);
     } else {
-        if (f && f->varTablePtr) {
+        if (f != NULL && f->varTablePtr != NULL) {
             fprintf(stderr, "var_table = %p ", (void *)f->varTablePtr);
         }
         fprintf(stderr, "- \n");

@@ -117,7 +117,7 @@ Nsf_ltoa(char *buf, long i, int *lengthPtr) {
   do {
     nr_written++;
     *pointer++ = (char)(i%10 + '0');
-    i/=10;
+    i /= 10;
   } while (i);
 
   p = string = buf;
@@ -238,7 +238,7 @@ NsfStringIncrInit(NsfStringIncrStruct *iss) {
   iss->bufSize  = bufSize;
   iss->length   = 1;
   /*
-    for (i=1; i<50; i++) {
+    for (i = 1; i < 50; i++) {
     NsfStringIncr(iss);
     fprintf(stderr, "string '%s' (%d)\n",  iss->start, iss->length);
     }

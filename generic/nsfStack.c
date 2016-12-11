@@ -1041,7 +1041,7 @@ static void CallStackPopAll(Tcl_Interp *interp) {
   { int count = 0;
     NsfClasses *unstackedEntries = RUNTIME_STATE(interp)->cscList, *nextCscPtr = unstackedEntries;
 
-    while (nextCscPtr) {
+    while (nextCscPtr != NULL) {
       NsfCallStackContent *cscPtr = (NsfCallStackContent *)nextCscPtr->cl;
       CscListRemove(interp, cscPtr, &unstackedEntries);
       CscFinish(interp, cscPtr, TCL_OK, "unwind");
