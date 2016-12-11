@@ -131,7 +131,7 @@ NsfStackDump(Tcl_Interp *interp) {
   }
   while (f != NULL) {
     Tcl_Obj *cmdObj = Tcl_NewObj();
-    
+
     fprintf(stderr, "\tFrame=%p ", (void *)f);
     if ((f != NULL)
         && (f->isProcCallFrame != 0)
