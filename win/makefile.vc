@@ -439,7 +439,7 @@ test: setup $(PROJECT)
 		$(DEBUGGER) $(TCLSH) nsftest.tcl %i -testlog __test.log >> tests.log 
 	type tests.log | more
 !endif
-	@$(TCLSH) nsftest.tcl "$(ROOT)/tests/summary.tcl" -testlog __test.log 
+	@$(TCLSH) nsftest.tcl "$(ROOT)/tests/summary.tcl" -title NX+XOTcl -testlog __test.log 
 	@del nsftest.tcl
 	@del __test.log
 
