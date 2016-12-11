@@ -23,6 +23,7 @@ nx::test case hidden-cmds {
   $i hide foo
 
   ? {$i eval [list info commands ::nx::Object]} ""
+  $i eval [list set ::auto_path $::auto_path]
   $i eval [list package req nx]
   ? {$i eval [list info commands ::nx::Object]} ::nx::Object
   #
@@ -164,6 +165,7 @@ nx::test case hidden-cmds+explicit-delete {
   global i
 
   set i [interp create]
+  $i eval [list set ::auto_path $::auto_path]
   $i eval {
     package req nx
     nx::Object create ::o2 {
@@ -202,6 +204,7 @@ nx::test case hide-and-re-expose {
   global i
 
   set i [interp create]
+  $i eval [list set ::auto_path $::auto_path]
   $i eval { 
     package req nx
     nx::Object create ::o {
@@ -255,6 +258,7 @@ nx::test case command-renaming {
   global i
 
   set i [interp create]
+  $i eval [list set ::auto_path $::auto_path]
   $i eval { 
     package req nx
     nx::Object create ::o {
@@ -313,6 +317,7 @@ nx::test case namespaced-object {
   global i
 
   set i [interp create]
+  $i eval [list set ::auto_path $::auto_path]
   $i eval { 
     package req nx
     namespace eval ::ns1 {
@@ -358,6 +363,7 @@ nx::test case deletion-order {
   global i
 
   set i [interp create]
+  $i eval [list set ::auto_path $::auto_path]
   $i eval { 
     package req nx
     nx::Object create ::o {
@@ -395,6 +401,7 @@ nx::test case error-in-destroy-1 {
   global i
 
   set i [interp create]
+  $i eval [list set ::auto_path $::auto_path]
   $i eval { 
     package req nx
     nx::Object create ::o {
@@ -431,6 +438,7 @@ nx::test case error-in-destroy-2 {
   global i
 
   set i [interp create]
+  $i eval [list set ::auto_path $::auto_path]
   $i eval { 
     package req nx
     proc ::bar {} {
@@ -475,6 +483,7 @@ nx::test case error-in-destroy-3 {
   global i
 
   set i [interp create]
+  $i eval [list set ::auto_path $::auto_path]
   $i eval { 
     package req nx
     nx::Object create ::o {
@@ -510,6 +519,7 @@ nx::test case hidden-procs-as-aliases {
   #
   global i
   set i [interp create]
+  $i eval [list set ::auto_path $::auto_path]
   $i eval {
     package req nx
     ::proc ::FOO args {return OK}
@@ -587,6 +597,7 @@ nx::test case hidden-objects-as-aliases {
   #
   global i
   set i [interp create]
+  $i eval [list set ::auto_path $::auto_path]
   $i eval {
     package req nx
     nx::Object create x {
@@ -650,6 +661,7 @@ nx::test case hidden-objects-as-aliases {
 nx::test case hidden-mixins-procsearch {
   global i
   set i [interp create]
+  $i eval [list set ::auto_path $::auto_path]
   $i eval {
     package req nx
     nx::Object create x {
@@ -706,6 +718,7 @@ nx::test case hidden-mixins-procsearch {
 nx::test case hidden-mixins-mixinlists {
   global i
   set i [interp create]
+  $i eval [list set ::auto_path $::auto_path]
   $i eval {
     package req nx
     nx::Object create o
