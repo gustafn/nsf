@@ -161,7 +161,7 @@ PACKAGE_VERSION	= @PACKAGE_VERSION@
 CC		= @CC@
 CFLAGS_DEFAULT	= @CFLAGS_DEFAULT@
 # useful for debugging:
-#CFLAGS_DEFAULT	= -pedantic -g -std=c99 -DTCL_NO_DEPRECATED -DTCL_NO_DEPRECATED -Wconversion -Wsign-conversion -Wfloat-conversion -Wsign-compare
+#CFLAGS_DEFAULT	= -pedantic -g -std=c99 -DTCL_NO_DEPRECATED -Wconversion -Wsign-conversion -Wfloat-conversion -Wsign-compare
 CFLAGS_WARNING	= @CFLAGS_WARNING@
 CLEANFILES	= @CLEANFILES@
 EXEEXT		= @EXEEXT@
