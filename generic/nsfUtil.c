@@ -66,15 +66,15 @@ char *strnstr(const char *buffer, const char *needle, size_t buffer_len) {
 
     needle_len = strlen(needle);
     for (p = (char *)buffer, remainder = buffer_len;
-	 p != NULL;
-	 p = memchr(p + 1, *needle, remainder-1)) {
+         p != NULL;
+         p = memchr(p + 1, *needle, remainder-1)) {
       remainder = buffer_len - (size_t)(p - buffer);
       if (remainder < needle_len) {
-	break;
+        break;
       }
       if (strncmp(p, needle, needle_len) == 0) {
-	result = p;
-	break;
+        result = p;
+        break;
       }
     }
   }
@@ -176,22 +176,22 @@ NsfStringIncr(NsfStringIncrStruct *iss) {
 
       newch = *(alphabet + chartable[(unsigned)*currentChar]);
       if (currentChar < iss->start) {
-	iss->length++;
-	if (currentChar == iss->buffer) {
-	  size_t newBufSize = iss->bufSize + blockIncrement;
-	  char  *newBuffer = ckalloc(newBufSize);
+        iss->length++;
+        if (currentChar == iss->buffer) {
+          size_t newBufSize = iss->bufSize + blockIncrement;
+          char  *newBuffer = ckalloc(newBufSize);
 
-	  currentChar = newBuffer+blockIncrement;
-	  /*memset(newBuffer, 0, blockIncrement);*/
-	  memcpy(currentChar, iss->buffer, iss->bufSize);
-	  *currentChar = newch;
-	  iss->start = currentChar;
-	  ckfree(iss->buffer);
-	  iss->buffer = newBuffer;
-	  iss->bufSize = newBufSize;
-	} else {
-	  iss->start = currentChar;
-	}
+          currentChar = newBuffer+blockIncrement;
+          /*memset(newBuffer, 0, blockIncrement);*/
+          memcpy(currentChar, iss->buffer, iss->bufSize);
+          *currentChar = newch;
+          iss->start = currentChar;
+          ckfree(iss->buffer);
+          iss->buffer = newBuffer;
+          iss->bufSize = newBufSize;
+        } else {
+          iss->start = currentChar;
+        }
       }
     }
   }

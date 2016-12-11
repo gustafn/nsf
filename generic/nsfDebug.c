@@ -3,7 +3,7 @@
  *
  *      Debugging facilities for the Next Scripting Framework.
  *
- *  Copyright (C) 1999-2014 Gustaf Neumann (a, b)
+ *  Copyright (C) 1999-2016 Gustaf Neumann (a, b)
  *  Copyright (C) 1999-2007 Uwe Zdun (a, b)
  *
  * (a) University of Essen
