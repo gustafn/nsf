@@ -137,8 +137,8 @@ void NsfShowStack(Tcl_Interp *interp) {
             Tcl_CallFrame_clientData(framePtr),
             Tcl_CallFrame_level(framePtr),
             (void *)Tcl_CallFrame_nsPtr(framePtr), Tcl_CallFrame_nsPtr(framePtr)->fullName,
-            Tcl_CallFrame_objc(framePtr) && 0 ? ObjStr(Tcl_CallFrame_objv(framePtr)[0]) : "(null)",
-            Tcl_CallFrame_objc(framePtr) ? Tcl_CallFrame_objc(framePtr) : -1);
+            Tcl_CallFrame_objc(framePtr) > 0 ? ObjStr(Tcl_CallFrame_objv(framePtr)[0]) : "(null)",
+            Tcl_CallFrame_objc(framePtr) > 0 ? Tcl_CallFrame_objc(framePtr) : -1);
     if (cscPtr != NULL) {
       fprintf(stderr, " csc %p frameType %.4x flags %.6x (%s.%p %s)\n",
 	      (void *)cscPtr,
