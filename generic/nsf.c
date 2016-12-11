@@ -5880,6 +5880,7 @@ void Nsf_DeleteNamespace(Tcl_Interp *interp, Tcl_Namespace *nsPtr) nonnull(1) no
 
 void
 Nsf_DeleteNamespace(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
+#if !defined(NDEBUG)
   int activationCount = 0;
   Tcl_CallFrame *f = (Tcl_CallFrame *)Tcl_Interp_framePtr(interp);
 
@@ -5895,15 +5896,14 @@ Nsf_DeleteNamespace(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
     f = Tcl_CallFrame_callerPtr(f);
   }
 
-#if !defined(NDEBUG)
+
   if (Tcl_Namespace_activationCount(nsPtr) != activationCount) {
     fprintf(stderr, "WE HAVE TO FIX ACTIVATIONCOUNT\n");
     Tcl_Namespace_activationCount(nsPtr) = activationCount;
   }
-#endif
   assert(Tcl_Namespace_activationCount(nsPtr) == activationCount);
-
   /*fprintf(stderr, "to %d. \n", ((Namespace *)nsPtr)->activationCount);*/
+#endif
 
   if (Tcl_Namespace_deleteProc(nsPtr)) {
     /*fprintf(stderr, "calling deteteNamespace %s\n", nsPtr->fullName);*/
