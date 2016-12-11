@@ -1285,4 +1285,11 @@ char *strnstr(const char *buffer, const char *needle, size_t buffer_len);
 #endif
 #endif
 
+/* In Tcl 8.6 (tclInt.h), vsnprintf is mapped to _vsnprintf. In Tcl
+   8.5, this is missing from tclInt.h. So ... */ 
+
+#if defined(PRE86) && defined(_MSC_VER)
+#define vsnprintf _vsnprintf
+#endif
+
 #endif /* _nsf_int_h_ */
