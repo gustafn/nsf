@@ -464,6 +464,10 @@ OPTDEFINES	= $(OPTDEFINES) -DTCL_CFG_PROFILED
 OPTDEFINES	= $(OPTDEFINES) -DTCL_CFG_DO64BIT
 !endif
 
+# See also http://core.tcl.tk/tclconfig/tktview?name=ab69a602bf
+!if $(VCVERSION) > 1300
+OPTDEFINES	= $(OPTDEFINES) -DHAVE_UINTPTR_T -DHAVE_INTPTR_T
+!endif
 
 #----------------------------------------------------------
 # Get common info used when building extensions.

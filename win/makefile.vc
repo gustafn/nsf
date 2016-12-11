@@ -206,6 +206,30 @@ DLLOBJS = \
 	$(TMP_DIR)\nsfCmdDefinitions.obj \
 	$(TMP_DIR)\nsfFunPtrHashTable.obj
 
+EXTESTS = \
+        $(ROOT)\doc\example-scripts\bagel.tcl \
+        $(ROOT)\doc\example-scripts\container.tcl \
+        $(ROOT)\doc\example-scripts\per-object-mixins.tcl \
+        $(ROOT)\doc\example-scripts\rosetta-abstract-type.tcl \
+        $(ROOT)\doc\example-scripts\rosetta-classes.tcl \
+        $(ROOT)\doc\example-scripts\rosetta-constraint-genericity.tcl \
+        $(ROOT)\doc\example-scripts\rosetta-delegates.tcl \
+	$(ROOT)\doc\example-scripts\rosetta-polymorphism.tcl \
+	$(ROOT)\doc\example-scripts\rosetta-serialization.tcl \
+	$(ROOT)\doc\example-scripts\rosetta-singleton.tcl \
+	$(ROOT)\doc\example-scripts\rosetta-sudoku.tcl \
+	$(ROOT)\doc\example-scripts\rosetta-unknown-method.tcl \
+	$(ROOT)\doc\example-scripts\ruby-mixins.tcl \
+	$(ROOT)\doc\example-scripts\traits-composite.tcl \
+	$(ROOT)\doc\example-scripts\traits-simple.tcl \
+	$(ROOT)\doc\example-scripts\rosetta-tokenizer.tcl \
+	$(ROOT)\doc\example-scripts\rosetta-tree.tcl \
+	$(ROOT)\doc\example-scripts\rosetta-multiple-distinct.tcl \
+	$(ROOT)\doc\example-scripts\rosetta-add-variable.tcl \
+	$(ROOT)\doc\example-scripts\rosetta-clone.tcl \
+	$(ROOT)\doc\example-scripts\rosetta-multiple-inheritance.tcl \
+	$(ROOT)\doc\example-scripts\rosetta-single-inheritance.tcl
+
 PRJTESTS = \
 	$(ROOT)\tests\object-system.test \
 	$(ROOT)\tests\alias.test \
@@ -237,7 +261,9 @@ PRJTESTS = \
 	$(ROOT)\tests\nsf-cmd.test \
 	$(ROOT)\tests\accessor.test \
 	$(ROOT)\tests\linearization.test \
-	$(ROOT)\tests\traits.test
+	$(ROOT)\tests\traits.test \
+	$(ROOT)\tests\info-variable.test \
+	$(EXTESTS)
 
 PRJHEADERS =
 
