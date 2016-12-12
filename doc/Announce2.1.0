@@ -315,7 +315,7 @@ o) Code changes (C):
 o) Packaging & distribution:
 
    * Updated TEA to 3.10
-   * Support for MSVC 14 (VS 2015; win/makefile.vc)
+   * Support for MSVC 1900 (VS 2015; win/makefile.vc)
    * Debian package: https://packages.qa.debian.org/n/nsf.html
    * MacPorts port: https://trac.macports.org/browser/trunk/dports/lang/nsf/Portfile
    * Part of the KitCreator battery: https://kitcreator.rkeene.org/fossil/
