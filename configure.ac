@@ -14,7 +14,7 @@
 AC_PREREQ([2.69])
 
 define(NsfVersion, 2.1.0)
-AC_INIT([nsf],[NsfVersion])
+AC_INIT([nsf], [NsfVersion], [https://sourceforge.net/p/next-scripting/tickets/])
 
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([tclconfig])
