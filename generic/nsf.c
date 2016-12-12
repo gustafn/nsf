@@ -24975,34 +24975,6 @@ NsfConfigureCmd(Tcl_Interp *interp, ConfigureoptionIdx_t configureoption, Tcl_Ob
     }
     break;
 
-  case ConfigureoptionProfileIdx:
-    Tcl_SetBooleanObj(Tcl_GetObjResult(interp),
-                      (RUNTIME_STATE(interp)->doProfile));
-    if (valueObj != NULL) {
-#if defined(NSF_PROFILE)
-      RUNTIME_STATE(interp)->doProfile = boolVal;
-#else
-      NsfLog(interp, NSF_LOG_WARN, "No profile support compiled in");
-#endif
-    }
-    break;
-
-  case ConfigureoptionTraceIdx:
-    Tcl_SetBooleanObj(Tcl_GetObjResult(interp),
-                      (RUNTIME_STATE(interp)->doTrace));
-    if (valueObj != NULL) {
-#if defined(NSF_PROFILE)
-      RUNTIME_STATE(interp)->doTrace = boolVal;
-      /*
-       * Turn automically profiling on&off, when trace is turned on/off
-       */
-      RUNTIME_STATE(interp)->doProfile = boolVal;
-#else
-      NsfLog(interp, NSF_LOG_WARN, "No profile support compiled in");
-#endif
-    }
-    break;
-
   case ConfigureoptionSoftrecreateIdx:
     Tcl_SetBooleanObj(Tcl_GetObjResult(interp),
                       (RUNTIME_STATE(interp)->doSoftrecreate));
