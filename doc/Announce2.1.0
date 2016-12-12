@@ -24,19 +24,7 @@ New Features
 
 - NSF:
 
-* Improved debugging/tracing/profiling support:
-
-    + Entering and exiting NSF procs and methods can be tracked upon
-      invocation when profiling support is configured:
-
-      ./configure --enable-profile (default: disabled)
-
-      This can be controlled via
-
-         nsf::__profile_trace -enable /bool/ ?-verbose /bool/?
-	 nsf::configure trace
-
-      TODO: da fehlt noch eine erklärung, was die befehle genau machen
+  * Improved debugging/tracing/profiling support:
 
     + NSF procs and methods can be marked "deprecated" and/or
       "debug-enabled". For this, all NSF proc and method definitions
@@ -71,6 +59,28 @@ New Features
 
       The warning can be indirected at the script level by
       (re-)defining a proc "::nsf::deprecated".
+      
+    + NSF procs and methods can be profiled (and optionally traced)
+      when profiling support is configured during compilation
+
+         ./configure --enable-profile (default: disabled)
+
+      This can be controlled via
+
+         nsf::__profile_trace -enable /bool/ ?-verbose /bool/?
+         nsf::__profile_get
+         nsf::__profile_clear	 
+
+      When profiling is enabled, the profiling data is kept in memory
+      and can be obtained via nsf::__profile_get in form of a list
+      structure containing the wall clock time since start of
+      profiling, the aggregated ms and lists containing object times
+      (what time was spent in which object/classes), method times
+      (what time was spent in which methods) and proc data (what time
+      was used in which procs) followed by trace data (showing calls
+      and exits of methods/procs/cmds). When nsf::__profile_trace is
+      called with the "-verbose" flag, the trace is printed via
+      nsf::log.
 
   * Add script-level access to the NSF argument parser to conveniently
     process, e.g., non-positional parameters/arguments and value
