@@ -44,19 +44,14 @@
 	* nsf.c (ProcDispatchFinalize): Silence compiler warning on
 	ckfree. [641e77f]
 
-2016-12-09  Gustaf Neumann  <neumann@wu-wien.ac.at>
-
-	* nsf.c (InvokeShadowedProc): Fix debug output when compiled without
-	--enable-profile. [b99c256]
-
 2016-12-09  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
 	* win/makefile.vc: Register missing test scripts. [5c55039]
 
 2016-12-09  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	* nsf.c (ProcDispatchFinalize): Fix debug output wen compiled
-	without --enable-profile. [e2dfaca]
+	* nsf.c (ProcDispatchFinalize, InvokeShadowedProc): Fix debug
+	output wen compiled without --enable-profile. [e2dfaca, b99c256]
 
 2016-12-09  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
