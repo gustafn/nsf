@@ -1,3 +1,78 @@
+2016-12-12  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* configure.ac, configure (AC_INIT): Rather add link to SF
+	ticketing as PACKAGE_BUGREPORT define. [d5c3562]
+
+2016-12-12  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsf.c, nsfAPI.decls (NsfConfigureCmd): Remove configure options
+	"trace" and "profile". [4b20700]
+
+2016-12-11  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* win/makefile.vc: Set title for summary.tcl. [88f1605]
+	* interp.test: Import auto_path from parent interp so that "package
+	req" works as expected. [3e47756]
+	* nsfInt.h, nsfError.c (NsfDStringVPrintf): The logic assumes
+	_vsnprintf being used under MSVC. However, under Tcl 8.5.*, the
+	mapping is missing from tclInt.h. Fill this gap. [295ac11]
+
+2016-12-11  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsf.c
+	(TclDeletesObject): Fix bug that sneaked-in in last
+	commit. [7f016c4]
+	(Nsf_DeleteNamespace): Remove unneeded code in cases, when
+	compiled with NDEBUG. [af86f66]
+
+	* nsf.c: Prefer boolean expressions, reduce number of implicit
+	signed/unsigned conversions. [7c9627d]
+
+	* nsfStack.c (NsfShowStack): Remove always false statement used
+	for controlling output of showstack. [b44aabd]
+
+	* Makefile.in: Remove duplicated flag "TCL_NO_DEPRECATED"
+	[cfa9e21], make cppcheckcmd configurable. [15b9823]
+
+2016-12-10  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsf.c: Address cmdflags conversion, prefer unsigned int over
+	unsigned long. [2d51c0b]
+
+2016-12-09  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* nsf.c (ProcDispatchFinalize): Silence compiler warning on
+	ckfree. [641e77f]
+
+2016-12-09  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsf.c (InvokeShadowedProc): Fix debug output when compiled without
+	--enable-profile. [b99c256]
+
+2016-12-09  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* win/makefile.vc: Register missing test scripts. [5c55039]
+
+2016-12-09  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsf.c (ProcDispatchFinalize): Fix debug output wen compiled
+	without --enable-profile. [e2dfaca]
+
+2016-12-09  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* win/rules.vc: Remove artifact from OPTDEFINES. [a7d6bf4]
+
+	* win/rules.vc: Avoid type-cast warnings under 64bit MSVC (MSVC >
+	1300) toolchains due to compiler flags missing from Tcl headers
+	and from rules' OPTDEFINES. Reported as
+	http://core.tcl.tk/tclconfig/tktview?name=ab69a602bf. [ccc0e58]
+
+2016-12-09  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsf.c (ProcDispatchFinalize): Move result reporting of
+	nsf::procs into ProcDispatchFinalize(). This fixes the result
+	value reporting and timings for nsf::procs. [1723e95]
+
 2016-12-07  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
 	* nsf.c (NsfProcStub):  Make sure that stub proc is used when
