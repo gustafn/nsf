@@ -4,9 +4,9 @@ We are pleased to announce the availability of the Next Scripting
 Framework (NSF) 2.1.0.
 
 This is a maintenance release. Since the release of 2.0.0, there have
-been 416 commits to our code repository. The Next Scripting Framework
-was tested with Tcl 8.5.19 and Tcl 8.6.6 on Linux, Mac OS X, and in
-Windows environments (MinGW, VC).
+been more than 400 commits to our code repository. The Next Scripting
+Framework was tested with Tcl 8.5.19 and Tcl 8.6.6 on Linux, Mac OS X
+(both gcc and clang), and in Windows environments (MinGW, VC).
 
 Diff stats since 2.0.0:
 
@@ -18,7 +18,7 @@ Major changes relative to 2.0.0 are:
 - Deprecated and debug modes for NSF procs and methods (NSF, NX, XOTcl2)
 - Script-level access to NSF parameter/argument parser (NSF).
 - Slot-trace reform (NX, XOTcl2)
-- ...
+- Improved scripted shells (e.g., nxsh, xotclsh)
 
 New Features
 
@@ -72,15 +72,15 @@ New Features
          nsf::__profile_clear	 
 
       When profiling is enabled, the profiling data is kept in memory
-      and can be obtained via nsf::__profile_get in form of a list
+      and can be obtained via "nsf::__profile_get" in form of a list
       structure containing the wall clock time since start of
       profiling, the aggregated ms and lists containing object times
       (what time was spent in which object/classes), method times
       (what time was spent in which methods) and proc data (what time
       was used in which procs) followed by trace data (showing calls
-      and exits of methods/procs/cmds). When nsf::__profile_trace is
+      and exits of methods/procs/cmds). When "nsf::__profile_trace" is
       called with the "-verbose" flag, the trace is printed via
-      nsf::log.
+      "nsf::log".
 
   * Add script-level access to the NSF argument parser to conveniently
     process, e.g., non-positional parameters/arguments and value
@@ -104,6 +104,18 @@ New Features
      will define variables x holding "1" and y holding "123" for the
      current Tcl scope.
 
+  * Minor logging reform (NsfLog, interp): "nsf::configure debugLevel
+    /severity/" will print error messages at a level equal or greater
+    than the given severity (0, 1, 2, 3). For example, "nsf::configure
+    debugLevel 0" will print any "nsf::log" message, and
+    "nsf::configure debugLevel 3" will print just "nsf::log" level 3
+    (error) messages while omitting warnings etc. This does not entail
+    changed logging semantics, but helped remove some confusion at the
+    NSF/C level.
+
+  * Improved NSF/C code generator (gentclAPI.tcl): Allows for
+    specifying and generating enum types.
+
   * Misc:
 
     + New flag "-notrace" for "nsf::var::set" and "nsf::var::get" to
@@ -115,7 +127,7 @@ New Features
       serializer to map the per-object forwarder when different target
       objects are specified.
 
-    + New option for callstack introspection: "::nsf::current
+    + New option for callstack introspection: "nsf::current
       level". It returns the stack level of the currently executing
       NSF method (like "info level"), or an empty string outside of an
       NSF context.
@@ -149,9 +161,9 @@ New Features
     interface and semantics for the interaction of variable traces and
     slots. It is now possible to specify in the definition of a
     "property" or "variable" whether the slot-accessor methods
-    (value=get, value=set) should be fired whenever a variable is
+    ("value=get", "value=set") should be fired whenever a variable is
     read/written or when it is initialized to a default value for the
-    first time (value=default).
+    first time ("value=default").
 
        /obj/ object property|variable ?-trace set|get|default? ...
        /cls/ property|variable ?-trace set|get|default? ...
@@ -159,6 +171,27 @@ New Features
     See the Object and Class manpages for details. This supersedes
     the experimental interface available in XOTcl: "initcmd",
     "valuecmd" and "valuechangedcmd".
+
+  * Documentation (API and examples):
+
+    + Added
+
+      Rosetta implementations: Inheritance/ single, add object
+      variable dynamically, tree traversal, tokenizer
+	
+    + Updated
+
+      Object.man: Added missing description on "info lookup
+      parameters" and "info lookup syntax"; corrected description of
+      "copy"; added "info baseclass"
+
+      {alias|forward|method}.man.inc: Added documentation of
+      "-debug" and "-deprecated" switches.
+
+      current.man: Added description of 'level' option.
+
+      Rosetta implementations: Inheritance/multiple, polymorphic
+      copy, multiple distinct objects
 
 - XOTcl2:
 
@@ -178,148 +211,95 @@ New Features
     /cls/ instproc -returns /method/ ...
     /obj/ proc -returns /method/ ...
 
-Bug Fixes
+- Tcl 8.7:
 
-...
+  Preliminary support for a future Tcl 8.7 (as of Dec 2,
+  2016; commit 71fa1f9c91). NSF compiles under 8.7a0 and its
+  regression tests execute successfully.
+  
+- Shells:
 
-Code Maintenance
+  * There is now an improved and packaged shell implementation:
+    nx::shell2. It is used by all four shell scripts. nx::shell2
+    builds on Tcl's event loop, rather than while + update. This
+    avoids blocking the Tk main window (update). In addition,
+    nx::shell2's behavior is more akin to Tcl's native shells (e.g.,
+    no extra lines on enter, catches EOF). The Tcl package can be
+    conveniently sourced, e.g., in Tclkit main scripts.
 
-...
+  * The improved shells now accept stdin input (-c option).
 
-o) Improved robustness (under 8.6 and beyond):
-
-   * Tcl command resolvers and command literals:
-
-   Between Tcl 8.6.0 and (including) Tcl 8.6.6, there was a problem in
-   the interaction between Tcl 8.6 and the command resolvers of NSF in
-   certain corner cases and Tcl's command literals. The issue and
-   patches were reported upstream to the Tcl core team, was recognized
-   and will enter an upcoming patch release (8.6.7). Our regression
-   test-suite was extended accordingly to track the issue.
-
-   See Tcl Fossil tickets d4e7780ca1 and 3418547.
-
-   * Finalizing NSF and NSF object systems:
-
-   In this release, the finalization procedures of NSF (on process
-   exits, thread exits, and interp teardowns) has been revised. For
-   example, NSF's ExitHandler is guaranteed to be called just once in
-   the above scenarios (e.g., to avoid double frees of NSF
-   structures).
-
-   * UnsetTracedVars:
-
-   Provide for a two-pass deletion logic during object shutdown, to
-   account for unset traces possibly reviving an object variable
-   under deletion. This corresponds to a recent memory leak fix to
-   Tcl itself. See also Tcl Fossil ticket 4dbdd9af144dbdd9af14.
-
-   * Serializer:
-
-   The combined NX and XOTcl2 serializer has been extended to cover
-   newly added features (esp., NSF procs, method flags) and has been
-   improved based on experiences from multi-threaded NSF/Tcl applications
-   (NaviServer). Improvements and fixes relate to "info" methods and
-   forwarders.
-
-o) Improved scripted shells (e.g., nxsh, xotclsh):
-
-   * There is now an alternative implementation of nx::shell:
-   nx::shell2. It is used by all four shell scripts. nx::shell2 builds
-   on Tcl's event loop, rather than while + update. This avoids
-   blocking the Tk main window (update). In addition, nx::shell2's
-   behavior is more akin to Tcl's native shells (e.g., no extra lines
-   on enter, catches EOF).
-
-   * The improved shells now accept stdin input (-c option).
-
-   * They are more robust: Don't quit due to inner [return] calls,
+  * They are more robust: Don't quit due to inner [return] calls,
      [exit] is handled gracefully.
 
-   * Shell tests were added (shells.test).
+  * Shell tests were added (shells.test).
 
-o) Minor logging reform at the C-level (NsfLog, interp) so that
-   "nsf::configure debugLevel /severity/" will print error messages at
-   a level equal or greater than the given severity (0, 1, 2, 3). For
-   example, "nsf::configure debugLevel 0" will print everything, and
-   "nsf::configure debugLevel 3" will print just error messages while
-   omitting warnings etc. This does not entail changed logging
-   semantics, but helped remove some confusion at the C level.
+- Maintenance & bug fixes:
 
-o) Improved NSF/C code generator: Allows for specifying and generating
-   enum types.
+  * Tcl command resolvers and command literals:
 
-o) Preliminary support for a future Tcl 8.7 (as of Dec 2, 2016; commit
-   71fa1f9c91). NSF compiles under 8.7a0 and its regression tests
-   execute successfully.
+    Between Tcl 8.6.0 and (including) Tcl 8.6.6, there was a problem
+    in the interaction between Tcl 8.6 and the command resolvers of
+    NSF in certain corner cases and Tcl's command literals. The issue
+    and patches were reported upstream to the Tcl core team, was
+    recognized and will enter an upcoming patch release (8.6.7). Our
+    regression test-suite was extended accordingly to track the issue.
 
-o) API changes:
+    See Tcl Fossil tickets d4e7780ca1 and 3418547.
 
+  * Finalizing NSF and NSF object systems:
 
+    In this release, the finalization procedures of NSF (on process
+    exits, thread exits, and interp teardowns) has been revised. For
+    example, NSF's ExitHandler is guaranteed to be called just once in
+    the above scenarios (e.g., to avoid double frees of NSF
+    structures).
 
+  * UnsetTracedVars:
 
-o) Documentation (API and examples):
+    Provide for a two-pass deletion logic during object shutdown, to
+    account for unset traces possibly reviving an object variable
+    under deletion. This corresponds to a recent memory leak fix to
+    Tcl itself. See also Tcl Fossil ticket 4dbdd9af144dbdd9af14.
 
-   Added:
+  * Serializer:
 
-	- New Rosetta implementations:
+    The combined NX and XOTcl2 serializer has been extended to cover
+    newly added features (esp., NSF procs, method flags) and has been
+    improved based on experiences from multi-threaded NSF/Tcl
+    applications (NaviServer). Improvements and fixes relate to "info"
+    methods and forwarders.
 
-	  Inheritance/single
-	  Add object variable dynamically
-	  Tree traversal
-	  Tokenizer
+  * Misc (esp. NSF/C):
 
-   Updated:
+    + Refactoring: There is now a common infrastructure for
+      hash-tables using function pointers as keys (as required for
+      NSF/C command definitions and enumerations).
+    + Removed all implicit type-conversions, signed/unsigned
+      comparisons as flagged by the following gcc/clang flags (ensure
+      cleanness on 64bit) -Wconversion -Wsign-conversion
+      -Wfloat-conversion -Wsign-compare.
+    + Reduced variable scopes.
+    + Guarded against potential Tcl_Obj leaks, esp. when using
+      "NsfMethodNamePath", as indicated by valgrind.
+    + Refactored functions for topological sorting ("TopoSort") to
+      avoid code redundancies.
+    + Addressed more than 18 code-quality issues as indicated by
+      Coverity Scan, incl. control-flow issues (risking NULL
+      dereferencing), dead code branches, etc.
+    + Removed uses of deprecated functions, e.g. "Tcl_AppendResult".
+    + Based on the improve NSF/C code generator (see above), proper
+      enum types are used in generated function signatures and the
+      respective control structures (switch).
 
-	- Object.man:
+- Packaging & distribution:
 
-	  * Added missing description on 'info lookup parameters' and
-	  'info lookup syntax'.
-
-	  * Correct description of Object->copy.
-
-	  * info baseclass (TODO: check)
-
-       - alias/forward/method: added debug/ deprecated switches,
-
-       - current.man: Added description of 'level' option.
-
-       - Extended/ updated Rosetta implementations:
-
-	  Inheritance/multiple
-	  Polymorphic copy
-	  Multiple distinct objects
-
-o) Code changes (C):
-
-   * Refactoring: There is now a common infrastructure for hash-tables
-     using function pointers as keys (as required for NSF/C command
-     definitions and enumerations).
-   * Removed all implicit type-conversions, signed/unsigned
-     comparisons as flagged by the following gcc/clang flags (ensure
-     cleanness on 64bit) -Wconversion -Wsign-conversion
-     -Wfloat-conversion -Wsign-compare.
-   * Reduced variable scopes.
-   * Guarded against potential Tcl_Obj leaks, esp. when using
-     NsfMethodNamePath(), as indicated by valgrind.
-   * Refactored functions for topological sorting (TopoSort()) to
-     avoid redundancies.
-   * Addressed more than 18 code-quality issues as indicated by
-     Coverity Scan, incl. control-flow issues (risking NULL
-     dereferencing), dead code branches, etc.
-   * Removed uses of deprecated functions: Tcl_AppendResult, ...
-   * Based on the improve NSF/C code generator, proper enum types are
-     used in generated function signatures and the respective control
-     structures (switch).
-
-o) Packaging & distribution:
-
-   * Updated TEA to 3.10
-   * Support for MSVC 1900 (VS 2015; win/makefile.vc)
-   * Debian package: https://packages.qa.debian.org/n/nsf.html
-   * MacPorts port: https://trac.macports.org/browser/trunk/dports/lang/nsf/Portfile
-   * Part of the KitCreator battery: https://kitcreator.rkeene.org/fossil/
-   * Part of the kbskit battery: https://sourceforge.net/projects/kbskit/
+  * Updated TEA to 3.10
+  * Support for MSVC 1900 (VS 2015; win/makefile.vc)
+  * Debian package: https://packages.qa.debian.org/n/nsf.html
+  * MacPorts port: https://trac.macports.org/browser/trunk/dports/lang/nsf/Portfile
+  * Part of the KitCreator battery: https://kitcreator.rkeene.org/fossil/
+  * Part of the kbskit battery: https://sourceforge.net/projects/kbskit/
 
 The detailed changelog is available at
 https://next-scripting.org/xowiki/download/file/ChangeLog-2.0.0-2.1.0.log
