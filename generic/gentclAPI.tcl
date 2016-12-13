@@ -513,7 +513,7 @@ proc methodDefinition {methodName methodType implementation parameterDefinitions
   }
   set d(parameterDefinitions) $completed
   set ::definitions($d(methodType)-$d(implementation)-$d(methodName)) [array get d]
-  puts $::nxdocIndex [list set ::nxdoc::include($d(ns)::$d(methodName)) $opts(-nxdoc)]
+  # puts $::nxdocIndex [list set ::nxdoc::include($d(ns)::$d(methodName)) $opts(-nxdoc)]
 }
 
 proc checkMethod {methodName implementation parameterDefinitions {options ""}} {
@@ -538,9 +538,9 @@ proc cmd {methodName implementation parameterDefinitions {options ""}} {
 }
 
 if {[llength $argv] == 1} {set decls $argv} {set decls generic/gentclAPI.decls}
-set ::nxdocIndex [open [file root $decls].nxdocindex w]
+# set ::nxdocIndex [open [file root $decls].nxdocindex w]
 source $decls
-close $::nxdocIndex
+# close $::nxdocIndex
 
 puts {
 /*
