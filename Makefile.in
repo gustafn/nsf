@@ -947,8 +947,8 @@ bin-tar:
 	)
 
 tar:  libraries-pkgindex
+	echo @NSF_COMMIT@ > COMMIT
 	sh $(srcdir)/tclconfig/mktar.sh
-
 
 .PHONY: all binaries clean depend distclean doc install libraries \
 	test test-core test-actiweb 

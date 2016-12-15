@@ -104,7 +104,23 @@ AC_SUBST([NSF_MAJOR_VERSION])
 AC_SUBST([NSF_MINOR_VERSION])
 AC_SUBST([NSF_PATCH_LEVEL])
 
-echo "Configuring next Version $PACKAGE_VERSION"
+echo "Configuring NSF Version $PACKAGE_VERSION"
+
+AC_CHECK_PROG(git_installed,git,"yes", "no")
+
+if test "$git_installed" = "yes" -a -d ".git" ; then
+   nsf_commit=`git describe --dirty`
+elif test -f "COMMIT" ; then
+   nsf_commit=`cat COMMIT`
+else
+   nsf_commit=`unknown-$PACKAGE_VERSION`
+fi
+
+NSF_COMMIT=$nsf_commit
+AC_SUBST([NSF_COMMIT])
+
+# AC_DEFINE_UNQUOTED([NSF_COMMIT], "$nsf_commit", 
+#       	     [Commit ID at the time of the last configure run.])
 
 #--------------------------------------------------------------------
 # Load the tclConfig.sh file
@@ -226,7 +242,7 @@ TEA_ADD_HEADERS([generic/nsf.h generic/nsfInt.h generic/${stubdir}/nsfDecls.h ge
 TEA_ADD_INCLUDES([])
 TEA_ADD_LIBS([])
 TEA_ADD_CFLAGS([-DNSF_VERSION=\\\"$NSF_VERSION\\\" -DNSF_PATCHLEVEL=\\\"$NSF_PATCH_LEVEL\\\" \
-	$AOL_DEFINES ])
+-DNSF_COMMIT=\\\"$NSF_COMMIT\\\" $AOL_DEFINES ])
 TEA_ADD_STUB_SOURCES([nsfStubLib.c])
 TEA_ADD_TCL_SOURCES([])
 

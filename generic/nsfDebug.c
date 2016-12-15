@@ -66,6 +66,7 @@ NsfReportVars(Tcl_Interp *interp) {
   nonnull_assert(interp != NULL);
 
   Tcl_SetVar(interp, "::nsf::version", NSF_VERSION, TCL_GLOBAL_ONLY);
+  Tcl_SetVar(interp, "::nsf::commit", NSF_COMMIT, TCL_GLOBAL_ONLY);
   Tcl_SetVar(interp, "::nsf::patchLevel", NSF_PATCHLEVEL, TCL_GLOBAL_ONLY);
 
   Tcl_SetVar(interp, "::nsf::config(development)",
