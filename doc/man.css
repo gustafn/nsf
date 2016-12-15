@@ -27,7 +27,7 @@ h2 {
     text-transform: uppercase;
 }
 
-H1.title {
+H1.doctools_title {
     text-align: center;
 }
 
@@ -50,12 +50,13 @@ UL.toc,UL.toc UL, UL.toc UL UL {
     font:		normal 12pt/14pt sans-serif;
     list-style:	none;
 }
-LI.section, LI.subsection {
+LI.doctools_section, LI.doctools_subsection {
     list-style: 	none;
     margin-left: 	0em;
     text-indent:	0em;
     padding: 	0em;
 }
+
 PRE {
     display: 	block;
     font-family:	monospace;
@@ -67,12 +68,14 @@ PRE {
     padding-right:	1ex;
     width:		100%;
 }
-PRE.example {
+
+PRE.doctools_example {
     color: 		black;
     background: 	#f5dcb3;
     border:		1px solid black;
 }
-UL.requirements LI, UL.syntax LI {
+
+UL.doctools_requirements LI, UL.doctools_syntax LI {
     list-style: 	none;
     margin-left: 	0em;
     text-indent:	0em;
@@ -93,7 +96,7 @@ UL.requirements LI, UL.syntax LI {
     border-top:	1px solid black;
 }*/
 
-UL.requirements {
+UL.doctools_requirements {
     margin-bottom: 	1em;
     border-bottom:	1px solid black;
 }
@@ -105,30 +108,35 @@ i.term {
 }
 
 
-dl.definitions b.method {
-    background: none repeat scroll 0 0 #fcfbfa;
-    border: 1px solid #efeeed;
-    padding: 0 3px;
+dl.doctools_definitions b.method {
+    /* 
+       background: none repeat scroll 0 0 #fcfbfa;
+       border: 1px solid #efeeed;
+       padding: 0 3px;
+    */
     font-family: Menlo,Monaco,"DejaVu Sans Mono","Bitstream Vera Sans Mono","Courier New",Courier,monospace;
     font-size: 92.308%;
     line-height: 1.35;
     font-weight: bold;
 }
 
-dl.definitions i.arg, dl.options i.arg {
-    background: none repeat scroll 0 0 #ffffff;
+dl.doctools_definitions i.arg, dl.options i.arg {
+    /* background: none repeat scroll 0 0 #ffffff;
     border: 1px solid #efeeed;
-    padding: 0 3px;
+    padding: 0 3px; 
+   */
     font-family: Menlo,Monaco,"DejaVu Sans Mono","Bitstream Vera Sans Mono","Courier New",Courier,monospace;
     font-size: 92.308%;
     line-height: 1.35;
     font-weight: normal;
 }
 
-dl.definitions b.option, dl.options b.option {
-    background: none repeat scroll 0 0 #ffffff;
-    border: 1px solid #efeeed;
-    padding: 0 3px;
+dl.doctools_definitions b.option, dl.options b.option {
+    /* 
+       background: none repeat scroll 0 0 #ffffff;
+       border: 1px solid #efeeed;
+       padding: 0 3px; 
+   */
     font-family: Menlo,Monaco,"DejaVu Sans Mono","Bitstream Vera Sans Mono","Courier New",Courier,monospace;
     font-size: 92.308%;
     line-height: 1.35;
@@ -136,17 +144,17 @@ dl.definitions b.option, dl.options b.option {
     text-decoration: none;
 }
 
-dl.definitions b.cmd, p b.cmd {
-    background: none repeat scroll 0 0 #e7edd3;
-    border: 1px solid #89a618;
-    padding: 0 3px;
+dl.doctools_definitions b.cmd, p b.cmd {
+    /* background: none repeat scroll 0 0 #e7edd3;
+       border: 1px solid #89a618;
+       padding: 0 3px; */
     font-family: Menlo,Monaco,"DejaVu Sans Mono","Bitstream Vera Sans Mono","Courier New",Courier,monospace;
     font-size: 92.308%;
     line-height: 1.35;
     font-weight: bold;
 }
 
-dl.definitions b.const, p b.const {
+dl.doctools_definitions b.const, p b.const {
     /* background: none repeat scroll 0 0 #ffffff; */
     /* border: 1px solid #efeeed; */
     padding: 0 3px;
@@ -164,7 +172,7 @@ code, kbd, pre, samp {
     line-height: 1.35;
 }
 
-pre.example {
+pre.doctools_example {
     background: none repeat scroll 0 0 #fcfbfa;
     border-color: #efeeed;
     border-image: none;
@@ -172,7 +180,7 @@ pre.example {
     border-width: 1px 1px 1px 5px;
 }
 
-div.synopsis {
+div.doctools_synopsis {
     background: none repeat scroll 0 0 #e7edd3;
     border-color: #d4d8eb;
     border: 1px solid;
@@ -181,7 +189,7 @@ div.synopsis {
     padding: 0 1em;
 }
 
-div.synopsis ul {
+div.doctools_synopsis ul {
     padding-left: 0;
 }
 
@@ -189,4 +197,12 @@ div.synopsis ul {
 a:link {
     color: #002a4b;
     text-decoration: none
+}
+
+/* SF-specific styling */
+
+hr {
+    border: 0;
+    height: 1px;
+    background: #89a618;
 }

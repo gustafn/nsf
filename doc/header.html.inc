@@ -1,0 +1,1 @@
+<div id="man-header"><span style="display: inline-block; vertical-align: middle;"></span><a href="https://next-scripting.org/"><img src="https://next-scripting.org/resources/openacs-nsf-theme/img_visual/next-logo.png" style="vertical-align: middle; width: 60px;"><span>The Next Scripting Framework</span></a></div>
