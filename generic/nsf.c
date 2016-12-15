@@ -4326,22 +4326,27 @@ static Tcl_Var CompiledLocalsLookup(CallFrame *varFramePtr, const char *varName)
 
 static Tcl_Var
 CompiledLocalsLookup(CallFrame *varFramePtr, const char *varName) {
-  int i, localCt;
-  Tcl_Obj **objPtrPtr;
+  int       i, localCt, nameLength;
+  Tcl_Obj **varNameObjPtr;
 
   nonnull_assert(varFramePtr != NULL);
   nonnull_assert(varName != NULL);
 
   localCt = varFramePtr->numCompiledLocals;
-  objPtrPtr = &varFramePtr->localCachePtr->varName0;
+  varNameObjPtr = &varFramePtr->localCachePtr->varName0;
+  nameLength = strlen(varName);
 
   /* fprintf(stderr, ".. search #local vars %d for %s\n", localCt, varName);*/
-  for (i = 0 ; i < localCt ; i++, objPtrPtr++) {
-    Tcl_Obj *objPtr = *objPtrPtr;
-    if (likely(objPtr != NULL)) {
-      const char *localName = TclGetString(objPtr);
+  for (i = 0 ; i < localCt ; i++, varNameObjPtr++) {
+    Tcl_Obj *varNameObj = *varNameObjPtr;
+    int      len;
+
+    if (likely(varNameObj != NULL)) {
+      const char *localName = TclGetStringFromObj(varNameObj, &len);
+
       if (unlikely(varName[0] == localName[0]
                    && varName[1] == localName[1]
+                   && len == nameLength
                    && strcmp(varName, localName) == 0)) {
         return (Tcl_Var) &varFramePtr->compiledLocals[i];
       }
