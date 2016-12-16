@@ -286,10 +286,11 @@ TestX assertions -proc run {{n 20}} {
   if {![catch {b yTo2} err]} {
     set err "ok"
   }
- ::errorCheck $err {assertion failed check: {$y == 1} in proc 'yTo2'} \
+      ::errorCheck $err {assertion failed check: {$y == 1} in proc 'yTo2'} \
 					 "inheritance b yTo2"
  
- a destroy     
+      a destroy
+      b destroy
 }
 
 @ TestX filterAddRemove {
@@ -566,6 +567,7 @@ TestX filterAddRemove -proc run {{n 20}} {
     description {Regression test object testing class changes of filters.}
 }
 TestX filterClassChange -proc run {{n 20}} {
+
     for {set i 0} {$i < $n} {incr i} {
 	Class A($i)
 	Class B
@@ -651,81 +653,80 @@ TestX filterGuards -proc run {{n 20}} {
       set ::filterResult ""
       Class A
       A instproc f2 args {
-        global filterResult
-        append filterResult "-[self]-[self proc]-[self class]-[self calledproc]"
+        append ::filterResult "-[self]-[self proc]-[self class]-[self calledproc]"
 	next
       }
       Class B -superclass A
       B instproc f1 args {
-        global filterResult
-        append filterResult "-[self]-[self proc]-[self class]-[self calledproc]"
+        append ::filterResult "-[self]-[self proc]-[self class]-[self calledproc]"
 	next
       }
       B instproc f3 args {
-        global filterResult
-        append filterResult "-[self]-[self proc]-[self class]-[self calledproc]"
+        append ::filterResult "-[self]-[self proc]-[self class]-[self calledproc]"
 	next
       }
-      B instproc f01 args { append ::filterResult 1; next }
-      B instproc f02 args { append ::filterResult 2; next }
+      B instproc f01 args {  append ::filterResult 1; next }
+      B instproc f02 args {  append ::filterResult 2; next }
+
       B instfilter {{f1 -guard "1 2 3"}} ;# guard with error
-      set r [catch {B b}]
-      ::errorCheck $r-$filterResult "1-" "Filter guard: Filter guard with error"
-      #b destroy
+      set r [catch {B b} errorMsg]
+      ::errorCheck $r-$::filterResult "1-" "Filter guard: Filter guard with error"
+      ::errorCheck [lrange $errorMsg 0 4] "Guard error: '1 2 3'" errormsg
 
       set ::filterResult ""
       B instfilter {f01 {f02 -guard "a b"}}
+
+      if {[info commands ::b] ne ""} {catch {::b destroy}}
       set r [catch {B b}]
-      ::errorCheck $r-$filterResult "1-1" "Filter guard: Filter guard with error via next"
+      ::errorCheck $r-$::filterResult "1-11" "Filter guard: Filter guard with error via next"
 
       set ::filterResult ""
       B instfilter {{f1 -guard "1<0"}} ;# failing guard
       B b
-      ::errorCheck $filterResult "" "Filter guard: Filter never to be applied"
+      ::errorCheck $::filterResult "" "Filter guard: Filter never to be applied"
       b destroy
 
       A instproc f1 args {
-        global filterResult
-        append filterResult "-[self]-[self proc]-[self class]-[self calledproc]"
+        append ::filterResult "-[self]-[self proc]-[self class]-[self calledproc]"
 	next
       }
-      set filterResult ""
+      set ::filterResult ""
       B b
-      ::errorCheck $filterResult "" \
+      ::errorCheck $::filterResult "" \
 	    "Filter guard: Filter never to be applied + filter inheritance on this filter"
       # filter w/o guard -> has to be applied
       A instfilter f1
       b destroy
 
-      set filterResult ""
+      set ::filterResult ""
       B b
 
       set r1 "-::b-f1-::A-configure-::b-f1-::A-residualargs-::b-f1-::A-init"
       set r2 "-::b-f1-::A-configure-::b-f1-::A-init"
-      ::errorCheck $filterResult $r2 \
+      ::errorCheck $::filterResult $r2 \
           "Filter guard: two different filters, same name + different class, one guarded, one not"
 
       # two filter w/o guard -> both have to be applied
       B instfilter f1
       b destroy
 
-      set filterResult ""
+      set ::filterResult ""
       B b
       set r1 "-::b-f1-::B-configure-::b-f1-::A-configure-::b-f1-::B-residualargs-::b-f1-::A-residualargs-::b-f1-::B-init-::b-f1-::A-init"
       set r2 "-::b-f1-::B-configure-::b-f1-::A-configure-::b-f1-::B-init-::b-f1-::A-init"
-      ::errorCheck $filterResult $r2 \
+      ::errorCheck $::filterResult $r2 \
           "Filter guard: two different filters, both not guarded anymore"
 
       # three filters with guards, not to be applied, in one chain
       b destroy
       A instfilter {}
       B instfilter {{f1 -guard {0}} {f3 -guard {0}} {f2 -guard {0}}}
-      set filterResult ""
+      set ::filterResult ""
       B b
-      ::errorCheck $filterResult "" "Filter guard: three filters in one chain"
+      ::errorCheck $::filterResult "" "Filter guard: three filters in one chain"
 
       # three times the same filter --> guards are and-combined
-      set filterResult ""
+      set ::filterResult ""
       B instfilter {{f2 -guard {[self calledproc] eq "set" || [self] == "::b2"}}}
       A instfilter {{f2 -guard {[self] == "::b2"}}}
       B b1 
@@ -733,42 +734,42 @@ TestX filterGuards -proc run {{n 20}} {
       if {$i == 0} {
         set r1 "-::b2-f2-::A-configure-::b2-f2-::A-residualargs-::b2-f2-::A-init"
         set r2 "-::b2-f2-::A-configure-::b2-f2-::A-init"
-	::errorCheck $filterResult $r2 \
+	::errorCheck $::filterResult $r2 \
 	  "Filter guard: creation with less restrictive guards"
       } else {
         set r1 "-::b2-f2-::A-cleanup-::b2-f2-::A-configure-::b2-f2-::A-residualargs-::b2-f2-::A-init"
         set r2 "-::b2-f2-::A-cleanup-::b2-f2-::A-configure-::b2-f2-::A-init"
-	::errorCheck $filterResult $r2 \
+	::errorCheck $::filterResult $r2 \
 	  "Filter guard: creation with less restrictive guards (b)"
       }
 
-      set filterResult ""
+      set ::filterResult ""
       b1 set x 45
-      ::errorCheck $filterResult "-::b1-f2-::A-set" \
+      ::errorCheck $::filterResult "-::b1-f2-::A-set" \
 	"Filter guard: setting restricted object"
 
-      set filterResult ""
+      set ::filterResult ""
       b1 info class
-      ::errorCheck $filterResult "" \
+      ::errorCheck $::filterResult "" \
 	"Filter guard: info restricted object (no guard applies)"
 
-      set filterResult ""
+      set ::filterResult ""
       b2 info class
-      ::errorCheck $filterResult "-::b2-f2-::A-info" \
+      ::errorCheck $::filterResult "-::b2-f2-::A-info" \
 	"Filter guard: setting restricted object (2nd guard applies)"
       
       b1 filter {{f2 -guard {[self calledproc] eq "info"}}}
 
-      set filterResult ""
+      set ::filterResult ""
       b1 proc a {} {
 	#
       }
-      ::errorCheck $filterResult "" \
+      ::errorCheck $::filterResult "" \
 	"Filter guard: proc on restricted object (no guard applies)"
 
-      set filterResult ""
+      set ::filterResult ""
       b1 info class
-      ::errorCheck $filterResult "-::b1-f2-::A-info" \
+      ::errorCheck $::filterResult "-::b1-f2-::A-info" \
 	"Filter guard: info filtered by object filter guard"
 
       # checking infos
