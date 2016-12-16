@@ -5,9 +5,9 @@ PACKAGE_MAJOR	= 2
 PACKAGE_MINOR	= 1
 PACKAGE_VERSION	= "2.1.0"
 
-!if exists(..\COMMIT)
-	NSF_COMMIT = \
-	!include(..\COMMIT)
+!if exists("..\COMMIT")
+NSF_COMMIT = \
+!include "..\COMMIT"
 !else
-	NSF_COMMIT = unknown-msvc-$(PACKAGE_VERSION)
+NSF_COMMIT = unknown-msvc-$(PACKAGE_VERSION)
 !endif
