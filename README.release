@@ -64,6 +64,7 @@ Steps for a beta release:
       * git add announcement 
 
    - build tar
+       * (make sure accurate COMMIT file is present, e.g., run ./configure once?)
        * make tar
        * check content of tar file
          tar ztvf ../nsf2.0.tar.gz |sort -rn -k 5,6|less
@@ -97,6 +98,7 @@ Steps for a beta release:
 	 * library/nx/nx.tcl
          * library/nx/pkgIndex.tcl
 	 * library/xotcl/library/xotcl2.tcl
+         * win/pkg.vc
        autoconf
        ./configure ....
 
