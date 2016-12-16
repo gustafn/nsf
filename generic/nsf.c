@@ -24348,7 +24348,7 @@ AliasRefetch(Tcl_Interp *interp, NsfObject *object, const char *methodName, Alia
   targetObj = listElements[nrElements-1];
 
   NsfLog(interp, NSF_LOG_NOTICE,
-         "trying to refetch an epoched cmd %p as %s -- cmdName %s\n",
+         "trying to refetch an epoched cmd %p as %s -- cmdName %s",
          (void *)tcd->aliasedCmd, methodName, ObjStr(targetObj));
 
   /*
