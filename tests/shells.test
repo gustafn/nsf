@@ -6,7 +6,21 @@ package require nx::test
 ## for now, we do not have scripted shells for Windows environments
 ## without a bash-like shell, so ...
 
-if {$tcl_platform(platform) eq "windows"} return;
+if {$tcl_platform(platform) eq "windows"} {
+  return
+}
+
+#
+# When the compiler flags modify the console output, come of the shell
+# tests below will fail. One should introduce more detailed test
+# conditions like in tcl-test to deal with the more precisely. For the
+# time being, we skip here the full test when nsf was compiled with
+# memcount activated.
+#
+if {$::nsf::config(memcount) == 1} {
+  return
+}
+
 
 nx::test case nxsh {
   set rootDir [file join {*}[lrange [file split [file normalize [info script]]] 0 end-2]]
