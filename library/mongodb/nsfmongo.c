@@ -143,10 +143,10 @@ typedef struct {
 static int ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
                          NsfObject *obj, Tcl_Obj *procName,
                          Nsf_Param CONST *paramPtr, int nrParameters, int serial,
-			 int doCheck, ParseContext *pc) {
+			 unsigned int processFlags, ParseContext *pc) {
   return Nsf_ArgumentParse(interp, objc, objv, (Nsf_Object *)obj,
 			   procName, paramPtr, nrParameters, serial,
-			   doCheck, (Nsf_ParseContext *)pc);
+			   processFlags, (Nsf_ParseContext *)pc);
 }
 
 /***********************************************************************
@@ -213,7 +213,7 @@ BsonToList(Tcl_Interp *interp, const bson_t *data , int depth) {
       uint32_t utf8_len;
       const char *string = bson_iter_utf8( &i, &utf8_len);
       /*fprintf(stderr, "append UTF8: <%s> %d\n", string, utf8_len);*/
-      tag = NSF_BSON_STRING; elemObj = Tcl_NewStringObj(string, utf8_len);
+      tag = NSF_BSON_STRING; elemObj = Tcl_NewStringObj(string, (int)utf8_len);
       break;
     }
     case BSON_TYPE_MINKEY: tag = NSF_BSON_MINKEY; elemObj = Tcl_NewStringObj("null", 4); break;
@@ -230,8 +230,8 @@ BsonToList(Tcl_Interp *interp, const bson_t *data , int depth) {
       tag = NSF_BSON_TIMESTAMP;
       bson_iter_timestamp( &i, &timestamp, &increment );
       elemObj = Tcl_NewListObj(0, NULL);
-      Tcl_ListObjAppendElement(interp, elemObj, Tcl_NewIntObj(timestamp));
-      Tcl_ListObjAppendElement(interp, elemObj, Tcl_NewIntObj(increment));
+      Tcl_ListObjAppendElement(interp, elemObj, Tcl_NewLongObj((long)timestamp));
+      Tcl_ListObjAppendElement(interp, elemObj, Tcl_NewLongObj((long)increment));
       break;
     }
     case BSON_TYPE_DOCUMENT: {
@@ -337,16 +337,16 @@ BsonTagToType(Tcl_Interp *interp, CONST char *tag) {
  */
 static int
 BsonAppend(Tcl_Interp *interp, bson_t *bbPtr, CONST char *name, CONST char *tag, Tcl_Obj *value) {
-  int result = TCL_OK;
+  int         result = TCL_OK;
   bson_type_t t = BsonTagToType(interp, tag);
-  int keyLength = strlen(name);
+  int         keyLength = (int)strlen(name);
 
   /*fprintf(stderr, "BsonAppend: add name %s tag %s value '%s'\n", name, tag, ObjStr(value));*/
 
   switch ( t ){
   case BSON_TYPE_UTF8: {
     const char* string = ObjStr(value);
-    bson_append_utf8(bbPtr, name, keyLength, string, strlen(string));
+    bson_append_utf8(bbPtr, name, keyLength, string, (int)strlen(string));
     break;
   }
   case BSON_TYPE_INT32: {
@@ -424,7 +424,7 @@ BsonAppend(Tcl_Interp *interp, bson_t *bbPtr, CONST char *name, CONST char *tag,
       result = Tcl_GetIntFromObj(interp, objv[1], &increment);
     }
     if (result != TCL_OK) break;
-    bson_append_timestamp(bbPtr, name, keyLength, timestamp, increment);
+    bson_append_timestamp(bbPtr, name, keyLength, (uint32_t)timestamp, (uint32_t)increment);
     break;
   }
   case BSON_TYPE_DOCUMENT:
@@ -519,10 +519,10 @@ cmd json::generate NsfMongoJsonGenerate {
 */
 static int
 NsfMongoJsonGenerate(Tcl_Interp *interp, Tcl_Obj *listObj) {
-  bson_t list, *listPtr = &list;
-  size_t length;
-  char *jsonString;
-  int result, objc;
+  bson_t    list, *listPtr = &list;
+  size_t    length;
+  char     *jsonString;
+  int       result, objc;
   Tcl_Obj **objv;
 
   result = Tcl_ListObjGetElements(interp, listObj, &objc, &objv);
@@ -534,7 +534,7 @@ NsfMongoJsonGenerate(Tcl_Interp *interp, Tcl_Obj *listObj) {
   if (result == TCL_OK) {
     jsonString = bson_as_json(listPtr, &length);
     if (jsonString != NULL) {
-      Tcl_SetObjResult(interp, Tcl_NewStringObj(jsonString, length));
+      Tcl_SetObjResult(interp, Tcl_NewStringObj(jsonString, (int)length));
       bson_free(jsonString);
     } else {
       result = NsfPrintError(interp, "invalid bson string: %s", ObjStr(listObj));
@@ -756,10 +756,10 @@ static int
 NsfMongoCollectionCount(Tcl_Interp *interp,
 			mongoc_collection_t *collectionPtr,
 			Tcl_Obj *queryObj) {
-  int objc, result;
-  Tcl_Obj **objv;
-  int count;
-  bson_t query, *queryPtr = &query;
+  int          objc, result;
+  int64_t      count;
+  Tcl_Obj    **objv;
+  bson_t       query, *queryPtr = &query;
   bson_error_t bsonError;
 
   result = Tcl_ListObjGetElements(interp, queryObj, &objc, &objv);
@@ -780,7 +780,7 @@ NsfMongoCollectionCount(Tcl_Interp *interp,
   }
 
   bson_destroy( queryPtr );
-  Tcl_SetObjResult(interp, Tcl_NewIntObj(count));
+  Tcl_SetObjResult(interp, Tcl_NewWideIntObj((Tcl_WideInt)count));
 
   return TCL_OK;
 }
@@ -976,7 +976,7 @@ NsfMongoCollectionQuery(Tcl_Interp *interp,
    *  http://www.mongodb.org/display/DOCS/Mongo+Wire+Protocol#MongoWireProtocol-OPQUERY
    */
   cursor = mongoc_collection_find( collectionPtr, queryFlags,
-				   withSkip, withLimit, 0 /* batch_size */,
+				   (uint32_t)withSkip, (uint32_t)withLimit, 0 /* batch_size */,
 				   queryPtr, attsPtr, readPrefs);
 
   while( mongoc_cursor_next( cursor, &nextPtr ) == 1 ) {
@@ -1219,7 +1219,7 @@ NsfMongoCursorFind(Tcl_Interp *interp,
    MONGOC_QUERY_PARTIAL           = 1 << 7,
   */
   cursor = mongoc_collection_find(collectionPtr, queryFlags,
-				  withSkip, withLimit, 0 /*TODO missing batch_size*/,
+				  (uint32_t)withSkip, (uint32_t)withLimit, 0 /*TODO missing batch_size*/,
 				  queryPtr, attsPtr, readPrefsPtr);
   if (cursor != NULL) {
     char buffer[80];
@@ -1389,10 +1389,11 @@ NsfMongoGridFileCreate(Tcl_Interp *interp,
 
     for (;; ) {
       ssize_t n = read(fd, iov.iov_base, MONGOC_GRIDFS_READ_CHUNK);
+
       if (n > 0) {
-	iov.iov_len = n;
+	iov.iov_len = (size_t)n;
 	n = mongoc_gridfs_file_writev(gridFile, &iov, 1, 0);
-        if (n != iov.iov_len) {
+        if ((size_t)n != iov.iov_len) {
           NsfLog(interp, NSF_LOG_WARN, "mongodb: write of %d bytes returned %d", iov.iov_len, n);
         }
       } else if (n == 0) {
@@ -1598,9 +1599,11 @@ cmd gridfile::read NsfMongoGridFileRead {
 */
 static int
 NsfMongoGridFileRead(Tcl_Interp *interp, mongoc_gridfs_file_t *gridFilePtr, int size) {
-  int readSize;
-  Tcl_Obj *resultObj = Tcl_NewByteArrayObj(NULL, size);
-  struct iovec iov = { NULL, size };
+  ssize_t      readSize;
+  Tcl_Obj     *resultObj = Tcl_NewByteArrayObj(NULL, size);
+  struct iovec iov = { NULL, (size_t)size };
+
+  assert(size > 0);
 
   iov.iov_base = Tcl_SetByteArrayLength(resultObj, size);
 
@@ -1608,7 +1611,7 @@ NsfMongoGridFileRead(Tcl_Interp *interp, mongoc_gridfs_file_t *gridFilePtr, int 
 				      0 /* min_bytes */,
 				      0 /* timeout_msec */);
   /*fprintf(stderr, "NsfMongoGridFileRead want %d got %d\n", size, readSize);*/
-  Tcl_SetByteArrayLength(resultObj, readSize);
+  Tcl_SetByteArrayLength(resultObj, (int)readSize);
   Tcl_SetObjResult(interp, resultObj);
 
   return TCL_OK;
