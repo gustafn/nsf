@@ -736,6 +736,7 @@ with_bson
 with_nsf
 enable_development
 enable_profile
+enable_assertions
 with_tcl
 with_tclinclude
 enable_threads
@@ -1368,6 +1369,7 @@ Optional Features:
   --enable-development    build nsf with development support (intensive
                           runtime checking, etc.; default: disabled)
   --enable-profile        build nsf with profile support (default: disabled)
+  --enable-assertions     build nsf with assertion support (default: enabled)
   --enable-threads        build with threads
   --enable-shared         build and link with shared libraries (default: on)
   --enable-64bit          enable 64bit support (default: off)
@@ -2384,6 +2386,14 @@ if test "${enable_profile+set}" = set; then :
 else
   enable_profile=no
 fi
+
+# Check whether --enable-assertions was given.
+if test "${enable_assertions+set}" = set; then :
+  enableval=$enable_assertions; enable_assertions=$enableval
+else
+  enable_assertions=yes
+fi
+
 
 
 #--------------------------------------------------------------------

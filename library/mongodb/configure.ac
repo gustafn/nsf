@@ -59,6 +59,10 @@ AC_ARG_ENABLE([development],
 AC_ARG_ENABLE([profile],
 	AS_HELP_STRING([--enable-profile], [build nsf with profile support (default: disabled)]),
         [enable_profile=$enableval], [enable_profile=no])
+AC_ARG_ENABLE([assertions],
+	AS_HELP_STRING([--enable-assertions],[build nsf with assertion support (default: enabled)]),
+	[enable_assertions=$enableval], [enable_assertions=yes])
+
 
 #--------------------------------------------------------------------
 # Load the tclConfig.sh file
