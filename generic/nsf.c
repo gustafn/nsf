@@ -721,10 +721,10 @@ ParseContextInit(ParseContext *pcPtr, int objc, NsfObject *object, Tcl_Obj *proc
     pcPtr->clientData = &pcPtr->clientData_static[0];
     pcPtr->flags      = &pcPtr->flags_static[0];
   } else {
-    pcPtr->full_objv  = (Tcl_Obj **)ckalloc((int)sizeof(Tcl_Obj *) * (objc+1));
-    pcPtr->flags      = (unsigned int *)ckalloc((int)sizeof(int) * (objc+1));
+    pcPtr->full_objv  = (Tcl_Obj **)ckalloc((int)sizeof(Tcl_Obj *) * ((unsigned)objc+1u));
+    pcPtr->flags      = (unsigned *)ckalloc((unsigned)sizeof(int) * ((unsigned)objc+1u));
     MEM_COUNT_ALLOC("pcPtr.objv", pcPtr->full_objv);
-    pcPtr->clientData = (ClientData *)ckalloc((int)sizeof(ClientData) * objc);
+    pcPtr->clientData = (ClientData *)ckalloc((unsigned)sizeof(ClientData) * (unsigned)objc);
     MEM_COUNT_ALLOC("pcPtr.clientData", pcPtr->clientData);
     /*fprintf(stderr, "ParseContextMalloc %d objc, %p %p\n", objc, pcPtr->full_objv, pcPtr->clientData);*/
     memset(pcPtr->full_objv,  0, sizeof(Tcl_Obj *)  * (size_t)(objc+1));
@@ -756,12 +756,12 @@ ParseContextInit(ParseContext *pcPtr, int objc, NsfObject *object, Tcl_Obj *proc
  *
  *----------------------------------------------------------------------
  */
-static void ParseContextExtendObjv(ParseContext *pcPtr, int from, int elts, Tcl_Obj *CONST source[])
+static void ParseContextExtendObjv(ParseContext *pcPtr, unsigned from, unsigned elts, Tcl_Obj *CONST source[])
   nonnull(1) nonnull(4);
 
 static void
-ParseContextExtendObjv(ParseContext *pcPtr, int from, int elts, Tcl_Obj *CONST source[]) {
-  int requiredSize = from + elts + 1;
+ParseContextExtendObjv(ParseContext *pcPtr, unsigned from, unsigned elts, Tcl_Obj *CONST source[]) {
+  unsigned requiredSize = from + elts + 1;
 
   nonnull_assert(pcPtr != NULL);
   nonnull_assert(source != NULL);
@@ -773,8 +773,8 @@ ParseContextExtendObjv(ParseContext *pcPtr, int from, int elts, Tcl_Obj *CONST s
       /*
        * Realloc from preallocated memory
        */
-      pcPtr->full_objv = (Tcl_Obj **)    ckalloc((int)sizeof(Tcl_Obj *) * requiredSize);
-      pcPtr->flags     = (unsigned int *)ckalloc((int)sizeof(int) * requiredSize);
+      pcPtr->full_objv = (Tcl_Obj **)ckalloc((int)sizeof(Tcl_Obj *) * requiredSize);
+      pcPtr->flags     = (unsigned *)ckalloc((int)sizeof(int) * requiredSize);
       MEM_COUNT_ALLOC("pcPtr.objv", pcPtr->full_objv);
       memcpy(pcPtr->full_objv, &pcPtr->objv_static[0], sizeof(Tcl_Obj *) * PARSE_CONTEXT_PREALLOC);
       memcpy(pcPtr->flags, &pcPtr->flags_static[0], sizeof(int) * PARSE_CONTEXT_PREALLOC);
@@ -786,8 +786,8 @@ ParseContextExtendObjv(ParseContext *pcPtr, int from, int elts, Tcl_Obj *CONST s
       /*
        *  Realloc from mallocated memory
        */
-      pcPtr->full_objv = (Tcl_Obj **)    ckrealloc((char *)pcPtr->full_objv, (int)sizeof(Tcl_Obj *) * requiredSize);
-      pcPtr->flags     = (unsigned int *)ckrealloc((char *)pcPtr->flags,     (int)sizeof(int) * requiredSize);
+      pcPtr->full_objv = (Tcl_Obj **)ckrealloc((char *)pcPtr->full_objv, (unsigned)sizeof(Tcl_Obj *) * requiredSize);
+      pcPtr->flags     = (unsigned *)ckrealloc((char *)pcPtr->flags,     (unsigned)sizeof(int) * requiredSize);
       /*fprintf(stderr, "ParseContextExtendObjv: extend %p realloc %d  new objv=%p pcPtr %p\n",
         pcPtr, requiredSize, pcPtr->full_objv, pcPtr);*/
     }
@@ -17196,7 +17196,7 @@ ProcessMethodArguments(ParseContext *pcPtr, Tcl_Interp *interp,
        */
 
       /*NsfPrintObjv("actual:  ", objc, objv);*/
-      ParseContextExtendObjv(pcPtr, paramDefs->nrParams, elts-1, objv + 1 + pcPtr->lastObjc);
+      ParseContextExtendObjv(pcPtr, (unsigned)paramDefs->nrParams, (unsigned)elts-1u, objv + 1u + pcPtr->lastObjc);
     } else {
       /*
        * A single argument was passed to "args". There is no need to
@@ -17992,7 +17992,7 @@ NextGetArguments(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
     if (inEnsemble != 0) {
       methodNameLength = 1 + cscPtr->objc - oc;
       nobjc = objc + methodNameLength;
-      nobjv = (Tcl_Obj **)ckalloc((int)sizeof(Tcl_Obj *) * nobjc);
+      nobjv = (Tcl_Obj **)ckalloc((unsigned)sizeof(Tcl_Obj *) * (unsigned)nobjc);
       MEM_COUNT_ALLOC("nextArgumentVector", nobjv);
       /*
        * Copy the ensemble path name
@@ -18002,7 +18002,7 @@ NextGetArguments(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
      } else {
       methodNameLength = 1;
       nobjc = objc + methodNameLength;
-      nobjv = (Tcl_Obj **)ckalloc((int)sizeof(Tcl_Obj *) * nobjc);
+      nobjv = (Tcl_Obj **)ckalloc((unsigned)sizeof(Tcl_Obj *) * (unsigned)nobjc);
       MEM_COUNT_ALLOC("nextArgumentVector", nobjv);
       /*
        * Copy the method name

@@ -179,7 +179,7 @@ NsfStringIncr(NsfStringIncrStruct *iss) {
         iss->length++;
         if (currentChar == iss->buffer) {
           size_t newBufSize = iss->bufSize + blockIncrement;
-          char  *newBuffer = ckalloc(newBufSize);
+          char  *newBuffer = ckalloc((unsigned)newBufSize);
 
           currentChar = newBuffer+blockIncrement;
           /*memset(newBuffer, 0, blockIncrement);*/
@@ -232,7 +232,7 @@ NsfStringIncrInit(NsfStringIncrStruct *iss) {
     chartable[(int)*p] = (unsigned char)(++i);
   }
 
-  iss->buffer = ckalloc(bufSize);
+  iss->buffer = ckalloc((unsigned)bufSize);
   memset(iss->buffer, 0, bufSize);
   iss->start    = iss->buffer + bufSize-2;
   iss->bufSize  = bufSize;

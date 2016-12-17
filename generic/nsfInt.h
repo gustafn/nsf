@@ -179,7 +179,7 @@ typedef struct NsfMemCounter {
 #  define MEM_COUNT_RELEASE()
 #endif
 
-# define STRING_NEW(target, p, l)  (target) = ckalloc((l)+1); strncpy((target), (p), (l)); *((target)+(l)) = '\0'; \
+# define STRING_NEW(target, p, l)  (target) = ckalloc((unsigned)(l)+1u); strncpy((target), (p), (l)); *((target)+(l)) = '\0'; \
   MEM_COUNT_ALLOC(#target, (target))
 # define STRING_FREE(key, p)  MEM_COUNT_FREE((key), (p)); ckfree((p))
 
@@ -195,10 +195,13 @@ typedef struct NsfMemCounter {
 
 #define nr_elements(arr)  ((int) (sizeof(arr) / sizeof((arr)[0])))
 
+/*
+ * Tcl 8.6 uses (unsigned) per default
+ */
 # define NEW(type) \
-  (type *)ckalloc(sizeof(type)); MEM_COUNT_ALLOC(#type, NULL)
+  (type *)ckalloc((unsigned)sizeof(type)); MEM_COUNT_ALLOC(#type, NULL)
 # define NEW_ARRAY(type,n) \
-  (type *)ckalloc(sizeof(type)*(size_t)(n)); MEM_COUNT_ALLOC(#type "*", NULL)
+  (type *)ckalloc((unsigned)sizeof(type)*(unsigned)(n)); MEM_COUNT_ALLOC(#type "*", NULL)
 # define FREE(type, var) \
   ckfree((char*) (var)); MEM_COUNT_FREE(#type,(var))
 
@@ -274,7 +277,7 @@ typedef struct NsfMemCounter {
 #  define ISOBJ_(o) ((o) != (void*)0xdeadbeaf && ((o)->typePtr ? ((o)->typePtr->name != NULL) : ((o)->bytes != NULL)) && (o)->length >= -1 && (o)->refCount >= 0)
 #  else
 #  define ISOBJ(o) ((o) != NULL && ISOBJ_(o))
-#  define ISOBJ_(o) ((o) != (void*)0xdeadbeaf && ((o)->typePtr ? (o)->typePtr->name != NULL : ((o)->bytes != NULL)) && ((o)->bytes != NULL ? (o)->length >= 0 : 1) && (o)->refCount >= 0)
+#  define ISOBJ_(o) ((o) != (void*)0xdeadbeaf && ((o)->typePtr ? ((o)->typePtr->name != NULL) : ((o)->bytes != NULL)) && (o)->length >= -1 && (o)->refCount >= 0)
 # endif
 #else
 # define ISOBJ(o) ((o) != NULL && ISOBJ_(o))
