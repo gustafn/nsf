@@ -4334,7 +4334,7 @@ CompiledLocalsLookup(CallFrame *varFramePtr, const char *varName) {
 
   localCt = varFramePtr->numCompiledLocals;
   varNameObjPtr = &varFramePtr->localCachePtr->varName0;
-  nameLength = strlen(varName);
+  nameLength = (int)strlen(varName);
 
   /* fprintf(stderr, ".. search #local vars %d for %s\n", localCt, varName);*/
   for (i = 0 ; i < localCt ; i++, varNameObjPtr++) {
@@ -16840,7 +16840,7 @@ NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 
     assert(cmd != NULL);
 
-    cmdFlags = (unsigned long)Tcl_Command_flags(cmd);
+    cmdFlags = (unsigned int)Tcl_Command_flags(cmd);
 
 #if defined(NSF_PROFILE)
     Tcl_GetTime(&trt);
