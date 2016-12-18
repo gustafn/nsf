@@ -270,6 +270,8 @@ static void GetAllInstances(Tcl_Interp *interp, NsfCmdList **instances, NsfClass
   nonnull(1) nonnull(2) nonnull(3);
 NSF_INLINE static Tcl_Command FindMethod(Tcl_Namespace *nsPtr, const char *methodName)
   nonnull(1) nonnull(2);
+NSF_INLINE static NsfClasses *PrecedenceOrder(NsfClass *cl) nonnull(1);
+
 
 /* prototypes for namespace specific calls */
 static Tcl_Obj *NameInNamespaceObj(const char *name, Tcl_Namespace *ns) nonnull(1) nonnull(2);
@@ -2432,7 +2434,7 @@ static int TopoSortSub(NsfClass *cl, NsfClass *baseClass, int withMixinOfs)
 static int
 TopoSortSub(NsfClass *cl, NsfClass *baseClass, int withMixinOfs) {
   NsfClasses *sl, *pl;
-  int isAcyclic = 1;
+  int         isAcyclic = 1;
 
   nonnull_assert(cl != NULL);
   nonnull_assert(baseClass != NULL);
@@ -2450,6 +2452,7 @@ TopoSortSub(NsfClass *cl, NsfClass *baseClass, int withMixinOfs) {
    */
 
   cl->color = GRAY;
+
   for (; sl != NULL; sl = sl->nextPtr) {
     NsfClass *sc = sl->cl;
 
@@ -2477,19 +2480,22 @@ TopoSortSub(NsfClass *cl, NsfClass *baseClass, int withMixinOfs) {
       }
     }
   }
+
   cl->color = BLACK;
   pl = NEW(NsfClasses);
   pl->cl = cl;
   pl->nextPtr = baseClass->order;
   baseClass->order = pl;
+
   if (unlikely(cl == baseClass)) {
     const register NsfClasses *pc;
-    
+
     for (pc = cl->order; pc != NULL; pc = pc->nextPtr) {
       pc->cl->color = WHITE;
     }
     assert(isAcyclic != 0 && baseClass->order != NULL);
   }
+
   return isAcyclic;
 }
 
@@ -2546,7 +2552,7 @@ MustBeBefore(NsfClass *a, NsfClass *b, NsfClasses *superClasses) {
 
 #if defined(NSF_LINEARIZER_TRACE)
     fprintf(stderr, "--> check %s before %s?\n", ClassName(b), ClassName(a));
-    NsfClassListPrint("miList", miList);
+    NsfClassListPrint("superClasses", superClasses);
 #endif
     for (sl = superClasses; sl != NULL; sl = sl->nextPtr) {
       if (sl->cl == b) {
@@ -2632,7 +2638,7 @@ MergeInheritanceLists(NsfClasses *pl, NsfClass *cl) {
   nonnull_assert(cl != NULL);
 
 #if defined(NSF_LINEARIZER_TRACE)
-  fprintf(stderr, "=== working on %s\n", ClassName(cl));
+  fprintf(stderr, "=== MergeInheritanceLists working on %s\n", ClassName(cl));
 #endif
 
   /*
@@ -2655,7 +2661,7 @@ MergeInheritanceLists(NsfClasses *pl, NsfClass *cl) {
   assert(baseList != NULL);
 
 #if defined(NSF_LINEARIZER_TRACE)
-  fprintf(stderr, "=== baseList from %s\n", ClassName(superClasses->cl));
+  fprintf(stderr, "=== baseList from %s = %p\n", ClassName(superClasses->cl), baseList);
   NsfClassListPrint("baseList", baseList);
 #endif
 
@@ -2804,7 +2810,7 @@ MergeInheritanceLists(NsfClasses *pl, NsfClass *cl) {
 #else
 static void AssertOrderIsWhite(NsfClasses *order) {
   register NsfClasses *pc;
-  
+
   for (pc = order; pc != NULL; pc = pc->nextPtr) {
     assert(pc->cl->color == WHITE);
   }
@@ -2849,7 +2855,10 @@ TopoSortSuper(NsfClass *cl, NsfClass *baseClass) {
   for (sl = cl->super; likely(sl != NULL); sl = sl->nextPtr) {
     NsfClass *sc = sl->cl;
 
-    if (sc->color == GRAY) { cl->color = WHITE; return 0; }
+    if (sc->color == GRAY) {
+      cl->color = WHITE;
+      return 0;
+    }
     if (unlikely(sc->color == WHITE && !TopoSortSuper(sc, baseClass))) {
       cl->color = WHITE;
       return 0;
@@ -2881,6 +2890,7 @@ TopoSortSuper(NsfClass *cl, NsfClass *baseClass) {
     /*
      * Add baseClass order to the end of the precedence list.
      */
+
     assert(pl->nextPtr == NULL);
     pl->nextPtr = baseClass->order;
   }
@@ -2913,12 +2923,10 @@ TopoSortSuper(NsfClass *cl, NsfClass *baseClass) {
  *
  *----------------------------------------------------------------------
  */
-NSF_INLINE static NsfClasses *PrecedenceOrder(NsfClass *cl) nonnull(1);
-
 NSF_INLINE static NsfClasses *
 PrecedenceOrder(NsfClass *cl) {
   register NsfClasses *sl;
-  int success;
+  int                  success, haveMultipleInheritance;
 
   nonnull_assert(cl != NULL);
 
@@ -2931,32 +2939,48 @@ PrecedenceOrder(NsfClass *cl) {
 
   /*
    * For multiple inheritance (more than one superclass), make sure that
-   * required precedence orders are precomputed.
+   * required precedence orders are precomputed. But first check, if we have
+   * to do this rather expensive operation now, or we can do it lazily. We
+   * can't do this in MergeInheritanceLists() within TopoSortSuper(), since
+   * there the class node coloring might be half done.
    */
+  haveMultipleInheritance = 0;
+  for (sl = cl->super; sl != NULL; sl = sl->cl->super) {
+    if (sl != NULL && sl->nextPtr != NULL) {
+      haveMultipleInheritance = 1;
+      break;
+    }
+  }
 
-  if (likely(cl->super != NULL) && unlikely(cl->super->nextPtr != NULL)) {
+  if (unlikely(haveMultipleInheritance != 0)) {
+    /*
+     * In the class hierarchy is somewhere a place with multiple
+     * inheritance. All precedence orders of superclasses must be computed,
+     * otherwise merging of sublists will not work.
+     */
+
     for (sl = cl->super; sl != NULL; sl = sl->nextPtr) {
       NsfClasses *pl;
 
 #if defined(NSF_LINEARIZER_TRACE)
-      fprintf(stderr, "====== PrecedenceOrder mi, check %s %p \n",
+      fprintf(stderr, "====== PrecedenceOrder multiple inheritance: check %s %p \n",
               ClassName(sl->cl), sl->cl->order);
 #endif
       if (unlikely(sl->cl->order == NULL) && likely(cl != sl->cl)) {
-
 #if defined(NSF_LINEARIZER_TRACE)
-        fprintf(stderr, "====== PrecedenceOrder computes required order for %s \n",
+        fprintf(stderr, "====== PrecedenceOrder multiple inheritance computes required order for %s \n",
                 ClassName(sl->cl));
 #endif
         PrecedenceOrder(sl->cl);
 #if defined(NSF_LINEARIZER_TRACE)
-        NsfClassListPrint("====== PO:", sl->cl->order);
+        NsfClassListPrint("====== PrecedenceOrder multiple inheritance:", sl->cl->order);
 #endif
       }
 
       for (pl = sl->cl->order; pl != NULL; pl = pl->nextPtr) {
 #if defined(NSF_LINEARIZER_TRACE)
-        fprintf(stderr, "====== PO order: %s %p\n", ClassName(pl->cl), pl->cl->order);
+        fprintf(stderr, "====== PrecedenceOrder multiple inheritance: %s %p\n",
+                ClassName(pl->cl), pl->cl->order);
 #endif
         if (pl->cl->order == NULL) {
 #if defined(NSF_LINEARIZER_TRACE)
@@ -2983,10 +3007,25 @@ PrecedenceOrder(NsfClass *cl) {
    */
   if (likely(success)) {
     AssertOrderIsWhite(cl->order);
+    /*
+     * TopoSortSuper succeeded, the cl-order is already set.
+     */
   } else if (cl->order != NULL) {
+    /*
+     * TopoSortSuper failed, but there is a computed cl->order. Flush it.
+     */
     NsfClassListFree(cl->order);
     cl->order = NULL;
+  } else {
+    /*
+     * TopoSortSuper failed, but there is no computed cl->order. Nothing to
+     * do.
+     */
   }
+
+#if defined(NSF_LINEARIZER_TRACE)
+  NsfClassListPrint("!!! PrecedenceOrder computed", cl->order);
+#endif
 
   return cl->order;
 }
@@ -5828,7 +5867,7 @@ NSCleanupNamespace(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
 
   varTablePtr = Tcl_Namespace_varTablePtr(nsPtr);
   cmdTablePtr = Tcl_Namespace_cmdTablePtr(nsPtr);
-  
+
 #ifdef OBJDELETION_TRACE
   fprintf(stderr, "NSCleanupNamespace %p flags %.6x\n", nsPtr, Tcl_Namespace_flags(nsPtr));
   fprintf(stderr, "NSCleanupNamespace %p %.6x varTablePtr %p\n", nsPtr, ((Namespace *)nsPtr)->flags, varTablePtr);
@@ -8437,7 +8476,7 @@ AddToResultSetWithGuards(Tcl_Interp *interp, Tcl_HashTable *destTablePtr,
       if (pattern == NULL || Tcl_StringMatch(ClassName_(cl), pattern)) {
         Tcl_Obj *listObj = Tcl_NewListObj(0, NULL);
         Tcl_Obj *g = (Tcl_Obj *) clientData;
-        
+
         INCR_REF_COUNT(listObj);
         Tcl_ListObjAppendElement(interp, listObj, cl->object.cmdName);
         Tcl_ListObjAppendElement(interp, listObj, NsfGlobalObjs[NSF_GUARD_OPTION]);
@@ -10372,7 +10411,7 @@ FilterComputeOrderFullList(Tcl_Interp *interp, NsfCmdList **filters,
 
   for (f = *filters; f != NULL; f = f->nextPtr) {
     const char *simpleName = Tcl_GetCommandName(interp, f->cmdPtr);
-    
+
     fcl = f->clorobj;
     CmdListAdd(filterList, f->cmdPtr, fcl, /*noDuplicates*/ 0, 1);
 
@@ -10390,7 +10429,7 @@ FilterComputeOrderFullList(Tcl_Interp *interp, NsfCmdList **filters,
         /* now go up the hierarchy */
         for(; pl != NULL; pl = pl->nextPtr) {
           Tcl_Command pi = FindMethod(pl->cl->nsPtr, simpleName);
-          
+
           if (pi != NULL) {
             CmdListAdd(filterList, pi, pl->cl, /*noDuplicates*/ 0, 1);
             /*
@@ -21292,8 +21331,8 @@ IsDashArg(Tcl_Interp *interp, Tcl_Obj *obj, int isFirstArg, const char **methodN
   if ((*flag == '-') && isalpha(*((flag)+1))) {
     if (isFirstArg == 1) {
       /* if the argument contains a space, try to split */
-      const char *p= flag+1;
-      
+      const char *p = flag+1;
+
       while (*p != '\0' && *p != ' ') p++;
       if (*p == ' ') {
         if (Tcl_ListObjGetElements(interp, obj, objcPtr, objvPtr) == TCL_OK) {
@@ -24651,7 +24690,7 @@ NsfDebugRunAssertionsCmd(Tcl_Interp *interp) {
         NsfCallStackContent *cscPtr =
           ((frameFlags & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) != 0u) ?
           ((NsfCallStackContent *)Tcl_CallFrame_clientData(framePtr)) : NULL;
-        
+
         if (cscPtr != NULL && cscPtr->self == object) {
           count ++;
         }
@@ -24661,7 +24700,7 @@ NsfDebugRunAssertionsCmd(Tcl_Interp *interp) {
       }
       for (; unstackedEntries; unstackedEntries = unstackedEntries->nextPtr) {
         NsfCallStackContent *cscPtr = (NsfCallStackContent *)unstackedEntries->cl;
-        
+
         if (cscPtr != NULL && cscPtr->self == object) {
           count ++;
         }
