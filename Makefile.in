@@ -210,7 +210,7 @@ TCLSH_ENV	= TCL_LIBRARY=`@CYGPATH@ $(TCL_SRC_DIR)/library` \
 		  TCLLIBPATH="$(top_builddir) ${srcdir} $(TCLLIBPATH)"
 TCLSH_PROG	= @TCLSH_PROG@
 TCLSH		= $(TCLSH_ENV) $(TCLSH_PROG)
-# TCLSH		= $(TCLSH_ENV) LD_PRELOAD="$(srcdir)/$(PKG_LIB_FILE)" valgrind --log-fd=9 --leak-check=full --track-origins=yes --show-possibly-lost=no $(TCLSH_PROG) 9>>valgrind.out
+#TCLSH		= $(TCLSH_ENV) LD_PRELOAD="$(srcdir)/$(PKG_LIB_FILE)" valgrind --log-fd=9 --leak-check=full --track-origins=yes --show-possibly-lost=no $(TCLSH_PROG) 9>>valgrind.out
 SHARED_BUILD	= @SHARED_BUILD@
 
 INCLUDES	= @PKG_INCLUDES@ @TCL_INCLUDES@ @NSF_BUILD_INCLUDE_SPEC@
@@ -528,13 +528,15 @@ shell: binaries libraries
 gdb:
 	$(TCLSH_ENV) gdb $(TCLSH_PROG) $(SCRIPT)
 
+lldbtest:
+	$(MAKE) "TCLSH_PROG=lldb -b -o run -- $(TCLSH_PROG)" test
+
 test: binaries libraries test-core test-xotcl test-http @test_actiweb@
 	@if test ! "x$(subdirs)" = "x" ; then dirs="$(subdirs)" ; \
 	for dir in $$dirs ; do \
 	   if (cd $$dir; $(MAKE) $@) ; then true ; else exit 1 ; fi ; \
 	done; fi
 	$(TCLSH) $(src_test_dir_native)/summary.tcl -title NX+XOTcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
-
 
 test-nohttp: binaries libraries test-core test-xotcl
 
@@ -544,7 +546,7 @@ TESTFLAGS = -testlog $(TESTLOG)
 test-summary:
 	$(TCLSH) $(src_test_dir_native)/summary.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 
-test-core: $(TCLSH_PROG)
+test-core:
 	rm -f $(TESTLOG)
 	$(TCLSH) $(src_test_dir_native)/object-system.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_test_dir_native)/destroy.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
@@ -600,16 +602,16 @@ test-core: $(TCLSH_PROG)
 	$(TCLSH) $(src_doc_dir_native)/example-scripts/rosetta-multiple-inheritance.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_doc_dir_native)/example-scripts/rosetta-single-inheritance.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 
-test-xotcl: $(TCLSH_PROG)
+test-xotcl:
 	$(TCLSH) $(xotcl_src_test_dir)/testo.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(xotcl_src_test_dir)/speedtest.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(xotcl_src_test_dir)/testx.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(xotcl_src_test_dir)/slottest.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 
-test-http: $(TCLSH_PROG)
+test-http:
 	$(TCLSH) $(xotcl_src_test_dir)/xocomm.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 
-test-actiweb: $(TCLSH_PROG)
+test-actiweb:
 	$(TCLSH) $(xotcl_src_test_dir)/actiweb.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(xotcl_src_test_dir)/persistence.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(xotcl_src_test_dir)/UNIVERSAL.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
