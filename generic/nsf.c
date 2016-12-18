@@ -796,7 +796,7 @@ ParseContextExtendObjv(ParseContext *pcPtr, unsigned from, unsigned elts, Tcl_Ob
 
   memcpy(pcPtr->objv + from,  source, sizeof(Tcl_Obj *) * (size_t)elts);
   memset(pcPtr->flags + from, 0,      sizeof(int) * (size_t)elts);
-  pcPtr->objc += elts;
+  pcPtr->objc += (int)elts;
 
   /*NsfPrintObjv("AFTER:  ", pcPtr->objc, pcPtr->full_objv);*/
 }
