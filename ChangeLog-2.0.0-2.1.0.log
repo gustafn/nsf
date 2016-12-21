@@ -1,3 +1,10 @@
+2016-12-21  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+        * configure, aclocal.m4: Re-generated autotools artifacts to reflect
+        changes in configure.ac. [70e6617]
+
+	* configure.ac: Fix bogus variable assignment. [cd18d47]
+
 2016-12-18  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
 	* nsf.c (PrecedenceOrder, MergeInheritanceLists): Fix occassional
@@ -67,6 +74,7 @@
 
 	* README.release: Provide for and document publishing the
 	doctools manpages to https://next-scripting.sourceforge.io/.
+
 	* man.css: Updated to match doctools markup (tcllib 1.18+; new id
 	and class names) and remove button-style from keywords and syntax
 	elements. [9414504]
@@ -94,8 +102,10 @@
 2016-12-11  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
 	* win/makefile.vc: Set title for summary.tcl. [88f1605]
+
 	* interp.test: Import auto_path from parent interp so that "package
 	req" works as expected. [3e47756]
+
 	* nsfInt.h, nsfError.c (NsfDStringVPrintf): The logic assumes
 	_vsnprintf being used under MSVC. However, under Tcl 8.5.*, the
 	mapping is missing from tclInt.h. Fill this gap. [295ac11]
