@@ -9,8 +9,8 @@ Framework was tested with Tcl 8.5.19 and Tcl 8.6.6 on Linux, Mac OS X
 (both gcc and clang), and in Windows environments (MinGW, VC).
 
 Diff stats since 2.0.0:
-
 173 files changed, 30651 insertions(+), 14286 deletions(-)
+
 
 Major changes relative to 2.0.0 are:
 
@@ -18,6 +18,7 @@ Major changes relative to 2.0.0 are:
 - Deprecated and debug modes for NSF procs and methods (NSF, NX, XOTcl2)
 - Script-level access to NSF parameter/argument parser (NSF).
 - Slot-trace reform (NX, XOTcl2)
+- Updated MongoDB interface to the newest C-driver
 - Improved scripted shells (e.g., nxsh, xotclsh)
 
 New Features
@@ -39,7 +40,7 @@ New Features
       A debug-enabled NSF proc or method will be reported on entering
       and exiting the proc and method (similar to a traced proc/
       method incl. a time probe; see above):
-      
+
           % nsf::proc -debug foo {} {return 123}
       	  % foo
           Debug: call(1) -  foo
@@ -52,14 +53,14 @@ New Features
       To actively manage API evolution, NSF procs and methods can be
       marked "deprecated". Using deprecated procs/ methods will result
       in a warning:
-      
+
           % nsf::proc -deprecated foo {} {;}
           % foo
           Warning: *** proc foo is deprecated.
 
       The warning can be indirected at the script level by
       (re-)defining a proc "::nsf::deprecated".
-      
+
     + NSF procs and methods can be profiled (and optionally traced)
       when profiling support is configured during compilation
 
@@ -69,7 +70,7 @@ New Features
 
          nsf::__profile_trace -enable /bool/ ?-verbose /bool/?
          nsf::__profile_get
-         nsf::__profile_clear	 
+         nsf::__profile_clear	
 
       When profiling is enabled, the profiling data is kept in memory
       and can be obtained via "nsf::__profile_get" in form of a list
@@ -87,7 +88,7 @@ New Features
     checkers. See
     https://next-scripting.org/2.1.0/doc/nx/tutorial/index1#_parameters
     for the details.
-       
+
     The command
 
          ::nsf::parseargs /paramspec/ /arglist/
@@ -127,7 +128,7 @@ New Features
       serializer to map the per-object forwarder when different target
       objects are specified.
 
-    + New option for callstack introspection: "nsf::current
+    + New option for call-stack introspection: "nsf::current
       level". It returns the stack level of the currently executing
       NSF method (like "info level"), or an empty string outside of an
       NSF context.
@@ -167,7 +168,7 @@ New Features
 
        /obj/ object property|variable ?-trace set|get|default? ...
        /cls/ property|variable ?-trace set|get|default? ...
-	  
+	
     See the Object and Class manpages for details. This supersedes
     the experimental interface available in XOTcl: "initcmd",
     "valuecmd" and "valuechangedcmd".
@@ -211,12 +212,7 @@ New Features
     /cls/ instproc -returns /method/ ...
     /obj/ proc -returns /method/ ...
 
-- Tcl 8.7:
 
-  Preliminary support for a future Tcl 8.7 (as of Dec 2,
-  2016; commit 71fa1f9c91). NSF compiles under 8.7a0 and its
-  regression tests execute successfully.
-  
 - Shells:
 
   * There is now an improved and packaged shell implementation:
@@ -233,6 +229,28 @@ New Features
      [exit] is handled gracefully.
 
   * Shell tests were added (shells.test).
+
+
+- MongoDB interface upgrade:
+
+  * Upgraded MongoDB and drivers to
+    mongodb-c-driver 1.5.1, libbson 1.5.1 and MongoDB v3.4.0
+
+  * The upstream mongodb-c-driver has deprecated the old OP_QUERY syntax
+    with $-modifiers and old names like $orderby and $query, which will
+    be removed from the driver. The new interface is more in the mongodb
+    style, many former parameters (e.g. -limit, -skip, -project, -sort)
+    went to the new "-opts" argument.
+
+      mongo::collection::query /collection/ /filter/ ?-opts /opts/?
+      mongo::cursor::find /collection/ /filter/ ?-opts /opts/?
+
+    See the begin of nsf-mongo.test file for examples for queries
+    with the old and new interface. The high level interface
+    for nx::Object is unchanged.
+
+  * Support for new binary type "decimal128"
+
 
 - Maintenance & bug fixes:
 
@@ -270,6 +288,12 @@ New Features
     applications (NaviServer). Improvements and fixes relate to "info"
     methods and forwarders.
 
+  * Tcl 8.7:
+
+    Preliminary support for a future Tcl 8.7 (as of Dec 2, 2016;
+    commit 71fa1f9c91). NSF compiles under 8.7a0 and its regression
+    tests execute successfully.
+
   * Misc (esp. NSF/C):
 
     + Refactoring: There is now a common infrastructure for
@@ -291,6 +315,9 @@ New Features
     + Based on the improve NSF/C code generator (see above), proper
       enum types are used in generated function signatures and the
       respective control structures (switch).
+
+  * Extended regression test suite:
+    The test suite contains for Tcl 8.6.6 5847 tests
 
 - Packaging & distribution:
 
