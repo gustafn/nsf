@@ -13,6 +13,8 @@
  * packages.
  *
  * -gustaf neumann    March 27, 2011
+ *
+ * Copyright (C) 2011-2016 Gustaf Neumann
  */
 #include <stdlib.h>
 #include <stdio.h>
@@ -123,32 +125,32 @@ typedef struct {
 #endif
 
 #if !defined(INT2PTR) && !defined(PTR2INT)
-#   if defined(HAVE_INTPTR_T) || defined(intptr_t)
-#	define INT2PTR(p) ((void *)(intptr_t)(p))
-#	define PTR2INT(p) ((int)(intptr_t)(p))
-#   else
-#	define INT2PTR(p) ((void *)(p))
-#	define PTR2INT(p) ((int)(p))
-#   endif
+#  if defined(HAVE_INTPTR_T) || defined(intptr_t)
+#    define INT2PTR(p) ((void *)(intptr_t)(p))
+#    define PTR2INT(p) ((int)(intptr_t)(p))
+#  else
+#    define INT2PTR(p) ((void *)(p))
+#    define PTR2INT(p) ((int)(p))
+#  endif
 #endif
 #if !defined(UINT2PTR) && !defined(PTR2UINT)
-#   if defined(HAVE_UINTPTR_T) || defined(uintptr_t)
-#	define UINT2PTR(p) ((void *)(uintptr_t)(p))
-#	define PTR2UINT(p) ((unsigned int)(uintptr_t)(p))
-#   else
-#	define UINT2PTR(p) ((void *)(p))
-#	define PTR2UINT(p) ((unsigned int)(p))
-#   endif
+#  if defined(HAVE_UINTPTR_T) || defined(uintptr_t)
+#    define UINT2PTR(p) ((void *)(uintptr_t)(p))
+#    define PTR2UINT(p) ((unsigned int)(uintptr_t)(p))
+#  else
+#    define UINT2PTR(p) ((void *)(p))
+#    define PTR2UINT(p) ((unsigned int)(p))
+#  endif
 #endif
 
 
 static int ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
                          NsfObject *obj, Tcl_Obj *procName,
                          Nsf_Param CONST *paramPtr, int nrParameters, int serial,
-			 unsigned int processFlags, ParseContext *pc) {
+                         unsigned int processFlags, ParseContext *pc) {
   return Nsf_ArgumentParse(interp, objc, objv, (Nsf_Object *)obj,
-			   procName, paramPtr, nrParameters, serial,
-			   processFlags, (Nsf_ParseContext *)pc);
+                           procName, paramPtr, nrParameters, serial,
+                           processFlags, (Nsf_ParseContext *)pc);
 }
 
 /***********************************************************************
@@ -475,7 +477,7 @@ BsonAppend(Tcl_Interp *interp, bson_t *bbPtr, CONST char *name, CONST char *tag,
     }
     for (i = 0; i< objc; i += 3) {
       /*fprintf(stderr, "value %s, i %d, [0]: %s, [1]: %s, [2]: %s\n", ObjStr(value), i,
-	ObjStr(objv[i]),  ObjStr(objv[i+1]), ObjStr(objv[i+2]));*/
+        ObjStr(objv[i]),  ObjStr(objv[i+1]), ObjStr(objv[i+2]));*/
       result = BsonAppend(interp, childPtr, ObjStr(objv[i]),  ObjStr(objv[i+1]), objv[i+2]);
       if (result != TCL_OK) break;
     }
@@ -551,9 +553,9 @@ BsonAppendObjv(Tcl_Interp *interp, bson_t *bPtr, int objc, Tcl_Obj **objv)
  * Define the api functions
  ***********************************************************************/
 /*
-cmd json::generate NsfMongoJsonGenerate {
+  cmd json::generate NsfMongoJsonGenerate {
   {-argName "list" -required 1 -type tclobj}
-}
+  }
 */
 static int
 NsfMongoJsonGenerate(Tcl_Interp *interp, Tcl_Obj *listObj)
@@ -585,9 +587,9 @@ NsfMongoJsonGenerate(Tcl_Interp *interp, Tcl_Obj *listObj)
   return result;
 }
 /*
-cmd json::parse NsfMongoJsonParse {
+  cmd json::parse NsfMongoJsonParse {
   {-argName "json" -required 1 -type tclobj}
-}
+  }
 */
 static int
 NsfMongoJsonParse(Tcl_Interp *interp, Tcl_Obj *jsonObj)
@@ -611,9 +613,9 @@ NsfMongoJsonParse(Tcl_Interp *interp, Tcl_Obj *jsonObj)
 }
 
 /*
-cmd close NsfMongoClose {
+  cmd close NsfMongoClose {
   {-argName "conn" -required 1 -type mongoc_client_t -withObj 1}
-}
+  }
 */
 static int
 NsfMongoClose(Tcl_Interp *interp, mongoc_client_t *clientPtr, Tcl_Obj *clientObj)
@@ -629,9 +631,9 @@ NsfMongoClose(Tcl_Interp *interp, mongoc_client_t *clientPtr, Tcl_Obj *clientObj
 }
 
 /*
-cmd connect NsfMongoConnect {
+  cmd connect NsfMongoConnect {
   {-argName "-uri" -required 1 -nrargs 1}
-}
+  }
 */
 static int
 NsfMongoConnect(Tcl_Interp *interp, CONST char *uri)
@@ -659,7 +661,7 @@ NsfMongoConnect(Tcl_Interp *interp, CONST char *uri)
 #endif
 
   if (clientPtr == NULL) {
-      return NsfPrintError(interp, "failed to parse Mongo URI");
+    return NsfPrintError(interp, "failed to parse Mongo URI");
   }
 
   /*
@@ -677,16 +679,16 @@ NsfMongoConnect(Tcl_Interp *interp, CONST char *uri)
 }
 
 /*
-cmd run NsfMongoRunCmd {
+  cmd run NsfMongoRunCmd {
   {-argName "-nocomplain" -required 0 -nrargs 0}
   {-argName "conn" -required 1 -type mongoc_client_t}
   {-argName "db" -required 1}
   {-argName "cmd" -required 1 -type tclobj}
-}
+  }
 */
 static int
 NsfMongoRunCmd(Tcl_Interp *interp, int withNocomplain, mongoc_client_t *clientPtr,
-	       CONST char *db, Tcl_Obj *cmdObj)
+               CONST char *db, Tcl_Obj *cmdObj)
 {
   bson_t               cmd, *cmdPtr = &cmd, reply, *replyPtr = &reply;
   mongoc_read_prefs_t *readPrefsPtr = NULL; /* TODO: not used */
@@ -716,9 +718,9 @@ NsfMongoRunCmd(Tcl_Interp *interp, int withNocomplain, mongoc_client_t *clientPt
 }
 
 /*
-cmd status NsfMongoStatus {
+  cmd status NsfMongoStatus {
   {-argName "conn" -required 1 -type mongoc_client_t -withObj 1}
-}
+  }
 */
 static int
 NsfMongoStatus(Tcl_Interp *interp, mongoc_client_t *clientPtr, Tcl_Obj *clientObj)
@@ -740,17 +742,17 @@ NsfMongoStatus(Tcl_Interp *interp, mongoc_client_t *clientPtr, Tcl_Obj *clientOb
 
 
 /*
-cmd collection::open NsfCollectionOpen {
+  cmd collection::open NsfCollectionOpen {
   {-argName "conn" -required 1 -type mongoc_client_t}
   {-argName "dbname" -required 1}
   {-argName "collectionname" -required 1}
-}
+  }
 */
 int
 NsfCollectionOpen(Tcl_Interp *interp,
-		  mongoc_client_t *clientPtr,
-		  const char *dbName,
-		  const char *collectionName)
+                  mongoc_client_t *clientPtr,
+                  const char *dbName,
+                  const char *collectionName)
 {
   int                  result = TCL_ERROR;
   mongoc_collection_t *collectionPtr;
@@ -770,17 +772,17 @@ NsfCollectionOpen(Tcl_Interp *interp,
 
   if (collectionPtr == NULL) {
     result = NsfPrintError(interp,
-			   "collection::open: could not open collection: %s.%s",
-			   dbName, collectionName);
+                           "collection::open: could not open collection: %s.%s",
+                           dbName, collectionName);
   }
 
   return result;
 }
 
 /*
-cmd collection::close NsfCollectionClose {
+  cmd collection::close NsfCollectionClose {
   {-argName "collection" -required 1 -type mongoc_collection_t -withObj 1}
-}
+  }
 */
 static int
 NsfCollectionClose(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *clientObj)
@@ -792,15 +794,15 @@ NsfCollectionClose(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_O
 }
 
 /*
-cmd collection::count NsfMongoCollectionCount {
+  cmd collection::count NsfMongoCollectionCount {
   {-argName "collection" -required 1 -type mongoc_collection_t}
   {-argName "query" -required 1 -type tclobj}
-}
+  }
 */
 static int
 NsfMongoCollectionCount(Tcl_Interp *interp,
-			mongoc_collection_t *collectionPtr,
-			Tcl_Obj *queryObj)
+                        mongoc_collection_t *collectionPtr,
+                        Tcl_Obj *queryObj)
 {
   int          objc, result;
   int64_t      count;
@@ -832,15 +834,15 @@ NsfMongoCollectionCount(Tcl_Interp *interp,
 }
 
 /*
-cmd "collection::delete" NsfMongoCollectionDelete {
+  cmd "collection::delete" NsfMongoCollectionDelete {
   {-argName "collection" -required 1 -type mongoc_collection_t}
   {-argName "condition" -required 1 -type tclobj}
-}
+  }
 */
 static int
 NsfMongoCollectionDelete(Tcl_Interp *interp,
-			mongoc_collection_t *collectionPtr,
-			 Tcl_Obj *conditionObj)
+                         mongoc_collection_t *collectionPtr,
+                         Tcl_Obj *conditionObj)
 {
   int                           objc, result, success;
   Tcl_Obj                     **objv;
@@ -866,7 +868,7 @@ NsfMongoCollectionDelete(Tcl_Interp *interp,
 }
 
 /*
-cmd "collection::index" NsfMongoCollectionIndex {
+  cmd "collection::index" NsfMongoCollectionIndex {
   {-argName "collection" -required 1 -type mongoc_collection_t}
   {-argName "attributes" -required 1 -type tclobj}
   {-argName "-name" -required 0 -nrargs 1}
@@ -875,19 +877,19 @@ cmd "collection::index" NsfMongoCollectionIndex {
   {-argName "-sparse" -required 0 -nrargs 0}
   {-argName "-ttl" -required 0 -nrargs 1 -type int32}
   {-argName "-unique" -required 0 -nrargs 0}
-}
+  }
 */
 
 static int
 NsfMongoCollectionIndex(Tcl_Interp *interp,
-			mongoc_collection_t *collectionPtr,
-			Tcl_Obj *attributesObj,
-			CONST char *withName,
-			int withBackground,
-			int withDropdups,
-			int withSparse,
-			int withTtl,
-			int withUnique)
+                        mongoc_collection_t *collectionPtr,
+                        Tcl_Obj *attributesObj,
+                        CONST char *withName,
+                        int withBackground,
+                        int withDropdups,
+                        int withSparse,
+                        int withTtl,
+                        int withUnique)
 {
   int                objc, result, success = 0;
   Tcl_Obj          **objv;
@@ -922,14 +924,14 @@ NsfMongoCollectionIndex(Tcl_Interp *interp,
 
 
 /*
-cmd "collection::insert" NsfMongoCollectionInsert {
+  cmd "collection::insert" NsfMongoCollectionInsert {
   {-argName "collection" -required 1 -type mongoc_collection_t}
   {-argName "values" -required 1 -type tclobj}
-}
+  }
 */
 static int NsfMongoCollectionInsert(Tcl_Interp *interp,
-				    mongoc_collection_t *collectionPtr,
-				    Tcl_Obj *valuesObj)
+                                    mongoc_collection_t *collectionPtr,
+                                    Tcl_Obj *valuesObj)
 {
   int                   i, objc, result, success;
   Tcl_Obj             **objv;
@@ -939,9 +941,9 @@ static int NsfMongoCollectionInsert(Tcl_Interp *interp,
   mongoc_insert_flags_t insertFlags = MONGOC_INSERT_NO_VALIDATE; /* otherwise, we can't insert a DBRef */
 
   /* TODO: insertFlags not handled:
-   MONGOC_INSERT_NONE              = 0,
-   MONGOC_INSERT_CONTINUE_ON_ERROR = 1 << 0,
-   MONGOC_INSERT_NO_VALIDATE       = 1 << 31,
+     MONGOC_INSERT_NONE              = 0,
+     MONGOC_INSERT_CONTINUE_ON_ERROR = 1 << 0,
+     MONGOC_INSERT_NO_VALIDATE       = 1 << 31,
   */
   const mongoc_write_concern_t *writeConcern = NULL; /* TODO: not handled yet */
 
@@ -977,16 +979,16 @@ static int NsfMongoCollectionInsert(Tcl_Interp *interp,
 }
 
 /*
-cmd collection::query NsfMongoCollectionQuery {
+  cmd collection::query NsfMongoCollectionQuery {
   {-argName "collection" -required 1 -type mongoc_collection_t}
   {-argName "filter" -required 1 -type tclobj}
   {-argName "-opts" -required 0 -nrargs 1 -type tclobj}
-}
+  }
 */
 static int
 NsfMongoCollectionQuery(Tcl_Interp *interp,
-			mongoc_collection_t *collectionPtr,
-			Tcl_Obj *filterObj, Tcl_Obj *withOptsObj)
+                        mongoc_collection_t *collectionPtr,
+                        Tcl_Obj *filterObj, Tcl_Obj *withOptsObj)
 {
   int                  objc1, objc2 = 0, result;
   Tcl_Obj            **objv1, **objv2 = NULL, *resultObj;
@@ -1036,15 +1038,15 @@ NsfMongoCollectionQuery(Tcl_Interp *interp,
 }
 
 /*
-cmd "collection::stats" NsfMongoCollectionStats {
+  cmd "collection::stats" NsfMongoCollectionStats {
   {-argName "collection" -required 1 -type mongoc_collection_t}
   {-argName "-options" -required 0 -type tclobj}
-}
+  }
 */
 static int
 NsfMongoCollectionStats(Tcl_Interp *interp,
-			 mongoc_collection_t *collectionPtr,
-			 Tcl_Obj *optionsObj)
+                        mongoc_collection_t *collectionPtr,
+                        Tcl_Obj *optionsObj)
 {
   int          objc = 0, success;
   Tcl_Obj    **objv = NULL;
@@ -1062,35 +1064,35 @@ NsfMongoCollectionStats(Tcl_Interp *interp,
     BsonAppendObjv(interp, optionsPtr, objc, objv);
   }
 
-   success = mongoc_collection_stats(collectionPtr, optionsPtr, statsPtr, &bsonError);
+  success = mongoc_collection_stats(collectionPtr, optionsPtr, statsPtr, &bsonError);
 
-   if (optionsPtr != NULL) {
-     bson_destroy (optionsPtr);
-   }
+  if (optionsPtr != NULL) {
+    bson_destroy (optionsPtr);
+  }
 
-   if (success != 0) {
-     Tcl_SetObjResult(interp, BsonToList(interp, statsPtr, 0));
-     bson_destroy (statsPtr);
-     return TCL_OK;
-   } else {
-     return NsfPrintError(interp, "mongo::collection::stats: error: %s", bsonError.message);
-   }
+  if (success != 0) {
+    Tcl_SetObjResult(interp, BsonToList(interp, statsPtr, 0));
+    bson_destroy (statsPtr);
+    return TCL_OK;
+  } else {
+    return NsfPrintError(interp, "mongo::collection::stats: error: %s", bsonError.message);
+  }
 }
 
 /*
-cmd "collection::update" NsfMongoCollectionUpdate {
+  cmd "collection::update" NsfMongoCollectionUpdate {
   {-argName "collection" -required 1 -type mongoc_collection_t}
   {-argName "cond" -required 1 -type tclobj}
   {-argName "values" -required 1 -type tclobj}
   {-argName "-upsert" -required 0 -nrargs 0}
   {-argName "-all" -required 0 -nrargs 0}
-}
+  }
 */
 static int
 NsfMongoCollectionUpdate(Tcl_Interp *interp,
-			 mongoc_collection_t *collectionPtr,
-			 Tcl_Obj *conditionObj, Tcl_Obj *valuesObj,
-			 int withUpsert, int withAll) {
+                         mongoc_collection_t *collectionPtr,
+                         Tcl_Obj *conditionObj, Tcl_Obj *valuesObj,
+                         int withUpsert, int withAll) {
 
   const mongoc_write_concern_t *writeConcern = NULL; /* TODO: not handled yet */
   mongoc_update_flags_t         updateFlags =  MONGOC_UPDATE_NO_VALIDATE; /* for dbrefs */
@@ -1130,13 +1132,13 @@ NsfMongoCollectionUpdate(Tcl_Interp *interp,
  * Cursor interface
  ***********************************************************************/
 /*
-cmd cursor::aggregate NsfMongoCursorAggregate {
+  cmd cursor::aggregate NsfMongoCursorAggregate {
   {-argName "collection" -required 1 -type mongoc_collection_t}
   {-argName "pipeline" -required 1 -type tclobj}
   {-argName "options" -required 1 -type tclobj}
   {-argName "-tailable" -required 0 -nrargs 0}
   {-argName "-awaitdata" -required 0 -nrargs 0}
-}
+  }
 */
 static int
 NsfMongoCursorAggregate(Tcl_Interp *interp,
@@ -1177,11 +1179,11 @@ NsfMongoCursorAggregate(Tcl_Interp *interp,
     queryFlags |= MONGOC_QUERY_AWAIT_DATA;
   }
   /* TODO: query flags:
-   MONGOC_QUERY_SLAVE_OK          = 1 << 2,
-   MONGOC_QUERY_OPLOG_REPLAY      = 1 << 3,
-   MONGOC_QUERY_NO_CURSOR_TIMEOUT = 1 << 4,
-   MONGOC_QUERY_EXHAUST           = 1 << 6,
-   MONGOC_QUERY_PARTIAL           = 1 << 7,
+     MONGOC_QUERY_SLAVE_OK          = 1 << 2,
+     MONGOC_QUERY_OPLOG_REPLAY      = 1 << 3,
+     MONGOC_QUERY_NO_CURSOR_TIMEOUT = 1 << 4,
+     MONGOC_QUERY_EXHAUST           = 1 << 6,
+     MONGOC_QUERY_PARTIAL           = 1 << 7,
   */
   cursor = mongoc_collection_aggregate(collectionPtr, queryFlags,
                                        pipelinePtr, optionsPtr,
@@ -1206,16 +1208,16 @@ NsfMongoCursorAggregate(Tcl_Interp *interp,
 }
 
 /*
-cmd cursor::find NsfMongoCursorFind {
+  cmd cursor::find NsfMongoCursorFind {
   {-argName "collection" -required 1 -type mongoc_collection_t}
   {-argName "filter" -required 1 -type tclobj}
   {-argName "-opts" -required 0 -nrargs 1 -type tclobj}
-}
+  }
 */
 static int
 NsfMongoCursorFind(Tcl_Interp *interp,
-		   mongoc_collection_t *collectionPtr,
-		   Tcl_Obj *filterObj,
+                   mongoc_collection_t *collectionPtr,
+                   Tcl_Obj *filterObj,
                    Tcl_Obj *withOptsObj)
 {
   int                  objc1, objc2 = 0, result;
@@ -1266,9 +1268,9 @@ NsfMongoCursorFind(Tcl_Interp *interp,
 }
 
 /*
-cmd cursor::next NsfMongoCursorNext {
+  cmd cursor::next NsfMongoCursorNext {
   {-argName "cursor" -required 1 -type mongoc_cursor_t}
-}
+  }
 */
 static int
 NsfMongoCursorNext(Tcl_Interp *interp, mongoc_cursor_t *cursor)
@@ -1285,9 +1287,9 @@ NsfMongoCursorNext(Tcl_Interp *interp, mongoc_cursor_t *cursor)
 }
 
 /*
-cmd cursor::close NsfMongoCursorClose {
+  cmd cursor::close NsfMongoCursorClose {
   {-argName "cursor" -required 1 -type mongoc_cursor_t -withObj 1}
-}
+  }
 */
 static int
 NsfMongoCursorClose(Tcl_Interp *interp, mongoc_cursor_t *cursor, Tcl_Obj *cursorObj)
@@ -1305,9 +1307,9 @@ NsfMongoCursorClose(Tcl_Interp *interp, mongoc_cursor_t *cursor, Tcl_Obj *cursor
  ***********************************************************************/
 
 /*
-cmd gridfs::close NsfMongoGridFSClose {
+  cmd gridfs::close NsfMongoGridFSClose {
   {-argName "gfs" -required 1 -type mongoc_gridfs_t -withObj 1}
-}
+  }
 */
 static int
 NsfMongoGridFSClose(Tcl_Interp *interp, mongoc_gridfs_t *gridfsPtr, Tcl_Obj *gridfsObj)
@@ -1319,16 +1321,16 @@ NsfMongoGridFSClose(Tcl_Interp *interp, mongoc_gridfs_t *gridfsPtr, Tcl_Obj *gri
 }
 
 /*
-cmd gridfs::open NsfMongoGridFSOpen {
+  cmd gridfs::open NsfMongoGridFSOpen {
   {-argName "conn" -required 1 -type mongoc_client_t}
   {-argName "dbname" -required 1}
   {-argName "prefix" -required 1}
-}
+  }
 */
 
 static int
 NsfMongoGridFSOpen(Tcl_Interp *interp, mongoc_client_t *clientPtr,
-		   CONST char *dbname, CONST char *prefix)
+                   CONST char *dbname, CONST char *prefix)
 {
   char             buffer[80];
   int              result = TCL_OK;
@@ -1359,23 +1361,23 @@ NsfMongoGridFSOpen(Tcl_Interp *interp, mongoc_client_t *clientPtr,
 
 
 /*
-cmd gridfile::create NsfMongoGridFileCreate {
+  cmd gridfile::create NsfMongoGridFileCreate {
   {-argName "-source" -required 1 -typeName "gridfilesource" -type "file|string"}
   {-argName "gfs" -required 1 -type mongoc_gridfs_t}
   {-argName "value" -required 1}
   {-argName "name" -required 1}
   {-argName "contenttype" -required 1}
   {-argName "-metadata" -required 0 -nrags 1 -type tclobj}
-}
+  }
 */
 static int
 NsfMongoGridFileCreate(Tcl_Interp *interp,
                        GridfilesourceIdx_t withSource,
-		       mongoc_gridfs_t *gridfsPtr,
-		       CONST char *value, CONST char *name,
-		       CONST char *contenttype,
-		       Tcl_Obj *withMetadata
-		       )
+                       mongoc_gridfs_t *gridfsPtr,
+                       CONST char *value, CONST char *name,
+                       CONST char *contenttype,
+                       Tcl_Obj *withMetadata
+                       )
 {
   int                      result = TCL_OK;
   mongoc_gridfs_file_opt_t fileOpts = {NULL};
@@ -1401,9 +1403,9 @@ NsfMongoGridFileCreate(Tcl_Interp *interp,
   fileOpts.filename = name;
   fileOpts.content_type = contenttype;
   /*
-   const char   *md5;
-   const bson_t *aliases;
-   uint32_t chunk_size;
+    const char   *md5;
+    const bson_t *aliases;
+    uint32_t chunk_size;
   */
   gridFile = mongoc_gridfs_create_file(gridfsPtr, &fileOpts);
 
@@ -1421,16 +1423,16 @@ NsfMongoGridFileCreate(Tcl_Interp *interp,
       ssize_t n = read(fd, iov.iov_base, MONGOC_GRIDFS_READ_CHUNK);
 
       if (n > 0) {
-	iov.iov_len = (size_t)n;
-	n = mongoc_gridfs_file_writev(gridFile, &iov, 1, 0);
+        iov.iov_len = (size_t)n;
+        n = mongoc_gridfs_file_writev(gridFile, &iov, 1, 0);
         if ((size_t)n != iov.iov_len) {
           NsfLog(interp, NSF_LOG_WARN, "mongodb: write of %d bytes returned %d", iov.iov_len, n);
         }
       } else if (n == 0) {
-	break;
+        break;
       } else {
-	result = TCL_ERROR;
-	break;
+        result = TCL_ERROR;
+        break;
       }
     }
     close(fd);
@@ -1451,15 +1453,15 @@ NsfMongoGridFileCreate(Tcl_Interp *interp,
 
 
 /*
-cmd "gridfile::delete" NsfMongoGridFileDelete {
+  cmd "gridfile::delete" NsfMongoGridFileDelete {
   {-argName "gfs" -required 1 -type mongoc_gridfs_t}
   {-argName "query" -required 1 -type tclobj}
-}
+  }
 */
 static int
 NsfMongoGridFileDelete(Tcl_Interp *interp,
-			 mongoc_gridfs_t *gridfsPtr,
-			 Tcl_Obj *queryObj)
+                       mongoc_gridfs_t *gridfsPtr,
+                       Tcl_Obj *queryObj)
 {
   bson_t               query, *queryPtr = &query;
   mongoc_cursor_t     *files;
@@ -1519,15 +1521,15 @@ NsfMongoGridFileDelete(Tcl_Interp *interp,
 }
 
 /*
-cmd gridfile::open NsfMongoGridFileOpen {
+  cmd gridfile::open NsfMongoGridFileOpen {
   {-argName "gfs" -required 1 -type mongoc_gridfs_t}
   {-argName "filter" -required 1 -type tclobj}
-}
+  }
 */
 static int
 NsfMongoGridFileOpen(Tcl_Interp *interp,
-		     mongoc_gridfs_t *gridfsPtr,
-		     Tcl_Obj *filterObj)
+                     mongoc_gridfs_t *gridfsPtr,
+                     Tcl_Obj *filterObj)
 {
   mongoc_gridfs_file_t* gridFilePtr;
   bson_error_t          bsonError;
@@ -1573,9 +1575,9 @@ NsfMongoGridFileOpen(Tcl_Interp *interp,
  ***********************************************************************/
 
 /*
-cmd gridfile::close NsfMongoGridFileClose {
+  cmd gridfile::close NsfMongoGridFileClose {
   {-argName "gridfile" -required 1 -type mongoc_gridfs_file_t -withObj 1}
-}
+  }
 */
 static int
 NsfMongoGridFileClose(Tcl_Interp *interp, mongoc_gridfs_file_t* gridFilePtr, Tcl_Obj *gridFileObj)
@@ -1587,9 +1589,9 @@ NsfMongoGridFileClose(Tcl_Interp *interp, mongoc_gridfs_file_t* gridFilePtr, Tcl
 }
 
 /*
-cmd gridfile::get_contentlength NsfMongoGridFileGetContentlength {
+  cmd gridfile::get_contentlength NsfMongoGridFileGetContentlength {
   {-argName "gridfile" -required 1 -type mongoc_gridfs_file_t}
-}
+  }
 */
 static int
 NsfMongoGridFileGetContentlength(Tcl_Interp *interp, mongoc_gridfs_file_t* gridFilePtr)
@@ -1603,9 +1605,9 @@ NsfMongoGridFileGetContentlength(Tcl_Interp *interp, mongoc_gridfs_file_t* gridF
 }
 
 /*
-cmd gridfile::get_contenttype NsfMongoGridFileGetContentType {
+  cmd gridfile::get_contenttype NsfMongoGridFileGetContentType {
   {-argName "gridfile" -required 1 -type mongoc_gridfs_file_t}
-}
+  }
 */
 static int
 NsfMongoGridFileGetContentType(Tcl_Interp *interp, mongoc_gridfs_file_t* gridFilePtr)
@@ -1618,9 +1620,9 @@ NsfMongoGridFileGetContentType(Tcl_Interp *interp, mongoc_gridfs_file_t* gridFil
 
 
 /*
-cmd gridfile::get_metadata NsfMongoGridFileGetMetaData {
+  cmd gridfile::get_metadata NsfMongoGridFileGetMetaData {
   {-argName "gridfile" -required 1 -type mongoc_gridfs_file_t}
-}
+  }
 */
 static int
 NsfMongoGridFileGetMetaData(Tcl_Interp *interp, mongoc_gridfs_file_t* gridFilePtr)
@@ -1634,10 +1636,10 @@ NsfMongoGridFileGetMetaData(Tcl_Interp *interp, mongoc_gridfs_file_t* gridFilePt
 }
 
 /*
-cmd gridfile::read NsfMongoGridFileRead {
+  cmd gridfile::read NsfMongoGridFileRead {
   {-argName "gridfile" -required 1 -type mongoc_gridfs_file_t}
   {-argName "size" -required 1 -type int}
-}
+  }
 */
 static int
 NsfMongoGridFileRead(Tcl_Interp *interp, mongoc_gridfs_file_t *gridFilePtr, int size)
@@ -1651,8 +1653,8 @@ NsfMongoGridFileRead(Tcl_Interp *interp, mongoc_gridfs_file_t *gridFilePtr, int 
   iov.iov_base = Tcl_SetByteArrayLength(resultObj, size);
 
   readSize = mongoc_gridfs_file_readv(gridFilePtr, &iov, 1,
-				      0 /* min_bytes */,
-				      0 /* timeout_msec */);
+                                      0 /* min_bytes */,
+                                      0 /* timeout_msec */);
   /*fprintf(stderr, "NsfMongoGridFileRead want %d got %d\n", size, readSize);*/
   Tcl_SetByteArrayLength(resultObj, (int)readSize);
   Tcl_SetObjResult(interp, resultObj);
@@ -1661,10 +1663,10 @@ NsfMongoGridFileRead(Tcl_Interp *interp, mongoc_gridfs_file_t *gridFilePtr, int 
 }
 
 /*
-cmd "gridfile::seek" NsfMongoGridFileSeek {
+  cmd "gridfile::seek" NsfMongoGridFileSeek {
   {-argName "gridfile" -required 1 -type mongoc_gridfs_file_t}
   {-argName "offset" -required 1 -type int32}
-}
+  }
 */
 static int
 NsfMongoGridFileSeek(Tcl_Interp *interp, mongoc_gridfs_file_t *gridFilePtr, int offset)
@@ -1825,4 +1827,3 @@ Nsfmongo_SafeInit(interp)
  * indent-tabs-mode: nil
  * End:
  */
-
