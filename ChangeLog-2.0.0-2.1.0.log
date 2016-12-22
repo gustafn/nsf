@@ -1,3 +1,94 @@
+2016-12-21  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+        * configure, aclocal.m4: Re-generated autotools artifacts to reflect
+        changes in configure.ac. [70e6617]
+
+	* configure.ac: Fix bogus variable assignment. [cd18d47]
+
+2016-12-18  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsf.c (PrecedenceOrder, MergeInheritanceLists): Fix occassional
+	crash when deleting and recomputing precedence orders under
+	multiple inheritance. One assumption in the precedence order
+	computation is that the precedence orders of superclasses are
+	computed before the precedence orders of the class itself. The
+	check whether to perform this computation turned out too simple
+	minded because it used to check this condition only on the current
+	class, but not on its superclasses. [a1a7bac]
+
+	* nsfInt.h: Use the same ISOBJ definition for both Tcl 8.5 and
+	  8.6. This avoids another potential crash. [8eda332]
+
+	* nsf.c (ParseContextExtendObjv): Make type conversion
+	  explicit. [6a4df82]
+
+	* Makefile.in: Add make target lldbtest. [a42449a]
+
+2016-12-17  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsf.c, nsfInt.h, nsfUtil.c: Avoid implicit type conversions
+	[bdfa0fc, e8d2c80]
+
+	* nsfmongo.c: Avoid implicit type conversions. [ebb54b9]
+
+	* mongodb/configure.ac: Allow specification of --enable-assertions
+	on the parent NSF project. [6e88221]
+
+2016-12-16  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* testx.xotcl (filterGuards): When compiled without assertions, a
+	test case was skipped, that created an object "b"; the subsequent
+	test therefore produced different results when b happened to be
+	created or recreated; avoid use of global modifier. [e7afc31]
+
+2016-12-16  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* summary.tcl: Report NSF commit id along with NSF package
+	version. [3232e56]
+
+	* pkg.vc: Provide for incorporating the commit id at least for
+	tarball builds under win/nmake. [d257d63, f6634af] supersede
+	[5b7ad96].
+
+2016-12-16  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* shells.test: The shell test depends on console output which in
+	turn varies according to build-time configuration options such as
+	memcount. Deactivate this test file for NSF configurations with
+	debug output. [4a0eb5e]
+
+	* nsf.c (AliasRefetch): Don't add extra newlines to log lines.
+	[a56620f]
+
+2016-12-16  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* makefile.vc, pkg.vc: For the time being, set an empty commit id
+	under Win. [5b7ad96]
+
+	* configure.ac, configure: Align TEA versions. [6a77970]
+
+	* nsfDebug.c, configure.ac: Provide for the commit id (if available) to
+	be stored in the variable "::nsf::commit". [0ecc82c]
+
+2016-12-15  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* README.release: Provide for and document publishing the
+	doctools manpages to https://next-scripting.sourceforge.io/.
+
+	* man.css: Updated to match doctools markup (tcllib 1.18+; new id
+	and class names) and remove button-style from keywords and syntax
+	elements. [9414504]
+
+2016-12-15  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsf.c (CompiledLocalsLookup): Improve variable names and limit
+	calls to strcmp. [438ba04]
+
+2016-12-13  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* gentclAPI.tcl (methodDefinition): Deactivate docstring
+	generation for now, as they are not actively used. [44ab715]
+
 2016-12-12  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
 	* configure.ac, configure (AC_INIT): Rather add link to SF
@@ -11,8 +102,10 @@
 2016-12-11  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
 	* win/makefile.vc: Set title for summary.tcl. [88f1605]
+
 	* interp.test: Import auto_path from parent interp so that "package
 	req" works as expected. [3e47756]
+
 	* nsfInt.h, nsfError.c (NsfDStringVPrintf): The logic assumes
 	_vsnprintf being used under MSVC. However, under Tcl 8.5.*, the
 	mapping is missing from tclInt.h. Fill this gap. [295ac11]

@@ -1,8 +1,8 @@
 package require nx
 package require nx::trait
-package provide nx::traits::callback 1.0
+package provide nx::trait::callback 1.0
 
-nx::Trait create nx::traits::callback {
+nx::Trait create nx::trait::callback {
   #
   # A small support trait to ease syntactically the reference to
   # instance variables and the registration of callbacks.

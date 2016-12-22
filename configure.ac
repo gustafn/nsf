@@ -113,7 +113,7 @@ if test "$git_installed" = "yes" -a -d ".git" ; then
 elif test -f "COMMIT" ; then
    nsf_commit=`cat COMMIT`
 else
-   nsf_commit=`unknown-$PACKAGE_VERSION`
+   nsf_commit=unknown-${PACKAGE_VERSION}
 fi
 
 NSF_COMMIT=$nsf_commit
