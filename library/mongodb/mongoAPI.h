@@ -165,7 +165,7 @@ static int NsfMongoCollectionIndex(Tcl_Interp *interp, mongoc_collection_t *coll
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
 static int NsfMongoCollectionInsert(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *values)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
-static int NsfMongoCollectionQuery(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *query, Tcl_Obj *withAtts, int withLimit, int withSkip)
+static int NsfMongoCollectionQuery(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *filter, Tcl_Obj *withOpts)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
 static int NsfMongoCollectionStats(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *withOptions)
   NSF_nonnull(1) NSF_nonnull(2);
@@ -177,7 +177,7 @@ static int NsfMongoCursorAggregate(Tcl_Interp *interp, mongoc_collection_t *coll
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3) NSF_nonnull(4);
 static int NsfMongoCursorClose(Tcl_Interp *interp, mongoc_cursor_t *cursorPtr, Tcl_Obj *cursorObj)
   NSF_nonnull(1) NSF_nonnull(2);
-static int NsfMongoCursorFind(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *query, Tcl_Obj *withAtts, int withLimit, int withSkip, int withTailable, int withAwaitdata)
+static int NsfMongoCursorFind(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *filter, Tcl_Obj *withOpts)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
 static int NsfMongoCursorNext(Tcl_Interp *interp, mongoc_cursor_t *cursorPtr)
   NSF_nonnull(1) NSF_nonnull(2);
@@ -408,13 +408,11 @@ NsfMongoCollectionQueryStub(ClientData clientData, Tcl_Interp *interp, int objc,
                      method_definitions[NsfMongoCollectionQueryIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     mongoc_collection_t *collectionPtr = (mongoc_collection_t *)pc.clientData[0];
-    Tcl_Obj *query = (Tcl_Obj *)pc.clientData[1];
-    Tcl_Obj *withAtts = (Tcl_Obj *)pc.clientData[2];
-    int withLimit = (int )PTR2INT(pc.clientData[3]);
-    int withSkip = (int )PTR2INT(pc.clientData[4]);
+    Tcl_Obj *filter = (Tcl_Obj *)pc.clientData[1];
+    Tcl_Obj *withOpts = (Tcl_Obj *)pc.clientData[2];
 
     assert(pc.status == 0);
-    return NsfMongoCollectionQuery(interp, collectionPtr, query, withAtts, withLimit, withSkip);
+    return NsfMongoCollectionQuery(interp, collectionPtr, filter, withOpts);
 
   } else {
     
@@ -541,15 +539,11 @@ NsfMongoCursorFindStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
                      method_definitions[NsfMongoCursorFindIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     mongoc_collection_t *collectionPtr = (mongoc_collection_t *)pc.clientData[0];
-    Tcl_Obj *query = (Tcl_Obj *)pc.clientData[1];
-    Tcl_Obj *withAtts = (Tcl_Obj *)pc.clientData[2];
-    int withLimit = (int )PTR2INT(pc.clientData[3]);
-    int withSkip = (int )PTR2INT(pc.clientData[4]);
-    int withTailable = (int )PTR2INT(pc.clientData[5]);
-    int withAwaitdata = (int )PTR2INT(pc.clientData[6]);
+    Tcl_Obj *filter = (Tcl_Obj *)pc.clientData[1];
+    Tcl_Obj *withOpts = (Tcl_Obj *)pc.clientData[2];
 
     assert(pc.status == 0);
-    return NsfMongoCursorFind(interp, collectionPtr, query, withAtts, withLimit, withSkip, withTailable, withAwaitdata);
+    return NsfMongoCursorFind(interp, collectionPtr, filter, withOpts);
 
   } else {
     
@@ -917,12 +911,10 @@ static Nsf_methodDefinition method_definitions[31] = {
   {"collection", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Pointer, NULL,NULL,"mongoc_collection_t",NULL,NULL,NULL,NULL,NULL},
   {"values", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
-{"::mongo::collection::query", NsfMongoCollectionQueryStub, 5, {
+{"::mongo::collection::query", NsfMongoCollectionQueryStub, 3, {
   {"collection", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Pointer, NULL,NULL,"mongoc_collection_t",NULL,NULL,NULL,NULL,NULL},
-  {"query", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-atts", 0, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-limit", 0, 1, Nsf_ConvertTo_Int32, NULL,NULL,"int32",NULL,NULL,NULL,NULL,NULL},
-  {"-skip", 0, 1, Nsf_ConvertTo_Int32, NULL,NULL,"int32",NULL,NULL,NULL,NULL,NULL}}
+  {"filter", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-opts", 0, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::mongo::collection::stats", NsfMongoCollectionStatsStub, 2, {
   {"collection", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Pointer, NULL,NULL,"mongoc_collection_t",NULL,NULL,NULL,NULL,NULL},
@@ -948,14 +940,10 @@ static Nsf_methodDefinition method_definitions[31] = {
 {"::mongo::cursor::close", NsfMongoCursorCloseStub, 1, {
   {"cursor", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Pointer, NULL,NULL,"mongoc_cursor_t",NULL,NULL,NULL,NULL,NULL}}
 },
-{"::mongo::cursor::find", NsfMongoCursorFindStub, 7, {
+{"::mongo::cursor::find", NsfMongoCursorFindStub, 3, {
   {"collection", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Pointer, NULL,NULL,"mongoc_collection_t",NULL,NULL,NULL,NULL,NULL},
-  {"query", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-atts", 0, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-limit", 0, 1, Nsf_ConvertTo_Int32, NULL,NULL,"int32",NULL,NULL,NULL,NULL,NULL},
-  {"-skip", 0, 1, Nsf_ConvertTo_Int32, NULL,NULL,"int32",NULL,NULL,NULL,NULL,NULL},
-  {"-tailable", 0, 0, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-awaitdata", 0, 0, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"filter", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-opts", 0, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::mongo::cursor::next", NsfMongoCursorNextStub, 1, {
   {"cursor", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Pointer, NULL,NULL,"mongoc_cursor_t",NULL,NULL,NULL,NULL,NULL}}

@@ -96,7 +96,7 @@ puts "\nProject members of nsf:"
 ? {lsort [lmap p $persons {$p cget -name}]} "Gustaf Stefan"
 
 puts "\nProject members of nsf or gtat:"
-? {llength [set persons [Person find all -cond {projects in {nsf gtat}}]]} 3
+? {llength [set persons [Person find all -cond {projects in {nsf gtat}} -orderby name]]} 3
 ? {lsort [lmap p $persons {$p cget -name}]} "Franz Gustaf Stefan"
 
 puts "\nProject members working on both nsf and nxmongo:"

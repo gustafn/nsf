@@ -434,10 +434,10 @@ namespace eval ::nx::mongo {
     #
     # For interaction with bson structures, we provide on the class
     # level "bson cond" (a small dsl for a more convenient syntax in
-    # bson queries), "bson query" (combining conditions with
-    # ordering), "bson atts (a simplifed property selection) and
-    # "bson parameter" which translates from a bson structure (tuple)
-    # into a dashed parameter list used in object creation.
+    # bson queries), "bson opts" (options like e.g.  ordering), "bson
+    # atts (a simplifed property selection) and "bson parameter" which
+    # translates from a bson structure (tuple) into a dashed parameter
+    # list used in object creation.
     #
 
     :method "bson cond" {cond} {
@@ -461,23 +461,32 @@ namespace eval ::nx::mongo {
       return $bson
     }
     
-    :method "bson query" {{-cond ""} {-orderby ""}} {
-      #puts "bson query -cond <$cond> -orderby <$orderby>"
-      set bson [:bson cond $cond]
-      set result [list \$query document $bson]
-
-      if {[llength $orderby] > 0} {
-	set bson [list]
-	foreach attspec $orderby {
-	  lassign $attspec att direction
-	  lappend bson $att int [expr {$direction eq "desc" ? -1 : 1}]
-	}
-	lappend result \$orderby document $bson
+    :method "bson opts" {{-orderby ""} {-atts ""} -limit:integer -skip:integer} {
+      set result ""
+      if {$atts ne ""} {
+        lappend result projection document [:bson atts $atts]
       }
-      #puts "bson query -cond <$cond> -orderby <$orderby> => $result"
+      if {[info exists limit]} {
+        lappend result limit int64 $limit
+      }
+      if {[info exists skip]} {
+        lappend result skip int64 $skip
+      }
+      if {$orderby ne ""} {
+        lappend result sort document [:bson orderby $orderby]
+      }
       return $result
     }
 
+    :method "bson orderby" {orderby} {
+      set bson [list]
+      foreach attspec $orderby {
+        lassign $attspec att direction
+        lappend bson $att int [expr {$direction eq "desc" ? -1 : 1}]
+      }
+      return $bson
+    }
+    
     :method "bson atts" {atts} {
       set result {}
       foreach {att value} $atts {
@@ -662,9 +671,9 @@ namespace eval ::nx::mongo {
 				 {-orderby ""} 
 			       } {
       set tuple [lindex [::nx::mongo::db query ${:mongo_ns} \
-			     [:bson query -cond $cond -orderby $orderby] \
-			     -atts [:bson atts $atts] \
-			     -limit 1] 0]
+			     [:bson cond $cond] \
+                             -opts [:bson opts -atts $atts -limit 1 -orderby $orderby] \
+                            ] 0]
       if {$tuple eq ""} {
         return ""
       }
@@ -676,17 +685,16 @@ namespace eval ::nx::mongo {
 			       {-atts ""}
 			       {-cond ""} 
 			       {-orderby ""} 
-			       {-limit} 
-			       {-skip} 
+			       {-limit:integer} 
+			       {-skip:integer} 
 			     } {
       set result [list]
       set opts [list]
       if {[info exists limit]} {lappend opts -limit $limit}
       if {[info exists skip]} {lappend opts -skip $skip}
       set fetched [::nx::mongo::db query ${:mongo_ns} \
-		       [:bson query -cond $cond -orderby $orderby] \
-		       -atts [:bson atts $atts] \
-		       {*}$opts]
+		       [:bson cond $cond] \
+                       -opts [:bson opts -orderby $orderby -atts $atts {*}$opts] ]
 
       foreach tuple $fetched {
 	lappend result [:bson create $tuple]
@@ -706,9 +714,8 @@ namespace eval ::nx::mongo {
       if {[info exists limit]} {lappend opts -limit $limit}
       if {[info exists skip]} {lappend opts -skip $skip}
       set fetched [::nx::mongo::db query ${:mongo_ns} \
-		       [:bson query -cond $cond -orderby $orderby] \
-		       -atts [:bson atts $atts] \
-		       {*}$opts]
+		       [:bson cond $cond] \
+                       -opts [:bson opts -orderby $orderby -atts $atts {*}$opts] ]
       set tuples [list]
       foreach tuple $fetched {
 	lappend tuples "\{[:bson pp -indent 4 $tuple]\n\}"

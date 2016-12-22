@@ -91,8 +91,8 @@ puts [join [::mongo::collection::query $mongoColl {}] \n]
 # Get the file named README from the gridfs via plain query interface
 #
 ? {set files [::mongo::collection::query $mongoColl \
-		  [list \$query document {filename string README}] \
-		  -limit 1]
+		  {filename string README} \
+		  -opts { limit int64 1 }]
   llength [lindex $files 0]
 } 18
 

@@ -3,6 +3,53 @@
 # This is a sample test set using the low-level (pure tcl) interface
 # for inserting and querying tuples into MongoDB.
 #
+# Main differences in the query interface due to changes in the
+# upstream c-driver interface between the interface in nsf 2.0.0 (old)
+# and 2.1.0 (new):
+#
+# Simple Query:
+#    old [::mongo::collection::query $mongoColl [list \$query document {projects string nsf}]]
+#    new [::mongo::collection::query $mongoColl {projects string nsf}]
+#
+#    old [::mongo::collection::query $mongoColl [list \$query document {age document {$gt int 30}}]]
+#    new [::mongo::collection::query $mongoColl {age document {$gt int 30}}]
+#
+# Sort:
+#   old [::mongo::collection::query $mongoColl \
+#	       [list \$query document {projects string nsf} \$orderby document {name int -1}]]
+#   new [::mongo::collection::query $mongoColl \
+#              {projects string nsf} \
+#              -opts {sort document {name int -1}}]
+# Projection:
+#   old [::mongo::collection::query $mongoColl \
+#           {$query document {age document {$gt int 30}}} \
+#           -atts {name int 1 age int 1}]
+#   new [::mongo::collection::query $mongoColl \
+#	     {age document {$gt int 30}} \
+#	     -opts {projection document {name int 1 age int 1}}]
+#
+# Skip:
+#   old [::mongo::collection::query $mongoColl \
+#	       [list \$query document {projects string nsf} \$orderby document {name int -1}] \
+#              -skip 1 ]
+#   new [::mongo::collection::query $mongoColl \
+#                        {projects string nsf} \
+#                        -opts {
+#                          sort document {name int 1}
+#                          skip int64 1
+#                        }]
+# Limit:
+#   old [::mongo::collection::query $mongoColl \
+#	       [list \$query document {projects string nsf} \$orderby document {name int -1}] \
+#              -limit 1 ]
+#   new [::mongo::collection::query $mongoColl \
+#                        {projects string nsf} \
+#                        -opts {
+#                          sort document {name int 1}
+#                          limit int64 1
+#                        }]
+
+
 
 package require nsf
 
@@ -86,12 +133,36 @@ if {1} {
 puts stderr "\nFull content"
 ? {llength [::mongo::collection::query $mongoColl {}]} 6
 
+puts stderr RESULT=[::mongo::collection::query $mongoColl {}]
+
+
 puts stderr "\nProject members"
 ? {
   llength [::mongo::collection::query $mongoColl \
-	       [list \$query document {projects string nsf} \$orderby document {name int 1}]]
+               {projects string nsf} \
+               -opts {sort document {name int -1}}]
 } 2
 
+set all [::mongo::collection::query $mongoColl \
+                     {projects string nsf} \
+                     -opts {
+                       sort document {name int 1}
+                     }]
+set first [::mongo::collection::query $mongoColl \
+                        {projects string nsf} \
+                        -opts {
+                          sort document {name int 1}
+                          limit int64 1
+                        }]
+set second [::mongo::collection::query $mongoColl \
+                        {projects string nsf} \
+                        -opts {
+                          sort document {name int 1}
+                          skip int64 1
+                        }]
+? {llength $all} 2
+? {list [lindex $all 0]} $first
+? {list [lindex $all 1]} $second
 
 package req nx::mongo
 nx::mongo::Class create C
@@ -103,24 +174,23 @@ puts stderr "\nDistinct Persons: [C bson pp $result]"
 
 puts stderr "\nProject members of nsf sorted by name"
 ? {
-  set r [lindex [::mongo::collection::query $mongoColl \
-		     [list \$query document {projects string nsf} \$orderby document {name int 1}]] 0]
+  set r [lindex [::mongo::collection::query $mongoColl {projects string nsf} \
+                     -opts {sort document {name int 1}}] 0]
   string match *Gustaf* $r
 } 1
 
 puts stderr "\nAge > 30 (all atts)"
 ? {
-  set r [::mongo::collection::query $mongoColl \
-	     [list \$query document {age document {$gt int 30}}]]
+  set r [::mongo::collection::query $mongoColl {age document {$gt int 30}}]
   set _ [llength $r]-[llength [lindex $r 0]]
 } 2-12
 
 
-puts stderr "\nAge > 30 (only atts name and age, aside of _id)"
+puts stderr "\nAge > 30 (projection on name and age, aside of _id)"
 ? {
   set r [::mongo::collection::query $mongoColl \
-	     [list \$query document {age document {$gt int 30}}] \
-	     -atts {name int 1 age int 1}]
+	     {age document {$gt int 30}} \
+	     -opts {projection document {name int 1 age int 1}}]
   set _ [llength $r]-[llength [lindex $r 0]]
 } 2-9
 
@@ -130,7 +200,7 @@ puts stderr "\nCount Age > 30"
 puts stderr "\nAge > 30 (all atts, via cursor interface)"
 ? {
   set cursor [::mongo::cursor::find $mongoColl \
-		  [list \$query document {age document {$gt int 30}}]]
+		  {age document {$gt int 30}}]
   puts "Cursor: $cursor"
   set r0 [::mongo::cursor::next $cursor]
   set r1 [::mongo::cursor::next $cursor]
@@ -142,7 +212,8 @@ puts stderr "\nAge > 30 (all atts, via cursor interface)"
 puts stderr "\nAge > 30 (all atts, via cursor interface, tailable)"
 ? {
   set cursor [::mongo::cursor::find $mongoColl \
-		  [list \$query document {age document {$gt int 30}}] -tailable]
+		  {age document {$gt int 30}} \
+                  -opts {tailable boolean true}]
   if {$cursor ne ""} {
     set r ""
     while {1} {
@@ -171,15 +242,15 @@ puts stderr "\nEmpty result (via cursor interface)"
 
 puts stderr "\nArray 'a' contains 'x'"
 ? {llength [::mongo::collection::query $mongoColl \
-		[list \$query document {a string "x"}]]} 1
+                {a string "x"}]} 1
 
 puts stderr "\nEmbedded document has some value (info.y > 100)"
 ? {llength [::mongo::collection::query $mongoColl \
-		[list \$query document {info.y document {$gt int 100}}]]} 1
+		{info.y document {$gt int 100}}]} 1
 
 puts stderr "\nProjects in {nsf gtat}"
 ? { llength [::mongo::collection::query $mongoColl \
-		 [list \$query document {projects document {$in array {0 string nsf 1 string gtat}}}]]} 3
+		 {projects document {$in array {0 string nsf 1 string gtat}}}]} 3
 
 puts stderr "\nStatistics of $mongoColl"
 set stats [::mongo::collection::stats $mongoColl]

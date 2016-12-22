@@ -76,10 +76,8 @@ cmd collection::open NsfCollectionOpen {
 }
 cmd "collection::query" NsfMongoCollectionQuery {
   {-argName "collection" -required 1 -type mongoc_collection_t}
-  {-argName "query" -required 1 -type tclobj}
-  {-argName "-atts" -required 0 -nrargs 1 -type tclobj}
-  {-argName "-limit" -required 0 -type int32}
-  {-argName "-skip" -required 0 -type int32}
+  {-argName "filter" -required 1 -type tclobj}
+  {-argName "-opts" -required 0 -nrargs 1 -type tclobj}
 }
 cmd "collection::stats" NsfMongoCollectionStats {
   {-argName "collection" -required 1 -type mongoc_collection_t}
@@ -105,12 +103,8 @@ cmd cursor::aggregate NsfMongoCursorAggregate {
 }
 cmd cursor::find NsfMongoCursorFind {
   {-argName "collection" -required 1 -type mongoc_collection_t}
-  {-argName "query" -required 1 -type tclobj}
-  {-argName "-atts" -required 0 -nrargs 1 -type tclobj}
-  {-argName "-limit" -required 0 -type int32}
-  {-argName "-skip" -required 0 -type int32}
-  {-argName "-tailable" -required 0 -nrargs 0}
-  {-argName "-awaitdata" -required 0 -nrargs 0}
+  {-argName "filter" -required 1 -type tclobj}
+  {-argName "-opts" -required 0 -nrargs 1 -type tclobj}
 }
 cmd cursor::next NsfMongoCursorNext {
   {-argName "cursor" -required 1 -type mongoc_cursor_t}
