@@ -18,6 +18,6 @@ package require nx::shell 1.1
 
 namespace import -force ::nx::*
 
-set exitCode [nx::shell2 run $argc $argv]
+set exitCode [nx::shell run $argc $argv]
 exit $exitCode
 

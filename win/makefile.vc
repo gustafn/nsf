@@ -452,7 +452,7 @@ shell: setup $(PROJECT)
 !else
 	@set PATH=$(_TCLDIR)\win\$(BUILDDIRTOP);$(PATH)
 !endif
-	@echo lappend auto_path $(ROOT) .; puts $$auto_path; package req nx::shell; nx::shell run $$argc $$argv; > nsfshell.tcl
+	@echo lappend auto_path $(ROOT) .; puts $$auto_path; package req nx::shell 1.1; exit [nx::shell run $$argc $$argv;] > nsfshell.tcl
 	$(DEBUGGER) $(TCLSH) nsfshell.tcl $(SCRIPT)
 	@del nsfshell.tcl
 
