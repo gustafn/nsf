@@ -200,7 +200,9 @@ static Tcl_ObjType CONST86
  * Function prototypes
  */
 
-/* Prototypes for method definitions */
+/*
+ * Prototypes for method definitions
+ */
 static Tcl_ObjCmdProc NsfForwardMethod;
 static Tcl_ObjCmdProc NsfObjscopedMethod;
 static Tcl_ObjCmdProc NsfSetterMethod;
@@ -208,7 +210,10 @@ static Tcl_ObjCmdProc NsfProcAliasMethod;
 static Tcl_ObjCmdProc NsfAsmProc;
 
 
-/* Prototypes for methods called directly when CallDirectly() returns NULL */
+
+/*
+ * Prototypes for methods called directly when CallDirectly() returns NULL
+ */
 static int NsfCAllocMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *nameObj)
   nonnull(1) nonnull(2);
 static int NsfCAllocMethod_(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *nameObj, Tcl_Namespace *parentNsPtr)

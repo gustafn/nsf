@@ -987,6 +987,11 @@ NsfFreeObjectData(NsfClass *cl)
 #endif
 
 /*
+ * Prototypes for method definitions
+ */
+EXTERN Tcl_ObjCmdProc NsfObjDispatch;
+
+/*
  *  NsfObject Reference Accounting
  */
 EXTERN void NsfCleanupObject_(NsfObject *object) nonnull(1);
@@ -1117,9 +1122,6 @@ int NsfDirectSelfDispatch(ClientData cd, Tcl_Interp *interp,
 EXTERN int NsfGetClassFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr,
 			      NsfClass **clPtr, int withUnknown)
   nonnull(1) nonnull(2) nonnull(3);
-EXTERN int NsfObjDispatch(ClientData cd, Tcl_Interp *interp,
-			  int objc, Tcl_Obj *CONST objv[])
-  nonnull(1) nonnull(2) nonnull(4);
 
 EXTERN int NsfObjWrongArgs(Tcl_Interp *interp, CONST char *msg,
 			   Tcl_Obj *cmdName, Tcl_Obj *methodName,
@@ -1284,7 +1286,7 @@ char *strnstr(const char *buffer, const char *needle, size_t buffer_len);
 #endif
 
 /* In Tcl 8.6 (tclInt.h), vsnprintf is mapped to _vsnprintf. In Tcl
-   8.5, this is missing from tclInt.h. So ... */ 
+   8.5, this is missing from tclInt.h. So ... */
 
 #if defined(PRE86) && defined(_MSC_VER)
 #define vsnprintf _vsnprintf
