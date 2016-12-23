@@ -71,7 +71,7 @@ set mongoColl [mongo::collection::open $mongoConn myfs fs.files]
     }
   }
   set chunks
-} 4
+} 5
 ? {mongo::gridfile::close $f} ""
 
 #
