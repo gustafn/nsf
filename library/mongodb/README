@@ -15,6 +15,7 @@ The current version is tested with
 Follow the following steps to get MongoDB up and running
 and to compile the MongoDB driver for nx.
 
+
 OBTAIN MONGODB and MONGO-C-DRIVER:
 
 - Compile or obtain mongodb (the database).
