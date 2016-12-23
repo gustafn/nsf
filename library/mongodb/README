@@ -13,25 +13,45 @@ The current version is tested with
 - libbson 1.5.1 (released Dec 17, 2016)
 
 Follow the following steps to get MongoDB up and running
-and to compile the MongoDB driver for nx:
+and to compile the MongoDB driver for nx.
+
+OBTAIN MONGODB and MONGO-C-DRIVER:
 
 - Compile or obtain mongodb (the database).
 
 - Compile or obtain the mongo-c-driver (client interface)
 
       cd /usr/local/src
-      git clone https://github.com/mongodb/mongo-c-driver
+      wget https://github.com/mongodb/mongo-c-driver/releases/download/1.5.1/mongo-c-driver-1.5.1.tar.gz
+      tar zxvf mongo-c-driver-1.5.1.tar.gz
+      rm -rf mongo-c-driver
+      ln -s mongo-c-driver-1.5.1 mongo-c-driver
       cd mongo-c-driver
-      sh autogen.sh
+      ./configure --disable-sasl
       make
       sudo make install
 
-If you experience errors during autogen on debian, you might have to
-   apt-get install libtool
+  Alternatively, one can get the newest version form git
 
-If configure complains about not finding bson, you might have to do
-   export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
+      cd /usr/local/src
+      git clone https://github.com/mongodb/mongo-c-driver
+      cd mongo-c-driver
+      sh autogen.sh --disable-sasl
+      make
+      sudo make install
 
+  If you experience errors during autogen on debian, you might have to
+      apt-get install libtool
+
+  If configure complains about not finding bson, you might have to do
+      export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
+
+  Version 1.5.1 of the c-driver leads on Mac OS X to a crash on exit,
+  when configured sasl support (from mac ports). Therefore, the
+  configure switch "--disable-sasl" is recommended for the time being.
+
+
+COMPILING THE MONGO NSF INTERFACE:
 
 Assume the following installation directories
 
