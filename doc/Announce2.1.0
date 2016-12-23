@@ -319,7 +319,7 @@ New Features
       respective control structures (switch).
 
   * Extended regression test suite:
-    The test suite contains for Tcl 8.6.6 5847 tests
+    The test suite contains (for Tcl 8.6.6) now 5852 tests.
 
 - Packaging & distribution:
 

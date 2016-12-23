@@ -126,6 +126,29 @@ nx::test case boat {
 
 }
 
+nx::test case boat-crash {
+  #
+  # This variant of the boat test case lead to problems in earlier
+  # versions depending on the deletion order during the cleanup in the
+  # test case.
+  #
+  nx::Class create boat ;# 8
+  nx::Class create dayboat -superclass boat ;# 6
+  nx::Class create wheelboat -superclass boat ;# 7
+  nx::Class create engineless -superclass dayboat ;# 3
+  nx::Class create pedalwheelboat -superclass {engineless wheelboat} ;# 2
+  nx::Class create smallmultihull -superclass dayboat ;# 5
+  nx::Class create smallcatamaran -superclass smallmultihull ;# 4
+  nx::Class create pedalo -superclass {pedalwheelboat smallcatamaran};# 1
+
+  ? {::smallcatamaran destroy} ""
+  ? {::boat destroy} ""
+  ? {::pedalo info heritage} {::pedalwheelboat ::engineless ::dayboat ::wheelboat ::nx::Object}
+  ? {::pedalo destroy} ""
+  ? {::pedalwheelboat info heritage} {::engineless ::dayboat ::wheelboat ::nx::Object}
+}
+
+
 #
 # Local variables:
 #    mode: tcl
