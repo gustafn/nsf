@@ -20,7 +20,7 @@ configdir=$(srcdir)/../../tclconfig
 # so you can encode the package version directly into the source files.
 #-----------------------------------------------------------------------
 
-AC_INIT([nsfmongo], [0.4])
+AC_INIT([nsfmongo], [2.1])
 AC_CONFIG_MACRO_DIR([m4])
 
 #--------------------------------------------------------------------
@@ -29,7 +29,7 @@ AC_CONFIG_MACRO_DIR([m4])
 # as well as PKG_LIB_FILE and PKG_STUB_LIB_FILE.
 #--------------------------------------------------------------------
 
-TEA_INIT([3.9])
+TEA_INIT([3.10])
 
 AC_CONFIG_AUX_DIR([../../tclconfig])
 
