@@ -12,7 +12,7 @@
 
 [list_begin definitions]
 
-[call [syscmd "nxsh"] [opt [option -c]] [opt "[arg arg1] [arg arg2] ..."]]
+[call [syscmd "nxsh"] [opt "[option -c] [opt [arg arg1]]"] [opt "[arg arg2] ..."]]
 
 [syscmd "nxsh"] is a shell-like application that reads NX and Tcl
 commands from different sources and evaluates them.

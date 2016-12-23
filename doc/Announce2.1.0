@@ -225,7 +225,8 @@ New Features
     no extra lines on enter, catches EOF). The Tcl package can be
     conveniently sourced, e.g., in Tclkit main scripts.
 
-  * The improved shells now accept stdin input (-c option).
+  * The new shells accept script input now via stdin or as provided
+    via "-c" in the command line.
 
   * They are more robust: Don't quit due to inner [return] calls,
      [exit] is handled gracefully.
