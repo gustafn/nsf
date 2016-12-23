@@ -28,7 +28,7 @@ OBTAIN MONGODB and MONGO-C-DRIVER:
       rm -rf mongo-c-driver
       ln -s mongo-c-driver-1.5.1 mongo-c-driver
       cd mongo-c-driver
-      ./configure --disable-sasl
+      ./configure --disable-automatic-init-and-cleanup
       make
       sudo make install
 
@@ -37,7 +37,7 @@ OBTAIN MONGODB and MONGO-C-DRIVER:
       cd /usr/local/src
       git clone https://github.com/mongodb/mongo-c-driver
       cd mongo-c-driver
-      sh autogen.sh --disable-sasl
+      sh autogen.sh --disable-automatic-init-and-cleanup
       make
       sudo make install
 
@@ -47,9 +47,9 @@ OBTAIN MONGODB and MONGO-C-DRIVER:
   If configure complains about not finding bson, you might have to do
       export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
 
-  Version 1.5.1 of the c-driver leads on Mac OS X to a crash on exit,
-  when configured sasl support (from mac ports). Therefore, the
-  configure switch "--disable-sasl" is recommended for the time being.
+  Note: Version 1.5.1 of the c-driver leads on Mac OS X to a crash on
+  exit, when configured sasl support (from mac ports) and the flag
+  "--disable-automatic-init-and-cleanup" is mossing.
 
 
 COMPILING THE MONGO NSF INTERFACE:

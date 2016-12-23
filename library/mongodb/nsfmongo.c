@@ -1726,6 +1726,11 @@ Nsfmongo_Exit(ClientData clientData)
   Tcl_DeleteThreadExitHandler(Nsfmongo_ThreadExit, clientData);
 #endif
   Tcl_Release(clientData);
+
+  /*
+   * Release the state of mongo-c-driver explicitly.
+   */
+  mongoc_cleanup();
 }
 
 
@@ -1773,15 +1778,21 @@ Nsfmongo_Init(Tcl_Interp * interp)
 #endif
 
   /*
-   * Register global mongo Tcl_Objs.
+   * Register global mongo Tcl_Objs once.
    */
   NsfMutexLock(&initMutex);
   if (NsfMongoGlobalObjs == NULL) {
     NsfMongoGlobalObjs = (Tcl_Obj **)ckalloc(sizeof(Tcl_Obj*)*nr_elements(NsfMongoGlobalStrings));
+
     for (i = 0; i < nr_elements(NsfMongoGlobalStrings); i++) {
       NsfMongoGlobalObjs[i] = Tcl_NewStringObj(NsfMongoGlobalStrings[i], -1);
       Tcl_IncrRefCount(NsfMongoGlobalObjs[i]);
     }
+
+    /*
+     * Initializing state of mongo-c-driver explicitly.
+     */
+    mongoc_init();
   }
   NsfMutexUnlock(&initMutex);
 
@@ -1804,11 +1815,12 @@ Nsfmongo_Init(Tcl_Interp * interp)
   /*
    * Create all method commands (will use the namespaces above)
    */
-  for (i=0; i < nr_elements(method_definitions)-1; i++) {
+  for (i = 0; i < nr_elements(method_definitions)-1; i++) {
     Tcl_CreateObjCommand(interp, method_definitions[i].methodName, method_definitions[i].proc, 0, 0);
   }
 
   Tcl_SetIntObj(Tcl_GetObjResult(interp), 1);
+
   return TCL_OK;
 }
 
