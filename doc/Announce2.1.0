@@ -234,6 +234,7 @@ New Features
   * Added tests for the shells to the regression test suite
     (shells.test).
 
+
 - Traits:
 
   * The name of the namespace of traits changed from
@@ -285,6 +286,9 @@ New Features
     example, NSF's ExitHandler is guaranteed to be called just once in
     the above scenarios (e.g., to avoid double frees of NSF
     structures).
+
+  * Fixed a long-standing and not easy reproducible bug when deleting
+    classes in multiple nested diamond inheritance structures.
 
   * UnsetTracedVars:
 
