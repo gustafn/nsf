@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 8.6.8" />
+<meta name="generator" content="AsciiDoc 8.6.9" />
 <title>Listing of doc/example-scripts/tk-locomotive.tcl</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -94,7 +94,9 @@ ul > li > * { color: black; }
   padding: 0;
   margin: 0;
 }
-
+pre {
+  white-space: pre-wrap;
+}
 
 #author {
   color: #527bbd;
@@ -223,7 +225,7 @@ div.exampleblock > div.content {
 }
 
 div.imageblock div.content { padding-left: 0; }
-span.image img { border-style: none; }
+span.image img { border-style: none; vertical-align: text-bottom; }
 a.image:visited { color: white; }
 
 dl {
@@ -782,20 +784,20 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 
   <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> drawSpokes {} {
     ::nx::var import [<span class='nx-keyword'>:info</span> parent] c alpha
-    <span class='nx-keyword'>set</span> delta [<span class='nx-keyword'>expr</span> {360.0 / <span class='nx-variable'>${</span><span class='nx-variable'>:spokes}</span>}]
+    <span class='nx-keyword'>set</span> delta [<span class='nx-keyword'>expr</span> {360.0 / <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:spokes}</span>}]
     <span class='nx-keyword'>set</span> deg2arc [<span class='nx-keyword'>expr</span> {atan(1.0)*8/360.}]
-    <span class='nx-keyword'>for</span> {<span class='nx-keyword'>set</span> i 0} {<span class='nx-variable'>$i</span> &lt; <span class='nx-variable'>${</span><span class='nx-variable'>:spokes}</span>} {<span class='nx-keyword'>incr</span> i} {
-      <span class='nx-keyword'>set</span> x1 [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:x}</span> + cos(<span class='nx-variable'>$deg2arc</span>*<span class='nx-variable'>$alpha</span>) * <span class='nx-variable'>${</span><span class='nx-variable'>:r}</span>}]
-      <span class='nx-keyword'>set</span> y1 [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:y}</span> + sin(<span class='nx-variable'>$deg2arc</span>*<span class='nx-variable'>$alpha</span>) * <span class='nx-variable'>${</span><span class='nx-variable'>:r}</span>}]
-      <span class='nx-variable'>$c</span> <span class='nx-keyword'>create</span> line <span class='nx-variable'>${</span><span class='nx-variable'>:x}</span> <span class='nx-variable'>${</span><span class='nx-variable'>:y}</span> <span class='nx-variable'>$x1</span> <span class='nx-variable'>$y1</span> -fill <span class='nx-variable'>${</span><span class='nx-variable'>:color}</span> -tag spoke
-      <span class='nx-keyword'>set</span> alpha [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$alpha</span> + <span class='nx-variable'>$delta</span>}]
+    <span class='nx-keyword'>for</span> {<span class='nx-keyword'>set</span> i 0} {<span class='nx-[namespace tail [nx::self]]'>$i</span> &lt; <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:spokes}</span>} {<span class='nx-keyword'>incr</span> i} {
+      <span class='nx-keyword'>set</span> x1 [<span class='nx-keyword'>expr</span> {<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:x}</span> + cos(<span class='nx-[namespace tail [nx::self]]'>$deg2arc</span>*<span class='nx-[namespace tail [nx::self]]'>$alpha</span>) * <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:r}</span>}]
+      <span class='nx-keyword'>set</span> y1 [<span class='nx-keyword'>expr</span> {<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:y}</span> + sin(<span class='nx-[namespace tail [nx::self]]'>$deg2arc</span>*<span class='nx-[namespace tail [nx::self]]'>$alpha</span>) * <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:r}</span>}]
+      <span class='nx-[namespace tail [nx::self]]'>$c</span> <span class='nx-keyword'>create</span> line <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:x}</span> <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:y}</span> <span class='nx-[namespace tail [nx::self]]'>$x1</span> <span class='nx-[namespace tail [nx::self]]'>$y1</span> -fill <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:color}</span> -tag spoke
+      <span class='nx-keyword'>set</span> alpha [<span class='nx-keyword'>expr</span> {<span class='nx-[namespace tail [nx::self]]'>$alpha</span> + <span class='nx-[namespace tail [nx::self]]'>$delta</span>}]
     }
     <span class='nx-keyword'>if</span> {[<span class='nx-keyword'>info</span> exists :act_pivot]} {
       <span class='nx-keyword'>lassign</span> [<span class='nx-keyword'>set</span> :act_pivot] item perc
-      <span class='nx-keyword'>set</span> rp [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:r}</span> * <span class='nx-variable'>$perc</span>}]
-      <span class='nx-keyword'>set</span> xp [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:x}</span> - <span class='nx-variable'>$rp</span> * cos(<span class='nx-variable'>$deg2arc</span> * <span class='nx-variable'>$alpha</span>)}]
-      <span class='nx-keyword'>set</span> yp [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:y}</span> - <span class='nx-variable'>$rp</span> * sin(<span class='nx-variable'>$deg2arc</span> * <span class='nx-variable'>$alpha</span>)}]
-      <span class='nx-variable'>$c</span> coords <span class='nx-variable'>$item</span> <span class='nx-variable'>$xp</span> <span class='nx-variable'>$yp</span> [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$xp</span> + 1}] [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$yp</span> + 1}]
+      <span class='nx-keyword'>set</span> rp [<span class='nx-keyword'>expr</span> {<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:r}</span> * <span class='nx-[namespace tail [nx::self]]'>$perc</span>}]
+      <span class='nx-keyword'>set</span> xp [<span class='nx-keyword'>expr</span> {<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:x}</span> - <span class='nx-[namespace tail [nx::self]]'>$rp</span> * cos(<span class='nx-[namespace tail [nx::self]]'>$deg2arc</span> * <span class='nx-[namespace tail [nx::self]]'>$alpha</span>)}]
+      <span class='nx-keyword'>set</span> yp [<span class='nx-keyword'>expr</span> {<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:y}</span> - <span class='nx-[namespace tail [nx::self]]'>$rp</span> * sin(<span class='nx-[namespace tail [nx::self]]'>$deg2arc</span> * <span class='nx-[namespace tail [nx::self]]'>$alpha</span>)}]
+      <span class='nx-[namespace tail [nx::self]]'>$c</span> coords <span class='nx-[namespace tail [nx::self]]'>$item</span> <span class='nx-[namespace tail [nx::self]]'>$xp</span> <span class='nx-[namespace tail [nx::self]]'>$yp</span> [<span class='nx-keyword'>expr</span> {<span class='nx-[namespace tail [nx::self]]'>$xp</span> + 1}] [<span class='nx-keyword'>expr</span> {<span class='nx-[namespace tail [nx::self]]'>$yp</span> + 1}]
     }
   }
 
@@ -803,39 +805,39 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
     ::nx::var import [<span class='nx-keyword'>:info</span> parent] c alpha
     <span class='nx-keyword'>set</span> alpha 0.
 
-    <span class='nx-keyword'>set</span> :y [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:y}</span> - <span class='nx-variable'>${</span><span class='nx-variable'>:r}</span>}]
-    <span class='nx-variable'>$c</span> <span class='nx-keyword'>create</span> oval \
-        [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:x}</span> - <span class='nx-variable'>${</span><span class='nx-variable'>:r}</span>}] [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:y}</span> - <span class='nx-variable'>${</span><span class='nx-variable'>:r}</span>}] \
-        [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:x}</span> + <span class='nx-variable'>${</span><span class='nx-variable'>:r}</span>}] [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:y}</span> + <span class='nx-variable'>${</span><span class='nx-variable'>:r}</span>}] \
+    <span class='nx-keyword'>set</span> :y [<span class='nx-keyword'>expr</span> {<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:y}</span> - <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:r}</span>}]
+    <span class='nx-[namespace tail [nx::self]]'>$c</span> <span class='nx-keyword'>create</span> oval \
+        [<span class='nx-keyword'>expr</span> {<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:x}</span> - <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:r}</span>}] [<span class='nx-keyword'>expr</span> {<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:y}</span> - <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:r}</span>}] \
+        [<span class='nx-keyword'>expr</span> {<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:x}</span> + <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:r}</span>}] [<span class='nx-keyword'>expr</span> {<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:y}</span> + <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:r}</span>}] \
         -outline white
-    <span class='nx-keyword'>set</span> r1 [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:r}</span>-2}]
-    <span class='nx-keyword'>set</span> W [<span class='nx-variable'>$c</span> <span class='nx-keyword'>create</span> oval \
-               [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:x}</span> - <span class='nx-variable'>$r1</span>}] [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:y}</span> - <span class='nx-variable'>$r1</span>}] \
-               [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:x}</span> + <span class='nx-variable'>$r1</span>}] [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:y}</span> + <span class='nx-variable'>$r1</span>}] \
-               -outline <span class='nx-variable'>${</span><span class='nx-variable'>:color}</span> -width 2]
+    <span class='nx-keyword'>set</span> r1 [<span class='nx-keyword'>expr</span> {<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:r}</span>-2}]
+    <span class='nx-keyword'>set</span> W [<span class='nx-[namespace tail [nx::self]]'>$c</span> <span class='nx-keyword'>create</span> oval \
+               [<span class='nx-keyword'>expr</span> {<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:x}</span> - <span class='nx-[namespace tail [nx::self]]'>$r1</span>}] [<span class='nx-keyword'>expr</span> {<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:y}</span> - <span class='nx-[namespace tail [nx::self]]'>$r1</span>}] \
+               [<span class='nx-keyword'>expr</span> {<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:x}</span> + <span class='nx-[namespace tail [nx::self]]'>$r1</span>}] [<span class='nx-keyword'>expr</span> {<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:y}</span> + <span class='nx-[namespace tail [nx::self]]'>$r1</span>}] \
+               -outline <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:color}</span> -width 2]
     :drawSpokes
 
-    <span class='nx-keyword'>if</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:pivot}</span>} {
+    <span class='nx-keyword'>if</span> {<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:pivot}</span>} {
       <span class='nx-keyword'>set</span> deg2arc [<span class='nx-keyword'>expr</span> {atan(1.0) * 8 / 360.0}]
-      <span class='nx-keyword'>set</span> rp [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$r1</span>*<span class='nx-variable'>${</span><span class='nx-variable'>:pivot}</span>}]
-      <span class='nx-keyword'>set</span> xp [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:x}</span> - <span class='nx-variable'>$rp</span> * cos(<span class='nx-variable'>$deg2arc</span> * <span class='nx-variable'>$alpha</span>)}]
-      <span class='nx-keyword'>set</span> yp [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:y}</span> - <span class='nx-variable'>$rp</span> * sin(<span class='nx-variable'>$deg2arc</span> * <span class='nx-variable'>$alpha</span>)}]
-      <span class='nx-keyword'>set</span> new_pivot [<span class='nx-variable'>$c</span> <span class='nx-keyword'>create</span> rect <span class='nx-variable'>$xp</span> <span class='nx-variable'>$yp</span> [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$xp</span> + 1}] [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$yp</span> + 1}] \
-                         -fill <span class='nx-variable'>${</span><span class='nx-variable'>:color}</span> -tag [<span class='nx-keyword'>list</span> <span class='nx-variable'>${</span><span class='nx-variable'>:tag}</span> pivot]]
-      <span class='nx-keyword'>set</span> :act_pivot [<span class='nx-keyword'>list</span> <span class='nx-variable'>$new_pivot</span> <span class='nx-variable'>${</span><span class='nx-variable'>:pivot}</span>]
+      <span class='nx-keyword'>set</span> rp [<span class='nx-keyword'>expr</span> {<span class='nx-[namespace tail [nx::self]]'>$r1</span>*<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:pivot}</span>}]
+      <span class='nx-keyword'>set</span> xp [<span class='nx-keyword'>expr</span> {<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:x}</span> - <span class='nx-[namespace tail [nx::self]]'>$rp</span> * cos(<span class='nx-[namespace tail [nx::self]]'>$deg2arc</span> * <span class='nx-[namespace tail [nx::self]]'>$alpha</span>)}]
+      <span class='nx-keyword'>set</span> yp [<span class='nx-keyword'>expr</span> {<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:y}</span> - <span class='nx-[namespace tail [nx::self]]'>$rp</span> * sin(<span class='nx-[namespace tail [nx::self]]'>$deg2arc</span> * <span class='nx-[namespace tail [nx::self]]'>$alpha</span>)}]
+      <span class='nx-keyword'>set</span> new_pivot [<span class='nx-[namespace tail [nx::self]]'>$c</span> <span class='nx-keyword'>create</span> rect <span class='nx-[namespace tail [nx::self]]'>$xp</span> <span class='nx-[namespace tail [nx::self]]'>$yp</span> [<span class='nx-keyword'>expr</span> {<span class='nx-[namespace tail [nx::self]]'>$xp</span> + 1}] [<span class='nx-keyword'>expr</span> {<span class='nx-[namespace tail [nx::self]]'>$yp</span> + 1}] \
+                         -fill <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:color}</span> -tag [<span class='nx-keyword'>list</span> <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:tag}</span> pivot]]
+      <span class='nx-keyword'>set</span> :act_pivot [<span class='nx-keyword'>list</span> <span class='nx-[namespace tail [nx::self]]'>$new_pivot</span> <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:pivot}</span>]
 
-      <span class='nx-variable'>$c</span> <span class='nx-keyword'>create</span> arc [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:x}</span> - <span class='nx-variable'>$r1</span>}] [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:y}</span> - <span class='nx-variable'>$r1</span>}]\
-          [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:x}</span> + <span class='nx-variable'>$r1</span>}] [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:y}</span> + <span class='nx-variable'>$r1</span>}] \
-          -style chord -fill <span class='nx-variable'>${</span><span class='nx-variable'>:color}</span> -start 310 \
+      <span class='nx-[namespace tail [nx::self]]'>$c</span> <span class='nx-keyword'>create</span> arc [<span class='nx-keyword'>expr</span> {<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:x}</span> - <span class='nx-[namespace tail [nx::self]]'>$r1</span>}] [<span class='nx-keyword'>expr</span> {<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:y}</span> - <span class='nx-[namespace tail [nx::self]]'>$r1</span>}]\
+          [<span class='nx-keyword'>expr</span> {<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:x}</span> + <span class='nx-[namespace tail [nx::self]]'>$r1</span>}] [<span class='nx-keyword'>expr</span> {<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:y}</span> + <span class='nx-[namespace tail [nx::self]]'>$r1</span>}] \
+          -style chord -fill <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:color}</span> -start 310 \
           -extent 80 -tag counterweight
-      <span class='nx-keyword'>set</span> :pivot <span class='nx-variable'>$new_pivot</span>
+      <span class='nx-keyword'>set</span> :pivot <span class='nx-[namespace tail [nx::self]]'>$new_pivot</span>
     }
-    <span class='nx-keyword'>set</span> rh [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:r}</span> / 12.0}]
-    <span class='nx-variable'>$c</span> <span class='nx-keyword'>create</span> oval \
-        [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:x}</span> - <span class='nx-variable'>$rh</span>}] [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:y}</span> - <span class='nx-variable'>$rh</span>}] \
-        [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:x}</span> + <span class='nx-variable'>$rh</span>}] [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:y}</span> + <span class='nx-variable'>$rh</span>}] \
+    <span class='nx-keyword'>set</span> rh [<span class='nx-keyword'>expr</span> {<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:r}</span> / 12.0}]
+    <span class='nx-[namespace tail [nx::self]]'>$c</span> <span class='nx-keyword'>create</span> oval \
+        [<span class='nx-keyword'>expr</span> {<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:x}</span> - <span class='nx-[namespace tail [nx::self]]'>$rh</span>}] [<span class='nx-keyword'>expr</span> {<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:y}</span> - <span class='nx-[namespace tail [nx::self]]'>$rh</span>}] \
+        [<span class='nx-keyword'>expr</span> {<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:x}</span> + <span class='nx-[namespace tail [nx::self]]'>$rh</span>}] [<span class='nx-keyword'>expr</span> {<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:y}</span> + <span class='nx-[namespace tail [nx::self]]'>$rh</span>}] \
         -fill white -tag hub
-    <span class='nx-keyword'>set</span> :r <span class='nx-variable'>$r1</span>
+    <span class='nx-keyword'>set</span> :r <span class='nx-[namespace tail [nx::self]]'>$r1</span>
   }
 }
 
@@ -843,46 +845,46 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Locomotive {
   <span class='nx-keyword'>:property</span> {speed 4}
 
-  <span class='nx-keyword'>:require</span> trait nx::traits::callback
+  <span class='nx-keyword'>:require</span> trait nx::trait::callback
 
   <span class='nx-keyword'>:method</span> turn {} {
-    <span class='nx-keyword'>set</span> :alpha [<span class='nx-keyword'>expr</span> {round(<span class='nx-variable'>${</span><span class='nx-variable'>:alpha}</span> + 360 - <span class='nx-variable'>${</span><span class='nx-variable'>:speed}</span>) % 360}]
-    <span class='nx-keyword'>foreach</span> i [<span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> find withtag counterweight] {
-      <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> itemconfig <span class='nx-variable'>$i</span> -start [<span class='nx-keyword'>expr</span> {310 - <span class='nx-variable'>${</span><span class='nx-variable'>:alpha}</span>}]
+    <span class='nx-keyword'>set</span> :alpha [<span class='nx-keyword'>expr</span> {round(<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:alpha}</span> + 360 - <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:speed}</span>) % 360}]
+    <span class='nx-keyword'>foreach</span> i [<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> find withtag counterweight] {
+      <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> itemconfig <span class='nx-[namespace tail [nx::self]]'>$i</span> -start [<span class='nx-keyword'>expr</span> {310 - <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:alpha}</span>}]
     }
-    <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>delete</span> spoke
-    <span class='nx-keyword'>foreach</span> wheel [<span class='nx-keyword'>:info</span> children] { <span class='nx-variable'>$wheel</span> drawSpokes }
-    <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> raise hub
-    <span class='nx-keyword'>set</span> xp0 [<span class='nx-keyword'>expr</span> {105 + 15 * sin((<span class='nx-variable'>${</span><span class='nx-variable'>:alpha}</span> - 90) * atan(1.0) * 8 / 360)}]
-    <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>delete</span> piston
-    <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> coords p0 <span class='nx-variable'>$xp0</span> 120 [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$xp0</span>+2}] 122 ;<span class='nx-comment'>#CW
-</span>    <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> line 90 121 <span class='nx-variable'>$xp0</span> 121 -width 2 -fill white -tag piston ;<span class='nx-comment'>#CW
+    <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>delete</span> spoke
+    <span class='nx-keyword'>foreach</span> wheel [<span class='nx-keyword'>:info</span> children] { <span class='nx-[namespace tail [nx::self]]'>$wheel</span> drawSpokes }
+    <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> raise hub
+    <span class='nx-keyword'>set</span> xp0 [<span class='nx-keyword'>expr</span> {105 + 15 * sin((<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:alpha}</span> - 90) * atan(1.0) * 8 / 360)}]
+    <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>delete</span> piston
+    <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> coords p0 <span class='nx-[namespace tail [nx::self]]'>$xp0</span> 120 [<span class='nx-keyword'>expr</span> {<span class='nx-[namespace tail [nx::self]]'>$xp0</span>+2}] 122 ;<span class='nx-[namespace tail [nx::self]]'>#CW
+</span>    <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> line 90 121 <span class='nx-[namespace tail [nx::self]]'>$xp0</span> 121 -width 2 -fill white -tag piston ;<span class='nx-[namespace tail [nx::self]]'>#CW
 </span>    :drawRod p0 p1 p2 p3
-    <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> raise p0
-    <span class='nx-keyword'>foreach</span> i [<span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> find withtag smoke] {
-      <span class='nx-keyword'>if</span> {[<span class='nx-keyword'>lindex</span> [<span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> bbox <span class='nx-variable'>$i</span>] 3]&lt;0} {
-        <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>delete</span> <span class='nx-variable'>$i</span>
+    <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> raise p0
+    <span class='nx-keyword'>foreach</span> i [<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> find withtag smoke] {
+      <span class='nx-keyword'>if</span> {[<span class='nx-keyword'>lindex</span> [<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> bbox <span class='nx-[namespace tail [nx::self]]'>$i</span>] 3]&lt;0} {
+        <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>delete</span> <span class='nx-[namespace tail [nx::self]]'>$i</span>
       } <span class='nx-keyword'>else</span> {
-        <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>move</span> <span class='nx-variable'>$i</span> [<span class='nx-keyword'>expr</span> {rand() * <span class='nx-variable'>${</span><span class='nx-variable'>:speed}</span> / 3.0}] [<span class='nx-keyword'>expr</span> {rand() * 2 - 2}]
+        <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>move</span> <span class='nx-[namespace tail [nx::self]]'>$i</span> [<span class='nx-keyword'>expr</span> {rand() * <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:speed}</span> / 3.0}] [<span class='nx-keyword'>expr</span> {rand() * 2 - 2}]
       }
     }
-    <span class='nx-keyword'>set</span> t [<span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> oval [<span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> bbox chimney] -fill white -outline white -tag smoke]
-    <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>move</span> <span class='nx-variable'>$t</span> 0 -10
-    <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> lower smoke
+    <span class='nx-keyword'>set</span> t [<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> oval [<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> bbox chimney] -fill white -outline white -tag smoke]
+    <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>move</span> <span class='nx-[namespace tail [nx::self]]'>$t</span> 0 -10
+    <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> lower smoke
   }
 
   <span class='nx-keyword'>:method</span> drawRod {p0 p1 p2 p3} {
-    <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>delete</span> rod
-    <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> rect [<span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> bbox <span class='nx-variable'>$p1</span> <span class='nx-variable'>$p3</span>] -fill white -tag rod
-    <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> line {*}[<span class='nx-keyword'>lrange</span> [<span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> bbox <span class='nx-variable'>$p0</span>] 0 1] \
-        {*}[<span class='nx-keyword'>lrange</span> [<span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> bbox <span class='nx-variable'>$p2</span>] 0 1] -width 3 -fill white -tag rod
-    <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> raise rod
-    <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> raise pivot
+    <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>delete</span> rod
+    <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> rect [<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> bbox <span class='nx-[namespace tail [nx::self]]'>$p1</span> <span class='nx-[namespace tail [nx::self]]'>$p3</span>] -fill white -tag rod
+    <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> line {*}[<span class='nx-keyword'>lrange</span> [<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> bbox <span class='nx-[namespace tail [nx::self]]'>$p0</span>] 0 1] \
+        {*}[<span class='nx-keyword'>lrange</span> [<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> bbox <span class='nx-[namespace tail [nx::self]]'>$p2</span>] 0 1] -width 3 -fill white -tag rod
+    <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> raise rod
+    <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> raise pivot
   }
 
   <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> tick {} {
     :turn
-    <span class='nx-keyword'>foreach</span> i [<span class='nx-keyword'>after</span> <span class='nx-keyword'>info</span>] {<span class='nx-keyword'>after</span> cancel <span class='nx-variable'>$i</span>}
+    <span class='nx-keyword'>foreach</span> i [<span class='nx-keyword'>after</span> <span class='nx-keyword'>info</span>] {<span class='nx-keyword'>after</span> cancel <span class='nx-[namespace tail [nx::self]]'>$i</span>}
     <span class='nx-keyword'>after</span> 10 [<span class='nx-keyword'>self</span>] tick
   }
 
@@ -893,7 +895,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 
   <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> <span class='nx-keyword'>break</span> {} {
     <span class='nx-keyword'>incr</span> :speed -2
-    <span class='nx-keyword'>if</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:speed}</span>&lt;0} {<span class='nx-keyword'>set</span> :speed 0}
+    <span class='nx-keyword'>if</span> {<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:speed}</span>&lt;0} {<span class='nx-keyword'>set</span> :speed 0}
     :tick
   }
 
@@ -904,32 +906,32 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 
   <span class='nx-keyword'>:method</span> <span class='nx-keyword'>init</span> {} {
     <span class='nx-keyword'>set</span> :c [canvas .c -width 600 -height 160 -background lightblue]
-    pack <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span>
+    pack <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span>
 
-    bind <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <b>&lt;1&gt;</b> [:callback throttle]
-    bind <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <b>&lt;2&gt;</b> [:callback <span class='nx-keyword'>break</span>]
-    bind <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <b>&lt;3&gt;</b> [:callback emergencyBreak]
+    bind <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> <b>&lt;1&gt;</b> [:callback throttle]
+    bind <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> <b>&lt;2&gt;</b> [:callback <span class='nx-keyword'>break</span>]
+    bind <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> <b>&lt;3&gt;</b> [:callback emergencyBreak]
 
-    <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>delete</span> all
-    <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> rect 32 115 360 125 -fill black ;<span class='nx-comment'># frame
-</span>    <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> rect 22 118 32 122 -fill grey30 ;<span class='nx-comment'># buffer
-</span>    <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> line 22 115 22 125
-    <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> poly 60 95 40 115 50 115 70 95 -fill black
-    <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> rect 60 45 310 95 -fill grey25 ;<span class='nx-comment'># boiler
-</span>    <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> oval 55 50 65 90 -fill black ;<span class='nx-comment'># smokebox
-</span>    <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> rect 70 32 85 50 -fill black -tag chimney
-    <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> rect 40 52 90 75 -fill black ;<span class='nx-comment'># wind diverter
-</span>    <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> oval 130 36 150 52 -fill black ;<span class='nx-comment'># dome
-</span>    <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> rect 195 35 215 50 -fill black ;<span class='nx-comment'># sandbox
-</span>    <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> oval 260 36 280 52 -fill black ;<span class='nx-comment'># dome
-</span>    <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> rect 65 100 90 135 -fill black ;<span class='nx-comment'># cylinder
-</span>    <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> rect 90 120 92 122 -fill red -tag p0 ;<span class='nx-comment'># crossbar
-</span>    <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> rect 72 87 82 100 -fill black ;<span class='nx-comment'># steam tube
-</span>    <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> rect 310 40 370 115 -fill black ;<span class='nx-comment'># cab
-</span>    <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> rect 310 32 390 42 -fill grey30 ;<span class='nx-comment'># cab roof
-</span>    <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> text 338 82 -text <span class='nx-string'>"01 234"</span> -fill gold -font {Times 7}
-    <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> rect 318 48 333 66 -fill white ;<span class='nx-comment'># cab window #1
-</span>    <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> rect 338 48 355 66 -fill white ;<span class='nx-comment'># cab window #2
+    <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>delete</span> all
+    <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> rect 32 115 360 125 -fill black ;<span class='nx-[namespace tail [nx::self]]'># frame
+</span>    <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> rect 22 118 32 122 -fill grey30 ;<span class='nx-[namespace tail [nx::self]]'># buffer
+</span>    <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> line 22 115 22 125
+    <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> poly 60 95 40 115 50 115 70 95 -fill black
+    <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> rect 60 45 310 95 -fill grey25 ;<span class='nx-[namespace tail [nx::self]]'># boiler
+</span>    <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> oval 55 50 65 90 -fill black ;<span class='nx-[namespace tail [nx::self]]'># smokebox
+</span>    <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> rect 70 32 85 50 -fill black -tag chimney
+    <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> rect 40 52 90 75 -fill black ;<span class='nx-[namespace tail [nx::self]]'># wind diverter
+</span>    <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> oval 130 36 150 52 -fill black ;<span class='nx-[namespace tail [nx::self]]'># dome
+</span>    <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> rect 195 35 215 50 -fill black ;<span class='nx-[namespace tail [nx::self]]'># sandbox
+</span>    <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> oval 260 36 280 52 -fill black ;<span class='nx-[namespace tail [nx::self]]'># dome
+</span>    <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> rect 65 100 90 135 -fill black ;<span class='nx-[namespace tail [nx::self]]'># cylinder
+</span>    <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> rect 90 120 92 122 -fill red -tag p0 ;<span class='nx-[namespace tail [nx::self]]'># crossbar
+</span>    <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> rect 72 87 82 100 -fill black ;<span class='nx-[namespace tail [nx::self]]'># steam tube
+</span>    <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> rect 310 40 370 115 -fill black ;<span class='nx-[namespace tail [nx::self]]'># cab
+</span>    <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> rect 310 32 390 42 -fill grey30 ;<span class='nx-[namespace tail [nx::self]]'># cab roof
+</span>    <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> text 338 82 -text <span class='nx-string'>"01 234"</span> -fill gold -font {Times 7}
+    <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> rect 318 48 333 66 -fill white ;<span class='nx-[namespace tail [nx::self]]'># cab window #1
+</span>    <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> rect 338 48 355 66 -fill white ;<span class='nx-[namespace tail [nx::self]]'># cab window #2
 </span>    Wheel <span class='nx-keyword'>new</span> -childof [<span class='nx-keyword'>self</span>] -x 50 -y 150 -r 13 -spokes 12
     Wheel <span class='nx-keyword'>new</span> -childof [<span class='nx-keyword'>self</span>] -x 105 -y 150 -r 13 -spokes 12
     Wheel <span class='nx-keyword'>new</span> -childof [<span class='nx-keyword'>self</span>] -x 150 -y 150 -r 30 -pivot 0.5 -tag p1
@@ -937,19 +939,19 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
     Wheel <span class='nx-keyword'>new</span> -childof [<span class='nx-keyword'>self</span>] -x 280 -y 150 -r 30 -pivot 0.5 -tag p3
     :drawRod p0 p1 p2 p3
     Wheel <span class='nx-keyword'>new</span> -childof [<span class='nx-keyword'>self</span>] -x 340 -y 150 -r 16 -spokes 12
-    <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> rect 360 110 380 118 -fill black
-    <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> rect 380 65 560 125 -fill black -tag tender
-    <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> rect 560 118 570 122 -fill grey30 ;<span class='nx-comment'># buffer
-</span>    <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> line 571 116 571 125
-    <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> rect 390 45 525 65 -fill black -tag tender
+    <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> rect 360 110 380 118 -fill black
+    <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> rect 380 65 560 125 -fill black -tag tender
+    <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> rect 560 118 570 122 -fill grey30 ;<span class='nx-[namespace tail [nx::self]]'># buffer
+</span>    <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> line 571 116 571 125
+    <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> rect 390 45 525 65 -fill black -tag tender
     Wheel <span class='nx-keyword'>new</span> -childof [<span class='nx-keyword'>self</span>] -x 395 -y 150 -r 13 -spokes 12
     Wheel <span class='nx-keyword'>new</span> -childof [<span class='nx-keyword'>self</span>] -x 440 -y 150 -r 13 -spokes 12
-    <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> rect 380 132 456 142 -fill red
+    <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> rect 380 132 456 142 -fill red
     Wheel <span class='nx-keyword'>new</span> -childof [<span class='nx-keyword'>self</span>] -x 495 -y 150 -r 13 -spokes 12
     Wheel <span class='nx-keyword'>new</span> -childof [<span class='nx-keyword'>self</span>] -x 540 -y 150 -r 13 -spokes 12
-    <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> rect 480 132 556 142 -fill red -outline red
-    <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> rect 0 150 600 160 -fill brown ;<span class='nx-comment'># earth
-</span>    <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> line 0 150 600 150 -fill grey -width 2 ;<span class='nx-comment'># rail
+    <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> rect 480 132 556 142 -fill red -outline red
+    <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> rect 0 150 600 160 -fill brown ;<span class='nx-[namespace tail [nx::self]]'># earth
+</span>    <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> line 0 150 600 150 -fill grey -width 2 ;<span class='nx-[namespace tail [nx::self]]'># rail
 </span>    :tick
   }
 }
@@ -961,7 +963,7 @@ Locomotive <span class='nx-keyword'>new</span></pre></div></div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2013-07-26 01:01:36 IST
+Last updated 2016-12-23 11:01:33 CET
 </div>
 </div>
 </body>

@@ -31,7 +31,7 @@ package require nx::trait
    #
    # Use the nx callback trait 
    #
-   :require trait nx::traits::callback
+   :require trait nx::trait::callback
    
    #
    # The method "cell" hides the internal respresentation and sets a

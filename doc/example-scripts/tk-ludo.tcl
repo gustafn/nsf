@@ -65,7 +65,7 @@ nx::Class create Figure {
     :property board:object,required
     :variable tag ""
 
-    :require trait nx::traits::callback
+    :require trait nx::trait::callback
 
     :method init {} {
 	#
@@ -170,7 +170,7 @@ nx::Class create Die {
     :property {bg red}
     :property {eyes 0}
 
-    :require trait nx::traits::callback
+    :require trait nx::trait::callback
 
     :method set {n} {
 	#
@@ -257,7 +257,7 @@ nx::Class create Board {
     :property {fg white}
     :property {colors:1..n {red green yellow blue}}
 
-    :require trait nx::traits::callback
+    :require trait nx::trait::callback
 
     :method lookup {var idx} {
 	#

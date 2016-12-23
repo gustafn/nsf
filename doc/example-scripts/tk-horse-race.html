@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 8.6.8" />
+<meta name="generator" content="AsciiDoc 8.6.9" />
 <title>Listing of doc/example-scripts/tk-horse-race.tcl</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -94,7 +94,9 @@ ul > li > * { color: black; }
   padding: 0;
   margin: 0;
 }
-
+pre {
+  white-space: pre-wrap;
+}
 
 #author {
   color: #527bbd;
@@ -223,7 +225,7 @@ div.exampleblock > div.content {
 }
 
 div.imageblock div.content { padding-left: 0; }
-span.image img { border-style: none; }
+span.image img { border-style: none; vertical-align: text-bottom; }
 a.image:visited { color: white; }
 
 dl {
@@ -758,149 +760,149 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <pre class='nx'><span class='nx-keyword'>package</span> <span class='nx-keyword'>require</span> Tk
 <span class='nx-keyword'>package</span> <span class='nx-keyword'>require</span> nx::trait
 
- <span class='nx-comment'>##############################################################################
-</span> <span class='nx-comment'># Trait ListUtils
-</span> <span class='nx-comment'>#
-</span> <span class='nx-comment'># Some list utilities, not part of a package we can require here.
-</span> <span class='nx-comment'>##############################################################################
+ <span class='nx-[namespace tail [nx::self]]'>##############################################################################
+</span> <span class='nx-[namespace tail [nx::self]]'># Trait ListUtils
+</span> <span class='nx-[namespace tail [nx::self]]'>#
+</span> <span class='nx-[namespace tail [nx::self]]'># Some list utilities, not part of a package we can require here.
+</span> <span class='nx-[namespace tail [nx::self]]'>##############################################################################
 </span>
- nx::Trait <span class='nx-keyword'>create</span> ::nx::traits::listUtils {
+ nx::Trait <span class='nx-keyword'>create</span> ::nx::trait::listUtils {
 
    <span class='nx-keyword'>:protected</span> <span class='nx-keyword'>method</span> lpick {<span class='nx-keyword'>list</span>} {
-     <span class='nx-comment'># return a random entry from a given list
-</span>     <span class='nx-keyword'>lindex</span> <span class='nx-variable'>$list</span> [<span class='nx-keyword'>expr</span> {int(rand()*[<span class='nx-keyword'>llength</span> <span class='nx-variable'>$list</span>])}]
+     <span class='nx-[namespace tail [nx::self]]'># return a random entry from a given list
+</span>     <span class='nx-keyword'>lindex</span> <span class='nx-[namespace tail [nx::self]]'>$list</span> [<span class='nx-keyword'>expr</span> {int(rand()*[<span class='nx-keyword'>llength</span> <span class='nx-[namespace tail [nx::self]]'>$list</span>])}]
    }
    <span class='nx-keyword'>:protected</span> <span class='nx-keyword'>method</span> lremove {listName what} {
-     <span class='nx-comment'># remove a list element referenced by the elements value
-</span>     <span class='nx-keyword'>:upvar</span> <span class='nx-variable'>$listName</span> <span class='nx-keyword'>list</span>
-     <span class='nx-keyword'>set</span> pos  [<span class='nx-keyword'>lsearch</span> <span class='nx-variable'>$list</span> <span class='nx-variable'>$what</span>]
-     <span class='nx-keyword'>set</span> <span class='nx-keyword'>list</span> [<span class='nx-keyword'>lreplace</span> <span class='nx-variable'>$list</span> <span class='nx-variable'>$pos</span> <span class='nx-variable'>$pos</span>]
+     <span class='nx-[namespace tail [nx::self]]'># remove a list element referenced by the elements value
+</span>     <span class='nx-keyword'>:upvar</span> <span class='nx-[namespace tail [nx::self]]'>$listName</span> <span class='nx-keyword'>list</span>
+     <span class='nx-keyword'>set</span> pos  [<span class='nx-keyword'>lsearch</span> <span class='nx-[namespace tail [nx::self]]'>$list</span> <span class='nx-[namespace tail [nx::self]]'>$what</span>]
+     <span class='nx-keyword'>set</span> <span class='nx-keyword'>list</span> [<span class='nx-keyword'>lreplace</span> <span class='nx-[namespace tail [nx::self]]'>$list</span> <span class='nx-[namespace tail [nx::self]]'>$pos</span> <span class='nx-[namespace tail [nx::self]]'>$pos</span>]
    }
  }
 
- <span class='nx-comment'>##############################################################################
-</span> <span class='nx-comment'># Class Horse
-</span> <span class='nx-comment'>#
-</span> <span class='nx-comment'># This class defines the logic, how and where a single horse and
-</span> <span class='nx-comment'># jockey are drawn. The painting of the horse happens just at startup
-</span> <span class='nx-comment'># time, later the horses are moved via their tags.
-</span> <span class='nx-comment'>##############################################################################
+ <span class='nx-[namespace tail [nx::self]]'>##############################################################################
+</span> <span class='nx-[namespace tail [nx::self]]'># Class Horse
+</span> <span class='nx-[namespace tail [nx::self]]'>#
+</span> <span class='nx-[namespace tail [nx::self]]'># This class defines the logic, how and where a single horse and
+</span> <span class='nx-[namespace tail [nx::self]]'># jockey are drawn. The painting of the horse happens just at startup
+</span> <span class='nx-[namespace tail [nx::self]]'># time, later the horses are moved via their tags.
+</span> <span class='nx-[namespace tail [nx::self]]'>##############################################################################
 </span>
  <span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Horse {
-   <span class='nx-keyword'>:property</span> name:required      ;<span class='nx-comment'># name is the external name of the horse
-</span>   <span class='nx-keyword'>:property</span> tag:required       ;<span class='nx-comment'># tag is an internal id
-</span>   <span class='nx-keyword'>:property</span> canvas:required    ;<span class='nx-comment'># the canvas, on which the horse is drawn
-</span>   <span class='nx-keyword'>:property</span> n:integer,required ;<span class='nx-comment'># the position on the canvas
+   <span class='nx-keyword'>:property</span> name:required      ;<span class='nx-[namespace tail [nx::self]]'># name is the external name of the horse
+</span>   <span class='nx-keyword'>:property</span> tag:required       ;<span class='nx-[namespace tail [nx::self]]'># tag is an internal id
+</span>   <span class='nx-keyword'>:property</span> canvas:required    ;<span class='nx-[namespace tail [nx::self]]'># the canvas, on which the horse is drawn
+</span>   <span class='nx-keyword'>:property</span> n:integer,required ;<span class='nx-[namespace tail [nx::self]]'># the position on the canvas
 </span>
-   <span class='nx-keyword'>:require</span> trait nx::traits::callback
-   <span class='nx-keyword'>:require</span> trait nx::traits::listUtils
+   <span class='nx-keyword'>:require</span> trait nx::trait::callback
+   <span class='nx-keyword'>:require</span> trait nx::trait::listUtils
 
    <span class='nx-keyword'>:method</span> draw {x y} {
      <span class='nx-keyword'>set</span> hide [:lpick {black brown white gray brown3 brown4}]
      <span class='nx-keyword'>set</span> c1 [:lpick {red yellow blue purple pink green}]
      <span class='nx-keyword'>set</span> c2 [:lpick {red yellow blue purple pink green}]
-     <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> <span class='nx-keyword'>create</span> oval 0 -1 18 4 -fill <span class='nx-variable'>$hide</span> -outline <span class='nx-variable'>$hide</span> -tag <span class='nx-variable'>${</span><span class='nx-variable'>:tag}</span>
-     <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> <span class='nx-keyword'>create</span> line 1 12 3 0 5 12 -fill <span class='nx-variable'>$hide</span> -tag <span class='nx-variable'>${</span><span class='nx-variable'>:tag}</span> -width 2
-     <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> <span class='nx-keyword'>create</span> line 15 12 17 0 19 12 -fill <span class='nx-variable'>$hide</span> -tag <span class='nx-variable'>${</span><span class='nx-variable'>:tag}</span> -width 2
-     <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> <span class='nx-keyword'>create</span> line 16 0 20 -7 24 -5 -fill <span class='nx-variable'>$hide</span> -tag <span class='nx-variable'>${</span><span class='nx-variable'>:tag}</span> -width 3
-     <span class='nx-comment'># Jockey:
-</span>     <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> <span class='nx-keyword'>create</span> line 9 4 11 1 7 -1 -fill <span class='nx-variable'>$c1</span> -width 2 -tag <span class='nx-variable'>${</span><span class='nx-variable'>:tag}</span>
-     <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> <span class='nx-keyword'>create</span> line 7 -2 10 -6 15 -3 -fill <span class='nx-variable'>$c2</span> -width 2 -tag <span class='nx-variable'>${</span><span class='nx-variable'>:tag}</span>
-     <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> <span class='nx-keyword'>create</span> oval 9 -7 12 -10 -fill orange -outline orange -tag <span class='nx-variable'>${</span><span class='nx-variable'>:tag}</span>
-     <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> <span class='nx-keyword'>move</span> <span class='nx-variable'>${</span><span class='nx-variable'>:tag}</span> <span class='nx-variable'>$x</span> <span class='nx-variable'>$y</span>
+     <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:canvas}</span> <span class='nx-keyword'>create</span> oval 0 -1 18 4 -fill <span class='nx-[namespace tail [nx::self]]'>$hide</span> -outline <span class='nx-[namespace tail [nx::self]]'>$hide</span> -tag <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:tag}</span>
+     <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:canvas}</span> <span class='nx-keyword'>create</span> line 1 12 3 0 5 12 -fill <span class='nx-[namespace tail [nx::self]]'>$hide</span> -tag <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:tag}</span> -width 2
+     <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:canvas}</span> <span class='nx-keyword'>create</span> line 15 12 17 0 19 12 -fill <span class='nx-[namespace tail [nx::self]]'>$hide</span> -tag <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:tag}</span> -width 2
+     <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:canvas}</span> <span class='nx-keyword'>create</span> line 16 0 20 -7 24 -5 -fill <span class='nx-[namespace tail [nx::self]]'>$hide</span> -tag <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:tag}</span> -width 3
+     <span class='nx-[namespace tail [nx::self]]'># Jockey:
+</span>     <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:canvas}</span> <span class='nx-keyword'>create</span> line 9 4 11 1 7 -1 -fill <span class='nx-[namespace tail [nx::self]]'>$c1</span> -width 2 -tag <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:tag}</span>
+     <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:canvas}</span> <span class='nx-keyword'>create</span> line 7 -2 10 -6 15 -3 -fill <span class='nx-[namespace tail [nx::self]]'>$c2</span> -width 2 -tag <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:tag}</span>
+     <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:canvas}</span> <span class='nx-keyword'>create</span> oval 9 -7 12 -10 -fill orange -outline orange -tag <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:tag}</span>
+     <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:canvas}</span> <span class='nx-keyword'>move</span> <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:tag}</span> <span class='nx-[namespace tail [nx::self]]'>$x</span> <span class='nx-[namespace tail [nx::self]]'>$y</span>
    }
 
    <span class='nx-keyword'>:method</span> <span class='nx-keyword'>init</span> {} {
-     <span class='nx-keyword'>set</span> w [entry <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span>.e<span class='nx-variable'>${</span><span class='nx-variable'>:n}</span> -textvar [:bindvar name] -width 7 -bg green3]
-     <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> <span class='nx-keyword'>create</span> window 5 [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:n}</span>*30+5}] -window <span class='nx-variable'>$w</span> -anchor nw
-     :draw 70 [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:n}</span>*30+14}]
+     <span class='nx-keyword'>set</span> w [entry <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:canvas}</span>.e<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:n}</span> -textvar [:bindvar name] -width 7 -bg green3]
+     <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:canvas}</span> <span class='nx-keyword'>create</span> window 5 [<span class='nx-keyword'>expr</span> {<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:n}</span>*30+5}] -window <span class='nx-[namespace tail [nx::self]]'>$w</span> -anchor nw
+     :draw 70 [<span class='nx-keyword'>expr</span> {<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:n}</span>*30+14}]
    }
  }
 
- <span class='nx-comment'>##############################################################################
-</span> <span class='nx-comment'># Class HorseGame
-</span> <span class='nx-comment'>#
-</span> <span class='nx-comment'># Defines the main canvas of the Game and contains the logic of
-</span> <span class='nx-comment'># starting, resetting etc.
-</span> <span class='nx-comment'>##############################################################################
+ <span class='nx-[namespace tail [nx::self]]'>##############################################################################
+</span> <span class='nx-[namespace tail [nx::self]]'># Class HorseGame
+</span> <span class='nx-[namespace tail [nx::self]]'>#
+</span> <span class='nx-[namespace tail [nx::self]]'># Defines the main canvas of the Game and contains the logic of
+</span> <span class='nx-[namespace tail [nx::self]]'># starting, resetting etc.
+</span> <span class='nx-[namespace tail [nx::self]]'>##############################################################################
 </span>
  <span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> HorseGame {
-   <span class='nx-keyword'>:property</span> {bg1 green4}   ;<span class='nx-comment'># background color of the canvas
-</span>   <span class='nx-keyword'>:property</span> {bg2 green3}   ;<span class='nx-comment'># background color of the result label
-</span>   <span class='nx-keyword'>:property</span> {width 750}    ;<span class='nx-comment'># width of the canvas
-</span>   <span class='nx-keyword'>:property</span> {height 330}   ;<span class='nx-comment'># height of the canvas
-</span>   <span class='nx-keyword'>:property</span> {horses}       ;<span class='nx-comment'># a list of horse names participating in the game
+   <span class='nx-keyword'>:property</span> {bg1 green4}   ;<span class='nx-[namespace tail [nx::self]]'># background color of the canvas
+</span>   <span class='nx-keyword'>:property</span> {bg2 green3}   ;<span class='nx-[namespace tail [nx::self]]'># background color of the result label
+</span>   <span class='nx-keyword'>:property</span> {width 750}    ;<span class='nx-[namespace tail [nx::self]]'># width of the canvas
+</span>   <span class='nx-keyword'>:property</span> {height 330}   ;<span class='nx-[namespace tail [nx::self]]'># height of the canvas
+</span>   <span class='nx-keyword'>:property</span> {horses}       ;<span class='nx-[namespace tail [nx::self]]'># a list of horse names participating in the game
 </span>
-   <span class='nx-keyword'>:require</span> trait nx::traits::callback
-   <span class='nx-keyword'>:require</span> trait nx::traits::listUtils
+   <span class='nx-keyword'>:require</span> trait nx::trait::callback
+   <span class='nx-keyword'>:require</span> trait nx::trait::listUtils
 
    <span class='nx-keyword'>:method</span> <span class='nx-keyword'>init</span> {} {
-     <span class='nx-comment'>#
-</span>     <span class='nx-comment'># create the canvas
-</span>     <span class='nx-comment'>#
-</span>     <span class='nx-keyword'>set</span> :canvas [canvas .c -bg <span class='nx-variable'>${</span><span class='nx-variable'>:bg1}</span> -width <span class='nx-variable'>${</span><span class='nx-variable'>:width}</span> -height <span class='nx-variable'>${</span><span class='nx-variable'>:height}</span>]
-     pack <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span>
-     <span class='nx-comment'>#
-</span>     <span class='nx-comment'># create the Horses
-</span>     <span class='nx-comment'>#
+     <span class='nx-[namespace tail [nx::self]]'>#
+</span>     <span class='nx-[namespace tail [nx::self]]'># create the canvas
+</span>     <span class='nx-[namespace tail [nx::self]]'>#
+</span>     <span class='nx-keyword'>set</span> :canvas [canvas .c -bg <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:bg1}</span> -width <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:width}</span> -height <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:height}</span>]
+     pack <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:canvas}</span>
+     <span class='nx-[namespace tail [nx::self]]'>#
+</span>     <span class='nx-[namespace tail [nx::self]]'># create the Horses
+</span>     <span class='nx-[namespace tail [nx::self]]'>#
 </span>     <span class='nx-keyword'>set</span> n 0
-     <span class='nx-keyword'>foreach</span> name <span class='nx-variable'>${</span><span class='nx-variable'>:horses}</span> {
-       <span class='nx-keyword'>set</span> h [::Horse <span class='nx-keyword'>create</span> horse<span class='nx-variable'>$n</span> -name <span class='nx-variable'>$name</span> -canvas <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> -n <span class='nx-variable'>$n</span> -tag horse<span class='nx-variable'>$n</span>]
-       <span class='nx-keyword'>lappend</span> :tags horse<span class='nx-variable'>$n</span>
+     <span class='nx-keyword'>foreach</span> name <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:horses}</span> {
+       <span class='nx-keyword'>set</span> h [::Horse <span class='nx-keyword'>create</span> horse<span class='nx-[namespace tail [nx::self]]'>$n</span> -name <span class='nx-[namespace tail [nx::self]]'>$name</span> -canvas <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:canvas}</span> -n <span class='nx-[namespace tail [nx::self]]'>$n</span> -tag horse<span class='nx-[namespace tail [nx::self]]'>$n</span>]
+       <span class='nx-keyword'>lappend</span> :tags horse<span class='nx-[namespace tail [nx::self]]'>$n</span>
        <span class='nx-keyword'>incr</span> n
      }
 
-     <span class='nx-comment'># finish line
-</span>     <span class='nx-keyword'>set</span> w [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:width}</span> - 20}]
-     <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> <span class='nx-keyword'>create</span> line <span class='nx-variable'>$w</span> 0 <span class='nx-variable'>$w</span> <span class='nx-variable'>${</span><span class='nx-variable'>:height}</span> -fill white -tag finish
+     <span class='nx-[namespace tail [nx::self]]'># finish line
+</span>     <span class='nx-keyword'>set</span> w [<span class='nx-keyword'>expr</span> {<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:width}</span> - 20}]
+     <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:canvas}</span> <span class='nx-keyword'>create</span> line <span class='nx-[namespace tail [nx::self]]'>$w</span> 0 <span class='nx-[namespace tail [nx::self]]'>$w</span> <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:height}</span> -fill white -tag finish
 
-     <span class='nx-comment'># start button
-</span>     button <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span>.button -text Start -pady 0 -width 0 \
-         -command [:callback start <span class='nx-variable'>${</span><span class='nx-variable'>:tags}</span>]
-     <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> <span class='nx-keyword'>create</span> window 5 [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$n</span>*30}] -window <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span>.button -anchor nw
+     <span class='nx-[namespace tail [nx::self]]'># start button
+</span>     button <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:canvas}</span>.button -text Start -pady 0 -width 0 \
+         -command [:callback start <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:tags}</span>]
+     <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:canvas}</span> <span class='nx-keyword'>create</span> window 5 [<span class='nx-keyword'>expr</span> {<span class='nx-[namespace tail [nx::self]]'>$n</span>*30}] -window <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:canvas}</span>.button -anchor nw
 
-     <span class='nx-comment'># label for the results
-</span>     label <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span>.winners -textvar [:bindvar winners] -bg <span class='nx-variable'>${</span><span class='nx-variable'>:bg2}</span> -width 80
-     <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> <span class='nx-keyword'>create</span> window 70 [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$n</span>*30}] -window <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span>.winners -anchor nw
+     <span class='nx-[namespace tail [nx::self]]'># label for the results
+</span>     label <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:canvas}</span>.winners -textvar [:bindvar winners] -bg <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:bg2}</span> -width 80
+     <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:canvas}</span> <span class='nx-keyword'>create</span> window 70 [<span class='nx-keyword'>expr</span> {<span class='nx-[namespace tail [nx::self]]'>$n</span>*30}] -window <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:canvas}</span>.winners -anchor nw
    }
 
    <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> start {running} {
-     <span class='nx-comment'>#
-</span>     <span class='nx-comment'># When the "Start" button is pressed, we turn this button into a
-</span>     <span class='nx-comment'># "Reset" button and the horse race starts. We stop, when more
-</span>     <span class='nx-comment'># than two horses pass the finish line.
-</span>     <span class='nx-comment'>#
-</span>     <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span>.button config -text Reset -command [:callback reset]
+     <span class='nx-[namespace tail [nx::self]]'>#
+</span>     <span class='nx-[namespace tail [nx::self]]'># When the "Start" button is pressed, we turn this button into a
+</span>     <span class='nx-[namespace tail [nx::self]]'># "Reset" button and the horse race starts. We stop, when more
+</span>     <span class='nx-[namespace tail [nx::self]]'># than two horses pass the finish line.
+</span>     <span class='nx-[namespace tail [nx::self]]'>#
+</span>     <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:canvas}</span>.button config -text Reset -command [:callback reset]
      <span class='nx-keyword'>set</span> :winners {}
-     <span class='nx-keyword'>set</span> finish [<span class='nx-keyword'>expr</span> {[<span class='nx-keyword'>lindex</span> [<span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> bbox finish] 2]+10}]
-     <span class='nx-keyword'>while</span> {[<span class='nx-keyword'>llength</span> <span class='nx-variable'>${</span><span class='nx-variable'>:winners}</span>]&lt;3} {
-       <span class='nx-keyword'>set</span> this [:lpick <span class='nx-variable'>$running</span>]
-       <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> <span class='nx-keyword'>move</span> <span class='nx-variable'>$this</span> [:lpick {0 1 2 3}] 0
+     <span class='nx-keyword'>set</span> finish [<span class='nx-keyword'>expr</span> {[<span class='nx-keyword'>lindex</span> [<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:canvas}</span> bbox finish] 2]+10}]
+     <span class='nx-keyword'>while</span> {[<span class='nx-keyword'>llength</span> <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:winners}</span>]&lt;3} {
+       <span class='nx-keyword'>set</span> this [:lpick <span class='nx-[namespace tail [nx::self]]'>$running</span>]
+       <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:canvas}</span> <span class='nx-keyword'>move</span> <span class='nx-[namespace tail [nx::self]]'>$this</span> [:lpick {0 1 2 3}] 0
        <span class='nx-keyword'>update</span>
-       <span class='nx-keyword'>if</span> {[<span class='nx-keyword'>lindex</span> [<span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> bbox <span class='nx-variable'>$this</span>] 2] &gt; <span class='nx-variable'>$finish</span>} {
-         <span class='nx-keyword'>lappend</span> :winners [<span class='nx-keyword'>expr</span> {[<span class='nx-keyword'>llength</span> <span class='nx-variable'>${</span><span class='nx-variable'>:winners}</span>]+1}]:[<span class='nx-variable'>$this</span> <span class='nx-keyword'>cget</span> -name]
-         :lremove running <span class='nx-variable'>$this</span>
+       <span class='nx-keyword'>if</span> {[<span class='nx-keyword'>lindex</span> [<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:canvas}</span> bbox <span class='nx-[namespace tail [nx::self]]'>$this</span>] 2] &gt; <span class='nx-[namespace tail [nx::self]]'>$finish</span>} {
+         <span class='nx-keyword'>lappend</span> :winners [<span class='nx-keyword'>expr</span> {[<span class='nx-keyword'>llength</span> <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:winners}</span>]+1}]:[<span class='nx-[namespace tail [nx::self]]'>$this</span> <span class='nx-keyword'>cget</span> -name]
+         :lremove running <span class='nx-[namespace tail [nx::self]]'>$this</span>
        }
      }
    }
 
    <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> reset {} {
-     <span class='nx-comment'>#
-</span>     <span class='nx-comment'># When the "Reset" button is pressed, we switch back to the start
-</span>     <span class='nx-comment'># configuration, the horses come back to the start.
-</span>     <span class='nx-comment'>#
-</span>     <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span>.button config -text Start -command [:callback start <span class='nx-variable'>${</span><span class='nx-variable'>:tags}</span>]
-     <span class='nx-keyword'>foreach</span> tag <span class='nx-variable'>${</span><span class='nx-variable'>:tags}</span> {
-       <span class='nx-keyword'>set</span> x [<span class='nx-keyword'>lindex</span> [<span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> bbox <span class='nx-variable'>$tag</span>] 0]
-       <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> <span class='nx-keyword'>move</span> <span class='nx-variable'>$tag</span> [<span class='nx-keyword'>expr</span> {70-<span class='nx-variable'>$x</span>}] 0
+     <span class='nx-[namespace tail [nx::self]]'>#
+</span>     <span class='nx-[namespace tail [nx::self]]'># When the "Reset" button is pressed, we switch back to the start
+</span>     <span class='nx-[namespace tail [nx::self]]'># configuration, the horses come back to the start.
+</span>     <span class='nx-[namespace tail [nx::self]]'>#
+</span>     <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:canvas}</span>.button config -text Start -command [:callback start <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:tags}</span>]
+     <span class='nx-keyword'>foreach</span> tag <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:tags}</span> {
+       <span class='nx-keyword'>set</span> x [<span class='nx-keyword'>lindex</span> [<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:canvas}</span> bbox <span class='nx-[namespace tail [nx::self]]'>$tag</span>] 0]
+       <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:canvas}</span> <span class='nx-keyword'>move</span> <span class='nx-[namespace tail [nx::self]]'>$tag</span> [<span class='nx-keyword'>expr</span> {70-<span class='nx-[namespace tail [nx::self]]'>$x</span>}] 0
      }
    }
  }
 
- <span class='nx-comment'>#
-</span> <span class='nx-comment'># everything is defined, create the game
-</span> <span class='nx-comment'>#
-</span> bind . &lt;space&gt; {<span class='nx-keyword'>exec</span> wish <span class='nx-variable'>$argv0</span> &amp;; <span class='nx-keyword'>exit</span>}
+ <span class='nx-[namespace tail [nx::self]]'>#
+</span> <span class='nx-[namespace tail [nx::self]]'># everything is defined, create the game
+</span> <span class='nx-[namespace tail [nx::self]]'>#
+</span> bind . &lt;space&gt; {<span class='nx-keyword'>exec</span> wish <span class='nx-[namespace tail [nx::self]]'>$argv0</span> &amp;; <span class='nx-keyword'>exit</span>}
  HorseGame <span class='nx-keyword'>new</span> -horses {Blaise NX Animal Ada Alan XOTcl Grace itcl John Linus}</pre></div></div>
 </div>
 </div>
@@ -908,7 +910,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2013-06-07 14:19:11 CEST
+Last updated 2016-12-23 11:04:14 CET
 </div>
 </div>
 </body>

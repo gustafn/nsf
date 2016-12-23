@@ -85,7 +85,7 @@ nx::Class create Wheel {
 nx::Class create Locomotive {
   :property {speed 4}
 
-  :require trait nx::traits::callback
+  :require trait nx::trait::callback
 
   :method turn {} {
     set :alpha [expr {round(${:alpha} + 360 - ${:speed}) % 360}]

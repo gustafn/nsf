@@ -230,7 +230,17 @@ New Features
   * They are more robust: Don't quit due to inner [return] calls,
      [exit] is handled gracefully.
 
-  * Shell tests were added (shells.test).
+  * Added tests for the shells to the regression test suite
+    (shells.test).
+
+- Traits:
+
+  * The name of the namespace of traits changed from
+      nx::traits::XXX
+    to
+      nx::trait::XXX
+    in order to improve naming orthogonality with the
+    trait management package "nx::trait".
 
 
 - MongoDB interface upgrade:

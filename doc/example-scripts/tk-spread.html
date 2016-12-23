@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 8.6.8" />
+<meta name="generator" content="AsciiDoc 8.6.9" />
 <title>Listing of doc/example-scripts/tk-spread.tcl</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -94,7 +94,9 @@ ul > li > * { color: black; }
   padding: 0;
   margin: 0;
 }
-
+pre {
+  white-space: pre-wrap;
+}
 
 #author {
   color: #527bbd;
@@ -223,7 +225,7 @@ div.exampleblock > div.content {
 }
 
 div.imageblock div.content { padding-left: 0; }
-span.image img { border-style: none; }
+span.image img { border-style: none; vertical-align: text-bottom; }
 a.image:visited { color: white; }
 
 dl {
@@ -759,90 +761,90 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <pre class='nx'><span class='nx-keyword'>package</span> <span class='nx-keyword'>require</span> Tk
 <span class='nx-keyword'>package</span> <span class='nx-keyword'>require</span> nx::trait
 
- <span class='nx-comment'>##############################################################################
-</span> <span class='nx-comment'># Class SpreadSheet
-</span> <span class='nx-comment'>#
-</span> <span class='nx-comment'># The SpreadSheet computes simply totals for rows and columns.
-</span> <span class='nx-comment'>##############################################################################
+ <span class='nx-[namespace tail [nx::self]]'>##############################################################################
+</span> <span class='nx-[namespace tail [nx::self]]'># Class SpreadSheet
+</span> <span class='nx-[namespace tail [nx::self]]'>#
+</span> <span class='nx-[namespace tail [nx::self]]'># The SpreadSheet computes simply totals for rows and columns.
+</span> <span class='nx-[namespace tail [nx::self]]'>##############################################################################
 </span> <span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> SpreadSheet {
-   <span class='nx-comment'>#
-</span>   <span class='nx-comment'># The following attributes can be used for configuring the
-</span>   <span class='nx-comment'># spreadsheet.
-</span>   <span class='nx-comment'>#
+   <span class='nx-[namespace tail [nx::self]]'>#
+</span>   <span class='nx-[namespace tail [nx::self]]'># The following attributes can be used for configuring the
+</span>   <span class='nx-[namespace tail [nx::self]]'># spreadsheet.
+</span>   <span class='nx-[namespace tail [nx::self]]'>#
 </span>   <span class='nx-keyword'>:property</span> {rows:integer 3}
    <span class='nx-keyword'>:property</span> {cols:integer 2}
    <span class='nx-keyword'>:property</span> {width:integer 8}
 
-   <span class='nx-comment'>#
-</span>   <span class='nx-comment'># If no widget is provided, use the name of the object as widget
-</span>   <span class='nx-comment'># name.
-</span>   <span class='nx-comment'>#
-</span>   <span class='nx-keyword'>:property</span> -accessor <span class='nx-keyword'>public</span> {widget <span class='nx-string'>".[namespace tail [self]]"</span>}
+   <span class='nx-[namespace tail [nx::self]]'>#
+</span>   <span class='nx-[namespace tail [nx::self]]'># If no widget is provided, use the name of the object as widget
+</span>   <span class='nx-[namespace tail [nx::self]]'># name.
+</span>   <span class='nx-[namespace tail [nx::self]]'>#
+</span>   <span class='nx-keyword'>:property</span> {widget <span class='nx-string'>".[namespace tail [self]]"</span>}
 
-   <span class='nx-comment'>#
-</span>   <span class='nx-comment'># Use the nx callback trait
-</span>   <span class='nx-comment'>#
-</span>   <span class='nx-keyword'>:require</span> trait nx::traits::callback
+   <span class='nx-[namespace tail [nx::self]]'>#
+</span>   <span class='nx-[namespace tail [nx::self]]'># Use the nx callback trait
+</span>   <span class='nx-[namespace tail [nx::self]]'>#
+</span>   <span class='nx-keyword'>:require</span> trait nx::trait::callback
 
-   <span class='nx-comment'>#
-</span>   <span class='nx-comment'># The method "cell" hides the internal respresentation and sets a
-</span>   <span class='nx-comment'># cell to a value.
-</span>   <span class='nx-comment'>#
+   <span class='nx-[namespace tail [nx::self]]'>#
+</span>   <span class='nx-[namespace tail [nx::self]]'># The method "cell" hides the internal respresentation and sets a
+</span>   <span class='nx-[namespace tail [nx::self]]'># cell to a value.
+</span>   <span class='nx-[namespace tail [nx::self]]'>#
 </span>   <span class='nx-keyword'>:method</span> cell {pair value} {
-     <span class='nx-keyword'>set</span> :data(<span class='nx-variable'>$pair</span>) <span class='nx-variable'>$value</span>
+     <span class='nx-keyword'>set</span> :data(<span class='nx-[namespace tail [nx::self]]'>$pair</span>) <span class='nx-[namespace tail [nx::self]]'>$value</span>
    }
 
-   <span class='nx-comment'>#
-</span>   <span class='nx-comment'># The constructor builds the SpreadSheet matrix via multiple text
-</span>   <span class='nx-comment'># entry fields.
-</span>   <span class='nx-comment'>#
+   <span class='nx-[namespace tail [nx::self]]'>#
+</span>   <span class='nx-[namespace tail [nx::self]]'># The constructor builds the SpreadSheet matrix via multiple text
+</span>   <span class='nx-[namespace tail [nx::self]]'># entry fields.
+</span>   <span class='nx-[namespace tail [nx::self]]'>#
 </span>   <span class='nx-keyword'>:method</span> <span class='nx-keyword'>init</span> {} {
-     <span class='nx-keyword'>set</span> :last <span class='nx-variable'>${</span><span class='nx-variable'>:rows}</span>,<span class='nx-variable'>${</span><span class='nx-variable'>:cols}</span>  ;<span class='nx-comment'># keep grand total field
+     <span class='nx-keyword'>set</span> :last <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:rows}</span>,<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:cols}</span>  ;<span class='nx-[namespace tail [nx::self]]'># keep grand total field
 </span>     <span class='nx-keyword'>trace</span> var [:bindvar data] w [:callback redo]
-     frame <span class='nx-variable'>${</span><span class='nx-variable'>:widget}</span>
-     <span class='nx-keyword'>for</span> {<span class='nx-keyword'>set</span> y 0} {<span class='nx-variable'>$y</span> &lt;= <span class='nx-variable'>${</span><span class='nx-variable'>:rows}</span>} {<span class='nx-keyword'>incr</span> y} {
+     frame <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:widget}</span>
+     <span class='nx-keyword'>for</span> {<span class='nx-keyword'>set</span> y 0} {<span class='nx-[namespace tail [nx::self]]'>$y</span> &lt;= <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:rows}</span>} {<span class='nx-keyword'>incr</span> y} {
        <span class='nx-keyword'>set</span> row [<span class='nx-keyword'>list</span>]
-       <span class='nx-keyword'>for</span> {<span class='nx-keyword'>set</span> x 0} {<span class='nx-variable'>$x</span> &lt;= <span class='nx-variable'>${</span><span class='nx-variable'>:cols}</span>} {<span class='nx-keyword'>incr</span> x} {
-         <span class='nx-keyword'>set</span> e [entry <span class='nx-variable'>${</span><span class='nx-variable'>:widget}</span>.<span class='nx-variable'>$y</span>,<span class='nx-variable'>$x</span> -width <span class='nx-variable'>${</span><span class='nx-variable'>:width}</span> \
-                    -textvar [:bindvar data(<span class='nx-variable'>$y</span>,<span class='nx-variable'>$x</span>)] -just right]
-         <span class='nx-keyword'>if</span> {<span class='nx-variable'>$x</span>==<span class='nx-variable'>${</span><span class='nx-variable'>:cols}</span> || <span class='nx-variable'>$y</span>==<span class='nx-variable'>${</span><span class='nx-variable'>:rows}</span>} {
-           <span class='nx-variable'>$e</span> config -state disabled -background grey -relief flat
+       <span class='nx-keyword'>for</span> {<span class='nx-keyword'>set</span> x 0} {<span class='nx-[namespace tail [nx::self]]'>$x</span> &lt;= <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:cols}</span>} {<span class='nx-keyword'>incr</span> x} {
+         <span class='nx-keyword'>set</span> e [entry <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:widget}</span>.<span class='nx-[namespace tail [nx::self]]'>$y</span>,<span class='nx-[namespace tail [nx::self]]'>$x</span> -width <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:width}</span> \
+                    -textvar [:bindvar data(<span class='nx-[namespace tail [nx::self]]'>$y</span>,<span class='nx-[namespace tail [nx::self]]'>$x</span>)] -just right]
+         <span class='nx-keyword'>if</span> {<span class='nx-[namespace tail [nx::self]]'>$x</span>==<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:cols}</span> || <span class='nx-[namespace tail [nx::self]]'>$y</span>==<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:rows}</span>} {
+           <span class='nx-[namespace tail [nx::self]]'>$e</span> config -state disabled -background grey -relief flat
          }
-         <span class='nx-keyword'>lappend</span> row <span class='nx-variable'>$e</span>
+         <span class='nx-keyword'>lappend</span> row <span class='nx-[namespace tail [nx::self]]'>$e</span>
        }
-       grid {*}<span class='nx-variable'>$row</span> -sticky news
+       grid {*}<span class='nx-[namespace tail [nx::self]]'>$row</span> -sticky news
      }
-     <span class='nx-variable'>$e</span> config -relief solid
+     <span class='nx-[namespace tail [nx::self]]'>$e</span> config -relief solid
    }
 
-   <span class='nx-comment'>#
-</span>   <span class='nx-comment'># The method "redo" is triggered via the updates in the cells
-</span>   <span class='nx-comment'>#
+   <span class='nx-[namespace tail [nx::self]]'>#
+</span>   <span class='nx-[namespace tail [nx::self]]'># The method "redo" is triggered via the updates in the cells
+</span>   <span class='nx-[namespace tail [nx::self]]'>#
 </span>   <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> redo {varname el op} {
-     <span class='nx-keyword'>if</span> {<span class='nx-variable'>$el</span> ne <span class='nx-variable'>${</span><span class='nx-variable'>:last}</span>} {
-       <span class='nx-keyword'>lassign</span> [<span class='nx-keyword'>split</span> <span class='nx-variable'>$el</span> ,] y x
-       <span class='nx-keyword'>if</span> {<span class='nx-variable'>$x</span> ne <span class='nx-string'>""</span>} {
-         :sum <span class='nx-variable'>$y</span>,* <span class='nx-variable'>$y</span>,<span class='nx-variable'>${</span><span class='nx-variable'>:cols}</span>
-         :sum *,<span class='nx-variable'>$x</span> <span class='nx-variable'>${</span><span class='nx-variable'>:rows}</span>,<span class='nx-variable'>$x</span>
-       } ;<span class='nx-comment'># otherwise 'el' was not a cell index
-</span>     }   ;<span class='nx-comment'># prevent endless recalculation of grand total
+     <span class='nx-keyword'>if</span> {<span class='nx-[namespace tail [nx::self]]'>$el</span> ne <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:last}</span>} {
+       <span class='nx-keyword'>lassign</span> [<span class='nx-keyword'>split</span> <span class='nx-[namespace tail [nx::self]]'>$el</span> ,] y x
+       <span class='nx-keyword'>if</span> {<span class='nx-[namespace tail [nx::self]]'>$x</span> ne <span class='nx-string'>""</span>} {
+         :sum <span class='nx-[namespace tail [nx::self]]'>$y</span>,* <span class='nx-[namespace tail [nx::self]]'>$y</span>,<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:cols}</span>
+         :sum *,<span class='nx-[namespace tail [nx::self]]'>$x</span> <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:rows}</span>,<span class='nx-[namespace tail [nx::self]]'>$x</span>
+       } ;<span class='nx-[namespace tail [nx::self]]'># otherwise 'el' was not a cell index
+</span>     }   ;<span class='nx-[namespace tail [nx::self]]'># prevent endless recalculation of grand total
 </span>   }
 
-   <span class='nx-comment'>#
-</span>   <span class='nx-comment'># The method "sum" adds the values matched by pattern (typically a
-</span>   <span class='nx-comment'># row or column) and sets finally the target column with the total
-</span>   <span class='nx-comment'>#
+   <span class='nx-[namespace tail [nx::self]]'>#
+</span>   <span class='nx-[namespace tail [nx::self]]'># The method "sum" adds the values matched by pattern (typically a
+</span>   <span class='nx-[namespace tail [nx::self]]'># row or column) and sets finally the target column with the total
+</span>   <span class='nx-[namespace tail [nx::self]]'>#
 </span>   <span class='nx-keyword'>:method</span> sum {pat target} {
      <span class='nx-keyword'>set</span> sum 0
-     <span class='nx-keyword'>set</span> total <span class='nx-string'>""</span> ;<span class='nx-comment'># default if no addition succeeds
-</span>     <span class='nx-keyword'>foreach</span> {i value} [<span class='nx-keyword'>array</span> get :data <span class='nx-variable'>$pat</span>] {
-       <span class='nx-keyword'>if</span> {<span class='nx-variable'>$i</span> != <span class='nx-variable'>$target</span>} {
-         <span class='nx-keyword'>if</span> {[<span class='nx-keyword'>string</span> is double -strict <span class='nx-variable'>$value</span>]} {
-           <span class='nx-keyword'>set</span> total [<span class='nx-keyword'>set</span> sum [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$sum</span> + <span class='nx-variable'>$value</span>}]]
+     <span class='nx-keyword'>set</span> total <span class='nx-string'>""</span> ;<span class='nx-[namespace tail [nx::self]]'># default if no addition succeeds
+</span>     <span class='nx-keyword'>foreach</span> {i value} [<span class='nx-keyword'>array</span> get :data <span class='nx-[namespace tail [nx::self]]'>$pat</span>] {
+       <span class='nx-keyword'>if</span> {<span class='nx-[namespace tail [nx::self]]'>$i</span> != <span class='nx-[namespace tail [nx::self]]'>$target</span>} {
+         <span class='nx-keyword'>if</span> {[<span class='nx-keyword'>string</span> is double -strict <span class='nx-[namespace tail [nx::self]]'>$value</span>]} {
+           <span class='nx-keyword'>set</span> total [<span class='nx-keyword'>set</span> sum [<span class='nx-keyword'>expr</span> {<span class='nx-[namespace tail [nx::self]]'>$sum</span> + <span class='nx-[namespace tail [nx::self]]'>$value</span>}]]
          }
        }
      }
-     :cell <span class='nx-variable'>$target</span> <span class='nx-variable'>$total</span>
+     :cell <span class='nx-[namespace tail [nx::self]]'>$target</span> <span class='nx-[namespace tail [nx::self]]'>$total</span>
    }
  }</pre></div></div>
 <div class="paragraph"><p>Build spreadsheet "x"</p></div>
@@ -858,7 +860,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
 <pre class='nx'>SpreadSheet <span class='nx-keyword'>create</span> x {
-   <span class='nx-comment'># populate with some values
+   <span class='nx-[namespace tail [nx::self]]'># populate with some values
 </span>   :cell 0,0 Spread1
    :cell 1,0 47
    :cell 2,1 11
@@ -892,14 +894,14 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'>pack [x widget] [y widget] -fill both</pre></div></div>
+<pre class='nx'>pack [x <span class='nx-keyword'>cget</span> -widget] [y <span class='nx-keyword'>cget</span> -widget] -fill both</pre></div></div>
 </div>
 </div>
 </div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2013-06-07 09:47:51 CEST
+Last updated 2016-12-23 11:00:51 CET
 </div>
 </div>
 </body>
