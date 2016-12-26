@@ -88,7 +88,7 @@ New Features
   * Add script-level access to the NSF argument parser to conveniently
     process, e.g., non-positional parameters/arguments and value
     checkers. See
-    https://next-scripting.org/2.1.0/doc/nx/tutorial/index1#_parameters
+    https://next-scripting.org/xowiki/docs/nx/tutorial/index1#_parameters
     for the details.
 
     The command
@@ -180,7 +180,7 @@ New Features
     + Added
 
       Rosetta implementations: Inheritance/ single, add object
-      variable dynamically, tree traversal, tokenizer
+      variable dynamically, tree traversal, and tokenizer.
 	
     + Updated
 
@@ -237,18 +237,14 @@ New Features
 
 - Traits:
 
-  * The name of the namespace of traits changed from
-      nx::traits::XXX
-    to
-      nx::trait::XXX
-    in order to improve naming orthogonality with the
-    trait management package "nx::trait".
-
+  * The namespace "nx::traits::XXX" was renamed to "nx::trait::XXX" in
+    order to improve naming orthogonality with the trait management
+    package "nx::trait".
 
 - MongoDB interface upgrade:
 
-  * Upgraded MongoDB and drivers to
-    mongodb-c-driver 1.5.1, libbson 1.5.1 and MongoDB v3.4.0
+  * Upgraded MongoDB and drivers to mongodb-c-driver 1.5.1, libbson
+    1.5.1 and MongoDB v3.4.0.
 
   * The upstream mongodb-c-driver has deprecated the old OP_QUERY syntax
     with $-modifiers and old names like $orderby and $query, which will
@@ -259,13 +255,12 @@ New Features
       mongo::collection::query /collection/ /filter/ ?-opts /opts/?
       mongo::cursor::find /collection/ /filter/ ?-opts /opts/?
 
-    See the begin of nsf-mongo.test file for examples for queries
-    with the old and new interface. The high level interface
-    for nx::Object is unchanged.
+    See the begin of nsf-mongo.test file for examples for queries with
+    the old and new interface. The high-level interface for nx::Object
+    is unchanged.
 
   * Support for new binary type "decimal128"
-
-
+  
 - Maintenance & bug fixes:
 
   * Tcl command resolvers and command literals:
