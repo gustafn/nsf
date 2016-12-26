@@ -1,3 +1,34 @@
+2016-12-23  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsfmongo.c: Added explicit calls to mongoc_init() and
+	mongoc_cleanup(). Documented use of configure flag
+	"--disable-automatic-init-and-cleanup" to avoid crashes under Mac
+	OS X. [b7029a4]
+
+	* nxsh.man: Improved wording. [a7ce921]
+
+	* tk-*.tcl: Change package name in Tk example scripts:
+	"nx::traits:XXX" -> "nx::trait::XXX"; add comment to
+	Announcement. [71e1805]
+
+	* linearization.test: extended regression test suite with a case
+	reproducing a recently fixed crash. [bc72af7]
+
+	* nsf-gridfs.test: Changes to README file requires a small
+	adjustment on a test case, working on the README file. [65669db]
+
+	* mongodb/configure.ac, mongodb/pkgIndex.add, nx-mongo.tcl: Bump
+	version numbers: nsfmongo to 2.1, TEA to 3.10, nx::mongo to 2.1.
+	[ad195da, 4028b98]
+
+2016-12-22  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsfInt.h: Define NsfObjDispatch as Tcl_ObjCmdProc. [41e0544]
+
+	* mongoAPI.decls, nsfmongo.c: Upgraded MongoDB and drivers to
+	mongodb-c-driver 1.5.1, libbson 1.5.1 and MongoDB v3.4.0; added
+	support for BSON type DECIMAL128. [ab21c85]
+
 2016-12-21  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
         * configure, aclocal.m4: Re-generated autotools artifacts to reflect
