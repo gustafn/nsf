@@ -13,7 +13,7 @@ The current version is tested with
 - libbson 1.5.1 (released Dec 17, 2016)
 
 Follow the following steps to get MongoDB up and running
-and to compile the MongoDB driver for nx.
+and to compile the MongoDB driver for NX.
 
 
 OBTAIN MONGODB and MONGO-C-DRIVER:
@@ -41,15 +41,15 @@ OBTAIN MONGODB and MONGO-C-DRIVER:
       make
       sudo make install
 
-  If you experience errors during autogen on debian, you might have to
+  If you experience errors during autogen on Debian, you might have to
       apt-get install libtool
 
   If configure complains about not finding bson, you might have to do
       export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
 
   Note: Version 1.5.1 of the c-driver leads on Mac OS X to a crash on
-  exit, when configured sasl support (from mac ports) and the flag
-  "--disable-automatic-init-and-cleanup" is mossing.
+  exit, when configured SASL support (from mac ports) and the flag
+  "--disable-automatic-init-and-cleanup" is missing.
 
 
 COMPILING THE MONGO NSF INTERFACE:
@@ -59,7 +59,7 @@ Assume the following installation directories
   - Tcl:             /usr/local/ns/lib/
   - mongo-c-driver: /usr/local/src/mongo-c-driver/
 
-configure the mongodb nsf interface via the following
+configure the mongodb NSF interface via the following
 command in the directory nsf*/library/mongodb/
 You will probably have to adjust the paths.
 
@@ -69,12 +69,12 @@ You will probably have to adjust the paths.
 	       --enable-threads --enable-symbols
 
 In order to run the sample script,
-  * first start the mongdb (eg. mongod)
+  * first start the mongodb (eg. mongod)
 
-  * go to your nsf source directory
+  * go to your NSF source directory
 
   * make sure, the c-driver libraries are on the library path
-    (assuming the the c-driver was installed in /usr/local/lib)
+    (assuming the c-driver was installed in /usr/local/lib)
 
     export DYLD_LIBRARY_PATH=/usr/local/lib:`pwd`
 
@@ -90,8 +90,8 @@ In order to run the sample script,
 
     ./nxsh library/mongodb/example-nx-mongo.tcl
 
-    This example script is using the higher level object oriented
-    interface for nx (nx::mongo).
+    This example script is using the higher-level object-oriented
+    interface for NX (nx::mongo).
 
     After running this script, you should could
     check the content in MongoDB:
