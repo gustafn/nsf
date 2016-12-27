@@ -325,9 +325,9 @@ doc:
 	(cd $(src_doc_dir); asciidoc next-migration.txt)
 	(cd $(src_doc_dir)/next-tutorial; asciidoc next-tutorial.txt)
 
-pdfdoc: 
-	(cd $(src_doc_dir); prince --javascript --script=prince.js --style=nx-small.css next-migration.html next-migration.pdf)
-	(cd $(src_doc_dir)/next-tutorial; prince --javascript --script=../prince.js --style=../nx.css next-tutorial.html next-tutorial.pdf)
+pdfdoc:
+	(cd $(src_doc_dir); prince --javascript --style=nx-small.css next-migration.html -o next-migration.pdf)
+	(cd $(src_doc_dir)/next-tutorial; prince --javascript --style=../nx.css next-tutorial.html -o next-tutorial.pdf)
 
 example-doc: $(EXAMPLE_SCRIPTS)
 
