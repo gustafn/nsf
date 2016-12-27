@@ -11,7 +11,7 @@ clang). Common build configurations have been tested under Windows
 (Windows 2012 Server: VS15 & MSVC 19, MinGW).
 
 Diff stats since 2.0.0:
-185 files changed, 33023 insertions(+), 17848 deletions(-)
+ 186 files changed, 26475 insertions(+), 15671 deletions(-)
 
 
 Major changes relative to 2.0.0 are:
