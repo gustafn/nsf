@@ -59,15 +59,22 @@ Steps for a beta release:
       * Summarize changes since the last release in doc/Announce-VERSION
         As source use e.g.
             git log --date-order --date=short|less
-	    ~/scripts/git-changelog2  -- 2.0b5..HEAD --no-merges > ChangeLog-2.0b3-2.0
+	    ~/scripts/git-changelog2  -- 2.0.0..HEAD --no-merges > ChangeLog-2.0.0-HEAD
+        Diffstats
+            git diff --stat  2.0.0..HEAD
       * Run spell checker over announcement + ChangeLog
       * git add announcement 
 
-   - build tar
-       * (make sure accurate COMMIT file is present, e.g., run ./configure once?)
+   - rebild documentation
+       * make doc
+       * make pdfdoc (currently, it is necessary to manually edit next-tutorial.html and next-migration.html
+         and replace setInterval() + next 4 lines by reinstall())
+       * call "make doc again" to remove editing traces
+
+   - build test-tar-file
        * make tar
        * check content of tar file
-         tar ztvf ../nsf2.0.tar.gz |sort -rn -k 5,6|less
+         tar ztvf ../nsf2.1.0.tar.gz |sort -rn -k 5,6|less
 
    - tag version in git and commit
        git tag -a 2.0b5 -m 2.0b5
@@ -75,6 +82,13 @@ Steps for a beta release:
        git push : 2.0.0
        # git push --follow-tags
        # git push commit
+
+   - build tar
+       * (make sure accurate COMMIT file is present, e.g., run ./configure once?)
+       * make tar
+       * check content of tar file
+         tar ztvf ../nsf2.0.tar.gz |sort -rn -k 5,6|less
+
 
   -  put NX API and shell onto sourceforge:
       * cd doc/
