@@ -57,7 +57,7 @@ AC_ARG_ENABLE([memcount],
 		[build nsf with memcount debug support (default: disabled)]),
         [enable_memcount=$enableval], [enable_memcount=no])
 AC_ARG_ENABLE([development],
-	AS_HELP_STRING([--enable-development],
+	AS_HELP_STRING([--enable-development=yes|test],
 		[build nsf with development support (intensive runtime checking, etc.; default: disabled)]),
         [enable_development=$enableval], [enable_development=no])
 AC_ARG_ENABLE([assertions],
@@ -196,6 +196,9 @@ fi
 
 if test "$enable_development" = yes; then
    AC_DEFINE([NSF_DEVELOPMENT], [1], [Are we building with development support?])
+fi
+if test "$enable_development" = full; then
+   AC_DEFINE([NSF_DEVELOPMENT_TEST], [1], [Are we building with development support and intesive testing?])
 fi
 
 if test "$enable_memcount" = yes; then

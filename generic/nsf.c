@@ -5,7 +5,7 @@
  *      for supporting language-oriented programming.  For details, see
  *      http://next-scripting.org/.
  *
- * Copyright (C) 1999-2016 Gustaf Neumann (a) (b)
+ * Copyright (C) 1999-2017 Gustaf Neumann (a) (b)
  * Copyright (C) 1999-2007 Uwe Zdun (a) (b)
  * Copyright (C) 2007-2008 Martin Matuska (b)
  * Copyright (C) 2010-2016 Stefan Sobernig (b)
@@ -838,7 +838,7 @@ ParseContextRelease(ParseContext *pcPtr) {
   /*fprintf(stderr, "ParseContextRelease %p status %.6x %d elements\n",
     pcPtr, status, pcPtr->objc);*/
 
-#if !defined(NDEBUG)
+#if defined(NSF_DEVELOPMENT_TEST)
   {
     /*
      * Perform a general consistency check: although the contents of the parse
@@ -2597,7 +2597,7 @@ MustBeBefore(NsfClass *a, NsfClass *b, NsfClasses *superClasses) {
  *
  *----------------------------------------------------------------------
  */
-#if !defined(NDEBUG)
+#if defined(NSF_DEVELOPMENT_TEST)
 static void ValidClassListTail(const char *what, NsfClasses *classListPtr) {
   NsfClasses *sl, *tail;
 
@@ -2810,9 +2810,7 @@ MergeInheritanceLists(NsfClasses *pl, NsfClass *cl) {
   return pl;
 }
 
-#if defined(NDEBUG)
-#define AssertOrderIsWhite(arg)
-#else
+#if defined(NSF_DEVELOPMENT_TEST)
 static void AssertOrderIsWhite(NsfClasses *order) {
   register NsfClasses *pc;
 
@@ -2820,6 +2818,8 @@ static void AssertOrderIsWhite(NsfClasses *order) {
     assert(pc->cl->color == WHITE);
   }
 }
+#else
+# define AssertOrderIsWhite(arg)
 #endif
 
 /*
@@ -5938,7 +5938,8 @@ void Nsf_DeleteNamespace(Tcl_Interp *interp, Tcl_Namespace *nsPtr) nonnull(1) no
 
 void
 Nsf_DeleteNamespace(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
-#if !defined(NDEBUG)
+
+#if defined(NSF_DEVELOPMENT_TEST)
   int activationCount = 0;
   Tcl_CallFrame *f = (Tcl_CallFrame *)Tcl_Interp_framePtr(interp);
 
@@ -6273,7 +6274,7 @@ NSFindCommand(Tcl_Interp *interp, const char *name) {
   return cmd;
 }
 
-#if !defined(NDEBUG)
+#if defined(NSF_DEVELOPMENT_TEST)
 /*
  *----------------------------------------------------------------------
  * ReverseLookupCmdFromCmdTable --
@@ -6333,7 +6334,7 @@ ReverseLookupCmdFromCmdTable(Tcl_Interp *interp /* needed? */, Tcl_Command searc
  *----------------------------------------------------------------------
  */
 
-static NsfObject * GetHiddenObjectFromCmd(Tcl_Interp *interp, Tcl_Command cmdPtr) nonnull(1);
+static NsfObject *GetHiddenObjectFromCmd(Tcl_Interp *interp, Tcl_Command cmdPtr) nonnull(1);
 
 static NsfObject *
 GetHiddenObjectFromCmd(Tcl_Interp *interp, Tcl_Command cmdPtr) {
@@ -8361,7 +8362,7 @@ GetAllInstances(Tcl_Interp *interp, NsfCmdList **instances, NsfClass *startCl) {
         continue;
       }
 
-#if !defined(NDEBUG)
+#if defined(NSF_DEVELOPMENT_TEST)
       {
         /*
          * Make sure, we can still lookup the object; the object has to be still
@@ -31440,7 +31441,7 @@ FinalObjectDeletion(Tcl_Interp *interp, NsfObject *object) {
    * physical destroy round, we can set the counter to an appropriate
    * value to ensure deletion.
    */
-#if defined(NSF_DEVELOPMENT)
+#if defined(NSF_DEVELOPMENT_TEST)
   if (unlikely(object->refCount != 1)) {
     if (object->refCount > 1) {
       NsfLog(interp, NSF_LOG_WARN,  "RefCount for obj %p %d (name %s) > 1",

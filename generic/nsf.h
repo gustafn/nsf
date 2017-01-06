@@ -191,6 +191,10 @@
 # define NSF_DTRACE_METHOD_RETURN_PROBE(cscPtr,retCode) {}
 #endif
 
+#if defined(NSF_DEVELOPMENT_FULL) && !defined(NSF_DEVELOPMENT)
+# define NSF_DEVELOPMENT 1
+#endif
+
 #ifdef NSF_DEVELOPMENT
 /*
  * The activation counts checking is best performed via the MEM_COUNT
