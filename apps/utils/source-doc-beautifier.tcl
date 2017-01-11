@@ -1,11 +1,12 @@
-#!/usr/bin/env tclsh8.5
+#!/usr/bin/env tclsh
 #
-# Script to beautify scripted documentations.
+# Script to prettify documentation and test scripts into ASCIIDOC
+# markup documents.
 #
-# The script receives a nx script as an argument and
-# outputs to the same directory a asciidoc scipt.
+# The script receives an NX script as an argument and outputs to the
+# same directory an ASCIIDOC markup document.
 #
-# Gustaf Neumann,   Dez 2010
+# Gustaf Neumann, Dec 2010
 
 package req nx
 
@@ -61,30 +62,37 @@ nx::Object create output {
 }
 
 #puts stderr "find -L $opt(-path) -type f -name '$opt(-name)'"
-foreach file $argv {
-  set F [open $file]; set content [read $F]; close $F
-  set outfn [file rootname $file].txt
-  set out [open $outfn w]
 
-  set title "Listing of $file"
-  regexp {^# = (.+?)\n(.*)$} $content _ title content
+nsf::proc run {-notitle:switch args} {
+    foreach file $args {
+	set F [open $file]; set content [read $F]; close $F
+	set outfn [file rootname $file].txt
+	set ::out [open $outfn w]
+	
+	set title "Listing of $file"
+	regexp {^# = (.+?)\n(.*)$} $content _ title content
+	
+	foreach ignorePattern {
+	    "package req nx::test"
+	    "package require nx::test"
+	    "nx::Test parameter count 1"
+	    "proc ! args.*?"
+	} {
+	    regsub "$ignorePattern\s?\n" $content "" content
+	}
 
-  foreach ignorePattern {
-    "package req nx::test"
-    "package require nx::test"
-    "nx::Test parameter count 1"
-    "proc ! args.*?"
-  } {
-    regsub "$ignorePattern\s?\n" $content "" content
-  }
-
-  puts $::out "= $title\n"
-  foreach line [split $content \n] {
-    if {[regexp {^# ?(.*)$} $line _ comment]} {
-      output line doc $comment
-    } else {
-      output line prog $line
+	if {!$notitle} {
+	    puts $::out "= $title\n"
+	}
+	foreach line [split $content \n] {
+	    if {[regexp {^# ?(.*)$} $line _ comment]} {
+		output line doc $comment
+	    } else {
+		output line prog $line
+	    }
+	}
+	output flush
     }
-  }
-  output flush
 }
+
+run {*}$argv
