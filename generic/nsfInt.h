@@ -179,7 +179,7 @@ typedef struct NsfMemCounter {
 #  define MEM_COUNT_RELEASE()
 #endif
 
-# define STRING_NEW(target, p, l)  (target) = strndup(p,l); MEM_COUNT_ALLOC(#target, (target))
+# define STRING_NEW(target, p, l)  {char *tempValue = ckalloc((unsigned)(l)+1u); strncpy((tempValue), (p), (l)); *((tempValue)+(l)) = '\0'; target = tempValue; MEM_COUNT_ALLOC(#target, (target))}
 # define STRING_FREE(key, p)  MEM_COUNT_FREE((key), (p)); ckfree((p))
 
 #define DSTRING_INIT(dsPtr) Tcl_DStringInit(dsPtr); MEM_COUNT_ALLOC("DString",(dsPtr))
