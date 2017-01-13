@@ -179,8 +179,7 @@ typedef struct NsfMemCounter {
 #  define MEM_COUNT_RELEASE()
 #endif
 
-# define STRING_NEW(target, p, l)  (target) = ckalloc((unsigned)(l)+1u); strncpy((target), (p), (l)); *((target)+(l)) = '\0'; \
-  MEM_COUNT_ALLOC(#target, (target))
+# define STRING_NEW(target, p, l)  (target) = strndup(p,l); MEM_COUNT_ALLOC(#target, (target))
 # define STRING_FREE(key, p)  MEM_COUNT_FREE((key), (p)); ckfree((p))
 
 #define DSTRING_INIT(dsPtr) Tcl_DStringInit(dsPtr); MEM_COUNT_ALLOC("DString",(dsPtr))
@@ -714,9 +713,9 @@ typedef enum {
   NSF_RENAME
 } NsfGlobalNames;
 #if !defined(NSF_C)
-EXTERN char *NsfGlobalStrings[];
+EXTERN const char *NsfGlobalStrings[];
 #else
-char *NsfGlobalStrings[] = {
+const char *NsfGlobalStrings[] = {
   "", "0", "1",
   /* methods called internally */
   "configure", "initialize", "getParameterSpec",
@@ -1125,7 +1124,7 @@ EXTERN int NsfGetClassFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr,
 
 EXTERN int NsfObjWrongArgs(Tcl_Interp *interp, CONST char *msg,
 			   Tcl_Obj *cmdName, Tcl_Obj *methodName,
-			   char *arglist)
+			   const char *arglist)
   nonnull(1) nonnull(2);
 
 EXTERN CONST char *NsfMethodName(Tcl_Obj *methodObj)

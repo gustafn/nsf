@@ -331,7 +331,7 @@ NsfErrInProc(Tcl_Interp *interp, Tcl_Obj *objName,
  */
 int
 NsfObjWrongArgs(Tcl_Interp *interp, const char *msg, Tcl_Obj *cmdNameObj,
-		Tcl_Obj *methodPathObj, char *arglist) {
+		Tcl_Obj *methodPathObj, const char *arglist) {
   int need_space = 0;
   Tcl_DString ds;
 

@@ -3972,6 +3972,7 @@ static Nsf_methodDefinition method_definitions[114] = {
 },
 {"::nsf::methods::object::info::vars", NsfObjInfoVarsMethodStub, 1, {
   {"pattern", 0, 1, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
-},{NULL}
+},
+{NULL, NULL, 0, {{NULL, 0, 0, ConvertToNothing, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}}
 };
 

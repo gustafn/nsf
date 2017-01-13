@@ -148,7 +148,7 @@ Nsf_ltoa(char *buf, long i, int *lengthPtr) {
  *----------------------------------------------------------------------
  */
 
-static char *alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+static const char *alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 static size_t blockIncrement = 8u;
 /*
   static char *alphabet = "ab";
@@ -222,7 +222,7 @@ NsfStringIncr(NsfStringIncrStruct *iss) {
 
 void
 NsfStringIncrInit(NsfStringIncrStruct *iss) {
-  char        *p;
+  const char  *p;
   int          i = 0;
   const size_t bufSize = (blockIncrement > 2) ? blockIncrement : 2;
 

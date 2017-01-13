@@ -121,7 +121,7 @@ Nsf_InitStubs(Tcl_Interp *interp, const char *version, int exact) {
       }
 
       if (intStubsPtr == NULL) {
-        static char *errMsg = "missing stubInt table pointer";
+        static const char *errMsg = "missing stubInt table pointer";
 
         Tcl_ResetResult(interp);
         NsfPrintError(interp, "Error loading package %s: "
