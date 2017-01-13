@@ -88,8 +88,8 @@ static Tcl_HashKeyType funPtrHashKeyType = {
 
 static unsigned int
 FunPtrKey(
-          Tcl_HashTable *tablePtr, /* Hash table. */
-          VOID *keyPtr)		   /* Key from which to compute hash value. */
+          Tcl_HashTable *UNUSED(tablePtr), /* Hash table. */
+          VOID *keyPtr)		           /* Key from which to compute hash value. */
 {
   funPtrEntry_t  *e = (funPtrEntry_t *)keyPtr;
   Nsf_AnyFun *value  = e->funPtr;
@@ -149,8 +149,8 @@ CompareFunPtrKeys(
  */
 static Tcl_HashEntry *
 AllocFunPtrEntry(
-                 Tcl_HashTable *tablePtr,   /* Hash table. */
-                 VOID *keyPtr)		    /* Key to store in the hash table entry. */
+                 Tcl_HashTable *UNUSED(tablePtr), /* Hash table. */
+                 VOID *keyPtr)		          /* Key to store in the hash table entry. */
 {
   funPtrEntry_t   *e = (funPtrEntry_t *)keyPtr;
   Tcl_HashEntry   *hPtr;

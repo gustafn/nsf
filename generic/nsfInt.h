@@ -1171,9 +1171,13 @@ EXTERN int NsfDStringEval(Tcl_Interp *interp, Tcl_DString *dsPtr, const char *co
  * NsfFlag type
  */
 EXTERN Tcl_ObjType NsfFlagObjType;
-EXTERN int NsfFlagObjSet(Tcl_Interp *interp, Tcl_Obj *objPtr,
-			 Nsf_Param CONST *baseParamPtr, int serial,
-			 Nsf_Param CONST *paramPtr, Tcl_Obj *payload, unsigned int flags);
+EXTERN int NsfFlagObjSet(Tcl_Interp      *UNUSED(interp),
+			 Tcl_Obj         *objPtr,
+			 Nsf_Param const *baseParamPtr,
+			 int              serial,
+			 Nsf_Param const *paramPtr,
+			 Tcl_Obj         *payload,
+			 unsigned int     flags);
 typedef struct {
   CONST Nsf_Param *signature;
   int serial;
@@ -1190,10 +1194,14 @@ typedef struct {
  */
 EXTERN Tcl_ObjType NsfInstanceMethodObjType;
 EXTERN Tcl_ObjType NsfObjectMethodObjType;
-EXTERN int NsfMethodObjSet(Tcl_Interp *interp, Tcl_Obj *objPtr,
+EXTERN int NsfMethodObjSet(Tcl_Interp  *UNUSED(interp),
+			   Tcl_Obj     *objPtr,
 			   Tcl_ObjType *objectType,
-			   void *context, int methodEpoch,
-			   Tcl_Command cmd, NsfClass *cl, unsigned int flags)
+			   void        *context,
+			   int          methodEpoch,
+			   Tcl_Command  cmd,
+			   NsfClass    *cl,
+			   unsigned int flags)
   nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(6);
 
 

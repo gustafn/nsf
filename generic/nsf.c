@@ -4145,7 +4145,7 @@ ObjectSystemsCleanup(Tcl_Interp *interp, int withKeepvars) {
   DeleteProcsAndVars(interp, Tcl_GetGlobalNamespace(interp), withKeepvars);
 # endif
 #endif
-
+  (void)withKeepvars; /* make sure, the variable is not reported as unused */
   /*
    * Free all objects systems with their root classes.
    */
@@ -5962,6 +5962,8 @@ Nsf_DeleteNamespace(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
   }
   assert(Tcl_Namespace_activationCount(nsPtr) == activationCount);
   /*fprintf(stderr, "to %d. \n", ((Namespace *)nsPtr)->activationCount);*/
+#else
+  (void)interp;
 #endif
 
   if (Tcl_Namespace_deleteProc(nsPtr)) {
@@ -9337,13 +9339,13 @@ CanInvokeMixinMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Command cmd, Nsf
  *----------------------------------------------------------------------
  */
 static int MixinSearchProc(Tcl_Interp *interp, NsfObject *object,
-                const char *methodName, Tcl_Obj *methodObj,
+                const char *methodName,
                 NsfClass **clPtr, Tcl_Command *currentCmdPtr, Tcl_Command *cmdPtr)
-  nonnull(1) nonnull(2) nonnull(3) nonnull(5) nonnull(6) nonnull(7);
+  nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(5) nonnull(6);
 
 static int
 MixinSearchProc(Tcl_Interp *interp, NsfObject *object,
-                const char *methodName, Tcl_Obj *methodObj,
+                const char *methodName,
                 NsfClass **clPtr, Tcl_Command *currentCmdPtr, Tcl_Command *cmdPtr) {
   Tcl_Command cmd = NULL;
   NsfCmdList *cmdList;
@@ -13117,8 +13119,8 @@ ObjectCmdMethodDispatch(NsfObject *invokedObject, Tcl_Interp *interp, int objc, 
 }
 
 #if !defined(NSF_ASSEMBLE)
-static int NsfAsmProc(ClientData clientData, Tcl_Interp *interp,
-                      int objc, Tcl_Obj *CONST objv[]) {
+static int NsfAsmProc(ClientData UNUSED(clientData), Tcl_Interp *UNUSED(interp),
+                      int UNUSED(objc), Tcl_Obj *CONST UNUSED(objv[])) {
   return TCL_OK;
 }
 #endif
@@ -13807,7 +13809,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
        * have no filter; in the filter case, the search happens in
        * next.
        */
-      result = MixinSearchProc(interp, object, methodName, methodObj, &cl,
+      result = MixinSearchProc(interp, object, methodName, &cl,
                                &object->mixinStack->currentCmdPtr, &cmd1);
       if (unlikely(result != TCL_OK)) {
         /*fprintf(stderr, "mixinsearch returned an error for %p %s.%s\n",
@@ -17612,14 +17614,14 @@ StripBodyPrefix(const char *body) {
  *----------------------------------------------------------------------
  */
 static void AddSlotObjects(Tcl_Interp *interp, NsfObject *parent, const char *prefix,
-                           Tcl_HashTable *slotTablePtr, int withSource, NsfClass *type,
+                           Tcl_HashTable *slotTablePtr, NsfClass *type,
                            const char *pattern, Tcl_Obj *listObj)
-  nonnull(1) nonnull(2) nonnull(3) nonnull(8);
+  nonnull(1) nonnull(2) nonnull(3) nonnull(7);
 
 static void
 AddSlotObjects(Tcl_Interp *interp, NsfObject *parent, const char *prefix,
                Tcl_HashTable *slotTablePtr,
-               int withSource, NsfClass *type, const char *pattern,
+               NsfClass *type, const char *pattern,
                Tcl_Obj *listObj) {
   NsfObject *slotContainerObject;
   Tcl_DString ds, *dsPtr = &ds;
@@ -17863,7 +17865,7 @@ NextSearchMethod(NsfObject *object, Tcl_Interp *interp, NsfCallStackContent *csc
   assert((objflags & NSF_MIXIN_ORDER_VALID) != 0u);
 
   if ((object->mixinStack != NULL) && cscPtr->frameType) {
-    int result = MixinSearchProc(interp, object, *methodNamePtr, NULL,
+    int result = MixinSearchProc(interp, object, *methodNamePtr,
                                  clPtr, currentCmdPtr, cmdPtr);
 
     /* fprintf(stderr, "next in mixins %s frameType %.6x\n", *methodNamePtr, cscPtr->frameType); */
@@ -21226,19 +21228,18 @@ NsfForwardMethod(ClientData clientData, Tcl_Interp *interp,
  */
 
 static int NsfProcAliasMethod(ClientData clientData,
-                              Tcl_Interp *interp, int objc,
-                              Tcl_Obj *CONST objv[])
+                              Tcl_Interp *interp, int UNUSED(objc),
+                              Tcl_Obj *CONST UNUSED(objv[]))
   nonnull(1) nonnull(2) nonnull(4);
 
 static int
 NsfProcAliasMethod(ClientData clientData,
-                     Tcl_Interp *interp, int objc,
-                     Tcl_Obj *CONST objv[]) {
+                   Tcl_Interp *interp, int UNUSED(objc),
+                   Tcl_Obj *CONST UNUSED(objv[])) {
   AliasCmdClientData *tcd;
 
   nonnull_assert(clientData != NULL);
   nonnull_assert(interp != NULL);
-  nonnull_assert(objv != NULL);
 
   tcd = (AliasCmdClientData *)clientData;
   return NsfDispatchClientDataError(interp, NULL, "object",
@@ -24486,17 +24487,16 @@ AliasDereference(Tcl_Interp *interp, NsfObject *object, const char *methodName, 
 # include "asm/nsfAssemble.c"
 #else
 static int
-NsfAsmMethodCreateCmd(Tcl_Interp *interp, NsfObject *defObject,
-                      int with_checkAlways, int withInner_namespace,
-                      int withPer_object, NsfObject *regObject,
-                      Tcl_Obj *nameObj, Tcl_Obj *argumentsObj, Tcl_Obj *bodyObj) {
-
-  nonnull_assert(interp != NULL);
-  nonnull_assert(defObject != NULL);
-  nonnull_assert(nameObj != NULL);
-  nonnull_assert(argumentsObj != NULL);
-  nonnull_assert(bodyObj != NULL);
-
+  NsfAsmMethodCreateCmd(Tcl_Interp *UNUSED(interp),
+                        NsfObject *UNUSED(defObject),
+                        int UNUSED(with_checkAlways),
+                        int UNUSED(withInner_namespace),
+                        int UNUSED(withPer_object),
+                        NsfObject *UNUSED(regObject),
+                        Tcl_Obj *UNUSED(nameObj),
+                        Tcl_Obj *UNUSED(argumentsObj),
+                        Tcl_Obj *UNUSED(bodyObj))
+{
   /*
    * Dummy stub; used, when compiled without NSF_ASSEMBLE
    */
@@ -24851,13 +24851,13 @@ cmd asmproc NsfAsmProcCmd {
 */
 #if !defined(NSF_ASSEMBLE)
 static int
-NsfAsmProcCmd(Tcl_Interp *interp, int with_ad, int with_checkAlways, Tcl_Obj *nameObj, Tcl_Obj *arguments, Tcl_Obj *body) {
-
-  nonnull_assert(interp != NULL);
-  nonnull_assert(nameObj != NULL);
-  nonnull_assert(arguments != NULL);
-  nonnull_assert(body != NULL);
-
+NsfAsmProcCmd(Tcl_Interp *UNUSED(interp),
+              int UNUSED(with_ad),
+              int UNUSED(with_checkAlways),
+              Tcl_Obj *UNUSED(nameObj),
+              Tcl_Obj *UNUSED(arguments),
+              Tcl_Obj *UNUSED(body))
+{
   return TCL_OK;
 }
 #else
@@ -30590,7 +30590,7 @@ NsfObjInfoLookupSlotsMethod(Tcl_Interp *interp, NsfObject *object,
    */
   if (MethodSourceMatches(withSource, NULL, object)) {
     AddSlotObjects(interp, object, "::per-object-slot", &slotTable,
-                   withSource, type, pattern, listObj);
+                   type, pattern, listObj);
   }
 
   /*
@@ -30599,7 +30599,7 @@ NsfObjInfoLookupSlotsMethod(Tcl_Interp *interp, NsfObject *object,
   for (clPtr = precendenceList; likely(clPtr != NULL); clPtr = clPtr->nextPtr) {
     if (MethodSourceMatches(withSource, clPtr->cl, NULL)) {
       AddSlotObjects(interp, &clPtr->cl->object, "::slot", &slotTable,
-                     withSource, type, pattern, listObj);
+                     type, pattern, listObj);
     }
   }
 
@@ -30753,7 +30753,7 @@ NsfObjInfoSlotobjectsMethod(Tcl_Interp *interp, NsfObject *object,
   nonnull_assert(object != NULL);
 
   AddSlotObjects(interp, object, "::per-object-slot", NULL,
-                 DefinitionsourceAllIdx, type, pattern, listObj);
+                 type, pattern, listObj);
 
   Tcl_SetObjResult(interp, listObj);
   return TCL_OK;
@@ -31273,7 +31273,7 @@ NsfClassInfoSlotobjectsMethod(Tcl_Interp *interp, NsfClass *class,
   for (clPtr = precedenceList; clPtr != NULL; clPtr = clPtr->nextPtr) {
     if (MethodSourceMatches(withSource, clPtr->cl, NULL)) {
       AddSlotObjects(interp, &clPtr->cl->object, "::slot", &slotTable,
-                     withSource, type, pattern, listObj);
+                     type, pattern, listObj);
     }
   }
 

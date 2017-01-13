@@ -127,7 +127,7 @@ MethodDupInternalRep(
  */
 int
 NsfMethodObjSet(
-    Tcl_Interp *interp,			/* Used for error reporting if not NULL. */
+    Tcl_Interp *UNUSED(interp),		/* Used for error reporting if not NULL. */
     register Tcl_Obj *objPtr,   	/* The object to convert. */
     Tcl_ObjType *objectType,
     void *context,			/* context (to avoid over-eager sharing) */
@@ -271,7 +271,7 @@ FlagDupInternalRep(
  */
 int
 NsfFlagObjSet(
-    Tcl_Interp *interp,			/* Used for error reporting if not NULL. */
+    Tcl_Interp *UNUSED(interp),		/* Used for error reporting if not NULL. */
     register Tcl_Obj *objPtr,   	/* The object to convert. */
     Nsf_Param const *baseParamPtr,	/* the full parameter block */
     int serial,				/* interface serial */

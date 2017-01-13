@@ -39,6 +39,11 @@
 #include "nsfAccessInt.h"
 #include "nsfCmdPtr.c"
 
+static Tcl_ObjCmdProc Nsf_InfoFrameObjCmd;
+EXTERN Tcl_ObjCmdProc NsfProcStub;
+static Tcl_ObjCmdProc Nsf_InfoBodyObjCmd;
+static Tcl_ObjCmdProc Nsf_RenameObjCmd;
+
 /*
  *----------------------------------------------------------------------
  * NsfReplaceCommandCleanup --
@@ -192,11 +197,9 @@ NsfReplaceCommand(Tcl_Interp *interp, Tcl_Obj *nameObj,
  *
  *----------------------------------------------------------------------
  */
-EXTERN int NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
-  nonnull(1) nonnull(2) nonnull(4);
 
 static int
-Nsf_InfoBodyObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+Nsf_InfoBodyObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   Tcl_Command cmd;
 
   nonnull_assert(interp != NULL);
@@ -244,8 +247,9 @@ Nsf_InfoBodyObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
  *
  *----------------------------------------------------------------------
  */
+
 static int
-Nsf_RenameObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+Nsf_RenameObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   Tcl_Command cmd;
 
   if (objc != 3) {
@@ -293,8 +297,9 @@ Nsf_RenameObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
  *
  *----------------------------------------------------------------------
  */
+
 static int
-Nsf_InfoFrameObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+Nsf_InfoFrameObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   int result;
 
   result = NsfCallCommand(interp, NSF_INFO_FRAME, objc, objv);
