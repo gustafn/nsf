@@ -112,8 +112,12 @@ CscListRemove(const Tcl_Interp *interp, const NsfCallStackContent *cscPtr, NsfCl
  *
  *----------------------------------------------------------------------
  */
+void NsfShowStack(Tcl_Interp *interp) nonnull(1);
+
 void NsfShowStack(Tcl_Interp *interp) {
   Tcl_CallFrame *framePtr;
+
+  nonnull_assert(interp != NULL);
 
   fprintf(stderr, "NsfShowStack framePtr %p varFramePtr %p\n",
           (void *)Tcl_Interp_framePtr(interp), (void *)Tcl_Interp_varFramePtr(interp));
