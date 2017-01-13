@@ -24,8 +24,8 @@ namespace eval ::nx::pp {
   #
   nx::Class create State {
     :property {text ""}
-    :property {cssClass "[namespace tail [nx::self]]"}
-    :property {prevState "[default]"}
+    :property {cssClass:substdefault "[namespace tail [nx::self]]"}
+    :property {prevState:substdefault "[default]"}
     
     :public method start {char} {
       # Start output in a state by initializing the text buffer.
