@@ -32346,10 +32346,10 @@ Nsf_Init(Tcl_Interp *interp) {
 
     /* fprintf(stderr, "predefined=<<%s>>\n", cmd);*/
     if (Tcl_Eval(interp, cmd) != TCL_OK) {
-      static char cmd[] =
+      static char reportingCmd[] =
         "puts stderr \"Error in predefined code\n\
          $::errorInfo\"";
-      Tcl_EvalEx(interp, cmd, -1, 0);
+      Tcl_EvalEx(interp, reportingCmd, -1, 0);
       return TCL_ERROR;
     }
   }
