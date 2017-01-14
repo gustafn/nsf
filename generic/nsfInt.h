@@ -541,8 +541,8 @@ typedef struct NsfParamDefs {
   Nsf_Param *paramsPtr;
   int nrParams;
   int refCount;
-  int serial;
   Tcl_Obj *returns;
+  int serial;
 } NsfParamDefs;
 
 typedef struct NsfParsedParam {
@@ -555,11 +555,11 @@ typedef struct NsfObjectOpt {
   NsfCmdList *objFilters;
   NsfCmdList *objMixins;
   ClientData clientData;
+  const char *volatileVarName;
 #if defined(PER_OBJECT_PARAMETER_CACHING)
   NsfParsedParam *parsedParamPtr;
   int classParamPtrEpoch;
 #endif
-  CONST char *volatileVarName;
   CheckOptions checkoptions;
 } NsfObjectOpt;
 
@@ -595,21 +595,21 @@ typedef struct NsfClassOpt {
 } NsfClassOpt;
 
 typedef struct NsfClass {
-  struct NsfObject object;
-  struct NsfClasses *super;
-  struct NsfClasses *sub;
+  struct NsfObject        object;
+  struct NsfClasses      *super;
+  struct NsfClasses      *sub;
   struct NsfObjectSystem *osPtr;
-  struct NsfClasses *order;
-  Tcl_HashTable instances;
-  Tcl_Namespace *nsPtr;
-  NsfParsedParam *parsedParamPtr;
-  NsfClassOpt *opt;
-  short color;
+  struct NsfClasses      *order;
+  Tcl_HashTable           instances;
+  Tcl_Namespace          *nsPtr;
+  NsfParsedParam         *parsedParamPtr;
+  NsfClassOpt            *opt;
+  short                   color;
 } NsfClass;
 
 typedef struct NsfClasses {
-  struct NsfClass *cl;
-  ClientData clientData;
+  struct NsfClass   *cl;
+  ClientData         clientData;
   struct NsfClasses *nextPtr;
 } NsfClasses;
 
@@ -620,12 +620,12 @@ typedef struct NsfClasses {
 #define NSF_PROC_FLAG_CHECK_ALWAYS 0x02u
 
 typedef struct NsfProcClientData {
-  Tcl_Obj *procName;
-  Tcl_Command cmd;
-  Tcl_Command wrapperCmd;
-  NsfParamDefs *paramDefs;
-  unsigned int flags;
+  Tcl_Obj       *procName;
+  Tcl_Command    cmd;
+  Tcl_Command    wrapperCmd;
+  NsfParamDefs  *paramDefs;
   Tcl_Namespace *origNsPtr;
+  unsigned int   flags;
 } NsfProcClientData;
 
 typedef enum SystemMethodsIdx {
@@ -800,12 +800,12 @@ typedef struct NsfCallStackContent {
   Tcl_Obj *CONST* objv;
   int objc;
   unsigned int flags;
-  unsigned short frameType;
 #if defined(NSF_PROFILE) || defined(NSF_DTRACE)
   long int startUsec;
   long int startSec;
   CONST char *methodName;
 #endif
+  unsigned short frameType;
 } NsfCallStackContent;
 
 #define NSF_CSC_TYPE_PLAIN                    0u
@@ -884,9 +884,9 @@ typedef struct NsfProfile {
   Tcl_DString traceDs;
   int depth;
   int verbose;
-  int inmemory;
   Tcl_Obj *shadowedObjs;
   NsfShadowTclCommandInfo *shadowedTi;
+  int inmemory;
 } NsfProfile;
 
 # define NSF_PROFILE_TIME_DATA struct Tcl_Time profile_trt
@@ -920,6 +920,7 @@ typedef struct NsfRuntimeState {
 #if defined(PER_OBJECT_PARAMETER_CACHING)
   int classParamPtrEpoch;
 #endif
+  unsigned int overloadedMethods; /* bitarray for tracking overloaded methods */
   Tcl_Obj **methodObjNames;       /* global objects of nsf */
   struct NsfShadowTclCommandInfo *tclCommands; /* shadowed Tcl commands */
 
@@ -928,7 +929,6 @@ typedef struct NsfRuntimeState {
 #endif
   int errorCount;        /* keep track of number of errors to avoid potential error loops */
   int unknown;           /* keep track whether an unknown method is currently called */
-  unsigned int overloadedMethods; /* bitarray for tracking overloaded methods */
   /*
    * Configure options. The following do*-flags could be moved into a
    * bitarray, but we have only one state per interp, so the win on
@@ -945,13 +945,9 @@ typedef struct NsfRuntimeState {
   unsigned int preventRecursionFlags;
   int doClassConverterOmitUnkown;
   int doSoftrecreate;
-  /* keep track of defined filters */
-  Tcl_HashTable activeFilterTablePtr;
+  int exitHandlerDestroyRound;          /* shutdown handling */  
 
-  /*
-   * shutdown handling
-   */
-  int exitHandlerDestroyRound;
+  Tcl_HashTable activeFilterTablePtr;   /* keep track of defined filters */
 
 #if defined(NSF_PROFILE)
   NsfProfile profile;
@@ -960,9 +956,9 @@ typedef struct NsfRuntimeState {
   void *bottomOfStack;
   void *maxStack;
 #endif
+  ClientData clientData;
   NsfStringIncrStruct iss; /* used for new to create new symbols */
   short guardCount;        /* keep track of guard invocations */
-  ClientData clientData;
 } NsfRuntimeState;
 
 #define NSF_EXITHANDLER_OFF 0
@@ -1179,10 +1175,10 @@ EXTERN int NsfFlagObjSet(Tcl_Interp      *UNUSED(interp),
 			 unsigned int     flags);
 typedef struct {
   CONST Nsf_Param *signature;
-  int serial;
   Nsf_Param CONST *paramPtr;
-  Tcl_Obj *payload;
-  unsigned int flags;
+  Tcl_Obj         *payload;
+  int              serial;
+  unsigned int     flags;
 } NsfFlag;
 
 #define NSF_FLAG_DASHDAH		0x01
@@ -1207,10 +1203,10 @@ EXTERN int NsfMethodObjSet(Tcl_Interp  *UNUSED(interp),
 
 
 typedef struct {
-  void *context;
-  int methodEpoch;
-  Tcl_Command cmd;
-  NsfClass *cl;
+  void        *context;
+  Tcl_Command  cmd;
+  NsfClass    *cl;
+  int          methodEpoch;
   unsigned int flags;
 } NsfMethodContext;
 

@@ -462,10 +462,10 @@ EXTERN int Nsf_PointerTypeRegister(Tcl_Interp *interp, CONST char* typeName, int
  */
 
 typedef struct Nsf_methodDefinition {
-  const char *methodName;
+  const char     *methodName;
   Tcl_ObjCmdProc *proc;
-  int nrParameters;
-  Nsf_Param paramDefs[12];
+  int             nrParameters;
+  Nsf_Param       paramDefs[12];
 } Nsf_methodDefinition;
 
 /*

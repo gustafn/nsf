@@ -451,8 +451,8 @@ NsfProfileTrace(Tcl_Interp *interp, int withEnable, int withVerbose, int withDon
         if (Tcl_ListObjGetElements(interp, builtinObjs, &oc, &ov) != TCL_OK) {
           NsfLog(interp, NSF_LOG_WARN, "nsfprofile: argument '%s' is not a list of commands", ObjStr(builtinObjs));
         } else {
-          NsfShadowTclCommandInfo *ti = NEW_ARRAY(NsfShadowTclCommandInfo, oc);
           int i;
+          NsfShadowTclCommandInfo *ti = NEW_ARRAY(NsfShadowTclCommandInfo, oc);
 
           for (i = 0; i < oc; i++) {
             int      nrArgs = 0;

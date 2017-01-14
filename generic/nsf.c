@@ -91,16 +91,16 @@ MODULE_SCOPE const NsfStubs nsfStubs;
 typedef enum { CALLING_LEVEL, ACTIVE_LEVEL } CallStackLevel;
 
 typedef struct callFrameContext {
-  int frameSaved;
   Tcl_CallFrame *framePtr;
   Tcl_CallFrame *varFramePtr;
+  int            frameSaved;
 } callFrameContext;
 
 typedef struct NsfProcContext {
-  ClientData oldDeleteData;
+  ClientData         oldDeleteData;
   Tcl_CmdDeleteProc *oldDeleteProc;
-  NsfParamDefs *paramDefs;
-  unsigned int checkAlwaysFlag;
+  NsfParamDefs      *paramDefs;
+  unsigned int       checkAlwaysFlag;
 } NsfProcContext;
 
 /*
@@ -119,23 +119,23 @@ typedef struct SetterCmdClientData {
 } SetterCmdClientData;
 
 typedef struct ForwardCmdClientData {
-  NsfObject *object;
-  Tcl_Obj *cmdName;
+  NsfObject      *object;
+  Tcl_Obj        *cmdName;
   Tcl_ObjCmdProc *objProc;
-  ClientData clientData;
-  int passthrough;
-  int needobjmap;
-  int verbose;
-  int hasNonposArgs;
-  int nr_args;
-  Tcl_Obj *args;
-  int frame;
+  ClientData      clientData;
+  int             passthrough;
+  int             needobjmap;
+  int             verbose;
+  int             hasNonposArgs;
+  Tcl_Obj        *args;
+  int             nr_args;
+  int             frame;
 #if defined(NSF_FORWARD_WITH_ONERROR)
-  Tcl_Obj *onerror;
+  Tcl_Obj        *onerror;
 #endif
-  Tcl_Obj *prefix;
-  int nr_subcommands;
-  Tcl_Obj *subcommands;
+  Tcl_Obj        *prefix;
+  Tcl_Obj        *subcommands;
+  int             nr_subcommands;
 } ForwardCmdClientData;
 
 typedef struct AliasCmdClientData {
@@ -156,9 +156,9 @@ typedef struct AliasCmdClientData {
  */
 #ifdef NSF_MEM_COUNT
 typedef struct NsfNamespaceClientData {
-  NsfObject *object;
+  NsfObject     *object;
   Tcl_Namespace *nsPtr;
-  Tcl_Interp *interp;
+  Tcl_Interp    *interp;
 } NsfNamespaceClientData;
 #endif
 
@@ -168,7 +168,6 @@ typedef struct NsfNamespaceClientData {
 
 #define PARSE_CONTEXT_PREALLOC 20
 typedef struct {
-  unsigned int  status;
   ClientData   *clientData;   /* 4 members pointer to the actual parse context data */
   Tcl_Obj     **objv;
   Tcl_Obj     **full_objv;    /* contains method as well */
@@ -176,10 +175,11 @@ typedef struct {
   ClientData    clientData_static[PARSE_CONTEXT_PREALLOC]; /* 3 members preallocated parse context data */
   Tcl_Obj      *objv_static[PARSE_CONTEXT_PREALLOC+1];
   unsigned int  flags_static[PARSE_CONTEXT_PREALLOC+1];
+  unsigned int  status;
   int           lastObjc;     /* points to the first "unprocessed" argument */
   int           objc;
-  int           varArgs;      /* does the parameter end with some kind of "args" */
   NsfObject    *object;
+  int           varArgs;      /* does the parameter end with some kind of "args" */
 } ParseContext;
 
 static Nsf_TypeConverter ConvertToNothing, ConvertViaCmd, ConvertToObjpattern;
@@ -2493,7 +2493,7 @@ TopoSortSub(NsfClass *cl, NsfClass *baseClass, int withMixinOfs) {
   baseClass->order = pl;
 
   if (unlikely(cl == baseClass)) {
-    const register NsfClasses *pc;
+    register const NsfClasses *pc;
 
     for (pc = cl->order; pc != NULL; pc = pc->nextPtr) {
       pc->cl->color = WHITE;
@@ -22728,12 +22728,12 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd,  NsfObject *contextObject,
      */
     Nsf_methodDefinition *mdPtr = Nsf_CmdDefinitionGet(((Command *)cmd)->objProc);
     if (mdPtr != NULL) {
-        NsfParamDefs localParamDefs = {mdPtr->paramDefs, mdPtr->nrParameters, 1, 0, NULL};
-        Tcl_Obj     *list = ListParamDefs(interp, localParamDefs.paramsPtr, contextObject, pattern, printStyle);
+      NsfParamDefs localParamDefs = {mdPtr->paramDefs, mdPtr->nrParameters, 1, NULL, 0};
+      Tcl_Obj     *list = ListParamDefs(interp, localParamDefs.paramsPtr, contextObject, pattern, printStyle);
 
-        Tcl_SetObjResult(interp, list);
-        DECR_REF_COUNT2("paramDefsObj", list);
-        return TCL_OK;
+      Tcl_SetObjResult(interp, list);
+      DECR_REF_COUNT2("paramDefsObj", list);
+      return TCL_OK;
     }
   }
 
@@ -29146,7 +29146,7 @@ objectMethod instvar NsfOInstvarMethod {
 
 static int
 NsfOInstvarMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CONST objv[]) {
-  callFrameContext ctx = {0, NULL, NULL};
+  callFrameContext ctx = {NULL, NULL, 0};
   int result;
 
   nonnull_assert(interp != NULL);
@@ -29436,7 +29436,7 @@ NsfOUpvarMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CONST 
   Tcl_Obj *frameInfoObj = NULL;
   int i, result = TCL_ERROR;
   const char *frameInfo;
-  callFrameContext ctx = {0, NULL, NULL};
+  callFrameContext ctx = {NULL, NULL, 0};
 
   nonnull_assert(interp != NULL);
   nonnull_assert(object != NULL);
@@ -29479,7 +29479,7 @@ NsfOVolatileMethod(Tcl_Interp *interp, NsfObject *object) {
   int result = TCL_ERROR;
   Tcl_Obj *objPtr;
   const char *fullName, *vn;
-  callFrameContext ctx = {0, NULL, NULL};
+  callFrameContext ctx = {NULL, NULL, 0};
 
   nonnull_assert(interp != NULL);
   nonnull_assert(object != NULL);
