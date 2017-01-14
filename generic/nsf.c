@@ -7766,7 +7766,11 @@ AssertionCheck(Tcl_Interp *interp, NsfObject *object, NsfClass *cl,
       case CHECK_POST:
         result = AssertionCheckList(interp, object, procs->post, method);
         break;
-      default:
+      case CHECK_ALL:      /* fall through */
+      case CHECK_NONE:     /* fall through */
+      case CHECK_CLINVAR:  /* fall through */
+      case CHECK_OBJINVAR: /* fall through */
+      case CHECK_INVAR:    /* fall through */
         break;
       }
     }
@@ -22614,7 +22618,7 @@ ListParamDefs(Tcl_Interp *interp, Nsf_Param const *paramsPtr,
   case NSF_PARAMS_PARAMETER: listObj = ParamDefsFormat(interp, paramsPtr, contextObject, pattern); break;
   case NSF_PARAMS_LIST:      listObj = ParamDefsList(interp, paramsPtr, contextObject, pattern);   break;
   case NSF_PARAMS_NAMES:     listObj = ParamDefsNames(interp, paramsPtr, contextObject, pattern);  break;
-  default: /* NSF_PARAMS_SYNTAX:*/ listObj = NsfParamDefsSyntax(interp, paramsPtr, contextObject, pattern); break;
+  case NSF_PARAMS_SYNTAX:    listObj = NsfParamDefsSyntax(interp, paramsPtr, contextObject, pattern); break;
   }
 
   return listObj;
@@ -25694,7 +25698,8 @@ NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
   switch (withProtection) {
   case ProtectionCall_protectedIdx:     flags = NSF_CMD_CALL_PROTECTED_METHOD; break;
   case ProtectionRedefine_protectedIdx: flags = NSF_CMD_REDEFINE_PROTECTED_METHOD; break;
-  default: flags = 0u;
+  case ProtectionNoneIdx: /* fall through */
+  case ProtectionNULL:                  flags = 0u; break;
   }
 
   if (cl != NULL) {
@@ -26128,7 +26133,10 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
       case MethodpropertyRedefine_protectedIdx:
         flag = NSF_CMD_REDEFINE_PROTECTED_METHOD;
         break;
-      default: flag = 0;
+      case MethodpropertyNULL:       /* fall through */
+      case MethodpropertyReturnsIdx: /* fall through */
+      case MethodpropertyExistsIdx:        
+        flag = 0u;
         break;
       }
 
