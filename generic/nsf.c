@@ -13056,7 +13056,7 @@ ObjectCmdMethodDispatch(NsfObject *invokedObject, Tcl_Interp *interp, int objc, 
       for (varFramePtr = (Tcl_CallFrame *)framePtr; likely(varFramePtr != NULL);
            varFramePtr = Tcl_CallFrame_callerVarPtr(varFramePtr)) {
         const NsfCallStackContent *stackCscPtr;
-        
+
         /*
          * If we reach a non-nsf frame, or it is not an ensemble, we are done.
          */
@@ -13074,10 +13074,10 @@ ObjectCmdMethodDispatch(NsfObject *invokedObject, Tcl_Interp *interp, int objc, 
           /* get method path the next round */
           getPath = 1;
         } else if (getPath == 1) {
-          Tcl_Obj *pathObj1 = CallStackMethodPath(interp, varFramePtr);
-          INCR_REF_COUNT(pathObj1);
           int pathLength1;
+          Tcl_Obj *pathObj1 = CallStackMethodPath(interp, varFramePtr);
 
+          INCR_REF_COUNT(pathObj1);
           getPath = 0;
           Tcl_ListObjLength(interp, pathObj1, &pathLength1);
           if (pathLength1 > pathLength) {
@@ -18629,7 +18629,7 @@ FreeUnsetTraceVariable(Tcl_Interp *interp, const NsfObject *object) {
 
     if (unlikely(result != TCL_OK)) {
       result = Tcl_UnsetVar2(interp, object->opt->volatileVarName, NULL, TCL_GLOBAL_ONLY);
-      
+
       if (unlikely(result != TCL_OK)) {
         Tcl_Namespace *nsPtr = Tcl_GetCurrentNamespace(interp);
         if (UnsetInAllNamespaces(interp, nsPtr, object->opt->volatileVarName) == 0) {
@@ -21047,159 +21047,161 @@ NsfForwardMethod(ClientData clientData, Tcl_Interp *interp,
               totalargs = objc + tcd->nr_args + 3;
 
     ALLOC_ON_STACK(Tcl_Obj*, totalargs, OV);
-    ALLOC_ON_STACK(long, totalargs, objvmap);
+    {
+      ALLOC_ON_STACK(long, totalargs, objvmap);
 
-    /*fprintf(stderr, "+++ forwardMethod standard case, allocated %d args, tcd->args %s\n",
-      totalargs, ObjStr(tcd->args));*/
+      /*fprintf(stderr, "+++ forwardMethod standard case, allocated %d args, tcd->args %s\n",
+        totalargs, ObjStr(tcd->args));*/
 
-    ov = &OV[1];
-    if (tcd->needobjmap != 0) {
-      memset(objvmap, -1, sizeof(long) * (size_t)totalargs);
-    }
-
-    /*
-     * The first argument is always the command, to which we forward.
-     */
-    if ((result = ForwardArg(interp, objc, objv, tcd->cmdName, tcd,
-                             &ov[outputArg], &freeList, &inputArg,
-                             &objvmap[outputArg],
-                             firstPosArg, &outputincr)) != TCL_OK) {
-      goto exitforwardmethod;
-    }
-    outputArg += outputincr;
-
-    /*
-     * If we have nonpos args, determine the first pos arg position for %1
-     */
-    if (tcd->hasNonposArgs != 0) {
-      firstPosArg = objc;
-      for (j = outputArg; j < objc; j++) {
-        const char *arg = ObjStr(objv[j]);
-        if (*arg != '-') {
-          firstPosArg = j;
-          break;
-        }
+      ov = &OV[1];
+      if (tcd->needobjmap != 0) {
+        memset(objvmap, -1, sizeof(long) * (size_t)totalargs);
       }
-    }
-
-    if (tcd->args != NULL) {
-      Tcl_Obj **listElements;
-      int       nrElements;
 
       /*
-       * Copy argument list from the definitions.
+       * The first argument is always the command, to which we forward.
        */
-      Tcl_ListObjGetElements(interp, tcd->args, &nrElements, &listElements);
-
-      for (j = 0; j < nrElements; j++, outputArg += outputincr) {
-        if ((result = ForwardArg(interp, objc, objv, listElements[j], tcd,
-                                 &ov[outputArg], &freeList, &inputArg,
-                                 &objvmap[outputArg],
-                                 firstPosArg, &outputincr)) != TCL_OK) {
-          goto exitforwardmethod;
-        }
+      if ((result = ForwardArg(interp, objc, objv, tcd->cmdName, tcd,
+                               &ov[outputArg], &freeList, &inputArg,
+                               &objvmap[outputArg],
+                               firstPosArg, &outputincr)) != TCL_OK) {
+        goto exitforwardmethod;
       }
-    }
+      outputArg += outputincr;
 
-    /*fprintf(stderr, "objc=%d, tcd->nr_subcommands=%d size=%d\n",
-      objc, tcd->nr_subcommands, objc+ 2            );*/
-
-    if (objc-inputArg > 0) {
-      /*fprintf(stderr, "  copying remaining %d args starting at [%d]\n",
-        objc-inputArg, outputArg);*/
-      memcpy(ov+outputArg, objv+inputArg, sizeof(Tcl_Obj *) * ((size_t)objc - (size_t)inputArg));
-    } else {
-      /*fprintf(stderr, "  nothing to copy, objc=%d, inputArg=%d\n", objc, inputArg);*/
-    }
-    if (tcd->needobjmap != 0) {
       /*
-       * The objmap can shuffle the argument list. We have to set the
-       * addressing relative from the end; -2 means last, -3 element before
-       * last, etc.
+       * If we have nonpos args, determine the first pos arg position for %1
        */
-      int max = objc + tcd->nr_args - inputArg;
-
-      for (j = 0; j < totalargs; j++) {
-        if (objvmap[j] < -1) {
-          /*fprintf(stderr, "must reduct, v=%d\n", objvmap[j]);*/
-          objvmap[j] = max + objvmap[j] + 2;
-          /*fprintf(stderr, "... new value=%d, max = %d\n", objvmap[j], max);*/
+      if (tcd->hasNonposArgs != 0) {
+        firstPosArg = objc;
+        for (j = outputArg; j < objc; j++) {
+          const char *arg = ObjStr(objv[j]);
+          if (*arg != '-') {
+            firstPosArg = j;
+            break;
+          }
         }
       }
-    }
-    objc += outputArg - inputArg;
+
+      if (tcd->args != NULL) {
+        Tcl_Obj **listElements;
+        int       nrElements;
+
+        /*
+         * Copy argument list from the definitions.
+         */
+        Tcl_ListObjGetElements(interp, tcd->args, &nrElements, &listElements);
+
+        for (j = 0; j < nrElements; j++, outputArg += outputincr) {
+          if ((result = ForwardArg(interp, objc, objv, listElements[j], tcd,
+                                   &ov[outputArg], &freeList, &inputArg,
+                                   &objvmap[outputArg],
+                                   firstPosArg, &outputincr)) != TCL_OK) {
+            goto exitforwardmethod;
+          }
+        }
+      }
+
+      /*fprintf(stderr, "objc=%d, tcd->nr_subcommands=%d size=%d\n",
+        objc, tcd->nr_subcommands, objc+ 2            );*/
+
+      if (objc-inputArg > 0) {
+        /*fprintf(stderr, "  copying remaining %d args starting at [%d]\n",
+          objc-inputArg, outputArg);*/
+        memcpy(ov+outputArg, objv+inputArg, sizeof(Tcl_Obj *) * ((size_t)objc - (size_t)inputArg));
+      } else {
+        /*fprintf(stderr, "  nothing to copy, objc=%d, inputArg=%d\n", objc, inputArg);*/
+      }
+      if (tcd->needobjmap != 0) {
+        /*
+         * The objmap can shuffle the argument list. We have to set the
+         * addressing relative from the end; -2 means last, -3 element before
+         * last, etc.
+         */
+        int max = objc + tcd->nr_args - inputArg;
+
+        for (j = 0; j < totalargs; j++) {
+          if (objvmap[j] < -1) {
+            /*fprintf(stderr, "must reduct, v=%d\n", objvmap[j]);*/
+            objvmap[j] = max + objvmap[j] + 2;
+            /*fprintf(stderr, "... new value=%d, max = %d\n", objvmap[j], max);*/
+          }
+        }
+      }
+      objc += outputArg - inputArg;
 
 #if 0
-    for(j = 0; j < objc; j++) {
-      /*fprintf(stderr, "  ov[%d]=%p, objc=%d\n", j, ov[j], objc);*/
-      fprintf(stderr, " o[%d]=%p %s (%d),", j, ov[j], ov[j] ? ObjStr(ov[j]) : "NADA", objvmap[j]);
-    }
-    fprintf(stderr, "\n");
+      for(j = 0; j < objc; j++) {
+        /*fprintf(stderr, "  ov[%d]=%p, objc=%d\n", j, ov[j], objc);*/
+        fprintf(stderr, " o[%d]=%p %s (%d),", j, ov[j], ov[j] ? ObjStr(ov[j]) : "NADA", objvmap[j]);
+      }
+      fprintf(stderr, "\n");
 #endif
 
-    if (tcd->needobjmap != 0) {
+      if (tcd->needobjmap != 0) {
 
-      for (j = 0; j < totalargs; j++) {
-        Tcl_Obj *tmp;
-        long     pos = objvmap[j], i;
+        for (j = 0; j < totalargs; j++) {
+          Tcl_Obj *tmp;
+          long     pos = objvmap[j], i;
 
-        if (pos == -1 || pos == j) {
-          continue;
-        }
-        tmp = ov[j];
-        if (j > pos) {
-          for(i = j; i > pos; i--) {
-            /*fprintf(stderr, "...moving right %d to %d\n", i-1, i);*/
-            ov[i] = ov[i-1];
-            objvmap[i] = objvmap[i-1];
+          if (pos == -1 || pos == j) {
+            continue;
           }
-        } else {
-          for(i = j; i < pos; i++) {
-            /*fprintf(stderr, "...moving left %d to %d\n", i+1, i);*/
-            ov[i] = ov[i+1];
-            objvmap[i] = objvmap[i+1];
+          tmp = ov[j];
+          if (j > pos) {
+            for(i = j; i > pos; i--) {
+              /*fprintf(stderr, "...moving right %d to %d\n", i-1, i);*/
+              ov[i] = ov[i-1];
+              objvmap[i] = objvmap[i-1];
+            }
+          } else {
+            for(i = j; i < pos; i++) {
+              /*fprintf(stderr, "...moving left %d to %d\n", i+1, i);*/
+              ov[i] = ov[i+1];
+              objvmap[i] = objvmap[i+1];
+            }
           }
+          /*fprintf(stderr, "...setting at %d -> %s\n", pos, ObjStr(tmp));*/
+          ov[pos] = tmp;
+          objvmap[pos] = -1;
         }
-        /*fprintf(stderr, "...setting at %d -> %s\n", pos, ObjStr(tmp));*/
-        ov[pos] = tmp;
-        objvmap[pos] = -1;
       }
-    }
 
-    /*
-       If a prefix is provided, it will be prepended to the 2nd argument. This
-       allows for avoiding name clashes if the 2nd argument denotes a
-       subcommand, for example.
+      /*
+        If a prefix is provided, it will be prepended to the 2nd argument. This
+        allows for avoiding name clashes if the 2nd argument denotes a
+        subcommand, for example.
 
-       Make sure that the prefix is only prepended, if a second arg is
-       actually available! Otherwise, the requested prefix has no effect.
-    */
-    if (tcd->prefix && objc > 1) {
+        Make sure that the prefix is only prepended, if a second arg is
+        actually available! Otherwise, the requested prefix has no effect.
+      */
+      if (tcd->prefix && objc > 1) {
         Tcl_Obj *methodName = Tcl_DuplicateObj(tcd->prefix);
 
         Tcl_AppendObjToObj(methodName, ov[1]);
         ov[1] = methodName;
         INCR_REF_COUNT(ov[1]);
-    }
+      }
 
 #if 0
-    for(j = 0; j < objc; j++) {
-      /*fprintf(stderr, "  ov[%d]=%p, objc=%d\n", j, ov[j], objc);*/
-      fprintf(stderr, "  ov[%d]=%p '%s' map=%d\n", j, ov[j], ov[j] ? ObjStr(ov[j]) : "NADA", objvmap[j]);
-    }
+      for(j = 0; j < objc; j++) {
+        /*fprintf(stderr, "  ov[%d]=%p, objc=%d\n", j, ov[j], objc);*/
+        fprintf(stderr, "  ov[%d]=%p '%s' map=%d\n", j, ov[j], ov[j] ? ObjStr(ov[j]) : "NADA", objvmap[j]);
+      }
 #endif
 
-    OV[0] = tcd->cmdName;
+      OV[0] = tcd->cmdName;
 
-    result = CallForwarder(tcd, interp, objc, ov);
+      result = CallForwarder(tcd, interp, objc, ov);
 
-    if (tcd->prefix && objc > 1) {
-      DECR_REF_COUNT(ov[1]);
+      if (tcd->prefix && objc > 1) {
+        DECR_REF_COUNT(ov[1]);
+      }
+    exitforwardmethod:
+      if (freeList != NULL)    {DECR_REF_COUNT2("freeList", freeList);}
+
+      FREE_ON_STACK(long, objvmap);
     }
-  exitforwardmethod:
-    if (freeList != NULL)    {DECR_REF_COUNT2("freeList", freeList);}
-
-    FREE_ON_STACK(long, objvmap);
     FREE_ON_STACK(Tcl_Obj*, OV);
   }
   return result;
@@ -26730,7 +26732,7 @@ NsfNextCmd(Tcl_Interp *interp, Tcl_Obj *arguments) {
   if (arguments != NULL) {
     /* Arguments were provided. */
     int rc = Tcl_ListObjGetElements(interp, arguments, &oc, &ov);
-    
+
     if (unlikely(rc != TCL_OK)) {
       return rc;
     }
@@ -27727,7 +27729,7 @@ NsfCurrentCmd(Tcl_Interp *interp, CurrentoptionIdx_t selfoption) {
 
   case CurrentoptionActivemixinIdx: {
     NsfObject *cmdObject = NULL;
-    
+
     if (RUNTIME_STATE(interp)->currentMixinCmdPtr) {
       cmdObject = NsfGetObjectFromCmdPtr(RUNTIME_STATE(interp)->currentMixinCmdPtr);
     }
