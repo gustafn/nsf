@@ -4228,7 +4228,7 @@ CallDirectly(Tcl_Interp *interp, NsfObject *object, int methodIdx, Tcl_Obj **met
       /*fprintf(stderr, "Warning: CallDirectly object %s idx %s not defined\n",
         ObjectName(object), Nsf_SystemMethodOpts[methodIdx]+1);*/
     } else {
-#if DISPATCH_ALWAYS_DEFINED_METHODS
+#if defined(DISPATCH_ALWAYS_DEFINED_METHODS)
       callDirectly = 0;
 #else
       if ((object->flags & NSF_FILTER_ORDER_VALID) == 0u) {
@@ -4546,7 +4546,7 @@ NsColonVarResolver(Tcl_Interp *interp, const char *varName, Tcl_Namespace *UNUSE
   nonnull_assert(varName != NULL);
   nonnull_assert(varPtr != NULL);
 
-#if defined (VAR_RESOLVER_TRACE)
+#if defined(VAR_RESOLVER_TRACE)
   fprintf(stderr, "NsColonVarResolver '%s' flags %.6x\n", varName, flags);
 #endif
 
@@ -4569,13 +4569,13 @@ NsColonVarResolver(Tcl_Interp *interp, const char *varName, Tcl_Namespace *UNUSE
   assert(varFramePtr != NULL);
 
   frameFlags = (unsigned int)Tcl_CallFrame_isProcCallFrame(varFramePtr);
-#if defined (VAR_RESOLVER_TRACE)
+#if defined(VAR_RESOLVER_TRACE)
   fprintf(stderr, "NsColonVarResolver '%s' frame flags %.6x\n", varName,
           Tcl_CallFrame_isProcCallFrame(varFramePtr));
 #endif
 
   if ((frameFlags & FRAME_IS_PROC) != 0u) {
-#if defined (VAR_RESOLVER_TRACE)
+#if defined(VAR_RESOLVER_TRACE)
     fprintf(stderr, "...... forwarding to next resolver\n");
 #endif
     /*fprintf(stderr, "proc-scoped var '%s' assumed, frame %p flags %.6x\n",
@@ -4643,7 +4643,7 @@ NsColonVarResolver(Tcl_Interp *interp, const char *varName, Tcl_Namespace *UNUSE
 
   *varPtr = (Tcl_Var)VarHashCreateVar(varTablePtr, key, NULL);
 
-#if defined (VAR_RESOLVER_TRACE)
+#if defined(VAR_RESOLVER_TRACE)
   fprintf(stderr, "...... lookup of '%s' for object '%s' returns %p\n",
           varName, ObjectName(object), *varPtr);
 #endif
@@ -5705,7 +5705,7 @@ NSDeleteChildren(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
   Tcl_ForgetImport(interp, nsPtr, "*"); /* don't destroy namespace imported objects */
 
 
-#if OBJDELETION_TRACE
+#if defined(OBJDELETION_TRACE)
   /*
    * Deletion is always tricky. Show, what elements should be deleted
    * in this loop. The actually deleted elements might be actually
@@ -7019,7 +7019,7 @@ CmdListReplaceCmd(NsfCmdList *replace, Tcl_Command cmd, NsfClass *clorobj) {
   NsfCommandRelease(del);
 }
 
-#if NSF_DEBUGGING
+#if defined(NSF_DEBUGGING)
 /** for debug purposes only */
 static void CmdListPrint(Tcl_Interp *interp, const char *title, NsfCmdList *cmdList)
   nonnull(1) nonnull(3);
@@ -31994,7 +31994,7 @@ ExitHandler(ClientData clientData) {
    */
   /*fprintf(stderr, "+++ ExiHandler frees runtime state of interp %p\n",interp);*/
   ckfree((char *) RUNTIME_STATE(interp));
-#if USE_ASSOC_DATA
+#if defined(USE_ASSOC_DATA)
   Tcl_DeleteAssocData(interp, "NsfRuntimeState");
 #else
   Tcl_Interp_globalNsPtr(interp)->clientData = NULL;
@@ -32149,7 +32149,7 @@ Nsf_Init(Tcl_Interp *interp) {
   runtimeState = ckalloc((int)sizeof(NsfRuntimeState));
   memset(runtimeState, 0, sizeof(NsfRuntimeState));
 
-#if USE_ASSOC_DATA
+#if defined(USE_ASSOC_DATA)
   Tcl_SetAssocData(interp, "NsfRuntimeState", NULL, runtimeState);
 #else
   Tcl_Interp_globalNsPtr(interp)->clientData = runtimeState;

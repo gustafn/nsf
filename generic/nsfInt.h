@@ -186,7 +186,7 @@ typedef struct NsfMemCounter {
 #define DSTRING_FREE(dsPtr) \
   if ((dsPtr)->string != (dsPtr)->staticSpace) {Tcl_DStringFree(dsPtr);} MEM_COUNT_FREE("DString",(dsPtr))
 
-#if USE_ASSOC_DATA
+#if defined(USE_ASSOC_DATA)
 # define RUNTIME_STATE(interp) ((NsfRuntimeState*)Tcl_GetAssocData((interp), "NsfRuntimeState", NULL))
 #else
 # define RUNTIME_STATE(interp) ((NsfRuntimeState*)((Interp*)(interp))->globalNsPtr->clientData)
