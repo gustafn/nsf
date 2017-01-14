@@ -1230,7 +1230,7 @@ void NsfStringIncrFree(NsfStringIncrStruct *iss)
  *
  */
 
-typedef void (Nsf_AnyFun)();
+typedef void (Nsf_AnyFun)(void);
 
 EXTERN void Nsf_InitFunPtrHashTable(Tcl_HashTable *tablePtr)
   nonnull(1);

@@ -1060,7 +1060,7 @@ VarHashCreateVar(TclVarHashTable *tablePtr, const Tcl_Obj *key, int *newPtr) {
 }
 
 static NSF_INLINE TclVarHashTable *
-VarHashTableCreate() {
+VarHashTableCreate(void) {
   TclVarHashTable *varTablePtr = (TclVarHashTable *) ckalloc((int)sizeof(TclVarHashTable));
 
   TclInitVarHashTable(varTablePtr, NULL);
@@ -7557,10 +7557,10 @@ AssertionAddProc(Tcl_Interp *interp, const char *name, NsfAssertionStore *aStore
   }
 }
 
-static NsfAssertionStore *AssertionCreateStore() returns_nonnull;
+static NsfAssertionStore *AssertionCreateStore(void) returns_nonnull;
 
 static NsfAssertionStore *
-AssertionCreateStore() {
+AssertionCreateStore(void) {
   NsfAssertionStore *aStore = NEW(NsfAssertionStore);
 
   aStore->invariants = NULL;
@@ -11680,7 +11680,7 @@ ParamDefsStore(Tcl_Interp *interp, Tcl_Command cmd, NsfParamDefs *paramDefs, uns
  *----------------------------------------------------------------------
  */
 static NsfParamDefs *
-ParamDefsNew() {
+ParamDefsNew(void) {
   NsfParamDefs *paramDefs;
   static NsfMutex serialMutex = 0;
   static int serial = 0;
