@@ -16857,7 +16857,7 @@ NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
      * parameter definition.
      */
     result = ProcessMethodArguments(pcPtr, interp, NULL,
-                                    (((tcd->flags & NSF_PROC_FLAG_CHECK_ALWAYS) != 0) ? NSF_ARGPARSE_CHECK : 0)
+                                    (((tcd->flags & NSF_PROC_FLAG_CHECK_ALWAYS) != 0u) ? NSF_ARGPARSE_CHECK : 0u)
                                     |NSF_ARGPARSE_FORCE_REQUIRED,
                                     tcd->paramDefs, objv[0],
                                     objc, objv);
