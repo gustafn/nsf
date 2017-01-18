@@ -1006,6 +1006,7 @@ static Nsf_methodDefinition method_definitions[31] = {
 },
 {"::mongo::status", NsfMongoStatusStub, 1, {
   {"conn", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Pointer, NULL,NULL,"mongoc_client_t",NULL,NULL,NULL,NULL,NULL}}
-},{NULL}
+},
+{NULL, NULL, 0, {{NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}}
 };
 
