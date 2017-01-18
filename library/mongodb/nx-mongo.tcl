@@ -454,6 +454,11 @@ namespace eval ::nx::mongo {
 	  "in" - "all" {
 	    lappend bson $att document [list [:get relop $op] {*}[$slot bson encode -array $value]]
 	  }
+          "~" {
+            # value should be a two-element list contain pattern and options
+	    lappend bson $att document [list {$regex} regex $value]
+	  }
+
 	  default {return -code error "unknown operator $op"}
 	}
       }

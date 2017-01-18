@@ -115,6 +115,9 @@ puts "\nFind persons age > 30:"
 ? {llength [set persons [Person find all -cond {age > 30}]]} 1
 ? {lsort [lmap p $persons {$p cget -name}]} "Gustaf"
 
+puts "\nFind persons with names matching regular expression /an/i  (containing 'an', ignore case):"
+? {llength [set persons [Person find all -cond {name ~ {an i}}]]} 2
+? {lsort [lmap p $persons {$p cget -name}]} "Franz Stefan"
 
 #
 # Define a special find method for "Person" named "oldies" by
@@ -123,6 +126,7 @@ puts "\nFind persons age > 30:"
 Person public object method "find oldies" {} {
   return [:find all -cond {age > 30}]
 }
+
 
 #
 # Use the special find method
