@@ -549,7 +549,9 @@ install-binaries:
 	@$(CPY) $(PRJLIB) "$(SCRIPT_INSTALL_DIR)" >NUL
 	@echo Installing header files to '$(INCLUDE_INSTALL_DIR)\'	
 	@$(CPY) "$(GENERICDIR)\nsf.h" "$(INCLUDE_INSTALL_DIR)\"
-	@$(CPY) "$(GENERICDIR)\nsfDecls.h" "$(INCLUDE_INSTALL_DIR)\"
+	@$(CPY) "$(GENERICDIR)\nsfInt.h" "$(INCLUDE_INSTALL_DIR)\"
+	@$(CPY) "$(STUBSDIR)\nsfDecls.h" "$(INCLUDE_INSTALL_DIR)\"
+	@$(CPY) "$(STUBSDIR)\nsfIntDecls.h" "$(INCLUDE_INSTALL_DIR)\" 
 	@echo Installing package index in '$(SCRIPT_INSTALL_DIR)'
 	@$(CPY) $(OUT_DIR)\pkgIndex.tcl "$(SCRIPT_INSTALL_DIR)"
 
