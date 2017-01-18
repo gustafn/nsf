@@ -93,18 +93,18 @@ typedef void *NsfObject;
 
 #define PARSE_CONTEXT_PREALLOC 20
 typedef struct {
-  int status;
-  ClientData *clientData; /* 4 members pointer to the actual parse context data */
-  Tcl_Obj **objv;
-  Tcl_Obj **full_objv;    /* contains method as well */
-  int *flags;
-  ClientData clientData_static[PARSE_CONTEXT_PREALLOC]; /* 3 members preallocated parse context data */
-  Tcl_Obj *objv_static[PARSE_CONTEXT_PREALLOC+1];
-  int flags_static[PARSE_CONTEXT_PREALLOC+1];
-  int lastObjc;           /* points to the first "unprocessed" argument */
-  int objc;
-  int varArgs;            /* does the parameter end with some kind of "args" */
-  NsfObject *object;
+  ClientData   *clientData;   /* 4 members pointer to the actual parse context data */
+  Tcl_Obj     **objv;
+  Tcl_Obj     **full_objv;    /* contains method as well */
+  unsigned int *flags;
+  ClientData    clientData_static[PARSE_CONTEXT_PREALLOC]; /* 3 members preallocated parse context data */
+  Tcl_Obj      *objv_static[PARSE_CONTEXT_PREALLOC+1];
+  unsigned int  flags_static[PARSE_CONTEXT_PREALLOC+1];
+  unsigned int  status;
+  int           lastObjc;     /* points to the first "unprocessed" argument */
+  int           objc;
+  NsfObject    *object;
+  int           varArgs;      /* does the parameter end with some kind of "args" */
 } ParseContext;
 
 #define nr_elements(arr)  ((int) (sizeof(arr) / sizeof(arr[0])))

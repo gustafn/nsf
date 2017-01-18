@@ -486,7 +486,7 @@ static Nsf_methodDefinition method_definitions[$nrIfds];
   puts "enum {\n $enumString\n} NsfMethods;\n"
   puts $fns
   set definitionString [join $ifds ",\n"]
-  set terminator {NULL, NULL, 0, {{NULL, 0, 0, ConvertToNothing, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}}
+  set terminator {NULL, NULL, 0, {{NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}}
   puts "static Nsf_methodDefinition method_definitions\[$nrIfds\] = \{\n$definitionString,\n{$terminator}\n\};\n"
 }
 
