@@ -2508,7 +2508,12 @@ namespace eval ::nx {
       # Evaluate the command under catch to ensure reverse mapping
       # of "new"
       #
-      set errorOccured [catch [list ::apply [list {} $cmds $object]] errorMsg]
+      if {[catch [list ::apply [list {} $cmds $object]] errorMsg]} {
+        set errorCode $::errorCode
+        set errorOccured 1
+      } else {
+        set errorOccured 0
+      }
 
       #
       # Remove the mapped "new" method, if it was added above
@@ -2517,7 +2522,12 @@ namespace eval ::nx {
       if {[::nsf::is class ::xotcl::Class]} {
 	if {$xotclMapNew} {::nsf::method::alias ::xotcl::Class new $plainNew}
       }
-      if {$errorOccured} {return -code error $errorMsg}
+      #
+      # Report the error with message and code when necessary
+      #
+      if {$errorOccured} {
+        return -code error -errorcode $errorCode $errorMsg
+      }
 
     } else {
       ::apply [list {} $cmds $object]
