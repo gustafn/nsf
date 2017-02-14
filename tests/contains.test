@@ -63,6 +63,32 @@ set x [Tree create t -contains {
 }]
 
 #
+# error and errorcode propagation from within contains
+#
+
+Class create Arbre
+? {catch {Arbre create root {
+  :contains {
+    Arbre create level1 {
+      :contains {
+        Arbre level2
+      }
+    }
+  }
+}} msg opts; set msg} "method 'level2' unknown for ::Arbre; in order to create an instance of class ::Arbre, consider using '::Arbre create level2 ?...?'"
+
+Class create Arbre
+? {catch {Arbre create root {
+  :contains {
+    Arbre create level1 {
+      :contains {
+        return -code error -errorcode MYERR
+      }
+    }
+  }
+}} msg opts; dict get $opts -errorcode} "MYERR"
+
+#
 # Test resolving next without namespace import/path
 #
 namespace path ""

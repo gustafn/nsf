@@ -108,7 +108,7 @@ in the following respects:
    .. One can invoke in NX fully qualified methods to invoke
      methods outside the precedence path.
 
-   .. One can define in NX _hierachical method names_ (similar to
+   .. One can define in NX _hierarchical method names_ (similar to
      commands and subcommands, called method ensembles) in a
      convenient way to provide extensible, hierarchical naming of
      methods.
@@ -175,7 +175,7 @@ in the following respects:
 
 . *Much Smaller Interface:* The Next Scripting Language has a much
   _smaller interface_ (i.e.  provides less predefined methods) than
-  XOTcl (see Table 1), although the expressability was increased in
+  XOTcl (see Table 1), although the expressiveness was increased in
   NX.
 
 .Comparison of the Number of Predefined Methods in NX and XOTcl
@@ -272,7 +272,7 @@ Stack instproc pop {} {
 In general, the Next Scripting Framework supports multiple object
 systems concurrently. Effectively, every object system has different
 base classes for creating objects and classes. Therefore, these object
-systems can have different different interfaces and names of built-in
+systems can have different interfaces and names of built-in
 methods. Currently, the Next Scripting Framework is packaged with
 three object systems:
 
@@ -506,7 +506,7 @@ parameters are defined (see Section 3.4).
 
 In NX forwarders are called +forward+. NX does not provide an public
 available method to define variable accessors like +parametercmd+ in
-XOTcl, but use interanlly the Next Scripting Framework primitive
+XOTcl, but use internally the Next Scripting Framework primitive
 +nsf::method::setter+ when appropriate.
 
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
@@ -1091,7 +1091,7 @@ NX solves this via inheritance, while an procedural approach via
 assign statements in the constructor requires explicit constructor
 calls, which are often error-prone. Certainly, when a user prefers to
 assign initial values to instance variables via explicit assign
-operations in constructors, this is as ell possible in NX.
+operations in constructors, this is as well possible in NX.
 
 NX uses the same mechanism to define class variables or object
 variables.
@@ -1125,8 +1125,8 @@ In the next step, we define configurable instance variables which we
 call _properties_ in NX.
 
 XOTcl uses the method +parameter+ is a shortcut for creating multiple
-configurable variables with automically created accessors (methods for
-reading and writing of the variables). In NX, the prefered way to
+configurable variables with automatically created accessors (methods for
+reading and writing of the variables). In NX, the preferred way to
 create configurable variables is to use the method +property+. The
 method +property+ in NX is similar to +variable+, but makes the
 variables configurable, which means that
@@ -1333,7 +1333,7 @@ to be passed to the constructor of the object.
 
 NX allows to define _optional_ and _required_ configure parameters (as
 well as method parameters). Therefore, configure parameters can be used
-as the single mechanism to parameterize objects. It is in NX not
+as the single mechanism to parametrize objects. It is in NX not
 necessary (and per default not possible) to pass arguments to the
 constructor.
 
@@ -1463,7 +1463,7 @@ Foo create f1 -a 0
 |======================
 
 Since the slots are objects, the slot objects can be configured and
-parameterized like every other object in NX. Slot objects can be
+parametrized like every other object in NX. Slot objects can be
 provided with a scripted initialization as well. We show first the
 definition of properties simliar to the functionality provided as well
 by XOTcl and show afterwards how to use value constraints, optional
@@ -1712,7 +1712,7 @@ XOTcl and NX allow the definition of the same set of interceptors,
 namely class- and object-level mixins and class- and object-level
 filters. The primary difference in NX is the naming, since NX abandons
 the prefix "inst" from the names of instance specific method, but uses
-the the modifier +objec+" for object specific methods.
+the modifier +object+" for object specific methods.
 
 Therefore, in NX, if a +mixin+ is registered on a class-level, it is
 applicable for the instances (a per-class mixin), and if and +object
@@ -1841,7 +1841,7 @@ and has to use accordingly different sub-methods of +info+.
 In NX, one can use e.g. always +info method+ with a subcommand and the
 framework tries to hide the differences as far as possible. So, one
 can for example obtain with +info method parameter+ the parameters of
-scripted and C-implemented methods the same way, one one can get the
+scripted and C-implemented methods the same way, one can get the
 definition of all methods via +info method definition+ and one can get
 an manual-like interface description via +info method
 syntax+. In addition, NX provides means to query the type of
@@ -2972,7 +2972,7 @@ working on the slots objects has to be adapted.
 === Obsolete Commands
 
 Parameter-classes were rarely used and have been replaced by the more
-general object parameterization. Therefore, `cl info parameterclass` has
+general object parametrization. Therefore, `cl info parameterclass` has
 been removed.
 
 === Stronger Checking
