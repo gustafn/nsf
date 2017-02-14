@@ -145,6 +145,21 @@ o1 proc cleanup {} {puts stderr "CLEANUP"; return}
 C1 create c1
 C1 create c1
 
+c1 destroy
+C1 destroy
+
+
+? {nx::Object create o} ::o
+? {o contains { nx::Object create p}} ::o::p
+? {catch {o contains { return -code error -errorcode {FOO bar baz} somethingwrong}} errorMsg} 1
+set ::errorinfo $::errorInfo
+set ::errorcode $::errorCode
+? {set ::errorMsg} {somethingwrong}
+? {set ::errorinfo} {somethingwrong
+    while executing
+"o contains { return -code error -errorcode {FOO bar baz} somethingwrong}"}
+? {set ::errorcode} {FOO bar baz}
+
 puts stderr "====EXIT [info script]"
 #
 # Local variables:

@@ -2508,12 +2508,9 @@ namespace eval ::nx {
       # Evaluate the command under catch to ensure reverse mapping
       # of "new"
       #
-      if {[catch [list ::apply [list {} $cmds $object]] errorMsg]} {
-        set errorCode $::errorCode
-        set errorOccured 1
-      } else {
-        set errorOccured 0
-      }
+      set errorOccured [catch \
+                            [list ::apply [list {} $cmds $object]] \
+                            result errorOptions]
 
       #
       # Remove the mapped "new" method, if it was added above
@@ -2526,8 +2523,10 @@ namespace eval ::nx {
       # Report the error with message and code when necessary
       #
       if {$errorOccured} {
-        return -code error -errorcode $errorCode $errorMsg
+        dict incr errorOptions -level
+        dict unset errorOptions -errorinfo
       }
+      return -options $errorOptions $result
 
     } else {
       ::apply [list {} $cmds $object]
