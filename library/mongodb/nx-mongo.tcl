@@ -541,7 +541,9 @@ namespace eval ::nx::mongo {
     }
 
     :public method "bson create" {{-name ""} tuple} {
-      ::nsf::object::alloc [self] $name [:bson setvalues $tuple]
+      set o [::nsf::object::alloc [self] $name [:bson setvalues $tuple]]
+      $o eval :init
+      return $o
     }
 
     :method "bson pp_array" {{-indent 0} list} {
