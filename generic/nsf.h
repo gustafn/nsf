@@ -357,6 +357,7 @@ typedef struct Nsf_Param {
 #define NSF_ARG_NODASHALNUM		0x00400000u
 #define NSF_ARG_SLOTSET			0x00800000u
 #define NSF_ARG_SLOTINITIALIZE		0x01000000u
+#define NSF_ARG_EXPR			0x02000000u
 
 #undef  __GNUC_PREREQ
 #if defined __GNUC__ && defined __GNUC_MINOR__

@@ -281,7 +281,7 @@ static int ConvertToRelationtype(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param 
     
 
 /* just to define the symbol */
-static Nsf_methodDefinition method_definitions[114];
+static Nsf_methodDefinition method_definitions[115];
   
 static const char *method_command_namespace_names[] = {
   "::nsf::methods::object::info",
@@ -386,6 +386,8 @@ static int NsfMyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
 static int NsfNSCopyVarsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv)
   NSF_nonnull(2) NSF_nonnull(4);
 static int NsfNextCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv)
+  NSF_nonnull(2) NSF_nonnull(4);
+static int NsfOMsetCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv)
   NSF_nonnull(2) NSF_nonnull(4);
 static int NsfObjectAllocCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv)
   NSF_nonnull(2) NSF_nonnull(4);
@@ -614,6 +616,8 @@ static int NsfNSCopyVarsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
 static int NsfNextCmd(Tcl_Interp *interp, Tcl_Obj *arguments)
   NSF_nonnull(1);
+static int NsfOMsetCmd(Tcl_Interp *interp, Tcl_Obj *list)
+  NSF_nonnull(1) NSF_nonnull(2);
 static int NsfObjectAllocCmd(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *name, Tcl_Obj *initcmd)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
 static int NsfObjectExistsCmd(Tcl_Interp *interp, Tcl_Obj *value)
@@ -793,6 +797,7 @@ enum {
  NsfMyCmdIdx,
  NsfNSCopyVarsCmdIdx,
  NsfNextCmdIdx,
+ NsfOMsetCmdIdx,
  NsfObjectAllocCmdIdx,
  NsfObjectExistsCmdIdx,
  NsfObjectPropertyCmdIdx,
@@ -2060,6 +2065,22 @@ NsfNextCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
       }
     
     return NsfNextCmd(interp, objc == 2 ? objv[1] : NULL);
+
+}
+
+static int
+NsfOMsetCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv) {
+  (void)clientData;
+
+    
+
+      if (objc != 2) {
+	return NsfArgumentError(interp, "wrong # of arguments:",
+			     method_definitions[NsfOMsetCmdIdx].paramDefs,
+			     NULL, objv[0]);
+      }
+    
+    return NsfOMsetCmd(interp, objv[1]);
 
 }
 
@@ -3479,7 +3500,7 @@ NsfObjInfoVarsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
   }
 }
 
-static Nsf_methodDefinition method_definitions[114] = {
+static Nsf_methodDefinition method_definitions[115] = {
 {"::nsf::methods::class::alloc", NsfCAllocMethodStub, 1, {
   {"objectName", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
@@ -3721,6 +3742,9 @@ static Nsf_methodDefinition method_definitions[114] = {
 },
 {"::nsf::next", NsfNextCmdStub, 1, {
   {"arguments", 0, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+},
+{"::nsf::mset", NsfOMsetCmdStub, 1, {
+  {"list", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::object::alloc", NsfObjectAllocCmdStub, 3, {
   {"class", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Class, NULL,NULL,"class",NULL,NULL,NULL,NULL,NULL},

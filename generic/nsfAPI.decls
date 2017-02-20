@@ -112,6 +112,10 @@ cmd is NsfIsCmd {
   {-argName "value" -required 1 -type tclobj}
 } {-nxdoc 1}
 
+cmd mset NsfOMsetCmd {
+  {-argName "list" -required 1 -type tclobj}
+}
+
 cmd parameter::info NsfParameterInfoCmd {
   {-argName "subcmd"   -typeName "parametersubcmd" -type "default|list|name|syntax|type" -required 1}
   {-argName "spec"     -required 1 -type tclobj}

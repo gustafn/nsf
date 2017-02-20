@@ -1293,6 +1293,7 @@ Nsf_UnsetVar2(Nsf_Object *object1, Tcl_Interp *interp,
   return result;
 }
 
+
 int
 NsfCreate(Tcl_Interp *interp, Nsf_Class *class, Tcl_Obj *nameObj,
           int objc, Tcl_Obj *CONST objv[]) {
@@ -15397,6 +15398,9 @@ ParamOptionParse(Tcl_Interp *interp, const char *argString,
   } else if (strncmp(option, "substdefault", 12) == 0) {
     paramPtr->flags |= NSF_ARG_SUBST_DEFAULT;
 
+  } else if (strncmp(option, "expr", 4) == 0) {
+    paramPtr->flags |= NSF_ARG_EXPR;
+
   } else if (strncmp(option, "convert", 7) == 0) {
     paramPtr->flags |= NSF_ARG_IS_CONVERTER;
 
@@ -21631,6 +21635,7 @@ ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param const *pPtr,
               unsigned int doCheckArguments,
               unsigned int *flags, ClientData *clientData, Tcl_Obj **outObjPtr) {
   int result;
+  Tcl_Obj *exprResultObj = NULL;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(objPtr != NULL);
@@ -21638,6 +21643,19 @@ ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param const *pPtr,
   nonnull_assert(flags != NULL);
   nonnull_assert(clientData != NULL);
   nonnull_assert(outObjPtr != NULL);
+
+
+  if (unlikely((pPtr->flags & NSF_ARG_EXPR) != 0u)) {
+    Tcl_Obj *argv[2];
+
+    argv[1] = objPtr;
+    if (Nsf_ExprObjCmd(NULL, interp, 2, argv) == TCL_OK) {
+      exprResultObj = Tcl_GetObjResult(interp);
+      //fprintf(stderr, "expr <$objPtr%s> returned <%s>\n", ObjStr(objPtr), ObjStr(exprResultObj));
+      objPtr = exprResultObj;
+      INCR_REF_COUNT(objPtr); // TODO: DECR missing
+    }
+  }
 
   /*
    * Default assumption: outObjPtr is not modified.
@@ -24546,6 +24564,36 @@ SetBooleanFlag(Tcl_Interp *interp, unsigned int *flagsPtr, unsigned int flag, Tc
 /***********************************************************************
  * Begin generated Next Scripting commands
  ***********************************************************************/
+
+
+static int
+NsfOMsetCmd(Tcl_Interp *interp, Tcl_Obj *listObj) {
+  int          result = TCL_OK, oc = 0, i;
+  unsigned int flags = TCL_LEAVE_ERR_MSG;
+  Tcl_Obj    **objv;
+
+  if (Tcl_ListObjGetElements(interp, listObj, &oc, &objv) != TCL_OK) {
+    result = TCL_ERROR;
+  } else if (oc % 2 == 1) {
+    result = NsfPrintError(interp, "argument must have even number of elements: %s",
+                           ObjStr(listObj));
+  } else {
+
+    for (i = 0; i < oc; i += 2) {
+      Tcl_Obj *resultObj = Tcl_ObjSetVar2(interp, objv[i], NULL, objv[i+1], (int)flags);
+      if (resultObj == NULL) {
+        result = TCL_ERROR;
+        break;
+      }
+    }
+
+    if (result == TCL_OK) {
+      Tcl_SetObjResult(interp, Tcl_NewIntObj(1));
+    }
+  }
+
+  return result;
+}
 
 /*
 cmd __db_compile_epoch NsfDebugCompileEpoch {}
@@ -29096,6 +29144,7 @@ NsfODestroyMethod(Tcl_Interp *interp, NsfObject *object) {
   }
   return TCL_OK;
 }
+
 
 /*
 objectMethod exists NsfOExistsMethod {
