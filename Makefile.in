@@ -188,6 +188,16 @@ ifeq ($(DTPLITE),)
 else
   # Do nothing, use the environment variable as is.
 endif
+
+ifeq ($(ASCIIDOC),)
+  ASCIIDOC = PATH=$(src_app_dir_native)/utils:$(PATH) \
+	     asciidoc \
+	     -f $(src_app_dir_native)/utils/asciidoc.conf
+else
+  # Do nothing, use the environment variable as is.
+endif
+
+
 #
 # Not used, but retained for reference of what libs Tcl required
 TCL_LIBS	= @TCL_LIBS@
@@ -268,7 +278,7 @@ EXAMPLE_SCRIPTS = \
 
 %.html : %.tcl
 	$(TCLSH) $(src_app_dir_native)/utils/source-doc-beautifier.tcl $<
-	PATH=$(src_app_dir_native)/utils:$(PATH) asciidoc -f $(src_app_dir_native)/utils/asciidoc.conf $*.txt
+	$(ASCIIDOC) $*.txt
 
 #========================================================================
 # TEA TARGETS.  Please note that the "libraries:" target refers to platform
@@ -322,8 +332,8 @@ full-doc: doc pdfdoc example-doc
 
 # for now, just the two doc files
 doc:
-	(cd $(src_doc_dir); asciidoc next-migration.txt)
-	(cd $(src_doc_dir)/next-tutorial; asciidoc next-tutorial.txt)
+	$(ASCIIDOC) $(src_doc_dir)/next-migration.txt
+	$(ASCIIDOC) $(src_doc_dir)/next-tutorial/next-tutorial.txt
 
 pdfdoc:
 	(cd $(src_doc_dir); prince --javascript --style=nx-small.css next-migration.html -o next-migration.pdf)
