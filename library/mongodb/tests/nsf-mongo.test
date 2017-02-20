@@ -252,6 +252,15 @@ puts stderr "\nProjects in {nsf gtat}"
 ? { llength [::mongo::collection::query $mongoColl \
 		 {projects document {$in array {0 string nsf 1 string gtat}}}]} 3
 
+puts stderr "\nName ~ /an/i"
+? {
+  set r [::mongo::collection::query $mongoColl \
+             {name document {$regex regex {an i}}} \
+             -opts {projection document {name int 1}}]
+  set _ [llength $r]-[lindex [lindex $r 0] end]-[lindex [lindex $r 1] end]
+} 2-Franz-Stefan
+
+
 puts stderr "\nStatistics of $mongoColl"
 set stats [::mongo::collection::stats $mongoColl]
 
@@ -261,6 +270,8 @@ set stats [::mongo::collection::stats $mongoColl]
 if {[llength $stats] % 3 == 0} {
   puts [C bson pp $stats]
 }
+
+
 
 puts stderr "\nStatus"
 set status [::mongo::status $mongoConn]
