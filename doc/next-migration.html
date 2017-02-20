@@ -858,7 +858,7 @@ One can invoke in NX fully qualified methods to invoke
 </li>
 <li>
 <p>
-One can define in NX <em>hierachical method names</em> (similar to
+One can define in NX <em>hierarchical method names</em> (similar to
      commands and subcommands, called method ensembles) in a
      convenient way to provide extensible, hierarchical naming of
      methods.
@@ -1003,7 +1003,7 @@ Significantly improved built-in profiling (results can be
 <p>
 <strong>Much Smaller Interface:</strong> The Next Scripting Language has a much
   <em>smaller interface</em> (i.e.  provides less predefined methods) than
-  XOTcl (see Table 1), although the expressability was increased in
+  XOTcl (see Table 1), although the expressiveness was increased in
   NX.
 </p>
 </li>
@@ -1103,21 +1103,21 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </style>
 <pre class='nx'><span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> Stack {
 
-   <span class='nx-[namespace tail [nx::self]]'>#
-</span>   <span class='nx-[namespace tail [nx::self]]'># Stack of Things
-</span>   <span class='nx-[namespace tail [nx::self]]'>#
+   <span class='nx-comment'>#
+</span>   <span class='nx-comment'># Stack of Things
+</span>   <span class='nx-comment'>#
 </span>
    <span class='nx-keyword'>:variable</span> things <span class='nx-string'>""</span>
 
    <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> push {thing} {
-      <span class='nx-keyword'>set</span> :things [<span class='nx-keyword'>linsert</span> <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:things}</span> 0 <span class='nx-[namespace tail [nx::self]]'>$thing</span>]
-      <span class='nx-keyword'>return</span> <span class='nx-[namespace tail [nx::self]]'>$thing</span>
+      <span class='nx-keyword'>set</span> :things [<span class='nx-keyword'>linsert</span> <span class='nx-variable'>${</span><span class='nx-variable'>:things}</span> 0 <span class='nx-variable'>$thing</span>]
+      <span class='nx-keyword'>return</span> <span class='nx-variable'>$thing</span>
    }
 
    <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> pop {} {
-      <span class='nx-keyword'>set</span> top [<span class='nx-keyword'>lindex</span> <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:things}</span> 0]
-      <span class='nx-keyword'>set</span> :things [<span class='nx-keyword'>lrange</span> <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:things}</span> 1 end]
-      <span class='nx-keyword'>return</span> <span class='nx-[namespace tail [nx::self]]'>$top</span>
+      <span class='nx-keyword'>set</span> top [<span class='nx-keyword'>lindex</span> <span class='nx-variable'>${</span><span class='nx-variable'>:things}</span> 0]
+      <span class='nx-keyword'>set</span> :things [<span class='nx-keyword'>lrange</span> <span class='nx-variable'>${</span><span class='nx-variable'>:things}</span> 1 end]
+      <span class='nx-keyword'>return</span> <span class='nx-variable'>$top</span>
    }
 }</pre></div></div></div></td>
 <td align="left" valign="top"><div><div class="listingblock">
@@ -1131,9 +1131,9 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'>#
-</span><span class='nx-[namespace tail [nx::self]]'># Stack of Things
-</span><span class='nx-[namespace tail [nx::self]]'>#
+<pre class='nx'><span class='nx-comment'>#
+</span><span class='nx-comment'># Stack of Things
+</span><span class='nx-comment'>#
 </span>
 <span class='nx-keyword'>Class</span> Stack
 
@@ -1144,14 +1144,14 @@ Stack instproc <span class='nx-keyword'>init</span> {} {
 
 Stack instproc push {thing} {
    <span class='nx-keyword'>my</span> instvar things
-   <span class='nx-keyword'>set</span> things [<span class='nx-keyword'>linsert</span> <span class='nx-[namespace tail [nx::self]]'>$things</span> 0 <span class='nx-[namespace tail [nx::self]]'>$thing</span>]
-   <span class='nx-keyword'>return</span> <span class='nx-[namespace tail [nx::self]]'>$thing</span>
+   <span class='nx-keyword'>set</span> things [<span class='nx-keyword'>linsert</span> <span class='nx-variable'>$things</span> 0 <span class='nx-variable'>$thing</span>]
+   <span class='nx-keyword'>return</span> <span class='nx-variable'>$thing</span>
 }
 
 Stack instproc pop {} {
    <span class='nx-keyword'>my</span> instvar things
-   <span class='nx-keyword'>set</span> top [<span class='nx-keyword'>lindex</span> <span class='nx-[namespace tail [nx::self]]'>$things</span> 0]
-   <span class='nx-keyword'>set</span> things [<span class='nx-keyword'>lrange</span> <span class='nx-[namespace tail [nx::self]]'>$things</span> 1 end]
+   <span class='nx-keyword'>set</span> top [<span class='nx-keyword'>lindex</span> <span class='nx-variable'>$things</span> 0]
+   <span class='nx-keyword'>set</span> things [<span class='nx-keyword'>lrange</span> <span class='nx-variable'>$things</span> 1 end]
 }</pre></div></div></div></td>
 </tr>
 </tbody>
@@ -1163,7 +1163,7 @@ Stack instproc pop {} {
 <div class="paragraph"><p>In general, the Next Scripting Framework supports multiple object
 systems concurrently. Effectively, every object system has different
 base classes for creating objects and classes. Therefore, these object
-systems can have different different interfaces and names of built-in
+systems can have different interfaces and names of built-in
 methods. Currently, the Next Scripting Framework is packaged with
 three object systems:</p></div>
 <div class="ulist"><ul>
@@ -1206,13 +1206,13 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 
   <span class='nx-keyword'>package</span> <span class='nx-keyword'>require</span> XOTcl 2.0
 
-  <span class='nx-[namespace tail [nx::self]]'># Define a class with a public method foo using XOTcl
+  <span class='nx-comment'># Define a class with a public method foo using XOTcl
 </span>  <span class='nx-keyword'>xotcl::Class</span> C1
   C1 instproc foo {} {<span class='nx-keyword'>puts</span> <span class='nx-string'>"hello world"</span>}
 
   <span class='nx-keyword'>package</span> <span class='nx-keyword'>require</span> nx
 
-  <span class='nx-[namespace tail [nx::self]]'># Define a class with a public method foo using NX
+  <span class='nx-comment'># Define a class with a public method foo using NX
 </span>  <span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> C2 {
     <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> foo {} {<span class='nx-keyword'>puts</span> <span class='nx-string'>"hello world"</span>}
   }
@@ -1368,9 +1368,9 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Define instance method 'foo' and object
-</span><span class='nx-[namespace tail [nx::self]]'># method 'bar' for a Class 'C' with separate
-</span><span class='nx-[namespace tail [nx::self]]'># toplevel commands
+<pre class='nx'><span class='nx-comment'># Define instance method 'foo' and object
+</span><span class='nx-comment'># method 'bar' for a Class 'C' with separate
+</span><span class='nx-comment'># toplevel commands
 </span>
 <span class='nx-keyword'>Class</span> C
 C instproc foo args {...}
@@ -1386,8 +1386,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Define instance method and object method
-</span><span class='nx-[namespace tail [nx::self]]'># in the init-block of a class
+<pre class='nx'><span class='nx-comment'># Define instance method and object method
+</span><span class='nx-comment'># in the init-block of a class
 </span>
 <span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> C {
   <span class='nx-keyword'>:method</span> foo args {...}
@@ -1404,8 +1404,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Define instance method and object method
-</span><span class='nx-[namespace tail [nx::self]]'># with separate commands
+<pre class='nx'><span class='nx-comment'># Define instance method and object method
+</span><span class='nx-comment'># with separate commands
 </span>
 <span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> C
 C <span class='nx-keyword'>method</span> foo args {...}
@@ -1423,8 +1423,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Define object-specific method foo
-</span><span class='nx-[namespace tail [nx::self]]'># for an object 'o' with separate commands
+<pre class='nx'><span class='nx-comment'># Define object-specific method foo
+</span><span class='nx-comment'># for an object 'o' with separate commands
 </span>
 <span class='nx-keyword'>Object</span> o
 o <span class='nx-keyword'>set</span> x 1
@@ -1440,9 +1440,9 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Define object method and set
-</span><span class='nx-[namespace tail [nx::self]]'># instance variable in the init-block of
-</span><span class='nx-[namespace tail [nx::self]]'># an object
+<pre class='nx'><span class='nx-comment'># Define object method and set
+</span><span class='nx-comment'># instance variable in the init-block of
+</span><span class='nx-comment'># an object
 </span>
 <span class='nx-keyword'>Object</span> <span class='nx-keyword'>create</span> o {
   <span class='nx-keyword'>set</span> :x 1
@@ -1459,9 +1459,9 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Define object method and set
-</span><span class='nx-[namespace tail [nx::self]]'># instance variable with separate
-</span><span class='nx-[namespace tail [nx::self]]'># commands
+<pre class='nx'><span class='nx-comment'># Define object method and set
+</span><span class='nx-comment'># instance variable with separate
+</span><span class='nx-comment'># commands
 </span>
 <span class='nx-keyword'>Object</span> <span class='nx-keyword'>create</span> o
 o <span class='nx-keyword'>eval</span> {<span class='nx-keyword'>set</span> :x 1}
@@ -1502,16 +1502,16 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Methods for defining methods:
-</span><span class='nx-[namespace tail [nx::self]]'>#
-</span><span class='nx-[namespace tail [nx::self]]'>#     proc
-</span><span class='nx-[namespace tail [nx::self]]'>#     instproc
-</span><span class='nx-[namespace tail [nx::self]]'>#     forward
-</span><span class='nx-[namespace tail [nx::self]]'>#     instforward
-</span><span class='nx-[namespace tail [nx::self]]'>#     parametercmd
-</span><span class='nx-[namespace tail [nx::self]]'>#     instparametercmd
-</span><span class='nx-[namespace tail [nx::self]]'>#
-</span><span class='nx-[namespace tail [nx::self]]'># All these methods return empty.</span></pre></div></div></div></td>
+<pre class='nx'><span class='nx-comment'># Methods for defining methods:
+</span><span class='nx-comment'>#
+</span><span class='nx-comment'>#     proc
+</span><span class='nx-comment'>#     instproc
+</span><span class='nx-comment'>#     forward
+</span><span class='nx-comment'>#     instforward
+</span><span class='nx-comment'>#     parametercmd
+</span><span class='nx-comment'>#     instparametercmd
+</span><span class='nx-comment'>#
+</span><span class='nx-comment'># All these methods return empty.</span></pre></div></div></div></td>
 <td align="left" valign="middle"><div><div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -1523,13 +1523,13 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Methods for defining methods:
-</span><span class='nx-[namespace tail [nx::self]]'>#
-</span><span class='nx-[namespace tail [nx::self]]'>#     alias
-</span><span class='nx-[namespace tail [nx::self]]'>#     forward
-</span><span class='nx-[namespace tail [nx::self]]'>#     method
-</span><span class='nx-[namespace tail [nx::self]]'>#
-</span><span class='nx-[namespace tail [nx::self]]'># All these methods return method-handles.</span></pre></div></div></div></td>
+<pre class='nx'><span class='nx-comment'># Methods for defining methods:
+</span><span class='nx-comment'>#
+</span><span class='nx-comment'>#     alias
+</span><span class='nx-comment'>#     forward
+</span><span class='nx-comment'>#     method
+</span><span class='nx-comment'>#
+</span><span class='nx-comment'># All these methods return method-handles.</span></pre></div></div></div></td>
 </tr>
 </tbody>
 </table>
@@ -1541,7 +1541,7 @@ accessor functions are used normally internally when object-specific
 parameters are defined (see Section 3.4).</p></div>
 <div class="paragraph"><p>In NX forwarders are called <code>forward</code>. NX does not provide an public
 available method to define variable accessors like <code>parametercmd</code> in
-XOTcl, but use interanlly the Next Scripting Framework primitive
+XOTcl, but use internally the Next Scripting Framework primitive
 <code>nsf::method::setter</code> when appropriate.</p></div>
 <div class="tableblock">
 <table rules="all"
@@ -1586,7 +1586,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Define forwarder
+<pre class='nx'><span class='nx-comment'># Define forwarder
 </span>
 <span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> C {
   <span class='nx-keyword'>:forward</span> f1 ...
@@ -1609,9 +1609,9 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Define setter and getter methods in XOTcl.
-</span><span class='nx-[namespace tail [nx::self]]'>#
-</span><span class='nx-[namespace tail [nx::self]]'># XOTcl provides methods for these.
+<pre class='nx'><span class='nx-comment'># Define setter and getter methods in XOTcl.
+</span><span class='nx-comment'>#
+</span><span class='nx-comment'># XOTcl provides methods for these.
 </span>
 <span class='nx-keyword'>Class</span> C
 C instparametercmd p1
@@ -1630,12 +1630,12 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Define setter and getter methods in NX.
-</span><span class='nx-[namespace tail [nx::self]]'>#
-</span><span class='nx-[namespace tail [nx::self]]'># NX does not provide own methods, but uses
-</span><span class='nx-[namespace tail [nx::self]]'># the low level framework commands, since
-</span><span class='nx-[namespace tail [nx::self]]'># application developer will only seldomly
-</span><span class='nx-[namespace tail [nx::self]]'># need it.
+<pre class='nx'><span class='nx-comment'># Define setter and getter methods in NX.
+</span><span class='nx-comment'>#
+</span><span class='nx-comment'># NX does not provide own methods, but uses
+</span><span class='nx-comment'># the low level framework commands, since
+</span><span class='nx-comment'># application developer will only seldomly
+</span><span class='nx-comment'># need it.
 </span>
 <span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> C
 ::nsf::method::setter C p1
@@ -1679,7 +1679,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Method "alias" not available</span></pre></div></div></div></td>
+<pre class='nx'><span class='nx-comment'># Method "alias" not available</span></pre></div></div></div></td>
 <td align="left" valign="middle"><div><div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -1691,8 +1691,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Define method aliases
-</span><span class='nx-[namespace tail [nx::self]]'># (to scripted or non-scripted methods)
+<pre class='nx'><span class='nx-comment'># Define method aliases
+</span><span class='nx-comment'># (to scripted or non-scripted methods)
 </span>
 <span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> C {
   <span class='nx-keyword'>:alias</span> a1 ...
@@ -1740,14 +1740,14 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Method modifiers
-</span><span class='nx-[namespace tail [nx::self]]'>#
-</span><span class='nx-[namespace tail [nx::self]]'>#   "object",
-</span><span class='nx-[namespace tail [nx::self]]'>#   "public",
-</span><span class='nx-[namespace tail [nx::self]]'>#   "protected", and
-</span><span class='nx-[namespace tail [nx::self]]'>#   "private"
-</span><span class='nx-[namespace tail [nx::self]]'>#
-</span><span class='nx-[namespace tail [nx::self]]'># are not available</span></pre></div></div></div></td>
+<pre class='nx'><span class='nx-comment'># Method modifiers
+</span><span class='nx-comment'>#
+</span><span class='nx-comment'>#   "object",
+</span><span class='nx-comment'>#   "public",
+</span><span class='nx-comment'>#   "protected", and
+</span><span class='nx-comment'>#   "private"
+</span><span class='nx-comment'>#
+</span><span class='nx-comment'># are not available</span></pre></div></div></div></td>
 <td align="left" valign="middle"><div><div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -1759,21 +1759,21 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Method modifiers
-</span><span class='nx-[namespace tail [nx::self]]'>#
-</span><span class='nx-[namespace tail [nx::self]]'>#   "object",
-</span><span class='nx-[namespace tail [nx::self]]'>#   "public",
-</span><span class='nx-[namespace tail [nx::self]]'>#   "protected"
-</span><span class='nx-[namespace tail [nx::self]]'>#
-</span><span class='nx-[namespace tail [nx::self]]'># are applicable for all kinds of
-</span><span class='nx-[namespace tail [nx::self]]'># method defining methods:
-</span><span class='nx-[namespace tail [nx::self]]'>#
-</span><span class='nx-[namespace tail [nx::self]]'>#    method, forward, alias
-</span><span class='nx-[namespace tail [nx::self]]'>#
-</span><span class='nx-[namespace tail [nx::self]]'># The modifier "private" is available for
-</span><span class='nx-[namespace tail [nx::self]]'>#
-</span><span class='nx-[namespace tail [nx::self]]'>#    method, forward, alias
-</span><span class='nx-[namespace tail [nx::self]]'>#
+<pre class='nx'><span class='nx-comment'># Method modifiers
+</span><span class='nx-comment'>#
+</span><span class='nx-comment'>#   "object",
+</span><span class='nx-comment'>#   "public",
+</span><span class='nx-comment'>#   "protected"
+</span><span class='nx-comment'>#
+</span><span class='nx-comment'># are applicable for all kinds of
+</span><span class='nx-comment'># method defining methods:
+</span><span class='nx-comment'>#
+</span><span class='nx-comment'>#    method, forward, alias
+</span><span class='nx-comment'>#
+</span><span class='nx-comment'># The modifier "private" is available for
+</span><span class='nx-comment'>#
+</span><span class='nx-comment'>#    method, forward, alias
+</span><span class='nx-comment'>#
 </span><span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> C {
   :/<span class='nx-keyword'>method</span>-definiton-method/ ...
   <span class='nx-keyword'>:public</span> /<span class='nx-keyword'>method</span>-definiton-method/ ...
@@ -1824,8 +1824,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># XOTcl provides no means for
-</span><span class='nx-[namespace tail [nx::self]]'># method hiding</span></pre></div></div></div></td>
+<pre class='nx'><span class='nx-comment'># XOTcl provides no means for
+</span><span class='nx-comment'># method hiding</span></pre></div></div></div></td>
 <td align="left" valign="middle"><div><div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -1837,23 +1837,23 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Hiding of methods via "private"
-</span><span class='nx-[namespace tail [nx::self]]'>#
+<pre class='nx'><span class='nx-comment'># Hiding of methods via "private"
+</span><span class='nx-comment'>#
 </span><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Base {
-  <span class='nx-keyword'>:private</span> <span class='nx-keyword'>method</span> baz {a b} {<span class='nx-keyword'>expr</span> {<span class='nx-[namespace tail [nx::self]]'>$a</span> + <span class='nx-[namespace tail [nx::self]]'>$b</span>}}
-  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> foo {a b} {: -local baz <span class='nx-[namespace tail [nx::self]]'>$a</span> <span class='nx-[namespace tail [nx::self]]'>$b</span>}
+  <span class='nx-keyword'>:private</span> <span class='nx-keyword'>method</span> baz {a b} {<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$a</span> + <span class='nx-variable'>$b</span>}}
+  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> foo {a b} {: -local baz <span class='nx-variable'>$a</span> <span class='nx-variable'>$b</span>}
 }
 
 <span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Sub -superclass Base {
-  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> bar {a b} {: -local baz <span class='nx-[namespace tail [nx::self]]'>$a</span> <span class='nx-[namespace tail [nx::self]]'>$b</span>}
-  <span class='nx-keyword'>:private</span> <span class='nx-keyword'>method</span> baz {a b} {<span class='nx-keyword'>expr</span> {<span class='nx-[namespace tail [nx::self]]'>$a</span> * <span class='nx-[namespace tail [nx::self]]'>$b</span>}}
+  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> bar {a b} {: -local baz <span class='nx-variable'>$a</span> <span class='nx-variable'>$b</span>}
+  <span class='nx-keyword'>:private</span> <span class='nx-keyword'>method</span> baz {a b} {<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$a</span> * <span class='nx-variable'>$b</span>}}
 
   <span class='nx-keyword'>:create</span> s1
 }
 
-s1 foo 3 4  ;<span class='nx-[namespace tail [nx::self]]'># returns 7
-</span>s1 bar 3 4  ;<span class='nx-[namespace tail [nx::self]]'># returns 12
-</span>s1 baz 3 4  ;<span class='nx-[namespace tail [nx::self]]'># unable to dispatch method 'baz'</span></pre></div></div></div></td>
+s1 foo 3 4  ;<span class='nx-comment'># returns 7
+</span>s1 bar 3 4  ;<span class='nx-comment'># returns 12
+</span>s1 baz 3 4  ;<span class='nx-comment'># unable to dispatch method 'baz'</span></pre></div></div></div></td>
 </tr>
 </tbody>
 </table>
@@ -1888,8 +1888,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># XOTcl provides only method deletion with
-</span><span class='nx-[namespace tail [nx::self]]'># the equivalent of Tcl's "proc foo {} {}"
+<pre class='nx'><span class='nx-comment'># XOTcl provides only method deletion with
+</span><span class='nx-comment'># the equivalent of Tcl's "proc foo {} {}"
 </span><span class='nx-placeholder'>/cls/</span> instproc foo {} {}
 <span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>proc</span> foo {} {}</pre></div></div></div></td>
 <td align="left" valign="middle"><div><div class="listingblock">
@@ -1903,8 +1903,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Deletion of Methods
-</span><span class='nx-[namespace tail [nx::self]]'>#
+<pre class='nx'><span class='nx-comment'># Deletion of Methods
+</span><span class='nx-comment'>#
 </span><span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>delete</span> <span class='nx-keyword'>method</span> <span class='nx-placeholder'>/name/</span>
 <span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>delete</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>method</span> <span class='nx-placeholder'>/name/</span></pre></div></div></div></td>
 </tr>
@@ -1960,8 +1960,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <pre class='nx'><span class='nx-keyword'>Class</span> C
 C instproc foo args {...}
 C instproc bar args {
-  <span class='nx-keyword'>my</span> foo 1 2 3 ;<span class='nx-[namespace tail [nx::self]]'># invoke own method
-</span>  o baz        ;<span class='nx-[namespace tail [nx::self]]'># invoke other object's method
+  <span class='nx-keyword'>my</span> foo 1 2 3 ;<span class='nx-comment'># invoke own method
+</span>  o baz        ;<span class='nx-comment'># invoke other object's method
 </span>}
 <span class='nx-keyword'>Object</span> o
 o <span class='nx-keyword'>proc</span> baz {} {...}</pre></div></div></div></td>
@@ -1979,8 +1979,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <pre class='nx'><span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> C {
   <span class='nx-keyword'>:method</span> foo args {...}
   <span class='nx-keyword'>:method</span> bar args {
-     :foo 1 2 3 ;<span class='nx-[namespace tail [nx::self]]'># invoke own method
-</span>     o baz      ;<span class='nx-[namespace tail [nx::self]]'># invoke other object's method
+     :foo 1 2 3 ;<span class='nx-comment'># invoke own method
+</span>     o baz      ;<span class='nx-comment'># invoke other object's method
 </span>  }
 }
 <span class='nx-keyword'>Object</span> <span class='nx-keyword'>create</span> o {
@@ -2054,12 +2054,12 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </style>
 <pre class='nx'><span class='nx-keyword'>Class</span> C
 C instproc foo args {
-  <span class='nx-[namespace tail [nx::self]]'># Method scoped variable a
+  <span class='nx-comment'># Method scoped variable a
 </span>  <span class='nx-keyword'>set</span> a 1
-  <span class='nx-[namespace tail [nx::self]]'># Instance variable b
+  <span class='nx-comment'># Instance variable b
 </span>  <span class='nx-keyword'>my</span> instvar b
   <span class='nx-keyword'>set</span> b 2
-  <span class='nx-[namespace tail [nx::self]]'># Global variable/namespaced variable c
+  <span class='nx-comment'># Global variable/namespaced variable c
 </span>  <span class='nx-keyword'>set</span> ::c 3
 }</pre></div></div></div></td>
 <td align="left" valign="middle"><div><div class="listingblock">
@@ -2075,11 +2075,11 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </style>
 <pre class='nx'><span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> C {
   <span class='nx-keyword'>:method</span> foo args {...}
-    <span class='nx-[namespace tail [nx::self]]'># Method scoped variable a
+    <span class='nx-comment'># Method scoped variable a
 </span>    <span class='nx-keyword'>set</span> a 1
-    <span class='nx-[namespace tail [nx::self]]'># Instance variable b
+    <span class='nx-comment'># Instance variable b
 </span>    <span class='nx-keyword'>set</span> :b 2
-    <span class='nx-[namespace tail [nx::self]]'># Global variable/namespaced variable c
+    <span class='nx-comment'># Global variable/namespaced variable c
 </span>    <span class='nx-keyword'>set</span> ::c 3
   }
 }</pre></div></div></div></td>
@@ -2110,8 +2110,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Set own instance variable to a value via
-</span><span class='nx-[namespace tail [nx::self]]'># resolver (preferred and fastest way)
+<pre class='nx'><span class='nx-comment'># Set own instance variable to a value via
+</span><span class='nx-comment'># resolver (preferred and fastest way)
 </span>
 ... <span class='nx-keyword'>method</span> ... {
    <span class='nx-keyword'>set</span> :<span class='nx-placeholder'>/newVar/</span> <span class='nx-placeholder'>?value?</span>
@@ -2144,8 +2144,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Set own instance variable via
-</span><span class='nx-[namespace tail [nx::self]]'># variable import
+<pre class='nx'><span class='nx-comment'># Set own instance variable via
+</span><span class='nx-comment'># variable import
 </span>
 ... <span class='nx-keyword'>method</span> ... {
    ::nx::var import [<span class='nx-keyword'>self</span>] <span class='nx-placeholder'>/varName/</span>
@@ -2178,7 +2178,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Read own instance variable
+<pre class='nx'><span class='nx-comment'># Read own instance variable
 </span>
 ... <span class='nx-keyword'>method</span> ... {
    <span class='nx-keyword'>set</span> <span class='nx-placeholder'>/varName/</span> [<span class='nx-keyword'>set</span> :<span class='nx-placeholder'>/otherVar/</span>]
@@ -2195,7 +2195,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
 <pre class='nx'>... <span class='nx-keyword'>method</span> ... {
-   <span class='nx-keyword'>set</span> <span class='nx-placeholder'>/newVar/</span> <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:/otherVar/}</span>
+   <span class='nx-keyword'>set</span> <span class='nx-placeholder'>/newVar/</span> <span class='nx-variable'>${</span><span class='nx-variable'>:/otherVar/}</span>
 }</pre></div></div></div></td>
 </tr>
 <tr>
@@ -2224,7 +2224,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Test existence of own instance variable
+<pre class='nx'><span class='nx-comment'># Test existence of own instance variable
 </span>
 ... <span class='nx-keyword'>method</span> ... {
    <span class='nx-keyword'>info</span> :<span class='nx-placeholder'>/varName/</span>
@@ -2288,9 +2288,9 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Set instance variable of object obj to a
-</span><span class='nx-[namespace tail [nx::self]]'># value via resolver
-</span><span class='nx-[namespace tail [nx::self]]'># (preferred way: define property on obj)
+<pre class='nx'><span class='nx-comment'># Set instance variable of object obj to a
+</span><span class='nx-comment'># value via resolver
+</span><span class='nx-comment'># (preferred way: define property on obj)
 </span>
 <span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>eval</span> [<span class='nx-keyword'>list</span> <span class='nx-keyword'>set</span> :<span class='nx-placeholder'>/varName/</span> <span class='nx-placeholder'>?value?</span>]</pre></div></div></div></td>
 </tr>
@@ -2318,8 +2318,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Read instance variable of object obj
-</span><span class='nx-[namespace tail [nx::self]]'># via resolver
+<pre class='nx'><span class='nx-comment'># Read instance variable of object obj
+</span><span class='nx-comment'># via resolver
 </span>
 <span class='nx-keyword'>set</span> <span class='nx-placeholder'>/varName/</span> [<span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>eval</span> {<span class='nx-keyword'>set</span> :<span class='nx-placeholder'>/otherVar/</span>}]</pre></div></div></div></td>
 </tr>
@@ -2350,8 +2350,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Read instance variable of object /obj/
-</span><span class='nx-[namespace tail [nx::self]]'># via import
+<pre class='nx'><span class='nx-comment'># Read instance variable of object /obj/
+</span><span class='nx-comment'># via import
 </span>
 ... <span class='nx-keyword'>method</span> ... {
    ::nx::var import <span class='nx-placeholder'>/obj/</span> <span class='nx-placeholder'>/varName/</span>
@@ -2382,8 +2382,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Test existence of instance variable of
-</span><span class='nx-[namespace tail [nx::self]]'># object obj
+<pre class='nx'><span class='nx-comment'># Test existence of instance variable of
+</span><span class='nx-comment'># object obj
 </span>
 <span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>eval</span> {<span class='nx-keyword'>info</span> exists :<span class='nx-placeholder'>/varName/</span>}</pre></div></div>
 <div class="listingblock">
@@ -2494,10 +2494,10 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Define class "Foo" with instance
-</span><span class='nx-[namespace tail [nx::self]]'># variables "x" and "y" initialized
-</span><span class='nx-[namespace tail [nx::self]]'># on instance creation. The initialization
-</span><span class='nx-[namespace tail [nx::self]]'># has to be performed in the constructor.
+<pre class='nx'><span class='nx-comment'># Define class "Foo" with instance
+</span><span class='nx-comment'># variables "x" and "y" initialized
+</span><span class='nx-comment'># on instance creation. The initialization
+</span><span class='nx-comment'># has to be performed in the constructor.
 </span>
 <span class='nx-keyword'>Class</span> Foo
 Foo instproc <span class='nx-keyword'>init</span> args {
@@ -2506,11 +2506,11 @@ Foo instproc <span class='nx-keyword'>init</span> args {
    <span class='nx-keyword'>set</span> y 2
 }
 
-<span class='nx-[namespace tail [nx::self]]'># Create instance of the class Foo
+<span class='nx-comment'># Create instance of the class Foo
 </span>Foo f1
 
-<span class='nx-[namespace tail [nx::self]]'># Object f1 has instance variables
-</span><span class='nx-[namespace tail [nx::self]]'># x == 1 and y == 2</span></pre></div></div></div></td>
+<span class='nx-comment'># Object f1 has instance variables
+</span><span class='nx-comment'># x == 1 and y == 2</span></pre></div></div></div></td>
 <td align="left" valign="middle"><div><div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -2522,24 +2522,24 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Define class "Foo" with instance variables
-</span><span class='nx-[namespace tail [nx::self]]'># "x" and "y" initialized on instance creation.
-</span><span class='nx-[namespace tail [nx::self]]'># The method "variable" is similar in syntax
-</span><span class='nx-[namespace tail [nx::self]]'># to Tcl's "variable" command. During
-</span><span class='nx-[namespace tail [nx::self]]'># instance creation, the variable
-</span><span class='nx-[namespace tail [nx::self]]'># definitions are used for the
-</span><span class='nx-[namespace tail [nx::self]]'># initialization of the variables of the object.
+<pre class='nx'><span class='nx-comment'># Define class "Foo" with instance variables
+</span><span class='nx-comment'># "x" and "y" initialized on instance creation.
+</span><span class='nx-comment'># The method "variable" is similar in syntax
+</span><span class='nx-comment'># to Tcl's "variable" command. During
+</span><span class='nx-comment'># instance creation, the variable
+</span><span class='nx-comment'># definitions are used for the
+</span><span class='nx-comment'># initialization of the variables of the object.
 </span>
 <span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> Foo {
   <span class='nx-keyword'>:variable</span> x 1
   <span class='nx-keyword'>:variable</span> y 2
 }
 
-<span class='nx-[namespace tail [nx::self]]'># Create instance of the class Foo
+<span class='nx-comment'># Create instance of the class Foo
 </span>Foo <span class='nx-keyword'>create</span> f1
 
-<span class='nx-[namespace tail [nx::self]]'># Object f1 has instance variables
-</span><span class='nx-[namespace tail [nx::self]]'># x == 1 and y == 2</span></pre></div></div></div></td>
+<span class='nx-comment'># Object f1 has instance variables
+</span><span class='nx-comment'># x == 1 and y == 2</span></pre></div></div></div></td>
 </tr>
 </tbody>
 </table>
@@ -2552,7 +2552,7 @@ NX solves this via inheritance, while an procedural approach via
 assign statements in the constructor requires explicit constructor
 calls, which are often error-prone. Certainly, when a user prefers to
 assign initial values to instance variables via explicit assign
-operations in constructors, this is as ell possible in NX.</p></div>
+operations in constructors, this is as well possible in NX.</p></div>
 <div class="paragraph"><p>NX uses the same mechanism to define class variables or object
 variables.</p></div>
 <div class="tableblock">
@@ -2581,8 +2581,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># No syntactic support for creating
-</span><span class='nx-[namespace tail [nx::self]]'># class variables</span></pre></div></div></div></td>
+<pre class='nx'><span class='nx-comment'># No syntactic support for creating
+</span><span class='nx-comment'># class variables</span></pre></div></div></div></td>
 <td align="left" valign="middle"><div><div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -2595,11 +2595,11 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
 <pre class='nx'>
-<span class='nx-[namespace tail [nx::self]]'># Define a object variable "V" with value 100 and
-</span><span class='nx-[namespace tail [nx::self]]'># an instance variable "x". "V" is defined for the
-</span><span class='nx-[namespace tail [nx::self]]'># class object Foo, "x" is defined in the
-</span><span class='nx-[namespace tail [nx::self]]'># instances of the class. "object variable" works
-</span><span class='nx-[namespace tail [nx::self]]'># similar to "object method".
+<span class='nx-comment'># Define a object variable "V" with value 100 and
+</span><span class='nx-comment'># an instance variable "x". "V" is defined for the
+</span><span class='nx-comment'># class object Foo, "x" is defined in the
+</span><span class='nx-comment'># instances of the class. "object variable" works
+</span><span class='nx-comment'># similar to "object method".
 </span>
 <span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> Foo {
   <span class='nx-keyword'>:object</span> <span class='nx-keyword'>variable</span> V 100
@@ -2612,8 +2612,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <div class="paragraph"><p>In the next step, we define configurable instance variables which we
 call <em>properties</em> in NX.</p></div>
 <div class="paragraph"><p>XOTcl uses the method <code>parameter</code> is a shortcut for creating multiple
-configurable variables with automically created accessors (methods for
-reading and writing of the variables). In NX, the prefered way to
+configurable variables with automatically created accessors (methods for
+reading and writing of the variables). In NX, the preferred way to
 create configurable variables is to use the method <code>property</code>. The
 method <code>property</code> in NX is similar to <code>variable</code>, but makes the
 variables configurable, which means that</p></div>
@@ -2662,25 +2662,25 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Parameters specified as a list
-</span><span class='nx-[namespace tail [nx::self]]'># (short form); parameter
-</span><span class='nx-[namespace tail [nx::self]]'># "a" has no default, "b" has default "1"
+<pre class='nx'><span class='nx-comment'># Parameters specified as a list
+</span><span class='nx-comment'># (short form); parameter
+</span><span class='nx-comment'># "a" has no default, "b" has default "1"
 </span>
 <span class='nx-keyword'>Class</span> Foo -parameter {a {b 1}}
 
-<span class='nx-[namespace tail [nx::self]]'># Create instance of the class Foo
+<span class='nx-comment'># Create instance of the class Foo
 </span>Foo f1 -a 0
 
-<span class='nx-[namespace tail [nx::self]]'># Object f1 has instance variables
-</span><span class='nx-[namespace tail [nx::self]]'># a == 0 and b == 1
+<span class='nx-comment'># Object f1 has instance variables
+</span><span class='nx-comment'># a == 0 and b == 1
 </span>
-<span class='nx-[namespace tail [nx::self]]'># XOTcl registers automatically accessors
-</span><span class='nx-[namespace tail [nx::self]]'># for the parameters. Use the accessor
-</span><span class='nx-[namespace tail [nx::self]]'># "b" to output the value of variable "b"
+<span class='nx-comment'># XOTcl registers automatically accessors
+</span><span class='nx-comment'># for the parameters. Use the accessor
+</span><span class='nx-comment'># "b" to output the value of variable "b"
 </span><span class='nx-keyword'>puts</span> [f1 b]
 
-<span class='nx-[namespace tail [nx::self]]'># Use the setter to alter value of
-</span><span class='nx-[namespace tail [nx::self]]'># instance variable "b"
+<span class='nx-comment'># Use the setter to alter value of
+</span><span class='nx-comment'># instance variable "b"
 </span>f1 b 100</pre></div></div></div></td>
 <td align="left" valign="middle"><div><div class="listingblock">
 <div class="content"><style type='text/css'>
@@ -2693,27 +2693,27 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Define property "a" and "b". The
-</span><span class='nx-[namespace tail [nx::self]]'># property "a" has no default, "b" has
-</span><span class='nx-[namespace tail [nx::self]]'># default value "1"
+<pre class='nx'><span class='nx-comment'># Define property "a" and "b". The
+</span><span class='nx-comment'># property "a" has no default, "b" has
+</span><span class='nx-comment'># default value "1"
 </span>
 <span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> Foo {
   <span class='nx-keyword'>:property</span> a
   <span class='nx-keyword'>:property</span> {b 1}
 }
 
-<span class='nx-[namespace tail [nx::self]]'># Create instance of the class Foo
+<span class='nx-comment'># Create instance of the class Foo
 </span>Foo <span class='nx-keyword'>create</span> f1 -a 0
 
-<span class='nx-[namespace tail [nx::self]]'># Object f1 has instance variables
-</span><span class='nx-[namespace tail [nx::self]]'># a == 0 and b == 1
+<span class='nx-comment'># Object f1 has instance variables
+</span><span class='nx-comment'># a == 0 and b == 1
 </span>
-<span class='nx-[namespace tail [nx::self]]'># Use the method "cget" to query the value
-</span><span class='nx-[namespace tail [nx::self]]'># of a configuration parameter
+<span class='nx-comment'># Use the method "cget" to query the value
+</span><span class='nx-comment'># of a configuration parameter
 </span><span class='nx-keyword'>puts</span> [f1 <span class='nx-keyword'>cget</span> -b]
 
-<span class='nx-[namespace tail [nx::self]]'># Use the method "configure" to alter the
-</span><span class='nx-[namespace tail [nx::self]]'># value of instance variable "b"
+<span class='nx-comment'># Use the method "configure" to alter the
+</span><span class='nx-comment'># value of instance variable "b"
 </span>f1 <span class='nx-keyword'>configure</span> -b 100</pre></div></div></div></td>
 </tr>
 </tbody>
@@ -2751,23 +2751,23 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># "parameter" creates always accessor
-</span><span class='nx-[namespace tail [nx::self]]'># methods, accessor methods are
-</span><span class='nx-[namespace tail [nx::self]]'># always public, no "cget" is available.
+<pre class='nx'><span class='nx-comment'># "parameter" creates always accessor
+</span><span class='nx-comment'># methods, accessor methods are
+</span><span class='nx-comment'># always public, no "cget" is available.
 </span>
 <span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> Foo -parameter {a {b1}}
 
-<span class='nx-[namespace tail [nx::self]]'># Use the accessor method to query
-</span><span class='nx-[namespace tail [nx::self]]'># the value of a configuration parameter
+<span class='nx-comment'># Use the accessor method to query
+</span><span class='nx-comment'># the value of a configuration parameter
 </span><span class='nx-keyword'>puts</span> [f1 b]
 
-<span class='nx-[namespace tail [nx::self]]'># Use the accessor method to set the
-</span><span class='nx-[namespace tail [nx::self]]'># value of instance variable "a"
+<span class='nx-comment'># Use the accessor method to set the
+</span><span class='nx-comment'># value of instance variable "a"
 </span>f1 a 100
 
-<span class='nx-[namespace tail [nx::self]]'># Use the accessor method to unset the
-</span><span class='nx-[namespace tail [nx::self]]'># value of instance variable "a" n.a. via
-</span><span class='nx-[namespace tail [nx::self]]'># accessor</span></pre></div></div></div></td>
+<span class='nx-comment'># Use the accessor method to unset the
+</span><span class='nx-comment'># value of instance variable "a" n.a. via
+</span><span class='nx-comment'># accessor</span></pre></div></div></div></td>
 <td align="left" valign="middle"><div><div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -2779,25 +2779,25 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Define property "a" and "b". The
-</span><span class='nx-[namespace tail [nx::self]]'># property "a" has no default, "b" has
-</span><span class='nx-[namespace tail [nx::self]]'># default value "1"
+<pre class='nx'><span class='nx-comment'># Define property "a" and "b". The
+</span><span class='nx-comment'># property "a" has no default, "b" has
+</span><span class='nx-comment'># default value "1"
 </span>
 <span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> Foo {
   <span class='nx-keyword'>:variable</span> -accessor <span class='nx-keyword'>public</span> a
   <span class='nx-keyword'>:property</span> -accessor <span class='nx-keyword'>public</span> {b 1}
 }
 
-<span class='nx-[namespace tail [nx::self]]'># Use the accessor method to query
-</span><span class='nx-[namespace tail [nx::self]]'># the value of a configuration parameter
+<span class='nx-comment'># Use the accessor method to query
+</span><span class='nx-comment'># the value of a configuration parameter
 </span><span class='nx-keyword'>puts</span> [f1 b get]
 
-<span class='nx-[namespace tail [nx::self]]'># Use the accessor method to set the
-</span><span class='nx-[namespace tail [nx::self]]'># value of instance variable "a"
+<span class='nx-comment'># Use the accessor method to set the
+</span><span class='nx-comment'># value of instance variable "a"
 </span>f1 a <span class='nx-keyword'>set</span> 100
 
-<span class='nx-[namespace tail [nx::self]]'># Use the accessor method to unset the
-</span><span class='nx-[namespace tail [nx::self]]'># value of instance variable "a"
+<span class='nx-comment'># Use the accessor method to unset the
+</span><span class='nx-comment'># value of instance variable "a"
 </span>f1 a <span class='nx-keyword'>unset</span></pre></div></div></div></td>
 </tr>
 </tbody>
@@ -2831,9 +2831,9 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># XOTcl provides no means to define
-</span><span class='nx-[namespace tail [nx::self]]'># configurable variables at the object
-</span><span class='nx-[namespace tail [nx::self]]'># level</span></pre></div></div></div></td>
+<pre class='nx'><span class='nx-comment'># XOTcl provides no means to define
+</span><span class='nx-comment'># configurable variables at the object
+</span><span class='nx-comment'># level</span></pre></div></div></div></td>
 <td align="left" valign="middle"><div><div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -2845,17 +2845,17 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Define class with a property for the class object
-</span><span class='nx-[namespace tail [nx::self]]'># named "cp". This is similar to "static variables"
-</span><span class='nx-[namespace tail [nx::self]]'># in some other object-oriented programming
-</span><span class='nx-[namespace tail [nx::self]]'># languages.
+<pre class='nx'><span class='nx-comment'># Define class with a property for the class object
+</span><span class='nx-comment'># named "cp". This is similar to "static variables"
+</span><span class='nx-comment'># in some other object-oriented programming
+</span><span class='nx-comment'># languages.
 </span>
 <span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> Foo {
   ...
   <span class='nx-keyword'>:object</span> <span class='nx-keyword'>property</span> cp 101
 }
 
-<span class='nx-[namespace tail [nx::self]]'># Define object property "op"
+<span class='nx-comment'># Define object property "op"
 </span>
 <span class='nx-keyword'>Object</span> <span class='nx-keyword'>create</span> o {
   <span class='nx-keyword'>:object</span> <span class='nx-keyword'>property</span> op 102
@@ -2897,8 +2897,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># No value constraints for
-</span><span class='nx-[namespace tail [nx::self]]'># parameter available</span></pre></div></div></div></td>
+<pre class='nx'><span class='nx-comment'># No value constraints for
+</span><span class='nx-comment'># parameter available</span></pre></div></div></div></td>
 <td align="left" valign="middle"><div><div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -2910,21 +2910,21 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Predefined value constraints:
-</span><span class='nx-[namespace tail [nx::self]]'>#    object, class, alnum, alpha, ascii, boolean,
-</span><span class='nx-[namespace tail [nx::self]]'>#    control, digit, double, false, graph, integer,
-</span><span class='nx-[namespace tail [nx::self]]'>#    lower, parameter, print, punct, space, true,
-</span><span class='nx-[namespace tail [nx::self]]'>#    upper, wordchar, xdigit
-</span><span class='nx-[namespace tail [nx::self]]'>#
-</span><span class='nx-[namespace tail [nx::self]]'># User defined value constraints are possible.
-</span><span class='nx-[namespace tail [nx::self]]'># All parameter value checkers can be turned on
-</span><span class='nx-[namespace tail [nx::self]]'># and off at runtime.
-</span><span class='nx-[namespace tail [nx::self]]'>#
-</span><span class='nx-[namespace tail [nx::self]]'># Define a required boolean property "a"
-</span><span class='nx-[namespace tail [nx::self]]'># and an integer property "b" with a default.
-</span><span class='nx-[namespace tail [nx::self]]'># The first definition uses "properties",
-</span><span class='nx-[namespace tail [nx::self]]'># the second definition uses multiple
-</span><span class='nx-[namespace tail [nx::self]]'># "property" statements.
+<pre class='nx'><span class='nx-comment'># Predefined value constraints:
+</span><span class='nx-comment'>#    object, class, alnum, alpha, ascii, boolean,
+</span><span class='nx-comment'>#    control, digit, double, false, graph, integer,
+</span><span class='nx-comment'>#    lower, parameter, print, punct, space, true,
+</span><span class='nx-comment'>#    upper, wordchar, xdigit
+</span><span class='nx-comment'>#
+</span><span class='nx-comment'># User defined value constraints are possible.
+</span><span class='nx-comment'># All parameter value checkers can be turned on
+</span><span class='nx-comment'># and off at runtime.
+</span><span class='nx-comment'>#
+</span><span class='nx-comment'># Define a required boolean property "a"
+</span><span class='nx-comment'># and an integer property "b" with a default.
+</span><span class='nx-comment'># The first definition uses "properties",
+</span><span class='nx-comment'># the second definition uses multiple
+</span><span class='nx-comment'># "property" statements.
 </span>
 <span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> Foo -properties {
    a:boolean
@@ -2953,7 +2953,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 to be passed to the constructor of the object.</p></div>
 <div class="paragraph"><p>NX allows to define <em>optional</em> and <em>required</em> configure parameters (as
 well as method parameters). Therefore, configure parameters can be used
-as the single mechanism to parameterize objects. It is in NX not
+as the single mechanism to parametrize objects. It is in NX not
 necessary (and per default not possible) to pass arguments to the
 constructor.</p></div>
 <div class="tableblock">
@@ -2982,7 +2982,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Required parameter not available</span></pre></div></div></div></td>
+<pre class='nx'><span class='nx-comment'># Required parameter not available</span></pre></div></div></div></td>
 <td align="left" valign="middle"><div><div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -2994,9 +2994,9 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Required parameter:
-</span><span class='nx-[namespace tail [nx::self]]'># Define a required property "a" and a
-</span><span class='nx-[namespace tail [nx::self]]'># required boolean property "b"
+<pre class='nx'><span class='nx-comment'># Required parameter:
+</span><span class='nx-comment'># Define a required property "a" and a
+</span><span class='nx-comment'># required boolean property "b"
 </span>
 <span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> Foo -properties {
    a:required
@@ -3053,8 +3053,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Multiplicity for parameter
-</span><span class='nx-[namespace tail [nx::self]]'># not available</span></pre></div></div></div></td>
+<pre class='nx'><span class='nx-comment'># Multiplicity for parameter
+</span><span class='nx-comment'># not available</span></pre></div></div></div></td>
 <td align="left" valign="middle"><div><div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -3066,10 +3066,10 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Parameter with multiplicity
-</span><span class='nx-[namespace tail [nx::self]]'>#   ints is a list of integers, with default
-</span><span class='nx-[namespace tail [nx::self]]'>#   objs is a non-empty list of objects
-</span><span class='nx-[namespace tail [nx::self]]'>#   obj is a single object, maybe empty
+<pre class='nx'><span class='nx-comment'># Parameter with multiplicity
+</span><span class='nx-comment'>#   ints is a list of integers, with default
+</span><span class='nx-comment'>#   objs is a non-empty list of objects
+</span><span class='nx-comment'>#   obj is a single object, maybe empty
 </span>
 <span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> Foo -properties {
   {ints:integer,0..n <span class='nx-string'>""</span>}
@@ -3148,19 +3148,19 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Define parameters via slots
+<pre class='nx'><span class='nx-comment'># Define parameters via slots
 </span>
 <span class='nx-keyword'>Class</span> Foo -slots {
    <span class='nx-keyword'>Attribute</span> a
    <span class='nx-keyword'>Attribute</span> b -default 1
 }
 
-<span class='nx-[namespace tail [nx::self]]'># Create instance of the class Foo
-</span><span class='nx-[namespace tail [nx::self]]'># and provide a value for instance
-</span><span class='nx-[namespace tail [nx::self]]'># variable "a"
+<span class='nx-comment'># Create instance of the class Foo
+</span><span class='nx-comment'># and provide a value for instance
+</span><span class='nx-comment'># variable "a"
 </span>Foo f1 -a 0
 
-<span class='nx-[namespace tail [nx::self]]'># Object f1 has a == 0 and b == 1</span></pre></div></div></div></td>
+<span class='nx-comment'># Object f1 has a == 0 and b == 1</span></pre></div></div></div></td>
 <td align="left" valign="middle"><div><div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -3172,27 +3172,27 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Configurable parameters specified via the
-</span><span class='nx-[namespace tail [nx::self]]'># method "property" (supports method
-</span><span class='nx-[namespace tail [nx::self]]'># modifiers and scripted configuration;
-</span><span class='nx-[namespace tail [nx::self]]'># see below)
+<pre class='nx'><span class='nx-comment'># Configurable parameters specified via the
+</span><span class='nx-comment'># method "property" (supports method
+</span><span class='nx-comment'># modifiers and scripted configuration;
+</span><span class='nx-comment'># see below)
 </span>
 <span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> Foo {
    <span class='nx-keyword'>:property</span> a
    <span class='nx-keyword'>:property</span> {b 1}
 }
 
-<span class='nx-[namespace tail [nx::self]]'># Create instance of the class Foo and
-</span><span class='nx-[namespace tail [nx::self]]'># provide a value for instance variable "a"
+<span class='nx-comment'># Create instance of the class Foo and
+</span><span class='nx-comment'># provide a value for instance variable "a"
 </span>Foo <span class='nx-keyword'>create</span> f1 -a 0
 
-<span class='nx-[namespace tail [nx::self]]'># Object f1 has a == 0 and b == 1</span></pre></div></div></div></td>
+<span class='nx-comment'># Object f1 has a == 0 and b == 1</span></pre></div></div></div></td>
 </tr>
 </tbody>
 </table>
 </div>
 <div class="paragraph"><p>Since the slots are objects, the slot objects can be configured and
-parameterized like every other object in NX. Slot objects can be
+parametrized like every other object in NX. Slot objects can be
 provided with a scripted initialization as well. We show first the
 definition of properties simliar to the functionality provided as well
 by XOTcl and show afterwards how to use value constraints, optional
@@ -3223,13 +3223,13 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Define parameter with an an
-</span><span class='nx-[namespace tail [nx::self]]'># attribute-specific type checker
+<pre class='nx'><span class='nx-comment'># Define parameter with an an
+</span><span class='nx-comment'># attribute-specific type checker
 </span>
 <span class='nx-keyword'>Class</span> Person -slots {
   <span class='nx-keyword'>Attribute</span> <span class='nx-keyword'>create</span> sex -type <span class='nx-string'>"sex"</span> {
     <span class='nx-keyword'>my</span> <span class='nx-keyword'>proc</span> type=sex {name value} {
-      <span class='nx-keyword'>switch</span> -glob <span class='nx-[namespace tail [nx::self]]'>$value</span> {
+      <span class='nx-keyword'>switch</span> -glob <span class='nx-variable'>$value</span> {
         m* {<span class='nx-keyword'>return</span> m}
         f* {<span class='nx-keyword'>return</span> f}
         default {
@@ -3250,16 +3250,16 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Configure parameter with scripted
-</span><span class='nx-[namespace tail [nx::self]]'># definition (init-block), defining a
-</span><span class='nx-[namespace tail [nx::self]]'># property specific type checker
+<pre class='nx'><span class='nx-comment'># Configure parameter with scripted
+</span><span class='nx-comment'># definition (init-block), defining a
+</span><span class='nx-comment'># property specific type checker
 </span>
 <span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> Person {
     <span class='nx-keyword'>:property</span> -accessor <span class='nx-keyword'>public</span> sex:sex,convert {
 
-      <span class='nx-[namespace tail [nx::self]]'># define a converter to standardize representation
+      <span class='nx-comment'># define a converter to standardize representation
 </span>      <span class='nx-keyword'>:object</span> <span class='nx-keyword'>method</span> type=sex {name value} {
-        <span class='nx-keyword'>switch</span> -glob <span class='nx-[namespace tail [nx::self]]'>$value</span> {
+        <span class='nx-keyword'>switch</span> -glob <span class='nx-variable'>$value</span> {
           m* {<span class='nx-keyword'>return</span> m}
           f* {<span class='nx-keyword'>return</span> f}
           default {<span class='nx-keyword'>error</span> <span class='nx-string'>"expected sex but got $value"</span>}
@@ -3305,8 +3305,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># No syntactic support for deleting
-</span><span class='nx-[namespace tail [nx::self]]'># variable handlers</span></pre></div></div></div></td>
+<pre class='nx'><span class='nx-comment'># No syntactic support for deleting
+</span><span class='nx-comment'># variable handlers</span></pre></div></div></div></td>
 <td align="left" valign="middle"><div><div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -3318,9 +3318,9 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Like deletion of Methods:
-</span><span class='nx-[namespace tail [nx::self]]'># Delete on the object, where the
-</span><span class='nx-[namespace tail [nx::self]]'># variable handler is defined.
+<pre class='nx'><span class='nx-comment'># Like deletion of Methods:
+</span><span class='nx-comment'># Delete on the object, where the
+</span><span class='nx-comment'># variable handler is defined.
 </span>
 <span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>delete</span> <span class='nx-keyword'>property</span> <span class='nx-placeholder'>/name/</span>
 <span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>delete</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>property</span> <span class='nx-placeholder'>/name/</span>
@@ -3368,9 +3368,9 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Define method foo with non-positional
-</span><span class='nx-[namespace tail [nx::self]]'># parameters (x, y and y) and positional
-</span><span class='nx-[namespace tail [nx::self]]'># parameter (a and b)
+<pre class='nx'><span class='nx-comment'># Define method foo with non-positional
+</span><span class='nx-comment'># parameters (x, y and y) and positional
+</span><span class='nx-comment'># parameter (a and b)
 </span>
 <span class='nx-keyword'>Class</span> C
 C instproc foo {
@@ -3380,11 +3380,11 @@ C instproc foo {
    a
    b
 } {
-   <span class='nx-[namespace tail [nx::self]]'># ...
+   <span class='nx-comment'># ...
 </span>}
 C <span class='nx-keyword'>create</span> c1
 
-<span class='nx-[namespace tail [nx::self]]'># invoke method foo
+<span class='nx-comment'># invoke method foo
 </span>c1 foo -x 1 -y a 2 3</pre></div></div></div></td>
 <td align="left" valign="middle"><div><div class="listingblock">
 <div class="content"><style type='text/css'>
@@ -3397,10 +3397,10 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Define method foo with
-</span><span class='nx-[namespace tail [nx::self]]'># non-positional parameters
-</span><span class='nx-[namespace tail [nx::self]]'># (x, y and y) and positional
-</span><span class='nx-[namespace tail [nx::self]]'># parameter (a and b)
+<pre class='nx'><span class='nx-comment'># Define method foo with
+</span><span class='nx-comment'># non-positional parameters
+</span><span class='nx-comment'># (x, y and y) and positional
+</span><span class='nx-comment'># parameter (a and b)
 </span>
 <span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> C {
    <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> foo {
@@ -3410,11 +3410,11 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
       a
       b
    } {
-      <span class='nx-[namespace tail [nx::self]]'># ...
+      <span class='nx-comment'># ...
 </span>   }
    <span class='nx-keyword'>:create</span> c1
 }
-<span class='nx-[namespace tail [nx::self]]'># invoke method foo
+<span class='nx-comment'># invoke method foo
 </span>c1 foo -x 1 -y a 2 3</pre></div></div></div></td>
 </tr>
 <tr>
@@ -3429,12 +3429,12 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Only leading non-positional
-</span><span class='nx-[namespace tail [nx::self]]'># parameters are available; no
-</span><span class='nx-[namespace tail [nx::self]]'># optional positional parameters,
-</span><span class='nx-[namespace tail [nx::self]]'># no value constraints on
-</span><span class='nx-[namespace tail [nx::self]]'># positional parameters,
-</span><span class='nx-[namespace tail [nx::self]]'># no multiplicity, ...</span></pre></div></div></div></td>
+<pre class='nx'><span class='nx-comment'># Only leading non-positional
+</span><span class='nx-comment'># parameters are available; no
+</span><span class='nx-comment'># optional positional parameters,
+</span><span class='nx-comment'># no value constraints on
+</span><span class='nx-comment'># positional parameters,
+</span><span class='nx-comment'># no multiplicity, ...</span></pre></div></div></div></td>
 <td align="left" valign="middle"><div><div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -3446,38 +3446,38 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Define various forms of parameters
-</span><span class='nx-[namespace tail [nx::self]]'># not available in XOTcl 1
+<pre class='nx'><span class='nx-comment'># Define various forms of parameters
+</span><span class='nx-comment'># not available in XOTcl 1
 </span>
 <span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> C {
-  <span class='nx-[namespace tail [nx::self]]'># trailing (or interleaved) non-positional
-</span>  <span class='nx-[namespace tail [nx::self]]'># parameters
+  <span class='nx-comment'># trailing (or interleaved) non-positional
+</span>  <span class='nx-comment'># parameters
 </span>  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> m1 {a b -x:integer -y} {
-    <span class='nx-[namespace tail [nx::self]]'># ...
+    <span class='nx-comment'># ...
 </span>  }
 
-  <span class='nx-[namespace tail [nx::self]]'># positional parameters with value constraints
+  <span class='nx-comment'># positional parameters with value constraints
 </span>  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> m2 {a:integer b:boolean} {
-    <span class='nx-[namespace tail [nx::self]]'>#...
+    <span class='nx-comment'>#...
 </span>  }
 
-  <span class='nx-[namespace tail [nx::self]]'># optional positional parameter (trailing)
+  <span class='nx-comment'># optional positional parameter (trailing)
 </span>  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> <span class='nx-keyword'>set</span> {varName value:optional} {
-    <span class='nx-[namespace tail [nx::self]]'># ....
+    <span class='nx-comment'># ....
 </span>  }
 
-  <span class='nx-[namespace tail [nx::self]]'># parameter with multiplicity
+  <span class='nx-comment'># parameter with multiplicity
 </span>  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> m3 {-objs<span class='nx-keyword'>:object</span>,1..n c<span class='nx-keyword'>:class</span>,0..1} {
-    <span class='nx-[namespace tail [nx::self]]'># ...
+    <span class='nx-comment'># ...
 </span>  }
 
-  <span class='nx-[namespace tail [nx::self]]'># In general, the same list of value
-</span>  <span class='nx-[namespace tail [nx::self]]'># constraints as for configure parameter is
-</span>  <span class='nx-[namespace tail [nx::self]]'># available (see above).
-</span>  <span class='nx-[namespace tail [nx::self]]'>#
-</span>  <span class='nx-[namespace tail [nx::self]]'># User defined value constraints are
-</span>  <span class='nx-[namespace tail [nx::self]]'># possible. All parameter value checkers
-</span>  <span class='nx-[namespace tail [nx::self]]'># can be turned on and off.
+  <span class='nx-comment'># In general, the same list of value
+</span>  <span class='nx-comment'># constraints as for configure parameter is
+</span>  <span class='nx-comment'># available (see above).
+</span>  <span class='nx-comment'>#
+</span>  <span class='nx-comment'># User defined value constraints are
+</span>  <span class='nx-comment'># possible. All parameter value checkers
+</span>  <span class='nx-comment'># can be turned on and off.
 </span>}</pre></div></div></div></td>
 </tr>
 </tbody>
@@ -3518,8 +3518,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># No return value checking
-</span><span class='nx-[namespace tail [nx::self]]'># available</span></pre></div></div></div></td>
+<pre class='nx'><span class='nx-comment'># No return value checking
+</span><span class='nx-comment'># available</span></pre></div></div></div></td>
 <td align="left" valign="middle"><div><div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -3531,29 +3531,29 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Define method foo with non-positional
-</span><span class='nx-[namespace tail [nx::self]]'># parameters (x, y and y) and positional
-</span><span class='nx-[namespace tail [nx::self]]'># parameter (a and b)
+<pre class='nx'><span class='nx-comment'># Define method foo with non-positional
+</span><span class='nx-comment'># parameters (x, y and y) and positional
+</span><span class='nx-comment'># parameter (a and b)
 </span>
 <span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> C {
 
-  <span class='nx-[namespace tail [nx::self]]'># Define method foo which returns an
-</span>  <span class='nx-[namespace tail [nx::self]]'># integer value
+  <span class='nx-comment'># Define method foo which returns an
+</span>  <span class='nx-comment'># integer value
 </span>  <span class='nx-keyword'>:method</span> foo -returns integer {-x:integer} {
-    <span class='nx-[namespace tail [nx::self]]'># ...
+    <span class='nx-comment'># ...
 </span>   }
 
-  <span class='nx-[namespace tail [nx::self]]'># Define an alias for the Tcl command ::incr
-</span>  <span class='nx-[namespace tail [nx::self]]'># and assure, it always returns an integer
-</span>  <span class='nx-[namespace tail [nx::self]]'># value
+  <span class='nx-comment'># Define an alias for the Tcl command ::incr
+</span>  <span class='nx-comment'># and assure, it always returns an integer
+</span>  <span class='nx-comment'># value
 </span>  <span class='nx-keyword'>:alias</span> <span class='nx-keyword'>incr</span> -returns integer ::incr
 
-  <span class='nx-[namespace tail [nx::self]]'># Define a forwarder that has to return an
-</span>  <span class='nx-[namespace tail [nx::self]]'># integer value
+  <span class='nx-comment'># Define a forwarder that has to return an
+</span>  <span class='nx-comment'># integer value
 </span>  <span class='nx-keyword'>:forward</span> ++ -returns integer ::expr 1 +
 
- <span class='nx-[namespace tail [nx::self]]'># Define a method that has to return a
-</span> <span class='nx-[namespace tail [nx::self]]'># non-empty list of objects
+ <span class='nx-comment'># Define a method that has to return a
+</span> <span class='nx-comment'># non-empty list of objects
 </span> <span class='nx-keyword'>:public</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>method</span> instances {} \
     -returns <span class='nx-keyword'>object</span>,1..n {
    <span class='nx-keyword'>return</span> [<span class='nx-keyword'>:info</span> instances]
@@ -3571,7 +3571,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 namely class- and object-level mixins and class- and object-level
 filters. The primary difference in NX is the naming, since NX abandons
 the prefix "inst" from the names of instance specific method, but uses
-the the modifier <code>objec</code>" for object specific methods.</p></div>
+the modifier <code>object</code>" for object specific methods.</p></div>
 <div class="paragraph"><p>Therefore, in NX, if a <code>mixin</code> is registered on a class-level, it is
 applicable for the instances (a per-class mixin), and if and <code>object
 mixin</code> is registered, it is a per-object mixin.  In both cases, the
@@ -3609,7 +3609,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <pre class='nx'><span class='nx-placeholder'>/cls/</span> instmixin ...
 <span class='nx-placeholder'>/cls/</span> instmixinguard /<span class='nx-keyword'>mixin</span>/ <span class='nx-placeholder'>?condition?</span>
 
-<span class='nx-[namespace tail [nx::self]]'># Query per-class mixin
+<span class='nx-comment'># Query per-class mixin
 </span><span class='nx-placeholder'>/cls/</span> instmixin</pre></div></div></div></td>
 <td align="left" valign="middle"><div><div class="listingblock">
 <div class="content"><style type='text/css'>
@@ -3622,18 +3622,18 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Register/clear per-class mixin and guard for
-</span><span class='nx-[namespace tail [nx::self]]'># a class
+<pre class='nx'><span class='nx-comment'># Register/clear per-class mixin and guard for
+</span><span class='nx-comment'># a class
 </span>
 <span class='nx-placeholder'>/cls/</span> mixins add|<span class='nx-keyword'>set</span>|clear ...
 <span class='nx-placeholder'>/cls/</span> mixins <span class='nx-keyword'>guard</span> /<span class='nx-keyword'>mixin</span>/ <span class='nx-placeholder'>?condition?</span>
 <span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>configure</span> -mixin ...
 
-<span class='nx-[namespace tail [nx::self]]'># Query per-class mixins
+<span class='nx-comment'># Query per-class mixins
 </span><span class='nx-placeholder'>/cls/</span> mixins get
 <span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>cget</span> -mixins
 
-<span class='nx-[namespace tail [nx::self]]'># Query per-class mixins (without guards)
+<span class='nx-comment'># Query per-class mixins (without guards)
 </span><span class='nx-placeholder'>/cls/</span> mixins classes</pre></div></div></div></td>
 </tr>
 <tr>
@@ -3651,7 +3651,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <pre class='nx'><span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>mixin</span> ...
 <span class='nx-placeholder'>/obj/</span> mixinguard /<span class='nx-keyword'>mixin</span>/ <span class='nx-placeholder'>?condition?</span>
 
-<span class='nx-[namespace tail [nx::self]]'># Query per-object mixins
+<span class='nx-comment'># Query per-object mixins
 </span><span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>mixin</span></pre></div></div></div></td>
 <td align="left" valign="middle"><div><div class="listingblock">
 <div class="content"><style type='text/css'>
@@ -3664,18 +3664,18 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Register/clear per-object mixin and guard for
-</span><span class='nx-[namespace tail [nx::self]]'># an object
+<pre class='nx'><span class='nx-comment'># Register/clear per-object mixin and guard for
+</span><span class='nx-comment'># an object
 </span>
 <span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>object</span> mixins add|<span class='nx-keyword'>set</span>|clear ...
 <span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>object</span> mixins <span class='nx-keyword'>guard</span> /<span class='nx-keyword'>mixin</span>/ <span class='nx-placeholder'>?condition?</span>
 <span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>configure</span> -object-mixins ...
 
-<span class='nx-[namespace tail [nx::self]]'># Query per-object mixin
+<span class='nx-comment'># Query per-object mixin
 </span><span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>object</span> mixins get
 <span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>cget</span> -object-mixin
 
-<span class='nx-[namespace tail [nx::self]]'># Query per-object mixins (without guards)
+<span class='nx-comment'># Query per-object mixins (without guards)
 </span><span class='nx-placeholder'>/cls/</span> mixins classes</pre></div></div></div></td>
 </tr>
 </tbody>
@@ -3710,12 +3710,12 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Register per-class filter and guard for
-</span><span class='nx-[namespace tail [nx::self]]'># a class
+<pre class='nx'><span class='nx-comment'># Register per-class filter and guard for
+</span><span class='nx-comment'># a class
 </span><span class='nx-placeholder'>/cls/</span> instfilter ...
 <span class='nx-placeholder'>/cls/</span> instfilterguard /<span class='nx-keyword'>filter</span>/ <span class='nx-placeholder'>?condition?</span>
 
-<span class='nx-[namespace tail [nx::self]]'># Query per-class filter
+<span class='nx-comment'># Query per-class filter
 </span><span class='nx-placeholder'>/cls/</span> instfilter</pre></div></div></div></td>
 <td align="left" valign="middle"><div><div class="listingblock">
 <div class="content"><style type='text/css'>
@@ -3728,18 +3728,18 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Register/clear per-class filter and guard for
-</span><span class='nx-[namespace tail [nx::self]]'># a class
+<pre class='nx'><span class='nx-comment'># Register/clear per-class filter and guard for
+</span><span class='nx-comment'># a class
 </span>
 <span class='nx-placeholder'>/cls/</span> filters add|<span class='nx-keyword'>set</span>|clear ...
 <span class='nx-placeholder'>/cls/</span> filters <span class='nx-keyword'>guard</span> /<span class='nx-keyword'>filter</span>/ <span class='nx-placeholder'>?condition?</span>
 <span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>configure</span> -filters ...
 
-<span class='nx-[namespace tail [nx::self]]'># Query per-class filters
+<span class='nx-comment'># Query per-class filters
 </span><span class='nx-placeholder'>/cls/</span> filters get
 <span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>cget</span> -filters
 
-<span class='nx-[namespace tail [nx::self]]'># Query per-class filters (without guards)
+<span class='nx-comment'># Query per-class filters (without guards)
 </span><span class='nx-placeholder'>/cls/</span> filters <span class='nx-keyword'>methods</span></pre></div></div></div></td>
 </tr>
 <tr>
@@ -3767,18 +3767,18 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Register(clear per-object filter and guard for
-</span><span class='nx-[namespace tail [nx::self]]'># an object
+<pre class='nx'><span class='nx-comment'># Register(clear per-object filter and guard for
+</span><span class='nx-comment'># an object
 </span>
 <span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>object</span> filters add|<span class='nx-keyword'>set</span>|clear ...
 <span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>object</span> filters <span class='nx-keyword'>guard</span> /<span class='nx-keyword'>filter</span>/ <span class='nx-placeholder'>?condition?</span>
 <span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>configure</span> -object-filters ...
 
-<span class='nx-[namespace tail [nx::self]]'># Query per-object filters
+<span class='nx-comment'># Query per-object filters
 </span><span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>object</span> filters get
 <span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>cget</span> -object-filters
 
-<span class='nx-[namespace tail [nx::self]]'># Query per-object filters (without guards)
+<span class='nx-comment'># Query per-object filters (without guards)
 </span><span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>object</span> filters <span class='nx-keyword'>methods</span></pre></div></div></div></td>
 </tr>
 </tbody>
@@ -3795,7 +3795,7 @@ and has to use accordingly different sub-methods of <code>info</code>.</p></div>
 <div class="paragraph"><p>In NX, one can use e.g. always <code>info method</code> with a subcommand and the
 framework tries to hide the differences as far as possible. So, one
 can for example obtain with <code>info method parameter</code> the parameters of
-scripted and C-implemented methods the same way, one one can get the
+scripted and C-implemented methods the same way, one can get the
 definition of all methods via <code>info method definition</code> and one can get
 an manual-like interface description via <code>info method
 syntax</code>. In addition, NX provides means to query the type of
@@ -3985,7 +3985,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># n.a.</span></pre></div></div></div></td>
+<pre class='nx'><span class='nx-comment'># n.a.</span></pre></div></div></div></td>
 <td align="left" valign="middle"><div><div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -4116,7 +4116,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># n.a.</span></pre></div></div></div></td>
+<pre class='nx'><span class='nx-comment'># n.a.</span></pre></div></div></div></td>
 <td align="left" valign="middle"><div><div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -4240,7 +4240,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
 <pre class='nx'><span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>lookup</span> <span class='nx-keyword'>methods</span> ... <span class='nx-placeholder'>?pattern?</span>
-<span class='nx-[namespace tail [nx::self]]'># Returns list of method names</span></pre></div></div></div></td>
+<span class='nx-comment'># Returns list of method names</span></pre></div></div></div></td>
 </tr>
 <tr>
 <td align="left" valign="middle"><div><div class="listingblock">
@@ -4254,7 +4254,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># n.a.</span></pre></div></div></div></td>
+<pre class='nx'><span class='nx-comment'># n.a.</span></pre></div></div></div></td>
 <td align="left" valign="middle"><div><div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -4266,9 +4266,9 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># List only application specific methods
+<pre class='nx'><span class='nx-comment'># List only application specific methods
 </span><span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>lookup</span> <span class='nx-keyword'>methods</span> -source application ... <span class='nx-placeholder'>?pattern?</span>
-<span class='nx-[namespace tail [nx::self]]'># Returns list of method names</span></pre></div></div></div></td>
+<span class='nx-comment'># Returns list of method names</span></pre></div></div></div></td>
 </tr>
 <tr>
 <td align="left" valign="middle"><div><div class="listingblock">
@@ -4282,10 +4282,10 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Options for 'info methods'
-</span><span class='nx-[namespace tail [nx::self]]'>#
-</span><span class='nx-[namespace tail [nx::self]]'># -incontext
-</span><span class='nx-[namespace tail [nx::self]]'># -nomixins</span></pre></div></div></div></td>
+<pre class='nx'><span class='nx-comment'># Options for 'info methods'
+</span><span class='nx-comment'>#
+</span><span class='nx-comment'># -incontext
+</span><span class='nx-comment'># -nomixins</span></pre></div></div></div></td>
 <td align="left" valign="middle"><div><div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -4297,13 +4297,13 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Options for 'info lookup methods'
-</span><span class='nx-[namespace tail [nx::self]]'>#
-</span><span class='nx-[namespace tail [nx::self]]'># -source ...
-</span><span class='nx-[namespace tail [nx::self]]'># -callprotection ...
-</span><span class='nx-[namespace tail [nx::self]]'># -incontext
-</span><span class='nx-[namespace tail [nx::self]]'># -type ...
-</span><span class='nx-[namespace tail [nx::self]]'># -nomixins</span></pre></div></div></div></td>
+<pre class='nx'><span class='nx-comment'># Options for 'info lookup methods'
+</span><span class='nx-comment'>#
+</span><span class='nx-comment'># -source ...
+</span><span class='nx-comment'># -callprotection ...
+</span><span class='nx-comment'># -incontext
+</span><span class='nx-comment'># -type ...
+</span><span class='nx-comment'># -nomixins</span></pre></div></div></div></td>
 </tr>
 <tr>
 <td align="left" valign="middle"><div><div class="listingblock">
@@ -4317,7 +4317,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># n.a.</span></pre></div></div></div></td>
+<pre class='nx'><span class='nx-comment'># n.a.</span></pre></div></div></div></td>
 <td align="left" valign="middle"><div><div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -4329,13 +4329,13 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># List slot objects defined for obj
-</span><span class='nx-[namespace tail [nx::self]]'># -source might be all|application|baseclasses
-</span><span class='nx-[namespace tail [nx::self]]'># -type is the class of the slot object
+<pre class='nx'><span class='nx-comment'># List slot objects defined for obj
+</span><span class='nx-comment'># -source might be all|application|baseclasses
+</span><span class='nx-comment'># -type is the class of the slot object
 </span>
 <span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>lookup</span> slots <span class='nx-placeholder'>?-type ...?</span> <span class='nx-placeholder'>?-source ...?</span> <span class='nx-placeholder'>?pattern?</span>
 
-<span class='nx-[namespace tail [nx::self]]'># Returns list of slot objects</span></pre></div></div></div></td>
+<span class='nx-comment'># Returns list of slot objects</span></pre></div></div></div></td>
 </tr>
 <tr>
 <td align="left" valign="middle"><div><div class="listingblock">
@@ -4349,10 +4349,10 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># List registered filters
+<pre class='nx'><span class='nx-comment'># List registered filters
 </span><span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> filters -order <span class='nx-placeholder'>?-guards?</span> <span class='nx-placeholder'>?pattern?</span>
 
-<span class='nx-[namespace tail [nx::self]]'># List registered mixins
+<span class='nx-comment'># List registered mixins
 </span><span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> mixins -heritage <span class='nx-placeholder'>?-guards?</span> <span class='nx-placeholder'>?pattern?</span></pre></div></div></div></td>
 <td align="left" valign="middle"><div><div class="listingblock">
 <div class="content"><style type='text/css'>
@@ -4365,10 +4365,10 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># List registered filters
+<pre class='nx'><span class='nx-comment'># List registered filters
 </span><span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>lookup</span> filters <span class='nx-placeholder'>?-guards?</span> <span class='nx-placeholder'>?pattern?</span>
 
-<span class='nx-[namespace tail [nx::self]]'># List registered mixins
+<span class='nx-comment'># List registered mixins
 </span><span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>lookup</span> mixins <span class='nx-placeholder'>?-guards?</span> <span class='nx-placeholder'>?pattern?</span></pre></div></div></div></td>
 </tr>
 </tbody>
@@ -4422,7 +4422,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
 <pre class='nx'><span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>lookup</span> <span class='nx-keyword'>method</span> <span class='nx-placeholder'>/methodName/</span>
-<span class='nx-[namespace tail [nx::self]]'># Returns method-handle</span></pre></div></div></div></td>
+<span class='nx-comment'># Returns method-handle</span></pre></div></div></div></td>
 </tr>
 <tr>
 <td align="left" valign="middle"><div><div class="listingblock">
@@ -4449,7 +4449,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
 <pre class='nx'><span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>lookup</span> <span class='nx-keyword'>filter</span> <span class='nx-placeholder'>/methodName/</span>
-<span class='nx-[namespace tail [nx::self]]'># Returns method-handle</span></pre></div></div></div></td>
+<span class='nx-comment'># Returns method-handle</span></pre></div></div></div></td>
 </tr>
 </tbody>
 </table>
@@ -4495,7 +4495,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># n.a.</span></pre></div></div></div></td>
+<pre class='nx'><span class='nx-comment'># n.a.</span></pre></div></div></div></td>
 <td align="left" valign="middle"><div><div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -4619,8 +4619,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># not needed, part of
-</span><span class='nx-[namespace tail [nx::self]]'># "info ?object? method parameter"</span></pre></div></div></div></td>
+<pre class='nx'><span class='nx-comment'># not needed, part of
+</span><span class='nx-comment'># "info ?object? method parameter"</span></pre></div></div></div></td>
 </tr>
 <tr>
 <td align="left" valign="middle"><div><div class="listingblock">
@@ -4711,7 +4711,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># n.a.</span></pre></div></div></div></td>
+<pre class='nx'><span class='nx-comment'># n.a.</span></pre></div></div></div></td>
 <td align="left" valign="middle"><div><div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -4763,7 +4763,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># n.a.</span></pre></div></div></div></td>
+<pre class='nx'><span class='nx-comment'># n.a.</span></pre></div></div></div></td>
 <td align="left" valign="middle"><div><div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -4775,32 +4775,32 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Return the parameters applicable to
-</span><span class='nx-[namespace tail [nx::self]]'># the create method of a certain class.
-</span><span class='nx-[namespace tail [nx::self]]'># class can be configured. A pattern can
-</span><span class='nx-[namespace tail [nx::self]]'># be used to filter the results.
+<pre class='nx'><span class='nx-comment'># Return the parameters applicable to
+</span><span class='nx-comment'># the create method of a certain class.
+</span><span class='nx-comment'># class can be configured. A pattern can
+</span><span class='nx-comment'># be used to filter the results.
 </span>
 <span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>lookup</span> parameters <span class='nx-keyword'>create</span> ?<span class='nx-placeholder'>/pattern/</span>?
 
-<span class='nx-[namespace tail [nx::self]]'># Return in the result in documentation syntax
+<span class='nx-comment'># Return in the result in documentation syntax
 </span>
 <span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>lookup</span> syntax <span class='nx-keyword'>create</span> ?<span class='nx-placeholder'>/pattern/</span>?
 
-<span class='nx-[namespace tail [nx::self]]'># "info lookup parameters configure" returns
-</span><span class='nx-[namespace tail [nx::self]]'># parameters available for configuring the
-</span><span class='nx-[namespace tail [nx::self]]'># current object  (might contain object
-</span><span class='nx-[namespace tail [nx::self]]'># specific information)
+<span class='nx-comment'># "info lookup parameters configure" returns
+</span><span class='nx-comment'># parameters available for configuring the
+</span><span class='nx-comment'># current object  (might contain object
+</span><span class='nx-comment'># specific information)
 </span>
 <span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>lookup</span> parameters <span class='nx-keyword'>configure</span> <span class='nx-placeholder'>?pattern?</span>
 
-<span class='nx-[namespace tail [nx::self]]'># "info lookup configure syntax" returns syntax of
-</span><span class='nx-[namespace tail [nx::self]]'># a call to configure in the Tcl parameter syntax
+<span class='nx-comment'># "info lookup configure syntax" returns syntax of
+</span><span class='nx-comment'># a call to configure in the Tcl parameter syntax
 </span>
 <span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>lookup</span> syntax <span class='nx-keyword'>configure</span>
 
-<span class='nx-[namespace tail [nx::self]]'># Obtain information from a parameter
-</span><span class='nx-[namespace tail [nx::self]]'># (as e.g. returned from "info lookup
-</span><span class='nx-[namespace tail [nx::self]]'># parameters configure").
+<span class='nx-comment'># Obtain information from a parameter
+</span><span class='nx-comment'># (as e.g. returned from "info lookup
+</span><span class='nx-comment'># parameters configure").
 </span>
 nsf::parameter::info name <span class='nx-placeholder'>/parameter/</span>
 nsf::parameter::info syntax <span class='nx-placeholder'>/parameter/</span>
@@ -4838,8 +4838,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># obtain parameter definitions defined
-</span><span class='nx-[namespace tail [nx::self]]'># for a class
+<pre class='nx'><span class='nx-comment'># obtain parameter definitions defined
+</span><span class='nx-comment'># for a class
 </span><span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> parameter</pre></div></div></div></td>
 <td align="left" valign="middle"><div><div class="listingblock">
 <div class="content"><style type='text/css'>
@@ -4852,22 +4852,22 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># "info variables" returns handles of
-</span><span class='nx-[namespace tail [nx::self]]'># properties and variables defined by this
-</span><span class='nx-[namespace tail [nx::self]]'># class or object
+<pre class='nx'><span class='nx-comment'># "info variables" returns handles of
+</span><span class='nx-comment'># properties and variables defined by this
+</span><span class='nx-comment'># class or object
 </span>
 <span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> variables <span class='nx-placeholder'>?pattern?</span>
 <span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>object</span> variables <span class='nx-placeholder'>?pattern?</span>
 
-<span class='nx-[namespace tail [nx::self]]'># "info lookup variables" returns handles
-</span><span class='nx-[namespace tail [nx::self]]'># of variables and properties applicable
-</span><span class='nx-[namespace tail [nx::self]]'># for the current object (might contain
-</span><span class='nx-[namespace tail [nx::self]]'># object specific information)
+<span class='nx-comment'># "info lookup variables" returns handles
+</span><span class='nx-comment'># of variables and properties applicable
+</span><span class='nx-comment'># for the current object (might contain
+</span><span class='nx-comment'># object specific information)
 </span>
 <span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>lookup</span> variables <span class='nx-placeholder'>/pattern/</span>
 
-<span class='nx-[namespace tail [nx::self]]'># "info variable" lists details about a
-</span><span class='nx-[namespace tail [nx::self]]'># single property or variable.
+<span class='nx-comment'># "info variable" lists details about a
+</span><span class='nx-comment'># single property or variable.
 </span>
 <span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>variable</span> definition <span class='nx-placeholder'>/handle/</span>
 <span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>variable</span> name <span class='nx-placeholder'>/handle/</span>
@@ -4905,7 +4905,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># n.a.</span></pre></div></div></div></td>
+<pre class='nx'><span class='nx-comment'># n.a.</span></pre></div></div></div></td>
 <td align="left" valign="middle"><div><div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -4917,27 +4917,27 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Return list of slots objects defined on the
-</span><span class='nx-[namespace tail [nx::self]]'># object or class
-</span><span class='nx-[namespace tail [nx::self]]'>#
-</span><span class='nx-[namespace tail [nx::self]]'># -source might be all|application|baseclasses
-</span><span class='nx-[namespace tail [nx::self]]'># -type is the class of the slot object
-</span><span class='nx-[namespace tail [nx::self]]'># -closure includes slots of superclasses
+<pre class='nx'><span class='nx-comment'># Return list of slots objects defined on the
+</span><span class='nx-comment'># object or class
+</span><span class='nx-comment'>#
+</span><span class='nx-comment'># -source might be all|application|baseclasses
+</span><span class='nx-comment'># -type is the class of the slot object
+</span><span class='nx-comment'># -closure includes slots of superclasses
 </span>
 <span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> slots \
    <span class='nx-placeholder'>?-type value?</span> <span class='nx-placeholder'>?-closure?</span> <span class='nx-placeholder'>?-source value?</span> <span class='nx-placeholder'>?pattern?</span>
 <span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>object</span> slots <span class='nx-placeholder'>?-type ...?</span> <span class='nx-placeholder'>?pattern?</span>
 
-<span class='nx-[namespace tail [nx::self]]'># List reachable slot objects defined for obj
-</span><span class='nx-[namespace tail [nx::self]]'># -source might be all|application|baseclasses
-</span><span class='nx-[namespace tail [nx::self]]'># -type is the class of the slot object
-</span><span class='nx-[namespace tail [nx::self]]'># Returns list of slot objects.
+<span class='nx-comment'># List reachable slot objects defined for obj
+</span><span class='nx-comment'># -source might be all|application|baseclasses
+</span><span class='nx-comment'># -type is the class of the slot object
+</span><span class='nx-comment'># Returns list of slot objects.
 </span>
 <span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>lookup</span> slots \
    <span class='nx-placeholder'>?-type ...?</span> <span class='nx-placeholder'>?-source ... ?</span>pattern?
 
-<span class='nx-[namespace tail [nx::self]]'># Obtain definition, name or parameter from
-</span><span class='nx-[namespace tail [nx::self]]'># slot object
+<span class='nx-comment'># Obtain definition, name or parameter from
+</span><span class='nx-comment'># slot object
 </span>
 <span class='nx-placeholder'>/slotobj/</span> definition
 <span class='nx-placeholder'>/slotobj/</span> name
@@ -5115,7 +5115,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># n.a.</span></pre></div></div></div></td>
+<pre class='nx'><span class='nx-comment'># n.a.</span></pre></div></div></div></td>
 <td align="left" valign="middle"><div><div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -5166,7 +5166,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># n.a.</span></pre></div></div></div></td>
+<pre class='nx'><span class='nx-comment'># n.a.</span></pre></div></div></div></td>
 <td align="left" valign="middle"><div><div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -5178,26 +5178,26 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'>#
-</span><span class='nx-[namespace tail [nx::self]]'># List the method handle of the specified method,
-</span><span class='nx-[namespace tail [nx::self]]'># can be used e.g. for aliases. "handle" is the short
-</span><span class='nx-[namespace tail [nx::self]]'># form of "definitionhandle".
-</span><span class='nx-[namespace tail [nx::self]]'>#
+<pre class='nx'><span class='nx-comment'>#
+</span><span class='nx-comment'># List the method handle of the specified method,
+</span><span class='nx-comment'># can be used e.g. for aliases. "handle" is the short
+</span><span class='nx-comment'># form of "definitionhandle".
+</span><span class='nx-comment'>#
 </span><span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>method</span> handle <span class='nx-placeholder'>/methodName/</span>
 <span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>method</span> handle <span class='nx-placeholder'>/methodName/</span>
-<span class='nx-[namespace tail [nx::self]]'>#
-</span><span class='nx-[namespace tail [nx::self]]'># For ensemble methods (method name contains
-</span><span class='nx-[namespace tail [nx::self]]'># spaces) one can query as well the registration
-</span><span class='nx-[namespace tail [nx::self]]'># handle, which is the handle to the root of the
-</span><span class='nx-[namespace tail [nx::self]]'># ensemble; the definiton handle points to the
-</span><span class='nx-[namespace tail [nx::self]]'># leaf of the ensemble.
-</span><span class='nx-[namespace tail [nx::self]]'>#
+<span class='nx-comment'>#
+</span><span class='nx-comment'># For ensemble methods (method name contains
+</span><span class='nx-comment'># spaces) one can query as well the registration
+</span><span class='nx-comment'># handle, which is the handle to the root of the
+</span><span class='nx-comment'># ensemble; the definiton handle points to the
+</span><span class='nx-comment'># leaf of the ensemble.
+</span><span class='nx-comment'>#
 </span><span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>method</span> registrationhandle <span class='nx-placeholder'>/methodName/</span>
 <span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>method</span> registrationhandle <span class='nx-placeholder'>/methodName/</span>
-<span class='nx-[namespace tail [nx::self]]'>#
-</span><span class='nx-[namespace tail [nx::self]]'># For aliases, one can query the original
-</span><span class='nx-[namespace tail [nx::self]]'># definition via "info method origin"
-</span><span class='nx-[namespace tail [nx::self]]'>#
+<span class='nx-comment'>#
+</span><span class='nx-comment'># For aliases, one can query the original
+</span><span class='nx-comment'># definition via "info method origin"
+</span><span class='nx-comment'>#
 </span><span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>method</span> origin <span class='nx-placeholder'>/methodName/</span>
 <span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>method</span> origin <span class='nx-placeholder'>/methodName/</span></pre></div></div></div></td>
 </tr>
@@ -5235,7 +5235,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># n.a.</span></pre></div></div></div></td>
+<pre class='nx'><span class='nx-comment'># n.a.</span></pre></div></div></div></td>
 <td align="left" valign="middle"><div><div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -5296,8 +5296,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># List objects, where /cls/ is a
-</span><span class='nx-[namespace tail [nx::self]]'># per-object mixin
+<pre class='nx'><span class='nx-comment'># List objects, where /cls/ is a
+</span><span class='nx-comment'># per-object mixin
 </span>
 <span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> mixinof -scope <span class='nx-keyword'>object</span> <span class='nx-placeholder'>?-closure?</span> \
    <span class='nx-placeholder'>?pattern?</span></pre></div></div></div></td>
@@ -5326,7 +5326,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># List classes, where /cls/ is a per-class mixin
+<pre class='nx'><span class='nx-comment'># List classes, where /cls/ is a per-class mixin
 </span>
 <span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> mixinof -scope <span class='nx-keyword'>class</span> <span class='nx-placeholder'>?-closure?</span> \
    <span class='nx-placeholder'>?pattern?</span></pre></div></div></div></td>
@@ -5343,7 +5343,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># n.a.</span></pre></div></div></div></td>
+<pre class='nx'><span class='nx-comment'># n.a.</span></pre></div></div></div></td>
 <td align="left" valign="middle"><div><div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -5355,8 +5355,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># List objects and classes, where /cls/ is
-</span><span class='nx-[namespace tail [nx::self]]'># either a per-object or a per-class mixin
+<pre class='nx'><span class='nx-comment'># List objects and classes, where /cls/ is
+</span><span class='nx-comment'># either a per-object or a per-class mixin
 </span>
 <span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> mixinof -scope all <span class='nx-placeholder'>?-closure?</span> \
    <span class='nx-placeholder'>?pattern?</span></pre></div></div>
@@ -5419,7 +5419,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Check if object is a subtype of some class
+<pre class='nx'><span class='nx-comment'># Check if object is a subtype of some class
 </span><span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> has type <span class='nx-placeholder'>/sometype/</span></pre></div></div></div></td>
 </tr>
 <tr>
@@ -5446,7 +5446,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Check if object has the specified mixin registered
+<pre class='nx'><span class='nx-comment'># Check if object has the specified mixin registered
 </span><span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> has <span class='nx-keyword'>mixin</span> <span class='nx-placeholder'>/cls/</span></pre></div></div></div></td>
 </tr>
 <tr>
@@ -5473,11 +5473,11 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Check if object is an NX class
+<pre class='nx'><span class='nx-comment'># Check if object is an NX class
 </span><span class='nx-placeholder'>/obj/</span> has type ::nx::Class
 
-<span class='nx-[namespace tail [nx::self]]'># Check if object is a class in one of the
-</span><span class='nx-[namespace tail [nx::self]]'># NSF object systems
+<span class='nx-comment'># Check if object is a class in one of the
+</span><span class='nx-comment'># NSF object systems
 </span>::nsf::is <span class='nx-keyword'>class</span> <span class='nx-placeholder'>/obj/</span></pre></div></div></div></td>
 </tr>
 <tr>
@@ -5504,11 +5504,11 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Check if class is an NX metaclass
+<pre class='nx'><span class='nx-comment'># Check if class is an NX metaclass
 </span><span class='nx-keyword'>expr</span> {[<span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> heritage ::nx::Class] ne <span class='nx-string'>""</span>}
 
-<span class='nx-[namespace tail [nx::self]]'># Check if object is a metaclass in one of the
-</span><span class='nx-[namespace tail [nx::self]]'># NSF object systems
+<span class='nx-comment'># Check if object is a metaclass in one of the
+</span><span class='nx-comment'># NSF object systems
 </span>::nsf::is <span class='nx-keyword'>metaclass</span> <span class='nx-placeholder'>/obj/</span></pre></div></div></div></td>
 </tr>
 <tr>
@@ -5523,7 +5523,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># n.a.</span></pre></div></div></div></td>
+<pre class='nx'><span class='nx-comment'># n.a.</span></pre></div></div></div></td>
 <td align="left" valign="middle"><div><div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -5535,7 +5535,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Check if object is a baseclass of an object system
+<pre class='nx'><span class='nx-comment'># Check if object is a baseclass of an object system
 </span>::nsf::is baseclass <span class='nx-placeholder'>/obj/</span></pre></div></div></div></td>
 </tr>
 <tr>
@@ -5550,7 +5550,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># n.a.</span></pre></div></div></div></td>
+<pre class='nx'><span class='nx-comment'># n.a.</span></pre></div></div></div></td>
 <td align="left" valign="middle"><div><div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -5562,7 +5562,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Return name of object (without namespace prefix)
+<pre class='nx'><span class='nx-comment'># Return name of object (without namespace prefix)
 </span><span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> name</pre></div></div></div></td>
 </tr>
 <tr>
@@ -5589,7 +5589,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Check for existence of object (nsf primitive)
+<pre class='nx'><span class='nx-comment'># Check for existence of object (nsf primitive)
 </span>::nsf::object::exists <span class='nx-placeholder'>/obj/</span></pre></div></div></div></td>
 </tr>
 </tbody>
@@ -5912,8 +5912,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Returns method-handle of the
-</span><span class='nx-[namespace tail [nx::self]]'># method to be called via "next"
+<pre class='nx'><span class='nx-comment'># Returns method-handle of the
+</span><span class='nx-comment'># method to be called via "next"
 </span><span class='nx-keyword'>current</span> <span class='nx-keyword'>next</span></pre></div></div></div></td>
 </tr>
 <tr>
@@ -5940,8 +5940,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Returns method-handle of the
-</span><span class='nx-[namespace tail [nx::self]]'># filter method
+<pre class='nx'><span class='nx-comment'># Returns method-handle of the
+</span><span class='nx-comment'># filter method
 </span><span class='nx-keyword'>current</span> filterreg</pre></div></div></div></td>
 </tr>
 <tr>
@@ -6055,7 +6055,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># n.a.</span></pre></div></div></div></td>
+<pre class='nx'><span class='nx-comment'># n.a.</span></pre></div></div></div></td>
 <td align="left" valign="middle"><div><div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -6350,7 +6350,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># XOTcl example
+<pre class='nx'><span class='nx-comment'># XOTcl example
 </span>
 <span class='nx-keyword'>Class</span> Foo -parameter {x y}
 Foo f1 -x -y 1</pre></div></div>
@@ -6374,7 +6374,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># XOTcl example
+<pre class='nx'><span class='nx-comment'># XOTcl example
 </span>
 <span class='nx-keyword'>Class</span> Foo -parameter {{x 1}}
 <span class='nx-keyword'>Class</span> Bar -superclass Foo -parameter x
@@ -6398,12 +6398,12 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># NX example
+<pre class='nx'><span class='nx-comment'># NX example
 </span>
 <span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Foo
 Foo <span class='nx-keyword'>create</span> f1
 
-<span class='nx-[namespace tail [nx::self]]'># now alter the class of object f1
+<span class='nx-comment'># now alter the class of object f1
 </span>nsf::relation::set f1 <span class='nx-keyword'>class</span> ::nx::Object</pre></div></div>
 </div>
 <div class="sect3">
@@ -6432,7 +6432,7 @@ working on the slots objects has to be adapted.</p></div>
 <div class="sect2">
 <h3 id="_obsolete_commands">3.4. Obsolete Commands</h3>
 <div class="paragraph"><p>Parameter-classes were rarely used and have been replaced by the more
-general object parameterization. Therefore, <code>cl info parameterclass</code> has
+general object parametrization. Therefore, <code>cl info parameterclass</code> has
 been removed.</p></div>
 </div>
 <div class="sect2">
@@ -6456,7 +6456,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-[namespace tail [nx::self]]'># NX example
+<pre class='nx'><span class='nx-comment'># NX example
 </span>::nsf::exithandler <span class='nx-keyword'>set</span>|get|<span class='nx-keyword'>unset</span> <span class='nx-placeholder'>?arg?</span></pre></div></div>
 </div>
 </div>
@@ -6466,7 +6466,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <div id="footer">
 <div id="footer-text">
 Version 2.1.0<br />
-Last updated 2016-12-27 18:26:56 CET
+Last updated 2017-02-14 11:19:40 CET
 </div>
 </div>
 </body>

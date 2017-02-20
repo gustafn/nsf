@@ -858,44 +858,25 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<table class='nx'><tr><td class='nx-linenr'><pre>  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
- 10
- 11
- 12
- 13
- 14
- 15
- 16
- 17
- 18
- 19
-</pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Stack {
+<pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Stack {
 
-   <span class='nx-[namespace tail [nx::self]]'>#
-</span>   <span class='nx-[namespace tail [nx::self]]'># Stack of Things
-</span>   <span class='nx-[namespace tail [nx::self]]'>#
+   <span class='nx-comment'>#
+</span>   <span class='nx-comment'># Stack of Things
+</span>   <span class='nx-comment'>#
 </span>
    <span class='nx-keyword'>:variable</span> things {}
 
    <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> push {thing} {
-      <span class='nx-keyword'>set</span> :things [<span class='nx-keyword'>linsert</span> <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:things}</span> 0 <span class='nx-[namespace tail [nx::self]]'>$thing</span>]
-      <span class='nx-keyword'>return</span> <span class='nx-[namespace tail [nx::self]]'>$thing</span>
+      <span class='nx-keyword'>set</span> :things [<span class='nx-keyword'>linsert</span> <span class='nx-variable'>${</span><span class='nx-variable'>:things}</span> 0 <span class='nx-variable'>$thing</span>]
+      <span class='nx-keyword'>return</span> <span class='nx-variable'>$thing</span>
    }
 
    <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> pop {} {
-      <span class='nx-keyword'>set</span> top [<span class='nx-keyword'>lindex</span> <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:things}</span> 0]
-      <span class='nx-keyword'>set</span> :things [<span class='nx-keyword'>lrange</span> <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:things}</span> 1 end]
-      <span class='nx-keyword'>return</span> <span class='nx-[namespace tail [nx::self]]'>$top</span>
+      <span class='nx-keyword'>set</span> top [<span class='nx-keyword'>lindex</span> <span class='nx-variable'>${</span><span class='nx-variable'>:things}</span> 0]
+      <span class='nx-keyword'>set</span> :things [<span class='nx-keyword'>lrange</span> <span class='nx-variable'>${</span><span class='nx-variable'>:things}</span> 1 end]
+      <span class='nx-keyword'>return</span> <span class='nx-variable'>$top</span>
    }
-}</pre></td></tr></table></div></div>
+}</pre></div></div>
 <div class="paragraph"><p>Typically, classes are defined in NX via <code>nx::Class create</code>, followed
 by the name of the new class (here: <code>Stack</code>). The definition of the
 stack placed between curly braces and contains here just the method
@@ -952,32 +933,14 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<table class='nx'><tr><td class='nx-linenr'><pre>  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
- 10
- 11
- 12
- 13
- 14
- 15
- 16
- 17
- 18
-</pre></td><td class='nx-body'><pre class='nx'><span class='nx-[namespace tail [nx::self]]'>#!/usr/bin/env tclsh
+<pre class='nx'><span class='nx-comment'>#!/usr/bin/env tclsh
 </span><span class='nx-keyword'>package</span> <span class='nx-keyword'>require</span> nx
 
 <span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Stack {
 
-   <span class='nx-[namespace tail [nx::self]]'>#
-</span>   <span class='nx-[namespace tail [nx::self]]'># Stack of Things
-</span>   <span class='nx-[namespace tail [nx::self]]'>#
+   <span class='nx-comment'>#
+</span>   <span class='nx-comment'># Stack of Things
+</span>   <span class='nx-comment'>#
 </span>   ....
 }
 
@@ -987,7 +950,7 @@ s1 push b
 s1 push c
 <span class='nx-keyword'>puts</span> [s1 pop]
 <span class='nx-keyword'>puts</span> [s1 pop]
-s1 <span class='nx-keyword'>destroy</span></pre></td></tr></table></div></div>
+s1 <span class='nx-keyword'>destroy</span></pre></div></div>
 <div class="paragraph"><p>Now we want to use the stack. The code snippet in <a href="#xmp-using-stack">Listing 3</a> shows how to use the class Stack in a script.
 Since NX is based on Tcl, the script will be called with the Tcl shell
 <code>tclsh</code>. In the Tcl shell we have to <code>require package nx</code> to use the
@@ -1051,36 +1014,21 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<table class='nx'><tr><td class='nx-linenr'><pre>  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
- 10
- 11
- 12
- 13
- 14
- 15
-</pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>nx::Object</span> <span class='nx-keyword'>create</span> stack {
+<pre class='nx'><span class='nx-keyword'>nx::Object</span> <span class='nx-keyword'>create</span> stack {
 
    <span class='nx-keyword'>:object</span> <span class='nx-keyword'>variable</span> things {}
 
    <span class='nx-keyword'>:public</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>method</span> push {thing} {
-      <span class='nx-keyword'>set</span> :things [<span class='nx-keyword'>linsert</span> <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:things}</span> 0 <span class='nx-[namespace tail [nx::self]]'>$thing</span>]
-      <span class='nx-keyword'>return</span> <span class='nx-[namespace tail [nx::self]]'>$thing</span>
+      <span class='nx-keyword'>set</span> :things [<span class='nx-keyword'>linsert</span> <span class='nx-variable'>${</span><span class='nx-variable'>:things}</span> 0 <span class='nx-variable'>$thing</span>]
+      <span class='nx-keyword'>return</span> <span class='nx-variable'>$thing</span>
    }
 
    <span class='nx-keyword'>:public</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>method</span> pop {} {
-      <span class='nx-keyword'>set</span> top [<span class='nx-keyword'>lindex</span> <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:things}</span> 0]
-      <span class='nx-keyword'>set</span> :things [<span class='nx-keyword'>lrange</span> <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:things}</span> 1 end]
-      <span class='nx-keyword'>return</span> <span class='nx-[namespace tail [nx::self]]'>$top</span>
+      <span class='nx-keyword'>set</span> top [<span class='nx-keyword'>lindex</span> <span class='nx-variable'>${</span><span class='nx-variable'>:things}</span> 0]
+      <span class='nx-keyword'>set</span> :things [<span class='nx-keyword'>lrange</span> <span class='nx-variable'>${</span><span class='nx-variable'>:things}</span> 1 end]
+      <span class='nx-keyword'>return</span> <span class='nx-variable'>$top</span>
    }
-}</pre></td></tr></table></div></div>
+}</pre></div></div>
 <div class="paragraph"><p>The example in <a href="#xmp-object-stack">Listing 5</a> defines the
 object <code>stack</code> in a very similar way as the class <code>Stack</code>. But the
 following points are different.</p></div>
@@ -1158,40 +1106,16 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<table class='nx'><tr><td class='nx-linenr'><pre>  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
- 10
- 11
- 12
- 13
- 14
- 15
- 16
- 17
- 18
- 19
- 20
- 21
- 22
- 23
- 24
-</pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Safety {
+<pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Safety {
 
-  <span class='nx-[namespace tail [nx::self]]'>#
-</span>  <span class='nx-[namespace tail [nx::self]]'># Implement stack safety by defining an additional
-</span>  <span class='nx-[namespace tail [nx::self]]'># instance variable named "count" that keeps track of
-</span>  <span class='nx-[namespace tail [nx::self]]'># the number of stacked elements. The methods of
-</span>  <span class='nx-[namespace tail [nx::self]]'># this class have the same names and argument lists
-</span>  <span class='nx-[namespace tail [nx::self]]'># as the methods of Stack; these methods "shadow"
-</span>  <span class='nx-[namespace tail [nx::self]]'># the methods of class Stack.
-</span>  <span class='nx-[namespace tail [nx::self]]'>#
+  <span class='nx-comment'>#
+</span>  <span class='nx-comment'># Implement stack safety by defining an additional
+</span>  <span class='nx-comment'># instance variable named "count" that keeps track of
+</span>  <span class='nx-comment'># the number of stacked elements. The methods of
+</span>  <span class='nx-comment'># this class have the same names and argument lists
+</span>  <span class='nx-comment'># as the methods of Stack; these methods "shadow"
+</span>  <span class='nx-comment'># the methods of class Stack.
+</span>  <span class='nx-comment'>#
 </span>
   <span class='nx-keyword'>:variable</span> count 0
 
@@ -1201,11 +1125,11 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
   }
 
   <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> pop {} {
-    <span class='nx-keyword'>if</span> {<span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:count}</span> == 0} then { <span class='nx-keyword'>error</span> <span class='nx-string'>"Stack empty!"</span> }
+    <span class='nx-keyword'>if</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:count}</span> == 0} then { <span class='nx-keyword'>error</span> <span class='nx-string'>"Stack empty!"</span> }
     <span class='nx-keyword'>incr</span> :count -1
     <span class='nx-keyword'>next</span>
   }
-}</pre></td></tr></table></div></div>
+}</pre></div></div>
 <div class="paragraph"><p>Note that all the methods of the class <code>Safety</code> end with <code>next</code>.
 This command is a primitive command of NX, which calls the
 same-named method with the same argument list as the current
@@ -1230,29 +1154,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<table class='nx'><tr><td class='nx-linenr'><pre>  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
- 10
- 11
- 12
- 13
- 14
- 15
- 16
- 17
- 18
- 19
- 20
- 21
- 22
-</pre></td><td class='nx-body'><pre class='nx'>% <span class='nx-keyword'>package</span> <span class='nx-keyword'>require</span> nx
+<pre class='nx'>% <span class='nx-keyword'>package</span> <span class='nx-keyword'>require</span> nx
 2.0
 % <span class='nx-keyword'>source</span> Stack.tcl
 ::Stack
@@ -1273,7 +1175,7 @@ Stack empty!
 ::Stack ::nx::Object
 
 % s2 <span class='nx-keyword'>info</span> precedence
-::Safety ::Stack ::nx::Object</pre></td></tr></table></div></div>
+::Safety ::Stack ::nx::Object</pre></div></div>
 <div class="paragraph"><p>When the method <code>push</code> of <code>s2</code> is called, first the method of the
 mixin class <code>Safety</code> will be invoked that increments the counter and
 continues with <code>next</code> to call the shadowed method, here the method
@@ -1318,20 +1220,13 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<table class='nx'><tr><td class='nx-linenr'><pre>  1
-  2
-  3
-  4
-  5
-  6
-  7
-</pre></td><td class='nx-body'><pre class='nx'><span class='nx-[namespace tail [nx::self]]'>#
-</span><span class='nx-[namespace tail [nx::self]]'># Create a safe stack class by using Stack and mixin
-</span><span class='nx-[namespace tail [nx::self]]'># Safety
-</span><span class='nx-[namespace tail [nx::self]]'>#
+<pre class='nx'><span class='nx-comment'>#
+</span><span class='nx-comment'># Create a safe stack class by using Stack and mixin
+</span><span class='nx-comment'># Safety
+</span><span class='nx-comment'>#
 </span><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> SafeStack -superclass Stack -mixin Safety
 
-SafeStack <span class='nx-keyword'>create</span> s3</pre></td></tr></table></div></div>
+SafeStack <span class='nx-keyword'>create</span> s3</pre></div></div>
 <div class="paragraph"><p>The difference of a per-class mixin and an per-object mixin is that
 the per-class mixin is applicable to all instances of the
 class. Therefore, we call these mixins also sometimes instance mixins.
@@ -1373,28 +1268,17 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<table class='nx'><tr><td class='nx-linenr'><pre>  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
- 10
- 11
-</pre></td><td class='nx-body'><pre class='nx'>Stack <span class='nx-keyword'>create</span> s4 {
+<pre class='nx'>Stack <span class='nx-keyword'>create</span> s4 {
 
-  <span class='nx-[namespace tail [nx::self]]'>#
-</span>  <span class='nx-[namespace tail [nx::self]]'># Create a stack with a object-specific method
-</span>  <span class='nx-[namespace tail [nx::self]]'># to check the type of entries
-</span>  <span class='nx-[namespace tail [nx::self]]'>#
+  <span class='nx-comment'>#
+</span>  <span class='nx-comment'># Create a stack with a object-specific method
+</span>  <span class='nx-comment'># to check the type of entries
+</span>  <span class='nx-comment'>#
 </span>
   <span class='nx-keyword'>:public</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>method</span> push {thing:integer} {
     <span class='nx-keyword'>next</span>
   }
-}</pre></td></tr></table></div></div>
+}</pre></div></div>
 <div class="paragraph"><p>The program snippet in <a href="#xmp-object-integer-stack">Listing 12</a> defines an instance <code>s4</code> of the class
 <code>Stack</code> and provides an object specific method for <code>push</code> to implement
 an integer stack. The method <code>pull</code> is the same for the integer stack
@@ -1420,26 +1304,16 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<table class='nx'><tr><td class='nx-linenr'><pre>  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
- 10
-</pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> IntegerStack -superclass Stack {
+<pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> IntegerStack -superclass Stack {
 
-  <span class='nx-[namespace tail [nx::self]]'>#
-</span>  <span class='nx-[namespace tail [nx::self]]'># Create a Stack accepting only integers
-</span>  <span class='nx-[namespace tail [nx::self]]'>#
+  <span class='nx-comment'>#
+</span>  <span class='nx-comment'># Create a Stack accepting only integers
+</span>  <span class='nx-comment'>#
 </span>
   <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> push {thing:integer} {
     <span class='nx-keyword'>next</span>
   }
-}</pre></td></tr></table></div></div>
+}</pre></div></div>
 <div class="paragraph"><p>An alternative approach is shown in
 <a href="#xmp-class-integer-stack">Listing 13</a>, where the class
 <code>IntegerStack</code> is defined, using the same method definition
@@ -1473,31 +1347,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<table class='nx'><tr><td class='nx-linenr'><pre>  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
- 10
- 11
- 12
- 13
- 14
- 15
- 16
- 17
- 18
- 19
- 20
- 21
- 22
- 23
- 24
-</pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Stack2 {
+<pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Stack2 {
 
    <span class='nx-keyword'>:public</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>method</span> available_stacks {} {
       <span class='nx-keyword'>return</span> [<span class='nx-keyword'>llength</span> [<span class='nx-keyword'>:info</span> instances]]
@@ -1506,21 +1356,21 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
    <span class='nx-keyword'>:variable</span> things {}
 
    <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> push {thing} {
-      <span class='nx-keyword'>set</span> :things [<span class='nx-keyword'>linsert</span> <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:things}</span> 0 <span class='nx-[namespace tail [nx::self]]'>$thing</span>]
-      <span class='nx-keyword'>return</span> <span class='nx-[namespace tail [nx::self]]'>$thing</span>
+      <span class='nx-keyword'>set</span> :things [<span class='nx-keyword'>linsert</span> <span class='nx-variable'>${</span><span class='nx-variable'>:things}</span> 0 <span class='nx-variable'>$thing</span>]
+      <span class='nx-keyword'>return</span> <span class='nx-variable'>$thing</span>
    }
 
    <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> pop {} {
-      <span class='nx-keyword'>set</span> top [<span class='nx-keyword'>lindex</span> <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:things}</span> 0]
-      <span class='nx-keyword'>set</span> :things [<span class='nx-keyword'>lrange</span> <span class='nx-[namespace tail [nx::self]]'>${</span><span class='nx-variable'>:things}</span> 1 end]
-      <span class='nx-keyword'>return</span> <span class='nx-[namespace tail [nx::self]]'>$top</span>
+      <span class='nx-keyword'>set</span> top [<span class='nx-keyword'>lindex</span> <span class='nx-variable'>${</span><span class='nx-variable'>:things}</span> 0]
+      <span class='nx-keyword'>set</span> :things [<span class='nx-keyword'>lrange</span> <span class='nx-variable'>${</span><span class='nx-variable'>:things}</span> 1 end]
+      <span class='nx-keyword'>return</span> <span class='nx-variable'>$top</span>
    }
 }
 
 Stack2 <span class='nx-keyword'>create</span> s1
 Stack2 <span class='nx-keyword'>create</span> s2
 
-<span class='nx-keyword'>puts</span> [Stack2 available_stacks]</pre></td></tr></table></div></div>
+<span class='nx-keyword'>puts</span> [Stack2 available_stacks]</pre></div></div>
 <div class="paragraph"><p>The class <code>Stack2</code> in <a href="#xmp-stack2">Listing 14</a> consists of the
 earlier definition of the class <code>Stack</code> and is extended by the
 class-specific method <code>available_stacks</code>, which returns the
@@ -1591,28 +1441,17 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<table class='nx'><tr><td class='nx-linenr'><pre>  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
- 10
- 11
-</pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Foo {
+<pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Foo {
 
   <span class='nx-keyword'>:method</span> foo args {...}
-    <span class='nx-[namespace tail [nx::self]]'># "a" is a method scoped variable
+    <span class='nx-comment'># "a" is a method scoped variable
 </span>    <span class='nx-keyword'>set</span> a 1
-    <span class='nx-[namespace tail [nx::self]]'># "b" is an Instance variable
+    <span class='nx-comment'># "b" is an Instance variable
 </span>    <span class='nx-keyword'>set</span> :b 2
-    <span class='nx-[namespace tail [nx::self]]'># "c" is a global variable/namespaced variable
+    <span class='nx-comment'># "c" is a global variable/namespaced variable
 </span>    <span class='nx-keyword'>set</span> ::c 3
   }
-}</pre></td></tr></table></div></div>
+}</pre></div></div>
 <div class="paragraph"><p><a href="#xmp-var-resolver">Listing 16</a> shows a method <code>foo</code>
 of some class <code>Foo</code> referring to differently scoped variables.</p></div>
 <div class="sect3">
@@ -1662,60 +1501,33 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<table class='nx'><tr><td class='nx-linenr'><pre>  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
- 10
- 11
- 12
- 13
- 14
- 15
- 16
- 17
- 18
- 19
- 20
- 21
- 22
- 23
- 24
- 25
- 26
- 27
-</pre></td><td class='nx-body'><pre class='nx'><span class='nx-[namespace tail [nx::self]]'>#
-</span><span class='nx-[namespace tail [nx::self]]'># Define a class Person with properties "name"
-</span><span class='nx-[namespace tail [nx::self]]'># and "birthday"
-</span><span class='nx-[namespace tail [nx::self]]'>#
+<pre class='nx'><span class='nx-comment'>#
+</span><span class='nx-comment'># Define a class Person with properties "name"
+</span><span class='nx-comment'># and "birthday"
+</span><span class='nx-comment'>#
 </span><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Person {
   <span class='nx-keyword'>:property</span> name:required
   <span class='nx-keyword'>:property</span> birthday
 }
 
-<span class='nx-[namespace tail [nx::self]]'>#
-</span><span class='nx-[namespace tail [nx::self]]'># Define a class Student as specialization of Person
-</span><span class='nx-[namespace tail [nx::self]]'># with additional properties
-</span><span class='nx-[namespace tail [nx::self]]'>#
+<span class='nx-comment'>#
+</span><span class='nx-comment'># Define a class Student as specialization of Person
+</span><span class='nx-comment'># with additional properties
+</span><span class='nx-comment'>#
 </span><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Student -superclass Person {
   <span class='nx-keyword'>:property</span> matnr:required
   <span class='nx-keyword'>:property</span> {oncampus:boolean true}
 }
 
-<span class='nx-[namespace tail [nx::self]]'>#
-</span><span class='nx-[namespace tail [nx::self]]'># Create instances using configure parameters
-</span><span class='nx-[namespace tail [nx::self]]'># for the initialization
-</span><span class='nx-[namespace tail [nx::self]]'>#
+<span class='nx-comment'>#
+</span><span class='nx-comment'># Create instances using configure parameters
+</span><span class='nx-comment'># for the initialization
+</span><span class='nx-comment'>#
 </span>Person <span class='nx-keyword'>create</span> p1 -name Bob
 Student <span class='nx-keyword'>create</span> s1 -name Susan -matnr 4711
 
-<span class='nx-[namespace tail [nx::self]]'># Access property value via accessor method
-</span><span class='nx-keyword'>puts</span> <span class='nx-string'>"The name of s1 is [s1 cget -name]"</span></pre></td></tr></table></div></div>
+<span class='nx-comment'># Access property value via accessor method
+</span><span class='nx-keyword'>puts</span> <span class='nx-string'>"The name of s1 is [s1 cget -name]"</span></pre></div></div>
 <div class="paragraph"><p>By defining <code>name</code> and <code>birthday</code> as properties of <code>Person</code>, NX makes
 these configurable.  When we create an instance of <code>Person</code> named
 <code>p1</code>, we can provide a value for e.g. the name by specifying <code>-name</code>
@@ -1772,36 +1584,21 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<table class='nx'><tr><td class='nx-linenr'><pre>  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
- 10
- 11
- 12
- 13
- 14
- 15
-</pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Base {
+<pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Base {
   <span class='nx-keyword'>:variable</span> x 1
-  <span class='nx-[namespace tail [nx::self]]'># ...
+  <span class='nx-comment'># ...
 </span>}
 
 <span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Derived -superclass Base {
   <span class='nx-keyword'>:variable</span> y 2
-  <span class='nx-[namespace tail [nx::self]]'># ...
+  <span class='nx-comment'># ...
 </span>}
 
-<span class='nx-[namespace tail [nx::self]]'># Create instance of the class Derived
+<span class='nx-comment'># Create instance of the class Derived
 </span>Derived <span class='nx-keyword'>create</span> d1
 
-<span class='nx-[namespace tail [nx::self]]'># Object d1 has instance variables
-</span><span class='nx-[namespace tail [nx::self]]'># x == 1 and y == 2</span></pre></td></tr></table></div></div>
+<span class='nx-comment'># Object d1 has instance variables
+</span><span class='nx-comment'># x == 1 and y == 2</span></pre></div></div>
 <div class="paragraph"><p>Note that the variable definitions are inherited in the same way as
 properties. The example in <a href="#xmp-variable">Listing 19</a> shows a
 class <code>Derived</code> that inherits from <code>Base</code>. When an instance <code>d1</code> is
@@ -1820,44 +1617,25 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<table class='nx'><tr><td class='nx-linenr'><pre>  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
- 10
- 11
- 12
- 13
- 14
- 15
- 16
- 17
- 18
- 19
-</pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Base2 {
- <span class='nx-[namespace tail [nx::self]]'># ...
+<pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Base2 {
+ <span class='nx-comment'># ...
 </span> <span class='nx-keyword'>:method</span> <span class='nx-keyword'>init</span> {} {
    <span class='nx-keyword'>set</span> :x 1
-   <span class='nx-[namespace tail [nx::self]]'># ....
+   <span class='nx-comment'># ....
 </span> }
 }
 
 <span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Derived2 -superclass Base2 {
- <span class='nx-[namespace tail [nx::self]]'># ...
+ <span class='nx-comment'># ...
 </span> <span class='nx-keyword'>:method</span> <span class='nx-keyword'>init</span> {} {
    <span class='nx-keyword'>set</span> :y 2
    <span class='nx-keyword'>next</span>
-   <span class='nx-[namespace tail [nx::self]]'># ....
+   <span class='nx-comment'># ....
 </span> }
 }
 
-<span class='nx-[namespace tail [nx::self]]'># Create instance of the class Derived2
-</span>Derived2 <span class='nx-keyword'>create</span> d2</pre></td></tr></table></div></div>
+<span class='nx-comment'># Create instance of the class Derived2
+</span>Derived2 <span class='nx-keyword'>create</span> d2</pre></div></div>
 <div class="paragraph"><p>In many other object oriented languages, the instance variables are
 initialized solely by the constructor (similar to class <code>Derived2</code> in
 <a href="#xmp-constructor">Listing 20</a>). This approach is certainly
@@ -1904,34 +1682,20 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<table class='nx'><tr><td class='nx-linenr'><pre>  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
- 10
- 11
- 12
- 13
- 14
-</pre></td><td class='nx-body'><pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Define a class
+<pre class='nx'><span class='nx-comment'># Define a class
 </span><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Dog {
 
-  <span class='nx-[namespace tail [nx::self]]'># Define a scripted method for the class
+  <span class='nx-comment'># Define a scripted method for the class
 </span>  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> bark {} {
     <span class='nx-keyword'>puts</span> <span class='nx-string'>"[self] Bark, bark, bark."</span>
   }
 }
 
-<span class='nx-[namespace tail [nx::self]]'># Create an instance of the class
+<span class='nx-comment'># Create an instance of the class
 </span>Dog <span class='nx-keyword'>create</span> fido
 
-<span class='nx-[namespace tail [nx::self]]'># The following line prints "::fido Bark, bark, bark."
-</span>fido bark</pre></td></tr></table></div></div>
+<span class='nx-comment'># The following line prints "::fido Bark, bark, bark."
+</span>fido bark</pre></div></div>
 <div class="paragraph"><p>In the example above we create a class <code>Dog</code> with a scripted method
 named <code>bark</code>. The method body defines the code, which is executed when
 the method is invoked. In this example, the method <code>bar</code> prints out a
@@ -1980,32 +1744,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<table class='nx'><tr><td class='nx-linenr'><pre>  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
- 10
- 11
- 12
- 13
- 14
- 15
- 16
- 17
- 18
- 19
- 20
- 21
- 22
- 23
- 24
- 25
-</pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Dog {
+<pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Dog {
  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> bark {} { <span class='nx-keyword'>puts</span> <span class='nx-string'>"[self] Bark, bark, bark."</span> }
  <span class='nx-keyword'>:method</span> <span class='nx-keyword'>init</span> {} { Tail <span class='nx-keyword'>create</span> [<span class='nx-keyword'>self</span>]::tail}
 }
@@ -2015,21 +1754,21 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
   <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> wag {} {<span class='nx-keyword'>return</span> Joy}
 }
 
-<span class='nx-[namespace tail [nx::self]]'># Create an instance of the class
+<span class='nx-comment'># Create an instance of the class
 </span>Dog <span class='nx-keyword'>create</span> fido
 
-<span class='nx-[namespace tail [nx::self]]'># Use the accessor "length" as a getter, to obtain the value
-</span><span class='nx-[namespace tail [nx::self]]'># of a property. The following call returns the length of the
-</span><span class='nx-[namespace tail [nx::self]]'># tail of fido
+<span class='nx-comment'># Use the accessor "length" as a getter, to obtain the value
+</span><span class='nx-comment'># of a property. The following call returns the length of the
+</span><span class='nx-comment'># tail of fido
 </span>fido::tail length get
 
-<span class='nx-[namespace tail [nx::self]]'># Use the accessor "length" as a setter, to alter the value
-</span><span class='nx-[namespace tail [nx::self]]'># of a property. The following call changes the length of
-</span><span class='nx-[namespace tail [nx::self]]'># the tail of fido
+<span class='nx-comment'># Use the accessor "length" as a setter, to alter the value
+</span><span class='nx-comment'># of a property. The following call changes the length of
+</span><span class='nx-comment'># the tail of fido
 </span>fido::tail length <span class='nx-keyword'>set</span> 10
 
-<span class='nx-[namespace tail [nx::self]]'># Proving an invalid values will raise an error
-</span>fido::tail length <span class='nx-keyword'>set</span> <span class='nx-string'>"Hello"</span></pre></td></tr></table></div></div>
+<span class='nx-comment'># Proving an invalid values will raise an error
+</span>fido::tail length <span class='nx-keyword'>set</span> <span class='nx-string'>"Hello"</span></pre></div></div>
 <div class="paragraph"><p><a href="#xmp-fido2">Listing 22</a> shows an extended example, where every dog
 has a tail. The object <code>tail</code> is created as a subobject of the dog in
 the constructor <code>init</code>. The subobject can be accessed by providing the
@@ -2050,26 +1789,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<table class='nx'><tr><td class='nx-linenr'><pre>  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
- 10
- 11
- 12
- 13
- 14
- 15
- 16
- 17
- 18
- 19
-</pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Dog {
+<pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Dog {
   <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> bark {} { <span class='nx-keyword'>puts</span> <span class='nx-string'>"[self] Bark, bark, bark."</span> }
   <span class='nx-keyword'>:method</span> <span class='nx-keyword'>init</span> {} {
     Tail <span class='nx-keyword'>create</span> [<span class='nx-keyword'>self</span>]::tail
@@ -2082,12 +1802,12 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
   <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> wag {} {<span class='nx-keyword'>return</span> Joy}
 }
 
-<span class='nx-[namespace tail [nx::self]]'># Create an instance of the class
+<span class='nx-comment'># Create an instance of the class
 </span>Dog <span class='nx-keyword'>create</span> fido
 
-<span class='nx-[namespace tail [nx::self]]'># The invocation of "fido wag" is delegated to "fido::tail wag".
-</span><span class='nx-[namespace tail [nx::self]]'># Therefore, the following method returns "Joy".
-</span>fido wag</pre></td></tr></table></div></div>
+<span class='nx-comment'># The invocation of "fido wag" is delegated to "fido::tail wag".
+</span><span class='nx-comment'># Therefore, the following method returns "Joy".
+</span>fido wag</pre></div></div>
 <div class="paragraph"><p><a href="#xmp-fido3">Listing 23</a> again extends the example by adding a
 forwarder named <code>wag</code> to the object (e.g. <code>fido</code>). The forwarder
 redirects all calls of the form <code>fido wag</code> with arbitrary arguments to
@@ -2133,32 +1853,19 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<table class='nx'><tr><td class='nx-linenr'><pre>  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
- 10
- 11
- 12
- 13
-</pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Dog {
+<pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Dog {
   <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> bark {} { <span class='nx-keyword'>puts</span> <span class='nx-string'>"[self] Bark, bark, bark."</span> }
 
-  <span class='nx-[namespace tail [nx::self]]'># Define a public alias for the method "bark"
+  <span class='nx-comment'># Define a public alias for the method "bark"
 </span>  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>alias</span> warn [<span class='nx-keyword'>:info</span> <span class='nx-keyword'>method</span> handle bark]
-  <span class='nx-[namespace tail [nx::self]]'># ...
+  <span class='nx-comment'># ...
 </span>}
 
-<span class='nx-[namespace tail [nx::self]]'># Create an instance of the class
+<span class='nx-comment'># Create an instance of the class
 </span>Dog <span class='nx-keyword'>create</span> fido
 
-<span class='nx-[namespace tail [nx::self]]'># The following line prints "::fido Bark, bark, bark."
-</span>fido warn</pre></td></tr></table></div></div>
+<span class='nx-comment'># The following line prints "::fido Bark, bark, bark."
+</span>fido warn</pre></div></div>
 <div class="paragraph"><p><a href="#xmp-fido4">Listing 24</a> extends the last example by defining an
 alias for the method <code>bark</code>. The example only shows the bare
 mechanism. In general, method aliases are very powerful means for
@@ -2206,50 +1913,28 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<table class='nx'><tr><td class='nx-linenr'><pre>  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
- 10
- 11
- 12
- 13
- 14
- 15
- 16
- 17
- 18
- 19
- 20
- 21
- 22
-</pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Foo {
+<pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Foo {
 
-  <span class='nx-[namespace tail [nx::self]]'># Define a public method
+  <span class='nx-comment'># Define a public method
 </span>  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> foo {} {
-    <span class='nx-[namespace tail [nx::self]]'># ....
+    <span class='nx-comment'># ....
 </span>    <span class='nx-keyword'>return</span> [:helper]
   }
 
-  <span class='nx-[namespace tail [nx::self]]'># Define a protected method
+  <span class='nx-comment'># Define a protected method
 </span>  <span class='nx-keyword'>:method</span> helper {} {
      <span class='nx-keyword'>return</span> 1
   }
 }
 
-<span class='nx-[namespace tail [nx::self]]'># Create an instance of the class:
+<span class='nx-comment'># Create an instance of the class:
 </span>Foo <span class='nx-keyword'>create</span> f1
 
-<span class='nx-[namespace tail [nx::self]]'># The invocation of the public method "foo" returns 1
+<span class='nx-comment'># The invocation of the public method "foo" returns 1
 </span>f1 foo
 
-<span class='nx-[namespace tail [nx::self]]'># The invocation of the protected method "helper" raises an error:
-</span>f1 helper</pre></td></tr></table></div></div>
+<span class='nx-comment'># The invocation of the protected method "helper" raises an error:
+</span>f1 helper</pre></div></div>
 <div class="paragraph"><p>The example above uses <code>:protected method helper &#8230;</code>. We could have
 used here as well <code>:method helper &#8230;</code>, since the default method
 call-protection is already protected.</p></div>
@@ -2269,34 +1954,20 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<table class='nx'><tr><td class='nx-linenr'><pre>  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
- 10
- 11
- 12
- 13
- 14
-</pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Base {
-  <span class='nx-keyword'>:private</span> <span class='nx-keyword'>method</span> helper {a b} {<span class='nx-keyword'>expr</span> {<span class='nx-[namespace tail [nx::self]]'>$a</span> + <span class='nx-[namespace tail [nx::self]]'>$b</span>}}
-  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> foo     {a b} {: -local helper <span class='nx-[namespace tail [nx::self]]'>$a</span> <span class='nx-[namespace tail [nx::self]]'>$b</span>}
+<pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Base {
+  <span class='nx-keyword'>:private</span> <span class='nx-keyword'>method</span> helper {a b} {<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$a</span> + <span class='nx-variable'>$b</span>}}
+  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> foo     {a b} {: -local helper <span class='nx-variable'>$a</span> <span class='nx-variable'>$b</span>}
 }
 
 <span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Sub -superclass Base {
-  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> bar     {a b} {: -local helper <span class='nx-[namespace tail [nx::self]]'>$a</span> <span class='nx-[namespace tail [nx::self]]'>$b</span>}
-  <span class='nx-keyword'>:private</span> <span class='nx-keyword'>method</span> helper {a b} {<span class='nx-keyword'>expr</span> {<span class='nx-[namespace tail [nx::self]]'>$a</span> * <span class='nx-[namespace tail [nx::self]]'>$b</span>}}
+  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> bar     {a b} {: -local helper <span class='nx-variable'>$a</span> <span class='nx-variable'>$b</span>}
+  <span class='nx-keyword'>:private</span> <span class='nx-keyword'>method</span> helper {a b} {<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$a</span> * <span class='nx-variable'>$b</span>}}
   <span class='nx-keyword'>:create</span> s1
 }
 
-s1 foo 3 4     ;<span class='nx-[namespace tail [nx::self]]'># returns 7
-</span>s1 bar 3 4     ;<span class='nx-[namespace tail [nx::self]]'># returns 12
-</span>s1 helper 3 4  ;<span class='nx-[namespace tail [nx::self]]'># raises error: unable to dispatch method helper</span></pre></td></tr></table></div></div>
+s1 foo 3 4     ;<span class='nx-comment'># returns 7
+</span>s1 bar 3 4     ;<span class='nx-comment'># returns 12
+</span>s1 helper 3 4  ;<span class='nx-comment'># raises error: unable to dispatch method helper</span></pre></div></div>
 <div class="paragraph"><p>The base class implements a public method <code>foo</code> using the helper
 method named <code>helper</code>. The derived class implements a as well a public
 method <code>bar</code>, which is also using a helper method named <code>helper</code>. When
@@ -2335,56 +2006,31 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<table class='nx'><tr><td class='nx-linenr'><pre>  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
- 10
- 11
- 12
- 13
- 14
- 15
- 16
- 17
- 18
- 19
- 20
- 21
- 22
- 23
- 24
- 25
-</pre></td><td class='nx-body'><pre class='nx'><span class='nx-[namespace tail [nx::self]]'>#
-</span><span class='nx-[namespace tail [nx::self]]'># Define a class C with a property "x" and a public accessor
-</span><span class='nx-[namespace tail [nx::self]]'>#
+<pre class='nx'><span class='nx-comment'>#
+</span><span class='nx-comment'># Define a class C with a property "x" and a public accessor
+</span><span class='nx-comment'>#
 </span><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> C {
   <span class='nx-keyword'>:property</span> -accessor <span class='nx-keyword'>public</span> {x c}
 }
 
-<span class='nx-[namespace tail [nx::self]]'>#
-</span><span class='nx-[namespace tail [nx::self]]'># Define a subclass D with a private property "x"
-</span><span class='nx-[namespace tail [nx::self]]'># and a method bar, which is capable of accessing
-</span><span class='nx-[namespace tail [nx::self]]'># the private property.
-</span><span class='nx-[namespace tail [nx::self]]'>#
+<span class='nx-comment'>#
+</span><span class='nx-comment'># Define a subclass D with a private property "x"
+</span><span class='nx-comment'># and a method bar, which is capable of accessing
+</span><span class='nx-comment'># the private property.
+</span><span class='nx-comment'>#
 </span><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> D -superclass C {
   <span class='nx-keyword'>:property</span> -accessor <span class='nx-keyword'>private</span> {x d}
-  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> bar {p} {<span class='nx-keyword'>return</span> [: -local <span class='nx-[namespace tail [nx::self]]'>$p</span> get]}
+  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> bar {p} {<span class='nx-keyword'>return</span> [: -local <span class='nx-variable'>$p</span> get]}
 }
 
-<span class='nx-[namespace tail [nx::self]]'>#
-</span><span class='nx-[namespace tail [nx::self]]'># The private and public (or protected) properties
-</span><span class='nx-[namespace tail [nx::self]]'># define internally separate variable that do not
-</span><span class='nx-[namespace tail [nx::self]]'># conflict.
-</span><span class='nx-[namespace tail [nx::self]]'>#
+<span class='nx-comment'>#
+</span><span class='nx-comment'># The private and public (or protected) properties
+</span><span class='nx-comment'># define internally separate variable that do not
+</span><span class='nx-comment'># conflict.
+</span><span class='nx-comment'>#
 </span>D <span class='nx-keyword'>create</span> d1
-<span class='nx-keyword'>puts</span> [d1 x get]   ;<span class='nx-[namespace tail [nx::self]]'># prints "c"
-</span><span class='nx-keyword'>puts</span> [d1 bar x]   ;<span class='nx-[namespace tail [nx::self]]'># prints "d"</span></pre></td></tr></table></div></div>
+<span class='nx-keyword'>puts</span> [d1 x get]   ;<span class='nx-comment'># prints "c"
+</span><span class='nx-keyword'>puts</span> [d1 bar x]   ;<span class='nx-comment'># prints "d"</span></pre></div></div>
 <div class="paragraph"><p>Without the <code>private</code> definition of the property, the definition of
 property <code>x</code> in class <code>D</code> would shadow the
 definition of the property in the superclass <code>C</code> for its instances
@@ -2417,22 +2063,14 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<table class='nx'><tr><td class='nx-linenr'><pre>  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-</pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> C {
+<pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> C {
   <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> foo {} {<span class='nx-keyword'>return</span> 1}
   <span class='nx-keyword'>:create</span> c1
 }
 
-<span class='nx-[namespace tail [nx::self]]'># Method "foo" is defined on class "C"
-</span><span class='nx-[namespace tail [nx::self]]'># and applicable to the instances of "C"
-</span>c1 foo</pre></td></tr></table></div></div>
+<span class='nx-comment'># Method "foo" is defined on class "C"
+</span><span class='nx-comment'># and applicable to the instances of "C"
+</span>c1 foo</pre></div></div>
 <div class="paragraph"><p>There are many programming languages that only allow these types of methods.
 However, NX also allows methods to be defined on objects.</p></div>
 </div>
@@ -2462,26 +2100,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<table class='nx'><tr><td class='nx-linenr'><pre>  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
- 10
- 11
- 12
- 13
- 14
- 15
- 16
- 17
- 18
- 19
-</pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> C {
+<pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> C {
   <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> foo {} {<span class='nx-keyword'>return</span> 1}
   <span class='nx-keyword'>:create</span> c1 {
      <span class='nx-keyword'>:public</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>method</span> foo {} {<span class='nx-keyword'>return</span> 2}
@@ -2489,17 +2108,17 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
   }
 }
 
-<span class='nx-[namespace tail [nx::self]]'># Method "bar" is an object specific method of "c1"
+<span class='nx-comment'># Method "bar" is an object specific method of "c1"
 </span>c1 bar
 
-<span class='nx-[namespace tail [nx::self]]'># object-specific method "foo" returns 2
+<span class='nx-comment'># object-specific method "foo" returns 2
 </span>c1 foo
 
-<span class='nx-[namespace tail [nx::self]]'># Method "baz" is an object specific method of "o1"
+<span class='nx-comment'># Method "baz" is an object specific method of "o1"
 </span><span class='nx-keyword'>nx::Object</span> <span class='nx-keyword'>create</span> o1 {
   <span class='nx-keyword'>:public</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>method</span> baz {} {<span class='nx-keyword'>return</span> 4}
 }
-o1 baz</pre></td></tr></table></div></div>
+o1 baz</pre></div></div>
 </div>
 <div class="sect3">
 <h4 id="_class_methods">3.4.3. Class Methods</h4>
@@ -2529,56 +2148,31 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<table class='nx'><tr><td class='nx-linenr'><pre>  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
- 10
- 11
- 12
- 13
- 14
- 15
- 16
- 17
- 18
- 19
- 20
- 21
- 22
- 23
- 24
- 25
-</pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> C {
-  <span class='nx-[namespace tail [nx::self]]'>#
-</span>  <span class='nx-[namespace tail [nx::self]]'># Define a class method "bar" and an instance
-</span>  <span class='nx-[namespace tail [nx::self]]'># method "foo"
-</span>  <span class='nx-[namespace tail [nx::self]]'>#
+<pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> C {
+  <span class='nx-comment'>#
+</span>  <span class='nx-comment'># Define a class method "bar" and an instance
+</span>  <span class='nx-comment'># method "foo"
+</span>  <span class='nx-comment'>#
 </span>  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>method</span> bar {} {<span class='nx-keyword'>return</span> 2}
   <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> foo {} {<span class='nx-keyword'>return</span> 1}
 
-  <span class='nx-[namespace tail [nx::self]]'>#
-</span>  <span class='nx-[namespace tail [nx::self]]'># Create an instance of the current class
-</span>  <span class='nx-[namespace tail [nx::self]]'>#
+  <span class='nx-comment'>#
+</span>  <span class='nx-comment'># Create an instance of the current class
+</span>  <span class='nx-comment'>#
 </span>  <span class='nx-keyword'>:create</span> c1
 }
 
-<span class='nx-[namespace tail [nx::self]]'># Method "bar" is a class method of class "C"
-</span><span class='nx-[namespace tail [nx::self]]'># therefore applicable on the class object "C"
+<span class='nx-comment'># Method "bar" is a class method of class "C"
+</span><span class='nx-comment'># therefore applicable on the class object "C"
 </span>C bar
 
-<span class='nx-[namespace tail [nx::self]]'># Method "foo" is an instance method of "C"
-</span><span class='nx-[namespace tail [nx::self]]'># therefore applicable on instance "c1"
+<span class='nx-comment'># Method "foo" is an instance method of "C"
+</span><span class='nx-comment'># therefore applicable on instance "c1"
 </span>c1 foo
 
-<span class='nx-[namespace tail [nx::self]]'># When trying to invoke the class method on the
-</span><span class='nx-[namespace tail [nx::self]]'># instance, an error will be raised.
-</span>c1 bar</pre></td></tr></table></div></div>
+<span class='nx-comment'># When trying to invoke the class method on the
+</span><span class='nx-comment'># instance, an error will be raised.
+</span>c1 bar</pre></div></div>
 <div class="paragraph"><p>In some other object oriented programming languages, class methods
 are called "static methods".</p></div>
 </div>
@@ -2614,34 +2208,20 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<table class='nx'><tr><td class='nx-linenr'><pre>  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
- 10
- 11
- 12
- 13
- 14
-</pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> C {
+<pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> C {
 
-    <span class='nx-[namespace tail [nx::self]]'># Define an ensemble method "string" with sub-methods
-</span>    <span class='nx-[namespace tail [nx::self]]'># "length", "tolower" and "info"
+    <span class='nx-comment'># Define an ensemble method "string" with sub-methods
+</span>    <span class='nx-comment'># "length", "tolower" and "info"
 </span>
     <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> <span class='nx-string'>"string length"</span>  {x} {....}
     <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> <span class='nx-string'>"string tolower"</span> {x} {...}
     <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> <span class='nx-string'>"string info"</span> {x} {...}
-    <span class='nx-[namespace tail [nx::self]]'>#...
+    <span class='nx-comment'>#...
 </span>    <span class='nx-keyword'>:create</span> c1
 }
 
-<span class='nx-[namespace tail [nx::self]]'># Invoke the ensemble method
-</span>c1 <span class='nx-keyword'>string</span> length <span class='nx-string'>"hello world"</span></pre></td></tr></table></div></div>
+<span class='nx-comment'># Invoke the ensemble method
+</span>c1 <span class='nx-keyword'>string</span> length <span class='nx-string'>"hello world"</span></pre></div></div>
 </div>
 <div class="sect2">
 <h3 id="_method_resolution">3.6. Method Resolution</h3>
@@ -2665,33 +2245,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<table class='nx'><tr><td class='nx-linenr'><pre>  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
- 10
- 11
- 12
- 13
- 14
- 15
- 16
- 17
- 18
- 19
- 20
- 21
- 22
- 23
- 24
- 25
- 26
-</pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> C {
+<pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> C {
   <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> foo {} {
     <span class='nx-keyword'>return</span> <span class='nx-string'>"C foo: [next]"</span>
   }
@@ -2710,13 +2264,13 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
    }
 }
 
-<span class='nx-[namespace tail [nx::self]]'># Invoke the method foo
+<span class='nx-comment'># Invoke the method foo
 </span>d1 foo
-<span class='nx-[namespace tail [nx::self]]'># result: "d1 foo: D foo: C foo: "
+<span class='nx-comment'># result: "d1 foo: D foo: C foo: "
 </span>
-<span class='nx-[namespace tail [nx::self]]'># Query the precedence order from NX via introspection
+<span class='nx-comment'># Query the precedence order from NX via introspection
 </span>d1 <span class='nx-keyword'>info</span> precedence
-<span class='nx-[namespace tail [nx::self]]'># result: "::D ::C ::nx::Object"</span></pre></td></tr></table></div></div>
+<span class='nx-comment'># result: "::D ::C ::nx::Object"</span></pre></div></div>
 <div class="paragraph"><p>Consider the example in
 <a href="#xmp-method-resolution">Listing 32</a>. When the method
 <code>foo</code> is invoked on object <code>d1</code>, the object method has the highest
@@ -2744,54 +2298,30 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<table class='nx'><tr><td class='nx-linenr'><pre>  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
- 10
- 11
- 12
- 13
- 14
- 15
- 16
- 17
- 18
- 19
- 20
- 21
- 22
- 23
- 24
-</pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> M1 {
+<pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> M1 {
   <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> foo {} { <span class='nx-keyword'>return</span> <span class='nx-string'>"M1 foo: [next]"</span>}
 }
 <span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> M2 {
   <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> foo {} { <span class='nx-keyword'>return</span> <span class='nx-string'>"M2 foo: [next]"</span>}
 }
 
-<span class='nx-[namespace tail [nx::self]]'>#
-</span><span class='nx-[namespace tail [nx::self]]'># "d1" is created based on the definitions of the last example
-</span><span class='nx-[namespace tail [nx::self]]'>#
-</span><span class='nx-[namespace tail [nx::self]]'># Add the methods from "M1" as per-object mixin to "d1"
+<span class='nx-comment'>#
+</span><span class='nx-comment'># "d1" is created based on the definitions of the last example
+</span><span class='nx-comment'>#
+</span><span class='nx-comment'># Add the methods from "M1" as per-object mixin to "d1"
 </span>d1 <span class='nx-keyword'>object</span> mixins add M1
 
-<span class='nx-[namespace tail [nx::self]]'>#
-</span><span class='nx-[namespace tail [nx::self]]'># Add the methods from "M2" as per-class mixin to class "C"
+<span class='nx-comment'>#
+</span><span class='nx-comment'># Add the methods from "M2" as per-class mixin to class "C"
 </span>C mixins add M2
 
-<span class='nx-[namespace tail [nx::self]]'># Invoke the method foo
+<span class='nx-comment'># Invoke the method foo
 </span>d1 foo
-<span class='nx-[namespace tail [nx::self]]'># result: "M1 foo: M2 foo: d1 foo: D foo: C foo: "
+<span class='nx-comment'># result: "M1 foo: M2 foo: d1 foo: D foo: C foo: "
 </span>
-<span class='nx-[namespace tail [nx::self]]'># Query the precedence order from NX via introspection
+<span class='nx-comment'># Query the precedence order from NX via introspection
 </span>d1 <span class='nx-keyword'>info</span> precedence
-<span class='nx-[namespace tail [nx::self]]'># result: "::M1 ::M2 ::D ::C ::nx::Object"</span></pre></td></tr></table></div></div>
+<span class='nx-comment'># result: "::M1 ::M2 ::D ::C ::nx::Object"</span></pre></div></div>
 <div class="paragraph"><p>The example in <a href="#xmp-method-resolution2">Listing 33</a> is
 an extension of the previous example. We define here two additional
 classes <code>M1</code> and <code>M2</code> which are used as per-object and per-class
@@ -2811,29 +2341,13 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<table class='nx'><tr><td class='nx-linenr'><pre>  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
- 10
- 11
- 12
- 13
- 14
- 15
- 16
-</pre></td><td class='nx-body'><pre class='nx'><span class='nx-[namespace tail [nx::self]]'>#
-</span><span class='nx-[namespace tail [nx::self]]'># "d1" is created based on the definitions of the last two examples,
-</span><span class='nx-[namespace tail [nx::self]]'># the mixins "M1" and "M2" are registered.
-</span><span class='nx-[namespace tail [nx::self]]'>#
-</span><span class='nx-[namespace tail [nx::self]]'># Define a public object method "bar", which calls the method
-</span><span class='nx-[namespace tail [nx::self]]'># "foo" which various invocation options:
-</span><span class='nx-[namespace tail [nx::self]]'>#
+<pre class='nx'><span class='nx-comment'>#
+</span><span class='nx-comment'># "d1" is created based on the definitions of the last two examples,
+</span><span class='nx-comment'># the mixins "M1" and "M2" are registered.
+</span><span class='nx-comment'>#
+</span><span class='nx-comment'># Define a public object method "bar", which calls the method
+</span><span class='nx-comment'># "foo" which various invocation options:
+</span><span class='nx-comment'>#
 </span>d1 <span class='nx-keyword'>public</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>method</span> bar {} {
    <span class='nx-keyword'>puts</span> [:foo]
    <span class='nx-keyword'>puts</span> [: -local foo]
@@ -2841,8 +2355,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
    <span class='nx-keyword'>puts</span> [: -system foo]
 }
 
-<span class='nx-[namespace tail [nx::self]]'># Invoke the method "bar"
-</span>d1 bar</pre></td></tr></table></div></div>
+<span class='nx-comment'># Invoke the method "bar"
+</span>d1 bar</pre></div></div>
 <div class="paragraph"><p>In the first line of the body of method <code>bar</code>, the method <code>foo</code> is
 called as usual with an implicit receiver, which defaults to the
 current object (therefore, the call is equivalent to <code>d1 foo</code>). The
@@ -2935,78 +2449,42 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<table class='nx'><tr><td class='nx-linenr'><pre>  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
- 10
- 11
- 12
- 13
- 14
- 15
- 16
- 17
- 18
- 19
- 20
- 21
- 22
- 23
- 24
- 25
- 26
- 27
- 28
- 29
- 30
- 31
- 32
- 33
- 34
- 35
- 36
-</pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>nx::Object</span> <span class='nx-keyword'>create</span> o1 {
+<pre class='nx'><span class='nx-keyword'>nx::Object</span> <span class='nx-keyword'>create</span> o1 {
 
-  <span class='nx-[namespace tail [nx::self]]'>#
-</span>  <span class='nx-[namespace tail [nx::self]]'># Method foo has positional parameters:
-</span>  <span class='nx-[namespace tail [nx::self]]'>#
+  <span class='nx-comment'>#
+</span>  <span class='nx-comment'># Method foo has positional parameters:
+</span>  <span class='nx-comment'>#
 </span>  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>method</span> foo {x y} {
     <span class='nx-keyword'>puts</span> <span class='nx-string'>"x=$x y=$y"</span>
   }
 
-  <span class='nx-[namespace tail [nx::self]]'>#
-</span>  <span class='nx-[namespace tail [nx::self]]'># Method bar has non-positional parameters:
-</span>  <span class='nx-[namespace tail [nx::self]]'>#
+  <span class='nx-comment'>#
+</span>  <span class='nx-comment'># Method bar has non-positional parameters:
+</span>  <span class='nx-comment'>#
 </span>  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>method</span> bar {-x -y} {
     <span class='nx-keyword'>puts</span> <span class='nx-string'>"x=$x y=$y"</span>
   }
 
-  <span class='nx-[namespace tail [nx::self]]'>#
-</span>  <span class='nx-[namespace tail [nx::self]]'># Method baz has non-positional and
-</span>  <span class='nx-[namespace tail [nx::self]]'># positional parameters:
-</span>  <span class='nx-[namespace tail [nx::self]]'>#
+  <span class='nx-comment'>#
+</span>  <span class='nx-comment'># Method baz has non-positional and
+</span>  <span class='nx-comment'># positional parameters:
+</span>  <span class='nx-comment'>#
 </span>  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>method</span> baz {-x -y a} {
     <span class='nx-keyword'>puts</span> <span class='nx-string'>"x? [info exists x] y? [info exists y] a=$a"</span>
   }
 }
 
-<span class='nx-[namespace tail [nx::self]]'># invoke foo (positional parameters)
+<span class='nx-comment'># invoke foo (positional parameters)
 </span>o1 foo 1 2
 
-<span class='nx-[namespace tail [nx::self]]'># invoke bar (non-positional parameters)
+<span class='nx-comment'># invoke bar (non-positional parameters)
 </span>o1 bar -y 3 -x 1
 o1 bar -x 1 -y 3
 
-<span class='nx-[namespace tail [nx::self]]'># invoke baz (positional and non-positional parameters)
+<span class='nx-comment'># invoke baz (positional and non-positional parameters)
 </span>o1 baz -x 1 100
 o1 baz 200
-o1 baz -- -y</pre></td></tr></table></div></div>
+o1 baz -- -y</pre></div></div>
 <div class="paragraph"><p>Consider the example in <a href="#xmp-posnonpos">Listing 35</a>. The method
 <code>foo</code> has the argument list <code>x y</code>. This means that the first argument
 is passed in an invocation like <code>o1 foo 1 2</code> to <code>x</code> (here, the value
@@ -3052,48 +2530,27 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<table class='nx'><tr><td class='nx-linenr'><pre>  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
- 10
- 11
- 12
- 13
- 14
- 15
- 16
- 17
- 18
- 19
- 20
- 21
-</pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>nx::Object</span> <span class='nx-keyword'>create</span> o2 {
+<pre class='nx'><span class='nx-keyword'>nx::Object</span> <span class='nx-keyword'>create</span> o2 {
 
-  <span class='nx-[namespace tail [nx::self]]'>#
-</span>  <span class='nx-[namespace tail [nx::self]]'># Method foo has one required and one optional
-</span>  <span class='nx-[namespace tail [nx::self]]'># positional parameter:
-</span>  <span class='nx-[namespace tail [nx::self]]'>#
+  <span class='nx-comment'>#
+</span>  <span class='nx-comment'># Method foo has one required and one optional
+</span>  <span class='nx-comment'># positional parameter:
+</span>  <span class='nx-comment'>#
 </span>  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>method</span> foo {x:required y:optional} {
     <span class='nx-keyword'>puts</span> <span class='nx-string'>"x=$x y? [info exists y]"</span>
   }
 
-  <span class='nx-[namespace tail [nx::self]]'>#
-</span>  <span class='nx-[namespace tail [nx::self]]'># Method bar has one required and one optional
-</span>  <span class='nx-[namespace tail [nx::self]]'># non-positional parameter:
-</span>  <span class='nx-[namespace tail [nx::self]]'>#
+  <span class='nx-comment'>#
+</span>  <span class='nx-comment'># Method bar has one required and one optional
+</span>  <span class='nx-comment'># non-positional parameter:
+</span>  <span class='nx-comment'>#
 </span>  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>method</span> bar {-x:required -y:optional} {
     <span class='nx-keyword'>puts</span> <span class='nx-string'>"x=$x y? [info exists y]"</span>
   }
 }
 
-<span class='nx-[namespace tail [nx::self]]'># invoke foo (one optional positional parameter is missing)
-</span>o2 foo 1</pre></td></tr></table></div></div>
+<span class='nx-comment'># invoke foo (one optional positional parameter is missing)
+</span>o2 foo 1</pre></div></div>
 <div class="paragraph"><p>The example in <a href="#xmp-optional-req">Listing 36</a> defined method <code>foo</code>
 with one required and one optional positional parameter. For this
 purpose we use the parameter options <code>required</code> and <code>optional</code>. The
@@ -3131,46 +2588,26 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<table class='nx'><tr><td class='nx-linenr'><pre>  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
- 10
- 11
- 12
- 13
- 14
- 15
- 16
- 17
- 18
- 19
- 20
-</pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>nx::Object</span> <span class='nx-keyword'>create</span> o3 {
+<pre class='nx'><span class='nx-keyword'>nx::Object</span> <span class='nx-keyword'>create</span> o3 {
 
-  <span class='nx-[namespace tail [nx::self]]'>#
-</span>  <span class='nx-[namespace tail [nx::self]]'># Positional parameter with default value:
-</span>  <span class='nx-[namespace tail [nx::self]]'>#
+  <span class='nx-comment'>#
+</span>  <span class='nx-comment'># Positional parameter with default value:
+</span>  <span class='nx-comment'>#
 </span>  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>method</span> foo {{x 1} {y 2}} {
     <span class='nx-keyword'>puts</span> <span class='nx-string'>"x=$x y=$y"</span>
   }
 
-  <span class='nx-[namespace tail [nx::self]]'>#
-</span>  <span class='nx-[namespace tail [nx::self]]'># Non-positional parameter with default value:
-</span>  <span class='nx-[namespace tail [nx::self]]'>#
+  <span class='nx-comment'>#
+</span>  <span class='nx-comment'># Non-positional parameter with default value:
+</span>  <span class='nx-comment'>#
 </span>  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>method</span> bar {{-x 10} {-y 20}} {
     <span class='nx-keyword'>puts</span> <span class='nx-string'>"x=$x y=$y"</span>
   }
 }
 
-<span class='nx-[namespace tail [nx::self]]'># use default values
+<span class='nx-comment'># use default values
 </span>o3 foo
-o3 bar</pre></td></tr></table></div></div>
+o3 bar</pre></div></div>
 <div class="paragraph"><p>In order to define a default value for a parameter, the parameter
 specification must be of the form of a 2 element list, where the
 second argument is the default value. See for an example in
@@ -3221,46 +2658,26 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<table class='nx'><tr><td class='nx-linenr'><pre>  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
- 10
- 11
- 12
- 13
- 14
- 15
- 16
- 17
- 18
- 19
- 20
-</pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>nx::Object</span> <span class='nx-keyword'>create</span> o4 {
+<pre class='nx'><span class='nx-keyword'>nx::Object</span> <span class='nx-keyword'>create</span> o4 {
 
-  <span class='nx-[namespace tail [nx::self]]'>#
-</span>  <span class='nx-[namespace tail [nx::self]]'># Positional parameter with value constraints:
-</span>  <span class='nx-[namespace tail [nx::self]]'>#
+  <span class='nx-comment'>#
+</span>  <span class='nx-comment'># Positional parameter with value constraints:
+</span>  <span class='nx-comment'>#
 </span>  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>method</span> foo {x:integer o<span class='nx-keyword'>:object</span>,optional} {
     <span class='nx-keyword'>puts</span> <span class='nx-string'>"x=$x o? [info exists o]"</span>
   }
 
-  <span class='nx-[namespace tail [nx::self]]'>#
-</span>  <span class='nx-[namespace tail [nx::self]]'># Non-positional parameter with value constraints:
-</span>  <span class='nx-[namespace tail [nx::self]]'>#
+  <span class='nx-comment'>#
+</span>  <span class='nx-comment'># Non-positional parameter with value constraints:
+</span>  <span class='nx-comment'>#
 </span>  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>method</span> bar {{-x:integer 10} {-verbose:boolean false}} {
     <span class='nx-keyword'>puts</span> <span class='nx-string'>"x=$x verbose=$verbose"</span>
   }
 }
 
-<span class='nx-[namespace tail [nx::self]]'># The following invocation raises an exception, since the
-</span><span class='nx-[namespace tail [nx::self]]'># value "a" for parameter "x" is not an integer
-</span>o4 foo a</pre></td></tr></table></div></div>
+<span class='nx-comment'># The following invocation raises an exception, since the
+</span><span class='nx-comment'># value "a" for parameter "x" is not an integer
+</span>o4 foo a</pre></div></div>
 <div class="paragraph"><p>Value contraints are specified as parameter options in the parameter
 specifications. The parameter specification <code>x:integer</code> defines <code>x</code> as
 a required positional parmeter which value is constraint to an
@@ -3282,62 +2699,34 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<table class='nx'><tr><td class='nx-linenr'><pre>  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
- 10
- 11
- 12
- 13
- 14
- 15
- 16
- 17
- 18
- 19
- 20
- 21
- 22
- 23
- 24
- 25
- 26
- 27
- 28
-</pre></td><td class='nx-body'><pre class='nx'><span class='nx-[namespace tail [nx::self]]'>#
-</span><span class='nx-[namespace tail [nx::self]]'># Create classes for Person and Project
-</span><span class='nx-[namespace tail [nx::self]]'>#
+<pre class='nx'><span class='nx-comment'>#
+</span><span class='nx-comment'># Create classes for Person and Project
+</span><span class='nx-comment'>#
 </span><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Person
 <span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Project
 
 <span class='nx-keyword'>nx::Object</span> <span class='nx-keyword'>create</span> o5 {
-  <span class='nx-[namespace tail [nx::self]]'>#
-</span>  <span class='nx-[namespace tail [nx::self]]'># Parameterized value constraints
-</span>  <span class='nx-[namespace tail [nx::self]]'>#
+  <span class='nx-comment'>#
+</span>  <span class='nx-comment'># Parameterized value constraints
+</span>  <span class='nx-comment'>#
 </span>  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>method</span> work {
      -person<span class='nx-keyword'>:object</span>,type=Person
      -project<span class='nx-keyword'>:object</span>,type=Project
    } {
-    <span class='nx-[namespace tail [nx::self]]'># ...
+    <span class='nx-comment'># ...
 </span>  }
 }
 
-<span class='nx-[namespace tail [nx::self]]'>#
-</span><span class='nx-[namespace tail [nx::self]]'># Create a Person and a Project instance
-</span><span class='nx-[namespace tail [nx::self]]'>#
+<span class='nx-comment'>#
+</span><span class='nx-comment'># Create a Person and a Project instance
+</span><span class='nx-comment'>#
 </span>Person <span class='nx-keyword'>create</span> gustaf
 Project <span class='nx-keyword'>create</span> nx
 
-<span class='nx-[namespace tail [nx::self]]'>#
-</span><span class='nx-[namespace tail [nx::self]]'># Use method with value constraints
-</span><span class='nx-[namespace tail [nx::self]]'>#
-</span>o5 work -person gustaf -project nx</pre></td></tr></table></div></div>
+<span class='nx-comment'>#
+</span><span class='nx-comment'># Use method with value constraints
+</span><span class='nx-comment'>#
+</span>o5 work -person gustaf -project nx</pre></div></div>
 <div class="paragraph"><p>The native checkers <code>object</code>, <code>class</code>, <code>metaclass</code> and <code>baseclass</code> can
 be further specialized with the parameter option <code>type</code> to restrict
 the permissible values to instances of certain classes. We can use for
@@ -3371,92 +2760,49 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<table class='nx'><tr><td class='nx-linenr'><pre>  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
- 10
- 11
- 12
- 13
- 14
- 15
- 16
- 17
- 18
- 19
- 20
- 21
- 22
- 23
- 24
- 25
- 26
- 27
- 28
- 29
- 30
- 31
- 32
- 33
- 34
- 35
- 36
- 37
- 38
- 39
- 40
- 41
- 42
- 43
-</pre></td><td class='nx-body'><pre class='nx'><span class='nx-[namespace tail [nx::self]]'>#
-</span><span class='nx-[namespace tail [nx::self]]'># Value checker named "groupsize"
-</span><span class='nx-[namespace tail [nx::self]]'>#
+<pre class='nx'><span class='nx-comment'>#
+</span><span class='nx-comment'># Value checker named "groupsize"
+</span><span class='nx-comment'>#
 </span>::nx::Slot <span class='nx-keyword'>method</span> type=groupsize {name value} {
-  <span class='nx-keyword'>if</span> {<span class='nx-[namespace tail [nx::self]]'>$value</span> &lt; 1 || <span class='nx-[namespace tail [nx::self]]'>$value</span> &gt; 6} {
+  <span class='nx-keyword'>if</span> {<span class='nx-variable'>$value</span> &lt; 1 || <span class='nx-variable'>$value</span> &gt; 6} {
     <span class='nx-keyword'>error</span> <span class='nx-string'>"Value '$value' of parameter $name is not between 1 and 6"</span>
   }
 }
 
-<span class='nx-[namespace tail [nx::self]]'>#
-</span><span class='nx-[namespace tail [nx::self]]'># Value checker named "choice" with extra argument
-</span><span class='nx-[namespace tail [nx::self]]'>#
+<span class='nx-comment'>#
+</span><span class='nx-comment'># Value checker named "choice" with extra argument
+</span><span class='nx-comment'>#
 </span>::nx::Slot <span class='nx-keyword'>method</span> type=choice {name value arg} {
-  <span class='nx-keyword'>if</span> {<span class='nx-[namespace tail [nx::self]]'>$value</span> ni [<span class='nx-keyword'>split</span> <span class='nx-[namespace tail [nx::self]]'>$arg</span> |]} {
+  <span class='nx-keyword'>if</span> {<span class='nx-variable'>$value</span> ni [<span class='nx-keyword'>split</span> <span class='nx-variable'>$arg</span> |]} {
     <span class='nx-keyword'>error</span> <span class='nx-string'>"Value '$value' of parameter $name not in permissible values $arg"</span>
   }
 }
 
-<span class='nx-[namespace tail [nx::self]]'>#
-</span><span class='nx-[namespace tail [nx::self]]'># Create an application class D
-</span><span class='nx-[namespace tail [nx::self]]'># using the new value checkers
-</span><span class='nx-[namespace tail [nx::self]]'>#
+<span class='nx-comment'>#
+</span><span class='nx-comment'># Create an application class D
+</span><span class='nx-comment'># using the new value checkers
+</span><span class='nx-comment'>#
 </span><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> D {
   <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> foo {a:groupsize} {
-    <span class='nx-[namespace tail [nx::self]]'># ...
+    <span class='nx-comment'># ...
 </span>  }
   <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> bar {a:choice,arg=red|yellow|green b:choice,arg=good|bad} {
-    <span class='nx-[namespace tail [nx::self]]'># ...
+    <span class='nx-comment'># ...
 </span>  }
 }
 
 D <span class='nx-keyword'>create</span> d1
 
-<span class='nx-[namespace tail [nx::self]]'># testing "groupsize";
-</span><span class='nx-[namespace tail [nx::self]]'># the second call (with value 10) will raise an exception:
+<span class='nx-comment'># testing "groupsize";
+</span><span class='nx-comment'># the second call (with value 10) will raise an exception:
 </span>d1 foo 2
 d1 foo 10
 
-<span class='nx-[namespace tail [nx::self]]'># testing "choice"
-</span><span class='nx-[namespace tail [nx::self]]'># the second call (with value pink for parameter a)
-</span><span class='nx-[namespace tail [nx::self]]'># will raise an exception:
+<span class='nx-comment'># testing "choice"
+</span><span class='nx-comment'># the second call (with value pink for parameter a)
+</span><span class='nx-comment'># will raise an exception:
 </span>d1 bar green good
-d1 bar pink bad</pre></td></tr></table></div></div>
+d1 bar pink bad</pre></div></div>
 <div class="paragraph"><p>In order to define a checker <code>groupsize</code> a method of the name
 <code>type=groupsize</code> is defined. This method receives two arguments,
 <code>name</code> and <code>value</code>. The first argument is the name of the parameter
@@ -3514,58 +2860,32 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<table class='nx'><tr><td class='nx-linenr'><pre>  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
- 10
- 11
- 12
- 13
- 14
- 15
- 16
- 17
- 18
- 19
- 20
- 21
- 22
- 23
- 24
- 25
- 26
-</pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>nx::Object</span> <span class='nx-keyword'>create</span> o6 {
+<pre class='nx'><span class='nx-keyword'>nx::Object</span> <span class='nx-keyword'>create</span> o6 {
 
-  <span class='nx-[namespace tail [nx::self]]'>#
-</span>  <span class='nx-[namespace tail [nx::self]]'># Positional parameter with an possibly empty
-</span>  <span class='nx-[namespace tail [nx::self]]'># single value
-</span>  <span class='nx-[namespace tail [nx::self]]'>#
+  <span class='nx-comment'>#
+</span>  <span class='nx-comment'># Positional parameter with an possibly empty
+</span>  <span class='nx-comment'># single value
+</span>  <span class='nx-comment'>#
 </span>  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>method</span> foo {x:integer,0..1} {
     <span class='nx-keyword'>puts</span> <span class='nx-string'>"x=$x"</span>
   }
 
-  <span class='nx-[namespace tail [nx::self]]'>#
-</span>  <span class='nx-[namespace tail [nx::self]]'># Positional parameter with an possibly empty
-</span>  <span class='nx-[namespace tail [nx::self]]'># list of values value
-</span>  <span class='nx-[namespace tail [nx::self]]'>#
+  <span class='nx-comment'>#
+</span>  <span class='nx-comment'># Positional parameter with an possibly empty
+</span>  <span class='nx-comment'># list of values value
+</span>  <span class='nx-comment'>#
 </span>  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>method</span> bar {x:integer,0..n} {
     <span class='nx-keyword'>puts</span> <span class='nx-string'>"x=$x"</span>
   }
 
-  <span class='nx-[namespace tail [nx::self]]'>#
-</span>  <span class='nx-[namespace tail [nx::self]]'># Positional parameter with a non-empty
-</span>  <span class='nx-[namespace tail [nx::self]]'># list of values
-</span>  <span class='nx-[namespace tail [nx::self]]'>#
+  <span class='nx-comment'>#
+</span>  <span class='nx-comment'># Positional parameter with a non-empty
+</span>  <span class='nx-comment'># list of values
+</span>  <span class='nx-comment'>#
 </span>  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>method</span> baz {x:integer,1..n} {
     <span class='nx-keyword'>puts</span> <span class='nx-string'>"x=$x"</span>
   }
-}</pre></td></tr></table></div></div>
+}</pre></div></div>
 <div class="paragraph"><p><a href="#xmp-multiplicity">Listing 42</a> contains three examples for
 positional parameters with different multiplicities. Multiplicity is
 often combined with value constraints. A parameter specification of
@@ -3654,60 +2974,33 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<table class='nx'><tr><td class='nx-linenr'><pre>  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
- 10
- 11
- 12
- 13
- 14
- 15
- 16
- 17
- 18
- 19
- 20
- 21
- 22
- 23
- 24
- 25
- 26
- 27
-</pre></td><td class='nx-body'><pre class='nx'><span class='nx-[namespace tail [nx::self]]'>#
-</span><span class='nx-[namespace tail [nx::self]]'># Define a class Person with properties "name"
-</span><span class='nx-[namespace tail [nx::self]]'># and "birthday"
-</span><span class='nx-[namespace tail [nx::self]]'>#
+<pre class='nx'><span class='nx-comment'>#
+</span><span class='nx-comment'># Define a class Person with properties "name"
+</span><span class='nx-comment'># and "birthday"
+</span><span class='nx-comment'>#
 </span><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Person {
   <span class='nx-keyword'>:property</span> name:required
   <span class='nx-keyword'>:property</span> birthday
 }
 
-<span class='nx-[namespace tail [nx::self]]'>#
-</span><span class='nx-[namespace tail [nx::self]]'># Define a class Student as specialization of Person
-</span><span class='nx-[namespace tail [nx::self]]'># with and additional property
-</span><span class='nx-[namespace tail [nx::self]]'>#
+<span class='nx-comment'>#
+</span><span class='nx-comment'># Define a class Student as specialization of Person
+</span><span class='nx-comment'># with and additional property
+</span><span class='nx-comment'>#
 </span><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Student -superclass Person {
   <span class='nx-keyword'>:property</span> matnr:required
   <span class='nx-keyword'>:property</span> {oncampus:boolean true}
 }
 
-<span class='nx-[namespace tail [nx::self]]'>#
-</span><span class='nx-[namespace tail [nx::self]]'># Create instances using configure parameters
-</span><span class='nx-[namespace tail [nx::self]]'># for the initialization
-</span><span class='nx-[namespace tail [nx::self]]'>#
+<span class='nx-comment'>#
+</span><span class='nx-comment'># Create instances using configure parameters
+</span><span class='nx-comment'># for the initialization
+</span><span class='nx-comment'>#
 </span>Person <span class='nx-keyword'>create</span> p1 -name Bob
 Student <span class='nx-keyword'>create</span> s1 -name Susan -matnr 4711
 
-<span class='nx-[namespace tail [nx::self]]'># Access property value via "cget" method
-</span><span class='nx-keyword'>puts</span> <span class='nx-string'>"The name of s1 is [s1 cget -name]"</span></pre></td></tr></table></div></div>
+<span class='nx-comment'># Access property value via "cget" method
+</span><span class='nx-keyword'>puts</span> <span class='nx-string'>"The name of s1 is [s1 cget -name]"</span></pre></div></div>
 <div class="paragraph"><p>The class <code>Person</code> has two properties <code>name</code> and <code>birthday</code>, where the
 property <code>name</code> is required, the property <code>birthday</code> is not. The
 class <code>Student</code> is a subclass of <code>Person</code> with the additional required
@@ -3764,21 +3057,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<table class='nx'><tr><td class='nx-linenr'><pre>  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
- 10
- 11
- 12
- 13
- 14
-</pre></td><td class='nx-body'><pre class='nx'>Configure parameters <span class='nx-keyword'>for</span> Person p1:
+<pre class='nx'>Configure parameters <span class='nx-keyword'>for</span> Person p1:
    Command:
       p1 <span class='nx-keyword'>info</span> <span class='nx-keyword'>lookup</span> syntax <span class='nx-keyword'>configure</span>
    Result:
@@ -3791,7 +3070,7 @@ Configure parameter <span class='nx-keyword'>for</span> Student s1:
    Result:
       ?-oncampus <span class='nx-placeholder'>/boolean/</span>? -matnr <span class='nx-placeholder'>/value/</span> -name <span class='nx-placeholder'>/value/</span>
       ?-birthday <span class='nx-placeholder'>/value/</span>? ?-object-mixins /mixinreg .../? ?-class /<span class='nx-keyword'>class</span>/<span class='nx-placeholder'>?
-      ?</span>-object-filters /filterreg .../? ?/__initblock/?</pre></td></tr></table></div></div>
+      ?</span>-object-filters /filterreg .../? ?/__initblock/?</pre></div></div>
 <div class="paragraph"><p>The given paramter show, how (a) objects can be configured
 at runtime or (b) how new instances can be configured
 at creation time via the <code>new</code> or <code>create</code> methods.
@@ -3848,20 +3127,13 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<table class='nx'><tr><td class='nx-linenr'><pre>  1
-  2
-  3
-  4
-  5
-  6
-  7
-</pre></td><td class='nx-body'><pre class='nx'>Configure parameter <span class='nx-keyword'>for</span> <span class='nx-keyword'>class</span> <span class='nx-keyword'>nx::Class</span>
+<pre class='nx'>Configure parameter <span class='nx-keyword'>for</span> <span class='nx-keyword'>class</span> <span class='nx-keyword'>nx::Class</span>
    Command:
       <span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>lookup</span> syntax <span class='nx-keyword'>configure</span>
    Result:
       ?-superclass /<span class='nx-keyword'>class</span> .../? ?-mixins /mixinreg .../<span class='nx-placeholder'>?
       ?</span>-filters /filterreg .../? ?-object-mixins /mixinreg .../<span class='nx-placeholder'>?
-      ?</span>-class /<span class='nx-keyword'>class</span>/? ?-object-filters /filterreg .../? ?/__initblock/?</pre></td></tr></table></div></div>
+      ?</span>-class /<span class='nx-keyword'>class</span>/? ?-object-filters /filterreg .../? ?/__initblock/?</pre></div></div>
 </div>
 <div class="sect3">
 <h4 id="_user_defined_parameter_types">4.3.3. User defined Parameter Types</h4>
@@ -3962,26 +3234,16 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<table class='nx'><tr><td class='nx-linenr'><pre>  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
- 10
-</pre></td><td class='nx-body'><pre class='nx'>::nx::Object <span class='nx-keyword'>create</span> o {
+<pre class='nx'>::nx::Object <span class='nx-keyword'>create</span> o {
   <span class='nx-keyword'>:object</span> <span class='nx-keyword'>method</span> <span class='nx-keyword'>unknown</span> {called_method args} {
     <span class='nx-keyword'>puts</span> <span class='nx-string'>"Unknown method '$called_method' called"</span>
   }
 }
 
-<span class='nx-[namespace tail [nx::self]]'># Invoke an unknown method for object o:
+<span class='nx-comment'># Invoke an unknown method for object o:
 </span>o foo 1 2 3
 
-<span class='nx-[namespace tail [nx::self]]'># Output will be: "Unknown method 'foo' called"</span></pre></td></tr></table></div></div>
+<span class='nx-comment'># Output will be: "Unknown method 'foo' called"</span></pre></div></div>
 <div class="paragraph"><p>Without any provision of an unknown method handler, an error will be
 raised, when an unknown method is called.</p></div>
 </div>
@@ -4006,50 +3268,28 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<table class='nx'><tr><td class='nx-linenr'><pre>  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
- 10
- 11
- 12
- 13
- 14
- 15
- 16
- 17
- 18
- 19
- 20
- 21
- 22
-</pre></td><td class='nx-body'><pre class='nx'>::nx::Class <span class='nx-keyword'>public</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>method</span> __unknown {name} {
-  <span class='nx-[namespace tail [nx::self]]'># A very simple unknown handler, showing just how
-</span>  <span class='nx-[namespace tail [nx::self]]'># the mechanism works.
+<pre class='nx'>::nx::Class <span class='nx-keyword'>public</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>method</span> __unknown {name} {
+  <span class='nx-comment'># A very simple unknown handler, showing just how
+</span>  <span class='nx-comment'># the mechanism works.
 </span>  <span class='nx-keyword'>puts</span> <span class='nx-string'>"***** __unknown called with &lt;$name&gt;"</span>
-  ::nx::Class <span class='nx-keyword'>create</span> <span class='nx-[namespace tail [nx::self]]'>$name</span>
+  ::nx::Class <span class='nx-keyword'>create</span> <span class='nx-variable'>$name</span>
 }
 
-<span class='nx-[namespace tail [nx::self]]'># Register an unknown handler as a method of ::nx::Class
+<span class='nx-comment'># Register an unknown handler as a method of ::nx::Class
 </span>::nsf::object::unknown::add nx {::nx::Class __unknown}
 
 ::nx::Object <span class='nx-keyword'>create</span> o {
-  <span class='nx-[namespace tail [nx::self]]'># The class M is unknown at this point
+  <span class='nx-comment'># The class M is unknown at this point
 </span>
   <span class='nx-keyword'>:object</span> mixins add M
-  <span class='nx-[namespace tail [nx::self]]'># The line above has triggered the unknown class handler,
-</span>  <span class='nx-[namespace tail [nx::self]]'># class M is now defined
+  <span class='nx-comment'># The line above has triggered the unknown class handler,
+</span>  <span class='nx-comment'># class M is now defined
 </span>
   <span class='nx-keyword'>puts</span> [<span class='nx-keyword'>:info</span> <span class='nx-keyword'>object</span> mixins]
-  <span class='nx-[namespace tail [nx::self]]'># The output will be:
-</span>  <span class='nx-[namespace tail [nx::self]]'>#     ***** __unknown called with &lt;::M&gt;
-</span>  <span class='nx-[namespace tail [nx::self]]'>#     ::M
-</span>}</pre></td></tr></table></div></div>
+  <span class='nx-comment'># The output will be:
+</span>  <span class='nx-comment'>#     ***** __unknown called with &lt;::M&gt;
+</span>  <span class='nx-comment'>#     ::M
+</span>}</pre></div></div>
 <div class="paragraph"><p>The Next Scripting Framework allows to add, query, delete and list unknown handlers.</p></div>
 <div class="paragraph" id="xmp-unknown-registration"><div class="title">Listing 50: Unknown Handler registration</div><p></p></div>
 <div class="listingblock">
@@ -4063,16 +3303,11 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<table class='nx'><tr><td class='nx-linenr'><pre>  1
-  2
-  3
-  4
-  5
-</pre></td><td class='nx-body'><pre class='nx'><span class='nx-[namespace tail [nx::self]]'># Interface for unknown handlers:
-</span><span class='nx-[namespace tail [nx::self]]'># nsf::object::unknown::add /key/ /handler/
-</span><span class='nx-[namespace tail [nx::self]]'># nsf::object::unknown::get /key/
-</span><span class='nx-[namespace tail [nx::self]]'># nsf::object::unknown::delete /key/
-</span><span class='nx-[namespace tail [nx::self]]'># nsf::object::unknown::keys</span></pre></td></tr></table></div></div>
+<pre class='nx'><span class='nx-comment'># Interface for unknown handlers:
+</span><span class='nx-comment'># nsf::object::unknown::add /key/ /handler/
+</span><span class='nx-comment'># nsf::object::unknown::get /key/
+</span><span class='nx-comment'># nsf::object::unknown::delete /key/
+</span><span class='nx-comment'># nsf::object::unknown::keys</span></pre></div></div>
 <div class="ulist bibliography"><div class="title">References</div><ul>
 <li>
 <p>
@@ -4156,7 +3391,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <div id="footer">
 <div id="footer-text">
 Version 2.1.0<br />
-Last updated 2016-12-27 18:25:27 CET
+Last updated 2017-01-11 13:11:14 CET
 </div>
 </div>
 </body>
