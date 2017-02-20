@@ -1247,7 +1247,7 @@ namespace eval ::xotcl {
     set oc 0
     set mc 0
     foreach file [glob -nocomplain -- {*}$args] {
-      if {[catch {set f [open $file]} msg]} then {
+      if {[catch {set f [open $file]} msg]} {
         catch {close $f}
         cd $old
         error $msg
