@@ -20747,6 +20747,8 @@ ForwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
       } else {
         *out = objv[0];
       }
+      goto add_to_freelist;
+
     } else if (c == '1' && (c1 == '\0' || c1 == ' ')) {
 
       if (c1 != '\0') {
