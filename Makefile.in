@@ -250,6 +250,7 @@ EXAMPLE_SCRIPTS = \
 	$(src_doc_dir)/example-scripts/bagel.html \
 	$(src_doc_dir)/example-scripts/container.html \
 	$(src_doc_dir)/example-scripts/per-object-mixins.html \
+	$(src_doc_dir)/example-scripts/tutorial-properties.html \
 	$(src_doc_dir)/example-scripts/rosetta-abstract-type.html \
 	$(src_doc_dir)/example-scripts/rosetta-classes.html \
 	$(src_doc_dir)/example-scripts/rosetta-constraint-genericity.html \
