@@ -2026,7 +2026,7 @@ namespace eval ::nx {
   ::nx::VariableSlot protected method defineIncrementalOperations {options_single options} {
     #
     # Just define these setter methods, when these are not defined
-    # jet. We need the methods as well for e.g. private properties,
+    # yet. We need the methods as well for e.g. private properties,
     # where the setting of the property is handled via slot.
     #
     if {[:info lookup method value=set] eq "::nsf::classes::nx::VariableSlot::value=set"} {
@@ -2034,7 +2034,9 @@ namespace eval ::nx {
       :public object method value=set $args {::nsf::var::set $obj $var $value}
     }
     if {[:isMultivalued] && [:info lookup method value=add] eq "::nsf::classes::nx::VariableSlot::value=add"} {
-      lappend options_single slot=[::nsf::self]
+      set slotObj "slot=[::nsf::self]"
+      # lappend options_single slot=[::nsf::self]
+      if {$slotObj ni $options_single} {lappend options_single $slotObj}
       set args [list obj prop [:namedParameterSpec {} value $options_single] {pos 0}]
       :public object method value=add $args {::nsf::next}
     } else {
@@ -2053,7 +2055,8 @@ namespace eval ::nx {
     #puts "makeIncrementalOperations -- single $options_single type ${:type}"
     #if {[info exists :type]} {puts ".... type ${:type}"}
     set options [:getParameterOptions -withMultiplicity true]
-    lappend options slot=[::nsf::self]
+    set slotObj "slot=[::nsf::self]"
+    if {$slotObj ni $options} {lappend options $slotObj}
 
     :defineIncrementalOperations $options_single $options
   }
