@@ -66,11 +66,14 @@ nx::mongo::db drop collection persons
 #
 ? {Person count} 4
 ? {Person count -cond {name = Gustaf}} 1
-
+set n "Gustaf"
+? {Person count -cond [list name = $n]} 1
 #
 # Lookup a single Person, create an instance of the object ...
 #
 ? {nsf::is object [set p [Person find first -cond {name = Gustaf}]]} 1
+? {Person find first -cond {name = unknown-name}} ""
+
 #puts [$p serialize]
 #
 # ... change the age, add an project, and save it.
