@@ -777,6 +777,47 @@ nx::test case user-value-checker {
   ? {d1 foo -a 2 10} "a=2,b=10"
 
 }
+
+nx::test case value-checker-call-check {
+
+  nx::Class create PV {
+    :property -accessor public h:foo,arg=123 {
+      :object method type=foo {prop value arg} {
+        incr ::counter(h)
+        return
+      }
+    }
+    :property -accessor public hs:0..*,foo {
+      :object method type=foo {prop value} {
+        incr ::counter(hs)
+        return
+      }
+    }
+  }
+  
+  ? {info exists ::counter(h)} 0
+  set pv1 [PV new -h 121]
+  ? {set ::counter(h)} 1
+  $pv1 h set 212
+  ? {set ::counter(h)} 2
+  $pv1 configure -h 212
+  ? {set ::counter(h)} 3
+  
+  unset -nocomplain ::counter(h)
+  
+  ? {info exists ::counter(hs)} 0
+  set pv2 [PV new -hs 121]
+  ? {set ::counter(hs)} 1
+  $pv2 hs add 212
+  ? {set ::counter(hs)} 2
+  $pv1 configure -hs 313
+  ? {set ::counter(hs)} 3
+  
+  unset -nocomplain ::counter(hs)
+  
+}
+
+
 #######################################################
 # testing object types in method parameters
 #######################################################

@@ -21650,10 +21650,11 @@ ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param const *pPtr,
    * Omit argument checking, provided that ...
    * ... argument checking is turned off *and* no converter is specified, or
    * ... the ruling parameter option is 'initcmd'
+   * ... slotset is active
    */
-  if ((unlikely((doCheckArguments & NSF_ARGPARSE_CHECK) == 0u)
-       && (pPtr->flags & (NSF_ARG_IS_CONVERTER)) == 0u
-       ) || ((pPtr->flags & (NSF_ARG_CMD)) != 0u)) {
+  if ((unlikely((doCheckArguments & NSF_ARGPARSE_CHECK) == 0u) && (pPtr->flags & (NSF_ARG_IS_CONVERTER)) == 0u) ||
+      ((pPtr->flags & (NSF_ARG_CMD)) != 0u) ||
+      ((pPtr->flags & NSF_ARG_SLOTSET) != 0u)) {
     /* fprintf(stderr, "*** omit  argument check for arg %s flags %.6x\n", pPtr->name, pPtr->flags); */
     *clientData = ObjStr(objPtr);
     return TCL_OK;
