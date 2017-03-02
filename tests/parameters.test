@@ -1258,18 +1258,7 @@ nx::test case allow-empty {
 nx::test case slot-specfic-converter {
 
   nx::Class create Person {
-    # :property -accessor public sex {
-    #   :type "sex"
-    #   :convert true
-    #   :object method type=sex {name value} {
-    #     #puts stderr "[self] slot specific converter"
-    #     switch -glob $value {
-    #       m* {return m}
-    #       f* {return f}
-    #       default {error "expected sex but got $value"}
-    #     }
-    #   }
-    # }
+
     :property -accessor public sex:sex,convert {
       :object method type=sex {name value} {
 	#puts stderr "[self] slot specific converter"
@@ -1281,6 +1270,16 @@ nx::test case slot-specfic-converter {
       }
     }
 
+    :property -accessor public sexes:sex,0..*,convert {
+      :object method type=sex {name value} {
+	#puts stderr "[self] sexes slot specific converter"
+	switch -glob $value {
+	  m* {return m}
+	  f* {return f}
+	  default {error "expected sex but got $value"}
+	}
+      }
+    }
   }
 
   Person create p1 -sex male
@@ -1289,6 +1288,20 @@ nx::test case slot-specfic-converter {
   Person public method foo {s:sex,slot=::Person::slot::sex,convert} {return $s}
   ? {p1 foo male} m
   ? {p1 sex set male} m
+  
+  Person create p2 -sexes {male female}
+  ? {p2 cget -sexes} {m f}
+  ? {p2 sexes get} {m f}
+  ? {p2 sexes add female} {f m f}
+  ? {p2 sexes set {male female male}} {m f m}
+
+  set count [nx::test cget -count]
+  nx::test configure -count 1
+  ? {p2 sexes delete female} {m m}
+  nx::test configure -count $count
+
+  Person public method bar {s:sex,0..*,slot=::Person::slot::sexes,convert} {return $s}
+  ? {p2 bar {female male female}} {f m f} 
 }
 
 #######################################################

@@ -2037,8 +2037,11 @@ namespace eval ::nx {
       set slotObj "slot=[::nsf::self]"
       # lappend options_single slot=[::nsf::self]
       if {$slotObj ni $options_single} {lappend options_single $slotObj}
-      set args [list obj prop [:namedParameterSpec {} value $options_single] {pos 0}]
-      :public object method value=add $args {::nsf::next}
+      set vspec [:namedParameterSpec {} value $options_single]
+      set addArgs [list obj prop $vspec {pos 0}]
+      :public object method value=add $addArgs {::nsf::next [list $obj $prop $value $pos]}
+      set delArgs [list -nocomplain:switch obj prop $vspec]
+      :public object method value=delete $delArgs {::nsf::next [list -nocomplain=$nocomplain $obj $prop $value]}
     } else {
       # TODO should we deactivate add/delete?
     }
