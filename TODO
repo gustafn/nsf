@@ -5952,7 +5952,7 @@ TODO:
   * indirect calls: name of the value=* method parameter which is the
     hardcoded 'value'
 
-  error messages using 'value' (rather than ${:name} of the type=*
+  error messages using $prop (rather than ${:name} of the type=*
   method-hosting slot) then turn out different depending on the call
   context.
 
