@@ -1287,8 +1287,11 @@ additional setter methods become available:
 \fIobj\fR \fIpropertyName\fR \fBadd\fR \fIelement\fR ?\fIindex\fR?
 Adding \fIelement\fR to the managed list value, at the list position given by \fIindex\fR (by default: 0)\&.
 .TP
-\fIobj\fR \fIpropertyName\fR \fBdelete\fR \fIelementPattern\fR
-Removing one or multiple elements from the managed list value which match \fIelementPattern\fR\&. \fIelementPattern\fR can contain matching characters (see \fBstring match\fR)\&.
+\fIobj\fR \fIpropertyName\fR \fBdelete\fR ?\fB-nocomplain\fR? \fIelementPattern\fR
+Removing the first occurrence of an element from the managed list
+value which matches \fIelementPattern\fR\&. \fIelementPattern\fR can
+contain matching characters (see \fBstring match\fR)\&. An error will
+be thrown if there is no match, unless \fB-nocomplain\fR is set\&.
 .RE
 .sp
 By setting \fB-configurable\fR to \fBtrue\fR (the default), the
@@ -1430,10 +1433,11 @@ additional setter operations become available:
 \fIobj\fR \fIvariableName\fR \fBadd\fR \fIelement\fR ?\fIindex\fR?
 Adding \fIelement\fR to the managed list value, at the list position given by \fIindex\fR (by default: 0)\&.
 .TP
-\fIobj\fR \fIvariableName\fR \fBdelete\fR \fIelementPattern\fR
-Removing one or multiple elements from the managed list value which
-match \fIelementPattern\fR\&. \fIelementPattern\fR can contain matching
-characters (see \fBstring match\fR)\&.
+\fIobj\fR \fIvariableName\fR \fBdelete\fR ?\fB-nocomplain\fR? \fIelementPattern\fR
+Removing the first occurrence of an element from the managed list
+value which matches \fIelementPattern\fR\&. \fIelementPattern\fR can
+contain matching characters (see \fBstring match\fR)\&. An error will
+be thrown if there is no match, unless \fB-nocomplain\fR is set\&.
 .RE
 .sp
 By setting \fB-configurable\fR to \fBtrue\fR, the variable can be

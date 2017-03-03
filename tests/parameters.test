@@ -1298,6 +1298,10 @@ nx::test case slot-specfic-converter {
   set count [nx::test cget -count]
   nx::test configure -count 1
   ? {p2 sexes delete female} {m m}
+  ? {p2 sexes delete female} {::p2: 'f' is not in variable 'sexes' (values are: 'm m')}
+  ? {p2 sexes delete -nocomplain female} {m m}
+  ? {p2 sexes delete -nocomplain male} {m}
+  ? {p2 sexes get} {m}
   nx::test configure -count $count
 
   Person public method bar {s:sex,0..*,slot=::Person::slot::sexes,convert} {return $s}
