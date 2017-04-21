@@ -23793,8 +23793,13 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
       if (childObject != NULL) {
         if (withPath != 0) {
           Tcl_DString ds, *dsPtr = &ds;
-          Tcl_HashTable *cmdTablePtr = (childObject->nsPtr != NULL) ? Tcl_Namespace_cmdTablePtr(childObject->nsPtr) : NULL;
+          Tcl_HashTable *cmdTablePtr;
 
+          if (childObject->nsPtr == NULL) {
+            /* nothing to do */
+            continue;
+          }
+          cmdTablePtr = Tcl_Namespace_cmdTablePtr(childObject->nsPtr);
           if (cmdTablePtr == NULL) {
             /* nothing to do */
             continue;
@@ -24639,7 +24644,22 @@ NsfDebugGetDict(Tcl_Interp *interp, Tcl_Obj *objPtr) {
   Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj(typeString, -1));
   Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("refcount", -1));
   Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewIntObj(objPtr->refCount));
+  Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("length", -1));
+  Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewIntObj(objPtr->length));
+  Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("hex", -1));
+  if (objPtr->bytes != NULL) {
+    int i;
+    char buffer[24];
 
+    for (i = 0; i < 10 && i < objPtr->length; i++) {
+      sprintf(buffer + i*2, "%.2x", (unsigned)(*((objPtr->bytes)+i) & 0xff));
+    }
+    if (objPtr->length > 10) {
+      strcat(buffer, "...");
+    }
+    Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj(buffer, -1));
+
+  }
   Tcl_SetObjResult(interp, resultObj);
 
   return TCL_OK;
