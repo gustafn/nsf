@@ -1059,7 +1059,7 @@ namespace eval ::nx {
         } elseif {$property in [list "alias" "forward" "cmd" "initcmd"]} {
 	  lappend opts -disposition $property
 	  set class [:requireClass ::nx::ObjectParameterSlot $class]
-        } elseif {[regexp {([01])[.][.]([1n*])} $property _ minOccurance maxOccurance]} {
+        } elseif {[regexp {([01])[.][.]([1n*])} $property _ minOccurrence maxOccurrence]} {
 	  lappend opts -multiplicity $property
         } else {
           set type $property
@@ -2518,7 +2518,7 @@ namespace eval ::nx {
       # Evaluate the command under catch to ensure reverse mapping
       # of "new"
       #
-      set errorOccured [catch \
+      set errorOccurred [catch \
                             [list ::apply [list {} $cmds $object]] \
                             result errorOptions]
 
@@ -2532,7 +2532,7 @@ namespace eval ::nx {
       #
       # Report the error with message and code when necessary
       #
-      if {$errorOccured} {
+      if {$errorOccurred} {
         dict incr errorOptions -level
         dict unset errorOptions -errorinfo
       }

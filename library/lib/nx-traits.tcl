@@ -100,7 +100,7 @@ namespace eval ::nx::trait {
       }
     }
     foreach slot [$traitName info variables] {
-      #puts "$obj - wanna define: [$traitName info variable definition $slot]"
+      #puts "$obj - will define: [$traitName info variable definition $slot]"
       $obj {*}[lrange [$traitName info variable definition $slot] 1 end]
       if {[nx::configure trait-verbosity]} {
 	puts "...trait: $obj [lrange [$traitName info variable definition $slot] 1 end]"

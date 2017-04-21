@@ -49,7 +49,7 @@ static CONST char *asmStatementNames[] = {
   NULL
 };
 
-enum asmStatmentArgTypeIndex {
+enum asmStatementArgTypeIndex {
   asmStatementArgTypeArgIdx, 
   asmStatementArgTypeArgvIdx, 
   asmStatementArgTypeInstructionIdx, 
@@ -567,7 +567,7 @@ AsmAssemble(ClientData cd, Tcl_Interp *interp, Tcl_Obj *nameObj,
    */
 
   for (patchPtr = &patchArray[0]; patchPtr < patches; patchPtr++) {
-    fprintf(stderr, "wanna patch code[%d]->argv = code[%d]->argv[%d]\n",
+    fprintf(stderr, "want to patch code[%d]->argv = code[%d]->argv[%d]\n",
 	    patchPtr->targetAsmInstruction, patchPtr->sourceAsmInstruction, patchPtr->argvIndex);
     /* set the argument vector of code[1] to the address of code[4]->argv[1] */
     (&proc->code[patchPtr->targetAsmInstruction])->argv = 

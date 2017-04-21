@@ -201,7 +201,7 @@ namespace eval ::xotcl::comm::connection {
 	$req freeConnection
 	if {[my exists persistent]} {
 	    my flush
-	    #::puts stderr "[self] PERSISTENT CONNECTION wanna close"
+	    #::puts stderr "[self] PERSISTENT CONNECTION wants close"
 	    if {$blocked eq ""} {
 		::fileevent $socket readable [list [self] destroy]
 		unset req

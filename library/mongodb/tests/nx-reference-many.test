@@ -63,7 +63,7 @@ nx::mongo::db drop collection members
 ######################################################################
 # The third approach is to embed the objects in the referencing
 # document. This might be feasible when the values of the embedded
-# objects seldomly change, When the containing object (the posting) is
+# objects seldom change, When the containing object (the posting) is
 # loaded, the appropriate object structure is created automatically.
 #
 ? {nx::mongo::Class create Member {

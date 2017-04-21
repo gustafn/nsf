@@ -1255,7 +1255,7 @@ nx::test case allow-empty {
 #######################################################
 # slot specific converter
 #######################################################
-nx::test case slot-specfic-converter {
+nx::test case slot-specific-converter {
 
   nx::Class create Person {
 

@@ -38,7 +38,7 @@
 
 2016-12-18  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	* nsf.c (PrecedenceOrder, MergeInheritanceLists): Fix occassional
+	* nsf.c (PrecedenceOrder, MergeInheritanceLists): Fix occasional
 	crash when deleting and recomputing precedence orders under
 	multiple inheritance. One assumption in the precedence order
 	computation is that the precedence orders of superclasses are
@@ -545,7 +545,7 @@
 	* nsf.c
 	(ParamDefsNames): Fix another Tcl_Obj leak and optimize
 	code slightly, Tcl_Obj is only allocated once the string-matching
-	operation suceeded. [253e9e6]
+	operation succeeded. [253e9e6]
 	(NsfForwardPrintError): Fix another instance of the
 	NsfMethodNamePath leak. [0739b93]
 	(NsfMethodName): Avoid unnecessary append operation between lists,
@@ -595,7 +595,7 @@
 	messages which have a severity larger or equal than a given log
 	severity; so; "nsf::configure debugLevel 0" will print everything,
 	and "nsf::configure debugLevel 3" will print just error messages
-	while omiting warnings etc. This is not a change in logging
+	while omitting warnings etc. This is not a change in logging
 	semantics, but removes some confusion at the C level. Therefore, the
 	nsf::configure option "debugLevel" was not changed.
 
@@ -983,7 +983,7 @@
 	location (nx::shell) to ease sharing between nxsh & friends, as well
 	as to facilitate implementingNX/XOTcl shells in wrapped applications
 	(tclkits). [6c6f313]
-	(nx::shell): Avoid poluting global namespace. [f1bfcbc]
+	(nx::shell): Avoid polluting global namespace. [f1bfcbc]
 
 2016-01-11  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
@@ -1006,7 +1006,7 @@
 
 2016-01-07  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	* nsf-cmd.test: Add absolute path in returned proc defintion to
+	* nsf-cmd.test: Add absolute path in returned proc definition to
 	regression test. [a775d31]
 
 	* nsf.tcl: Add result in debug exit calls. [2771c4c]
@@ -1258,7 +1258,7 @@
 
 	* nsf.c, nsfInt.h
 	(NsfParamDefs): Removed NsfParamDefs.slotObj and
-	single occurance for memory-management since it is not used for
+	single occurrence for memory-management since it is not used for
 	the time being [08dedac]
 	(NsfProcClientData, MethodDispatch, ObjectDispatch): Write
 	body-blocks of if on separate lines; change variable name

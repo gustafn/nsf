@@ -1020,7 +1020,7 @@ nx::test case submethods-via-aliasparams {
 
   C filters set ""
   # / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
-  # b) Between root and intermittent or inbetween the set of
+  # b) Between root and intermittent or in-between the set of
   # intermittent frames (i.e., indirection at the level of
   # container/ensemble objects)
   

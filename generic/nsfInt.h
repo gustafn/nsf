@@ -943,7 +943,7 @@ typedef struct NsfRuntimeState {
   int doProfile;
   int doTrace;
   unsigned int preventRecursionFlags;
-  int doClassConverterOmitUnkown;
+  int doClassConverterOmitUnknown;
   int doSoftrecreate;
   int exitHandlerDestroyRound;          /* shutdown handling */  
 

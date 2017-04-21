@@ -202,8 +202,8 @@ nx::test case enumerator2 {
       return $string
     }
   }
-  ATeam create a1 -members {alice bob ceasar}
-  ? {a1 concat } "-Alice-Bob-Ceasar-"
+  ATeam create a1 -members {alice bob caesar}
+  ? {a1 concat } "-Alice-Bob-Caesar-"
 }
 
 #

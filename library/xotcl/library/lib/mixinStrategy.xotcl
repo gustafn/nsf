@@ -51,7 +51,7 @@ namespace eval ::xotcl::mixinStrategy {
       This method searches the mixin list for a mixin of this
       kind (starting with $kind=)
     }
-    return "returns the maching strategy"
+    return "returns the matching strategy"
   }
 
   Object instproc mixinQueryStrategy {kind} {

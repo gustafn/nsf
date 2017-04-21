@@ -2423,7 +2423,7 @@ NsfClassListUnlink(NsfClasses **firstPtrPtr, const void *key) {
  *
  * Results:
  *    Indicates whether a cycle was detected (0) or not (1); and,
- *    therefore, whether the sort failed (0) or suceeded (1).
+ *    therefore, whether the sort failed (0) or succeeded (1).
  *
  * Side effects:
  *    Allocates class list.
@@ -5761,7 +5761,7 @@ NSDeleteChildren(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
  *   single pass risks leaking so-revived Var structures. TclDeleteVars()
  *   requires variables under deletion to be untraced.
  *
- *   As Tcl does not provide access to the neccessary lower-level Var API to
+ *   As Tcl does not provide access to the necessary lower-level Var API to
  *   extensions (ideally: TclDeleteNamespaceVars or TclPtrUnsetVar), we resort
  *   to a mix of navigating the variable table and calling high-level unset
  *   operations (UnsetInstVar).
@@ -6157,10 +6157,10 @@ NSCheckNamespace(Tcl_Interp *interp, const char *nameString, Tcl_Namespace *pare
   /*fprintf(stderr, "NSCheckNamespace %s parentNsPtr %p\n", nameString, parentNsPtr);*/
 
   /*
-   * Check, if there is a already a namespace for the full name. The
-   * namespace will be seldomly here, but we have to make this check
-   * in every case. If there is a full namespace, we can use it to
-   * determine the parent name.
+   * Check, if there is a already a namespace for the full name. The namespace
+   * will be only in rare cases, but we have to make this check in every
+   * case. If there is a full namespace, we can use it to determine the parent
+   * name.
    */
   TclGetNamespaceForQualName(interp, nameString, NULL,
                              TCL_GLOBAL_ONLY|TCL_FIND_ONLY_NS,
@@ -9779,7 +9779,7 @@ GuardCall(NsfObject *object, Tcl_Interp *interp, Tcl_Obj *guardObj, NsfCallStack
  *    client data.
  *
  * Results:
- *    Returns 0 or 1 depending on wether the cmd is part of the
+ *    Returns 0 or 1 depending on whether the cmd is part of the
  *    definition list.
  *
  * Side effects:
@@ -9979,7 +9979,7 @@ FilterAddActive(Tcl_Interp *interp, const char *methodName) {
  *----------------------------------------------------------------------
  * FilterIsActive --
  *
- *    Check, wether a method name is in the set of methods, which were used as
+ *    Check, whether a method name is in the set of methods, which were used as
  *    filters in the current interp.
  *
  * Results:
@@ -11068,7 +11068,7 @@ MakeProcError(
  *----------------------------------------------------------------------
  * ByteCompiled --
  *
- *    Function to determine wether a proc is already byted compiled or not.
+ *    Function to determine whether a proc is already byted compiled or not.
  *
  * Results:
  *    0 or 1 based on success
@@ -11333,7 +11333,7 @@ ObjectSystemsCheckSystemMethod(Tcl_Interp *interp, const char *methodName, NsfOb
             return TCL_ERROR;
           } else {
             /*
-             * Alias definition suceeded
+             * Alias definition succeeded.
              */
             Tcl_Obj *methodObj = Tcl_GetObjResult(interp);
             Tcl_Command cmd = Tcl_GetCommandFromObj(interp, methodObj);
@@ -12204,7 +12204,7 @@ NsfParamDefsVirtualFormat(Tcl_Interp *interp, Nsf_Param const *pPtr, NsfObject *
  *----------------------------------------------------------------------
  * NsfParamDefsAppendVirtual --
  *
- *    Check for the given paramsPtr wether this is a virtual parameter and if
+ *    Check for the given paramsPtr whether this is a virtual parameter and if
  *    possible, resolve it and append the formatted content to the Tcl_Obj.
  *
  * Results:
@@ -13301,7 +13301,7 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 
     cscPtr1 = cscPtr;
 
-    /*fprintf(stderr, "cscPtr %p cmd %p %s wanna stack cmd %p %s cp %p no-leaf %d force frame %d\n",
+    /*fprintf(stderr, "cscPtr %p cmd %p %s want to stack cmd %p %s cp %p no-leaf %d force frame %d\n",
             cscPtr, cmd, Tcl_GetCommandName(interp, cmd),
             cmd, Tcl_GetCommandName(interp, cmd),
             cp,
@@ -14900,7 +14900,7 @@ int Nsf_ConvertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pP
 int
 Nsf_ConvertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
                ClientData *clientData, Tcl_Obj **outObjPtr) {
-  int withUnkown, result;
+  int withUnknown, result;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(objPtr != NULL);
@@ -14909,9 +14909,9 @@ Nsf_ConvertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
   nonnull_assert(outObjPtr != NULL);
   assert(*outObjPtr == objPtr);
 
-  withUnkown = (RUNTIME_STATE(interp)->doClassConverterOmitUnkown == 0);
+  withUnknown = (RUNTIME_STATE(interp)->doClassConverterOmitUnknown == 0);
 
-  if (likely(GetClassFromObj(interp, objPtr, (NsfClass **)clientData, withUnkown) == TCL_OK)) {
+  if (likely(GetClassFromObj(interp, objPtr, (NsfClass **)clientData, withUnknown) == TCL_OK)) {
     result = IsObjectOfType(interp, (NsfObject *)*clientData, "class", objPtr, pPtr);
   } else {
     result = NsfObjErrType(interp, NULL, objPtr, "class", (Nsf_Param *)pPtr);
@@ -22872,7 +22872,7 @@ AppendForwardDefinition(Tcl_Interp *interp, Tcl_Obj *listObj, ForwardCmdClientDa
  *----------------------------------------------------------------------
  * AppendMethodRegistration --
  *
- *    Append to the listObj the command words needed for defintion /
+ *    Append to the listObj the command words needed for definition /
  *    registration.
  *
  * Results:
@@ -23331,10 +23331,9 @@ ListMethod(Tcl_Interp *interp,
     /*
      * The cmd must be an alias or object.
      *
-     * Note that some aliases come with procPtr == NsfObjDispatch.
-     * In order to distinguish between "object" and alias, we have
-     * to do the lookup for the entryObj to determine wether it is
-     * really an alias.
+     * Note that some aliases come with procPtr == NsfObjDispatch.  In order
+     * to distinguish between "object" and alias, we have to do the lookup for
+     * the entryObj to determine whether it is really an alias.
      */
     Tcl_Obj *entryObj;
 
@@ -28402,9 +28401,9 @@ ParameterCheck(Tcl_Interp *interp, Tcl_Obj *paramObjPtr, Tcl_Obj *valueObj,
     paramPtr->flags &= ~NSF_ARG_UNNAMED;
   }
 
-  RUNTIME_STATE(interp)->doClassConverterOmitUnkown = 1;
+  RUNTIME_STATE(interp)->doClassConverterOmitUnknown = 1;
   result = ArgumentCheck(interp, valueObj, paramPtr, doCheckArguments, &flags, &checkedData, &outObjPtr);
-  RUNTIME_STATE(interp)->doClassConverterOmitUnkown = 0;
+  RUNTIME_STATE(interp)->doClassConverterOmitUnknown = 0;
   /*fprintf(stderr, "ParameterCheck paramPtr %p final refCount of wrapper %d can free %d flags %.6x\n",
     paramPtr, paramWrapperPtr->refCount,  paramWrapperPtr->canFree, flags);*/
 
@@ -28673,7 +28672,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
        *   (object->flags & NSF_INIT_CALLED)
        *
        * to perform required testing just for in the non-initialized state. We
-       * switched in 2.0b5 to checking for the existance of the associated
+       * switched in 2.0b5 to checking for the existence of the associated
        * instance variable, which works under the assumption that the instance
        * variable has the same name and that e.g. an required alias parameter
        * sets this variable either. Similar assumption is in the default

@@ -300,7 +300,7 @@ valuecheck.003:	  3.06 mms, ::xotcl::is o1 object
    allowed in valuecheck
 
 - pass arg from objectparameter as first argument to objparms
-   (similiar to client data)
+   (similar to client data)
 
 - support for parameter spec of form "type=XXX" to denote that
    the parameter must be an object of the specified type (class;
@@ -1902,7 +1902,7 @@ _ added option noforwarder to RelationSlots
   it as a setter, and (c) calling it as a getter. For providing a
   value, no arg is used for switch. For calling a setter, it is
   necessary to provide a value even for a switch.
-- disallow type "switch" in setter definiton (use boolean instead)
+- disallow type "switch" in setter definition (use boolean instead)
 - disallow type "switch" for positional arguments (use boolean instead)
 - extended regression test
 
@@ -2539,7 +2539,7 @@ nsf:
   one has to use "o configure -class NEWCLASS". The term
   "object-class" looks alien to language beginners, the term
   "class" is much more straightforward. Changing classes
-  or superclasses is seldomly used by typical application programs.
+  or superclasses is seldom used by typical application programs.
 
   For already existing nx scripts, changing "object-class" into
   class should be straightforward.
@@ -3033,7 +3033,7 @@ nsf:
   method contains spaces).
 - some minor cleanup
 - extended regression test
-- fix typos in string "unknown" (unknown, unkown)
+- fix typos in string "unknown"
 - reduce verbosity
 - reduce scope of variables
 
@@ -3436,7 +3436,7 @@ Test run; exit
 - renamed "nsf::object::dispatch" to "nsf::dispatch"
 
 - nsf.c:
-  * added permissable value "private" to flag "-callprotection" for
+  * added permissible value "private" to flag "-callprotection" for
     "info lookup method" and "info methods".
   * extended regression test
 
@@ -4855,7 +4855,7 @@ nx-mongo:
 - added support for rep types (allow for mappings between certain instance
   variables such as arrays or dicts to customizable representations in
   MongoDB)
-- added nx-serialize to test cases (simple state persistance for nx objects)
+- added nx-serialize to test cases (simple state persistence for nx objects)
 - added nx-rep to test cases (rep types for "array" and "dict")
 - improve performance of mongo->tcl conversion by using predefined global strings
 
@@ -6067,7 +6067,7 @@ Stefan: doc items
 
  - warnings for "numeric" names for args and nonpos-args?
  - special handling of values looking like nonpos-flags,
-   but wich are not ones (-1, "- a b c", ....) in detection
+   but which are not ones (-1, "- a b c", ....) in detection
    when to throw unknown.
 
  - interface of "variable" and "attribute":

@@ -912,7 +912,7 @@ NsfMongoCollectionIndex(Tcl_Interp *interp,
   if (withUnique != 0)     {options.unique = 1;}
   if (withTtl != 0)        {options.expire_after_seconds = withTtl;}
   if (withName != 0)       {options.name = withName;}
-  /* TODO: not handled: is_initialized, v, weights, default_language, laguage_override, padding */
+  /* TODO: not handled: is_initialized, v, weights, default_language, language_override, padding */
 
   success = mongoc_collection_create_index(collectionPtr, keysPtr, &options, &bsonError);
 

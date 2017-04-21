@@ -1532,7 +1532,7 @@ called as usual with an implicit receiver, which defaults to the
 current object (therefore, the call is equivalent to +d1 foo+). The
 next three calls show how to provide flags that influence the method
 resolution. The flags can be provided between the colon and the method
-name. These flags are used rather seldomly but can be helpful in some
+name. These flags are used rather seldom but can be helpful in some
 situations.
 
 The invocation flag +-local+ means that the method has to be resolved
@@ -1964,7 +1964,7 @@ allowed.
 
 If the same checks are used in many places in the program,
 defining names for the value checker will be the better choice since
-it improves maintainability. For seldomly used kind of checks, the
+it improves maintainability. For seldom used kind of checks, the
 parameterized value checkers might be more convenient.
 
 ==== Multiplicity
