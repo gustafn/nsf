@@ -5934,6 +5934,38 @@ catch {={*}[list foo 1 2 3 4 5 6]} msg; puts msg=$msg
 ========================================================================
 TODO:
 
+- various on slots:
+  * RelationSlot value=delete -nocomplain is dead API.
+  * value=delete semantics: I think we should provide a full-pass
+    deletion, rather than the first occurrence of an element only (too
+    specific); a capture-all deletion is more in line with a
+    multivalued, which is a not necessarily unique list of elements:
+
+    return [lsearch -glob -inline -all -not $l $value]
+  * custom value checkers (type=*) inconsistency:
+
+  Depending on whether the type=* method is called directly
+  (configure, ArgumentCheck) or indirectly (per-slot value=* methods),
+  the method parameter "prop" gets different values:
+
+  * direct calls: name of the variable/parameter
+  * indirect calls: name of the value=* method parameter which is the
+    hardcoded 'value'
+
+  error messages using $prop (rather than ${:name} of the type=*
+  method-hosting slot) then turn out different depending on the call
+  context.
+
+  a) drop the 'prop' parameter of type= methods, because we can get
+  the info from the slot.
+
+  b) change the value=* method generator from hardcoding 'value' to substitute ${:name}, e.g.:
+
+        set vspec [:namedParameterSpec {} ${:name} $options_single] 
+
+  in any way, this will require changing many test for errorm essages
+  in the test suite.
+
 - XOTcl2, creates via unknown "fails" (does not trigger
   create/recreate) if intercepted by filters (because ::c1 is
   considered an existing cmd and ::c1 defaultmethod is dispatched):

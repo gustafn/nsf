@@ -342,6 +342,14 @@ nx::test case class-level-incremental {
   ? {c1 eval {:d add x}} {::c1: unable to dispatch method 'd'}
   ? {c1 add-local d x} {x d1}
   ? {c1 e add x} {x e1}
+  ? {c1 e delete x} {e1}
+  ? {c1 e get} {e1}
+  ? {c1 e delete -nocomplain x} {e1}
+  ? {c1 e delete x} "::c1: 'x' is not in variable 'e' (values are: 'e1')"
+  ? {c1 e delete -nocomplain e1} ""
+  ? {c1 e get} ""
+  ? {c1 e unset} ""
+  ? {c1 e get} {can't read "e": no such variable}
 
   #
   # check incremental operations for variables
@@ -355,7 +363,14 @@ nx::test case class-level-incremental {
   ? {c1 eval {:vd add x}} {::c1: unable to dispatch method 'vd'}
   ? {c1 add-local vd x} {x vd1}
   ? {c1 ve add x} {x ve1}
-
+  ? {c1 ve delete x} {ve1}
+  ? {c1 ve get} {ve1}
+  ? {c1 ve delete -nocomplain x} {ve1}
+  ? {c1 ve delete x} "::c1: 'x' is not in variable 've' (values are: 've1')"
+  ? {c1 ve delete -nocomplain ve1} ""
+  ? {c1 ve get} ""
+  ? {c1 ve unset} ""
+  ? {c1 ve get} {can't read "ve": no such variable}
 
   #
   # The accessor should be a forwarder due to incremental

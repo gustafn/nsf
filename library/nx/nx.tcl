@@ -2040,8 +2040,8 @@ namespace eval ::nx {
       set vspec [:namedParameterSpec {} value $options_single]
       set addArgs [list obj prop $vspec {pos 0}]
       :public object method value=add $addArgs {::nsf::next [list $obj $prop $value $pos]}
-      set delArgs [list -nocomplain:switch obj prop $vspec]
-      :public object method value=delete $delArgs {::nsf::next [list -nocomplain=$nocomplain $obj $prop $value]}
+      set delArgs [list obj prop -nocomplain:switch $vspec]
+      :public object method value=delete $delArgs {::nsf::next [list $obj $prop -nocomplain=$nocomplain $value]}
     } else {
       # TODO should we deactivate add/delete?
     }
@@ -2198,11 +2198,15 @@ namespace eval ::nx {
     }
   }
 
-  ::nx::VariableSlot public method value=delete {-nocomplain:switch obj prop value} {
+  ::nx::VariableSlot public method value=delete {obj prop -nocomplain:switch value} {
     set old [::nsf::var::get $obj $prop]
     set p [lsearch -glob $old $value]
-    if {$p>-1} {::nsf::var::set $obj $prop [lreplace $old $p $p]} else {
-      return -code error "$value is not a $prop of $obj (valid are: $old)"
+    if {$p > -1} {
+      ::nsf::var::set $obj $prop [lreplace $old $p $p]
+    } elseif {!$nocomplain} {
+      return -code error "$obj: '$value' is not in variable '$prop' (values are: '$old')"
+    } else {
+      return $old
     }
   }
 

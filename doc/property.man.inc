@@ -57,8 +57,12 @@ additional setter methods become available:
 [list_begin definitions]
 [def "[arg obj] [arg propertyName] [method add] [arg element] [opt [arg index]]"]
 Adding [arg element] to the managed list value, at the list position given by [arg index] (by default: 0).
-[def "[arg obj] [arg propertyName] [method delete] [arg elementPattern]"]
-Removing one or multiple elements from the managed list value which match [arg elementPattern]. [arg elementPattern] can contain matching characters (see [cmd "string match"]).
+[def "[arg obj] [arg propertyName] [method delete] [opt [option -nocomplain]] [arg elementPattern]"]
+Removing the first occurrence of an element from the managed list
+value which matches [arg elementPattern]. [arg elementPattern] can
+contain matching characters (see [cmd "string match"]). An error will
+be thrown if there is no match, unless [option -nocomplain] is set.
+
 [list_end]
 
 
