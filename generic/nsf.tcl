@@ -224,7 +224,7 @@ namespace eval ::nsf {
 
 #
 # Local variables:
-#    mode: tcl
+#    mode: Tcl
 #    tcl-indent-level: 2
 #    indent-tabs-mode: nil
 # End:

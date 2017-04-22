@@ -1,4 +1,4 @@
-# -*- tcl -*-
+# -*- Tcl -*-
 ############################################################
 # nx.tcl --
 #
@@ -360,7 +360,7 @@ namespace eval ::nx {
     set arguments [lrange [::nsf::current args] 1 end]
     set object [dict get $pathData object]
 
-    if {[info exists target] && [string range $target 0 0] eq "-"} {
+    if {[info exists target] && [string index $target 0] eq "-"} {
       error "target '$target' must not start with a dash"
     }
     if {[info exists frame] && $frame ni {object default}} {
@@ -584,7 +584,7 @@ namespace eval ::nx {
       set pathData  [:__resolve_method_path -per-object  $methodName]
       set object    [dict get $pathData object]
 
-      if {[info exists target] && [string range $target 0 0] eq "-"} {
+      if {[info exists target] && [string index $target 0] eq "-"} {
         error "target '$target' must not start with a dash"
       }
       if {[info exists frame] && $frame ni {object default}} {
@@ -2928,7 +2928,7 @@ if {[::nsf::configure debug] > 1} {
 
 #
 # Local variables:
-#    mode: tcl
+#    mode: Tcl
 #    tcl-indent-level: 2
 #    indent-tabs-mode: nil
 # End:

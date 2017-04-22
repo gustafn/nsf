@@ -6,7 +6,7 @@
 
 # adjust the paths;
 # - auto_path is needed, when nx is loaded via good old pkgIndex.tcl
-# - tcl::tm::roots is needed when nx is provided as a tcl module (.tm)
+# - tcl::tm::roots is needed when nx is provided as a Tcl module (.tm)
 lappend auto_path ..
 ::tcl::tm::roots [pwd]
 #puts stderr TM-LIST=[  ::tcl::tm::path list ]
@@ -120,7 +120,7 @@ nx::Object create make {
   }
 }
 
-### tcl file-command
+### Tcl file-command
 rename file tcl_file
 nx::Object create file {
   :require namespace
