@@ -1,34 +1,34 @@
 enum asmStatementIndex {
-  asmObjProcIdx, 
+  asmObjProcIdx,
   $STATEMENT_INDICES
 };
 
 static CONST char *asmStatementNames[] = {
-  "cmd", 
+  "cmd",
   $STATEMENT_NAMES,
   NULL
 };
 
 enum asmStatementArgTypeIndex {
-  asmStatementArgTypeArgIdx, 
-  asmStatementArgTypeArgvIdx, 
-  asmStatementArgTypeInstructionIdx, 
-  asmStatementArgTypeIntIdx, 
-  asmStatementArgTypeObjIdx, 
-  asmStatementArgTypeResultIdx, 
+  asmStatementArgTypeArgIdx,
+  asmStatementArgTypeArgvIdx,
+  asmStatementArgTypeInstructionIdx,
+  asmStatementArgTypeIntIdx,
+  asmStatementArgTypeObjIdx,
+  asmStatementArgTypeResultIdx,
   asmStatementArgTypeSlotIdx,
   asmStatementArgTypeVarIdx
 };
 
 static CONST char *asmStatementArgType[] = {
-  "arg", 
-  "argv", 
-  "instruction", 
-  "int", 
-  "obj", 
-  "result", 
-  "slot", 
-  "var", 
+  "arg",
+  "argv",
+  "instruction",
+  "int",
+  "obj",
+  "result",
+  "slot",
+  "var",
   NULL};
 
 static CONST char *asmStatementCmdType[]         = {"arg", "obj", "result", "var", NULL};
@@ -58,8 +58,8 @@ static AsmStatementInfo asmStatementInfo[] = {
  *----------------------------------------------------------------------
  */
 
-static int 
-AsmAssemble(ClientData cd, Tcl_Interp *interp, Tcl_Obj *nameObj, 
+static int
+AsmAssemble(ClientData cd, Tcl_Interp *interp, Tcl_Obj *nameObj,
 	      int nrArgs, Tcl_Obj *asmObj, AsmCompiledProc **retAsmProc) {
   AsmPatches patchArray[100], *patches = &patchArray[0], *patchPtr; // TODO: make me dynamic
   Tcl_Command cmd;
@@ -72,7 +72,7 @@ AsmAssemble(ClientData cd, Tcl_Interp *interp, Tcl_Obj *nameObj,
 
   assert(nameObj != NULL);
   procName = ObjStr(nameObj);
-  
+
   if (Tcl_ListObjGetElements(interp, asmObj, &oc, &ov) != TCL_OK) {
     return NsfPrintError(interp, "Asm code is not a valid list");
   }
@@ -87,42 +87,42 @@ AsmAssemble(ClientData cd, Tcl_Interp *interp, Tcl_Obj *nameObj,
   for (i = 0; i < oc; i++) {
     int index, offset, wordOc;
     Tcl_Obj *lineObj = ov[i], **wordOv;
-    
+
     if (Tcl_ListObjGetElements(interp, lineObj, &wordOc, &wordOv) != TCL_OK) {
-      return NsfPrintError(interp, 
-			   "Asm: line is not a well-formed asm instruction: %s", 
+      return NsfPrintError(interp,
+			   "Asm: line is not a well-formed asm instruction: %s",
 			   ObjStr(lineObj));
     }
 
     result = Tcl_GetIndexFromObj(interp, wordOv[0], asmStatementNames, "asm instruction", 0, &index);
     if (result != TCL_OK) {
-      return NsfPrintError(interp, 
-			   "Asm: line is not a valid asm instruction: word %s, line %s", 
+      return NsfPrintError(interp,
+			   "Asm: line is not a valid asm instruction: word %s, line %s",
 			   ObjStr(wordOv[0]), ObjStr(lineObj));
     }
 
     offset = (asmStatementInfo[index].flags & ASM_INFO_SKIP1) ? 2 : 1;
 
     if ((asmStatementInfo[index].flags & ASM_INFO_PAIRS) && (wordOc-offset) % 2 == 1) {
-      return NsfPrintError(interp, "Asm: argument list of cmd must contain pairs: %s", 
+      return NsfPrintError(interp, "Asm: argument list of cmd must contain pairs: %s",
 			   ObjStr(lineObj));
     }
 
-    if (asmStatementInfo[index].minArgs > -1 
+    if (asmStatementInfo[index].minArgs > -1
 	&& wordOc < asmStatementInfo[index].minArgs) {
-      return NsfPrintError(interp, "Asm: statement must contain at least %d words: %s", 
+      return NsfPrintError(interp, "Asm: statement must contain at least %d words: %s",
 			   asmStatementInfo[index].minArgs, ObjStr(lineObj));
     }
 
     if (asmStatementInfo[index].maxArgs > -1
 	&& wordOc > asmStatementInfo[index].maxArgs) {
-      return NsfPrintError(interp, "Asm: statement must contain at most %d words: %s", 
+      return NsfPrintError(interp, "Asm: statement must contain at most %d words: %s",
 			   asmStatementInfo[index].maxArgs, ObjStr(lineObj));
     }
 
     if (asmStatementInfo[index].argTypes) {
-      result = AsmInstructionArgvCheck(interp, offset, wordOc, 
-				       asmStatementInfo[index].argTypes, 
+      result = AsmInstructionArgvCheck(interp, offset, wordOc,
+				       asmStatementInfo[index].argTypes,
 				       nrLocalObjs, oc, wordOv, lineObj);
       if (unlikely(result != TCL_OK)) {return result;}
     }
@@ -157,13 +157,13 @@ AsmAssemble(ClientData cd, Tcl_Interp *interp, Tcl_Obj *nameObj,
       /* {cmd ::set slot 0 slot 2} */
       cmd = Tcl_GetCommandFromObj(interp, wordOv[1]);
       if (cmd == NULL) {
-	return NsfPrintError(interp, 
-			     "Asm: cmd is not a valid Tcl command: %s\n", 
+	return NsfPrintError(interp,
+			     "Asm: cmd is not a valid Tcl command: %s\n",
 			     Tcl_GetString( wordOv[1]));
       }
       break;
 
-   /* begin generated code */  
+   /* begin generated code */
    $ASSEMBLE_CHECK_CODE
    /* end generated code */
 
@@ -173,8 +173,8 @@ AsmAssemble(ClientData cd, Tcl_Interp *interp, Tcl_Obj *nameObj,
   }
 
   nrAsmInstructions ++;
-  fprintf(stderr, "%s: nrAsmInstructions %d nrLocalObjs %d nrArgs %d argvArgs %d => data %d\n", 
-	  procName, nrAsmInstructions, nrLocalObjs, nrArgs, totalArgvArgs, 
+  fprintf(stderr, "%s: nrAsmInstructions %d nrLocalObjs %d nrArgs %d argvArgs %d => data %d\n",
+	  procName, nrAsmInstructions, nrLocalObjs, nrArgs, totalArgvArgs,
 	  nrLocalObjs + nrArgs + totalArgvArgs );
 
   /*
@@ -193,8 +193,8 @@ AsmAssemble(ClientData cd, Tcl_Interp *interp, Tcl_Obj *nameObj,
   //fprintf(stderr, "args = %ld\n", proc->slots - proc->locals);
 
   AsmLocalsAlloc(proc, nrArgs + nrLocalObjs);
-  /* when freeing, we need something like 
-    for (i=0; i < nrArgs + nrLocalObjs; i++) { 
+  /* when freeing, we need something like
+    for (i=0; i < nrArgs + nrLocalObjs; i++) {
       if (proc->slotFlags[i] & ASM_SLOT_MUST_DECR) {Tcl_DecrRefCount(proc->slots[i]); }
     }
   */
@@ -208,7 +208,7 @@ AsmAssemble(ClientData cd, Tcl_Interp *interp, Tcl_Obj *nameObj,
   for (i = 0; i < oc; i++) {
     int index, offset, cArgs, argc, codeIndex, argvIndex, j;
     Tcl_Obj *lineObj = ov[i], **argv;
-    
+
     Tcl_ListObjGetElements(interp, lineObj, &argc, &argv);
     Tcl_GetIndexFromObj(interp, argv[0], asmStatementNames, "asm instruction", 0, &index);
 
@@ -220,7 +220,7 @@ AsmAssemble(ClientData cd, Tcl_Interp *interp, Tcl_Obj *nameObj,
     } else if (cArgs == NR_PAIRS1) {
       cArgs = 1 + (argc-offset) / 2;
     }
-    
+
     switch (index) {
 
     case asmObjProcIdx:
@@ -244,7 +244,7 @@ AsmAssemble(ClientData cd, Tcl_Interp *interp, Tcl_Obj *nameObj,
 $ASSEMBLE_EMIT_CODE
       /* end generated code */
   }
-      
+
     if ((asmStatementInfo[index].flags & ASM_INFO_DECL) == 0) {
       currentAsmInstruction ++;
     }
@@ -254,7 +254,7 @@ $ASSEMBLE_EMIT_CODE
    * add END instruction
    */
   inst = AsmInstructionNew(proc, NULL, 0);
-  
+
   /*
    * All addresses are determined, apply the argv patches triggered
    * from above.
@@ -264,7 +264,7 @@ $ASSEMBLE_EMIT_CODE
     fprintf(stderr, "want to patch code[%d]->argv = code[%d]->argv[%d]\n",
 	    patchPtr->targetAsmInstruction, patchPtr->sourceAsmInstruction, patchPtr->argvIndex);
     /* set the argument vector of code[1] to the address of code[4]->argv[1] */
-    (&proc->code[patchPtr->targetAsmInstruction])->argv = 
+    (&proc->code[patchPtr->targetAsmInstruction])->argv =
       &(&proc->code[patchPtr->sourceAsmInstruction])->argv[patchPtr->argvIndex];
   }
 
