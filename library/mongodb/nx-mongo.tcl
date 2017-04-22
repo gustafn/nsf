@@ -958,7 +958,7 @@ namespace eval ::nx::mongo {
 
 #
 # Local variables:
-#    mode: Tcl
+#    mode: tcl
 #    tcl-indent-level: 2
 #    indent-tabs-mode: nil
 # End:

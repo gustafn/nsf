@@ -619,7 +619,7 @@ NsfCallStackFindActiveFrame(const Tcl_Interp *interp, int offset, Tcl_CallFrame 
        (offset > 0) && (varFramePtr != NULL);
        varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr), offset--);
 
-  /* search for first active frame and set tcl frame pointers */
+  /* search for first active frame and set Tcl frame pointers */
   for (; varFramePtr != NULL; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
     if (((unsigned int)Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) != 0u) {
       NsfCallStackContent *cscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);

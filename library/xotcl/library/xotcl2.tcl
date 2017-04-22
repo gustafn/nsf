@@ -1,4 +1,4 @@
-# -*- Tcl -*-
+# -*- tcl -*-
 ############################################################
 # xotcl2.tcl --
 #
@@ -374,7 +374,7 @@ namespace eval ::xotcl {
     target:optional args
   } {
     set arglist [list]
-    if {[info exists target] && [string index $target 0] eq "-"} {
+    if {[info exists target] && [string range $target 0 0] eq "-"} {
       error "target '$target' must not start with a dash"
     }
     if {[info exists default]} {lappend arglist -default $default}
@@ -398,7 +398,7 @@ namespace eval ::xotcl {
     target:optional args
   } {
     set arglist [list]
-    if {[info exists target] && [string index $target 0] eq "-"} {
+    if {[info exists target] && [string range $target 0 0] eq "-"} {
       error "target '$target' must not start with a dash"
     }
     if {[info exists default]} {lappend arglist -default $default}
@@ -1503,7 +1503,7 @@ if {[::nsf::configure debug] > 1} {
 
 #
 # Local variables:
-#    mode: Tcl
+#    mode: tcl
 #    tcl-indent-level: 2
 #    indent-tabs-mode: nil
 # End:

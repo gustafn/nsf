@@ -1449,7 +1449,7 @@ ObjTrace(char *string, NsfObject *object) {
   nonnull_assert(string != NULL);
   nonnull_assert(object != NULL);
 
-  fprintf(stderr, "--- %s tcl %p %s (%d %p) nsf %p (%d) %s \n", string,
+  fprintf(stderr, "--- %s Tcl %p %s (%d %p) nsf %p (%d) %s \n", string,
           object->cmdName, (object->cmdName->typePtr != NULL) ? object->cmdName->typePtr->name : "NULL",
           object->cmdName->refCount, object->cmdName->internalRep.twoPtrValue.ptr1,
           object, object->refCount, ObjectName(object));
@@ -10325,7 +10325,7 @@ MethodHandleObj(NsfObject *object, int withPer_object, const char *methodName) {
  *----------------------------------------------------------------------
  * FilterInfo --
  *
- *    Set the interp results with a tcl list containing the content of the
+ *    Set the interp results with a Tcl list containing the content of the
  *    filter list. The options withGuards and withMethodHandles can be used
  *    for different output structures
  *
@@ -10661,7 +10661,7 @@ FilterStackPop(NsfObject *object) {
  *    registration of a cmdPtr as filter
  *
  * Results:
- *    Returns a tcl list with the filter registration, like:
+ *    Returns a Tcl list with the filter registration, like:
  *    "<obj> filter <filterName>, "<class> filter <filterName>,
  *    or an empty list, if not registered
  *
@@ -11199,7 +11199,7 @@ PushProcCallFrame(Proc *procPtr, Tcl_Interp *interp,
    * namespace to another.
    */
 
-  /* TODO: we could use Tcl_PushCallFrame(), if we would allocate the tcl stack frame earlier */
+  /* TODO: we could use Tcl_PushCallFrame(), if we would allocate the Tcl stack frame earlier */
   result = TclPushStackFrame(interp, (Tcl_CallFrame **)&framePtr,
                              (Tcl_Namespace *) procPtr->cmdPtr->nsPtr,
                              (FRAME_IS_PROC|FRAME_IS_NSF_METHOD));
@@ -11870,7 +11870,7 @@ ParamDefsFormat(Tcl_Interp *interp, Nsf_Param const *paramsPtr, NsfObject *conte
        * via genTclAPI.
        *
        * TODO: we could streamline this by defining as well C-API via the same
-       * syntax as for accepted for tcl obj types "nsfParam"
+       * syntax as for accepted for Tcl obj types "nsfParam"
        */
       int isNonpos = *paramsPtr->name == '-';
       int outputRequired = (isNonpos && ((paramsPtr->flags & NSF_ARG_REQUIRED) != 0u));
@@ -17101,7 +17101,7 @@ NsfProcAdd(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
 
   if (likely(result == TCL_OK)) {
     /*
-     * The shadowed proc was created successfully. Retrieve the defined proc
+     * The shadowed proc was created successfuly. Retrieve the defined proc
      * and set its namespace to the namespace of the stub cmd.
      */
     Tcl_Command procCmd = Tcl_GetCommandFromObj(interp, procNameObj);
@@ -17546,7 +17546,7 @@ ForwardProcessOptions(Tcl_Interp *interp, Tcl_Obj *nameObj,
       goto forward_process_options_exit;
     }
     if (CmdIsNsfObject(cmd)     /* don't do direct invoke on nsf objects */
-        || Tcl_Command_objProc(cmd) == TclObjInterpProc  /* don't do direct invoke on tcl procs */
+        || Tcl_Command_objProc(cmd) == TclObjInterpProc  /* don't do direct invoke on Tcl procs */
         ) {
       /* silently ignore earlybinding flag */
       tcd->objProc = NULL;
@@ -22564,7 +22564,7 @@ GetOriginalCommand(Tcl_Command cmd)  /* The imported command for which the origi
  *----------------------------------------------------------------------
  * ListProcBody --
  *
- *    Return the body of a scripted proc as tcl interp result.
+ *    Return the body of a scripted proc as Tcl interp result.
  *
  * Results:
  *    Standard Tcl result
@@ -25357,7 +25357,7 @@ NsfFinalizeCmd(Tcl_Interp *interp, int withKeepvars) {
 #if defined(NSF_PROFILE)
   /*
    * Check, if profile trace is still running. If so, delete it here.
-   * Interestingly, NsfLog() seems to be unavaliable at this place.
+   * Interestingly, NsfLog() seems to be unavailable at this place.
    */
   if (RUNTIME_STATE(interp)->doTrace == 1) {
     NsfLog(interp, NSF_LOG_WARN, "tracing is still active; deactivate it due to cleanup.");
@@ -25671,7 +25671,7 @@ NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
 
     if (objProc == TclObjInterpProc) {
       /*
-       * We have an alias to a tcl proc;
+       * We have an alias to a Tcl proc;
        */
       Proc *procPtr = (Proc *)Tcl_Command_objClientData(cmd);
       Tcl_Obj *bodyObj = (procPtr != NULL) ? procPtr->bodyPtr : NULL;

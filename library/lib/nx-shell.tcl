@@ -1,4 +1,4 @@
-# -*- Tcl -*-
+# -*- tcl -*-
 ############################################################
 # nx-shell.tcl --
 #
@@ -225,7 +225,7 @@ nx::Object create ::nx::shell {
 package provide nx::shell 1.1
 
 # Local variables:
-#    mode: Tcl
+#    mode: tcl
 #    tcl-indent-level: 2
 #    indent-tabs-mode: nil
 # End:

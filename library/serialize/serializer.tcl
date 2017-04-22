@@ -61,7 +61,7 @@ namespace eval ::nx::serializer {
       <@tt>ignore</@tt> and <@tt>ignoreVarsRE</@tt> see
       <@tt>Serizalizer all</@tt>. <@tt>map</@tt> can be used
       in addition to provide pairs of old-string and new-string
-      (like in the Tcl command <@tt>string map</@tt>). This option
+      (like in the tcl command <@tt>string map</@tt>). This option
       can be used to regenerate the serialized object under a different
       object or under an different name, or to translate relative
       object names in the serialized code.<p>
@@ -1128,7 +1128,7 @@ namespace eval ::nx::serializer {
 
 #
 # Local variables:
-#    mode: Tcl
+#    mode: tcl
 #    tcl-indent-level: 2
 #    indent-tabs-mode: nil
 # End:

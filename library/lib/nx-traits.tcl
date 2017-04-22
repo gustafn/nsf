@@ -185,7 +185,7 @@ nx::Class create nx::Trait -superclass nx::Class {
 
 #
 # Local variables:
-#    mode: Tcl
+#    mode: tcl
 #    tcl-indent-level: 2
 #    indent-tabs-mode: nil
 # End:

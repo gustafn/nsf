@@ -158,7 +158,7 @@ AsmAssemble(ClientData cd, Tcl_Interp *interp, Tcl_Obj *nameObj,
       cmd = Tcl_GetCommandFromObj(interp, wordOv[1]);
       if (cmd == NULL) {
 	return NsfPrintError(interp, 
-			     "Asm: cmd is not a valid tcl command: %s\n", 
+			     "Asm: cmd is not a valid Tcl command: %s\n", 
 			     Tcl_GetString( wordOv[1]));
       }
       break;
