@@ -1,4 +1,4 @@
-[comment {-*- tcl -*- xowish manpage}]
+[comment {-*- Tcl -*- xowish manpage}]
 
 [include version.inc]
 [manpage_begin xowish 1 [vset VERSION]]
