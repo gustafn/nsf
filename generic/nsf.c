@@ -17101,7 +17101,7 @@ NsfProcAdd(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
 
   if (likely(result == TCL_OK)) {
     /*
-     * The shadowed proc was created successfuly. Retrieve the defined proc
+     * The shadowed proc was created successfully. Retrieve the defined proc
      * and set its namespace to the namespace of the stub cmd.
      */
     Tcl_Command procCmd = Tcl_GetCommandFromObj(interp, procNameObj);

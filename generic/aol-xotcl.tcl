@@ -1,11 +1,11 @@
 #
 # Load Next Scripting Framework, XOTcl and some related packages for
-# AOLserver 4.* and naviserver.  
+# AOLserver 4.* and NaviServer.  
 #
-#  - aolserver: rewrite essentially _ns_savenamespaces to include the
+#  - AOLserver: rewrite essentially _ns_savenamespaces to include the
 #    serialized objects
 #
-#  - naviserver: just needed for the package require
+#  - NaviServer: just needed for the package require
 #    the serialization logic resides in ns/tcl/nstrace.tcl
 #
 # We expect to find the package in standard Tcl package search path

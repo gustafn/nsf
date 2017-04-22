@@ -143,7 +143,7 @@ namespace eval ::nsf {
   if {[info command ::ns_log] ne ""} {
     proc ::nsf::log {level msg} {
       # The function might be called in situations in
-      # aolserver/naviserver, where ns_log is not available.
+      # aolserver/NaviServer, where ns_log is not available.
       if {[info command ::ns_log] ne ""} {
 	::ns_log $level "nsf: $msg"
       } else {
