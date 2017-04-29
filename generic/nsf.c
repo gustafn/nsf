@@ -28891,7 +28891,7 @@ objectMethod cget NsfOCgetMethod {
 */
 static int
 NsfOCgetMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj) {
-  int result, found = 0;
+  int result, found;
   NsfParsedParam parsedParam;
   Nsf_Param const *paramPtr;
   NsfParamDefs *paramDefs;
@@ -28954,7 +28954,9 @@ NsfOCgetMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj) {
      */
     for (paramPtr = paramDefs->paramsPtr;
          (paramPtr->name != NULL) && (*paramPtr->name != '-');
-         paramPtr++);
+         paramPtr++) {
+      ;
+    }
 
     /*
      * Perform the lookup from the next group.
@@ -28962,11 +28964,12 @@ NsfOCgetMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj) {
     if (unlikely(NsfParamDefsNonposLookup(interp, nameString, paramPtr, &paramPtr) != TCL_OK)) {
       result = TCL_ERROR;
       goto cget_exit;
-    } else {
-      found = (paramPtr != NULL);
     }
+  } else {
+    paramPtr = NULL;
   }
-
+  found = (paramPtr != NULL);
+      
   if (found == 0) {
     result = NsfPrintError(interp, "cget: unknown configure parameter %s", nameString);
     goto cget_exit;
