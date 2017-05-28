@@ -17777,17 +17777,15 @@ FindCalledClass(Tcl_Interp *interp, NsfObject *object) {
       if (unlikely(methodName == NULL)) {
         result = NULL;
         
+      } else if (object->nsPtr != NULL && FindMethod(object->nsPtr, methodName) != NULL) {
+        /*
+         * An object specific method was called.
+         */
+        result = NULL;
       } else {
-        if (object->nsPtr != NULL && FindMethod(object->nsPtr, methodName) != NULL) {
-          /*
-           * An object specific method was called.
-           */
-          result = NULL;
-        } else {
-          Tcl_Command  cmd;
-
-          result = SearchCMethod(object->cl, methodName, &cmd);
-        }
+        Tcl_Command  cmd;
+        
+        result = SearchCMethod(object->cl, methodName, &cmd);
       }
     }
   }
