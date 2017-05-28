@@ -7072,26 +7072,24 @@ static NsfCmdList *CmdListRemoveFromList(NsfCmdList **cmdList, NsfCmdList *delCL
 static NsfCmdList *
 CmdListRemoveFromList(NsfCmdList **cmdList, NsfCmdList *delCL) {
   register NsfCmdList *c;
-  NsfCmdList *del = NULL;
+  NsfCmdList          *del = NULL;
 
   nonnull_assert(cmdList != NULL);
   nonnull_assert(delCL != NULL);
 
   c = *cmdList;
-  if (c == NULL) {
-    return NULL;
-  }
-
-  if (c == delCL) {
-    *cmdList = c->nextPtr;
-    del = c;
-  } else {
-    while ((c->nextPtr != NULL) && (c->nextPtr != delCL)) {
-      c = c->nextPtr;
-    }
-    if (c->nextPtr == delCL) {
-      del = delCL;
-      c->nextPtr = delCL->nextPtr;
+  if (likely(c != NULL)) {
+    if (c == delCL) {
+      *cmdList = c->nextPtr;
+      del = c;
+    } else {
+      while ((c->nextPtr != NULL) && (c->nextPtr != delCL)) {
+        c = c->nextPtr;
+      }
+      if (c->nextPtr == delCL) {
+        del = delCL;
+        c->nextPtr = delCL->nextPtr;
+      }
     }
   }
   return del;
@@ -9012,7 +9010,7 @@ RemoveFromObjectMixins(Tcl_Command cmd, NsfCmdList *cmdList) {
   nonnull_assert(cmdList != NULL);
 
   do {
-    NsfObject *nobj = NsfGetObjectFromCmdPtr(cmdList->cmdPtr);
+    NsfObject    *nobj   = NsfGetObjectFromCmdPtr(cmdList->cmdPtr);
     NsfObjectOpt *objopt = (nobj != 0) ? nobj->opt : NULL;
 
     if (objopt != NULL) {
@@ -10051,11 +10049,12 @@ static int FilterAdd(Tcl_Interp *interp, NsfCmdList **filterList, Tcl_Obj *filte
 static int
 FilterAdd(Tcl_Interp *interp, NsfCmdList **filterList, Tcl_Obj *filterregObj,
           NsfObject *startingObject, NsfClass *startingClass) {
-  Tcl_Obj *filterObj = NULL;
-  Tcl_Obj *guardObj = NULL;
-  Tcl_Command cmd;
-  NsfCmdList *new;
-  NsfClass *cl;
+  Tcl_Obj     *filterObj = NULL;
+  Tcl_Obj     *guardObj = NULL;
+  Tcl_Command  cmd;
+  NsfCmdList  *new;
+  NsfClass    *cl;
+  int          result = TCL_OK;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(filterList != NULL);
@@ -10068,36 +10067,42 @@ FilterAdd(Tcl_Interp *interp, NsfCmdList **filterList, Tcl_Obj *filterregObj,
   if (filterregObj->typePtr != &NsfFilterregObjType) {
     /*fprintf(stderr, "FilterAdd: convert %s in FilterAdd\n", ObjStr(filterregObj));*/
     if (Tcl_ConvertToType(interp, filterregObj, &NsfFilterregObjType) != TCL_OK) {
-      return TCL_ERROR;
+      result = TCL_ERROR;
     }
   } else {
     /*fprintf(stderr, "FilterAdd: %s already converted\n", ObjStr(filterregObj));*/
   }
 
-  NsfFilterregGet(interp, filterregObj, &filterObj, &guardObj);
+  if (result == TCL_OK) {
+    result = NsfFilterregGet(interp, filterregObj, &filterObj, &guardObj);
 
-  if (!(cmd = FilterSearch(ObjStr(filterObj), startingObject, startingClass, &cl))) {
-    if (startingObject != NULL) {
-      return NsfPrintError(interp, "object filter: can't find filterproc '%s' on %s ",
-                           ObjStr(filterObj), ObjectName(startingObject));
-    } else {
-      return NsfPrintError(interp, "class filter: can't find filterproc '%s' on %s ",
-                           ObjStr(filterObj), ClassName(startingClass));
+    if (result == TCL_OK) {
+      if (!(cmd = FilterSearch(ObjStr(filterObj), startingObject, startingClass, &cl))) {
+        if (startingObject != NULL) {
+          result = NsfPrintError(interp, "object filter: can't find filterproc '%s' on %s ",
+                                 ObjStr(filterObj), ObjectName(startingObject));
+        } else {
+          result = NsfPrintError(interp, "class filter: can't find filterproc '%s' on %s ",
+                                 ObjStr(filterObj), ClassName(startingClass));
+        }
+      }
     }
   }
 
-  /*fprintf(stderr, " +++ adding filter %s cl %p\n", ObjStr(nameObj), cl);*/
+  if (result == TCL_OK) {
+    /*fprintf(stderr, " +++ adding filter %s cl %p\n", ObjStr(nameObj), cl);*/
 
-  new = CmdListAdd(filterList, cmd, cl, /*noDuplicates*/ 1, 1);
-  FilterAddActive(interp, ObjStr(filterObj));
+    new = CmdListAdd(filterList, cmd, cl, /*noDuplicates*/ 1, 1);
+    FilterAddActive(interp, ObjStr(filterObj));
 
-  if (guardObj != NULL) {
-    GuardAdd(new, guardObj);
-  } else if (new->clientData != NULL) {
-    GuardDel(new);
+    if (guardObj != NULL) {
+      GuardAdd(new, guardObj);
+    } else if (new->clientData != NULL) {
+      GuardDel(new);
+    }
   }
-
-  return TCL_OK;
+  
+  return result;
 }
 
 /*
@@ -17745,32 +17750,48 @@ static NsfClass *FindCalledClass(Tcl_Interp *interp, NsfObject *object) nonnull(
 
 static NsfClass *
 FindCalledClass(Tcl_Interp *interp, NsfObject *object) {
-  NsfCallStackContent *cscPtr = CallStackGetTopFrame0(interp);
-  const char *methodName;
-  Tcl_Command cmd;
+  NsfCallStackContent *cscPtr;
+  NsfClass            *result;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(object != NULL);
 
-  if (cscPtr->frameType == NSF_CSC_TYPE_PLAIN) {
-    return cscPtr->cl;
-  }
-  if (cscPtr->frameType == NSF_CSC_TYPE_ACTIVE_FILTER) {
-    methodName = MethodName(cscPtr->filterStackEntry->calledProc);
-  } else if (cscPtr->frameType == NSF_CSC_TYPE_ACTIVE_MIXIN && object->mixinStack != NULL) {
-    methodName = Tcl_GetCommandName(interp, cscPtr->cmdPtr);
+  cscPtr = CallStackGetTopFrame0(interp);
+  if (unlikely(cscPtr == NULL)) {
+    result = NULL;
+    
   } else {
-    return NULL;
-  }
-  if (object->nsPtr != NULL) {
-    cmd = FindMethod(object->nsPtr, methodName);
-    if (cmd != NULL) {
-      /* we called an object specific method */
-      return NULL;
+    if (cscPtr->frameType == NSF_CSC_TYPE_PLAIN) {
+      result = cscPtr->cl;
+    } else {
+      const char *methodName;
+
+      if (cscPtr->frameType == NSF_CSC_TYPE_ACTIVE_FILTER) {
+        methodName = MethodName(cscPtr->filterStackEntry->calledProc);
+      } else if (cscPtr->frameType == NSF_CSC_TYPE_ACTIVE_MIXIN && object->mixinStack != NULL) {
+        methodName = Tcl_GetCommandName(interp, cscPtr->cmdPtr);
+      } else {
+        methodName = NULL;
+      }
+      
+      if (unlikely(methodName == NULL)) {
+        result = NULL;
+        
+      } else {
+        if (object->nsPtr != NULL && FindMethod(object->nsPtr, methodName) != NULL) {
+          /*
+           * An object specific method was called.
+           */
+          result = NULL;
+        } else {
+          Tcl_Command  cmd;
+
+          result = SearchCMethod(object->cl, methodName, &cmd);
+        }
+      }
     }
   }
-
-  return SearchCMethod(object->cl, methodName, &cmd);
+  return result;
 }
 
 /*
@@ -18440,29 +18461,39 @@ static int FindSelfNext(Tcl_Interp *interp) nonnull(1);
 
 static int
 FindSelfNext(Tcl_Interp *interp) {
-  NsfCallStackContent *cscPtr = CallStackGetTopFrame0(interp);
-  Tcl_Command cmd = NULL, currentCmd = NULL;
-  int result, isMixinEntry = 0,
-    isFilterEntry = 0,
-    endOfFilterChain = 0;
-  NsfClass *cl = cscPtr->cl;
-  NsfObject *object = cscPtr->self;
-  const char *methodName;
+  NsfCallStackContent *cscPtr;
+  int                  result;
 
   nonnull_assert(interp != NULL);
 
-  Tcl_ResetResult(interp);
+  cscPtr = CallStackGetTopFrame0(interp);
+  if (unlikely(cscPtr == NULL)) {
+    result = NsfPrintError(interp, "called outside NSF scope");
+    
+  } else {
+    Tcl_Command cmd = NULL, currentCmd = NULL;
+    const char *methodName;
+    
+    Tcl_ResetResult(interp);
 
-  methodName = Tcl_GetCommandName(interp, cscPtr->cmdPtr);
-  if (methodName == NULL) {
-    return TCL_OK;
-  }
-
-  result = NextSearchMethod(object, interp, cscPtr, &cl, &methodName, &cmd,
-                   &isMixinEntry, &isFilterEntry, &endOfFilterChain, &currentCmd);
-  if (cmd != NULL) {
-    Tcl_SetObjResult(interp, MethodHandleObj((cl != NULL) ? (NsfObject *)cl : object,
-                                             cl == NULL, methodName));
+    methodName = Tcl_GetCommandName(interp, cscPtr->cmdPtr);
+    if (methodName == NULL) {
+      /*
+       * In case, we do not find the command, we return OK. Why?
+       */
+      result = TCL_OK;
+    } else {
+      int        isMixinEntry = 0, isFilterEntry = 0, endOfFilterChain = 0;
+      NsfClass  *cl     = cscPtr->cl;
+      NsfObject *object = cscPtr->self;
+      
+      result = NextSearchMethod(object, interp, cscPtr, &cl, &methodName, &cmd,
+                                &isMixinEntry, &isFilterEntry, &endOfFilterChain, &currentCmd);
+      if (cmd != NULL) {
+        Tcl_SetObjResult(interp, MethodHandleObj((cl != NULL) ? (NsfObject *)cl : object,
+                                                 cl == NULL, methodName));
+      }
+    }
   }
   return result;
 }
@@ -27432,7 +27463,7 @@ NsfRelationSetCmd(Tcl_Interp *interp, NsfObject *object,
 
   case RelationtypeClass_mixinIdx: /* fall through */
   case RelationtypeClass_filterIdx:
-
+    assert(cl != NULL);
     if (valueObj == NULL) {
       clopt = cl->opt;
       if (relationtype == RelationtypeClass_mixinIdx) {

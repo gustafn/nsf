@@ -763,6 +763,7 @@ FilterregSetFromAny(
 
 int
 NsfFilterregGet(Tcl_Interp *UNUSED(interp), Tcl_Obj *obj, Tcl_Obj **filterObj, Tcl_Obj **guardObj) {
+  int result;
 
   nonnull_assert(obj != NULL);
   nonnull_assert(filterObj != NULL);
@@ -772,10 +773,12 @@ NsfFilterregGet(Tcl_Interp *UNUSED(interp), Tcl_Obj *obj, Tcl_Obj **filterObj, T
     Filterreg *filterregPtr = obj->internalRep.twoPtrValue.ptr1;
     *filterObj = filterregPtr->filterObj;
     *guardObj = filterregPtr->guardObj;
-    return TCL_OK;
+    result = TCL_OK;
+  } else {
+    result = TCL_ERROR;
   }
-
-  return TCL_ERROR;
+  
+  return result;
 }
 /*
  * Filterreg type end
