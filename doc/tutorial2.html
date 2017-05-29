@@ -441,9 +441,9 @@ a
 Stack empty!
 </pre>
 
-Note that the definition of Saftey can be used not only for instances
+Note that the definition of Safety can be used not only for instances
 of the class <tt>Stack</tt>, but for arbitrary objects supporting the
-same interface.  We can as well use <tt>Saftey</tt> to create a new
+same interface.  We can as well use <tt>Safety</tt> to create a new
 class <tt>SafeStack</tt>. In this case, all instances of
 <tt>SafeStack</tt> have the safety property defined above.
 
@@ -592,12 +592,12 @@ the object of the soccer team (denoted by :: namespace syntax).
 <pre CLASS="code">
   SoccerTeam <tt>method</tt> newPlayer args {
     <it># we create a new player who is part of the soccer team</it>
-    <it># "eval" is needed to pass the provided arguments seperately to the call of new</it>
+    <it># "eval" is needed to pass the provided arguments separately to the call of new</it>
     <tt>eval</tt> Player <tt>new</tt> -childof [<tt>self</tt>] $args
   }
 </pre>
 <p>
-A player can be transfered to another team. The player object does
+A player can be transferred to another team. The player object does
 not change internally (e.g. the playerRole stays the same). Therefore we
 <tt>move</tt> it to the destination team.
 </p>
@@ -776,7 +776,7 @@ just create the extension as an ordinary class:
 <pre CLASS="code">
   <tt>Class</tt> TransferObserver {
     <tt>:method</tt> transferPlayer {pname destinationTeam} {
-      <tt>puts</tt> "Player '$pname' is transfered to Team '[$destinationTeam name]'"
+      <tt>puts</tt> "Player '$pname' is transferred to Team '[$destinationTeam name]'"
       <tt>next</tt>
     }
   }
@@ -920,7 +920,7 @@ feature can be used for an implementation of a life-cycle or other
 intrinsic changes of object properties (in contrast to extrinsic
 properties e.g. modeled through roles and implemented through
 per-object and per-class mixins <a href="#xotcl-mixin">[Neumann and
-Zdun 1999c]</a> ) . These changes can be achieved without loosing the
+Zdun 1999c]</a> ) . These changes can be achieved without losing the
 object's identity, its inner state, and its per-object behavior (methods
 and mixins).
 </P>
@@ -1816,7 +1816,7 @@ relationship is a too coarse-grained means. A second form of such
 dynamics is the changing of the relationship between object and
 class. This means, objects can also change their class dynamically at
 run-time. This feature may be used to model a life-cycle of an object,
-without loosing the object's identity, inner state or
+without losing the object's identity, inner state or
 per-object-specializations through procs. The <tt>class</tt> instance
 method enables this functionality.
 </P>

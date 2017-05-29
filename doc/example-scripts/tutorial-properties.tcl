@@ -40,10 +40,13 @@ package req nx::test
 
 ? {f1 cget -y} 3
 
-# It is possible to add more and application specific sub-commands to
-# the accessor method, but this is not covered in this
-# chapter. However, when a property is defined as incremental it uses
-# this feature to extend the sub-methods.
+# You might wonder, why these accessor methods are needed, when the
+# same behavior can be achieved via +cget+ and +configure+. The main
+# difference is that the accessor methods are tailorable (the behavior
+# can be modified) and extensible (more subcommands like +set+ and
+# +get+ can be defined). The details, how this is done is not covered
+# in this chapter. However, when a property is defined as
+# +incremental+ the sub-methods are extended.
 
 # When a property is defined as +incremental+, a public accessor and
 # multi-valued are assumed. By specifying +incremental+ the

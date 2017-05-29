@@ -34,7 +34,7 @@ puts stderr "\n content = {[r0 getContent]}"
 puts -nonewline "\nTrying to load image logo-100.jpg ... (not secure)"
 SimpleRequest r2 -url $http_server/logo-100.jpg
 if {[r2::sink set contentLength] == 1706} {
-    puts "suceeded! Loaded 1706 bytes!"
+    puts "succeeded! Loaded 1706 bytes!"
 } else {
     puts "failed! Loaded [r2::sink set contentLength] (!= 1706) bytes"
     exit
@@ -43,7 +43,7 @@ if {[r2::sink set contentLength] == 1706} {
 puts -nonewline "\nTrying to load image logo-100.jpg secure ... "
 SimpleRequest r1 -url $https_server/logo-100.jpg
 if {[r1::sink set contentLength] == 1706} {
-    puts "suceeded! Loaded 1706 bytes!"
+    puts "succeeded! Loaded 1706 bytes!"
 } else {
     puts "failed! Loaded [r1::sink set contentLength] (!= 1706) bytes"
     exit

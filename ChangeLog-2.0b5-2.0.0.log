@@ -1451,7 +1451,7 @@
 	  the unevaluated error cmd statement from the trace message
 	- At two or three locations, we used to compute the method path using
 	  different helpers (CallStackMethodPath, NsfMethodNamePath) etc. I
-	  tried to unify this by revising NsfMethodNamePath to accomodate the
+	  tried to unify this by revising NsfMethodNamePath to accommodate the
 	  different uses.
 	- Besides, for required-argument checks, I included the method path
 	 (for ensemble invocations) into the error messages.
@@ -1468,7 +1468,7 @@
 	  certain instance variables such as arrays or dicts to
 	  customizable representations in MongoDB)
 	- added nx-serialize to test cases (simple state
-	  persistance for nx objects)
+	  persistence for nx objects)
 	- added nx-rep to test cases (rep types for "array" and "dict")
 	- provide datarootdir to get rid of warning during configure
 

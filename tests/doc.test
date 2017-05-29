@@ -813,19 +813,19 @@ Test case scanning {
       #  ? [list $entity info has type ::nx::doc::@property] 1
       #  ? [list $entity as_text] ".. is overruled by a long one ..."
 
-      # --testing-- @class-object-property attr2 (its non-existance)
+      # --testing-- @class-object-property attr2 (its non-existence)
       set entity [@property id [@class id ::C] object attr2]
       ? [list ::nsf::object::exists $entity] 0
-      # --testing-- @child-class Foo (its non-existance)
+      # --testing-- @child-class Foo (its non-existence)
       set entity [@class id ::C::Foo]
       ? [list ::nsf::object::exists $entity] 0
-      # --testing -- @method foo (its non-existance)
+      # --testing -- @method foo (its non-existence)
       set entity [@method id ::C class foo]
       ? [list ::nsf::object::exists $entity] 0
-      # --testing-- @class-object-method.parameter {bar p1} (its non-existance)
+      # --testing-- @class-object-method.parameter {bar p1} (its non-existence)
       set entity [@parameter id [@method id ::C class bar] "" p1]
       ? [list ::nsf::object::exists $entity] 0
-      # --testing-- @child-object.property {foo p1} (its non-existance)
+      # --testing-- @child-object.property {foo p1} (its non-existence)
       set cl [@class id ::C::Foo]
       ? [list ::nsf::object::exists $entity] 0
       set entity [@property id $cl class p1]
@@ -892,13 +892,13 @@ Test case scanning {
       set entity [@method id ::C class foo]
       ? [list ::nsf::object::exists $entity] 1
       ? [list $entity as_text] ""
-      # --testing-- @class-object-method.parameter {bar p1} (its non-existance) It
+      # --testing-- @class-object-method.parameter {bar p1} (its non-existence) It
       # still cannot exist as a documented entity, as the class method
       # has not been initialised before!
       set entity [@parameter id [@method id ::C class bar] "" p1]
       ? [list ::nsf::object::exists $entity] 0
-      # --testing-- @child-class.property {foo p1} (its non-existance)
-      # --testing-- @child-class.object-property {foo p2} (its non-existance)
+      # --testing-- @child-class.property {foo p1} (its non-existence)
+      # --testing-- @child-class.object-property {foo p2} (its non-existence)
       set cl [@class id ::C::Foo]
       ? [list ::nsf::object::exists $cl] 1
       set entity [@property id $cl class p1]

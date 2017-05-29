@@ -135,10 +135,10 @@ namespace eval ::xotcl::comm::httpAccess {
     #
     #   incCb:     when new data is available
     #
-    #   endCb:     when the request is finished sucessfully and the object
+    #   endCb:     when the request is finished successfully and the object
     #              is going to be destroyed
     #
-    #   cancelCb:  when the request is finished nonsucessfully and the object
+    #   cancelCb:  when the request is finished nonsuccessfully and the object
     #              is going to be destroyed
     #
     # All these messages receive the name of the Access object
@@ -266,9 +266,9 @@ namespace eval ::xotcl::comm::httpAccess {
 
     #########################################
     Access instproc timeout t {
-	my set timeout [::after $t [self] timeoutOccured]
+	my set timeout [::after $t [self] timeoutOccurred]
     }
-    Access instproc timeoutOccured {} {
+    Access instproc timeoutOccurred {} {
 	#my showCall
 	my unset timeout
 	my abort "timeout exceeded"
@@ -956,7 +956,7 @@ namespace eval ::xotcl::comm::httpAccess {
 	    #if {$totalsize == 0 && ($responseCode > 300 || !$expectsBody($method) )} 
 	    #my showVars method totalsize expectsBody($method) expectBody
 	    # the following is used currently for Actiweb-Agents:
-	    # the reponse of a PUTS contains a BODY!
+	    # the response of a PUTS contains a BODY!
 	    if {!$expectBody && 
 		[::info exists v(content-length)] &&
 		$v(content-length) > 0} {
@@ -1189,7 +1189,7 @@ namespace eval ::xotcl::comm::httpAccess {
     pwdManager proc requireCredentials {realm url} {
 	regexp {^(.*/)[^/]*$} $url _ path
 	if {[my exists pwd($realm)]} {
-	    #my showMsg "*** register url=$url for ther realm=$realm"
+	    #my showMsg "*** register url=$url for other realm=$realm"
 	    my set area($path) $realm
 	    return 1
 	} else {

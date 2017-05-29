@@ -1,4 +1,4 @@
-[comment {-*- tcl -*- nxwish manpage}]
+[comment {-*- Tcl -*- nxwish manpage}]
 
 [include version.inc]
 [manpage_begin nxwish 1 [vset VERSION]]

@@ -405,7 +405,7 @@ namespace eval ::xotcl::metadataAnalyzer {
 
     @ MetadataAnalyzer instproc print {} {
 	description "Print all collected token information to stdout. 
-   This method is also an exmaple how the tokens can be used."
+        This method is also an example how the tokens can be used."
     }
     MetadataAnalyzer instproc print {} {
 	my instvar extensions packageList

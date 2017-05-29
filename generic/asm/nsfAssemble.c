@@ -1,4 +1,4 @@
-/* 
+/*
  *  nsfAssemble.c --
  *
  *      Support for the experimental assemble feature. This file is
@@ -98,7 +98,7 @@ AsmInstruction *AsmInstructionNewLT(AsmCompiledProc *proc, int labelIdx, int arg
 # define AsmInstructionNew(proc, instruction, argc) AsmInstructionNewCT(proc, (Tcl_ObjCmdProc*)instruction, argc)
 # define AsmInstructionSetCmd(inst, name) inst->cmd = (Tcl_ObjCmdProc*)name
 # define NsfAsmJump(index) proc->ip = &proc->code[(index)-1]
-# define NsfAsmJumpNext() 
+# define NsfAsmJumpNext()
 
 AsmInstruction *AsmInstructionNewCT(AsmCompiledProc *proc, Tcl_ObjCmdProc *objProc, int argc) {
   proc->ip->cmd  = objProc;
@@ -122,7 +122,7 @@ void AsmArgSet(AsmCompiledProc *proc, int argNr, Tcl_Obj **addr) {
 }
 
 void AsmInstructionPrint(AsmInstruction *ip) {
-  int i; 
+  int i;
   fprintf(stderr, "(%d) ", ip->argc);
   for (i=0; i<ip->argc; i++) {fprintf(stderr, "%s ", ObjStr(ip->argv[i]));}
   fprintf(stderr, "\n");
@@ -144,10 +144,10 @@ void AsmInstructionPrint(AsmInstruction *ip) {
  * Prototypes needed for the execution engines included below
  */
 static int
-AsmInstructionArgvCheck(Tcl_Interp *interp, int from, int to, CONST char **argType, 
-			int nrObjs, int nrStatements, 
+AsmInstructionArgvCheck(Tcl_Interp *interp, int from, int to, CONST char **argType,
+			int nrObjs, int nrStatements,
 			Tcl_Obj **wordOv, Tcl_Obj *lineObj);
-static void 
+static void
 AsmInstructionArgvSet(Tcl_Interp *interp, int from, int to, int currentArg,
 	       AsmInstruction *inst, AsmCompiledProc *asmProc,
 	       Tcl_Obj **wordOv, int verbose);
@@ -170,7 +170,7 @@ AsmInstructionArgvSet(Tcl_Interp *interp, int from, int to, int currentArg,
  *----------------------------------------------------------------------
  */
 static int
-AsmInstructionArgvCheck(Tcl_Interp *interp, int from, int to, CONST char **argType, 
+AsmInstructionArgvCheck(Tcl_Interp *interp, int from, int to, CONST char **argType,
 			int nrSlots, int nrStatements, Tcl_Obj **wordOv, Tcl_Obj *lineObj) {
   int j;
 
@@ -178,45 +178,45 @@ AsmInstructionArgvCheck(Tcl_Interp *interp, int from, int to, CONST char **argTy
     int argIndex, typesIndex, intValue, result;
 
     //fprintf(stderr, "check arg type %s\n", ObjStr(wordOv[j]));
-    result = Tcl_GetIndexFromObj(interp, wordOv[j], asmStatementArgType, 
+    result = Tcl_GetIndexFromObj(interp, wordOv[j], asmStatementArgType,
 				 "asm statement arg type", 0, &typesIndex);
     if (result != TCL_OK) {
-      return NsfPrintError(interp, 
-			   "Asm: unknown arg type %s, line '%s'", 
+      return NsfPrintError(interp,
+			   "Asm: unknown arg type %s, line '%s'",
 			   ObjStr(wordOv[j]), ObjStr(lineObj));
     }
 
     result = Tcl_GetIndexFromObj(interp, wordOv[j], argType, "asm internal arg type", 0, &argIndex);
     if (result != TCL_OK) {
-      return NsfPrintError(interp, 
-			   "Asm: instruction argument has invalid type: '%s', line %s\n", 
+      return NsfPrintError(interp,
+			   "Asm: instruction argument has invalid type: '%s', line %s\n",
 			   ObjStr(wordOv[j]), ObjStr(lineObj));
     }
     //fprintf(stderr, "check arg value %s\n", ObjStr(wordOv[j+1]));
-    if (Tcl_GetIntFromObj(interp, wordOv[j+1], &intValue) != TCL_OK 
+    if (Tcl_GetIntFromObj(interp, wordOv[j+1], &intValue) != TCL_OK
 	|| intValue < 0) {
-      return NsfPrintError(interp, 
+      return NsfPrintError(interp,
 			   "Asm: instruction argument of type %s must have numeric index >= 0,"
-			   " got '%s', line '%s'", 
+			   " got '%s', line '%s'",
 			   ObjStr(wordOv[j]), ObjStr(wordOv[j+1]), ObjStr(lineObj));
     }
 
     if ((
-	 typesIndex == asmStatementArgTypeObjIdx || 
+	 typesIndex == asmStatementArgTypeObjIdx ||
 	 typesIndex == asmStatementArgTypeSlotIdx
 	 )
 	&& intValue > nrSlots) {
-      return NsfPrintError(interp, 
+      return NsfPrintError(interp,
 			   "Asm: instruction argument value must be less than %d,"
-			   " got '%s', line '%s'", 
+			   " got '%s', line '%s'",
 			   nrSlots, ObjStr(wordOv[j+1]), ObjStr(lineObj));
     }
     /* we assume, that every declaration results in exactly one slot */
     if ((typesIndex == asmStatementArgTypeInstructionIdx)
 	&& intValue > (nrStatements - nrSlots)) {
-      return NsfPrintError(interp, 
+      return NsfPrintError(interp,
 			   "Asm: instruction argument value must be less than %d,"
-			   " got '%s', line '%s'", 
+			   " got '%s', line '%s'",
 			   nrStatements - nrSlots, ObjStr(wordOv[j+1]), ObjStr(lineObj));
     }
   }
@@ -233,7 +233,7 @@ AsmInstructionArgvCheck(Tcl_Interp *interp, int from, int to, CONST char **argTy
  *
  *----------------------------------------------------------------------
  */
-static void 
+static void
 AsmInstructionArgvSet(Tcl_Interp *interp, int from, int to, int currentArg,
 	       AsmInstruction *inst, AsmCompiledProc *asmProc,
 	       Tcl_Obj **wordOv, int verbose) {
@@ -241,25 +241,25 @@ AsmInstructionArgvSet(Tcl_Interp *interp, int from, int to, int currentArg,
 
   for (j = from; j < to; j += 2, currentArg++) {
     int argIndex, intValue;
-	  
+	
     Tcl_GetIndexFromObj(interp, wordOv[j], asmStatementArgType, "asm cmd arg type", 0, &argIndex);
     Tcl_GetIntFromObj(interp, wordOv[j+1], &intValue);
 
     if (verbose != 0) {
-      fprintf(stderr, "AsmInstructionArgvSet (type %d) arg[%d] := %s[%s]\n", 
+      fprintf(stderr, "AsmInstructionArgvSet (type %d) arg[%d] := %s[%s]\n",
 	      argIndex, currentArg, ObjStr(wordOv[j]), ObjStr(wordOv[j+1]));
     }
-	  
+	
     switch (argIndex) {
-    case asmStatementArgTypeObjIdx: 
+    case asmStatementArgTypeObjIdx:
       inst->argv[currentArg] = asmProc->slots[intValue];
       break;
-	    
+	
     case asmStatementArgTypeArgIdx:
       AsmArgSet(asmProc, intValue, &inst->argv[currentArg]);
       break;
-	    
-    case asmStatementArgTypeResultIdx: 
+	
+    case asmStatementArgTypeResultIdx:
       inst->argv[currentArg] = NULL;
       break;
 
@@ -277,7 +277,7 @@ AsmInstructionArgvSet(Tcl_Interp *interp, int from, int to, int currentArg,
 
     }
     /*fprintf(stderr, "[%d] inst %p name %s arg[%d] %s\n", currentAsmInstruction,
-      inst, ObjStr(inst->argv[0]), currentArg, 
+      inst, ObjStr(inst->argv[0]), currentArg,
       inst->argv[currentArg] ? ObjStr(inst->argv[currentArg]) : "NULL");*/
   }
 }
@@ -304,7 +304,7 @@ NsfAsmProcDeleteProc(ClientData clientData) {
   AsmProcClientData *cd = clientData;
 
   /*fprintf(stderr, "NsfAsmProcDeleteProc received %p\n", clientData);*/
-  
+
   fprintf(stderr, "NsfAsmProcDeleteProc: TODO free asmProc\n");
   if (cd->paramDefs != 0) {
     /* tcd->paramDefs is freed by NsfProcDeleteProc() */
@@ -354,12 +354,12 @@ NsfAsmProc(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
        */
       memcpy(tov, objv, sizeof(Tcl_Obj *)*(objc));
       //tov[0] = tcd->procName;
-      
+
       /* If the argument parsing is ok, the body will be called */
       result = ProcessMethodArguments(pcPtr, interp, NULL, 0,
 				      cd->paramDefs, objv[0],
 				      objc, tov);
-      
+
       if (likely(result == TCL_OK)) {
 	result = InvokeShadowedProc(interp, cd->procName, cd->cmd, pcPtr);
       } else {
@@ -382,7 +382,7 @@ NsfAsmProc(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
     }
     cd->proc->currentObject = cd->object;
     result = AsmExecute(NULL, interp, cd->proc, objc, objv);
-  
+
   }
 
   return result;
@@ -402,7 +402,7 @@ NsfAsmProcAddParam(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
 
 static int
 NsfAsmProcAddArgs(Tcl_Interp *interp, Tcl_Obj *argumentsObj,
-		  Tcl_Obj *nameObj, Tcl_Obj *bodyObj, 
+		  Tcl_Obj *nameObj, Tcl_Obj *bodyObj,
 		  int with_ad, int with_checkAlways) {
   int argc, result;
   Tcl_Obj **argv;
@@ -413,7 +413,7 @@ NsfAsmProcAddArgs(Tcl_Interp *interp, Tcl_Obj *argumentsObj,
   if (unlikely(Tcl_ListObjGetElements(interp, argumentsObj, &argc, &argv) != TCL_OK)) {
     return NsfPrintError(interp, "argument list invalid '%s'", ObjStr(argumentsObj));
   }
-  
+
   result = AsmAssemble(NULL, interp, nameObj, argc, bodyObj, &asmProc);
   if (unlikely(result != TCL_OK)) {
     return result;
@@ -457,9 +457,9 @@ NsfAsmMethodCreateCmd(Tcl_Interp *interp, NsfObject *defObject,
     (withPer_object || ! NsfObjectIsClass(defObject)) ?
     NULL : (NsfClass *)defObject;
 
-  // not handled:  
-  //  * withInner_namespace, 
-  //  * regObject, 
+  // not handled:
+  //  * withInner_namespace,
+  //  * regObject,
   //  * pre and post-conditions
   //  * withCheckAlways ? NSF_ARGPARSE_CHECK : 0
 
@@ -470,7 +470,7 @@ NsfAsmMethodCreateCmd(Tcl_Interp *interp, NsfObject *defObject,
   if (unlikely(Tcl_ListObjGetElements(interp, argumentsObj, &argc, &argv) != TCL_OK)) {
     return NsfPrintError(interp, "argument list invalid '%s'", ObjStr(argumentsObj));
   }
-  
+
   result = AsmAssemble(NULL, interp, nameObj, argc, bodyObj, &asmProc);
   if (unlikely(result != TCL_OK)) {
     return result;

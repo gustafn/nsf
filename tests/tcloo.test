@@ -29,7 +29,7 @@ package req nx::test
 # method impl, they are skipped during method dispatch (as in an
 # implicit next call). Using the method stubs, the public interface
 # (i.e., the interface dispatchable through an object's Tcl_command)
-# can be extended or shrinked by selectively enabling or disabling
+# can be extended or shrunk by selectively enabling or disabling
 # shadowed (inherited) method implementations along the instande-of or
 # the inheritance relationships. Exported or unexported, yet
 # unimplemented methods are treated as unknowns.

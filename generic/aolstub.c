@@ -114,7 +114,7 @@ NsNsf_Init (Tcl_Interp *interp, void *context)
  *
  *    So, we made sure (by patching the AOLserver code) that no commands with
  *    delete callbacks declared, are ever copied from the startup thread.
- *    Additionaly, we also made sure that AOLserver properly invokes any
+ *    Additionally, we also made sure that AOLserver properly invokes any
  *    AtCreate callbacks. So, instead of activating those callbacks *after*
  *    running the Tcl-initialization script (which is the standard behaviour)
  *    we activate them *before*. So we may get a chance to configure the

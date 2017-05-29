@@ -155,7 +155,7 @@ test "specify filename, and do not use cache" {
   assert {lindex [exec md5sum  test.ps] 0} c6029c987e841430f3ca9bab157da12f
 }
 
-test "specify filesink and use cache; no copying neccesary" {
+test "specify filesink and use cache; no copying necessary" {
   persistentCache invalidate \
       http://nestroy.wi-inf.uni-essen.de/Lv/muster-d1klausur.ps
   SimpleRequest $r -useFileSink 1 -caching 1 \

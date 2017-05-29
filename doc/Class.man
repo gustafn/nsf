@@ -1,4 +1,4 @@
-[comment {-*- tcl -*- nx::Class manpage}]
+[comment {-*- Tcl -*- nx::Class manpage}]
 
 [include version.inc]
 [manpage_begin nx::Class 3 [vset VERSION]]

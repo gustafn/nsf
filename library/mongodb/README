@@ -32,7 +32,7 @@ OBTAIN MONGODB and MONGO-C-DRIVER:
       make
       sudo make install
 
-  Alternatively, one can get the newest version form git
+  Alternatively, one can get the newest version from git
 
       cd /usr/local/src
       git clone https://github.com/mongodb/mongo-c-driver

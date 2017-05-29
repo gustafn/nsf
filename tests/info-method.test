@@ -212,7 +212,7 @@ nx::test case visability-aliased-object {
 #package require nx::test
 
 #
-# Introspect the returns method property throught the "info method"
+# Introspect the returns method property through the "info method"
 # API chunk ...
 #
 
@@ -1189,7 +1189,7 @@ nx::test case method-isregistered {
 }
 
 #
-# Testing "... info method orgin ..." (in contrast to "... info method
+# Testing "... info method origin ..." (in contrast to "... info method
 # handle ..."). "origin" always points to the definintion handle,
 # "handle" alone is the registration handle.
 #

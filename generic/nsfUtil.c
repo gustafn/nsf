@@ -42,8 +42,8 @@
  * strnstr --
  *
  *    Implementation of strnstr() for platforms not providing it via their C
- *    library. The function strnstr locates the first occurance of a substring
- *    in a null-terminated string
+ *    library. The function strnstr locates the first occurrence of a
+ *    substring in a null-terminated string.
  *
  * Results:
  *    Strbstring or NULL

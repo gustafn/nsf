@@ -102,7 +102,7 @@ namespace eval ::xotcl::htmllib {
 	    if {$compressed == "0"} {
 		append rvalue "$line\n"
 	    } else {
-		## only new line for closing tags at the beginnig 
+		## only new line for closing tags at the beginning 
 		## of a document element
 		if {[string equal -length 2 "</" $line]} {
 		    append rvalue "$line\n"

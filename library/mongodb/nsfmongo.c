@@ -912,7 +912,7 @@ NsfMongoCollectionIndex(Tcl_Interp *interp,
   if (withUnique != 0)     {options.unique = 1;}
   if (withTtl != 0)        {options.expire_after_seconds = withTtl;}
   if (withName != 0)       {options.name = withName;}
-  /* TODO: not handled: is_initialized, v, weights, default_language, laguage_override, padding */
+  /* TODO: not handled: is_initialized, v, weights, default_language, language_override, padding */
 
   success = mongoc_collection_create_index(collectionPtr, keysPtr, &options, &bsonError);
 
@@ -1687,7 +1687,7 @@ void
 Nsfmongo_ThreadExit(ClientData clientData)
 {
   /*
-   * The exit might happen at a time, when tcl is already shut down.
+   * The exit might happen at a time, when Tcl is already shut down.
    * We can't reliably call NsfLog.
    */
 
@@ -1713,7 +1713,7 @@ void
 Nsfmongo_Exit(ClientData clientData)
 {
   /*
-   * The exit might happen at a time, when tcl is already shut down.
+   * The exit might happen at a time, when Tcl is already shut down.
    * We can't reliably call NsfLog.
    *
    *   Tcl_Interp *interp = (Tcl_Interp *)clientData;

@@ -64,7 +64,7 @@ nx::mongo::db drop collection posts
 ######################################################################
 # The third approach is to embed the object in the referencing
 # document. This might be feasible when the values of the embedded
-# objects seldomly change, When the containing object (the Post
+# objects seldom change, When the containing object (the Post
 # instance) is loaded, the appropriate object structure is created
 # automatically.
 #

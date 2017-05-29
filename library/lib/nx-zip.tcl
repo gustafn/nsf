@@ -24,7 +24,7 @@ namespace eval ::nx::zip {
     #   - addString  (add the file-content from a string to the archive)
     #
     #    - writeToZipFile    (produce a Zip file)
-    #    - ns_returnZipFile  (return a zip file via aolserver ns_return) 
+    #    - ns_returnZipFile  (return a zip file via AOLserver ns_return) 
     #
     #    - writeToStream     (for already opened and configured 
     #                        output streams
@@ -63,7 +63,7 @@ namespace eval ::nx::zip {
     }
 
     #
-    # return the added files via aolserver/naviserver to the client
+    # return the added files via aolserver/NaviServer to the client
     #
     :public method ns_returnZipFile {zipFileName} {
       ns_write "HTTP/1.0 200 OK\r\nContent-type: application/zip\r\n"
@@ -72,7 +72,7 @@ namespace eval ::nx::zip {
       set channel [ns_conn channel]
       fconfigure $channel -translation binary
       :writeToStream $channel
-      # aolserver/naviserver closes the channel automatically
+      # aolserver/NaviServer closes the channel automatically
     }
 
     #

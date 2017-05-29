@@ -61,7 +61,7 @@ namespace eval ::nx::serializer {
       <@tt>ignore</@tt> and <@tt>ignoreVarsRE</@tt> see
       <@tt>Serizalizer all</@tt>. <@tt>map</@tt> can be used
       in addition to provide pairs of old-string and new-string
-      (like in the tcl command <@tt>string map</@tt>). This option
+      (like in the Tcl command <@tt>string map</@tt>). This option
       can be used to regenerate the serialized object under a different
       object or under an different name, or to translate relative
       object names in the serialized code.<p>
@@ -197,7 +197,7 @@ namespace eval ::nx::serializer {
     }
 
     :public method getTargetName {sourceName} {
-      # TODO: make more efficent;
+      # TODO: make more efficient;
       if {![string match ::* $sourceName]} {
 	set sourceName ::$sourceName
       }
@@ -314,7 +314,7 @@ namespace eval ::nx::serializer {
     }
 
     ###############################
-    # class object specfic methods
+    # class object specific methods
     ###############################
 
     :public object method allChildren o {
@@ -770,7 +770,7 @@ namespace eval ::nx::serializer {
         #
         # Handle targets of forwarders: when target object mapping
         # is activated, we might have to adapt the forwarding target
-        # as well. This is particulary important for per-object
+        # as well. This is in particular important for per-object
         # forwarders, which are used frequently in the slot objects
         # (but not necessarily only there).
         #

@@ -1,4 +1,4 @@
-[comment {-*- tcl -*- nx::Object manpage}]
+[comment {-*- Tcl -*- nx::Object manpage}]
 
 [include version.inc]
 [manpage_begin nx::Object 3 [vset VERSION]]
@@ -334,7 +334,7 @@ via [cmd next].
 destroying ::obj
 }]
 
-A customized object-desctruction scheme can be made shared between the instances
+A customized object-destruction scheme can be made shared between the instances
 of a class, by defining the custom [method destroy] for an
 application class:
 

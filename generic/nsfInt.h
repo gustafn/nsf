@@ -730,11 +730,11 @@ const char *NsfGlobalStrings[] = {
   "alias", "args", "cmd", "filter",  "forward",
   "method", "object", "setter", "settername", "valuecheck",
   "-guard", "__unknown__", "::array", "get", "set", "-strict",
-  /* nsf tcl commands */
+  /* nsf Tcl commands */
   "::nsf::object::unknown",
   "::nsf::argument::unknown",
   "::nsf::parseargs",
-  /* tcl commands */
+  /* Tcl commands */
   "expr", "format", "::tcl::info::body", "::tcl::info::frame", "interp",
   "::tcl::string::is", "::eval",
   "rename"
@@ -851,7 +851,7 @@ typedef struct NsfCallStackContent {
 
 /*
  * Tcl uses 01 and 02, TclOO uses 04 and 08, so leave some space free
- * for further extensions of tcl and tcloo...
+ * for further extensions of Tcl and tcloo...
  */
 #define FRAME_IS_NSF_OBJECT  0x10000U
 #define FRAME_IS_NSF_METHOD  0x20000U
@@ -943,7 +943,7 @@ typedef struct NsfRuntimeState {
   int doProfile;
   int doTrace;
   unsigned int preventRecursionFlags;
-  int doClassConverterOmitUnkown;
+  int doClassConverterOmitUnknown;
   int doSoftrecreate;
   int exitHandlerDestroyRound;          /* shutdown handling */  
 

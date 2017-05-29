@@ -313,7 +313,7 @@ nx::test case converting-returns {
     package req nx::serializer
     set s [C serialize]
   puts $s
-    ? [list set _ [regsub -all returns $s returns s]] 8 "occurances of returns"
+    ? [list set _ [regsub -all returns $s returns s]] 8 "occurrences of returns"
 
     ? {c1 bar-ok1 1 2} 1
     ? {c1 bar-ok2 1 2} 1

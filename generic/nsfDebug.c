@@ -47,7 +47,7 @@
  *----------------------------------------------------------------------
  * NsfReportVars --
  *
- *    Report version numbers and configure options as tcl variables.
+ *    Report version numbers and configure options as Tcl variables.
  *
  * Results:
  *    None.
