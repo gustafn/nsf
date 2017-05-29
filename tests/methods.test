@@ -802,6 +802,15 @@ nx::test case delete-class-level-method {
   ? {C info methods -path} ""
 }
 
+nx::test case default-unknown-handler {
+
+  nx::Object create o
+  ? {o sakania} "::o: unable to dispatch method 'sakania'"
+  ? {o yore dub} "::o: unable to dispatch method 'yore'"
+  ? {o "yore dub"} "::o: unable to dispatch method 'yore dub'"
+  
+}
+
 #
 # simple unknown tests; 
 # ensemble unknown tests are in submethods.test
