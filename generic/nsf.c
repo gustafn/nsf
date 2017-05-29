@@ -14350,7 +14350,9 @@ DispatchUnknownMethod(Tcl_Interp *interp, NsfObject *object,
       int length;
 
       tailMethodObj = objv[1];
-      if (Tcl_ListObjLength(interp, objv[1], &length) == TCL_OK) {
+      if ((((object->flags & NSF_KEEP_CALLER_SELF) != 0u) ||
+           ((object->flags & NSF_PER_OBJECT_DISPATCH) != 0u)) &&
+          Tcl_ListObjLength(interp, objv[1], &length) == TCL_OK) {
         if (length > 1) {
           Tcl_ListObjIndex(interp, objv[1], length - 1, &tailMethodObj);
         }
