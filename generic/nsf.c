@@ -26060,7 +26060,7 @@ NsfForwardPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
                           NULL, NULL, &defObject, NULL, &fromClassNS);
 
   if (unlikely(cmd == NULL)) {
-    return NsfPrintError(interp, "cannot lookup %s method '%s' for %s",
+    return NsfPrintError(interp, "cannot lookup %smethod '%s' for %s",
                          cl == NULL ? "object " : "",
                          ObjStr(methodObj), ObjectName_(object));
   }
@@ -26146,7 +26146,7 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
       Tcl_SetObjResult(interp, Tcl_NewIntObj(0));
       return TCL_OK;
     } else {
-      return NsfPrintError(interp, "cannot lookup %s method '%s' for %s",
+      return NsfPrintError(interp, "cannot lookup %smethod '%s' for %s",
                            cl == NULL ? "object " : "",
                            ObjStr(methodObj), ObjectName_(object));
     }

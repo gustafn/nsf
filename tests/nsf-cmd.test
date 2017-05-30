@@ -277,6 +277,26 @@ nx::test case nsf-method-get-variants {
 
 }
 
+nx::test case nsf-method-property {
+  ? {::nsf::object::exists ::TestMe} 0
+  ? {::nsf::method::property ::TestMe missing call-protected true} \
+      {expected object but got "::TestMe" for parameter "object"}
+  ? {::nsf::method::forward::property ::TestMe missing verbose true} \
+      {expected object but got "::TestMe" for parameter "object"}
+
+  nx::Class create ::TestMe
+  
+  ? {::nsf::method::property ::TestMe -per-object missing call-protected true} \
+      {cannot lookup object method 'missing' for ::TestMe}
+  ? {::nsf::method::property ::TestMe missing call-protected true} \
+      {cannot lookup method 'missing' for ::TestMe}
+  ? {::nsf::method::forward::property ::TestMe -per-object missing verbose true} \
+      {cannot lookup object method 'missing' for ::TestMe}
+  ? {::nsf::method::forward::property ::TestMe missing verbose true} \
+      {cannot lookup method 'missing' for ::TestMe}
+
+}
+
 #
 # test error transparency of "-debug" option
 #
