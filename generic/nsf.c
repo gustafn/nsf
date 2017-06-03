@@ -10052,7 +10052,6 @@ FilterAdd(Tcl_Interp *interp, NsfCmdList **filterList, Tcl_Obj *filterregObj,
   Tcl_Obj     *filterObj = NULL;
   Tcl_Obj     *guardObj = NULL;
   Tcl_Command  cmd;
-  NsfCmdList  *new;
   NsfClass    *cl;
   int          result = TCL_OK;
 
@@ -10090,6 +10089,8 @@ FilterAdd(Tcl_Interp *interp, NsfCmdList **filterList, Tcl_Obj *filterregObj,
   }
 
   if (result == TCL_OK) {
+    NsfCmdList *new;
+
     /*fprintf(stderr, " +++ adding filter %s cl %p\n", ObjStr(nameObj), cl);*/
 
     new = CmdListAdd(filterList, cmd, cl, /*noDuplicates*/ 1, 1);
