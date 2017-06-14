@@ -3428,11 +3428,11 @@ ResolveMethodName(Tcl_Interp *interp, Tcl_Namespace *nsPtr, Tcl_Obj *methodObj,
   } else if (methodObj->typePtr == Nsf_OT_tclCmdNameType) {
     containsSpace = 0;
   } else {
-    containsSpace = strchr(methodName, ' ') != NULL;
+    containsSpace = NsfHasTclSpace(methodName);
   }
 
   if (containsSpace != 0) {
-    tailContainsSpace = strchr(NSTail(methodName), ' ') != NULL;
+    tailContainsSpace = NsfHasTclSpace(NSTail(methodName));
   } else {
     tailContainsSpace = 0;
   }
@@ -3440,7 +3440,7 @@ ResolveMethodName(Tcl_Interp *interp, Tcl_Namespace *nsPtr, Tcl_Obj *methodObj,
 
 #if !defined(NDEBUG)
   if (containsSpace != 0) {
-    assert(strchr(methodName, ' ') != 0);
+    assert(NsfHasTclSpace(methodName));
   } else {
     assert(tailContainsSpace == 0);
   }
@@ -16573,6 +16573,11 @@ MakeMethod(Tcl_Interp *interp, NsfObject *defObject, NsfObject *regObject,
   nonnull_assert(body != NULL);
 
   nameStr = ObjStr(nameObj);
+
+  if (*nameStr == '\0' || NsfHasTclSpace(nameStr)) {
+    return NsfPrintError(interp, "invalid method name '%s'", nameStr);
+  }
+  
   if (precondition != NULL && postcondition == NULL) {
     return NsfPrintError(interp, "%s method '%s'; when specifying a precondition (%s)"
                          " a postcondition must be specified as well",

@@ -4,6 +4,71 @@ package require nx::test
 
 ::nx::configure defaultMethodCallProtection false
 
+
+nx::test case name-validity-checks {
+
+  nx::Class create C
+  
+  #
+  # Add some basic tests on valid/invalid method names.
+  #
+
+  ? {set ::h [nsf::method::create ::C "" {} {;}]} "invalid method name ''"
+  ? {set ::h [nsf::method::create ::C {e1 m1} {} {;}]} "invalid method name 'e1 m1'"
+  ? {set ::h [nsf::method::create ::C "e1\tm1" {} {;}]} "invalid method name 'e1\tm1'"
+  ? {set ::h [nsf::method::create ::C {{e1 m1}} {} {;}]} "invalid method name '{e1 m1}'"
+  ? {set ::h [nsf::method::create ::C ":" {} {;}]} {can't create procedure ":" in non-global namespace with name starting with ":"}
+  
+  # These are Tcl whitespace characters, which act as the separators in
+  # Tcl list string reps:
+  #
+  # \u0009  \t      TAB
+  # \u000A  \n      NEWLINE
+  # \u000B  \v      VERTICAL TAB
+  # \u000C  \f      FORM FEED
+  # \u000D  \r      CARRIAGE RETURN
+  # \u0020          SPACE
+  #
+  
+  ? {set ::h [nsf::method::create ::C "  e1   " {} {;}]} "invalid method name '  e1   '"
+  ? {set ::h [nsf::method::create ::C {"  e1   "} {} {;}]} {invalid method name '"  e1   "'}
+  
+  ? {set ::h [nsf::method::create ::C "\te1" {} {;}]} "invalid method name '\te1'"
+  ? {set ::h [nsf::method::create ::C "e1\tm1" {} {;}]} "invalid method name 'e1\tm1'"
+  
+  ? {set ::h [nsf::method::create ::C "\ne1" {} {;}]} "invalid method name '\ne1'"
+  ? {set ::h [nsf::method::create ::C "e1\nm1" {} {;}]} "invalid method name 'e1\nm1'"
+  
+  ? {set ::h [nsf::method::create ::C "\ve1" {} {;}]} "invalid method name '\ve1'"
+  ? {set ::h [nsf::method::create ::C "e1\vm1" {} {;}]} "invalid method name 'e1\vm1'"
+  
+  ? {set ::h [nsf::method::create ::C "\fe1" {} {;}]} "invalid method name '\fe1'"
+  ? {set ::h [nsf::method::create ::C "e1\fm1" {} {;}]} "invalid method name 'e1\fm1'"
+  
+  ? {set ::h [nsf::method::create ::C "\re1" {} {;}]} "invalid method name '\re1'"
+  ? {set ::h [nsf::method::create ::C "e1\rm1" {} {;}]} "invalid method name 'e1\rm1'"
+  
+  
+  # There is no tangible difference between a bareword and a one-element
+  # list in Tcl (singelton list). So, there will remain exotique method
+  # names including curly braces, along with other peculiar names,
+  # e.g. those starting with #.
+  ? {set ::h [nsf::method::create ::C {{{{{a}}}}} {} {;}]} {::nsf::classes::C::{{{{a}}}}};
+  ? {set ::h [nsf::method::create ::C {#a} {} {;}]} {::nsf::classes::C::#a};
+    
+  #
+  # In Tcl, the empty string is a valid command (proc) name, with
+  # obscure effects (e.g., cannot be renamed, unless) . We disallow it as method name.
+  #
+    
+  ? {set ::h [nsf::method::create ::C "" {} {;}]} "invalid method name ''"
+    
+  # But, we can safeguard against list elements containing Tcl
+  # whitespace characters at any nesting level.
+  ? {set ::h [nsf::method::create ::C {{{{{a b}}}}} {} {;}]} {invalid method name '{{{{a b}}}}'}; 
+}
+    
+    
 nx::test configure -count 10
 
 nx::Class create C {
