@@ -26351,7 +26351,7 @@ NsfMethodSetterCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tc
   length = strlen(methodName);
 
   for (j = 0; j < length; j++) {
-    if (methodName[j] == ':' || methodName[j] == ' ') {
+    if (methodName[j] == ':' || NsfHasTclSpace(&methodName[j])) {
       break;
     }
   }
