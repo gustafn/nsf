@@ -3925,7 +3925,7 @@ ObjectFindMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *methodObj, NsfC
   nonnull_assert(methodObj != NULL);
   nonnull_assert(pcl != NULL);
 
-  if (strchr(ObjStr(methodObj), ' ') != NULL) {
+  if (NsfHasTclSpace(ObjStr(methodObj))) {
     lookupFunction = SearchComplexCMethod;
   } else {
     lookupFunction = SearchSimpleCMethod;

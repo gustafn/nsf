@@ -53,6 +53,11 @@ nx::test case nsf-method-get-variants {
   ? {nsf::cmd::info submethods $::handle} ""
   ? {nsf::cmd::info returns $::handle} ""
 
+  # alternative string reps for pattern list
+  foreach char {\t \n \r \f \v} {
+    ? [list p1 info lookup method "string${char}match"] [join [list {*}$::handle] $char]
+  }
+
   #
   # An C-defined method inherited from nx::Object
   #
