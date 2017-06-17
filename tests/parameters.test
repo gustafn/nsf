@@ -1969,11 +1969,19 @@ nx::test case xotcl-list-notation {
   ? {cc parameter_declaration} o
   ? {cc user_id} 4
 
-  # new without list notation
+  # new with list notation
   ? {CC create cc -package_id 234 [list -parameter_declaration oo] -user_id 456} ::cc
   ? {cc package_id} 234
   ? {cc parameter_declaration} oo
   ? {cc user_id} 456
+
+  xotcl::Class create KK -parameter {a b c d}
+  # new with (alternative) list notation
+  ? {KK create kk "-a\r234" "-b\n456" "-c\f543" "-d\nddd"} ::kk
+  ? {kk a} 234
+  ? {kk b} 456
+  ? {kk c} 543
+  ? {kk d} ddd
 }
 
 #

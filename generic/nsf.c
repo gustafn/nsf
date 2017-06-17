@@ -21381,8 +21381,8 @@ IsDashArg(Tcl_Interp *interp, Tcl_Obj *obj, int isFirstArg, const char **methodN
       /* if the argument contains a space, try to split */
       const char *p = flag+1;
 
-      while (*p != '\0' && *p != ' ') p++;
-      if (*p == ' ') {
+      while (*p != '\0' && !NsfHasTclSpace(p)) p++;
+      if (NsfHasTclSpace(p)) {
         if (Tcl_ListObjGetElements(interp, obj, objcPtr, objvPtr) == TCL_OK) {
           *methodName = ObjStr(*objvPtr[0]);
           if (**methodName == '-') {(*methodName)++ ;}
@@ -29381,7 +29381,7 @@ NsfOResidualargsMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj 
         break;
       }
     case LIST_DASH:  /* Argument is a list with a leading dash, grouping determined by list */
-      {        i++;
+      { i++;
         nextMethodName = NULL;
 
         if (i < objc) {
