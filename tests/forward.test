@@ -318,6 +318,10 @@ nx::test case forwarder-basics {
   obj public object forward foo -verbose %self {%1 {FOO OOF}} {%1 {A B}}
   ? {obj foo X} "OOF-B X"
 
+  obj public object forward foo -verbose %self "%1\n{FOO\nOOF}" "%1\r{A\tB}"
+  ? {obj foo X} "OOF-B X"
+
+
   ##
   ## -prefix; requires a 2nd arg!
   ##

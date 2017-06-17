@@ -20786,7 +20786,7 @@ ForwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
       }
       goto add_to_freelist;
 
-    } else if (c == '1' && (c1 == '\0' || c1 == ' ')) {
+    } else if (c == '1' && (c1 == '\0' || NsfHasTclSpace(&c1))) {
 
       if (c1 != '\0') {
         if (unlikely(Tcl_ListObjIndex(interp, forwardArgObj, 1, &list) != TCL_OK)) {
