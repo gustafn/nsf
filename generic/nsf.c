@@ -16442,7 +16442,10 @@ MakeProc(Tcl_Namespace *nsPtr, NsfAssertionStore *aStore, Tcl_Interp *interp,
   nonnull_assert(defObject != NULL);
 
   methodName = ObjStr(nameObj);
-  assert(*methodName != ':');
+  /*
+   * Tcl (at least in newer versions) will raise an error in cases, where
+   * the methodName starts with a colon.
+   */
 
   if (regObject == NULL) {
     regObject = defObject;
@@ -25906,6 +25909,7 @@ NsfMethodCreateCmd(Tcl_Interp *interp, NsfObject *defObject,
 
   if (cl == NULL) {
     RequireObjNamespace(interp, defObject);
+
   }
   return MakeMethod(interp, defObject, regObject, cl,
                     nameObj, arguments, body,
