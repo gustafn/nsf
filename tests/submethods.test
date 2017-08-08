@@ -887,6 +887,27 @@ nx::test case ensemble-vs-simple-method {
   ? {o1 bar x y z} "bar/2"
 }
 
+nx::test case ensemble-next-vs-colon-dispatch {
+  nx::Class create A {
+    :method "x s" args {
+      next
+      return [current class]
+    }
+  }
+  
+  nx::Class create B  -superclasses A {
+    :public method "x s" args {
+      return [list [current class] {*}[next]]
+    }
+    :create b
+  }
+
+  set sc "::B ::A"
+  ? {b eval { :x s }} $sc
+  ? {b eval { : x s }} $sc
+  ? {b x s} $sc
+}
+
 #
 # Local variables:
 #    mode: tcl

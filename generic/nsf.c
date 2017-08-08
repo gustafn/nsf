@@ -18049,7 +18049,7 @@ NextGetArguments(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
     cscPtr = CallStackFindEnsembleCsc(framePtr, &framePtr);
     assert(cscPtr != NULL);
     inEnsemble = 1;
-    *methodNamePtr = ObjStr(cscPtr->objv[0]);
+    *methodNamePtr = MethodName(cscPtr->objv[0]);
   } else {
     inEnsemble = 0;
     *methodNamePtr = Tcl_GetCommandName(interp, cscPtr->cmdPtr);
