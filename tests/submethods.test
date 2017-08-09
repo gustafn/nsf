@@ -407,6 +407,9 @@ nx::test case object-unknown {
   ? {D i o a} a
   ? {D i o x} {unable to dispatch sub-method "x" of ::D i o; valid are: i o a, i o b}
   ? {D i o x y} {unable to dispatch sub-method "x" of ::D i o; valid are: i o a, i o b}
+
+  ::nsf::method::delete nx::Class i
+  ::nsf::method::delete nx::Object i
 }
 
 nx::test case unknown-in-info {
