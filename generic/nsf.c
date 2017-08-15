@@ -10102,7 +10102,7 @@ FilterAdd(Tcl_Interp *interp, NsfCmdList **filterList, Tcl_Obj *filterregObj,
       GuardDel(new);
     }
   }
-  
+
   return result;
 }
 
@@ -16580,7 +16580,7 @@ MakeMethod(Tcl_Interp *interp, NsfObject *defObject, NsfObject *regObject,
   if (*nameStr == '\0' || NsfHasTclSpace(nameStr)) {
     return NsfPrintError(interp, "invalid method name '%s'", nameStr);
   }
-  
+
   if (precondition != NULL && postcondition == NULL) {
     return NsfPrintError(interp, "%s method '%s'; when specifying a precondition (%s)"
                          " a postcondition must be specified as well",
@@ -17770,7 +17770,7 @@ FindCalledClass(Tcl_Interp *interp, NsfObject *object) {
   cscPtr = CallStackGetTopFrame0(interp);
   if (unlikely(cscPtr == NULL)) {
     result = NULL;
-    
+
   } else {
     if (cscPtr->frameType == NSF_CSC_TYPE_PLAIN) {
       result = cscPtr->cl;
@@ -17784,10 +17784,10 @@ FindCalledClass(Tcl_Interp *interp, NsfObject *object) {
       } else {
         methodName = NULL;
       }
-      
+
       if (unlikely(methodName == NULL)) {
         result = NULL;
-        
+
       } else if (object->nsPtr != NULL && FindMethod(object->nsPtr, methodName) != NULL) {
         /*
          * An object specific method was called.
@@ -17795,7 +17795,7 @@ FindCalledClass(Tcl_Interp *interp, NsfObject *object) {
         result = NULL;
       } else {
         Tcl_Command  cmd;
-        
+
         result = SearchCMethod(object->cl, methodName, &cmd);
       }
     }
@@ -18478,11 +18478,11 @@ FindSelfNext(Tcl_Interp *interp) {
   cscPtr = CallStackGetTopFrame0(interp);
   if (unlikely(cscPtr == NULL)) {
     result = NsfPrintError(interp, "called outside NSF scope");
-    
+
   } else {
     Tcl_Command cmd = NULL, currentCmd = NULL;
     const char *methodName;
-    
+
     Tcl_ResetResult(interp);
 
     methodName = Tcl_GetCommandName(interp, cscPtr->cmdPtr);
@@ -18495,7 +18495,7 @@ FindSelfNext(Tcl_Interp *interp) {
       int        isMixinEntry = 0, isFilterEntry = 0, endOfFilterChain = 0;
       NsfClass  *cl     = cscPtr->cl;
       NsfObject *object = cscPtr->self;
-      
+
       result = NextSearchMethod(object, interp, cscPtr, &cl, &methodName, &cmd,
                                 &isMixinEntry, &isFilterEntry, &endOfFilterChain, &currentCmd);
       if (cmd != NULL) {
@@ -26198,7 +26198,7 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
         break;
       case MethodpropertyNULL:       /* fall through */
       case MethodpropertyReturnsIdx: /* fall through */
-      case MethodpropertyExistsIdx:        
+      case MethodpropertyExistsIdx:
         flag = 0u;
         break;
       }
@@ -29010,7 +29010,7 @@ NsfOCgetMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj) {
     paramPtr = NULL;
   }
   found = (paramPtr != NULL);
-      
+
   if (found == 0) {
     result = NsfPrintError(interp, "cget: unknown configure parameter %s", nameString);
     goto cget_exit;
