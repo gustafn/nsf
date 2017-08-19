@@ -318,37 +318,6 @@ CallStackGetActiveProcFrame(Tcl_CallFrame *framePtr) {
 
 /*
  *----------------------------------------------------------------------
- * CallStackNextFrameOfType --
- *
- *    Return the next frame with a specified type from the call stack.
- *    The type is specified by a bit mask passed as flags.
- *
- * Results:
- *    Tcl_CallFrame
- *
- * Side effects:
- *    None.
- *
- *----------------------------------------------------------------------
- */
-static Tcl_CallFrame * CallStackNextFrameOfType(Tcl_CallFrame *framePtr, unsigned int flags) nonnull(1);
-
-static Tcl_CallFrame *
-CallStackNextFrameOfType(Tcl_CallFrame *framePtr, unsigned int flags) {
-  nonnull_assert(framePtr != NULL);
-
-  do {
-    if (((unsigned int)Tcl_CallFrame_isProcCallFrame(framePtr) & flags) != 0u) {
-      return framePtr;
-    }
-    framePtr = Tcl_CallFrame_callerPtr(framePtr);
-  } while (framePtr != NULL);
-
-  return framePtr;
-}
-
-/*
- *----------------------------------------------------------------------
  * GetSelfObj --
  *
  *    Return the currently active object from a method or object frame.
@@ -804,6 +773,48 @@ CallStackFindEnsembleCsc(const Tcl_CallFrame *framePtr, Tcl_CallFrame **framePtr
   *framePtrPtr = varFramePtr;
 
   return cscPtr;
+}
+
+/*
+ *----------------------------------------------------------------------
+ * CallStackNextFrameOfType --
+ *
+ *    Return the next frame on the call stack being of a specified type. The
+ *    type is specified by a bitmask passed as flags.
+ *
+ * Results:
+ *    Tcl_CallFrame
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+static Tcl_CallFrame * CallStackNextFrameOfType(Tcl_CallFrame *framePtr, unsigned int flags) nonnull(1);
+
+static Tcl_CallFrame *
+CallStackNextFrameOfType(Tcl_CallFrame *framePtr, unsigned int flags) {
+  NsfCallStackContent *cscPtr;
+  nonnull_assert(framePtr != NULL);
+
+  do {
+
+    cscPtr = Tcl_CallFrame_clientData(framePtr);
+
+    if (cscPtr != NULL && (cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) != 0u) {
+      (void)CallStackFindEnsembleCsc(framePtr, &framePtr);
+    }
+    
+    if (((unsigned int)Tcl_CallFrame_isProcCallFrame(framePtr) & flags) != 0u) {
+      return framePtr;
+    }
+
+    framePtr = Tcl_CallFrame_callerPtr(framePtr);
+    
+  } while (framePtr != NULL);
+
+  return framePtr;
 }
 
 /*

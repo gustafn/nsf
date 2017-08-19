@@ -27880,11 +27880,17 @@ NsfCurrentCmd(Tcl_Interp *interp, CurrentoptionIdx_t selfoption) {
     break;
 
   case CurrentoptionIsnextcallIdx: {
-    (void)CallStackGetTopFrame(interp, &framePtr);
+
+    cscPtr = CallStackGetTopFrame(interp, &framePtr);
+    
+    if ((cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) != 0u) {
+      (void)CallStackFindEnsembleCsc(framePtr, &framePtr);
+    }
+    
     framePtr = CallStackNextFrameOfType(Tcl_CallFrame_callerPtr(framePtr),
                                         FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD);
     cscPtr = (framePtr != NULL) ? Tcl_CallFrame_clientData(framePtr) : NULL;
-
+    
     Tcl_SetBooleanObj(Tcl_GetObjResult(interp),
                       (cscPtr != NULL && ((cscPtr->flags & NSF_CSC_CALL_IS_NEXT) != 0u)));
     break;

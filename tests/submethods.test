@@ -913,11 +913,12 @@ nx::test case ensemble-next-vs-colon-dispatch {
 
 nx::test case ensemble-callstack-introspection {
   set ::body {
-    return [list [current nextmethod] {*}[next]]
+    return [list [current nextmethod] [current isnextcall] {*}[next]]
   }
   
   nx::Class create A {
     set ::handle [:method "i s" args $::body]
+    :create a
   }
   
   nx::Class create B  -superclasses A {
@@ -925,14 +926,16 @@ nx::test case ensemble-callstack-introspection {
     :create b
   }
   
-  ? {b eval { :i s }} {{::nsf::classes::A::i s} {}}
+  ? {b eval { :i s }} {{::nsf::classes::A::i s} 0 {} 1}
   ? {::nsf::cmd::info args [lindex [b eval { :i s }] 0]} "args"
   ? {::nsf::cmd::info definitionhandle [lindex [b eval { :i s }] 0]} $::handle
   ? {::nsf::cmd::info body [lindex [b eval { :i s }] 0]} $::body
-  ? {b i s} {{::nsf::classes::A::i s} {}};
+  ? {b i s} {{::nsf::classes::A::i s} 0 {} 1};
   ? {::nsf::cmd::info args [lindex [b i s] 0]} "args"
   ? {::nsf::cmd::info definitionhandle [lindex [b i s] 0]} $::handle
   ? {::nsf::cmd::info body [lindex [b i s] 0]} $::body
+  ? {a eval { :i s }} {{} 0}
+  ? {a i s} {{} 0}
   
   unset -nocomplain ::handle
   unset -nocomplain ::body
