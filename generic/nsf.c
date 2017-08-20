@@ -3835,14 +3835,15 @@ SearchCMethod(/*@notnull@*/ NsfClass *cl, const char *methodName, Tcl_Command *c
  *
  *----------------------------------------------------------------------
  */
-static NsfClass * SearchSimpleCMethod(Tcl_Interp *interp, /*@notnull@*/ NsfClass *cl,
-                    Tcl_Obj *methodObj, Tcl_Command *cmdPtr) nonnull(1) nonnull(2) nonnull(3) nonnull(4);
+static NsfClass * SearchSimpleCMethod(Tcl_Interp *UNUSED(interp),
+                                      NsfClass *cl, Tcl_Obj *methodObj,
+                                      Tcl_Command *cmdPtr)
+  nonnull(2) nonnull(3) nonnull(4);
 
 static NsfClass *
-SearchSimpleCMethod(Tcl_Interp *interp, /*@notnull@*/ NsfClass *cl,
+SearchSimpleCMethod(Tcl_Interp *UNUSED(interp), /*@notnull@*/ NsfClass *cl,
                     Tcl_Obj *methodObj, Tcl_Command *cmdPtr) {
 
-  nonnull_assert(interp != NULL);
   nonnull_assert(cl != NULL);
   nonnull_assert(methodObj != NULL);
   nonnull_assert(cmdPtr != NULL);
@@ -5027,11 +5028,13 @@ InterpColonVarResolver(Tcl_Interp *interp, const char *varName, Tcl_Namespace *U
   nonnull_assert(varPtr != NULL);
 
   /*
-   * TCL_GLOBAL_ONLY is removed, since "vwait :varName" is called with
-   * with this flag.
    */
-  if (!FOR_COLON_RESOLVER(varName) || (flags & (/*TCL_GLOBAL_ONLY|*/TCL_NAMESPACE_ONLY))) {
-    /* ordinary names and global lookups are not for us */
+  if (!FOR_COLON_RESOLVER(varName)|| (flags & (TCL_NAMESPACE_ONLY)) != 0u) {
+    /*
+     * Ordinary names (not starting with the prefix) and namespace only
+     * lookups are not for us. We cannot filter for TCL_GLOBAL_ONLY, since
+     * "vwait :varName" is called with with this flag.
+     */
 #if defined(VAR_RESOLVER_TRACE)
     fprintf(stderr, "InterpColonVarResolver '%s' flags %.6x not for us\n",
             varName, flags);
@@ -8155,11 +8158,11 @@ MixinComputeOrder(Tcl_Interp *interp, NsfObject *object) {
  *
  *----------------------------------------------------------------------
  */
-static int MixinAdd(Tcl_Interp *interp, NsfCmdList **mixinList, Tcl_Obj *nameObj, NsfClass *baseClass)
-  nonnull(1) nonnull(2) nonnull(3) nonnull(4);
+static int MixinAdd(Tcl_Interp *interp, NsfCmdList **mixinList, Tcl_Obj *nameObj)
+  nonnull(1) nonnull(2) nonnull(3);
 
 static int
-MixinAdd(Tcl_Interp *interp, NsfCmdList **mixinList, Tcl_Obj *nameObj, NsfClass *baseClass) {
+MixinAdd(Tcl_Interp *interp, NsfCmdList **mixinList, Tcl_Obj *nameObj) {
   NsfClass *mixinCl;
   Tcl_Obj *guardObj;
   NsfCmdList *new;
@@ -8167,9 +8170,10 @@ MixinAdd(Tcl_Interp *interp, NsfCmdList **mixinList, Tcl_Obj *nameObj, NsfClass 
   nonnull_assert(interp != NULL);
   nonnull_assert(mixinList != NULL);
   nonnull_assert(nameObj != NULL);
-  nonnull_assert(baseClass != NULL);
 
-  /*fprintf(stderr, "MixinAdd gets obj %p type %p %s\n", nameObj, nameObj->typePtr, (nameObj->typePtr != NULL) ?nameObj->typePtr->name : "NULL");*/
+  /*fprintf(stderr, "MixinAdd gets obj %p type %p %s\n",
+    nameObj, nameObj->typePtr,
+    (nameObj->typePtr != NULL) ?nameObj->typePtr->name : "NULL");*/
 
   /*
    * When the provided nameObj is of type NsfMixinregObjType, the nsf specific
@@ -22626,16 +22630,15 @@ GetOriginalCommand(Tcl_Command cmd)  /* The imported command for which the origi
  *
  *----------------------------------------------------------------------
  */
-static int ListProcBody(Tcl_Interp *interp, Proc *procPtr, const char *methodName)
-  nonnull(1) nonnull(2) nonnull(3);
+static int ListProcBody(Tcl_Interp *interp, Proc *procPtr)
+  nonnull(1) nonnull(2);
 
 static int
-ListProcBody(Tcl_Interp *interp, Proc *procPtr, const char *methodName) {
+ListProcBody(Tcl_Interp *interp, Proc *procPtr) {
   const char *body;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(procPtr != NULL);
-  nonnull_assert(methodName != NULL);
 
   body = ObjStr(procPtr->bodyPtr);
   Tcl_SetObjResult(interp, Tcl_NewStringObj(StripBodyPrefix(body), -1));
@@ -22657,7 +22660,8 @@ ListProcBody(Tcl_Interp *interp, Proc *procPtr, const char *methodName) {
  *----------------------------------------------------------------------
  */
 static Tcl_Obj *ListParamDefs(Tcl_Interp *interp, Nsf_Param const *paramsPtr,
-                              NsfObject *contextObject, const char *pattern, NsfParamsPrintStyle style)
+                              NsfObject *contextObject, const char *pattern,
+                              NsfParamsPrintStyle style)
   nonnull(1) nonnull(2) returns_nonnull;
 
 static Tcl_Obj *
@@ -23207,7 +23211,7 @@ ListMethod(Tcl_Interp *interp,
       break;
 
     case InfomethodsubcmdBodyIdx:
-      ListProcBody(interp, GetTclProcFromCommand(cmd), methodName);
+      ListProcBody(interp, GetTclProcFromCommand(cmd));
       break;
 
 #ifdef HAVE_TCL_DISASSAEMBLE_BYTE_CODE
@@ -23256,7 +23260,7 @@ ListMethod(Tcl_Interp *interp,
 
         AppendReturnsClause(interp, resultObj, cmd);
 
-        ListProcBody(interp, GetTclProcFromCommand(cmd), methodName);
+        ListProcBody(interp, GetTclProcFromCommand(cmd));
         Tcl_ListObjAppendElement(interp, resultObj, Tcl_GetObjResult(interp));
 
 #if defined(NSF_WITH_ASSERTIONS)
@@ -23347,7 +23351,7 @@ ListMethod(Tcl_Interp *interp,
         break;
 
       case InfomethodsubcmdBodyIdx:
-        ListProcBody(interp, GetTclProcFromCommand(procCmd), methodName);
+        ListProcBody(interp, GetTclProcFromCommand(procCmd));
         break;
 
       case InfomethodsubcmdDefinitionIdx:
@@ -23371,7 +23375,7 @@ ListMethod(Tcl_Interp *interp,
                                                   Tcl_DStringLength(dsPtr)));
         ListCmdParams(interp, cmd, NULL, NULL, Tcl_DStringValue(dsPtr), NSF_PARAMS_PARAMETER);
         Tcl_ListObjAppendElement(interp, resultObj, Tcl_GetObjResult(interp));
-        ListProcBody(interp, GetTclProcFromCommand(procCmd), methodName);
+        ListProcBody(interp, GetTclProcFromCommand(procCmd));
         Tcl_ListObjAppendElement(interp, resultObj, Tcl_GetObjResult(interp));
         Tcl_SetObjResult(interp, resultObj);
         Tcl_DStringFree(dsPtr);
@@ -23613,8 +23617,8 @@ static int
 MethodTypeMatches(Tcl_Interp *interp, int methodType, Tcl_Command cmd,
                   NsfObject *object, const char *methodName, int withPer_object,
                   int *isObject) {
-  Tcl_ObjCmdProc *proc, *resolvedProc;
-  Tcl_Command importedCmd;
+  Tcl_ObjCmdProc *proc;
+  Tcl_Command     importedCmd;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(cmd != NULL);
@@ -23623,7 +23627,6 @@ MethodTypeMatches(Tcl_Interp *interp, int methodType, Tcl_Command cmd,
 
   proc = Tcl_Command_objProc(cmd);
   importedCmd = GetOriginalCommand(cmd);
-  resolvedProc = Tcl_Command_objProc(importedCmd);
 
   /*
    * Return always state isObject, since the cmd might be an ensemble,
@@ -23632,10 +23635,13 @@ MethodTypeMatches(Tcl_Interp *interp, int methodType, Tcl_Command cmd,
   *isObject = CmdIsNsfObject(importedCmd);
 
   if (methodType == NSF_METHODTYPE_ALIAS) {
-    if (!(proc == NsfProcAliasMethod || AliasGet(interp, object->cmdName, methodName, withPer_object, 0))) {
-      return 0;
-    }
+    if (!(proc == NsfProcAliasMethod
+          || AliasGet(interp, object->cmdName, methodName, withPer_object, 0))) {
+        return 0;
+      }
   } else {
+    Tcl_ObjCmdProc *resolvedProc = Tcl_Command_objProc(importedCmd);
+
     if (proc == NsfProcAliasMethod) {
       if ((methodType & NSF_METHODTYPE_ALIAS) == 0) {
         return 0;
@@ -23743,13 +23749,12 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
                Tcl_DString *prefix, const char *pattern,
                int methodType, int withCallprotection, int withPath,
                Tcl_HashTable *dups, NsfObject *object, int withPer_object) {
-  Tcl_HashSearch hSrch;
+  Tcl_HashSearch       hSrch;
   const Tcl_HashEntry *hPtr;
-  Tcl_Command cmd;
-  const char *key;
-  int isObject, methodTypeMatch;
-  int prefixLength = (prefix != NULL) ? Tcl_DStringLength(prefix) : 0;
-  Tcl_Obj *resultObj;
+  Tcl_Command          cmd;
+  const char          *key;
+  int                  isObject, methodTypeMatch;
+  Tcl_Obj             *resultObj;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(tablePtr != NULL);
@@ -23762,15 +23767,15 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
      */
     hPtr = Tcl_CreateHashEntry(tablePtr, pattern, NULL);
     if (hPtr != NULL) {
-      NsfObject *childObject;
-      Tcl_Command origCmd;
+      NsfObject   *childObject;
+      Tcl_Command  origCmd;
 
       key = Tcl_GetHashKey(tablePtr, hPtr);
       cmd = (Tcl_Command)Tcl_GetHashValue(hPtr);
       methodTypeMatch = MethodTypeMatches(interp, methodType, cmd, object, key,
                                           withPer_object, &isObject);
-
-      if (((unsigned int)Tcl_Command_flags(cmd) & NSF_CMD_CLASS_ONLY_METHOD) != 0 && !NsfObjectIsClass(object)) {
+      if (((unsigned int)Tcl_Command_flags(cmd) & NSF_CMD_CLASS_ONLY_METHOD) != 0u
+          && !NsfObjectIsClass(object)) {
         return TCL_OK;
       }
       /*
@@ -23780,32 +23785,21 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
       origCmd = GetOriginalCommand(cmd);
       childObject = (isObject == 1) ? NsfGetObjectFromCmdPtr(origCmd) : NULL;
 
-      if (childObject != NULL) {
-
-        if (withPath != 0) {
-          return TCL_OK;
-        }
-
-        /*
-         * Treat aliased object dispatch different from direct object
-         * dispatches.
-         */
-#if 0
-        if (cmd == origCmd && (childObject->flags & NSF_ALLOW_METHOD_DISPATCH ) == 0u) {
-          /*fprintf(stderr, "no method dispatch allowed on child %s\n", ObjectName(childObject));*/
-          return TCL_OK;
-        }
-#endif
+      if (childObject != NULL && withPath != 0) {
+        return TCL_OK;
       }
 
       if (ProtectionMatches(withCallprotection, cmd) && methodTypeMatch) {
+        int prefixLength = (prefix != NULL) ? Tcl_DStringLength(prefix) : 0;
+
         if (prefixLength != 0) {
           Tcl_DStringAppend(prefix, key, -1);
           key = Tcl_DStringValue(prefix);
         }
         if (dups != NULL) {
           int new;
-          Tcl_CreateHashEntry(dups, key, &new);
+
+          (void)Tcl_CreateHashEntry(dups, key, &new);
           if (new != 0) {
             Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj(key, -1));
           }
@@ -23817,15 +23811,17 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
     return TCL_OK;
 
   } else {
+    int prefixLength = (prefix != NULL) ? Tcl_DStringLength(prefix) : 0;
 
     /*
      * We have to iterate over the elements
      */
+
     for (hPtr = Tcl_FirstHashEntry(tablePtr, &hSrch);
          hPtr != NULL;
          hPtr = Tcl_NextHashEntry(&hSrch)) {
-      NsfObject *childObject;
-      Tcl_Command origCmd;
+      NsfObject   *childObject;
+      Tcl_Command  origCmd;
 
       key = Tcl_GetHashKey(tablePtr, hPtr);
       cmd = (Tcl_Command)Tcl_GetHashValue(hPtr);
@@ -23843,7 +23839,6 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
 
       if (childObject != NULL) {
         if (withPath != 0) {
-          Tcl_DString ds, *dsPtr = &ds;
           Tcl_HashTable *cmdTablePtr;
 
           if (childObject->nsPtr == NULL) {
@@ -23867,34 +23862,23 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
           /*fprintf(stderr, "ListMethodKeys key %s append key space flags %.6x\n",
             key, childObject->flags);*/
           if (prefix == NULL) {
+            Tcl_DString ds, *dsPtr = &ds;
+
             DSTRING_INIT(dsPtr);
             Tcl_DStringAppend(dsPtr, key, -1);
             Tcl_DStringAppend(dsPtr, " ", 1);
-
-            ListMethodKeys(interp, cmdTablePtr, dsPtr, pattern, methodType, withCallprotection,
-                           1, dups, object, withPer_object);
+            ListMethodKeys(interp, cmdTablePtr, dsPtr, pattern, methodType,
+                           withCallprotection, 1, dups, object, withPer_object);
             DSTRING_FREE(dsPtr);
           } else {
             Tcl_DStringAppend(prefix, key, -1);
             Tcl_DStringAppend(prefix, " ", 1);
-            ListMethodKeys(interp, cmdTablePtr, prefix, pattern, methodType, withCallprotection,
-                           1, dups, object, withPer_object);
+            ListMethodKeys(interp, cmdTablePtr, prefix, pattern, methodType,
+                           withCallprotection, 1, dups, object, withPer_object);
           }
           /* don't list ensembles by themselves */
           continue;
         }
-
-        /*
-         * Treat aliased object dispatch different from direct object
-         * dispatches.
-         */
-#if 0
-        if (cmd == origCmd && (childObject->flags & NSF_ALLOW_METHOD_DISPATCH ) == 0u) {
-          /*fprintf(stderr, "no method dispatch allowed on child %s\n", ObjectName(childObject));*/
-          continue;
-        }
-#endif
-
       }
 
       if (((unsigned int)Tcl_Command_flags(cmd) & NSF_CMD_CLASS_ONLY_METHOD) != 0u
@@ -23903,8 +23887,7 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
         continue;
       }
       if (!ProtectionMatches(withCallprotection, cmd)
-          || !methodTypeMatch
-          ) {
+          || !methodTypeMatch) {
         continue;
       }
 
@@ -23918,6 +23901,7 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
       }
       if (dups != NULL) {
         int new;
+
         Tcl_CreateHashEntry(dups, key, &new);
         if (new == 0) {
           continue;
@@ -27377,7 +27361,7 @@ NsfRelationClassMixinsSet(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *valueObj, i
   nonnull_assert(valueObj != NULL);
 
   for (i = 0; i < oc; i++) {
-    if (unlikely(MixinAdd(interp, &newMixinCmdList, ov[i], cl->object.cl) != TCL_OK)) {
+    if (unlikely(MixinAdd(interp, &newMixinCmdList, ov[i]) != TCL_OK)) {
       CmdListFree(&newMixinCmdList, GuardDel);
       return TCL_ERROR;
     }
@@ -27576,7 +27560,7 @@ NsfRelationSetCmd(Tcl_Interp *interp, NsfObject *object,
        * Add every mixin class
        */
       for (i = 0; i < oc; i++) {
-        if (unlikely(MixinAdd(interp, &newMixinCmdList, ov[i], object->cl->object.cl) != TCL_OK)) {
+        if (unlikely(MixinAdd(interp, &newMixinCmdList, ov[i]) != TCL_OK)) {
           CmdListFree(&newMixinCmdList, GuardDel);
           return TCL_ERROR;
         }

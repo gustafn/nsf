@@ -795,13 +795,11 @@ static Tcl_CallFrame * CallStackNextFrameOfType(Tcl_CallFrame *framePtr, unsigne
 
 static Tcl_CallFrame *
 CallStackNextFrameOfType(Tcl_CallFrame *framePtr, unsigned int flags) {
-  NsfCallStackContent *cscPtr;
 
   nonnull_assert(framePtr != NULL);
 
   do {
-
-    cscPtr = Tcl_CallFrame_clientData(framePtr);
+    NsfCallStackContent *cscPtr = Tcl_CallFrame_clientData(framePtr);
 
     if (cscPtr != NULL && (cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) != 0u) {
       (void)CallStackFindEnsembleCsc(framePtr, &framePtr);
