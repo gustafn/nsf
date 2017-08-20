@@ -100,16 +100,13 @@
 # define nonnull(ARGS)
 #endif
 
-#define nonnull_assert(assertion) assert((assertion))
-
-
 #if __GNUC_PREREQ(4, 9)
 # define returns_nonnull __attribute__((returns_nonnull))
 #else
 # define returns_nonnull
 #endif
 
-
+#define nonnull_assert(assertion) assert((assertion))
 /*
  * Tries to use gcc __attribute__ unused and mangles the name, so the
  * attribute could not be used, if declared as unused.
