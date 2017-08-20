@@ -544,7 +544,7 @@ NsfDStringEval(Tcl_Interp *interp, Tcl_DString *dsPtr, const char *context,
   if ((traceEvalFlags & NSF_EVAL_PREVENT_RECURSION) != 0u) {
     /*
      * We do not want to debug the debug statements, since this would cause an
-     * inifinite recursion.  Check, if we allow execution of the eval call.
+     * infinite recursion.  Check, if we allow execution of the eval call.
      */
     if ((rst->preventRecursionFlags & traceEvalFlags) != 0) {
       /*
@@ -639,7 +639,7 @@ NsfLog(Tcl_Interp *interp, int requiredLevel, const char *fmt, ...) {
     } else {
       /*
        * On physical destroy, we can't rely on NsfDStringEval() working
-       * proplerly.
+       * properly.
        */
       fprintf(stderr, "%s", cmdString.string);
     }
@@ -4403,7 +4403,7 @@ CompiledLocalsLookup(CallFrame *varFramePtr, const char *varName) {
  *----------------------------------------------------------------------
  * GetVarAndNameFromHash --
  *
- *    Conveniance function to obtain variable and name from
+ *    Convenience function to obtain variable and name from
  *    a variable hash entry
  *
  * Results:
@@ -4875,7 +4875,7 @@ CompiledColonVarFree(Tcl_ResolvedVarInfo *vInfoPtr) {
  *    The Tcl var resolver protocol dictates that per-namespace
  *    compiling var resolvers take precedence over this per-interp
  *    compiling var resolver. That is, per-namespace resolvers are
- *    processed first and can effectively outrule per-interp
+ *    processed first and can effectively out-rule per-interp
  *    resolvers by signaling TCL_OK or TCL_BREAK.
  *
  * Results:
@@ -4994,7 +4994,7 @@ InterpGetFrameAndFlags(Tcl_Interp *interp, CallFrame **framePtr) {
  *    The Tcl var resolver protocol dictates that per-namespace,
  *    non-compiling var resolvers take precedence over this per-interp
  *    non-compiling var resolver. That is, per-namespace resolvers are
- *    processed first and can effectively outrule per-interp resolvers
+ *    processed first and can effectively out-rule per-interp resolvers
  *    by signaling TCL_OK or TCL_BREAK. See
  *    e.g. TclLookupSimpleVar().
  *
@@ -5571,7 +5571,7 @@ NSDeleteCmd(Tcl_Interp *interp, Tcl_Namespace *nsPtr, const char *methodName) {
  *
  *    Delete a child of an object in cases, when the parent object is
  *    deleted. It is designed to delete either objects or classes to
- *    be a little bit more graceful on destuctors. Not perfect yet.
+ *    be a little bit more graceful on destructors. Not perfect yet.
  *
  * Results:
  *    None.
@@ -11074,7 +11074,7 @@ MakeProcError(
  *----------------------------------------------------------------------
  * ByteCompiled --
  *
- *    Function to determine whether a proc is already byted compiled or not.
+ *    Function to determine whether a proc is already byte compiled or not.
  *
  * Results:
  *    0 or 1 based on success
@@ -13231,7 +13231,7 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 
   object = cscPtr->self;
   /*
-   * Privide DTrace with calling info
+   * Provide DTrace with calling info
    */
   if (NSF_DTRACE_METHOD_ENTRY_ENABLED()) {
     NSF_DTRACE_METHOD_ENTRY(ObjectName(object), (cscPtr->cl != NULL) ? ClassName(cscPtr->cl) : ObjectName(object),
@@ -13427,7 +13427,7 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
   /*
    * cscAlloc uses for resolvedCmd for allocating the call stack content and
    * sets the IS_NRE flag based on it. We use the original cmd in the
-   * callstack content structure for introspection.
+   * call-stack content structure for introspection.
    */
   cscPtr = CscAlloc(interp, &csc, resolvedCmd);
 
@@ -13867,7 +13867,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
         if (cmd != NULL) {
           /*
            * Reject call when
-           * a) trying to call a private method without the local flag or ignore permssions, or
+           * a) trying to call a private method without the local flag or ignore permissions, or
            * b) trying to call an object with no method interface
            */
           if (((flags & (NSF_CM_LOCAL_METHOD|NSF_CM_IGNORE_PERMISSIONS)) == 0u
@@ -14014,7 +14014,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
     /*
      * cscAlloc uses for resolvedCmd for allocating the call stack content and
      * sets the IS_NRE flag based on it. We use the original cmd in the
-     * callstack content structure for introspection.
+     * call-stack content structure for introspection.
      */
 
     cscPtr = CscAlloc(interp, &csc, resolvedCmd);
@@ -15257,7 +15257,7 @@ ConvertToObjpattern(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *UNUSED
  *----------------------------------------------------------------------
  * ParamCheckObj --
  *
- *    Ths function returns a fresh Tcl_Obj in the form of a method name for a
+ *    This function returns a fresh Tcl_Obj in the form of a method name for a
  *    checker method.
  *
  * Results:
@@ -15285,7 +15285,7 @@ ParamCheckObj(const char *start, size_t len) {
  *----------------------------------------------------------------------
  * ParamOptionSetConverter --
  *
- *    Fill in the fields int to the specifed paramPtr structure
+ *    Fill in the fields int to the specified paramPtr structure
  *    checker method and perform sanity checking.
  *
  * Results:
@@ -15330,7 +15330,7 @@ ParamOptionSetConverter(Tcl_Interp *interp, Nsf_Param *paramPtr,
  *    None
  *
  * Side effects:
- *    Potentially shortend string content
+ *    Potentially shortened string content
  *
  *----------------------------------------------------------------------
  */
@@ -17747,7 +17747,7 @@ AddSlotObjects(Tcl_Interp *interp, NsfObject *parent, const char *prefix,
  *----------------------------------------------------------------------
  * FindCalledClass --
  *
- *    Find the called class of the called proc on the callstack.
+ *    Find the called class of the called proc on the call-stack.
  *
  * Results:
  *    NsfClass * or NULL
@@ -18323,7 +18323,7 @@ NextSearchAndInvoke(Tcl_Interp *interp, const char *methodName,
      * 2) An explicit "next" cmd from within a leaf sub-method (a "leaf
      * next"): Remain silent, do not dispatch to unknown.
 
-     * 3) An implicit "next" triggered for unresolved submethods that might be
+     * 3) An implicit "next" triggered for unresolved sub-methods that might be
      * resolved along the next path: Dispatch to unknown, the requested
      * sub-cmd is not resolvable to a cmd.
      *
@@ -18473,7 +18473,7 @@ FindSelfNext(Tcl_Interp *interp) {
   NsfCallStackContent *cscPtr;
   int                  result;
   Tcl_CallFrame *framePtr;
-      
+
   nonnull_assert(interp != NULL);
 
   cscPtr = CallStackGetTopFrame(interp, &framePtr);
@@ -18485,7 +18485,7 @@ FindSelfNext(Tcl_Interp *interp) {
     Tcl_Command cmd = NULL, currentCmd = NULL;
     const char *lookupMethodName, *methodName;
     int isEnsemble = (cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) != 0u;
-    
+
     Tcl_ResetResult(interp);
 
     methodName = Tcl_GetCommandName(interp, cscPtr->cmdPtr);
@@ -18506,7 +18506,7 @@ FindSelfNext(Tcl_Interp *interp) {
       int        isMixinEntry = 0, isFilterEntry = 0, endOfFilterChain = 0;
       NsfClass  *cl     = cscPtr->cl;
       NsfObject *object = cscPtr->self;
-      
+
       result = NextSearchMethod(object, interp, cscPtr, &cl, &lookupMethodName, &cmd,
                                 &isMixinEntry, &isFilterEntry, &endOfFilterChain, &currentCmd);
       if (cmd != NULL) {
@@ -18810,7 +18810,7 @@ CleanupDestroyObject(Tcl_Interp *interp, NsfObject *object, int softrecreate) {
     }
   }
 
-  /* Unset object variables with unset traces pre-emptively. */
+  /* Unset object variables with unset traces preemptively. */
   UnsetTracedVars(interp, object);
 
   if (object->nsPtr != NULL) {
@@ -18884,7 +18884,7 @@ CleanupDestroyObject(Tcl_Interp *interp, NsfObject *object, int softrecreate) {
  *    None.
  *
  * Side effects:
- *    Updateing the object structure
+ *    Updating the object structure
  *
  *----------------------------------------------------------------------
  */
@@ -19009,7 +19009,7 @@ TclDeletesObject(ClientData clientData) {
  *    None.
  *
  * Side effects:
- *    Free obejct contents.
+ *    Free object contents.
  *
  *----------------------------------------------------------------------
  */
@@ -19658,7 +19658,7 @@ CleanupInitClass(Tcl_Interp *interp, NsfClass *cl, Tcl_Namespace *nsPtr,
  *    None.
  *
  * Side effects:
- *    Free obejct contents.
+ *    Free object contents.
  *
  *----------------------------------------------------------------------
  */
@@ -20215,7 +20215,7 @@ HasMixin(Tcl_Interp *interp, NsfObject *object, NsfClass *cl) {
  *----------------------------------------------------------------------
  * ImportInstVarIntoCurrentScope --
  *
- *    Import an instance variable into the corrent variable scope
+ *    Import an instance variable into the current variable scope
  *    (e.g. function scope).
  *
  * Results:
@@ -21644,7 +21644,7 @@ ArgumentCheckHelper(Tcl_Interp *interp,
       Tcl_ListObjAppendElement(interp, *outObjPtr, elementObjPtr);
       /*
        * If the refCount of the valueObj was already incremented, we have to
-       * decrement it here, since we want the valuObj reclaimed when the list
+       * decrement it here, since we want the valueObj reclaimed when the list
        * containing the valueObj is freed.
        */
       ArgumentResetRefCounts(pPtr, elementObjPtr);
@@ -22276,7 +22276,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
                 nonposArgError = 1;
               } else if ((nextParamPtr->flags & NSF_ARG_NODASHALNUM) != 0u) {
                 /*
-                 * Check if argment is numeric, since we want to allow it as
+                 * Check if argument is numeric, since we want to allow it as
                  * value even when NSF_ARG_NODASHALNUM was specified.
                  */
                 nonposArgError = 1;
@@ -22983,7 +22983,7 @@ AppendMethodRegistration(Tcl_Interp *interp, Tcl_Obj *listObj, const char *regis
  *----------------------------------------------------------------------
  * AppendReturnsClause --
  *
- *    Append to the listObj a returns clause, if it was spefified for the
+ *    Append to the listObj a returns clause, if it was specified for the
  *    current cmd.
  *
  * Results:
@@ -23018,7 +23018,7 @@ AppendReturnsClause(Tcl_Interp *interp, Tcl_Obj *listObj, Tcl_Command cmd) {
  *----------------------------------------------------------------------
  * ListMethod --
  *
- *    Constuct a command to regenerate the specified method. The method might
+ *    Construct a command to regenerate the specified method. The method might
  *    be scripted or not (alias, forwarder, ...). The command is returned in
  *    the interp result.
  *
@@ -23468,7 +23468,7 @@ ListMethod(Tcl_Interp *interp,
     }
   } else {
     /*
-     * The cmd must be a plain unregisted cmd
+     * The cmd must be a plain unregistered cmd
      */
 
     switch (subcmd) {
@@ -23775,7 +23775,7 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
       }
       /*
        * Aliased objects methods return 1 but lookup from cmd returns
-       * NULL. Below, we are just interested on true subobjects.
+       * NULL. Below, we are just interested on true sub-objects.
        */
       origCmd = GetOriginalCommand(cmd);
       childObject = (isObject == 1) ? NsfGetObjectFromCmdPtr(origCmd) : NULL;
@@ -23836,7 +23836,7 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
                                           withPer_object, &isObject);
       /*
        * Aliased objects methods return 1 but lookup from cmd returns
-       * NULL. Below, we are just interested on true subobjects.
+       * NULL. Below, we are just interested on true sub-objects.
        */
       origCmd = GetOriginalCommand(cmd);
       childObject = (isObject == 1) ? NsfGetObjectFromCmdPtr(origCmd) : NULL;
@@ -24021,7 +24021,7 @@ ListChildren(Tcl_Interp *interp, NsfObject *object, const char *pattern,
  *
  * ListForward --
  *
- *      List registered forwareder defined in the hash table. The result can be filtered
+ *      List registered forwarder defined in the hash table. The result can be filtered
  *      via a pattern, optionally the forward definition is returned.
  *
  * Results:
@@ -25088,7 +25088,7 @@ NsfConfigureCmd(Tcl_Interp *interp, ConfigureoptionIdx_t configureoption, Tcl_Ob
     break;
 
   case ConfigureoptionNULL:
-    /* do nothing; just for detection if option was specfied */
+    /* do nothing; just for detection if option was specified */
     break;
 
   case ConfigureoptionFilterIdx:
@@ -25882,7 +25882,7 @@ NsfMethodAssertionCmd(Tcl_Interp *interp, NsfObject *object, AssertionsubcmdIdx_
     }
 
   case AssertionsubcmdNULL:
-    /* do nothing; just for detection if option was specfied */
+    /* do nothing; just for detection if option was specified */
     break;
   }
 #endif
@@ -26125,7 +26125,7 @@ NsfForwardPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
     break;
 
   case ForwardpropertyNULL:
-    /* do nothing; just for detection if option was specfied */
+    /* do nothing; just for detection if option was specified */
     break;
   }
 
@@ -26300,7 +26300,7 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
     break;
 
   case MethodpropertyNULL:
-    /* do nothing; just for detection if option was specfied */
+    /* do nothing; just for detection if option was specified */
     break;
   }
 
@@ -26525,7 +26525,7 @@ NsfObjectPropertyCmd(Tcl_Interp *interp, NsfObject *object, ObjectpropertyIdx_t 
   case ObjectpropertyPerobjectdispatchIdx: flags = NSF_PER_OBJECT_DISPATCH; allowSet = 1; break;
   case ObjectpropertyHasperobjectslotsIdx: flags = NSF_HAS_PER_OBJECT_SLOTS; allowSet = 1; break;
   case ObjectpropertyNULL:
-    /* do nothing; just for detection if option was specfied */
+    /* do nothing; just for detection if option was specified */
     break;
   }
 
@@ -27081,7 +27081,7 @@ NsfParameterInfoCmd(Tcl_Interp *interp, ParametersubcmdIdx_t parametersubcmd, Tc
     break;
 
   case ParametersubcmdNULL:
-    /* do nothing; just for detection if option was specfied */
+    /* do nothing; just for detection if option was specified */
     break;
   }
 
@@ -27358,7 +27358,7 @@ NsfRelationGetCmd(Tcl_Interp *interp, NsfObject *object, RelationtypeIdx_t relat
  *    Tcl result code.
  *
  * Side effects:
- *    class mixins are set, various kinds of invlidations.
+ *    class mixins are set, various kinds of invalidations.
  *
  *----------------------------------------------------------------------
  */
@@ -27558,7 +27558,7 @@ NsfRelationSetCmd(Tcl_Interp *interp, NsfObject *object,
     }
 
   case RelationtypeNULL:
-    /* do nothing; just for detection if option was specfied */
+    /* do nothing; just for detection if option was specified */
     return TCL_OK;
   }
 
@@ -27860,7 +27860,7 @@ NsfCurrentCmd(Tcl_Interp *interp, CurrentoptionIdx_t selfoption) {
 
   case CurrentoptionCallinglevelIdx:
     /*
-     * Special case of object==NULL handeled above.
+     * Special case of object==NULL handled above.
      */
     Tcl_SetObjResult(interp, ComputeLevelObj(interp, CALLING_LEVEL));
     break;
@@ -27882,15 +27882,15 @@ NsfCurrentCmd(Tcl_Interp *interp, CurrentoptionIdx_t selfoption) {
   case CurrentoptionIsnextcallIdx: {
 
     cscPtr = CallStackGetTopFrame(interp, &framePtr);
-    
+
     if ((cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) != 0u) {
       (void)CallStackFindEnsembleCsc(framePtr, &framePtr);
     }
-    
+
     framePtr = CallStackNextFrameOfType(Tcl_CallFrame_callerPtr(framePtr),
                                         FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD);
     cscPtr = (framePtr != NULL) ? Tcl_CallFrame_clientData(framePtr) : NULL;
-    
+
     Tcl_SetBooleanObj(Tcl_GetObjResult(interp),
                       (cscPtr != NULL && ((cscPtr->flags & NSF_CSC_CALL_IS_NEXT) != 0u)));
     break;
@@ -28978,9 +28978,9 @@ NsfOCgetMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj) {
   assert(parsedParam.paramDefs != NULL);
 
   /*
-   * We do not stack a plain stack fraom NSF_CSC_TYPE_PLAIN here, as we do in
+   * We do not stack a plain stack from NSF_CSC_TYPE_PLAIN here, as we do in
    * NsfOConfigureMethod (but maybe we have to for full compatibility TODO:
-   * check and compar with configure stack setup). Therefore we pass NULL as
+   * check and compare with configure stack setup). Therefore we pass NULL as
    * cscPtr to ParameterMethodForwardDispatch).
    */
 
@@ -31509,7 +31509,7 @@ DeleteProcsAndVars(Tcl_Interp *interp, Tcl_Namespace *nsPtr, int withKeepvars) {
  * FinalObjectDeletion --
  *
  *      The method is to be called, when an object is finally deleted,
- *      typically during the final cleanup. It tests as well the actication
+ *      typically during the final cleanup. It tests as well the activation
  *      count of the object.
  *
  * Results:
@@ -31959,7 +31959,7 @@ FreeAllNsfObjectsAndClasses(Tcl_Interp *interp, NsfCmdList **instances) {
         }
 
         /*
-         * In all cases, straigthen the class to the base case.
+         * In all cases, straighten the class to the base case.
          */
         baseClass = NsfObjectIsClass(object) ? osPtr->rootMetaClass : osPtr->rootClass;
         if (object->cl != baseClass) {
@@ -32310,7 +32310,7 @@ Nsf_Init(Tcl_Interp *interp) {
     /*
      * Note that Nsf_Init() is called typically via a package require, which
      * is therefore not really the bottom of the stack, but just a first
-     * approximization.
+     * approximation.
      */
     rst->bottomOfStack = &someVar;
     rst->maxStack = rst->bottomOfStack;

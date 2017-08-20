@@ -1,10 +1,10 @@
 /*
  *  Next Scripting Framework
  *
- *  Copyright (C) 1999-2016 Gustaf Neumann (a) (b)
+ *  Copyright (C) 1999-2017 Gustaf Neumann (a) (b)
  *  Copyright (C) 1999-2007 Uwe Zdun (a) (b)
  *  Copyright (C) 2007-2008 Martin Matuska (b)
- *  Copyright (C) 2010-2016 Stefan Sobernig (b)
+ *  Copyright (C) 2010-2017 Stefan Sobernig (b)
  *
  * (a) University of Essen
  *     Specification of Software Systems
@@ -291,7 +291,7 @@ typedef struct Nsf_ParseContext {
 struct Nsf_Param;
 typedef int (Nsf_TypeConverter)(Tcl_Interp *interp,
 				 Tcl_Obj *obj,
-                                 struct Nsf_Param CONST *pPtr,
+				 struct Nsf_Param CONST *pPtr,
 				 ClientData *clientData,
 				 Tcl_Obj **outObjPtr);
 
@@ -324,7 +324,7 @@ typedef struct Nsf_Param {
 /* Argument parse processing flags */
 #define NSF_ARGPARSE_CHECK		     0x0001
 #define NSF_ARGPARSE_FORCE_REQUIRED	     0x0002
-#define NSF_ARGPARSE_BUILTIN	     	     (NSF_ARGPARSE_CHECK|NSF_ARGPARSE_FORCE_REQUIRED)
+#define NSF_ARGPARSE_BUILTIN		     (NSF_ARGPARSE_CHECK|NSF_ARGPARSE_FORCE_REQUIRED)
 #define NSF_ARGPARSE_START_ZERO		     0x0010
 /* Special flags for process method arguments */
 #define NSF_ARGPARSE_METHOD_PUSH	     0x0100
@@ -334,18 +334,18 @@ typedef struct Nsf_Param {
 
 #define NSF_ARG_REQUIRED		0x00000001u
 #define NSF_ARG_MULTIVALUED		0x00000002u
-#define NSF_ARG_NOARG 		     	0x00000004u
-#define NSF_ARG_NOCONFIG	     	0x00000008u
+#define NSF_ARG_NOARG			0x00000004u
+#define NSF_ARG_NOCONFIG		0x00000008u
 #define NSF_ARG_CURRENTLY_UNKNOWN	0x00000010u
 #define NSF_ARG_SUBST_DEFAULT		0x00000020u
 #define NSF_ARG_ALLOW_EMPTY		0x00000040u
-#define NSF_ARG_INITCMD		     	0x00000080u
-#define NSF_ARG_CMD		     	0x00000100u
-#define NSF_ARG_ALIAS		     	0x00000200u
-#define NSF_ARG_FORWARD		     	0x00000400u
-#define NSF_ARG_SWITCH		     	0x00000800u
-#define NSF_ARG_BASECLASS	     	0x00001000u
-#define NSF_ARG_METACLASS	     	0x00002000u
+#define NSF_ARG_INITCMD			0x00000080u
+#define NSF_ARG_CMD			0x00000100u
+#define NSF_ARG_ALIAS			0x00000200u
+#define NSF_ARG_FORWARD			0x00000400u
+#define NSF_ARG_SWITCH			0x00000800u
+#define NSF_ARG_BASECLASS		0x00001000u
+#define NSF_ARG_METACLASS		0x00002000u
 #define NSF_ARG_HAS_DEFAULT		0x00004000u
 #define NSF_ARG_IS_CONVERTER		0x00008000u
 #define NSF_ARG_IS_ENUMERATION		0x00010000u
@@ -361,7 +361,7 @@ typedef struct Nsf_Param {
 #undef  __GNUC_PREREQ
 #if defined __GNUC__ && defined __GNUC_MINOR__
 # define __GNUC_PREREQ(maj, min) \
-        ((__GNUC__ << 16) + __GNUC_MINOR__ >= ((maj) << 16) + (min))
+	((__GNUC__ << 16) + __GNUC_MINOR__ >= ((maj) << 16) + (min))
 #else
 # define __GNUC_PREREQ(maj, min) (0)
 #endif

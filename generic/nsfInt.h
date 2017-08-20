@@ -4,9 +4,9 @@
  *      Declarations of the internally used API Functions of the Next
  *      Scripting Framework.
  *
- *  Copyright (C) 1999-2016 Gustaf Neumann (a, b)
+ *  Copyright (C) 1999-2017 Gustaf Neumann (a, b)
  *  Copyright (C) 1999-2007 Uwe Zdun (a, b)
- *  Copyright (C) 2011-2016 Stefan Sobernig (b)
+ *  Copyright (C) 2011-2017 Stefan Sobernig (b)
  *
  * (a) University of Essen
  *     Specification of Software Systems
@@ -122,27 +122,27 @@
 
 #if defined(NSF_DTRACE)
 # include "nsfDTrace.h"
-# define NSF_DTRACE_METHOD_ENTRY_ENABLED()     		unlikely(NSF_METHOD_ENTRY_ENABLED())
-# define NSF_DTRACE_METHOD_RETURN_ENABLED()    		unlikely(NSF_METHOD_RETURN_ENABLED())
+# define NSF_DTRACE_METHOD_ENTRY_ENABLED()		unlikely(NSF_METHOD_ENTRY_ENABLED())
+# define NSF_DTRACE_METHOD_RETURN_ENABLED()		unlikely(NSF_METHOD_RETURN_ENABLED())
 # define NSF_DTRACE_OBJECT_ALLOC_ENABLED()		unlikely(NSF_OBJECT_ALLOC_ENABLED())
-# define NSF_DTRACE_OBJECT_FREE_ENABLED()  		unlikely(NSF_OBJECT_FREE_ENABLED())
-# define NSF_DTRACE_CONFIGURE_PROBE_ENABLED()  		unlikely(NSF_CONFIGURE_PROBE_ENABLED())
+# define NSF_DTRACE_OBJECT_FREE_ENABLED()		unlikely(NSF_OBJECT_FREE_ENABLED())
+# define NSF_DTRACE_CONFIGURE_PROBE_ENABLED()		unlikely(NSF_CONFIGURE_PROBE_ENABLED())
 # define NSF_DTRACE_METHOD_ENTRY(a0, a1, a2, a3, a4)	NSF_METHOD_ENTRY((a0), (a1), (a2), (a3), (a4))
-# define NSF_DTRACE_METHOD_RETURN(a0, a1, a2, a3)      	NSF_METHOD_RETURN((a0), (a1), (a2), (a3))
+# define NSF_DTRACE_METHOD_RETURN(a0, a1, a2, a3)	NSF_METHOD_RETURN((a0), (a1), (a2), (a3))
 # define NSF_DTRACE_OBJECT_ALLOC(a0, a1)		NSF_OBJECT_ALLOC((a0), (a1))
-# define NSF_DTRACE_OBJECT_FREE(a0, a1)			NSF_OBJECT_FREE((a0), (a1))
-# define NSF_DTRACE_CONFIGURE_PROBE(a0, a1)      	NSF_CONFIGURE_PROBE((a0), (a1))
+# define NSF_DTRACE_OBJECT_FREE(a0, a1)		NSF_OBJECT_FREE((a0), (a1))
+# define NSF_DTRACE_CONFIGURE_PROBE(a0, a1)		NSF_CONFIGURE_PROBE((a0), (a1))
 #else
-# define NSF_DTRACE_METHOD_ENTRY_ENABLED()     		0
-# define NSF_DTRACE_METHOD_RETURN_ENABLED()    		0
+# define NSF_DTRACE_METHOD_ENTRY_ENABLED()		0
+# define NSF_DTRACE_METHOD_RETURN_ENABLED()		0
 # define NSF_DTRACE_OBJECT_ALLOC_ENABLED()		0
-# define NSF_DTRACE_OBJECT_FREE_ENABLED()  		0
+# define NSF_DTRACE_OBJECT_FREE_ENABLED()		0
 # define NSF_DTRACE_CONFIGURE_PROBE_ENABLED()		0
-# define NSF_DTRACE_METHOD_ENTRY(a0, a1, a2, a3, a4)   	{}
-# define NSF_DTRACE_METHOD_RETURN(a0, a1, a2, a3)      	{}
+# define NSF_DTRACE_METHOD_ENTRY(a0, a1, a2, a3, a4)	{}
+# define NSF_DTRACE_METHOD_RETURN(a0, a1, a2, a3)	{}
 # define NSF_DTRACE_OBJECT_ALLOC(a0, a1)		{}
-# define NSF_DTRACE_OBJECT_FREE(a0, a1)			{}
-# define NSF_DTRACE_CONFIGURE_PROBE(a0, a1)      	{}
+# define NSF_DTRACE_OBJECT_FREE(a0, a1)		{}
+# define NSF_DTRACE_CONFIGURE_PROBE(a0, a1)		{}
 #endif
 
 
@@ -212,7 +212,7 @@ typedef struct NsfMemCounter {
 	*(m)   == 'c' && (m)[1] == 'h' && (m)[2] == 'e' && (m)[3] == 'c' && \
 	(m)[4] == 'k' && (m)[5] == '\0')
 #define isCheckObjString(m) (\
-        *(m)   == 'c' && (m)[1] == 'h' && (m)[2] == 'e' && (m)[3] == 'c' && \
+	*(m)   == 'c' && (m)[1] == 'h' && (m)[2] == 'e' && (m)[3] == 'c' && \
 	(m)[4] == 'k' && (m)[5] == 'o' && (m)[6] == 'b' && (m)[7] == 'j' && \
 	(m)[8] == '\0')
 #define isCreateString(m) (\
@@ -314,8 +314,8 @@ typedef struct NsfMemCounter {
 # define PRINTOBJ(ctx,obj) \
   fprintf(stderr, "  %s %p %s oid=%p teardown=%p destroyCalled=%d\n", \
 	  (ctx),(obj),(obj)->teardown?ObjStr((obj)->cmdName):"(deleted)", \
-          (obj)->id, (obj)->teardown,                                 \
-          ((obj)->flags & NSF_DESTROY_CALLED))
+	  (obj)->id, (obj)->teardown,                                 \
+	  ((obj)->flags & NSF_DESTROY_CALLED))
 #else
 # define PRINTOBJ(ctx,obj)
 #endif
@@ -433,7 +433,7 @@ typedef struct NsfStringIncrStruct {
  * cmd flags
  */
 
-#define NSF_CMD_CALL_PROTECTED_METHOD 		0x00010000
+#define NSF_CMD_CALL_PROTECTED_METHOD		0x00010000
 #define NSF_CMD_CALL_PRIVATE_METHOD		0x00020000
 #define NSF_CMD_REDEFINE_PROTECTED_METHOD	0x00040000
 /* NSF_CMD_NONLEAF_METHOD is used to flag, if a Method implemented via cmd calls "next" */
@@ -501,7 +501,7 @@ typedef struct NsfStringIncrStruct {
 /* flags for ParseContext */
 #define NSF_PC_MUST_DECR		     0x0001u
 #define NSF_PC_IS_DEFAULT		     0x0002u
-#define NSF_PC_INVERT_DEFAULT	     	     0x0010u
+#define NSF_PC_INVERT_DEFAULT		     0x0010u
 
 #define NSF_PC_STATUS_MUST_DECR		     0x0001u
 #define NSF_PC_STATUS_FREE_OBJV		     0x0002u
@@ -910,14 +910,14 @@ typedef struct NsfRuntimeState {
   Tcl_Namespace *NsfClassesNS;    /* the ::nsf::classes namespace, where classes are created physically */
   Tcl_ObjCmdProc *objInterpProc;  /* cached result of TclGetObjInterpProc() */
   Tcl_Command colonCmd;           /* cmdPtr of cmd ":" to dispatch via cmdResolver */
-  Proc fakeProc;                  /* dummy proc strucure, used for C-implemented methods with local scope */
+  Proc fakeProc;                  /* dummy proc structure, used for C-implemented methods with local scope */
   Tcl_Command currentMixinCmdPtr; /* cmdPtr of currently active mixin, used for "info activemixin" */
   int objectMethodEpoch;
   int instanceMethodEpoch;
 #if defined(PER_OBJECT_PARAMETER_CACHING)
   int classParamPtrEpoch;
 #endif
-  unsigned int overloadedMethods; /* bitarray for tracking overloaded methods */
+  unsigned int overloadedMethods; /* bit-array for tracking overloaded methods */
   Tcl_Obj **methodObjNames;       /* global objects of nsf */
   struct NsfShadowTclCommandInfo *tclCommands; /* shadowed Tcl commands */
 
@@ -928,7 +928,7 @@ typedef struct NsfRuntimeState {
   int unknown;           /* keep track whether an unknown method is currently called */
   /*
    * Configure options. The following do*-flags could be moved into a
-   * bitarray, but we have only one state per interp, so the win on
+   * bit-array, but we have only one state per interp, so the win on
    * memory is very little.
    */
   int logSeverity;
@@ -942,7 +942,7 @@ typedef struct NsfRuntimeState {
   unsigned int preventRecursionFlags;
   int doClassConverterOmitUnknown;
   int doSoftrecreate;
-  int exitHandlerDestroyRound;          /* shutdown handling */  
+  int exitHandlerDestroyRound;          /* shutdown handling */
 
   Tcl_HashTable activeFilterTablePtr;   /* keep track of defined filters */
 
@@ -1031,7 +1031,7 @@ EXTERN void NsfProfileDebugCall(Tcl_Interp *interp, NsfObject *object, NsfClass 
 				int objc, Tcl_Obj **objv)
   nonnull(1) nonnull(4);
 EXTERN void NsfProfileDebugExit(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, const char *methodName,
-                    long startSec, long startUsec)
+		    long startSec, long startUsec)
   nonnull(1) nonnull(4);
 
 #if defined(NSF_PROFILE)
@@ -1272,7 +1272,7 @@ char *strnstr(const char *buffer, const char *needle, size_t buffer_len);
    versions provide a prefixed (__*) one. The by-feature test below
    falls back to the prefixed version, if available, and provides a
    more general fallback to a simple assignment; this is primarily for
-   MSVC; admittedly, this simplifcation is not generally portable to
+   MSVC; admittedly, this simplification is not generally portable to
    platform/compiler combos other then x86, but the best I can think of right
    now. One might constrain the assignment-fallback to a platform and
    leave va_copy undefined in uncaught platform cases (?).
