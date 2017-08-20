@@ -796,6 +796,7 @@ static Tcl_CallFrame * CallStackNextFrameOfType(Tcl_CallFrame *framePtr, unsigne
 static Tcl_CallFrame *
 CallStackNextFrameOfType(Tcl_CallFrame *framePtr, unsigned int flags) {
   NsfCallStackContent *cscPtr;
+
   nonnull_assert(framePtr != NULL);
 
   do {
@@ -807,7 +808,10 @@ CallStackNextFrameOfType(Tcl_CallFrame *framePtr, unsigned int flags) {
     }
     
     if (((unsigned int)Tcl_CallFrame_isProcCallFrame(framePtr) & flags) != 0u) {
-      return framePtr;
+      /*
+       * framePtr has already the return value.
+       */
+      break;
     }
 
     framePtr = Tcl_CallFrame_callerPtr(framePtr);
