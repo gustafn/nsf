@@ -379,19 +379,15 @@ typedef struct Nsf_Param {
 #endif
 
 
-/* unforunately, we can't combine NSF_attribute_format() with functions called via stubs */
+/*
+ * Unfortunately, we can't combine NSF_attribute_format() with
+ * functions called via stubs.
+ */
 #if __GNUC_PREREQ(3, 4)
-# define NSF_attribute_format(ARGS) __attribute__((format ARGS))
+# define NSF_attribute_format(ARGS) __attribute__((__format__ ARGS))
 #else
 # define NSF_attribute_format(ARGS)
 #endif
-
-EXTERN int
-Nsf_ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
-		  Nsf_Object *object, Tcl_Obj *procNameObj,
-		  Nsf_Param CONST *paramPtr, int nrParams, int serial,
-		  unsigned int processFlags, Nsf_ParseContext *pcPtr)
-  NSF_nonnull(1) NSF_nonnull(3) NSF_nonnull(5) NSF_nonnull(10);
 
 EXTERN int
 NsfArgumentError(Tcl_Interp *interp, CONST char *errorMsg, Nsf_Param CONST *paramPtr,
