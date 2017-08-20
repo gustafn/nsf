@@ -101,7 +101,7 @@ CscListRemove(const Tcl_Interp *interp, const NsfCallStackContent *cscPtr, NsfCl
  *----------------------------------------------------------------------
  * NsfShowStack --
  *
- *    Print the contents of the callstack to stderr. This function is
+ *    Print the contents of the call-stack to stderr. This function is
  *    for debugging purposes only.
  *
  * Results:
@@ -145,7 +145,7 @@ void NsfShowStack(Tcl_Interp *interp) {
             Tcl_CallFrame_objc(framePtr) > 0 ? Tcl_CallFrame_objc(framePtr) : -1);
     if (cscPtr != NULL) {
       fprintf(stderr, " csc %p frameType %.4x flags %.6x (%s.%p %s)\n",
-	      (void *)cscPtr,
+              (void *)cscPtr,
               cscPtr->frameType,
               cscPtr->flags,
               ObjectName(cscPtr->self),
@@ -173,7 +173,7 @@ void NsfShowStack(Tcl_Interp *interp) {
  *----------------------------------------------------------------------
  * Nsf_PushFrameObj, Nsf_PopFrameObj --
  *
- *    Push or pop a frame with a callstack content as an OBJECT
+ *    Push or pop a frame with a call-stack content as an OBJECT
  *    frame.
  *
  * Results:
@@ -228,7 +228,7 @@ static void Nsf_PopFrameObj(Tcl_Interp *interp, CallFrame *framePtr) {
  *----------------------------------------------------------------------
  * Nsf_PushFrameCsc, Nsf_PopFrameCsc --
  *
- *    Push or pop a frame with a callstack content as a CMETHOD
+ *    Push or pop a frame with a call-stack content as a CMETHOD
  *    frame.
  *
  * Results:
@@ -255,7 +255,7 @@ Nsf_PushFrameCsc(Tcl_Interp *interp, const NsfCallStackContent *cscPtr, CallFram
     framePtr, cscPtr, Tcl_GetCommandName(interp, cscPtr->cmdPtr));*/
 
   Tcl_PushCallFrame(interp, (Tcl_CallFrame *)framePtr, Tcl_CallFrame_nsPtr(varFramePtr),
-		    FRAME_IS_PROC|FRAME_IS_NSF_CMETHOD);
+                    FRAME_IS_PROC|FRAME_IS_NSF_CMETHOD);
   Tcl_CallFrame_clientData(framePtr) = (ClientData)cscPtr;
   Tcl_CallFrame_procPtr(framePtr) = &RUNTIME_STATE(interp)->fakeProc;
 }
@@ -300,7 +300,7 @@ CallStackGetActiveProcFrame(Tcl_CallFrame *framePtr) {
     if ((flag & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) != 0) {
       /* never return an inactive method frame */
       if (likely(!(((NsfCallStackContent *)Tcl_CallFrame_clientData(framePtr))->frameType
-		   & NSF_CSC_TYPE_INACTIVE))) {
+                   & NSF_CSC_TYPE_INACTIVE))) {
         break;
       }
     } else {
@@ -354,11 +354,11 @@ GetSelfObj(const Tcl_Interp *interp) {
   for (; varFramePtr != NULL; varFramePtr =
 
 #if defined(SKIP_LEVELS)
-			Tcl_CallFrame_callerPtr(varFramePtr)
+                        Tcl_CallFrame_callerPtr(varFramePtr)
 #else
-	 		NULL
+                        NULL
 #endif
-			) {
+                        ) {
     register unsigned int flags = (unsigned int)Tcl_CallFrame_isProcCallFrame(varFramePtr);
 
     if (likely((flags & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)))) {
@@ -383,7 +383,7 @@ GetSelfObj(const Tcl_Interp *interp) {
  *----------------------------------------------------------------------
  * CallStackGetTclFrame --
  *
- *    Return the Tcl_Callframe a (scripted or nonleaf) method starting with
+ *    Return the Tcl_Callframe a (scripted or non-leaf) method starting with
  *    the specified or topmost frame; if skip is a positive number the
  *    specified number of Tcl frames are skipped.
  *
@@ -396,12 +396,12 @@ GetSelfObj(const Tcl_Interp *interp) {
  *----------------------------------------------------------------------
  */
 static  Tcl_CallFrame* CallStackGetTclFrame(const Tcl_Interp *interp,
-					    Tcl_CallFrame *startFramePtr,
-					    int skip) nonnull(1);
+                                            Tcl_CallFrame *startFramePtr,
+                                            int skip) nonnull(1);
 
 static Tcl_CallFrame* CallStackGetTclFrame(const Tcl_Interp *interp,
-					   Tcl_CallFrame *varFramePtr,
-					   int skip) {
+                                           Tcl_CallFrame *varFramePtr,
+                                           int skip) {
   nonnull_assert(interp != NULL);
   assert(skip >= 0);
 
@@ -429,7 +429,7 @@ static Tcl_CallFrame* CallStackGetTclFrame(const Tcl_Interp *interp,
  * CallStackGetTopFrame, CallStackGetTopFrame0, NsfCallStackGetTopFrame --
  *
  *    Return the NsfCallStackContent* of the topmost invocation of a (scripted
- *    or nonleaf) method. If framePtrPtr is provided, it is used to return the
+ *    or non-leaf) method. If framePtrPtr is provided, it is used to return the
  *    Tcl frame as well.
  *
  * Results:
@@ -499,7 +499,7 @@ NsfCallStackGetTopFrame(const Tcl_Interp *interp, Tcl_CallFrame **framePtrPtr) {
  *----------------------------------------------------------------------
  * NsfCallStackFindLastInvocation --
  *
- *    Find last invocation of a (scripted or nonleaf) method with a
+ *    Find last invocation of a (scripted or non-leaf) method with a
  *    specified offset.
  *
  * Results:
@@ -529,17 +529,17 @@ NsfCallStackFindLastInvocation(const Tcl_Interp *interp, int offset, Tcl_CallFra
        * A NSF method frame.
        */
       if ((cscPtr->flags & (NSF_CSC_CALL_IS_NEXT|NSF_CSC_CALL_IS_ENSEMBLE))
-	  || (cscPtr->frameType & NSF_CSC_TYPE_INACTIVE)) {
+          || (cscPtr->frameType & NSF_CSC_TYPE_INACTIVE)) {
         continue;
       }
 
       if (offset != 0) {
         offset--;
       } else if (Tcl_CallFrame_level(varFramePtr) < lvl) {
-	if (framePtrPtr != NULL) {
+        if (framePtrPtr != NULL) {
           *framePtrPtr = varFramePtr;
         }
-	return cscPtr;
+        return cscPtr;
       }
     } else if (Tcl_CallFrame_isProcCallFrame(varFramePtr)) {
 
@@ -549,10 +549,10 @@ NsfCallStackFindLastInvocation(const Tcl_Interp *interp, int offset, Tcl_CallFra
       if (offset != 0) {
         offset--;
       } else if (Tcl_CallFrame_level(varFramePtr) < lvl) {
-	if (framePtrPtr != NULL) {
+        if (framePtrPtr != NULL) {
           *framePtrPtr = varFramePtr;
         }
-	return NULL;
+        return NULL;
       }
     }
   }
@@ -567,7 +567,7 @@ NsfCallStackFindLastInvocation(const Tcl_Interp *interp, int offset, Tcl_CallFra
  *----------------------------------------------------------------------
  * NsfCallStackFindActiveFrame --
  *
- *    Search for the first active frame on the callstack.
+ *    Search for the first active frame on the call-stack.
  *
  * Results:
  *    Call stack content or NULL.
@@ -689,10 +689,10 @@ CallStackRestoreSavedFrames(Tcl_Interp *interp, callFrameContext *ctx) {
  *----------------------------------------------------------------------
  * CallStackFindActiveFilter --
  *
- *    Return the callstack content of the currently active filter
+ *    Return the call-stack content of the currently active filter
  *
  * Results:
- *    Callstack content or NULL, if no filter is active
+ *    Call-stack content or NULL, if no filter is active
  *
  * Side effects:
  *    None.
@@ -724,11 +724,11 @@ CallStackFindActiveFilter(const Tcl_Interp *interp) {
  *----------------------------------------------------------------------
  * CallStackFindEnsembleCsc --
  *
- *    Return the callstack content and the optionally the stack frame
+ *    Return the call-stack content and the optionally the stack frame
  *    of the last ensemble invocation.
  *
  * Results:
- *    Callstack content
+ *    Call-stack content
  *
  * Side effects:
  *    None.
@@ -753,19 +753,19 @@ CallStackFindEnsembleCsc(const Tcl_CallFrame *framePtr, Tcl_CallFrame **framePtr
     assert(cscPtr != NULL);
 
     /*fprintf(stderr,"	--- frame %p cmdPtr %p NSF_CSC_TYPE_ENSEMBLE %d NSF_CSC_CALL_IS_ENSEMBLE %d \
-			 NSF_CSC_TYPE_INACTIVE %d\n",
-	    varFramePtr,
-	    cscPtr->cmdPtr,
-	    (cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) != 0,
-	    (cscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE) != 0,
-	    (cscPtr->frameType & NSF_CSC_TYPE_INACTIVE) != 0);*/
+                         NSF_CSC_TYPE_INACTIVE %d\n",
+            varFramePtr,
+            cscPtr->cmdPtr,
+            (cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) != 0,
+            (cscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE) != 0,
+            (cscPtr->frameType & NSF_CSC_TYPE_INACTIVE) != 0);*/
     /*
-     * The "root" frame in a callstack branch resulting from an ensemble
+     * The "root" frame in a call-stack branch resulting from an ensemble
      * dispatch is not typed as an NSF_CSC_TYPE_ENSEMBLE frame, the call type
      * /is/ NSF_CSC_CALL_IS_ENSEMBLE.
      */
     if ((cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) == 0u &&
-	(cscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE)) {
+        (cscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE)) {
       break;
     }
   }
@@ -806,7 +806,7 @@ CallStackNextFrameOfType(Tcl_CallFrame *framePtr, unsigned int flags) {
     if (cscPtr != NULL && (cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) != 0u) {
       (void)CallStackFindEnsembleCsc(framePtr, &framePtr);
     }
-    
+
     if (((unsigned int)Tcl_CallFrame_isProcCallFrame(framePtr) & flags) != 0u) {
       /*
        * framePtr has already the return value.
@@ -815,7 +815,7 @@ CallStackNextFrameOfType(Tcl_CallFrame *framePtr, unsigned int flags) {
     }
 
     framePtr = Tcl_CallFrame_callerPtr(framePtr);
-    
+
   } while (framePtr != NULL);
 
   return framePtr;
@@ -858,13 +858,13 @@ CallStackMethodPath(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
     assert(cscPtr != NULL);
 
     /*fprintf(stderr,	"--- frame %p cmdPtr %p cmd %s NSF_CSC_TYPE_ENSEMBLE %d \
-			NSF_CSC_CALL_IS_ENSEMBLE %d NSF_CSC_TYPE_INACTIVE %d\n",
-	    framePtr,
-	    cscPtr->cmdPtr,
-	    Tcl_GetCommandName(interp, cscPtr->cmdPtr),
-	    (cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) != 0,
-	    (cscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE) != 0,
-	    (cscPtr->frameType & NSF_CSC_TYPE_INACTIVE) != 0);*/
+                        NSF_CSC_CALL_IS_ENSEMBLE %d NSF_CSC_TYPE_INACTIVE %d\n",
+            framePtr,
+            cscPtr->cmdPtr,
+            Tcl_GetCommandName(interp, cscPtr->cmdPtr),
+            (cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) != 0,
+            (cscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE) != 0,
+            (cscPtr->frameType & NSF_CSC_TYPE_INACTIVE) != 0);*/
 
     /*
      * The "ensemble" call type, we find applied to all intermediate and leaf
@@ -876,7 +876,7 @@ CallStackMethodPath(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
       break;
     }
     /*
-     * The callstack might contain consecutive calls of ensemble entry calls
+     * The call-stack might contain consecutive calls of ensemble entry calls
      * chained via next. We can detect consecutive calls via the elements
      * count.
      */
@@ -885,11 +885,11 @@ CallStackMethodPath(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
     }
 
     Tcl_ListObjAppendElement(interp, methodPathObj,
-			     Tcl_NewStringObj(Tcl_GetCommandName(interp, cscPtr->cmdPtr), -1));
+                             Tcl_NewStringObj(Tcl_GetCommandName(interp, cscPtr->cmdPtr), -1));
     elements++;
 
     /*
-     * The "root" frame in a callstack branch resulting from an ensemble
+     * The "root" frame in a call-stack branch resulting from an ensemble
      * dispatch is not typed as an NSF_CSC_TYPE_ENSEMBLE frame, the call type
      * /is/ NSF_CSC_CALL_IS_ENSEMBLE (as checked above).
      */
@@ -966,7 +966,7 @@ FilterActiveOnObj(const Tcl_Interp *interp, const NsfObject *object, Tcl_Command
  * CallStackReplaceVarTableReferences --
  *
  *    Replace all references to the old var table (arg 1) by
- *    references to a new var table (arg 2) on the callstack.
+ *    references to a new var table (arg 2) on the call-stack.
  *    This function is e.g. used by require namespace.
  *
  * Results:
@@ -1009,7 +1009,7 @@ CallStackReplaceVarTableReferences(const Tcl_Interp *interp, TclVarHashTable *ol
  *----------------------------------------------------------------------
  * CallStackPopAll --
  *
- *    Unwind the stack and pop all callstack entries that are still
+ *    Unwind the stack and pop all call-stack entries that are still
  *    alive (e.g.  if "exit" is called and we were jumping out of the
  *    callframe).
  *
@@ -1141,11 +1141,11 @@ CscAlloc(Tcl_Interp *interp, NsfCallStackContent *cscPtr, Tcl_Command cmd) {
  *----------------------------------------------------------------------
  */
 NSF_INLINE static void CscInit_(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *cl,
-	Tcl_Command cmd, unsigned short frameType, unsigned int flags) nonnull(1) nonnull(2);
+        Tcl_Command cmd, unsigned short frameType, unsigned int flags) nonnull(1) nonnull(2);
 
 NSF_INLINE static void
 CscInit_(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *cl,
-	Tcl_Command cmd, unsigned short frameType, unsigned int flags) {
+        Tcl_Command cmd, unsigned short frameType, unsigned int flags) {
 #if defined(NSF_PROFILE)
   struct Tcl_Time trt;
 #endif
@@ -1172,8 +1172,8 @@ CscInit_(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass 
     object->activationCount ++;
     MEM_COUNT_ALLOC("object.activationCount",object);
     /*fprintf(stderr, "CscInit %p method %s activationCount ++ (%s) --> %d (cl %p)\n",
-	    cscPtr, (cmd != NULL) ? Tcl_GetCommandName(object->teardown, cmd) : "UNK",
-	    ObjectName(object),  object->activationCount, cl);*/
+            cscPtr, (cmd != NULL) ? Tcl_GetCommandName(object->teardown, cmd) : "UNK",
+            ObjectName(object),  object->activationCount, cl);*/
     /*
      * Track class activations
      */
@@ -1268,10 +1268,10 @@ CscFinish_(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
     MEM_COUNT_FREE("object.activationCount", object);
 
     /*fprintf(stderr, "CscFinish decr activationCount for %s to %d object->flags %.6x dc %.6x succ %.6x\n",
-	    ObjectName(cscPtr->self), cscPtr->self->activationCount, object->flags,
-	    object->flags & NSF_DESTROY_CALLED,
-	    object->flags & NSF_DESTROY_CALLED_SUCCESS
-	    );*/
+            ObjectName(cscPtr->self), cscPtr->self->activationCount, object->flags,
+            object->flags & NSF_DESTROY_CALLED,
+            object->flags & NSF_DESTROY_CALLED_SUCCESS
+            );*/
 
     assert(object->activationCount > -1);
 
@@ -1290,14 +1290,14 @@ CscFinish_(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
       MEM_COUNT_FREE("class.activationCount", clObject);
 
       /*fprintf(stderr, "CscFinish class %p %s check ac %d flags destroy %.6x success %.6x\n",
-	      clObject, ObjectName(clObject),
-	      clObject->activationCount,
-	      clObject->flags & NSF_DESTROY_CALLED,
-	      clObject->flags & NSF_DESTROY_CALLED_SUCCESS);*/
+              clObject, ObjectName(clObject),
+              clObject->activationCount,
+              clObject->flags & NSF_DESTROY_CALLED,
+              clObject->flags & NSF_DESTROY_CALLED_SUCCESS);*/
 
       if (clObject->activationCount < 1 && clObject->flags & NSF_DESTROY_CALLED && allowDestroy) {
-	/* fprintf(stderr, "CscFinish calls destroy class %p\n", clObject);*/
-	CallStackDoDestroy(interp, clObject);
+        /* fprintf(stderr, "CscFinish calls destroy class %p\n", clObject);*/
+        CallStackDoDestroy(interp, clObject);
       }
       /*
        * Release the Namespace
@@ -1349,13 +1349,13 @@ BeginOfCallChain(const Tcl_Interp *interp, NsfObject *object) {
       register unsigned int flags = Tcl_CallFrame_isProcCallFrame(varFramePtr);
 
       if (flags & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) {
-	const NsfCallStackContent *cscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
-	if (cscPtr->self == object) {
-	  prevFramePtr = varFramePtr;
-	  continue;
-	}
+        const NsfCallStackContent *cscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
+        if (cscPtr->self == object) {
+          prevFramePtr = varFramePtr;
+          continue;
+        }
       } else if ((flags & (FRAME_IS_NSF_OBJECT|FRAME_IS_LAMBDA)) != 0u) {
-	continue;
+        continue;
       }
       break;
     }
