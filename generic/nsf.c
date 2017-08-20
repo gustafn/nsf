@@ -18483,15 +18483,15 @@ FindSelfNext(Tcl_Interp *interp) {
 
   } else {
     Tcl_Command cmd = NULL, currentCmd = NULL;
-    const char *lookupMethodName = NULL, *methodName;
+    const char *lookupMethodName, *methodName;
     int isEnsemble = (cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) != 0u;
     
     Tcl_ResetResult(interp);
 
     methodName = Tcl_GetCommandName(interp, cscPtr->cmdPtr);
     if (isEnsemble) {
-      NsfCallStackContent *cscPtr1;
-      cscPtr1 = CallStackFindEnsembleCsc(framePtr, &framePtr);
+      NsfCallStackContent *cscPtr1 = CallStackFindEnsembleCsc(framePtr, &framePtr);
+
       lookupMethodName = MethodName(cscPtr1->objv[0]);
     } else {
       lookupMethodName = methodName;
