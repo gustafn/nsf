@@ -83,12 +83,15 @@ namespace eval ::nx {
       if {[info exists arg]} {
 	foreach o [Object info instances -closure] {set pre_exist($o) 1}
 
-	namespace eval :: [list [current] eval $arg]
-
-	foreach o [Object info instances -closure] {
-	  if {[info exists pre_exist($o)]} continue
-	  if {$o in {::xotcl::Attribute}} continue
-	  if {[::nsf::object::exists $o]} {$o destroy}
+        # namespace eval :: [list [current] eval $arg]
+        apply [list {} $arg ::]
+        
+        foreach o [Object info instances -closure] {
+          if {[info exists pre_exist($o)]} continue
+          if {$o eq "::xotcl::Attribute"} continue
+          if {[namespace tail $o] in {slot per-object-slot}} continue
+          if {[string match {*::slot::__*} $o]} continue
+          if {[::nsf::object::exists $o]} {$o destroy}
 	}
       }
     }
@@ -208,6 +211,11 @@ proc ? {cmd expected {msg ""}} {
   nsf::__db_run_assertions
 }
 
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:
 
 
 

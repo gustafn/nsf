@@ -18049,7 +18049,7 @@ NextGetArguments(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
     cscPtr = CallStackFindEnsembleCsc(framePtr, &framePtr);
     assert(cscPtr != NULL);
     inEnsemble = 1;
-    *methodNamePtr = ObjStr(cscPtr->objv[0]);
+    *methodNamePtr = MethodName(cscPtr->objv[0]);
   } else {
     inEnsemble = 0;
     *methodNamePtr = Tcl_GetCommandName(interp, cscPtr->cmdPtr);
@@ -18472,21 +18472,32 @@ static int
 FindSelfNext(Tcl_Interp *interp) {
   NsfCallStackContent *cscPtr;
   int                  result;
-
+  Tcl_CallFrame *framePtr;
+      
   nonnull_assert(interp != NULL);
 
-  cscPtr = CallStackGetTopFrame0(interp);
+  cscPtr = CallStackGetTopFrame(interp, &framePtr);
+
   if (unlikely(cscPtr == NULL)) {
     result = NsfPrintError(interp, "called outside NSF scope");
 
   } else {
     Tcl_Command cmd = NULL, currentCmd = NULL;
-    const char *methodName;
-
+    const char *lookupMethodName = NULL, *methodName;
+    int isEnsemble = (cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) != 0u;
+    
     Tcl_ResetResult(interp);
 
     methodName = Tcl_GetCommandName(interp, cscPtr->cmdPtr);
-    if (methodName == NULL) {
+    if (isEnsemble) {
+      NsfCallStackContent *cscPtr1;
+      cscPtr1 = CallStackFindEnsembleCsc(framePtr, &framePtr);
+      lookupMethodName = MethodName(cscPtr1->objv[0]);
+    } else {
+      lookupMethodName = methodName;
+    }
+
+    if (lookupMethodName == NULL) {
       /*
        * In case, we do not find the command, we return OK. Why?
        */
@@ -18495,10 +18506,11 @@ FindSelfNext(Tcl_Interp *interp) {
       int        isMixinEntry = 0, isFilterEntry = 0, endOfFilterChain = 0;
       NsfClass  *cl     = cscPtr->cl;
       NsfObject *object = cscPtr->self;
-
-      result = NextSearchMethod(object, interp, cscPtr, &cl, &methodName, &cmd,
+      
+      result = NextSearchMethod(object, interp, cscPtr, &cl, &lookupMethodName, &cmd,
                                 &isMixinEntry, &isFilterEntry, &endOfFilterChain, &currentCmd);
       if (cmd != NULL) {
+        methodName = isEnsemble ? ObjStr(NsfMethodNamePath(interp, framePtr, methodName)) : lookupMethodName;
         Tcl_SetObjResult(interp, MethodHandleObj((cl != NULL) ? (NsfObject *)cl : object,
                                                  cl == NULL, methodName));
       }
@@ -27868,11 +27880,17 @@ NsfCurrentCmd(Tcl_Interp *interp, CurrentoptionIdx_t selfoption) {
     break;
 
   case CurrentoptionIsnextcallIdx: {
-    (void)CallStackGetTopFrame(interp, &framePtr);
+
+    cscPtr = CallStackGetTopFrame(interp, &framePtr);
+    
+    if ((cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) != 0u) {
+      (void)CallStackFindEnsembleCsc(framePtr, &framePtr);
+    }
+    
     framePtr = CallStackNextFrameOfType(Tcl_CallFrame_callerPtr(framePtr),
                                         FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD);
     cscPtr = (framePtr != NULL) ? Tcl_CallFrame_clientData(framePtr) : NULL;
-
+    
     Tcl_SetBooleanObj(Tcl_GetObjResult(interp),
                       (cscPtr != NULL && ((cscPtr->flags & NSF_CSC_CALL_IS_NEXT) != 0u)));
     break;

@@ -407,6 +407,9 @@ nx::test case object-unknown {
   ? {D i o a} a
   ? {D i o x} {unable to dispatch sub-method "x" of ::D i o; valid are: i o a, i o b}
   ? {D i o x y} {unable to dispatch sub-method "x" of ::D i o; valid are: i o a, i o b}
+
+  ::nsf::method::delete nx::Class i
+  ::nsf::method::delete nx::Object i
 }
 
 nx::test case unknown-in-info {
@@ -887,10 +890,60 @@ nx::test case ensemble-vs-simple-method {
   ? {o1 bar x y z} "bar/2"
 }
 
+nx::test case ensemble-next-vs-colon-dispatch {
+  nx::Class create A {
+    :method "x s" args {
+      next
+      return [current class]
+    }
+  }
+  
+  nx::Class create B  -superclasses A {
+    :public method "x s" args {
+      return [list [current class] {*}[next]]
+    }
+    :create b
+  }
+
+  set sc "::B ::A"
+  ? {b eval { :x s }} $sc
+  ? {b eval { : x s }} $sc
+  ? {b x s} $sc
+}
+
+nx::test case ensemble-callstack-introspection {
+  set ::body {
+    return [list [current nextmethod] [current isnextcall] {*}[next]]
+  }
+  
+  nx::Class create A {
+    set ::handle [:method "i s" args $::body]
+    :create a
+  }
+  
+  nx::Class create B  -superclasses A {
+    :public method "i s" args $::body
+    :create b
+  }
+  
+  ? {b eval { :i s }} {{::nsf::classes::A::i s} 0 {} 1}
+  ? {::nsf::cmd::info args [lindex [b eval { :i s }] 0]} "args"
+  ? {::nsf::cmd::info definitionhandle [lindex [b eval { :i s }] 0]} $::handle
+  ? {::nsf::cmd::info body [lindex [b eval { :i s }] 0]} $::body
+  ? {b i s} {{::nsf::classes::A::i s} 0 {} 1};
+  ? {::nsf::cmd::info args [lindex [b i s] 0]} "args"
+  ? {::nsf::cmd::info definitionhandle [lindex [b i s] 0]} $::handle
+  ? {::nsf::cmd::info body [lindex [b i s] 0]} $::body
+  ? {a eval { :i s }} {{} 0}
+  ? {a i s} {{} 0}
+  
+  unset -nocomplain ::handle
+  unset -nocomplain ::body
+}
+  
 #
 # Local variables:
 #    mode: tcl
 #    tcl-indent-level: 2
 #    indent-tabs-mode: nil
 # End:
-
