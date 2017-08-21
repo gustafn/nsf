@@ -850,9 +850,10 @@ typedef struct NsfCallStackContent {
  * Tcl uses 01 and 02, TclOO uses 04 and 08, so leave some space free
  * for further extensions of Tcl and tcloo...
  */
-#define FRAME_IS_NSF_OBJECT  0x10000U
-#define FRAME_IS_NSF_METHOD  0x20000U
-#define FRAME_IS_NSF_CMETHOD 0x40000U
+#define FRAME_IS_NSF_OBJECT  0x10000u
+#define FRAME_IS_NSF_METHOD  0x20000u
+#define FRAME_IS_NSF_CMETHOD 0x40000u
+#define FRAME_VAR_LOADED     0x80000u
 
 #if defined(NRE)
 # define NRE_SANE_PATCH 1

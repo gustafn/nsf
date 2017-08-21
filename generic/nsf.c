@@ -1872,10 +1872,10 @@ static int
 GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
                 NsfClass **clPtr, int withUnknown) {
   NsfObject   *object;
-  NsfClass    *cls = NULL;
+  NsfClass    *cls;
   const char  *objName;
   Tcl_Command  cmd;
-  int          result = TCL_OK;
+  int          result;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(objPtr != NULL);
@@ -1885,7 +1885,7 @@ GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
   cmd = Tcl_GetCommandFromObj(interp, objPtr);
   /*fprintf(stderr, "GetClassFromObj %p %s unknown %d cmd %p\n", objPtr, objName, withUnknown, cmd);*/
 
-  if (cmd != NULL) {
+  if (likely(cmd != NULL)) {
     cls = NsfGetClassFromCmdPtr(cmd);
     if (cls == NULL) {
       /*
@@ -4368,26 +4368,69 @@ MakeObjNamespace(Tcl_Interp *interp, NsfObject *object) {
 }
 
 static Tcl_Var CompiledLocalsLookup(CallFrame *varFramePtr, const char *varName) nonnull(1) nonnull(2);
-
+// #define NSF_CONSTANT_COMPILED_LOCAL_LOOKUP
 static Tcl_Var
 CompiledLocalsLookup(CallFrame *varFramePtr, const char *varName) {
-  int       i, localCt, nameLength;
-  Tcl_Obj **varNameObjPtr;
 
   nonnull_assert(varFramePtr != NULL);
   nonnull_assert(varName != NULL);
+
+#if defined(NSF_CONSTANT_COMPILED_LOCAL_LOOKUP)
+  {
+      Tcl_Obj         **varNameObjPtr;
+      Tcl_Var          result;
+      TclVarHashTable *varTablePtr;
+      Tcl_Obj         *varNameObj;
+
+      varTablePtr = varFramePtr->varTablePtr;
+      if (unlikely(varTablePtr == NULL)) {
+        //fprintf(stderr, "CompiledLocalsLookup: creating varTablePtr\n");
+        varTablePtr = varFramePtr->varTablePtr = VarHashTableCreate();
+      }
+
+      if (unlikely(((unsigned)varFramePtr->isProcCallFrame & FRAME_VAR_LOADED)
+                   == 0)) {
+        int i, localCt;
+
+        localCt = varFramePtr->numCompiledLocals;
+        varNameObjPtr = &varFramePtr->localCachePtr->varName0;
+
+        for (i = 0 ; i < localCt ; i++, varNameObjPtr++) {
+          if (likely(*varNameObjPtr != NULL)) {
+            int new;
+
+            (void)VarHashCreateVar(varTablePtr, *varNameObjPtr, &new);
+          }
+        }
+        varFramePtr->isProcCallFrame |= FRAME_VAR_LOADED;
+      }
+
+      varNameObj = Tcl_NewStringObj(varName, -1);
+
+      INCR_REF_COUNT(varNameObj);
+      result = (Tcl_Var)VarHashCreateVar(varTablePtr, varNameObj, NULL);
+      DECR_REF_COUNT(varNameObj);
+      return result;
+  }
+#else
+  Tcl_Obj         **varNameObjPtr;
+  int               i, localCt, nameLength;
 
   localCt = varFramePtr->numCompiledLocals;
   varNameObjPtr = &varFramePtr->localCachePtr->varName0;
   nameLength = (int)strlen(varName);
 
-  /* fprintf(stderr, ".. search #local vars %d for %s\n", localCt, varName);*/
+  //fprintf(stderr, ".. search #local vars %d for %s flags %.8x\n",
+  //        localCt, varName, varFramePtr->isProcCallFrame);
   for (i = 0 ; i < localCt ; i++, varNameObjPtr++) {
     Tcl_Obj *varNameObj = *varNameObjPtr;
     int      len;
 
     if (likely(varNameObj != NULL)) {
       const char *localName = TclGetStringFromObj(varNameObj, &len);
+
+      //fprintf(stderr, ".. [%d] varNameObj %p %p <%s>\n",
+      //        i, (void *)varNameObj, (void *)varNameObj->typePtr, localName);
 
       if (unlikely(varName[0] == localName[0]
                    && varName[1] == localName[1]
@@ -4398,6 +4441,7 @@ CompiledLocalsLookup(CallFrame *varFramePtr, const char *varName) {
     }
   }
   return NULL;
+#endif
 }
 
 /*
@@ -5027,11 +5071,9 @@ InterpColonVarResolver(Tcl_Interp *interp, const char *varName, Tcl_Namespace *U
   nonnull_assert(varName != NULL);
   nonnull_assert(varPtr != NULL);
 
-  /*
-   */
-  if (!FOR_COLON_RESOLVER(varName)|| (flags & (TCL_NAMESPACE_ONLY)) != 0u) {
+  if (!FOR_COLON_RESOLVER(varName) || (flags & (TCL_NAMESPACE_ONLY)) != 0u) {
     /*
-     * Ordinary names (not starting with the prefix) and namespace only
+     * Ordinary names (not starting with our prefix) and namespace only
      * lookups are not for us. We cannot filter for TCL_GLOBAL_ONLY, since
      * "vwait :varName" is called with with this flag.
      */
@@ -5045,6 +5087,8 @@ InterpColonVarResolver(Tcl_Interp *interp, const char *varName, Tcl_Namespace *U
   frameFlags = (unsigned int)InterpGetFrameAndFlags(interp, &varFramePtr);
 
   if (likely((frameFlags & FRAME_IS_NSF_METHOD) != 0u)) {
+    //*varPtr = CompiledLocalsLookup(varFramePtr, varName);
+    //fprintf(stderr, "CompiledLocalsLookup for %p %s returned %p\n", varFramePtr, varName, *varPtr);
     if ((*varPtr = CompiledLocalsLookup(varFramePtr, varName))) {
       /*
        * This section is reached under notable circumstances and represents a
@@ -9094,14 +9138,12 @@ ResetOrderOfObjectsUsingThisClassAsObjectMixin(NsfClass *cl) {
  *----------------------------------------------------------------------
  */
 
-static void MixinInvalidateObjOrders(Tcl_Interp *interp, NsfClass *cl, NsfClasses *subClasses)
-  nonnull(1) nonnull(2) nonnull(3);
+static void MixinInvalidateObjOrders(NsfClasses *subClasses)
+  nonnull(1);
 
 static void
-MixinInvalidateObjOrders(Tcl_Interp *interp, NsfClass *cl, NsfClasses *subClasses) {
+MixinInvalidateObjOrders(NsfClasses *subClasses) {
 
-  nonnull_assert(interp != NULL);
-  nonnull_assert(cl != NULL);
   nonnull_assert(subClasses != NULL);
 
   /*
@@ -10845,7 +10887,7 @@ SuperclassAdd(Tcl_Interp *interp, NsfClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj *a
    * Invalidate all interceptors orders of instances of this and of all
    * depended classes.
    */
-  MixinInvalidateObjOrders(interp, cl, subClasses);
+  MixinInvalidateObjOrders(subClasses);
   if (FiltersDefined(interp) > 0) {
     FilterInvalidateObjOrders(interp, subClasses);
   }
@@ -11635,14 +11677,13 @@ NsfProcDeleteProc(ClientData clientData) {
  *
  *----------------------------------------------------------------------
  */
-static int ParamDefsStore(Tcl_Interp *interp, Tcl_Command cmd, NsfParamDefs *paramDefs, unsigned int checkAlwaysFlag)
-  nonnull(1) nonnull(2);
+static int ParamDefsStore(Tcl_Command cmd, NsfParamDefs *paramDefs, unsigned int checkAlwaysFlag)
+  nonnull(1);
 
 static int
-ParamDefsStore(Tcl_Interp *interp, Tcl_Command cmd, NsfParamDefs *paramDefs, unsigned int checkAlwaysFlag) {
+ParamDefsStore(Tcl_Command cmd, NsfParamDefs *paramDefs, unsigned int checkAlwaysFlag) {
   Command *cmdPtr;
 
-  nonnull_assert(interp != NULL);
   nonnull_assert(cmd != NULL);
 
   cmdPtr = (Command *)cmd;
@@ -11653,9 +11694,8 @@ ParamDefsStore(Tcl_Interp *interp, Tcl_Command cmd, NsfParamDefs *paramDefs, uns
   if (cmdPtr->deleteProc != NsfProcDeleteProc) {
     NsfProcContext *ctxPtr = NEW(NsfProcContext);
 
-    /*fprintf(stderr, "ParamDefsStore %p (%s) replace deleteProc %p by %p\n",
-            paramDefs, Tcl_GetCommandName(interp, cmd),
-            cmdPtr->deleteProc, NsfProcDeleteProc);*/
+    /*fprintf(stderr, "ParamDefsStore %p replace deleteProc %p by %p\n",
+            paramDefs, cmdPtr->deleteProc, NsfProcDeleteProc);*/
 
     ctxPtr->oldDeleteData   = (Proc *)cmdPtr->deleteData;
     ctxPtr->oldDeleteProc   = cmdPtr->deleteProc;
@@ -16523,7 +16563,7 @@ MakeProc(Tcl_Namespace *nsPtr, NsfAssertionStore *aStore, Tcl_Interp *interp,
         procPtr->cmdPtr->nsPtr = ((Command *)regObject->id)->nsPtr;
       }
 
-      ParamDefsStore(interp, (Tcl_Command)procPtr->cmdPtr, parsedParam.paramDefs, checkAlwaysFlag);
+      ParamDefsStore((Tcl_Command)procPtr->cmdPtr, parsedParam.paramDefs, checkAlwaysFlag);
       Tcl_SetObjResult(interp, MethodHandleObj(defObject, withPer_object, methodName));
       result = TCL_OK;
     }
@@ -17028,7 +17068,7 @@ NsfProcAdd(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
    * introspection.
    */
   paramDefs = parsedParamPtr->paramDefs;
-  ParamDefsStore(interp, cmd, paramDefs, checkAlwaysFlag);
+  ParamDefsStore(cmd, paramDefs, checkAlwaysFlag);
 
   /*fprintf(stderr, "NsfProcAdd procName '%s' define cmd '%s' %p in namespace %s\n",
     procName, Tcl_GetCommandName(interp, cmd), cmd, cmdNsPtr->fullName);*/
@@ -19437,7 +19477,7 @@ CleanupDestroyClass(Tcl_Interp *interp, NsfClass *cl, int softrecreate, int recr
      * might be used as a superclass of a per object mixin, so it might
      * have no clopt...
      */
-    MixinInvalidateObjOrders(interp, cl, subClasses);
+    MixinInvalidateObjOrders(subClasses);
     if (FiltersDefined(interp) > 0) {
       FilterInvalidateObjOrders(interp, subClasses);
     }
@@ -22315,6 +22355,8 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
         }
         /* end of lookup loop */
       }
+    } else {
+      valueInArgument = NULL;
     }
 
     assert(pPtr != NULL);
@@ -23640,13 +23682,15 @@ MethodTypeMatches(Tcl_Interp *interp, int methodType, Tcl_Command cmd,
         return 0;
       }
   } else {
-    Tcl_ObjCmdProc *resolvedProc = Tcl_Command_objProc(importedCmd);
+    Tcl_ObjCmdProc *resolvedProc;
 
     if (proc == NsfProcAliasMethod) {
       if ((methodType & NSF_METHODTYPE_ALIAS) == 0) {
         return 0;
       }
     }
+    resolvedProc = Tcl_Command_objProc(importedCmd);
+
     /* the following cases are disjoint */
     if (CmdIsProc(importedCmd)) {
       /*fprintf(stderr,"%s scripted %d\n", methodName, methodType & NSF_METHODTYPE_SCRIPTED);*/
@@ -25757,7 +25801,8 @@ NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
   case ProtectionCall_protectedIdx:     flags = NSF_CMD_CALL_PROTECTED_METHOD; break;
   case ProtectionRedefine_protectedIdx: flags = NSF_CMD_REDEFINE_PROTECTED_METHOD; break;
   case ProtectionNoneIdx: /* fall through */
-  case ProtectionNULL:                  flags = 0u; break;
+  case ProtectionNULL:    /* fall through */
+  default:                flags = 0u; break;
   }
 
   if (cl != NULL) {
@@ -26262,7 +26307,7 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
         if (paramDefs == NULL) {
           /* acquire new paramDefs */
           paramDefs = ParamDefsNew();
-          ParamDefsStore(interp, cmd, paramDefs, 0);
+          ParamDefsStore(cmd, paramDefs, 0);
           /*fprintf(stderr, "new param definitions %p for cmd %p %s\n", paramDefs, cmd, ObjStr(methodObj));*/
         }
 
@@ -27375,7 +27420,7 @@ NsfRelationClassMixinsSet(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *valueObj, i
   }
 
   subClasses = DependentSubClasses(cl);
-  MixinInvalidateObjOrders(interp, cl, subClasses);
+  MixinInvalidateObjOrders(subClasses);
 
   /*
    * Since methods of mixed in classes may be used as filters, we have to
@@ -30007,7 +30052,7 @@ NsfCMixinGuardMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *mixin, Tcl_Obj *
           }
           GuardAdd(h, guardObj);
           subClasses = DependentSubClasses(cl);
-          MixinInvalidateObjOrders(interp, cl, subClasses);
+          MixinInvalidateObjOrders(subClasses);
           NsfClassListFree(subClasses);
           return TCL_OK;
         }
