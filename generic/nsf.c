@@ -4372,9 +4372,6 @@ static Tcl_Var CompiledLocalsLookup(CallFrame *varFramePtr, const char *varName)
 static Tcl_Var
 CompiledLocalsLookup(CallFrame *varFramePtr, const char *varName) {
 
-  nonnull_assert(varFramePtr != NULL);
-  nonnull_assert(varName != NULL);
-
 #if defined(NSF_CONSTANT_COMPILED_LOCAL_LOOKUP)
   {
       Tcl_Obj         **varNameObjPtr;
@@ -4382,6 +4379,9 @@ CompiledLocalsLookup(CallFrame *varFramePtr, const char *varName) {
       TclVarHashTable *varTablePtr;
       Tcl_Obj         *varNameObj;
 
+      nonnull_assert(varFramePtr != NULL);
+      nonnull_assert(varName != NULL);
+      
       varTablePtr = varFramePtr->varTablePtr;
       if (unlikely(varTablePtr == NULL)) {
         //fprintf(stderr, "CompiledLocalsLookup: creating varTablePtr\n");
@@ -4415,6 +4415,9 @@ CompiledLocalsLookup(CallFrame *varFramePtr, const char *varName) {
 #else
   Tcl_Obj         **varNameObjPtr;
   int               i, localCt, nameLength;
+
+  nonnull_assert(varFramePtr != NULL);
+  nonnull_assert(varName != NULL);
 
   localCt = varFramePtr->numCompiledLocals;
   varNameObjPtr = &varFramePtr->localCachePtr->varName0;
