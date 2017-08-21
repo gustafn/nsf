@@ -225,11 +225,10 @@ static int NsfOCleanupMethod(Tcl_Interp *interp, NsfObject *object)
 static int NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CONST objv[], Tcl_Obj *objv0)
   nonnull(1) nonnull(2) nonnull(4) nonnull(5);
 static int NsfODestroyMethod(Tcl_Interp *interp, NsfObject *object) nonnull(1) nonnull(2);
-static int MethodDispatch(ClientData clientData, Tcl_Interp *interp,
-                          int objc, Tcl_Obj *CONST objv[],
+static int MethodDispatch(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
                           Tcl_Command cmd, NsfObject *object, NsfClass *cl,
                           const char *methodName, unsigned short frameType, unsigned int flags)
-  nonnull(1) nonnull(2) nonnull(4) nonnull(5) nonnull(6) nonnull(8);
+  nonnull(1) nonnull(3) nonnull(4) nonnull(5) nonnull(7);
 static int DispatchDefaultMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *obj, unsigned int flags)
   nonnull(1) nonnull(2) nonnull(3);
 static int DispatchDestroyMethod(Tcl_Interp *interp, NsfObject *object, unsigned int flags)
@@ -12941,8 +12940,7 @@ ObjectCmdMethodDispatch(NsfObject *invokedObject, Tcl_Interp *interp, int objc, 
      *    to MethodDispatch/MethodDispatch
      *  TODO: maybe remove NSF_CM_KEEP_CALLER_SELF when done.
      */
-    result = MethodDispatch(object, interp,
-                            nobjc+1, nobjv-1, cmd, object,
+    result = MethodDispatch(interp, nobjc+1, nobjv-1, cmd, object,
                             NULL /*NsfClass *cl*/,
                             Tcl_GetCommandName(interp, cmd),
                             NSF_CSC_TYPE_PLAIN, flags);
@@ -12964,8 +12962,7 @@ ObjectCmdMethodDispatch(NsfObject *invokedObject, Tcl_Interp *interp, int objc, 
       cscPtr->objc = objc;
       cscPtr->objv = objv;
       Nsf_PushFrameCsc(interp, cscPtr, framePtr);
-      result = MethodDispatch(actualSelf,
-                              interp, objc-1, objv+1,
+      result = MethodDispatch(interp, objc-1, objv+1,
                               subMethodCmd, actualSelf, actualClass, subMethodName,
                               cscPtr->frameType|NSF_CSC_TYPE_ENSEMBLE,
                               (cscPtr->flags & 0xFF)|NSF_CSC_IMMEDIATE);
@@ -13028,8 +13025,7 @@ ObjectCmdMethodDispatch(NsfObject *invokedObject, Tcl_Interp *interp, int objc, 
       fprintf(stderr, ".... ensemble dispatch on %s.%s objflags %.8x cscPtr %p base flags %.6x flags %.6x cl %s\n",
       ObjectName(actualSelf), subMethodName, actualSelf->flags,
       cscPtr, (0xFF & cscPtr->flags), (cscPtr->flags & 0xFF)|NSF_CSC_IMMEDIATE, (actualClass != NULL) ? ClassName(actualClass) : "NONE");*/
-    result = MethodDispatch(actualSelf,
-                            interp, objc-1, objv+1,
+    result = MethodDispatch(interp, objc-1, objv+1,
                             subMethodCmd, actualSelf, actualClass, subMethodName,
                             cscPtr->frameType|NSF_CSC_TYPE_ENSEMBLE,
                             (cscPtr->flags & 0xFF)|NSF_CSC_IMMEDIATE);
@@ -13444,15 +13440,13 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
  *----------------------------------------------------------------------
  */
 static int
-MethodDispatch(ClientData clientData, Tcl_Interp *interp,
-               int objc, Tcl_Obj *CONST objv[],
+MethodDispatch(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
                Tcl_Command cmd, NsfObject *object, NsfClass *cl,
                const char *methodName, unsigned short frameType, unsigned int flags) {
   NsfCallStackContent csc, *cscPtr;
   int result, isValidCsc = 1;
   Tcl_Command resolvedCmd;
 
-  nonnull_assert(clientData != NULL);
   nonnull_assert(interp != NULL);
   nonnull_assert(objv != NULL);
   nonnull_assert(cmd != NULL);
@@ -18340,17 +18334,17 @@ NextSearchAndInvoke(Tcl_Interp *interp, const char *methodName,
         Tcl_NRAddCallback(interp, NextInvokeFinalize,
                           (freeArgumentVector != 0) ? (ClientData)objv : NULL,
                           cscPtr, NULL, NULL);
-        return MethodDispatch(object, interp, objc, objv, cmd,
+        return MethodDispatch(interp, objc, objv, cmd,
                               object, cl, methodName, frameType, flags);
       } else {
-        result = MethodDispatch(object, interp, objc, objv, cmd,
+        result = MethodDispatch(interp, objc, objv, cmd,
                                 object, cl, methodName, frameType, flags);
       }
     }
 #else
     /*fprintf(stderr, "NextSearchAndWinvoke calls cmd %p methodName %s cscPtr->flags %.8x\n",
       cmd, methodName, cscPtr->flags);*/
-    result = MethodDispatch(object, interp, objc, objv, cmd,
+    result = MethodDispatch(interp, objc, objv, cmd,
                             object, cl, methodName, frameType, cscPtr->flags);
 #endif
   } else if (likely(result == TCL_OK)) {
@@ -25404,8 +25398,7 @@ NsfDirectDispatchCmd(Tcl_Interp *interp, NsfObject *object, FrameIdx_t withFrame
       flags = NSF_CSC_FORCE_FRAME|NSF_CSC_IMMEDIATE;
     }
 
-    result = MethodDispatch(object, interp,
-                            nobjc+1, nobjv-1, cmd, object,
+    result = MethodDispatch(interp, nobjc+1, nobjv-1, cmd, object,
                             NULL /*NsfClass *cl*/,
                             Tcl_GetCommandName(interp, cmd),
                             NSF_CSC_TYPE_PLAIN, flags);
