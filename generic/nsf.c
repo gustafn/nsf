@@ -18563,6 +18563,68 @@ FindSelfNext(Tcl_Interp *interp) {
   return result;
 }
 
+
+/*
+ *----------------------------------------------------------------------
+ * FindNextMethod --
+ *
+ *    This function is called via [current nextmethod] to resolve the method
+ *    to be invoked by [next]. If there is a next method found on the
+ *    precedence path, a method handle (Tcl_Obj) will be returned. The caller is
+ *    responsible for managing the resulting Tcl_Obj, if any.
+ *
+ * Results:
+ *    Tcl_Obj; NULL otherwise (no next method or called from outside of NSF)
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+ 
+static Tcl_Obj *FindNextMethod(Tcl_Interp *interp, Tcl_CallFrame *framePtr)
+  nonnull(1) nonnull(2);
+
+static Tcl_Obj *FindNextMethod(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
+  int         isEnsemble, isMixinEntry = 0, isFilterEntry = 0, endOfFilterChain = 0;
+  Tcl_Command cmd = NULL, currentCmd = NULL;
+  const char  *lookupMethodName, *methodName;
+  NsfClass    *cl;
+  NsfObject   *object;
+  NsfCallStackContent *cscPtr;
+
+  nonnull_assert(interp != NULL);
+  nonnull_assert(framePtr != NULL);
+
+  cscPtr = Tcl_CallFrame_clientData(framePtr);
+  if (unlikely(cscPtr == NULL)) {
+    return NULL;
+  }
+  
+  isEnsemble = (cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) != 0u;
+  
+  methodName = Tcl_GetCommandName(interp, cscPtr->cmdPtr);
+  if (isEnsemble) {
+    NsfCallStackContent *cscPtr1 = CallStackFindEnsembleCsc(framePtr, &framePtr);
+    lookupMethodName = MethodName(cscPtr1->objv[0]);
+  } else {
+    lookupMethodName = methodName;
+  }
+
+  cl = cscPtr->cl;
+  object = cscPtr->self;
+  
+  if (NextSearchMethod(object, interp, cscPtr, &cl, &lookupMethodName, &cmd, &isMixinEntry, &isFilterEntry,
+                       &endOfFilterChain, &currentCmd) == TCL_OK && cmd != NULL) {
+    methodName = isEnsemble ? ObjStr(NsfMethodNamePath(interp, framePtr, methodName)) : lookupMethodName;
+    return MethodHandleObj((cl != NULL) ? (NsfObject *)cl : object, cl == NULL, methodName);
+  } else {
+    return NULL;
+  }
+  
+}
+
+
 /*
  *----------------------------------------------------------------------
  * ComputeLevelObj --
@@ -27933,10 +27995,26 @@ NsfCurrentCmd(Tcl_Interp *interp, CurrentoptionIdx_t selfoption) {
     Tcl_SetObjResult(interp, Tcl_NewIntObj(Tcl_CallFrame_level(Tcl_Interp_varFramePtr(interp))));
     break;
 
-  case CurrentoptionNextmethodIdx:
-    result = FindSelfNext(interp);
-    break;
+  case CurrentoptionNextmethodIdx: {
 
+    cscPtr = CallStackGetTopFrame(interp, &framePtr);
+
+    if (cscPtr != NULL) {
+      Tcl_Obj *methodHandle = FindNextMethod(interp, framePtr);
+      
+      if (methodHandle == NULL) {
+        Tcl_ResetResult(interp);
+      } else {
+        Tcl_SetObjResult(interp, methodHandle);
+      }
+      
+    } else {
+      /* TODO: How can this possibly happen? Remove? */ 
+      result = NsfPrintError(interp, "called outside NSF scope");
+    }
+    
+    break;
+  }
   case CurrentoptionObjectIdx: /* fall through */
   case CurrentoptionNULL:
     /* handled above */
