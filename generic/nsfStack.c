@@ -344,33 +344,34 @@ NSF_INLINE static NsfObject* GetSelfObj(const Tcl_Interp *interp) nonnull(1);
 
 NSF_INLINE static NsfObject*
 GetSelfObj(const Tcl_Interp *interp) {
-  register Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
+  register Tcl_CallFrame *varFramePtr;
 
   nonnull_assert(interp != NULL);
 
   /*fprintf(stderr, "GetSelfObj interp has frame %p and var-frame %p\n",
     Tcl_Interp_framePtr(interp), Tcl_Interp_varFramePtr(interp));*/
 
-  for (; varFramePtr != NULL; varFramePtr =
-
+  for (varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
+       varFramePtr != NULL;
+       varFramePtr =
 #if defined(SKIP_LEVELS)
                         Tcl_CallFrame_callerPtr(varFramePtr)
 #else
                         NULL
 #endif
                         ) {
-    register unsigned int flags = (unsigned int)Tcl_CallFrame_isProcCallFrame(varFramePtr);
+    register unsigned int flags;
 
-    if (likely((flags & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)))) {
-      const NsfCallStackContent *cscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
-      return cscPtr->self;
+    flags = (unsigned int)Tcl_CallFrame_isProcCallFrame(varFramePtr);
+    if (likely((flags & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) != 0u)) {
+      return ((NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr))->self;
 
-    } else if (flags & FRAME_IS_NSF_OBJECT) {
-
+    } else if ((flags & FRAME_IS_NSF_OBJECT) != 0u) {
       return (NsfObject *)Tcl_CallFrame_clientData(varFramePtr);
+      
     }
 #if defined(SKIP_LAMBDA)
-    if (flags & FRAME_IS_LAMBDA) {
+    if ((flags & FRAME_IS_LAMBDA) != 0u) {
       continue;
     }
     break;

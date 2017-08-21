@@ -4367,7 +4367,7 @@ MakeObjNamespace(Tcl_Interp *interp, NsfObject *object) {
 }
 
 static Tcl_Var CompiledLocalsLookup(CallFrame *varFramePtr, const char *varName) nonnull(1) nonnull(2);
-// #define NSF_CONSTANT_COMPILED_LOCAL_LOOKUP
+// #define NSF_CONSTANT_COMPILED_LOCAL_LOOKUP 1
 static Tcl_Var
 CompiledLocalsLookup(CallFrame *varFramePtr, const char *varName) {
 
@@ -4380,7 +4380,7 @@ CompiledLocalsLookup(CallFrame *varFramePtr, const char *varName) {
 
       nonnull_assert(varFramePtr != NULL);
       nonnull_assert(varName != NULL);
-      
+
       varTablePtr = varFramePtr->varTablePtr;
       if (unlikely(varTablePtr == NULL)) {
         //fprintf(stderr, "CompiledLocalsLookup: creating varTablePtr\n");
@@ -4717,9 +4717,9 @@ NsColonVarResolver(Tcl_Interp *interp, const char *varName, Tcl_Namespace *UNUSE
 
 typedef struct NsfResolvedVarInfo {
   Tcl_ResolvedVarInfo vInfo;        /* This must be the first element. */
-  NsfObject *lastObject;
-  Tcl_Var var;
-  Tcl_Obj *nameObj;
+  NsfObject          *lastObject;
+  Tcl_Var             var;
+  Tcl_Obj            *nameObj;
 } NsfResolvedVarInfo;
 
 /*
@@ -4777,12 +4777,10 @@ static Tcl_Var CompiledColonVarFetch(Tcl_Interp *interp, Tcl_ResolvedVarInfo *vi
 
 static Tcl_Var
 CompiledColonVarFetch(Tcl_Interp *interp, Tcl_ResolvedVarInfo *vinfoPtr) {
-  NsfResolvedVarInfo *resVarInfo;
+  NsfResolvedVarInfo  *resVarInfo;
   NsfCallStackContent *cscPtr;
-  NsfObject *object;
-  TclVarHashTable *varTablePtr;
-  Tcl_Var var;
-  int new;
+  NsfObject           *object;
+  Tcl_Var              var;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(vinfoPtr != NULL);
@@ -4791,9 +4789,11 @@ CompiledColonVarFetch(Tcl_Interp *interp, Tcl_ResolvedVarInfo *vinfoPtr) {
   var = resVarInfo->var;
 
 #if defined(VAR_RESOLVER_TRACE)
-  unsigned int flags = (var != NULL) ? ((Var *)var)->flags : 0u;
-  fprintf(stderr,"CompiledColonVarFetch var '%s' var %p flags = %.4x dead? %.4x\n",
-          ObjStr(resVarInfo->nameObj), var, flags, flags & VAR_DEAD_HASH);
+  {
+    unsigned int flags = (var != NULL) ? ((Var *)var)->flags : 0u;
+    fprintf(stderr,"CompiledColonVarFetch var '%s' var %p flags = %.4x dead? %.4x\n",
+            ObjStr(resVarInfo->nameObj), var, flags, flags & VAR_DEAD_HASH);
+  }
 #endif
 
   cscPtr = CallStackGetTopFrame0(interp);
@@ -4809,9 +4809,9 @@ CompiledColonVarFetch(Tcl_Interp *interp, Tcl_ResolvedVarInfo *vinfoPtr) {
    *
    */
 
-  if ((var != NULL
-       && object == resVarInfo->lastObject
-       && (((((Var *)var)->flags) & VAR_DEAD_HASH)) == 0u)) {
+  if ((var != NULL)
+      && ((object == resVarInfo->lastObject))
+      && (((((Var *)var)->flags) & VAR_DEAD_HASH) == 0u)) {
     /*
      * The variable is valid.
      */
@@ -4819,55 +4819,61 @@ CompiledColonVarFetch(Tcl_Interp *interp, Tcl_ResolvedVarInfo *vinfoPtr) {
     fprintf(stderr, ".... cached var '%s' var %p flags = %.4x\n",
             ObjStr(resVarInfo->nameObj), var, ((Var *)var)->flags);
 #endif
-    return var;
-  }
-
-  if (unlikely(object == NULL)) {
-    return NULL;
-  }
-
-  if (var != NULL) {
     /*
-     * The variable is not valid anymore. Clean it up.
+     * return var;
      */
-    HashVarFree(var);
-  }
 
-  if (object->nsPtr != NULL) {
-    varTablePtr = Tcl_Namespace_varTablePtr(object->nsPtr);
-  } else if (object->varTablePtr != NULL) {
-    varTablePtr = object->varTablePtr;
+  } else if (unlikely(object == NULL)) {
+    var = NULL;
+
   } else {
-    /*
-     * In most situations, we have a varTablePtr through the clauses
-     * above. However, if someone redefines e.g. the method "configure" or
-     * "objectparameter", we might find an object with an still empty
-     * varTable, since these are lazy initiated.
-     */
-    varTablePtr = object->varTablePtr = VarHashTableCreate();
-  }
-  assert(varTablePtr != NULL);
+    TclVarHashTable  *varTablePtr;
+    int               new;
 
-  resVarInfo->lastObject = object;
+    if (var != NULL) {
+      /*
+       * The variable is not valid anymore. Clean it up.
+       */
+      HashVarFree(var);
+    }
+
+    if (object->nsPtr != NULL) {
+      varTablePtr = Tcl_Namespace_varTablePtr(object->nsPtr);
+    } else if (object->varTablePtr != NULL) {
+      varTablePtr = object->varTablePtr;
+    } else {
+      /*
+       * In most situations, we have a varTablePtr through the clauses
+       * above. However, if someone redefines e.g. the method "configure" or
+       * "objectparameter", we might find an object with an still empty
+       * varTable, since these are lazy initiated.
+       */
+      varTablePtr = object->varTablePtr = VarHashTableCreate();
+    }
+    assert(varTablePtr != NULL);
+
+    resVarInfo->lastObject = object;
 #if defined(VAR_RESOLVER_TRACE)
-  fprintf(stderr,"Fetch var %s in object %s\n", TclGetString(resVarInfo->nameObj), ObjectName(object));
+    fprintf(stderr,"Fetch var %s in object %s\n", TclGetString(resVarInfo->nameObj), ObjectName(object));
 #endif
-  resVarInfo->var = var = (Tcl_Var) VarHashCreateVar(varTablePtr, resVarInfo->nameObj, &new);
-  /*
-   * Increment the reference counter to avoid ckfree() of the variable
-   * in Tcl's FreeVarEntry(); for cleanup, we provide our own
-   * HashVarFree();
-   */
-  VarHashRefCount(var)++;
+    resVarInfo->var = var = (Tcl_Var) VarHashCreateVar(varTablePtr, resVarInfo->nameObj, &new);
+    /*
+     * Increment the reference counter to avoid ckfree() of the variable
+     * in Tcl's FreeVarEntry(); for cleanup, we provide our own
+     * HashVarFree();
+     */
+    VarHashRefCount(var)++;
 #if defined(VAR_RESOLVER_TRACE)
-  {
-    const Var *v = (Var *)(resVarInfo->var);
-    fprintf(stderr, ".... looked up existing var %s var %p flags = %.6x undefined %d\n",
-            ObjStr(resVarInfo->nameObj),
-            v, v->flags,
-            TclIsVarUndefined(v));
+    {
+      const Var *v = (Var *)(resVarInfo->var);
+      fprintf(stderr, ".... looked up existing var %s var %p flags = %.6x undefined %d\n",
+              ObjStr(resVarInfo->nameObj),
+              v, v->flags,
+              TclIsVarUndefined(v));
+    }
+#endif
   }
-#endif
+
   return var;
 }
 
@@ -5105,8 +5111,7 @@ InterpColonVarResolver(Tcl_Interp *interp, const char *varName, Tcl_Namespace *U
        * *slow path* (i.e., involving a TclObjLookupVarEx() call)
        *
        * 2. ... the act of variable resolution (i.e., TclObjLookupVarEx()) has
-       * not been restricted to the global (TCL_GLOBAL_ONLY) or an effective
-       * namespace (TCL_NAMESPACE_ONLY)
+       * not been restricted to an effective namespace (TCL_NAMESPACE_ONLY)
        *
        * 3. ..., resulting from the fact of participating in an bytecode
        * interpretation, CompiledColonVarFetch() stored a link variable
@@ -18578,16 +18583,12 @@ FindSelfNext(Tcl_Interp *interp) {
  *
  *----------------------------------------------------------------------
  */
- 
+
 static Tcl_Obj *FindNextMethod(Tcl_Interp *interp, Tcl_CallFrame *framePtr)
   nonnull(1) nonnull(2);
 
 static Tcl_Obj *FindNextMethod(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
-  int         isEnsemble, isMixinEntry = 0, isFilterEntry = 0, endOfFilterChain = 0;
-  Tcl_Command cmd = NULL, currentCmd = NULL;
-  const char  *lookupMethodName, *methodName;
-  NsfClass    *cl;
-  NsfObject   *object;
+  Tcl_Obj     *result;
   NsfCallStackContent *cscPtr;
 
   nonnull_assert(interp != NULL);
@@ -18595,30 +18596,40 @@ static Tcl_Obj *FindNextMethod(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
 
   cscPtr = Tcl_CallFrame_clientData(framePtr);
   if (unlikely(cscPtr == NULL)) {
-    return NULL;
-  }
-  
-  isEnsemble = (cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) != 0u;
-  
-  methodName = Tcl_GetCommandName(interp, cscPtr->cmdPtr);
-  if (isEnsemble) {
-    NsfCallStackContent *cscPtr1 = CallStackFindEnsembleCsc(framePtr, &framePtr);
-    lookupMethodName = MethodName(cscPtr1->objv[0]);
-  } else {
-    lookupMethodName = methodName;
-  }
+    result = NULL;
 
-  cl = cscPtr->cl;
-  object = cscPtr->self;
-  
-  if (NextSearchMethod(object, interp, cscPtr, &cl, &lookupMethodName, &cmd, &isMixinEntry, &isFilterEntry,
-                       &endOfFilterChain, &currentCmd) == TCL_OK && cmd != NULL) {
-    methodName = isEnsemble ? ObjStr(NsfMethodNamePath(interp, framePtr, methodName)) : lookupMethodName;
-    return MethodHandleObj((cl != NULL) ? (NsfObject *)cl : object, cl == NULL, methodName);
   } else {
-    return NULL;
+    int          isEnsemble, isMixinEntry = 0, isFilterEntry = 0, endOfFilterChain = 0;
+    Tcl_Command  cmd = NULL, currentCmd = NULL;
+    const char  *lookupMethodName, *methodName;
+    NsfClass    *cl;
+    NsfObject   *object;
+
+    isEnsemble = (cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) != 0u;
+
+    methodName = Tcl_GetCommandName(interp, cscPtr->cmdPtr);
+    if (isEnsemble) {
+      NsfCallStackContent *cscPtr1 = CallStackFindEnsembleCsc(framePtr, &framePtr);
+
+      lookupMethodName = MethodName(cscPtr1->objv[0]);
+    } else {
+      lookupMethodName = methodName;
+    }
+
+    cl = cscPtr->cl;
+    object = cscPtr->self;
+
+    if (NextSearchMethod(object, interp, cscPtr,
+                         &cl, &lookupMethodName, &cmd, &isMixinEntry, &isFilterEntry,
+                         &endOfFilterChain, &currentCmd) == TCL_OK
+        && cmd != NULL) {
+      methodName = isEnsemble ? ObjStr(NsfMethodNamePath(interp, framePtr, methodName)) : lookupMethodName;
+      result = MethodHandleObj((cl != NULL) ? (NsfObject *)cl : object, (cl == NULL), methodName);
+    } else {
+      result = NULL;
+    }
   }
-  
+  return result;
 }
 
 
@@ -27992,25 +28003,21 @@ NsfCurrentCmd(Tcl_Interp *interp, CurrentoptionIdx_t selfoption) {
     break;
 
   case CurrentoptionNextmethodIdx: {
+    Tcl_Obj *methodHandle;
 
     cscPtr = CallStackGetTopFrame(interp, &framePtr);
+    assert(cscPtr != NULL);
 
-    if (cscPtr != NULL) {
-      Tcl_Obj *methodHandle = FindNextMethod(interp, framePtr);
-      
-      if (methodHandle == NULL) {
-        Tcl_ResetResult(interp);
-      } else {
-        Tcl_SetObjResult(interp, methodHandle);
-      }
-      
+    methodHandle = FindNextMethod(interp, framePtr);
+    if (methodHandle == NULL) {
+      Tcl_ResetResult(interp);
     } else {
-      /* TODO: How can this possibly happen? Remove? */ 
-      result = NsfPrintError(interp, "called outside NSF scope");
+      Tcl_SetObjResult(interp, methodHandle);
     }
-    
+
     break;
   }
+
   case CurrentoptionObjectIdx: /* fall through */
   case CurrentoptionNULL:
     /* handled above */
