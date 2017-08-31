@@ -7,7 +7,7 @@ package require nx::test
 
 ::nx::configure defaultMethodCallProtection false
 
-::nsf::method::alias ::nx::Object objeval -frame object ::eval 
+::nsf::method::alias ::nx::Object objeval -frame object ::eval
 ::nsf::method::alias ::nx::Object array -frame object ::array
 ::nsf::method::alias ::nx::Object lappend -frame object ::lappend
 ::nsf::method::alias ::nx::Object incr -frame object ::incr
@@ -15,12 +15,12 @@ package require nx::test
 ::nsf::method::alias ::nx::Object unset -frame object ::unset
 
 ###########################################
-# Basic tests for var resolution under 
+# Basic tests for var resolution under
 # per-object namespaces ...
 ###########################################
 nx::test case globals
 set ::globalVar 1
-nx::Object create o 
+nx::Object create o
 o require namespace
 ? {o info vars} ""
 ? {info exists ::globalVar} 1
@@ -42,7 +42,7 @@ unset ::globalVar
 ###########################################
 nx::test case scopes
 
-nx::Object create o 
+nx::Object create o
 nx::Object create o2 {set :i 1}
 o objeval {
   # require an namespace within an objscoped frame; it is necessary to replace
@@ -94,7 +94,7 @@ set ::o::Y 5
 ? {o eval {info exists :X}} 1
 ? {o eval {info exists :Y}} 1
 ? {o set y} 2
-? {set ::g} 1 
+? {set ::g} 1
 
 o destroy
 o2 destroy
@@ -126,7 +126,7 @@ set ::o::Y 5
 ? {o eval {info exists :X}} 1
 ? {o eval {info exists :Y}} 1
 ? {o set y} 2
-? {set ::g} 1 
+? {set ::g} 1
 
 o destroy
 o2 destroy
@@ -138,7 +138,7 @@ foreach v {::x ::z ::g} {unset -nocomplain $v}
 # var exists tests
 ###########################################
 nx::test case exists {
-    set y 1 
+    set y 1
 
     nx::Object create o {set :x 1}
     o object method foo {} {info exists :x}
@@ -162,7 +162,7 @@ nx::test case exists {
 ###########################################
 nx::test case namespaces
 
-nx::Object create o 
+nx::Object create o
 o require namespace
 o set x 1
 ? {namespace eval ::o {set x}} 1
@@ -186,7 +186,7 @@ o destroy
 ###########################################
 nx::test case namespaces-array
 
-nx::Object create o 
+nx::Object create o
 o require namespace
 
 ? {o array exists a} 0
@@ -211,9 +211,9 @@ o destroy
 # tests on namespace-qualified var names
 ###########################################
 nx::test case namespaced-var-names
-nx::Object create o 
+nx::Object create o
 o require namespace
-nx::Object create o::oo 
+nx::Object create o::oo
 o::oo require namespace
 
 ? {::o set ::x 1} 1
@@ -225,7 +225,7 @@ o::oo require namespace
 ? {namespace eval ::o unset x} ""
 ? {o eval {info exists x}} 0
 
-# Note, relatively qualified var names (not prefixed with ::*) 
+# Note, relatively qualified var names (not prefixed with ::*)
 # are always resolved relative to the per-object namespace
 ? {catch {::o set o::x 1} msg} 1
 ? {::o set oo::x 1} 1
@@ -265,8 +265,8 @@ o object method bar {} {return ${:x},${:y}}
 o set x 1
 ? {o foo 1} "1,2" "create var y and fetch var x"
 ? {o bar} "1,2" "fetch two instance variables"
-? {o info vars} "x y" 
-# recreate object, check var caching; 
+? {o info vars} "x y"
+# recreate object, check var caching;
 # we have to recreate bar, so no problem
 nx::Object create o
 o set x 1
@@ -282,17 +282,17 @@ nx::Class create C {:property {x 1}}
 C create c1
 C method foo {x} {set :y 2; return ${:x},${:y}}
 C method bar {} {return ${:x},${:y}}
-? {c1 info vars} "x" 
+? {c1 info vars} "x"
 ? {c1 foo 1} "1,2" "create var y and fetch var x"
 ? {c1 bar} "1,2" "fetch two instance variables"
-? {c1 info vars} "x y" 
-# recreate object, check var caching; 
+? {c1 info vars} "x y"
+# recreate object, check var caching;
 # we do not have to recreate bar, compiled var persists,
 # change must be detected
 C create c1
 #puts stderr "after recreate"
 ? {catch {c1 bar}} "1" "compiled var y should not exist"
-? {c1 info vars} "x" 
+? {c1 info vars} "x"
 c1 destroy
 C destroy
 
@@ -305,7 +305,7 @@ nx::test case compiled-var-resolver
 nx::Class create C {:property {x 1}}
 C create c1
 C method foo {x} {
-  set :y 2; 
+  set :y 2;
   eval "set :z 3"
   return ${:x},${:y},${:z}
 }
@@ -392,7 +392,7 @@ C create c3
 
 ###############################################
 # refined tests for the var resolver under
-# Tcl namespaces parallelling XOTcl objects 
+# Tcl namespaces parallelling XOTcl objects
 # (! not declared through require namespace !)
 # e.g., "info has namespace" reports 0 rather
 # than 1 as under "require namespace"
@@ -422,14 +422,14 @@ unset ::w
 unset ::tmpArray
 
 ##################################################
-# Testing aliases for eval with and without 
+# Testing aliases for eval with and without
 # -varscope flags and with a
 # required namespace and without
 ##################################################
 nx::test case eval-variants
-::nsf::method::alias ::nx::Object objeval -frame object ::eval 
-::nsf::method::alias ::nx::Object softeval -frame method ::eval 
-::nsf::method::alias ::nx::Object softeval2 ::eval 
+::nsf::method::alias ::nx::Object objeval -frame object ::eval
+::nsf::method::alias ::nx::Object softeval -frame method ::eval
+::nsf::method::alias ::nx::Object softeval2 ::eval
 
 set G 1
 
@@ -486,7 +486,7 @@ unset -nocomplain ::zzz
 ? {lsort [o info vars]} "a aaa b x"
 o destroy
 
-# now with an object namespace 
+# now with an object namespace
 nx::Object create o
 o require namespace
 
@@ -557,7 +557,7 @@ o softeval2 {
 ? {lsort [o info vars]} "a aaa b x"
 o destroy
 
-# now with namespace 
+# now with namespace
 nx::Object create o
 o require namespace
 
@@ -591,9 +591,9 @@ o destroy
 # Test with proc scopes
 ##################################################
 nx::test case proc-scopes
-::nsf::method::alias ::nx::Object objscoped-eval -frame object ::eval 
-::nsf::method::alias ::nx::Object nonleaf-eval -frame method ::eval 
-::nsf::method::alias ::nx::Object plain-eval ::eval 
+::nsf::method::alias ::nx::Object objscoped-eval -frame object ::eval
+::nsf::method::alias ::nx::Object nonleaf-eval -frame method ::eval
+::nsf::method::alias ::nx::Object plain-eval ::eval
 
 proc foo-via-initcmd {} {
   foreach v {x xxx} {unset -nocomplain ::$v}
@@ -609,7 +609,7 @@ proc foo-via-initcmd {} {
 proc foo {type} {
   foreach v {x xxx} {unset -nocomplain ::$v}
   set p 1
-  nx::Object create o 
+  nx::Object create o
   o $type {
     set xxx 1
     set :x 1
@@ -690,7 +690,7 @@ nx::Object create o {
   #puts stderr ===waiting
   vwait :x
   #puts stderr ===waiting-DONE
-  # 
+  #
   # vwait method
   #
   after 10 {o foo}
@@ -731,7 +731,7 @@ namespace eval module {
 
 
 ##################################################
-# test setting of instance variables for 
+# test setting of instance variables for
 # objects with namespaces in and outside
 # of an eval (one case uses compiler)
 ##################################################
@@ -779,7 +779,7 @@ nx::test case info-vars-in-eval {
   ? {o eval {
     set x 1
     expr {[info vars "x"] eq "x"}
-  }} 1 
+  }} 1
 }
 
 #
@@ -812,14 +812,14 @@ nx::test case tcl-variable-cmd {
 }
 
 nx::test case interactions {
-  
+
   # SS: Adding an exemplary test destilled from the behaviour observed
   # for AOLserver vs. NaviServer when introspecting object variables
   # by means of the colon-resolver interface. It exemplifies the (by now
   # resolved for good) interactions between: (a) the compiling and
   # non-compiling var resolvers and (b) compiled and non-compiled
   # script execution
-  
+
   nx::Object create ::o {
     :public object method bar {} {
       # 1. creates a proc-local, compiled var "type"
@@ -832,14 +832,14 @@ nx::test case interactions {
       # CompiledLocalsLookup() receives the var name (i.e., ":type")
       # and finds the proc-local compiled var ":type" (actually a link
       # variable to the actual/real object variable).
-      eval {info exists :type}; 
+      eval {info exists :type};
       # Note! A [info exists :type] would have been optimised on the
       # bytecode fastpath (i.e., existsScalar instruction) and would
       # use the compiled-local link-var ":type" directly (without
       # visiting InterpColonVarResolver()!)
     }
   }
-  
+
   ? {o bar} 0
 
   #
@@ -862,21 +862,21 @@ nx::test case interactions {
   # non-prefixed, ordinary variables from the angle of
   # introspection. Also, this constitutes an observable behavioural
   # difference between compiled and non-compiled scripts ...
-  
+
   set script {
     # early probing: reflects the compiled-only, unexecuted state
     set _ [join [list {*}[lsort [info vars :*]] [info locals :*] \
-		     [info exists :u] [::nsf::var::exists [::nsf::current] u] \
-		     [info exists :v] [::nsf::var::exists [::nsf::current] v] \
-		     [info exists :x] [::nsf::var::exists [::nsf::current] x]] "-"]
+                     [info exists :u] [::nsf::var::exists [::nsf::current] u] \
+                     [info exists :v] [::nsf::var::exists [::nsf::current] v] \
+                     [info exists :x] [::nsf::var::exists [::nsf::current] x]] "-"]
     catch {set :u}
     set :v 1
     unset :x
     # late probing: reflects the (ideally) compiled, *executed* state
     append _ | [join [list {*}[lsort [info vars :*]] [info locals :*] \
-			[info exists :u] [::nsf::var::exists [::nsf::current] u] \
-			[info exists :v] [::nsf::var::exists [::nsf::current] v] \
-			[info exists :x] [::nsf::var::exists [::nsf::current] x]] "-"]
+                        [info exists :u] [::nsf::var::exists [::nsf::current] u] \
+                        [info exists :v] [::nsf::var::exists [::nsf::current] v] \
+                        [info exists :x] [::nsf::var::exists [::nsf::current] x]] "-"]
     return $_
   }
 
@@ -892,7 +892,7 @@ nx::test case interactions {
   #
   # testing interactions between the compile-time var resolver and ...
   #
-  
+
   # ... [variable]
   #
   # background: the [variable] statement is compiled. During
@@ -910,52 +910,52 @@ nx::test case interactions {
   # compiled locals (and an undefined obj var).
 
   # this has some implications ...
-  
+
   namespace eval ::ns1 {
     nx::Object create o {
       :public object method foo {} {
-	set _ [join [list {*}[lsort [info vars :*]] [info locals :*] \
-			 [info exists w] [::nsf::var::exists [::nsf::current] w] \
-			 [info exists :x] [::nsf::var::exists [::nsf::current] x]] "-"]
-	variable w; # -> intention: a variable "w" in the effective namespace (e.g., "::ns1::w")
-	variable :x; # -> intention: a variable ":x" in the effective namespace (e.g., "::ns1:::x"!).
-	append _ | [join [list {*}[lsort [info vars :*]] [info locals :*] \
-			      [info exists w] [::nsf::var::exists [::nsf::current] w] \
-			      [info exists :x] [::nsf::var::exists [::nsf::current] x]] "-"]
-	return $_
-      }    
+        set _ [join [list {*}[lsort [info vars :*]] [info locals :*] \
+                         [info exists w] [::nsf::var::exists [::nsf::current] w] \
+                         [info exists :x] [::nsf::var::exists [::nsf::current] x]] "-"]
+        variable w; # -> intention: a variable "w" in the effective namespace (e.g., "::ns1::w")
+        variable :x; # -> intention: a variable ":x" in the effective namespace (e.g., "::ns1:::x"!).
+        append _ | [join [list {*}[lsort [info vars :*]] [info locals :*] \
+                              [info exists w] [::nsf::var::exists [::nsf::current] w] \
+                              [info exists :x] [::nsf::var::exists [::nsf::current] x]] "-"]
+        return $_
+      }
     }
 
     ? {::ns1::o foo} ":x--0-0-0-0|:x--0-0-0-0"
-    
+
     o eval {
       :public object method faz {} {
-	set _ [join [list {*}[lsort [info vars :*]] [info locals :*] \
-			 [namespace which -variable [namespace current]::w] \
-			 [info exists [namespace current]::w] \
-			 [info exists w] [::nsf::var::exists [::nsf::current] w] \
-			 [namespace which -variable [namespace current]:::x] \
-			 [info exists [namespace current]:::x] \
-			 [info exists :x] [::nsf::var::exists [::nsf::current] x]] "-"]
-	variable w 1; # -> intention: a variable "w" in the effective namespace (e.g., "::ns1::w")
-	variable :x 2; # -> intention: a variable ":x" in the effective namespace (e.g., "::ns1:::x"!).
-	append _ | [join [list {*}[lsort [info vars :*]] [info locals :*] \
-			 [namespace which -variable [namespace current]::w] \
-			 [info exists [namespace current]::w] \
-			 [info exists w] [::nsf::var::exists [::nsf::current] w] \
-			 [namespace which -variable [namespace current]:::x] \
-			      [info exists [namespace current]:::x] [namespace eval  [namespace current] {info exists :x}] \
-			      [namespace eval  [namespace current] {variable :x; info exists :x}] \
-			      [info exists :x] [::nsf::var::exists [::nsf::current] x]] "-"]
+        set _ [join [list {*}[lsort [info vars :*]] [info locals :*] \
+                         [namespace which -variable [namespace current]::w] \
+                         [info exists [namespace current]::w] \
+                         [info exists w] [::nsf::var::exists [::nsf::current] w] \
+                         [namespace which -variable [namespace current]:::x] \
+                         [info exists [namespace current]:::x] \
+                         [info exists :x] [::nsf::var::exists [::nsf::current] x]] "-"]
+        variable w 1; # -> intention: a variable "w" in the effective namespace (e.g., "::ns1::w")
+        variable :x 2; # -> intention: a variable ":x" in the effective namespace (e.g., "::ns1:::x"!).
+        append _ | [join [list {*}[lsort [info vars :*]] [info locals :*] \
+                         [namespace which -variable [namespace current]::w] \
+                         [info exists [namespace current]::w] \
+                         [info exists w] [::nsf::var::exists [::nsf::current] w] \
+                         [namespace which -variable [namespace current]:::x] \
+                              [info exists [namespace current]:::x] [namespace eval  [namespace current] {info exists :x}] \
+                              [namespace eval  [namespace current] {variable :x; info exists :x}] \
+                              [info exists :x] [::nsf::var::exists [::nsf::current] x]] "-"]
 
-	append _ | [join [list [expr {$w eq [namespace eval [namespace current] {variable w; set w}]}] \
-			      [expr {${:x} eq [namespace eval [namespace current] {variable w; set :x}]}]] -]
-	return $_
-      }   
+        append _ | [join [list [expr {$w eq [namespace eval [namespace current] {variable w; set w}]}] \
+                              [expr {${:x} eq [namespace eval [namespace current] {variable w; set :x}]}]] -]
+        return $_
+      }
     }
 
     ? {::ns1::o faz} ":x--::ns1::w-0-0-0--0-0-0|:x--::ns1::w-1-1-0--0-1-1-1-0|1-1"
-    
+
     #
     # ISSUE 2: Colon-prefixed variables become represented by linked
     # variables in the compiled local arrays during
@@ -965,24 +965,24 @@ nx::test case interactions {
     # between object variables and [variable] links which (due to
     # executing the compile-time var resolver because of lacking
     # AVOID_RESOLVERS) emits a "replacing" link var
-    # 
+    #
     # In the example below, there won't be an error exception
     # 'variable ":aaa" already exists', because ":aaa" is resolved on
     # the fly to "::ns1::o1.aaa" in a non-compiled execution and in a
     # compiled situation, the compiled-local link variable ":aaa" is
     # simply cleared and recreated to proxy a namespace variable.
-    
+
     o eval {
       set :aaa 1
       :public object method caz {} {
-	set _ "[info exists :aaa]-${:aaa}-[set :aaa]"
-	variable :aaa
-	append _ "-[info exists :aaa]"
-	set :aaa 2
-	append _ "-${:aaa}-[set :aaa]-[namespace eval [namespace current] {variable :aaa; set :aaa}]"
-	unset :aaa
-	append _ "-[info exists :aaa]-[namespace which -variable [namespace current]:::aaa]-[::nsf::var::exists [current] aaa]-[[current] eval {set :aaa}]"
-	return $_
+        set _ "[info exists :aaa]-${:aaa}-[set :aaa]"
+        variable :aaa
+        append _ "-[info exists :aaa]"
+        set :aaa 2
+        append _ "-${:aaa}-[set :aaa]-[namespace eval [namespace current] {variable :aaa; set :aaa}]"
+        unset :aaa
+        append _ "-[info exists :aaa]-[namespace which -variable [namespace current]:::aaa]-[::nsf::var::exists [current] aaa]-[[current] eval {set :aaa}]"
+        return $_
       }
     }
 
@@ -1027,7 +1027,7 @@ nx::test case interactions {
     }} "1-1-1-1-2-2-2-0-0--0-1-5"
 
 
-    # ... [upvar] 
+    # ... [upvar]
     #
     # Exhibits the same interactions as [variable] due to creating
     # link variables by the compiling var resolver, namely the context
@@ -1037,50 +1037,50 @@ nx::test case interactions {
 
     nx::Object create p {
       :public object method foo {var} {
-	set :x XXX
-	set _ ${:x}
-	upvar $var :x
-	append _ -[join [list ${:x} [set :x] {*}[info vars :*] {*}[:info vars] \
-			     [info exists :x] \
-			     [[current] eval {info exists :x}]] "-"]
-	unset :x 
-	append _ -[join [list {*}[info vars :*] {*}[:info vars] \
-			    [info exists :x] [[current] eval {info exists :x}] \
-			    [[current] eval {set :x}]] "-"]
+        set :x XXX
+        set _ ${:x}
+        upvar $var :x
+        append _ -[join [list ${:x} [set :x] {*}[info vars :*] {*}[:info vars] \
+                             [info exists :x] \
+                             [[current] eval {info exists :x}]] "-"]
+        unset :x
+        append _ -[join [list {*}[info vars :*] {*}[:info vars] \
+                            [info exists :x] [[current] eval {info exists :x}] \
+                            [[current] eval {set :x}]] "-"]
       }
 
       :object method bar {var1 var2 var3 var4 var5 var6} {
-	upvar $var1 xx $var2 :yy $var3 :zz $var4 q $var5 :el1 $var6 :el2
-	set _ [join [list {*}[lsort [:info vars]] {*}[lsort [info vars :*]] \
-			  [info exists xx] $xx \
-			  [info exists :yy] ${:yy} \
-			  [info exists :zz] ${:zz} \
-			  [info exists q] [[current] eval {info exists :q}]] -] 
-	incr :yy
-	incr xx
-	incr :zz
-	incr q
-	incr :el1
-	incr :el2
-	return $_
+        upvar $var1 xx $var2 :yy $var3 :zz $var4 q $var5 :el1 $var6 :el2
+        set _ [join [list {*}[lsort [:info vars]] {*}[lsort [info vars :*]] \
+                          [info exists xx] $xx \
+                          [info exists :yy] ${:yy} \
+                          [info exists :zz] ${:zz} \
+                          [info exists q] [[current] eval {info exists :q}]] -]
+        incr :yy
+        incr xx
+        incr :zz
+        incr q
+        incr :el1
+        incr :el2
+        return $_
       }
 
       :public object method baz {} {
-	set :x 10
-	set y 20
-	set :z 30
-	unset -nocomplain :q
-	set :arr(a) 40
-	set _ [:bar :x y :z :q :arr(a) :arr(b)]
-	append _ -[join [list ${:x} $y ${:z} ${:q} [set :arr(a)] [set :arr(b)] [:info vars q]] -]
+        set :x 10
+        set y 20
+        set :z 30
+        unset -nocomplain :q
+        set :arr(a) 40
+        set _ [:bar :x y :z :q :arr(a) :arr(b)]
+        append _ -[join [list ${:x} $y ${:z} ${:q} [set :arr(a)] [set :arr(b)] [:info vars q]] -]
       }
     }
 
-    ? {set y 1; p foo y} "XXX-1-1-:x-x-1-1-:x-x-0-1-XXX" 
-    ? {p baz} "arr-x-z-:el1-:el2-:yy-:zz-1-10-1-20-1-30-0-0-11-21-31-1-41-1-q" 
+    ? {set y 1; p foo y} "XXX-1-1-:x-x-1-1-:x-x-0-1-XXX"
+    ? {p baz} "arr-x-z-:el1-:el2-:yy-:zz-1-10-1-20-1-30-0-0-11-21-31-1-41-1-q"
 
     #
-    # ... [namespace which] 
+    # ... [namespace which]
     #
     # Similar to the compiled, slow-path [variable] instructions,
     # [namespace which] as implemented by NamespaceWhichCmd() in
@@ -1091,19 +1091,19 @@ nx::test case interactions {
     # this would defeat its purpose. Anywyays, our resolver is
     # therefore completely blind when handling calls from [namespace
     # which].
-    # 
+    #
     # This leads to the unexpected behaviour in the test below:
     # [namespace which -variable :XXX] != [namespace which -variable
     # [namespace current]:::XXX]
-    
+
     o eval {
       :public object method bar {} {
-	set :XXX 1
-	return [join [list ${:XXX} [set :XXX] [namespace which -variable :XXX] \
-			  [namespace which -variable [namespace current]:::XXX]] -]
+        set :XXX 1
+        return [join [list ${:XXX} [set :XXX] [namespace which -variable :XXX] \
+                          [namespace which -variable [namespace current]:::XXX]] -]
       }
     }
-    
+
     ? {::ns1::o bar} "1-1-:XXX-"
   }
 }
@@ -1130,7 +1130,7 @@ nx::test case after-next {
 
     FormPage mixins add WorkflowPage
     FormPage create p1 -package_id 123
-    
+
     ? {p1 initialize_loaded_object} 123
   }
 }
@@ -1147,7 +1147,7 @@ nx::test case unconfigured-varresolver {
 }
 
 #
-# Test variable resolver in respect to uplevel and apply 
+# Test variable resolver in respect to uplevel and apply
 # (lambda frames)
 #
 
@@ -1230,6 +1230,53 @@ nx::test case unconfigured-varresolver {
   #
   ? {o3 foo-a-m-u} "o3.a"
   ? {o3 foo-a-r-u} "o3.a"
+}
+
+
+nx::test case compiled_colon_lookup {
+
+    nx::Object create p {
+
+        :object method bar {var3 var4 var5 var6} {
+            upvar $var3 :zz $var4 q $var5 :el1
+            return ${:zz}
+        }
+
+        :public object method baz {} {
+            set :z 30
+            unset -nocomplain :q
+            set :arr(a) 40
+            return [:bar :z :q :arr(a) :arr(b)]
+        }
+    }
+    #
+    # the upvar construct causes a "slow" access path via the colon
+    # var resolver. The first call will cause the creation of the
+    # sorted lookup cache.
+    #
+    ? {p baz} 30
+    #
+    # later calls use this cache
+    #
+    ? {p baz} 30
+
+    #
+    # Now redefine the method containing the compiled locals with
+    # an additional variable on the first position. In case the cache
+    # would not be refreshed appropriately, the index would point to a
+    # different variable and we would see wrong results here.
+    #
+    #puts stderr "=====redefine with an additional variable on the first position"
+    p public object method baz {} {
+        set :a 123
+        set :z 30
+        unset -nocomplain :q
+        set :arr(a) 40
+        return [:bar :z :q :arr(a) :arr(b)]
+    }
+    ? {p baz} 30
+    ? {p baz} 30
+
 }
 
 #

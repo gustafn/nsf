@@ -100,6 +100,7 @@ typedef struct NsfProcContext {
   ClientData         oldDeleteData;
   Tcl_CmdDeleteProc *oldDeleteProc;
   NsfParamDefs      *paramDefs;
+  int               *colonLocalVarCache;
   unsigned int       checkAlwaysFlag;
 } NsfProcContext;
 
@@ -349,9 +350,13 @@ static int ParameterCheck(Tcl_Interp *interp, Tcl_Obj *paramObjPtr, Tcl_Obj *val
                           int doConfigureParameter,
                           Nsf_Param **paramPtrPtr)
   nonnull(1) nonnull(2) nonnull(3);
+
 static void ParamDefsRefCountIncr(NsfParamDefs *paramDefs) nonnull(1);
 static void ParamDefsRefCountDecr(NsfParamDefs *paramDefs) nonnull(1);
 static void ParsedParamFree(NsfParsedParam *parsedParamPtr) nonnull(1);
+NSF_INLINE static NsfParamDefs *ParamDefsGet(Tcl_Command cmdPtr, unsigned int *checkAlwaysFlagPtr) nonnull(1);
+
+static NsfProcContext *ProcContextRequire(Tcl_Command cmd) nonnull(1);
 
 static int ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
                          NsfObject *obj, Tcl_Obj *procName,
@@ -532,7 +537,7 @@ NsfDStringEval(Tcl_Interp *interp, Tcl_DString *dsPtr, const char *context,
   Tcl_InterpState  state;
   NsfRuntimeState *rst;
   int              result, prevDoProfile;
-  unsigned int     prevPreventRecursionFlags = 0u;
+  unsigned int     prevPreventRecursionFlags;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(dsPtr != NULL);
@@ -553,6 +558,8 @@ NsfDStringEval(Tcl_Interp *interp, Tcl_DString *dsPtr, const char *context,
     }
     prevPreventRecursionFlags = rst->preventRecursionFlags;
     rst->preventRecursionFlags |= traceEvalFlags;
+  } else {
+    prevPreventRecursionFlags = 0u;
   }
 
   if ((traceEvalFlags & NSF_EVAL_NOPROFILE) && rst->doProfile == 1) {
@@ -1044,7 +1051,7 @@ static NSF_INLINE Var *VarHashCreateVar(TclVarHashTable *tablePtr, const Tcl_Obj
 
 static NSF_INLINE Var *
 VarHashCreateVar(TclVarHashTable *tablePtr, const Tcl_Obj *key, int *newPtr) {
-  Var                 *varPtr = NULL;
+  Var                 *varPtr;
   const Tcl_HashEntry *hPtr;
 
   nonnull_assert(tablePtr != NULL);
@@ -1054,7 +1061,10 @@ VarHashCreateVar(TclVarHashTable *tablePtr, const Tcl_Obj *key, int *newPtr) {
                              (char *) key, newPtr);
   if (likely(hPtr != NULL)) {
     varPtr = TclVarHashGetValue(hPtr);
+  } else {
+    varPtr = NULL;
   }
+
   return varPtr;
 }
 
@@ -2375,7 +2385,7 @@ static NsfClasses *NsfClassListUnlink(NsfClasses **firstPtrPtr, const void *key)
 
 static NsfClasses *
 NsfClassListUnlink(NsfClasses **firstPtrPtr, const void *key) {
-  NsfClasses *entryPtr = NULL;
+  NsfClasses *entryPtr;
 
   nonnull_assert(firstPtrPtr != NULL);
   nonnull_assert(key != NULL);
@@ -2401,6 +2411,8 @@ NsfClassListUnlink(NsfClasses **firstPtrPtr, const void *key) {
         break;
       }
     }
+  } else {
+    entryPtr = NULL;
   }
 
   return entryPtr;
@@ -2634,7 +2646,6 @@ static NsfClasses *MergeInheritanceLists(NsfClasses *pl, NsfClass *cl) nonnull(1
 
 static NsfClasses *
 MergeInheritanceLists(NsfClasses *pl, NsfClass *cl) {
-
   NsfClasses *sl, *baseList, **plNext, *superClasses,
     *deletionList = NULL;
 
@@ -4366,54 +4377,29 @@ MakeObjNamespace(Tcl_Interp *interp, NsfObject *object) {
   }
 }
 
-static Tcl_Var CompiledLocalsLookup(CallFrame *varFramePtr, const char *varName) nonnull(1) nonnull(2);
-// #define NSF_CONSTANT_COMPILED_LOCAL_LOOKUP 1
+/*
+ *----------------------------------------------------------------------
+ * CompiledLocalsLookup --
+ *
+ *    Lookup variable from the compiled locals. The function performs a linear
+ *    search in an unsorted list maintained by Tcl. This function is just used
+ *    for the rather deprecated "instvar" method.
+ *
+ * Results:
+ *    Returns Tcl_Var (or NULL, when lookup is not successful)
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+static Tcl_Var CompiledLocalsLookup(CallFrame *varFramePtr, const char *varName)
+  nonnull(1) nonnull(2);
+
 static Tcl_Var
 CompiledLocalsLookup(CallFrame *varFramePtr, const char *varName) {
-
-#if defined(NSF_CONSTANT_COMPILED_LOCAL_LOOKUP)
-  {
-      Tcl_Obj         **varNameObjPtr;
-      Tcl_Var          result;
-      TclVarHashTable *varTablePtr;
-      Tcl_Obj         *varNameObj;
-
-      nonnull_assert(varFramePtr != NULL);
-      nonnull_assert(varName != NULL);
-
-      varTablePtr = varFramePtr->varTablePtr;
-      if (unlikely(varTablePtr == NULL)) {
-        //fprintf(stderr, "CompiledLocalsLookup: creating varTablePtr\n");
-        varTablePtr = varFramePtr->varTablePtr = VarHashTableCreate();
-      }
-
-      if (unlikely(((unsigned)varFramePtr->isProcCallFrame & FRAME_VAR_LOADED)
-                   == 0)) {
-        int i, localCt;
-
-        localCt = varFramePtr->numCompiledLocals;
-        varNameObjPtr = &varFramePtr->localCachePtr->varName0;
-
-        for (i = 0 ; i < localCt ; i++, varNameObjPtr++) {
-          if (likely(*varNameObjPtr != NULL)) {
-            int new;
-
-            (void)VarHashCreateVar(varTablePtr, *varNameObjPtr, &new);
-          }
-        }
-        varFramePtr->isProcCallFrame |= FRAME_VAR_LOADED;
-      }
-
-      varNameObj = Tcl_NewStringObj(varName, -1);
-
-      INCR_REF_COUNT(varNameObj);
-      result = (Tcl_Var)VarHashCreateVar(varTablePtr, varNameObj, NULL);
-      DECR_REF_COUNT(varNameObj);
-      return result;
-  }
-#else
-  Tcl_Obj         **varNameObjPtr;
-  int               i, localCt, nameLength;
+  Tcl_Obj  **varNameObjPtr;
+  int        i, localCt, nameLength;
 
   nonnull_assert(varFramePtr != NULL);
   nonnull_assert(varName != NULL);
@@ -4422,8 +4408,9 @@ CompiledLocalsLookup(CallFrame *varFramePtr, const char *varName) {
   varNameObjPtr = &varFramePtr->localCachePtr->varName0;
   nameLength = (int)strlen(varName);
 
-  //fprintf(stderr, ".. search #local vars %d for %s flags %.8x\n",
+  //fprintf(stderr, "=== compiled local search #local vars %d for <%s> flags %.8x\n",
   //        localCt, varName, varFramePtr->isProcCallFrame);
+
   for (i = 0 ; i < localCt ; i++, varNameObjPtr++) {
     Tcl_Obj *varNameObj = *varNameObjPtr;
     int      len;
@@ -4443,15 +4430,293 @@ CompiledLocalsLookup(CallFrame *varFramePtr, const char *varName) {
     }
   }
   return NULL;
+}
+
+
+/*
+ *----------------------------------------------------------------------
+ * CompiledColonLocalsLookupBuildCache --
+ *
+ *    Helper function for CompiledColonLocalsLookup(): build up a sorted cache
+ *    consisting only of colon prefixed variables, such that e.g.
+ *    non-successful lookup can be performed in O(n/2).  In comparison to
+ *    CompiledLocalsLookup() this function is about a factor of 4 faster.
+ *
+ * Results:
+ *    Returns Tcl_Var (or NULL, when lookup is not successful)
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+static Tcl_Var CompiledColonLocalsLookupBuildCache(CallFrame     *varFramePtr,
+                                                   const char    *varName,
+                                                   int             nameLength,
+                                                   Tcl_Obj       **localNames,
+                                                   NsfProcContext *ctxPtr)
+  nonnull(1) nonnull(2) nonnull(4) nonnull(5);
+
+static Tcl_Var
+CompiledColonLocalsLookupBuildCache(CallFrame *varFramePtr, const char *varName,
+                                    int nameLength, Tcl_Obj **localNames,
+                                    NsfProcContext *ctxPtr) {
+  int       nrColonVars = 0, localCt, i, j;
+  Tcl_Var   result;
+  Tcl_Obj **varNameObjPtr;
+
+  nonnull_assert(varFramePtr != NULL);
+  nonnull_assert(varName != NULL);
+  nonnull_assert(localNames != NULL);
+  nonnull_assert(ctxPtr != NULL);
+
+  assert(ctxPtr->colonLocalVarCache == NULL);
+
+  localCt = varFramePtr->numCompiledLocals;
+  varNameObjPtr = &varFramePtr->localCachePtr->varName0;
+
+  /*
+   * Count colonVars
+   */
+  for (i = 0; i < localCt; i++, varNameObjPtr++) {
+    Tcl_Obj *varNameObj = *varNameObjPtr;
+
+    if (varNameObj != NULL) {
+      const char *localName = TclGetString(varNameObj);
+
+      if (localName[0] == ':') {
+        nrColonVars ++;
+      }
+    }
+  }
+
+  /*fprintf(stderr, ".. build cache #local vars %d for <%s> flags %.8x ctxPtr %p colonvars %d\n",
+          localCt, varName, varFramePtr->isProcCallFrame,
+          (void *)ctxPtr, nrColonVars
+          );*/
+
+  /*
+   * Allocate colonLocalVarCache in the proper size (keep space for a
+   * terminating element).
+   */
+  ctxPtr->colonLocalVarCache = NEW_ARRAY(int, nrColonVars+1);
+  varNameObjPtr = &varFramePtr->localCachePtr->varName0;
+
+  /*
+   * Fill colonLocalVarCache; since we have to go through the whole list, we
+   * might find and return the variable.
+   */
+  j = 0;
+  result = NULL;
+
+  for (i = 0; i < localCt ; i++, varNameObjPtr++) {
+    Tcl_Obj *varNameObj = *varNameObjPtr;
+
+    if (varNameObj != NULL) {
+      int         len;
+      const char *localName = TclGetStringFromObj(varNameObj, &len);
+
+      if (localName[0] == ':') {
+        int     k;
+        Tcl_Var var = (Tcl_Var) &varFramePtr->compiledLocals[i];
+
+        if (varName[1] == localName[1]
+            && len == nameLength
+            && strcmp(varName, localName) == 0) {
+          result = var;
+        }
+
+        //fprintf(stderr, ".. insert %s (%d) on pos %d; check j %d entries \n", localName, i, j, j);
+        for (k = 0; k < j; k++) {
+          int         idx, cmp;
+          const char *cachedName;
+
+          idx = ctxPtr->colonLocalVarCache[k];
+          cachedName = TclGetStringFromObj(localNames[idx], &len);
+          cmp = strcmp(localName, cachedName);
+
+          //fprintf(stderr, "... [%d] cmp newVarName <%s> (%d) with cachendName <%s> (%d) => %d\n",
+          //       k, localName, i, cachedName, idx, cmp);
+          if (cmp < 0) {
+            int ii;
+
+            /*
+             * Make space on position k for inserting the new element. We
+             * might uses memmove() instead.
+             */
+            for (ii = j; ii > k; ii--) {
+              ctxPtr->colonLocalVarCache[ii] = ctxPtr->colonLocalVarCache[ii - 1];
+            }
+            break;
+          }
+        }
+        ctxPtr->colonLocalVarCache[k] = i;
+
+        j++;
+        if (j == nrColonVars) {
+          break;
+        }
+      }
+    }
+  }
+  /*
+   * Terminate list of indices with -1
+   */
+  ctxPtr->colonLocalVarCache[j] = -1;
+
+  //fprintf(stderr, ".. search #local vars %d varName <%s> colonvars %d found %p\n",
+  //        localCt, varName, nrColonVars, (void*)result);
+
+  return result;
+}
+
+/*
+ *----------------------------------------------------------------------
+ * CompiledColonLocalsLookup --
+ *
+ *    Lookup single colon prefixed variables from the compiled locals. This
+ *    function uses a cache consisting of colon prefixed variables to speed up
+ *    variable access.
+ *
+ * Results:
+ *    Returns Tcl_Var (or NULL, when lookup is not successful)
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+//#define NSF_OLD_COLON_COMPILED_LOCAL_LOOKUP 1
+
+static Tcl_Var CompiledColonLocalsLookup(CallFrame *varFramePtr, const char *varName) nonnull(1) nonnull(2);
+
+static Tcl_Var
+CompiledColonLocalsLookup(CallFrame *varFramePtr, const char *varName) {
+#ifndef NSF_OLD_COLON_COMPILED_LOCAL_LOOKUP
+  Tcl_Obj       **localNames;
+  int             nameLength;
+  Tcl_Command     cmd;
+  NsfProcContext *ctxPtr;
+  Tcl_Var         result;
+
+  nonnull_assert(varFramePtr != NULL);
+  nonnull_assert(varName != NULL);
+
+  localNames = &varFramePtr->localCachePtr->varName0;
+  nameLength = (int)strlen(varName);
+
+  cmd = (Tcl_Command )varFramePtr->procPtr->cmdPtr;
+  ctxPtr = ProcContextRequire(cmd);
+
+  if (unlikely(ctxPtr->colonLocalVarCache == NULL)) {
+    result = CompiledColonLocalsLookupBuildCache(varFramePtr, varName, nameLength, localNames, ctxPtr);
+
+  } else {
+    int i, j;
+
+    /*
+     * Search the colonVarCache, which is alphabetically sorted to allow e.g.
+     * termination after O(n/2) on failures.
+     */
+    result = NULL;
+    for (i = 0, j = ctxPtr->colonLocalVarCache[0]; j > -1; ++i, j = ctxPtr->colonLocalVarCache[i]) {
+      int         len;
+      const char *localName;
+
+      localName = TclGetStringFromObj(localNames[j], &len);
+
+      //fprintf(stderr, ".. [%d] varNameObj %p <%s> vs <%s>\n",
+      //        j, (void *)varNameObj, localName, varName);
+
+      /*
+       * The first char of colon varName is always a colon, so we do not need to
+       * compare.
+       */
+      if (varName[1] < localName[1]) {
+        //fprintf(stderr, "... [%d] <%s> vs <%s> cant be here, break 1\n", j, varName, localName);
+        break;
+      } else if (varName[1] == localName[1]) {
+        int cmp;
+        /*
+         * Even when the first character is identical, we call compare() only
+         * when the lengths are equal.
+         */
+        if (len != nameLength) {
+          continue;
+        }
+        cmp = strcmp(varName, localName);
+        //fprintf(stderr, "... compare <%s> > <%s> => %d\n", varName, localName, cmp);
+        if (cmp == 0) {
+          result = (Tcl_Var) &varFramePtr->compiledLocals[j];
+          break;
+
+        } else if (cmp < 0) {
+          /*
+           * We are past the place, where the variable should be, so give up.
+           */
+          //fprintf(stderr, "... can break 2 <%s> > <%s>\n", varName, localName);
+          break;
+        }
+      }
+    }
+
+    //if (result != NULL) {
+    //fprintf(stderr, "... <%s> found -> [%d] %p\n", varName, j, (void *)result);
+    //}
+  }
+  return result;
+#else
+  Tcl_Obj         **varNameObjPtr;
+  int               i, localCt, nameLength;
+
+  nonnull_assert(varFramePtr != NULL);
+  nonnull_assert(varName != NULL);
+
+  localCt = varFramePtr->numCompiledLocals;
+  varNameObjPtr = &varFramePtr->localCachePtr->varName0;
+  nameLength = (int)strlen(varName);
+
+  /*fprintf(stderr, ".. linear search #local vars %d for <%s> flags %.8x proc %p %p paramdefs %p\n",
+          localCt, varName, varFramePtr->isProcCallFrame,
+          (void*)varFramePtr->procPtr->cmdPtr->deleteProc,
+          (void*)NsfProcDeleteProc,
+          (void *)ParamDefsGet((Tcl_Command )varFramePtr->procPtr->cmdPtr, NULL)
+          );*/
+  for (i = 0 ; i < localCt ; i++, varNameObjPtr++) {
+    Tcl_Obj *varNameObj = *varNameObjPtr;
+    int      len;
+
+    if (likely(varNameObj != NULL)) {
+      const char *localName = TclGetStringFromObj(varNameObj, &len);
+
+      //fprintf(stderr, ".. [%d] varNameObj %p %p <%s>\n",
+      //        i, (void *)varNameObj, (void *)varNameObj->typePtr, localName);
+
+      /*
+       * The first char of varName is always a colon.
+       */
+      if (unlikely(localName[0] == ':'
+                   && varName[1] == localName[1]
+                   && len == nameLength
+                   //&& memcmp(varName, localName, (size_t)nameLength) == 0)) {
+                   && strcmp(varName, localName) == 0)) {
+        return (Tcl_Var) &varFramePtr->compiledLocals[i];
+      }
+    }
+  }
+  return NULL;
 #endif
 }
+
+
+
 
 /*
  *----------------------------------------------------------------------
  * GetVarAndNameFromHash --
  *
  *    Convenience function to obtain variable and name from
- *    a variable hash entry
+ *    a variable hash entry.
  *
  * Results:
  *    Results are passed back in argument 2 and 3
@@ -4751,18 +5016,16 @@ HashVarFree(Tcl_Var var) {
  * CompiledColonVarFetch --
  *
  *    This function is the actual variable resolution handler for a
- *    colon-prefixed (":/varName/") found in a compiled script
- *    registered by the compiling var resolver (see
- *    InterpCompiledColonResolver()). When initializing a call frame,
- *    this handler is called, crawls the object's var table (creating
- *    a variable, if needed), and returns a Var structure. Based on
- *    this, a link variable ":/varName/" pointing to this object
- *    variable (i.e., "varName") is created and is stored in the
+ *    colon-prefixed (":/varName/") found in a compiled script registered by
+ *    the compiling var resolver (see InterpCompiledColonVarResolver()). When
+ *    initializing a call frame, this handler is called, crawls the object's
+ *    var table (creating a variable, if needed), and returns a Var
+ *    structure. Based on this, a link variable ":/varName/" pointing to this
+ *    object variable (i.e., "varName") is created and is stored in the
  *    compiled locals array of the call frame. Beware that these link
  *    variables interact with the family of link-creating commands
- *    ([variable], [global], [upvar]) by being subject to
- *    "retargeting" upon name conflicts (see
- *    tests/varresolutiontest.tcl for some examples).
+ *    ([variable], [global], [upvar]) by being subject to "retargeting" upon
+ *    name conflicts (see tests/varresolutiontest.tcl for some examples).
  *
  * Results:
  *    Tcl_Var containing value or NULL.
@@ -4948,9 +5211,9 @@ InterpCompiledColonVarResolver(Tcl_Interp *interp,
                                CONST84 char *name, int length, Tcl_Namespace *UNUSED(context),
                                Tcl_ResolvedVarInfo **rPtr) {
   /*
-   *  The variable handler is registered, when we have an active Next Scripting
-   *  object and the variable starts with the appropriate prefix. Note
-   *  that getting the "self" object is a weak protection against
+   *  The variable handler is registered, when we have an active Next
+   *  Scripting object and the variable starts with the appropriate
+   *  prefix. Note that getting the "self" object is a weak protection against
    *  handling of wrong vars
    */
   NsfObject *object = GetSelfObj(interp);
@@ -5036,20 +5299,18 @@ InterpGetFrameAndFlags(Tcl_Interp *interp, CallFrame **framePtr) {
  * InterpColonVarResolver --
  *
  *    For accessing object (instance) variables using the colon-prefix
- *    notation (":/varName/"), we provide our own var resolvers. This
- *    function is the non-compiling var resolver; its services are
- *    requested in two situations: a) when evaluating non-compiled
- *    statements, b) when executing slow-path bytecode instructions,
- *    with "slow path" referring to bytecode instructions not making
- *    use of the compiled locals array (and, e.g., reverting to
- *    TclObjLookupVar*() calls).
+ *    notation (":/varName/"), we provide our own var resolvers. This function
+ *    is the non-compiling var resolver; its services are requested in two
+ *    situations: a) when evaluating non-compiled statements, b) when
+ *    executing slow-path bytecode instructions, with "slow path" referring to
+ *    bytecode instructions not making use of the compiled locals array (and,
+ *    e.g., reverting to TclObjLookupVar*() calls).
  *
- *    The Tcl var resolver protocol dictates that per-namespace,
- *    non-compiling var resolvers take precedence over this per-interp
- *    non-compiling var resolver. That is, per-namespace resolvers are
- *    processed first and can effectively out-rule per-interp resolvers
- *    by signaling TCL_OK or TCL_BREAK. See
- *    e.g. TclLookupSimpleVar().
+ *    The Tcl var resolver protocol dictates that per-namespace, non-compiling
+ *    var resolvers take precedence over this per-interp non-compiling var
+ *    resolver. That is, per-namespace resolvers are processed first and can
+ *    effectively out-rule per-interp resolvers by signaling TCL_OK or
+ *    TCL_BREAK. See e.g. TclLookupSimpleVar().
  *
  * Results:
  *    TCL_OK or TCL_CONTINUE (according to on Tcl's var resolver protocol)
@@ -5097,7 +5358,7 @@ InterpColonVarResolver(Tcl_Interp *interp, const char *varName, Tcl_Namespace *U
   if (likely((frameFlags & FRAME_IS_NSF_METHOD) != 0u)) {
     //*varPtr = CompiledLocalsLookup(varFramePtr, varName);
     //fprintf(stderr, "CompiledLocalsLookup for %p %s returned %p\n", varFramePtr, varName, *varPtr);
-    if ((*varPtr = CompiledLocalsLookup(varFramePtr, varName))) {
+    if ((*varPtr = CompiledColonLocalsLookup(varFramePtr, varName))) {
       /*
        * This section is reached under notable circumstances and represents a
        * point of interaction between our resolvers for non-compiled (i.e.,
@@ -6690,7 +6951,7 @@ static Tcl_Obj * AutonameIncr(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfObject *o
 static Tcl_Obj *
 AutonameIncr(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfObject *object,
              int isInstanceOpt, int doResetOpt) {
-  Tcl_Obj *valueObj, *resultObj = NULL;
+  Tcl_Obj *valueObj, *resultObj;
   CallFrame frame, *framePtr = &frame;
   int flogs = TCL_LEAVE_ERR_MSG;
 
@@ -11522,21 +11783,24 @@ ParamsFree(Nsf_Param *paramsPtr) {
  *
  *----------------------------------------------------------------------
  */
-NSF_INLINE static NsfParamDefs *ParamDefsGet(Tcl_Command cmdPtr, unsigned int *checkAlwaysFlagPtr) nonnull(1);
-
 NSF_INLINE static NsfParamDefs *
 ParamDefsGet(Tcl_Command cmdPtr, unsigned int *checkAlwaysFlagPtr) {
+  NsfParamDefs *result;
 
   nonnull_assert(cmdPtr != NULL);
 
   if (likely(Tcl_Command_deleteProc(cmdPtr) == NsfProcDeleteProc)) {
     NsfProcContext *ctx = (NsfProcContext *)Tcl_Command_deleteData(cmdPtr);
 
-    if (checkAlwaysFlagPtr != NULL) { *checkAlwaysFlagPtr = ctx->checkAlwaysFlag;}
-    return ctx->paramDefs;
+    if (checkAlwaysFlagPtr != NULL) {
+      *checkAlwaysFlagPtr = ctx->checkAlwaysFlag;
+    }
+    result = ctx->paramDefs;
+  } else {
+    result = NULL;
   }
 
-  return NULL;
+  return result;
 }
 
 /*----------------------------------------------------------------------
@@ -11661,12 +11925,62 @@ NsfProcDeleteProc(ClientData clientData) {
     (*ctxPtr->oldDeleteProc)(ctxPtr->oldDeleteData);
   }
   if (ctxPtr->paramDefs != NULL) {
-    /*fprintf(stderr, "free ParamDefs %p\n", ctxPtr->paramDefs);*/
+    /*fprintf(stderr, "free ParamDefs %p\n", (void*)ctxPtr->paramDefs);*/
     ParamDefsRefCountDecr(ctxPtr->paramDefs);
+  }
+  if (ctxPtr->colonLocalVarCache != NULL) {
+    /*fprintf(stderr, "free colonLocalVarCache %p\n", (void*)ctxPtr->colonLocalVarCache);*/
+    FREE(Tcl_Var*, ctxPtr->colonLocalVarCache);
   }
   /*fprintf(stderr, "free %p\n", ctxPtr);*/
   FREE(NsfProcContext, ctxPtr);
 }
+
+/*
+ *----------------------------------------------------------------------
+ * ProcContextRequire --
+ *
+ *    Obtain a NsfProcContext for the given cmd. Create a new one, if it does
+ *    not exist, or return the existing one.
+ *
+ * Results:
+ *    NsfProcContext *
+ *
+ * Side effects:
+ *    Might allocate memory
+ *
+ *----------------------------------------------------------------------
+ */
+
+static NsfProcContext *
+ProcContextRequire(Tcl_Command cmd) {
+  NsfProcContext *ctxPtr;
+  Command        *cmdPtr;
+
+  nonnull_assert(cmd != NULL);
+
+  cmdPtr = (Command *)cmd;
+
+  if (cmdPtr->deleteProc != NsfProcDeleteProc) {
+    ctxPtr = NEW(NsfProcContext);
+
+    /*fprintf(stderr, "ParamDefsStore %p replace deleteProc %p by %p\n",
+      paramDefs, cmdPtr->deleteProc, NsfProcDeleteProc);*/
+
+    ctxPtr->oldDeleteData   = (Proc *)cmdPtr->deleteData;
+    ctxPtr->oldDeleteProc   = cmdPtr->deleteProc;
+    cmdPtr->deleteProc      = NsfProcDeleteProc;
+    cmdPtr->deleteData      = ctxPtr;
+
+    ctxPtr->paramDefs       = NULL;
+    ctxPtr->checkAlwaysFlag = 0;
+    ctxPtr->colonLocalVarCache = NULL;
+  } else {
+    ctxPtr = (NsfProcContext *)Tcl_Command_deleteData(cmdPtr);
+  }
+  return ctxPtr;
+}
+
 
 /*
  *----------------------------------------------------------------------
@@ -11684,45 +11998,24 @@ NsfProcDeleteProc(ClientData clientData) {
  *
  *----------------------------------------------------------------------
  */
-static int ParamDefsStore(Tcl_Command cmd, NsfParamDefs *paramDefs, unsigned int checkAlwaysFlag)
+static void ParamDefsStore(Tcl_Command cmd, NsfParamDefs *paramDefs, unsigned int checkAlwaysFlag)
   nonnull(1);
 
-static int
+static void
 ParamDefsStore(Tcl_Command cmd, NsfParamDefs *paramDefs, unsigned int checkAlwaysFlag) {
-  Command *cmdPtr;
+  NsfProcContext *ctxPtr;
 
   nonnull_assert(cmd != NULL);
 
-  cmdPtr = (Command *)cmd;
+  ctxPtr = ProcContextRequire(cmd);
+
   /*
-   * TODO This function might store empty paramDefs. needed?
+   * We assume, that this never called for overwriting paramDefs
    */
+  assert(ctxPtr->paramDefs == NULL);
 
-  if (cmdPtr->deleteProc != NsfProcDeleteProc) {
-    NsfProcContext *ctxPtr = NEW(NsfProcContext);
-
-    /*fprintf(stderr, "ParamDefsStore %p replace deleteProc %p by %p\n",
-            paramDefs, cmdPtr->deleteProc, NsfProcDeleteProc);*/
-
-    ctxPtr->oldDeleteData   = (Proc *)cmdPtr->deleteData;
-    ctxPtr->oldDeleteProc   = cmdPtr->deleteProc;
-    cmdPtr->deleteProc      = NsfProcDeleteProc;
-    ctxPtr->paramDefs       = paramDefs;
-    ctxPtr->checkAlwaysFlag = checkAlwaysFlag;
-    cmdPtr->deleteData      = ctxPtr;
-
-    return TCL_OK;
-  } else {
-    /*fprintf(stderr, "ParamDefsStore cmd %p has already NsfProcDeleteProc deleteData %p\n",
-      cmd, cmdPtr->deleteData);*/
-    if (cmdPtr->deleteData != NULL) {
-      NsfProcContext *ctxPtr = cmdPtr->deleteData;
-
-      assert(ctxPtr->paramDefs == NULL);
-      ctxPtr->paramDefs = paramDefs;
-    }
-  }
-  return TCL_ERROR;
+  ctxPtr->paramDefs       = paramDefs;
+  ctxPtr->checkAlwaysFlag = checkAlwaysFlag;
 }
 
 /*
@@ -15433,7 +15726,8 @@ ParamOptionParse(Tcl_Interp *interp, const char *argString,
                  size_t start, size_t optionLength,
                  unsigned int disallowedOptions, Nsf_Param *paramPtr, int unescape) {
   const char *dotdot, *option = argString + start;
-  int result = TCL_OK;
+  char        firstChar = *option;
+  int         result = TCL_OK;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(argString != NULL);
@@ -15442,49 +15736,49 @@ ParamOptionParse(Tcl_Interp *interp, const char *argString,
   /*fprintf(stderr, "ParamOptionParse name %s, option '%s' (%ld) disallowed %.6x\n",
     paramPtr->name, option, start, disallowedOptions);*/
 
-  if (strncmp(option, "required", MAX(3, optionLength)) == 0) {
+  if (firstChar == 'r' && strncmp(option, "required", MAX(3, optionLength)) == 0) {
     paramPtr->flags |= NSF_ARG_REQUIRED;
 
-  } else if (strncmp(option, "optional",  MAX(3, optionLength)) == 0) {
+  } else if (firstChar == 'o' && strncmp(option, "optional",  MAX(3, optionLength)) == 0) {
     paramPtr->flags &= ~NSF_ARG_REQUIRED;
 
-  } else if (strncmp(option, "substdefault", 12) == 0) {
+  } else if (firstChar == 's' && strncmp(option, "substdefault", 12) == 0) {
     paramPtr->flags |= NSF_ARG_SUBST_DEFAULT;
 
-  } else if (strncmp(option, "convert", 7) == 0) {
+  } else if (firstChar == 'c' && strncmp(option, "convert", 7) == 0) {
     paramPtr->flags |= NSF_ARG_IS_CONVERTER;
 
-  } else if (strncmp(option, "initcmd", 7) == 0) {
+  } else if (firstChar == 'i' && strncmp(option, "initcmd", 7) == 0) {
     if (unlikely((paramPtr->flags & (NSF_ARG_CMD|NSF_ARG_ALIAS|NSF_ARG_FORWARD)) != 0u)) {
       return NsfPrintError(interp, "parameter option 'initcmd' not valid in this option combination");
     }
     paramPtr->flags |= NSF_ARG_INITCMD;
 
-  } else if (strncmp(option, "cmd", 3) == 0) {
+  } else if (firstChar == 'c' && strncmp(option, "cmd", 3) == 0) {
     if (unlikely((paramPtr->flags & (NSF_ARG_INITCMD|NSF_ARG_ALIAS|NSF_ARG_FORWARD)) != 0u)) {
       return NsfPrintError(interp, "parameter option 'cmd' not valid in this option combination");
     }
     paramPtr->flags |= NSF_ARG_CMD;
 
-  } else if (strncmp(option, "alias", 5) == 0) {
+  } else if (firstChar == 'a' && strncmp(option, "alias", 5) == 0) {
     if (unlikely((paramPtr->flags & (NSF_ARG_INITCMD|NSF_ARG_CMD|NSF_ARG_FORWARD)) != 0u)) {
       return NsfPrintError(interp, "parameter option 'alias' not valid in this option combination");
     }
     paramPtr->flags |= NSF_ARG_ALIAS;
 
-  } else if (strncmp(option, "forward", 7) == 0) {
+  } else if (firstChar == 'f' && strncmp(option, "forward", 7) == 0) {
     if (unlikely((paramPtr->flags & (NSF_ARG_INITCMD|NSF_ARG_CMD|NSF_ARG_ALIAS)) != 0u)) {
       return NsfPrintError(interp, "parameter option 'forward' not valid in this option combination");
     }
     paramPtr->flags |= NSF_ARG_FORWARD;
 
-  } else if (strncmp(option, "slotset", 7) == 0) {
+  } else if (firstChar == 's' && strncmp(option, "slotset", 7) == 0) {
     if (unlikely(paramPtr->slotObj == NULL)) {
       return NsfPrintError(interp, "parameter option 'slotset' must follow 'slot='");
     }
     paramPtr->flags |= NSF_ARG_SLOTSET;
 
-  } else if (strncmp(option, "slotinitialize", 14) == 0) {
+  } else if (firstChar == 's' && strncmp(option, "slotinitialize", 14) == 0) {
     if (unlikely(paramPtr->slotObj == NULL)) {
       return NsfPrintError(interp, "parameter option 'slotinit' must follow 'slot='");
     }
@@ -15509,32 +15803,32 @@ ParamOptionParse(Tcl_Interp *interp, const char *argString,
       return NsfPrintError(interp, "upper bound of multiplicity in %s not supported", argString);
     }
 
-  } else if (strncmp(option, "noarg", 5) == 0) {
+  } else if (firstChar == 'n' && strncmp(option, "noarg", 5) == 0) {
     if ((paramPtr->flags & NSF_ARG_ALIAS) == 0u) {
       return NsfPrintError(interp, "parameter option \"noarg\" only allowed for parameter type \"alias\"");
     }
     paramPtr->flags |= NSF_ARG_NOARG;
     paramPtr->nrArgs = 0;
 
-  } else if (strncmp(option, "nodashalnum", 11) == 0) {
+  } else if (firstChar == 'n' && strncmp(option, "nodashalnum", 11) == 0) {
     if (*paramPtr->name == '-') {
       return NsfPrintError(interp, "parameter option 'nodashalnum' only allowed for positional parameters");
     }
     paramPtr->flags |= NSF_ARG_NODASHALNUM;
 
-  } else if (strncmp(option, "noconfig", 8) == 0) {
+  } else if (firstChar == 'n' && strncmp(option, "noconfig", 8) == 0) {
     if (disallowedOptions != NSF_DISALLOWED_ARG_OBJECT_PARAMETER) {
       return NsfPrintError(interp, "parameter option 'noconfig' only allowed for object parameters");
     }
     paramPtr->flags |= NSF_ARG_NOCONFIG;
 
-  } else if (strncmp(option, "args", 4) == 0) {
+  } else if (firstChar == 'a' && strncmp(option, "args", 4) == 0) {
     if ((paramPtr->flags & NSF_ARG_ALIAS) == 0u) {
       return NsfPrintError(interp, "parameter option \"args\" only allowed for parameter type \"alias\"");
     }
     result = ParamOptionSetConverter(interp, paramPtr, "args", ConvertToNothing);
 
-  } else if (optionLength >= 4 && strncmp(option, "arg=", 4) == 0) {
+  } else if (firstChar == 'a' && optionLength >= 4 && strncmp(option, "arg=", 4) == 0) {
     if (paramPtr->converter != ConvertViaCmd) {
       return NsfPrintError(interp,
                            "parameter option 'arg=' only allowed for user-defined converter");
@@ -15551,7 +15845,7 @@ ParamOptionParse(Tcl_Interp *interp, const char *argString,
     }
     INCR_REF_COUNT(paramPtr->converterArg);
 
-  } else if (strncmp(option, "switch", 6) == 0) {
+  } else if (firstChar == 's' && strncmp(option, "switch", 6) == 0) {
     if (*paramPtr->name != '-') {
       return NsfPrintError(interp,
                           "invalid parameter type \"switch\" for argument \"%s\"; "
@@ -15567,39 +15861,39 @@ ParamOptionParse(Tcl_Interp *interp, const char *argString,
     paramPtr->defaultValue = Tcl_NewBooleanObj(0);
     INCR_REF_COUNT(paramPtr->defaultValue);
 
-  } else if (strncmp(option, "integer", MAX(3, optionLength)) == 0) {
+  } else if (firstChar == 'i' && strncmp(option, "integer", MAX(3, optionLength)) == 0) {
     result = ParamOptionSetConverter(interp, paramPtr, "integer", Nsf_ConvertToInteger);
 
-  } else if (strncmp(option, "int32", 5) == 0) {
+  } else if (firstChar == 'i' && strncmp(option, "int32", 5) == 0) {
     result = ParamOptionSetConverter(interp, paramPtr, "int32", Nsf_ConvertToInt32);
 
-  } else if (strncmp(option, "boolean", 7) == 0) {
+  } else if (firstChar == 'b' && strncmp(option, "boolean", 7) == 0) {
     result = ParamOptionSetConverter(interp, paramPtr, "boolean", Nsf_ConvertToBoolean);
 
-  } else if (strncmp(option, "object", 6) == 0) {
+  } else if (firstChar == 'o' && strncmp(option, "object", 6) == 0) {
     result = ParamOptionSetConverter(interp, paramPtr, "object", Nsf_ConvertToObject);
 
-  } else if (strncmp(option, "class", 5) == 0) {
+  } else if (firstChar == 'c' && strncmp(option, "class", 5) == 0) {
     result = ParamOptionSetConverter(interp, paramPtr, "class", Nsf_ConvertToClass);
 
-  } else if (strncmp(option, "metaclass", 9) == 0) {
+  } else if (firstChar == 'm' && strncmp(option, "metaclass", 9) == 0) {
     result = ParamOptionSetConverter(interp, paramPtr, "class", Nsf_ConvertToClass);
     paramPtr->flags |= NSF_ARG_METACLASS;
 
-  } else if (strncmp(option, "baseclass", 9) == 0) {
+  } else if (firstChar == 'b' && strncmp(option, "baseclass", 9) == 0) {
     result = ParamOptionSetConverter(interp, paramPtr, "class", Nsf_ConvertToClass);
     paramPtr->flags |= NSF_ARG_BASECLASS;
 
-  } else if (strncmp(option, "mixinreg", 8) == 0) {
+  } else if (firstChar == 'm' && strncmp(option, "mixinreg", 8) == 0) {
     result = ParamOptionSetConverter(interp, paramPtr, "mixinreg", Nsf_ConvertToMixinreg);
 
- } else if (strncmp(option, "filterreg", 9) == 0) {
+ } else if (firstChar == 'f' && strncmp(option, "filterreg", 9) == 0) {
     result = ParamOptionSetConverter(interp, paramPtr, "filterreg", Nsf_ConvertToFilterreg);
 
-  } else if (strncmp(option, "parameter", 9) == 0) {
+ } else if (firstChar == 'p' && strncmp(option, "parameter", 9) == 0) {
     result = ParamOptionSetConverter(interp, paramPtr, "parameter", Nsf_ConvertToParameter);
 
-  } else if (optionLength >= 6 && strncmp(option, "type=", 5) == 0) {
+ } else if (firstChar == 't' && optionLength >= 6 && strncmp(option, "type=", 5) == 0) {
     if (paramPtr->converter != Nsf_ConvertToObject
         && paramPtr->converter != Nsf_ConvertToClass ) {
       return NsfPrintError(interp, "parameter option 'type=' only allowed for parameter types 'object' and 'class'");
@@ -15613,7 +15907,7 @@ ParamOptionParse(Tcl_Interp *interp, const char *argString,
     }
     INCR_REF_COUNT(paramPtr->converterArg);
 
-  } else if (optionLength >= 6 && strncmp(option, "slot=", 5) == 0) {
+  } else if (firstChar == 's' && optionLength >= 6 && strncmp(option, "slot=", 5) == 0) {
     if (paramPtr->slotObj != NULL) {DECR_REF_COUNT(paramPtr->slotObj);}
     paramPtr->slotObj = Tcl_NewStringObj(option + 5,  (int)optionLength - 5);
     if (unlikely(unescape)) {
@@ -15621,7 +15915,7 @@ ParamOptionParse(Tcl_Interp *interp, const char *argString,
     }
     INCR_REF_COUNT(paramPtr->slotObj);
 
-  } else if (optionLength >= 6 && strncmp(option, "method=", 7) == 0) {
+  } else if (firstChar == 'm' && optionLength >= 6 && strncmp(option, "method=", 7) == 0) {
     if ((paramPtr->flags & (NSF_ARG_ALIAS|NSF_ARG_FORWARD|NSF_ARG_SLOTSET)) == 0u) {
       return NsfPrintError(interp, "parameter option 'method=' only allowed for parameter "
                            "types 'alias', 'forward' and 'slotset'");
@@ -15633,8 +15927,9 @@ ParamOptionParse(Tcl_Interp *interp, const char *argString,
     }
     INCR_REF_COUNT(paramPtr->method);
 
-  } else if (strncmp(option, "virtualobjectargs", 17) == 0 ||
-             strncmp(option, "virtualclassargs", 16) == 0) {
+  } else if ((firstChar == 'v') &&
+             ((strncmp(option, "virtualobjectargs", 17) == 0) ||
+              (strncmp(option, "virtualclassargs", 16) == 0))) {
     result = ParamOptionSetConverter(interp, paramPtr, option, ConvertToNothing);
   } else {
     Tcl_DString ds, *dsPtr = &ds;
@@ -15741,10 +16036,10 @@ static int ParamParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, un
 static int
 ParamParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, unsigned int disallowedFlags,
            Nsf_Param *paramPtr, int *possibleUnknowns, int *plainParams, int *nrNonposArgs) {
-  int result, npac, isNonposArgument, parensCount;
-  size_t length, j;
-  const char *argString, *argName;
-  Tcl_Obj **npav;
+  const char  *argString, *argName;
+  int          result, npac, isNonposArgument, parensCount;
+  size_t       length, j;
+  Tcl_Obj    **npav;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(arg != NULL);
@@ -15766,6 +16061,8 @@ ParamParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, unsigned int 
 
   argString = ObjStr(npav[0]);
   length = strlen(argString);
+  //argString = TclGetStringFromObj(npav[0], &result);
+  //length    = (size_t) result;
 
   /*
    * Per default parameter have exactly one argument; types without arguments
@@ -21942,7 +22239,7 @@ ArgumentDefaults(ParseContext *pcPtr, Tcl_Interp *interp,
             pPtr->name, pPtr->flags & NSF_ARG_REQUIRED, pPtr->nrArgs, pPtr,
             pcPtr->clientData[i], pcPtr->objv[i], (pPtr->defaultValue != NULL) ? ObjStr(pPtr->defaultValue) : "NONE");*/
 
-    if (pcPtr->objv[i]) {
+    if (pcPtr->objv[i] != NULL) {
       /*
        * We got an actual value, which was already checked by ArgumentParse().
        * In case the value is a switch and NSF_PC_INVERT_DEFAULT is set, we
