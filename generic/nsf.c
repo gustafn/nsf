@@ -329,6 +329,7 @@ NSF_INLINE static void CscFinish_(Tcl_Interp *interp, NsfCallStackContent *cscPt
   nonnull(1) nonnull(2);
 NSF_INLINE static void CallStackDoDestroy(Tcl_Interp *interp, NsfObject *object)
   nonnull(1) nonnull(2);
+static void NsfShowStack(Tcl_Interp *interp) nonnull(1);
 
 /* prototypes for parameter and argument management */
 
@@ -5510,7 +5511,6 @@ InterpColonCmdResolver(Tcl_Interp *interp, const char *cmdName, Tcl_Namespace *U
     /*fprintf(stderr, "... not for us %s flags %.6x\n", cmdName, flags);*/
     return TCL_CONTINUE;
   }
-
   frameFlags = (unsigned int)InterpGetFrameAndFlags(interp, &varFramePtr);
 
   /*
@@ -5555,6 +5555,7 @@ InterpColonCmdResolver(Tcl_Interp *interp, const char *cmdName, Tcl_Namespace *U
        * forward to the colonCmd.
        */
       *cmdPtr = RUNTIME_STATE(interp)->colonCmd;
+
       return TCL_OK;
     } else {
 
@@ -5598,6 +5599,7 @@ InterpColonCmdResolver(Tcl_Interp *interp, const char *cmdName, Tcl_Namespace *U
           /*fprintf(stderr, "InterpColonCmdResolver OS specific resolver found %s::%s frameFlags %.6x\n",
             ((Command *)cmd)->nsPtr->fullName, cmdName, frameFlags);*/
           *cmdPtr = Tcl_GetHashValue(entryPtr);
+
           return TCL_OK;
         }
       }
@@ -5609,6 +5611,7 @@ InterpColonCmdResolver(Tcl_Interp *interp, const char *cmdName, Tcl_Namespace *U
   fprintf(stderr, "    ... not found %s\n", cmdName);
   NsfShowStack(interp);
 #endif
+
   return TCL_CONTINUE;
 }
 /*********************************************************
@@ -11569,18 +11572,27 @@ ObjectSystemsCheckSystemMethod(Tcl_Interp *interp, const char *methodName, NsfOb
   firstChar = *methodName;
   defOsPtr = GetObjectSystem(object);
 
+#if 0
+   39,537,259  /usr/local/src/nsf2.1.0/./generic/nsf.c:ObjectSystemsCheckSystemMethod [/usr/local/ns/lib/nsf2.1.0/libnsf2.1.0.so]
+
+13,637,666        const char *methodString = (methodObj != NULL) ? ObjStr(methodObj) : NULL;
+ 8,771,240        if (methodString && *methodString == firstChar && !strcmp(methodName, methodString)) {
+
+#endif
   for (osPtr = RUNTIME_STATE(interp)->objectSystems; osPtr != NULL; osPtr = osPtr->nextPtr) {
-    int i, isRootClassMethod;
-    unsigned int flag = 0u;
-    NsfObject *defObject;
+    int           i, isRootClassMethod;
+    unsigned int  flag = 0u;
+    NsfObject    *defObject;
 
     for (i = 0; i <= NSF_s_set_idx; i++) {
       Tcl_Obj *methodObj = osPtr->methods[i];
-      const char *methodString = (methodObj != NULL) ? ObjStr(methodObj) : NULL;
 
-      if (methodString && *methodString == firstChar && !strcmp(methodName, methodString)) {
-        flag = 1u << i;
-        break;
+      if (likely(methodObj != NULL)) {
+        const char *methodString = ObjStr(methodObj);
+        if (unlikely(*methodString == firstChar) && !strcmp(methodName, methodString)) {
+          flag = 1u << i;
+          break;
+        }
       }
     }
     if (flag == 0u) {
@@ -25204,37 +25216,7 @@ NsfDebugRunAssertionsCmd(Tcl_Interp *interp) {
 
 /*
 cmd __profile_clear_data NsfProfileClearDataStub {}
-*/
-static int NsfProfileClearDataStub(Tcl_Interp *interp) nonnull(1);
-
-static int
-NsfProfileClearDataStub(Tcl_Interp *interp) {
-
-  nonnull_assert(interp != NULL);
-
-#if defined(NSF_PROFILE)
-  NsfProfileClearData(interp);
-#endif
-  return TCL_OK;
-}
-
-/*
 cmd __profile_get_data NsfProfileGetDataStub {}
-*/
-static int NsfProfileGetDataStub(Tcl_Interp *interp) nonnull(1);
-
-static int
-NsfProfileGetDataStub(Tcl_Interp *interp) {
-
-  nonnull_assert(interp != NULL);
-
-#if defined(NSF_PROFILE)
-  NsfProfileGetData(interp);
-#endif
-  return TCL_OK;
-}
-
-/*
 cmd __profile_trace NsfProfileTraceStub {
   {-argName "-enable" -required 1 -nrargs 1 -type boolean}
   {-argName "-verbose" -required 0 -nrargs 1 -type boolean}
@@ -25242,21 +25224,49 @@ cmd __profile_trace NsfProfileTraceStub {
   {-argName "-builtins" -required 0 -nrargs 1 -type tclobj}
 }
 */
+
+static int NsfProfileClearDataStub(Tcl_Interp *interp) nonnull(1);
+static int NsfProfileGetDataStub(Tcl_Interp *interp) nonnull(1);
 static int NsfProfileTraceStub(Tcl_Interp *interp,
                                int withEnable, int withVerbose, int withDontsave,
                                Tcl_Obj *builtins)
   NSF_nonnull(1);
 
-static int
-NsfProfileTraceStub(Tcl_Interp *interp, int withEnable, int withVerbose, int withDontsave, Tcl_Obj *builtins) {
-
-  nonnull_assert(interp != NULL);
-
 #if defined(NSF_PROFILE)
-  NsfProfileTrace(interp, withEnable, withVerbose, withDontsave, builtins);
-#endif
+
+static int
+NsfProfileClearDataStub(Tcl_Interp *interp) {
+  nonnull_assert(interp != NULL);
+  NsfProfileClearData(interp);
   return TCL_OK;
 }
+
+
+static int
+NsfProfileGetDataStub(Tcl_Interp *interp) {
+  nonnull_assert(interp != NULL);
+  NsfProfileGetData(interp);
+  return TCL_OK;
+}
+
+static int
+NsfProfileTraceStub(Tcl_Interp *interp, int withEnable, int withVerbose, int withDontsave, Tcl_Obj *builtins) {
+  nonnull_assert(interp != NULL);
+  NsfProfileTrace(interp, withEnable, withVerbose, withDontsave, builtins);
+  return TCL_OK;
+}
+
+#else
+static int NsfProfileClearDataStub(Tcl_Interp *UNUSED(interp)) {return TCL_OK;}
+static int NsfProfileGetDataStub(  Tcl_Interp *UNUSED(interp)) {return TCL_OK;}
+static int NsfProfileTraceStub(    Tcl_Interp *UNUSED(interp),
+                    int UNUSED(withEnable),
+                    int UNUSED(withVerbose),
+                    int UNUSED(withDontsave),
+                    Tcl_Obj *UNUSED(builtins)) {
+  return TCL_OK;
+}
+#endif
 
 /*
  *----------------------------------------------------------------------
@@ -26024,15 +26034,15 @@ static int
 NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
                   const char *methodName, FrameIdx_t withFrame, ProtectionIdx_t withProtection,
                   Tcl_Obj *cmdName) {
-  Tcl_ObjCmdProc *objProc, *newObjProc = NULL;
-  Tcl_CmdDeleteProc *deleteProc = NULL;
-  AliasCmdClientData *tcd = NULL; /* make compiler happy */
-  Tcl_Command cmd, oldCmd, newCmd = NULL;
-  Tcl_Namespace *nsPtr;
-  int result;
-  unsigned int flags;
-  NsfClass *cl = (withPer_object || ! NsfObjectIsClass(object)) ? NULL : (NsfClass *)object;
-  NsfObject *oldTargetObject, *newTargetObject;
+  Tcl_ObjCmdProc     *objProc, *newObjProc;
+  Tcl_CmdDeleteProc  *deleteProc;
+  AliasCmdClientData *tcd;
+  Tcl_Command         cmd, oldCmd, newCmd;
+  Tcl_Namespace      *nsPtr;
+  int                 result;
+  unsigned int        flags;
+  NsfClass           *cl = (withPer_object || ! NsfObjectIsClass(object)) ? NULL : (NsfClass *)object;
+  NsfObject          *oldTargetObject, *newTargetObject;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(object != NULL);
@@ -26067,6 +26077,8 @@ NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
 
   if (withFrame == FrameObjectIdx) {
     newObjProc = NsfObjscopedMethod;
+  } else {
+    newObjProc = NULL;
   }
 
   /*
@@ -26159,6 +26171,7 @@ NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
      * Call the command directly (must be a c-implemented command not
      * depending on a volatile client data)
      */
+    deleteProc = NULL;
     tcd = Tcl_Command_objClientData(cmd);
     /*fprintf(stderr, "NsfMethodAliasCmd no wrapper cmd %p\n", cmd);*/
   }
@@ -26183,6 +26196,8 @@ NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
 
   if (likely(result == TCL_OK)) {
     newCmd = FindMethod(nsPtr, methodName);
+  } else {
+    newCmd = NULL;
   }
 
 #if defined(WITH_IMPORT_REFS)
@@ -26397,7 +26412,8 @@ cmd method::forward NsfMethodForwardCmd {
 */
 static int
 NsfMethodForwardCmd(Tcl_Interp *interp,
-                    NsfObject *object, int withPer_object,
+                    NsfObject *object,
+                    int withPer_object,
                     Tcl_Obj *methodObj,
                     Tcl_Obj *withDefault,
                     int withEarlybinding,
@@ -27548,9 +27564,8 @@ cmd parameter::cache::objectinvalidate NsfParameterCacheObjectInvalidateCmd {
 }
 */
 static int
-NsfParameterCacheObjectInvalidateCmd(Tcl_Interp *interp, NsfObject *object) {
+NsfParameterCacheObjectInvalidateCmd(Tcl_Interp *UNUSED(interp), NsfObject *object) {
 
-  nonnull_assert(interp != NULL);
   nonnull_assert(object != NULL);
 
 #if defined(PER_OBJECT_PARAMETER_CACHING)
@@ -30080,7 +30095,7 @@ NsfCAllocMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *nameObj) {
   const char *nameString;
   Tcl_Namespace *parentNsPtr;
   Tcl_Obj *tmpName;
-  int result;
+  int result, nameLength;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(cl != NULL);
@@ -30093,8 +30108,8 @@ NsfCAllocMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *nameObj) {
   /*
    * Check for illegal names.
    */
-  nameString = ObjStr(nameObj);
-  if (unlikely(NSValidObjectName(nameString, 0) == 0)) {
+  nameString = TclGetStringFromObj(nameObj, &nameLength);
+  if (unlikely(NSValidObjectName(nameString, (size_t)nameLength) == 0)) {
     return NsfPrintError(interp, "cannot allocate object - illegal name '%s'", nameString);
   }
 
@@ -30134,7 +30149,7 @@ static int
 NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *specifiedNameObj, int objc, Tcl_Obj *CONST objv[]) {
   NsfObject *newObject = NULL;
   Tcl_Obj *nameObj, *methodObj, *tmpObj = NULL;
-  int result;
+  int result, nameLength;
   const char *nameString;
   Tcl_Namespace *parentNsPtr;
 
@@ -30143,7 +30158,7 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *specifiedNameObj, in
   nonnull_assert(specifiedNameObj != NULL);
   nonnull_assert(objv != NULL);
 
-  nameString = ObjStr(specifiedNameObj);
+  nameString = TclGetStringFromObj(specifiedNameObj, &nameLength);
 #if 0
   { int i;
     fprintf(stderr, "NsfCCreateMethod %s create <%s> oc %d ", ClassName(cl), ObjStr(specifiedNameObj), objc);
@@ -30160,7 +30175,7 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *specifiedNameObj, in
   /*
    * Check for illegal names.
    */
-  if (unlikely(NSValidObjectName(nameString, 0) == 0)) {
+  if (unlikely(NSValidObjectName(nameString, (size_t)nameLength) == 0)) {
     result = NsfPrintError(interp, "cannot allocate object - illegal name '%s'", nameString);
     goto create_method_exit;
   }
