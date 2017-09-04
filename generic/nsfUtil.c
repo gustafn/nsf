@@ -72,7 +72,7 @@ char *strnstr(const char *buffer, const char *needle, size_t buffer_len) {
       if (remainder < needle_len) {
         break;
       }
-      if (strncmp(p, needle, needle_len) == 0) {
+      if (*p == *needle && strncmp(p, needle, needle_len) == 0) {
         result = p;
         break;
       }
