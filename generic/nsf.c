@@ -11572,13 +11572,6 @@ ObjectSystemsCheckSystemMethod(Tcl_Interp *interp, const char *methodName, NsfOb
   firstChar = *methodName;
   defOsPtr = GetObjectSystem(object);
 
-#if 0
-   39,537,259  /usr/local/src/nsf2.1.0/./generic/nsf.c:ObjectSystemsCheckSystemMethod [/usr/local/ns/lib/nsf2.1.0/libnsf2.1.0.so]
-
-13,637,666        const char *methodString = (methodObj != NULL) ? ObjStr(methodObj) : NULL;
- 8,771,240        if (methodString && *methodString == firstChar && !strcmp(methodName, methodString)) {
-
-#endif
   for (osPtr = RUNTIME_STATE(interp)->objectSystems; osPtr != NULL; osPtr = osPtr->nextPtr) {
     int           i, isRootClassMethod;
     unsigned int  flag = 0u;
@@ -24632,20 +24625,21 @@ ListSuperClasses(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *pattern, int withClo
  *      aliases are constructed. This function computes the key of the index.
  *
  * Results:
- *      string value of the index
+ *      Returns a fresh Tcl_Obj
  *
  * Side effects:
  *      updating DString
  *
  *----------------------------------------------------------------------
  */
-static const char *AliasIndex(Tcl_DString *dsPtr, Tcl_Obj *cmdName, const char *methodName, int withPer_object)
-  nonnull(1) nonnull(2) nonnull(3) returns_nonnull;
+static Tcl_Obj *AliasIndex(Tcl_Obj *cmdName, const char *methodName, int withPer_object)
+  nonnull(1) nonnull(2) returns_nonnull;
 
-static const char *
-AliasIndex(Tcl_DString *dsPtr, Tcl_Obj *cmdName, const char *methodName, int withPer_object) {
+static Tcl_Obj *
+AliasIndex(Tcl_Obj *cmdName, const char *methodName, int withPer_object) {
+  Tcl_DString  ds, *dsPtr = &ds;
+  Tcl_Obj     *resultObj;
 
-  nonnull_assert(dsPtr != NULL);
   nonnull_assert(cmdName != NULL);
   nonnull_assert(methodName != NULL);
 
@@ -24659,7 +24653,10 @@ AliasIndex(Tcl_DString *dsPtr, Tcl_Obj *cmdName, const char *methodName, int wit
     Tcl_DStringAppend(dsPtr,  ",0", 2);
   }
   /*fprintf(stderr, "AI %s\n", Tcl_DStringValue(dsPtr));*/
-  return Tcl_DStringValue(dsPtr);
+  resultObj = Tcl_NewStringObj(dsPtr->string, dsPtr->length);
+  Tcl_DStringFree(dsPtr);
+
+  return resultObj;
 }
 
 /*
@@ -24678,26 +24675,26 @@ AliasIndex(Tcl_DString *dsPtr, Tcl_Obj *cmdName, const char *methodName, int wit
  *----------------------------------------------------------------------
  */
 static int AliasAdd(Tcl_Interp *interp, Tcl_Obj *cmdName, const char *methodName, int withPer_object,
-         const char *cmd) nonnull(1) nonnull(2) nonnull(3) nonnull(5);
+         Tcl_Obj *cmdObj)
+  nonnull(1) nonnull(2) nonnull(3) nonnull(5);
 
 static int
 AliasAdd(Tcl_Interp *interp, Tcl_Obj *cmdName, const char *methodName, int withPer_object,
-         const char *cmd) {
-  Tcl_DString ds, *dsPtr = &ds;
+         Tcl_Obj *cmdObj) {
 
   nonnull_assert(interp != NULL);
   nonnull_assert(cmdName != NULL);
   nonnull_assert(methodName != NULL);
-  nonnull_assert(cmd != NULL);
+  nonnull_assert(cmdObj != NULL);
 
-  Tcl_SetVar2Ex(interp, NsfGlobalStrings[NSF_ARRAY_ALIAS],
-                AliasIndex(dsPtr, cmdName, methodName, withPer_object),
-                Tcl_NewStringObj(cmd, -1),
+  Tcl_ObjSetVar2(interp, NsfGlobalObjs[NSF_ARRAY_ALIAS],
+                AliasIndex(cmdName, methodName, withPer_object),
+                cmdObj,
                 TCL_GLOBAL_ONLY);
 
   /*fprintf(stderr, "aliasAdd ::nsf::alias(%s) '%s' returned %p\n",
     AliasIndex(dsPtr, cmdName, methodName, withPer_object), cmd, 1);*/
-  Tcl_DStringFree(dsPtr);
+                            //Tcl_DStringFree(dsPtr);
 
   return TCL_OK;
 }
@@ -24719,20 +24716,22 @@ AliasAdd(Tcl_Interp *interp, Tcl_Obj *cmdName, const char *methodName, int withP
  */
 static int
 AliasDelete(Tcl_Interp *interp, Tcl_Obj *cmdName, const char *methodName, int withPer_object) {
-  Tcl_DString ds, *dsPtr = &ds;
-  int result;
+  int         result;
+  Tcl_Obj    *indexObj;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(cmdName != NULL);
   nonnull_assert(methodName != NULL);
 
+  indexObj = AliasIndex(cmdName, methodName, withPer_object);
+  INCR_REF_COUNT(indexObj);
   result = Tcl_UnsetVar2(interp, NsfGlobalStrings[NSF_ARRAY_ALIAS],
-                         AliasIndex(dsPtr, cmdName, methodName, withPer_object),
+                         ObjStr(indexObj),
                          TCL_GLOBAL_ONLY);
+  DECR_REF_COUNT(indexObj);
 
   /*fprintf(stderr, "aliasDelete ::nsf::alias(%s) returned %d (%d)\n",
     AliasIndex(dsPtr, cmdName, methodName, withPer_object), result);*/
-  Tcl_DStringFree(dsPtr);
 
   return result;
 }
@@ -24754,19 +24753,18 @@ AliasDelete(Tcl_Interp *interp, Tcl_Obj *cmdName, const char *methodName, int wi
  */
 static Tcl_Obj *
 AliasGet(Tcl_Interp *interp, Tcl_Obj *cmdName, const char *methodName, int withPer_object, int leaveError) {
-  Tcl_DString ds, *dsPtr = &ds;
   Tcl_Obj *obj;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(cmdName != NULL);
   nonnull_assert(methodName != NULL);
 
-  obj = Tcl_GetVar2Ex(interp, NsfGlobalStrings[NSF_ARRAY_ALIAS],
-                      AliasIndex(dsPtr, cmdName, methodName, withPer_object),
+  obj = Tcl_ObjGetVar2(interp, NsfGlobalObjs[NSF_ARRAY_ALIAS],
+                      AliasIndex(cmdName, methodName, withPer_object),
                       TCL_GLOBAL_ONLY);
 
   /*fprintf(stderr, "aliasGet methodName '%s' returns %p\n", methodName, obj);*/
-  Tcl_DStringFree(dsPtr);
+
   if (obj == NULL && leaveError) {
     NsfPrintError(interp, "could not obtain alias definition for %s %s.",
                   ObjStr(cmdName), methodName);
@@ -24774,6 +24772,7 @@ AliasGet(Tcl_Interp *interp, Tcl_Obj *cmdName, const char *methodName, int withP
 
   return obj;
 }
+
 
 /*
  *----------------------------------------------------------------------
@@ -26219,7 +26218,7 @@ NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
 #endif
 
   if (newCmd != NULL) {
-    AliasAdd(interp, object->cmdName, methodName, cl == NULL, ObjStr(cmdName));
+    AliasAdd(interp, object->cmdName, methodName, cl == NULL, cmdName);
 
     if (withFrame == FrameMethodIdx) {
       Tcl_Command_flags(newCmd) |= NSF_CMD_NONLEAF_METHOD;
@@ -30093,49 +30092,51 @@ classMethod alloc NsfCAllocMethod {
 static int
 NsfCAllocMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *nameObj) {
   const char *nameString;
-  Tcl_Namespace *parentNsPtr;
-  Tcl_Obj *tmpName;
-  int result, nameLength;
+  int         result, nameLength;
+
+  /*
+   * Create a new object from scratch.
+   */
 
   nonnull_assert(interp != NULL);
   nonnull_assert(cl != NULL);
   nonnull_assert(nameObj != NULL);
 
   /*
-   * Create a new object from scratch.
-   */
-
-  /*
    * Check for illegal names.
    */
   nameString = TclGetStringFromObj(nameObj, &nameLength);
   if (unlikely(NSValidObjectName(nameString, (size_t)nameLength) == 0)) {
-    return NsfPrintError(interp, "cannot allocate object - illegal name '%s'", nameString);
-  }
+    result = NsfPrintError(interp, "cannot allocate object - illegal name '%s'", nameString);
 
-  /*
-   * If the path is not absolute, we add the appropriate namespace.
-   */
-  if (isAbsolutePath(nameString)) {
-    tmpName = NULL;
-    parentNsPtr = NULL;
   } else {
-    parentNsPtr = CallingNameSpace(interp);
-    nameObj = tmpName = NameInNamespaceObj(nameString, parentNsPtr);
-    if (strchr(nameString, ':')) {
+    Tcl_Namespace *parentNsPtr;
+    Tcl_Obj       *tmpName;
+
+    /*
+     * Name is valid. If the path is not absolute, we add the appropriate
+     * namespace.
+     */
+    if (isAbsolutePath(nameString)) {
       parentNsPtr = NULL;
+      tmpName = NULL;
+    } else {
+      parentNsPtr = CallingNameSpace(interp);
+      nameObj = tmpName = NameInNamespaceObj(nameString, parentNsPtr);
+      if (strchr(nameString, ':')) {
+        parentNsPtr = NULL;
+      }
+      INCR_REF_COUNT(tmpName);
+      /*fprintf(stderr, " **** NoAbsoluteName for '%s' -> determined = '%s' parentNs %s\n",
+        nameString, ObjStr(tmpName), parentNsPtr->fullName);*/
     }
-    INCR_REF_COUNT(tmpName);
-    /*fprintf(stderr, " **** NoAbsoluteName for '%s' -> determined = '%s' parentNs %s\n",
-      nameString, ObjStr(tmpName), parentNsPtr->fullName);*/
+
+    result = NsfCAllocMethod_(interp, cl, nameObj, parentNsPtr);
+
+    if (tmpName != NULL) {
+      DECR_REF_COUNT(tmpName);
+    }
   }
-
-  result = NsfCAllocMethod_(interp, cl, nameObj, parentNsPtr);
-
-  if (tmpName != NULL) {
-    DECR_REF_COUNT(tmpName);
-  }
-
   return result;
 }
 
