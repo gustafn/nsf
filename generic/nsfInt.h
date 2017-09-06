@@ -1060,7 +1060,6 @@ EXTERN NsfCallStackContent *NsfCallStackGetTopFrame(const Tcl_Interp *interp, Tc
   nonnull(1);
 #endif
 
-
 /*
  * MEM Counting
  */

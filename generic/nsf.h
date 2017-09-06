@@ -108,6 +108,10 @@
  *
 #define NSF_MEM_TRACE 1
 #define NSF_MEM_COUNT 1
+ *
+ * Activate/deactivate valgrind support
+ *
+#define NSF_VALGRIND 1
  */
 
 /* Activate bytecode support

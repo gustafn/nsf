@@ -6,7 +6,7 @@
 # 	Scripting Framework (NSF) library. This script is sourced by
 # 	the C-code generator gentclAPI.tcl in the same directory.
 #
-# Copyright (C) 2009-2016 Gustaf Neumann
+# Copyright (C) 2009-2017 Gustaf Neumann
 # 
 # Vienna University of Economics and Business
 # Institute of Information Systems and New Media
@@ -65,6 +65,18 @@ cmd __profile_trace NsfProfileTraceStub {
   {-argName "-dontsave" -required 0 -nrargs 1 -type boolean}
   {-argName "-builtins" -required 0 -nrargs 1 -type tclobj}
 }
+
+#
+# valgrind/callgrind support
+#
+cmd __callgrind_dump_stats NsfCallgrindDumpStatsCmd {
+  {-argName "-name" -required 0 -nrargs 1}
+}
+cmd __callgrind_start_instrumentation NsfCallgrindStartInstrumentationCmd {}
+cmd __callgrind_stop_instrumentation NsfCallgrindStopInstrumentationCmd {}
+cmd __callgrind_toggle_collect NsfCallgrindToggleCollectCmd {}
+cmd __callgrind_zero_stats NsfCallgrindZeroStatsCmd {}
+
 
 cmd __unset_unknown_args NsfUnsetUnknownArgsCmd {}
 

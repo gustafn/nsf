@@ -281,7 +281,7 @@ static int ConvertToRelationtype(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param 
     
 
 /* just to define the symbol */
-static Nsf_methodDefinition method_definitions[114];
+static Nsf_methodDefinition method_definitions[119];
   
 static const char *method_command_namespace_names[] = {
   "::nsf::methods::object::info",
@@ -336,6 +336,16 @@ static int NsfClassInfoSuperclassMethodStub(ClientData clientData, Tcl_Interp *i
 static int NsfAsmMethodCreateCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv)
   NSF_nonnull(2) NSF_nonnull(4);
 static int NsfAsmProcCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv)
+  NSF_nonnull(2) NSF_nonnull(4);
+static int NsfCallgrindDumpStatsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv)
+  NSF_nonnull(2) NSF_nonnull(4);
+static int NsfCallgrindStartInstrumentationCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv)
+  NSF_nonnull(2) NSF_nonnull(4);
+static int NsfCallgrindStopInstrumentationCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv)
+  NSF_nonnull(2) NSF_nonnull(4);
+static int NsfCallgrindToggleCollectCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv)
+  NSF_nonnull(2) NSF_nonnull(4);
+static int NsfCallgrindZeroStatsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv)
   NSF_nonnull(2) NSF_nonnull(4);
 static int NsfCmdInfoCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv)
   NSF_nonnull(2) NSF_nonnull(4);
@@ -564,6 +574,16 @@ static int NsfAsmMethodCreateCmd(Tcl_Interp *interp, NsfObject *object, int with
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(7) NSF_nonnull(8) NSF_nonnull(9);
 static int NsfAsmProcCmd(Tcl_Interp *interp, int withAd, int withCheckalways, Tcl_Obj *procName, Tcl_Obj *arguments, Tcl_Obj *body)
   NSF_nonnull(1) NSF_nonnull(4) NSF_nonnull(5) NSF_nonnull(6);
+static int NsfCallgrindDumpStatsCmd(Tcl_Interp *interp, const char *withName)
+  NSF_nonnull(1);
+static int NsfCallgrindStartInstrumentationCmd(Tcl_Interp *interp)
+  NSF_nonnull(1);
+static int NsfCallgrindStopInstrumentationCmd(Tcl_Interp *interp)
+  NSF_nonnull(1);
+static int NsfCallgrindToggleCollectCmd(Tcl_Interp *interp)
+  NSF_nonnull(1);
+static int NsfCallgrindZeroStatsCmd(Tcl_Interp *interp)
+  NSF_nonnull(1);
 static int NsfCmdInfoCmd(Tcl_Interp *interp, InfomethodsubcmdIdx_t subcmd, NsfObject *withContext, Tcl_Obj *methodName, const char *pattern)
   NSF_nonnull(1) NSF_nonnull(4);
 static int NsfColonCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv)
@@ -768,6 +788,11 @@ enum {
  NsfClassInfoSuperclassMethodIdx,
  NsfAsmMethodCreateCmdIdx,
  NsfAsmProcCmdIdx,
+ NsfCallgrindDumpStatsCmdIdx,
+ NsfCallgrindStartInstrumentationCmdIdx,
+ NsfCallgrindStopInstrumentationCmdIdx,
+ NsfCallgrindToggleCollectCmdIdx,
+ NsfCallgrindZeroStatsCmdIdx,
  NsfCmdInfoCmdIdx,
  NsfColonCmdIdx,
  NsfConfigureCmdIdx,
@@ -1541,6 +1566,90 @@ NsfAsmProcCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
     
     return TCL_ERROR;
   }
+}
+
+static int
+NsfCallgrindDumpStatsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv) {
+  ParseContext pc;
+  (void)clientData;
+
+  if (likely(ArgumentParse(interp, objc, objv, NULL, objv[0],
+                     method_definitions[NsfCallgrindDumpStatsCmdIdx].paramDefs,
+                     method_definitions[NsfCallgrindDumpStatsCmdIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
+                     &pc) == TCL_OK)) {
+    const char *withName = (const char *)pc.clientData[0];
+
+    assert(pc.status == 0);
+    return NsfCallgrindDumpStatsCmd(interp, withName);
+
+  } else {
+    
+    return TCL_ERROR;
+  }
+}
+
+static int
+NsfCallgrindStartInstrumentationCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv) {
+  (void)clientData;
+
+    
+
+      if (unlikely(objc != 1)) {
+	return NsfArgumentError(interp, "too many arguments:",
+			     method_definitions[NsfCallgrindStartInstrumentationCmdIdx].paramDefs,
+			     NULL, objv[0]);
+      }
+    
+    return NsfCallgrindStartInstrumentationCmd(interp);
+
+}
+
+static int
+NsfCallgrindStopInstrumentationCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv) {
+  (void)clientData;
+
+    
+
+      if (unlikely(objc != 1)) {
+	return NsfArgumentError(interp, "too many arguments:",
+			     method_definitions[NsfCallgrindStopInstrumentationCmdIdx].paramDefs,
+			     NULL, objv[0]);
+      }
+    
+    return NsfCallgrindStopInstrumentationCmd(interp);
+
+}
+
+static int
+NsfCallgrindToggleCollectCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv) {
+  (void)clientData;
+
+    
+
+      if (unlikely(objc != 1)) {
+	return NsfArgumentError(interp, "too many arguments:",
+			     method_definitions[NsfCallgrindToggleCollectCmdIdx].paramDefs,
+			     NULL, objv[0]);
+      }
+    
+    return NsfCallgrindToggleCollectCmd(interp);
+
+}
+
+static int
+NsfCallgrindZeroStatsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv) {
+  (void)clientData;
+
+    
+
+      if (unlikely(objc != 1)) {
+	return NsfArgumentError(interp, "too many arguments:",
+			     method_definitions[NsfCallgrindZeroStatsCmdIdx].paramDefs,
+			     NULL, objv[0]);
+      }
+    
+    return NsfCallgrindZeroStatsCmd(interp);
+
 }
 
 static int
@@ -3479,7 +3588,7 @@ NsfObjInfoVarsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
   }
 }
 
-static Nsf_methodDefinition method_definitions[114] = {
+static Nsf_methodDefinition method_definitions[119] = {
 {"::nsf::methods::class::alloc", NsfCAllocMethodStub, 1, {
   {"objectName", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
@@ -3587,6 +3696,21 @@ static Nsf_methodDefinition method_definitions[114] = {
   {"procName", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"arguments", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"body", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+},
+{"::nsf::__callgrind_dump_stats", NsfCallgrindDumpStatsCmdStub, 1, {
+  {"-name", 0, 1, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+},
+{"::nsf::__callgrind_start_instrumentation", NsfCallgrindStartInstrumentationCmdStub, 0, {
+  {NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+},
+{"::nsf::__callgrind_stop_instrumentation", NsfCallgrindStopInstrumentationCmdStub, 0, {
+  {NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+},
+{"::nsf::__callgrind_toggle_collect", NsfCallgrindToggleCollectCmdStub, 0, {
+  {NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+},
+{"::nsf::__callgrind_zero_stats", NsfCallgrindZeroStatsCmdStub, 0, {
+  {NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::cmd::info", NsfCmdInfoCmdStub, 4, {
   {"subcmd", NSF_ARG_REQUIRED|NSF_ARG_IS_ENUMERATION, 1, ConvertToInfomethodsubcmd, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},

@@ -6441,7 +6441,7 @@ NSRequireParentObject(Tcl_Interp *interp, const char *parentName) {
  *    sure that a potential parent object has already required a
  *    namespace. If there is no parent namespace yet, try to create a
  *    parent object via __unknown.
-
+ *
  *    If the provided parentNsPtr is not NULL, we know, that (a) the
  *    provided name was relative and simple (contains no ":"
  *    characters) and that (b) this namespace was used to build a fully
@@ -25269,6 +25269,65 @@ static int NsfProfileTraceStub(    Tcl_Interp *UNUSED(interp),
                     Tcl_Obj *UNUSED(builtins)) {
   return TCL_OK;
 }
+#endif
+
+/*
+ * Valgrind/callgrind support
+ */
+#if defined(NSF_VALGRIND)
+
+#include <valgrind/callgrind.h>
+/*
+cmd __callgrind_dump_stats NsfCallgrindDumpStatsCmd {
+  {-argName "-name" -required 0 -nrargs 1}
+}
+cmd __callgrind_start_instrumentation NsfCallgrindStartInstrumentationCmd {}
+cmd __callgrind_stop_instrumentation NsfCallgrindStopInstrumentationCmd {}
+cmd __callgrind_toggle_collect NsfCallgrindToggleCollectCmd {}
+cmd __callgrind_zero_stats NsfCallgrindZeroStatsCmd {}
+*/
+
+static int
+NsfCallgrindDumpStatsCmd(Tcl_Interp *UNUSED(interp), const char *nameString) {
+  if (nameString == NULL) {
+    CALLGRIND_DUMP_STATS;
+  } else {
+    CALLGRIND_DUMP_STATS_AT(nameString);
+  }
+  return TCL_OK;
+}
+
+static int
+NsfCallgrindStartInstrumentationCmd(Tcl_Interp *UNUSED(interp)) {
+  CALLGRIND_START_INSTRUMENTATION;
+  return TCL_OK;
+}
+
+static int
+NsfCallgrindStopInstrumentationCmd(Tcl_Interp *UNUSED(interp)) {
+  CALLGRIND_STOP_INSTRUMENTATION;
+  return TCL_OK;
+}
+
+static int
+NsfCallgrindToggleCollectCmd(Tcl_Interp *UNUSED(interp)) {
+  CALLGRIND_TOGGLE_COLLECT;
+  return TCL_OK;
+}
+
+static int
+NsfCallgrindZeroStatsCmd(Tcl_Interp *UNUSED(interp)) {
+  CALLGRIND_ZERO_STATS;
+  return TCL_OK;
+}
+#else
+
+static int NsfCallgrindDumpStatsCmd(Tcl_Interp *UNUSED(interp), const char *UNUSED(nameString)) {  return TCL_OK; }
+static int NsfCallgrindStartInstrumentationCmd(Tcl_Interp *UNUSED(interp)) {return TCL_OK;}
+static int NsfCallgrindStopInstrumentationCmd(Tcl_Interp *UNUSED(interp))  {return TCL_OK;}
+static int NsfCallgrindToggleCollectCmd(Tcl_Interp *UNUSED(interp))        {return TCL_OK;}
+static int NsfCallgrindZeroStatsCmd(Tcl_Interp *UNUSED(interp))            {return TCL_OK;}
+
 #endif
 
 /*
