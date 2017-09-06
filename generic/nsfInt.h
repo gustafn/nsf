@@ -667,14 +667,15 @@ CONST char *Nsf_SystemMethodOpts[] = {
 #endif
 
 typedef struct NsfObjectSystem {
-  NsfClass *rootClass;
-  NsfClass *rootMetaClass;
-  unsigned int overloadedMethods;
-  unsigned int definedMethods;
-  Tcl_Obj *methods[NSF_s_set_idx+2];
-  Tcl_Obj *handles[NSF_s_set_idx+2];
+  NsfClass     *rootClass;
+  NsfClass     *rootMetaClass;
+  unsigned int  overloadedMethods;
+  unsigned int  definedMethods;
+  Tcl_Obj      *methods[NSF_s_set_idx+2];
+  const char   *methodNames[NSF_s_set_idx+2];
+  Tcl_Obj      *handles[NSF_s_set_idx+2];
   struct NsfObjectSystem *nextPtr;
-  char protected[NSF_s_set_idx+2];
+  char          protected[NSF_s_set_idx+2];
 } NsfObjectSystem;
 
 

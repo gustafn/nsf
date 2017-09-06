@@ -4029,7 +4029,7 @@ ObjectSystemFree(Tcl_Interp *interp, NsfObjectSystem *osPtr) {
   nonnull_assert(osPtr != NULL);
 
   for (idx = 0; idx <= NSF_s_set_idx; idx++) {
-    if (osPtr->methods[idx]) { DECR_REF_COUNT(osPtr->methods[idx]); }
+    if (osPtr->methods[idx]) { DECR_REF_COUNT(osPtr->methods[idx]); osPtr->methodNames[idx] = NULL; }
     if (osPtr->handles[idx]) { DECR_REF_COUNT(osPtr->handles[idx]); }
   }
 
@@ -11559,7 +11559,6 @@ PushProcCallFrame(Proc *procPtr, Tcl_Interp *interp,
  *
  *----------------------------------------------------------------------
  */
-
 static int
 ObjectSystemsCheckSystemMethod(Tcl_Interp *interp, const char *methodName, NsfObject *object, unsigned int flags) {
   NsfObjectSystem *osPtr, *defOsPtr;
@@ -11576,16 +11575,16 @@ ObjectSystemsCheckSystemMethod(Tcl_Interp *interp, const char *methodName, NsfOb
     int           i, isRootClassMethod;
     unsigned int  flag = 0u;
     NsfObject    *defObject;
+    const char  **methodStrings = osPtr->methodNames;
 
     for (i = 0; i <= NSF_s_set_idx; i++) {
-      Tcl_Obj *methodObj = osPtr->methods[i];
+      const char *methodString = *methodStrings ++;
 
-      if (likely(methodObj != NULL)) {
-        const char *methodString = ObjStr(methodObj);
-        if (unlikely(*methodString == firstChar) && !strcmp(methodName, methodString)) {
-          flag = 1u << i;
-          break;
-        }
+      if (likely(methodString != NULL)
+          && unlikely(*methodString == firstChar)
+          && strcmp(methodName, methodString) == 0) {
+        flag = 1u << i;
+        break;
       }
     }
     if (flag == 0u) {
@@ -11593,7 +11592,8 @@ ObjectSystemsCheckSystemMethod(Tcl_Interp *interp, const char *methodName, NsfOb
     }
 
     isRootClassMethod = *(Nsf_SystemMethodOpts[i]+1) == 'o';
-    defObject = (isRootClassMethod == 1) ? &osPtr->rootClass->object
+    defObject = (isRootClassMethod == 1)
+      ? &osPtr->rootClass->object
       : &osPtr->rootMetaClass->object;
 
     if (osPtr->handles[i] && osPtr->protected[i]) {
@@ -11608,8 +11608,11 @@ ObjectSystemsCheckSystemMethod(Tcl_Interp *interp, const char *methodName, NsfOb
        *  If for some reason base methods become redefined (e.g. in a reload),
        *  do not count them as overloads.
        */
-      if ((isRootClassMethod == 1 && object == &defOsPtr->rootClass->object)
-          || (isRootClassMethod == 0 && object == &defOsPtr->rootMetaClass->object) ) {
+      if ((isRootClassMethod == 1
+           && object == &defOsPtr->rootClass->object)
+          || (isRootClassMethod == 0
+              && object == &defOsPtr->rootMetaClass->object)
+          ) {
         /*fprintf(stderr, "+++ %s %.6x NOT overloading %s.%s %s (is root %d, is meta %d)\n",
           ClassName(defOsPtr->rootClass),
           osPtr->overloadedMethods, ObjectName(object), methodName, Nsf_SystemMethodOpts[i],
@@ -11624,7 +11627,9 @@ ObjectSystemsCheckSystemMethod(Tcl_Interp *interp, const char *methodName, NsfOb
           object == &defOsPtr->rootMetaClass->object);*/
       }
     }
-    if ((osPtr == defOsPtr) && ((osPtr->definedMethods & flag) == 0u)) {
+    if ((osPtr == defOsPtr)
+        && ((osPtr->definedMethods & flag) == 0u)
+        ) {
       /*
        * Mark the method as defined.
        */
@@ -11660,9 +11665,8 @@ ObjectSystemsCheckSystemMethod(Tcl_Interp *interp, const char *methodName, NsfOb
             /*
              * Alias definition succeeded.
              */
-            Tcl_Obj *methodObj = Tcl_GetObjResult(interp);
-            Tcl_Command cmd = Tcl_GetCommandFromObj(interp, methodObj);
-
+            Tcl_Obj     *methodObj = Tcl_GetObjResult(interp);
+            Tcl_Command  cmd       = Tcl_GetCommandFromObj(interp, methodObj);
 
             /*
              * Since the defObject is not equal to the overloaded method, the
@@ -27073,8 +27077,10 @@ NsfObjectSystemCreateCmd(Tcl_Interp *interp, Tcl_Obj *Object, Tcl_Obj *Class, Tc
 
         if (arg_oc == 1) {
           osPtr->methods[idx] = arg;
+          osPtr->methodNames[idx] = ObjStr(arg);
         } else { /* (arg_oc == 2) */
           osPtr->methods[idx] = arg_ov[0];
+          osPtr->methodNames[idx] = ObjStr(arg_ov[0]);
           osPtr->handles[idx] = arg_ov[1];
           if  (arg_oc == 3) {
             int boolVal = 0;
@@ -29790,7 +29796,7 @@ NsfOResidualargsMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj 
     Tcl_Obj *initObj = osPtr->methods[NSF_o_init_idx];
 
     if (initObj != NULL) {
-      initString = ObjStr(initObj);
+      initString = osPtr->methodNames[NSF_o_init_idx];
       assert(initString != NULL);
     }
 
