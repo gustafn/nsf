@@ -3188,7 +3188,7 @@ RemoveInstance(NsfObject *object, NsfClass *cl) {
    * If we are during a delete, which should not happen under normal
    * operations, prevent an abort due to a deleted hash table.
    */
-  if ((cl->object.flags & NSF_DURING_DELETE) != 0u) {
+  if (unlikely(cl->object.flags & NSF_DURING_DELETE) != 0u) {
     NsfLog(cl->object.teardown, NSF_LOG_WARN,
            "The class %s, from which an instance is to be removed, is currently under deletion",
             ObjStr((cl)->object.cmdName));
@@ -7092,7 +7092,7 @@ CallStackDoDestroy(Tcl_Interp *interp, NsfObject *object) {
    * Don't do anything, if a recursive DURING_DELETE is for some
    * reason active.
    */
-  if ((object->flags & NSF_DURING_DELETE) != 0u) {
+  if (unlikely((object->flags & NSF_DURING_DELETE) != 0u)) {
     return;
   }
   /*fprintf(stderr, "CallStackDoDestroy %p flags %.6x activation %d object->refCount %d cmd %p \n",
@@ -9443,8 +9443,9 @@ MixinInvalidateObjOrders(NsfClasses *subClasses) {
 
       assert(object != NULL);
 
-      if (((object->flags & NSF_DURING_DELETE) == 0u)
-          && ((object->flags & NSF_MIXIN_ORDER_DEFINED_AND_VALID) != 0u)) {
+      if (likely((object->flags & NSF_DURING_DELETE) == 0u)
+          && ((object->flags & NSF_MIXIN_ORDER_DEFINED_AND_VALID) != 0u)
+          ) {
         MixinResetOrder(object);
         object->flags &= ~NSF_MIXIN_ORDER_VALID;
       }
@@ -19405,7 +19406,9 @@ TclDeletesObject(ClientData clientData) {
 #ifdef OBJDELETION_TRACE
   fprintf(stderr, "TclDeletesObject %p obj->id %p flags %.6x\n", object, object->id, object->flags);
 #endif
-  if ((object->flags & NSF_DURING_DELETE) != 0u || (object->teardown == NULL)) {
+  if (unlikey((object->flags & NSF_DURING_DELETE) != 0u)
+      || (object->teardown == NULL)
+      ) {
     return;
   }
   interp = object->teardown;
@@ -19939,7 +19942,10 @@ CleanupDestroyClass(Tcl_Interp *interp, NsfClass *cl, int softrecreate, int recr
         NsfObject *inst = (NsfObject *)Tcl_GetHashKey(instanceTablePtr, hPtr);
         /*fprintf(stderr, "    inst %p %s flags %.6x id %p baseClass %p %s\n",
           inst, ObjectName(inst), inst->flags, inst->id, baseClass, ClassName(baseClass));*/
-        if (inst && inst != (NsfObject *)cl && ((inst->flags & NSF_DURING_DELETE) == 0u) /*inst->id*/) {
+        if ((inst != NULL)
+            && (inst != (NsfObject *)cl)
+            && likely((inst->flags & NSF_DURING_DELETE) == 0u) /*inst->id*/
+            ) {
           if (inst != &(baseClass->object)) {
             AddInstance(inst, baseClass);
           }
