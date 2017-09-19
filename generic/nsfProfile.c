@@ -603,7 +603,7 @@ NsfProfileTraceCall(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, const c
     Tcl_DStringAppendElement(&traceLabel, Tcl_DStringValue(&ds));
     Tcl_DStringAppend(&traceLabel, " ", 1);
 
-    Tcl_DStringTrunc(&ds, 0);
+    Tcl_DStringSetLength(&ds, 0);
     NsfProfileMethodLabel(&ds, cl, methodName);
     Tcl_DStringAppendElement(&traceLabel, Tcl_DStringValue(&ds));
 
@@ -634,7 +634,7 @@ NsfProfileTraceExit(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, const c
     Tcl_DStringAppendElement(&traceLabel, Tcl_DStringValue(&ds));
     Tcl_DStringAppend(&traceLabel, " ", 1);
 
-    Tcl_DStringTrunc(&ds, 0);
+    Tcl_DStringSetLength(&ds, 0);
     NsfProfileMethodLabel(&ds, cl, methodName);
     Tcl_DStringAppendElement(&traceLabel, Tcl_DStringValue(&ds));
 
@@ -842,7 +842,7 @@ NsfProfileClearData(Tcl_Interp *interp) {
   profilePtr->overallTime = 0;
   profilePtr->depth = 0;
 
-  Tcl_DStringTrunc(&profilePtr->traceDs, 0);
+  Tcl_DStringSetLength(&profilePtr->traceDs, 0);
 }
 
 /*

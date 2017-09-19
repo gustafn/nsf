@@ -5917,7 +5917,7 @@ NSDeleteChild(Tcl_Interp *interp, Tcl_Command cmd, int deleteObjectsOnly) {
    * which will fail in such cases.
    */
 
-  if (!Tcl_Command_cmdEpoch(cmd)) {
+  if (Tcl_Command_cmdEpoch(cmd) == 0) {
     NsfObject *object = NsfGetObjectFromCmdPtr(cmd);
 
     /*fprintf(stderr, "NSDeleteChildren child %p (%s) epoch %d\n",
@@ -11080,7 +11080,7 @@ FilterSearchProc(Tcl_Interp *interp, NsfObject *object,
     while (cmdList != NULL) {
       /*fprintf(stderr, "FilterSearchProc found %s\n",
         Tcl_GetCommandName(interp, (Tcl_Command)cmdList->cmdPtr));*/
-      if (Tcl_Command_cmdEpoch(cmdList->cmdPtr)) {
+      if (Tcl_Command_cmdEpoch(cmdList->cmdPtr) != 0) {
         cmdList = cmdList->nextPtr;
       } else if (FilterActiveOnObj(interp, object, cmdList->cmdPtr)) {
         /* fprintf(stderr, "Filter <%s> -- Active on: %s\n",
@@ -17101,7 +17101,7 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, Pa
    * slightly adapted to remove object dependencies.
    */
 
-  if (Tcl_Command_cmdEpoch(cmd)) {
+  if (Tcl_Command_cmdEpoch(cmd) != 0) {
 #if 1
     /*
      * It seems, as someone messed around with the shadowed proc. For now, we
@@ -23096,6 +23096,7 @@ ListParamDefs(Tcl_Interp *interp, Nsf_Param const *paramsPtr,
   case NSF_PARAMS_LIST:      listObj = ParamDefsList(interp, paramsPtr, contextObject, pattern);   break;
   case NSF_PARAMS_NAMES:     listObj = ParamDefsNames(interp, paramsPtr, contextObject, pattern);  break;
   case NSF_PARAMS_SYNTAX:    listObj = NsfParamDefsSyntax(interp, paramsPtr, contextObject, pattern); break;
+  default:                   listObj = NULL; assert(0); /*should never happen */; break;
   }
 
   return listObj;
@@ -24246,7 +24247,7 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
       key = Tcl_GetHashKey(tablePtr, hPtr);
       cmd = (Tcl_Command)Tcl_GetHashValue(hPtr);
       if (prefixLength != 0) {
-        Tcl_DStringTrunc(prefix, prefixLength);
+        Tcl_DStringSetLength(prefix, prefixLength);
       }
       methodTypeMatch = MethodTypeMatches(interp, methodType, cmd, object, key,
                                           withPer_object, &isObject);
@@ -24937,7 +24938,7 @@ AliasDereference(Tcl_Interp *interp, NsfObject *object, const char *methodName, 
 
     assert(tcd != NULL);
 
-    if (unlikely(Tcl_Command_cmdEpoch(tcd->aliasedCmd))) {
+    if (unlikely(Tcl_Command_cmdEpoch(tcd->aliasedCmd) != 0)) {
 
       /*fprintf(stderr, "NsfProcAliasMethod aliasedCmd %p epoch %p\n",
         tcd->aliasedCmd, Tcl_Command_cmdEpoch(tcd->aliasedCmd));*/

@@ -478,7 +478,7 @@ NsfUnexpectedNonposArgumentError(Tcl_Interp *interp,
     Tcl_DStringAppend(dsPtr, pPtr->name, -1);
     Tcl_DStringAppend(dsPtr, ", ", -1);
   }
-  Tcl_DStringTrunc(dsPtr, Tcl_DStringLength(dsPtr) - 2);
+  Tcl_DStringSetLength(dsPtr, Tcl_DStringLength(dsPtr) - 2);
   Tcl_DStringAppend(dsPtr, ";\n", 2);
 
   NsfArgumentError(interp, Tcl_DStringValue(dsPtr), paramPtr, (object != NULL) ? object->cmdName : NULL,
