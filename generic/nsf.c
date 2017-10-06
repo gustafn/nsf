@@ -19406,7 +19406,7 @@ TclDeletesObject(ClientData clientData) {
 #ifdef OBJDELETION_TRACE
   fprintf(stderr, "TclDeletesObject %p obj->id %p flags %.6x\n", object, object->id, object->flags);
 #endif
-  if (unlikey((object->flags & NSF_DURING_DELETE) != 0u)
+  if (unlikely((object->flags & NSF_DURING_DELETE) != 0u)
       || (object->teardown == NULL)
       ) {
     return;
