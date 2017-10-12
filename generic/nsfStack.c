@@ -316,9 +316,11 @@ CallStackGetActiveProcFrame(Tcl_CallFrame *framePtr) {
 
 /*
  *----------------------------------------------------------------------
- * GetSelfObj --
+ * GetSelfObj, GetSelfObj2 --
  *
- *    Return the currently active object from a method or object frame.
+ *    Return the corresponding object from a method or from an object
+ *    frame. GetSelfObj defaults to the top-most callframe, GetSelfObj2 allows
+ *    one to set another frame.
  *
  * Results:
  *    NsfObject * or NULL.
@@ -338,6 +340,10 @@ CallStackGetActiveProcFrame(Tcl_CallFrame *framePtr) {
 # endif
 #endif
 
+#define GetSelfObj(interp) \
+  GetSelfObj2((interp), (Tcl_CallFrame *)Tcl_Interp_varFramePtr((interp)))
+
+#if 0
 NSF_INLINE static NsfObject* GetSelfObj(const Tcl_Interp *interp) nonnull(1);
 
 NSF_INLINE static NsfObject*
@@ -350,6 +356,47 @@ GetSelfObj(const Tcl_Interp *interp) {
     Tcl_Interp_framePtr(interp), Tcl_Interp_varFramePtr(interp));*/
 
   for (varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
+       varFramePtr != NULL;
+       varFramePtr =
+#if defined(SKIP_LEVELS)
+                        Tcl_CallFrame_callerPtr(varFramePtr)
+#else
+                        NULL
+#endif
+                        ) {
+    register unsigned int flags;
+
+    flags = (unsigned int)Tcl_CallFrame_isProcCallFrame(varFramePtr);
+    if (likely((flags & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) != 0u)) {
+      return ((NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr))->self;
+
+    } else if ((flags & FRAME_IS_NSF_OBJECT) != 0u) {
+      return (NsfObject *)Tcl_CallFrame_clientData(varFramePtr);
+      
+    }
+#if defined(SKIP_LAMBDA)
+    if ((flags & FRAME_IS_LAMBDA) != 0u) {
+      continue;
+    }
+    break;
+#endif
+  }
+  return NULL;
+}
+#endif
+
+NSF_INLINE static NsfObject* GetSelfObj2(const Tcl_Interp *interp, Tcl_CallFrame *framePtr) nonnull(1) nonnull(2);
+
+NSF_INLINE static NsfObject*
+GetSelfObj2(const Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
+  register Tcl_CallFrame *varFramePtr;
+
+  nonnull_assert(interp != NULL);
+
+  /*fprintf(stderr, "GetSelfObj interp has frame %p and var-frame %p\n",
+    Tcl_Interp_framePtr(interp), Tcl_Interp_varFramePtr(interp));*/
+
+  for (varFramePtr = framePtr;
        varFramePtr != NULL;
        varFramePtr =
 #if defined(SKIP_LEVELS)
