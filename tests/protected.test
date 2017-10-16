@@ -868,6 +868,135 @@ nx::test case protected-priv-class-object-property {
   ? {C private object property {d:integer 1}} {'property' is not a method defining method}
 }
 
+nx::test case protected-ensembles {
+
+  set ::o [nx::Object new {
+    set ::foo2faa [:protected object method "foo2 faa" {} {return protected}]
+    ? [list set _ [:foo2 faa]] "protected"
+    
+    set ::foo2baz [:public object method "foo2 baz" {} {:foo2 faa}]
+    ? [list set _ [:foo2 baz]] "protected"
+
+    :object method m1 {} {:foo2 faa}
+    ? [list set _ [:m1]] "protected"
+
+    :object method m2 {} {apply {{} {:foo2 faa}}}
+    ? [list set _ [:m2]] "protected"
+
+    set ::foo2biz [:public object method "foo2 biz" {} {apply {{} {:foo2 faa}}}]
+    ? [list set _ [:foo2 biz]] "protected"
+
+  }]
+
+  ? {$::o foo2 faa fee} "unable to dispatch sub-method \"faa\" of $::o foo2; valid are: foo2 baz, foo2 biz"
+
+  set C [nx::Class new {
+    set ::foo2faa [:protected method "foo2 faa" {} {return protected}]
+    set ::foo2baz [:public method "foo2 baz" {} {:foo2 faa}]
+
+    set c [:new {
+      ? [list set _ [:foo2 faa]] "protected"
+    }]
+
+    ? [list set _ [$c foo2 baz]] "protected"
+
+    :public method m1 {} {:foo2 faa}
+    ? [list set _ [$c m1]] "protected"
+
+    :public method m2 {} {apply {{} {:foo2 faa}}}
+    ? [list set _ [$c m2]] "protected"
+
+    set ::foo2biz [:public method "foo2 biz" {} {apply {{} {:foo2 faa}}}]
+    ? [list set _ [$c foo2 biz]] "protected"
+
+    ? [list $c foo2 faa] "unable to dispatch sub-method \"faa\" of $c foo2; valid are: foo2 baz, foo2 biz"
+
+    set mixin [nx::Class new {
+      :public method m3 {} {
+        :foo2 faa
+      }
+      :public method "foo2 fee" {} {
+        :foo2 faa
+      }
+      :public method "foo2 faa" {} {
+        next
+      }
+    }]
+
+    $c object mixins add $mixin
+    ? [list set _ [$c m3]] "protected"
+    ? [list set _ [$c foo2 fee]] "protected"
+    ? [list set _ [$c foo2 faa]] "protected"
+    $c object mixins clear
+    ? [list $c foo2 faa] "unable to dispatch sub-method \"faa\" of $c foo2; valid are: foo2 baz, foo2 biz"
+    
+  }]
+
+  # ensemble
+  set ::o [nx::Object new {
+    set ::foo2faa [:protected object method "foo2 faa fee" {} {return protected}]
+    ? [list set _ [:foo2 faa fee]] "protected"
+
+    set ::foo2baz [:public object method "foo2 baz" {} {:foo2 faa fee}]
+    ? [list set _ [:foo2 baz]] "protected"
+
+    :object method m1 {} {:foo2 faa fee}
+    ? [list set _ [:m1]] "protected"
+
+    :object method m2 {} {apply {{} {:foo2 faa fee}}}
+    ? [list set _ [:m2]] "protected"
+
+    set ::foo2biz [:public object method "foo2 biz" {} {apply {{} {:foo2 faa fee}}}]
+    ? [list set _ [:foo2 biz]] "protected"
+
+  }]
+
+  ? {$::o foo2 faa fee} "unable to dispatch sub-method \"fee\" of $::o foo2 faa; valid are: "
+
+  set ::C [nx::Class new {
+    set ::foo2faa [:protected method "foo2 faa fim" {} {return protected}]
+    set ::foo2baz [:public method "foo2 baz" {} {:foo2 faa fim}]
+
+    set c [:new {
+      ? [list set _ [:foo2 faa fim]] "protected"
+    }]
+
+    ? [list set _ [$c foo2 baz]] "protected"
+
+    :public method m1 {} {:foo2 faa fim}
+    ? [list set _ [$c m1]] "protected"
+
+    :public method m2 {} {apply {{} {:foo2 faa fim}}}
+    ? [list set _ [$c m2]] "protected"
+
+    set ::foo2biz [:public method "foo2 biz" {} {apply {{} {:foo2 faa fim}}}]
+    ? [list set _ [$c foo2 biz]] "protected"
+
+    ? [list $c foo2 faa fim] "unable to dispatch sub-method \"fim\" of $c foo2 faa; valid are: "
+
+    set mixin [nx::Class new {
+      :public method m3 {} {
+        :foo2 faa fim
+      }
+      :public method "foo2 fee fuu" {} {
+        :foo2 faa fim
+      }
+      :public method "foo2 faa fim" {} {
+        next
+      }
+    }]
+
+    $c object mixins add $mixin
+    ? [list set _ [$c m3]] "protected"
+    ? [list set _ [$c foo2 fee fuu]] "protected"
+    ? [list set _ [$c foo2 faa fim]] "protected"
+    $c object mixins clear
+    ? [list $c foo2 faa fim] "unable to dispatch sub-method \"fim\" of $c foo2 faa; valid are: "
+    
+  }]
+}
+
+
 #
 # Local variables:
 #    mode: tcl

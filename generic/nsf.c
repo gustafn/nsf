@@ -8,7 +8,7 @@
  * Copyright (C) 1999-2017 Gustaf Neumann (a) (b)
  * Copyright (C) 1999-2007 Uwe Zdun (a) (b)
  * Copyright (C) 2007-2008 Martin Matuska (b)
- * Copyright (C) 2010-2016 Stefan Sobernig (b)
+ * Copyright (C) 2010-2017 Stefan Sobernig (b)
  *
  *
  * (a) University of Essen
@@ -13294,6 +13294,47 @@ ObjectCmdMethodDispatch(NsfObject *invokedObject, Tcl_Interp *interp, int objc, 
   } else {
     subMethodCmd = NULL;
   }
+
+#if 1
+  if (subMethodCmd != NULL) {
+    unsigned long cmdFlags = (unsigned long)Tcl_Command_flags(subMethodCmd);
+    if (unlikely((cmdFlags & NSF_CMD_CALL_PROTECTED_METHOD) != 0u)) {
+      NsfObject *lastSelf;
+      Tcl_CallFrame *framePtr;
+      int withinEnsemble = ((cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) != 0u);
+      
+      if (withinEnsemble) {
+        Tcl_CallFrame *framePtr1;
+        /* Alternatively: (void)NsfCallStackFindLastInvocation(interp, 0, &framePtr1); */
+        (void)CallStackGetTopFrame(interp, &framePtr);
+        (void)CallStackFindEnsembleCsc(framePtr, &framePtr1);
+        /* NsfShowStack(interp);
+           fprintf(stderr, "framePtr %p\n", framePtr1);*/
+        if (framePtr1 != NULL) {
+          lastSelf = GetSelfObj2(interp, framePtr1);
+        } else {
+          lastSelf = NULL;
+        }
+      } else {
+        lastSelf = GetSelfObj(interp);
+      }
+      
+      
+      /* fprintf(stderr, "'%s (%s) == %s == %s? for %s\n", lastSelf != NULL ? ObjectName(lastSelf): "n/a", 
+              ObjectName(GetSelfObj(interp)), ObjectName(actualSelf), ObjectName(invokedObject), subMethodName); */
+      
+      if (actualSelf != lastSelf) {
+        const char *path = withinEnsemble ? ObjStr(NsfMethodNamePath(interp, framePtr, methodName)) : methodName;
+        
+        NsfLog(interp, NSF_LOG_WARN, "'%s %s %s' fails since method %s.%s %s is protected",
+               ObjectName(actualSelf), path, subMethodName, (actualClass != NULL) ?
+               ClassName(actualClass) : ObjectName(actualSelf), path, subMethodName);
+        subMethodCmd = NULL;
+      }
+    }
+  }
+#endif
+
 
   /*
    * Make sure, that the current call is marked as an ensemble call, both
