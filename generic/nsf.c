@@ -26562,7 +26562,7 @@ NsfMethodForwardCmd(Tcl_Interp *interp,
                                  tcd, ForwardCmdDeleteProc, 0);
     }
     if (likely(result == TCL_OK)) {
-      Tcl_SetObjResult(interp, MethodHandleObj(object, withPer_object, methodName));
+      Tcl_SetObjResult(interp, MethodHandleObj(object, (cl == NULL), methodName));
     }
   }
 

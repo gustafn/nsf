@@ -940,7 +940,49 @@ nx::test case ensemble-callstack-introspection {
   unset -nocomplain ::handle
   unset -nocomplain ::body
 }
+
+::nx::configure defaultMethodCallProtection true
+
+nx::test case ensemble-forwards {
+  set C [nx::Class new {
+    set handle [:forward "foo 1" string cat %method]
+    ? [list info commands $handle] $handle
+    set handle [:public forward "foo 2" string cat %method]
+    ? [list info commands $handle] $handle
+    set handle [:protected forward "foo 3" string cat %method]
+    ? [list info commands $handle] $handle
+    set handle [:private forward "foo 4" string cat %method]
+    ? [list info commands $handle] $handle
+    set handle [:object forward "foo 5" string cat %method]
+    ? [list info commands $handle] $handle
+    set handle [:public object forward "foo 6" string cat %method]
+    ? [list info commands $handle] $handle
+    set handle [:protected object forward "foo 7" string cat %method]
+    ? [list info commands $handle] $handle
+    set handle [:private object forward "foo 8" string cat %method]
+    ? [list info commands $handle] $handle
+  }]
   
+  ? [list $C foo 6] "6"
+  ? [list $C foo 5] "unable to dispatch sub-method \"5\" of $C foo; valid are: foo 6"
+  ? [list $C eval {:foo 5}] "5"
+  ? [list $C foo 7] "unable to dispatch sub-method \"7\" of $C foo; valid are: foo 6"
+  ? [list $C eval {:foo 7}] "7"
+  ? [list $C foo 8] "unable to dispatch sub-method \"8\" of $C foo; valid are: foo 6"
+  ? [list $C eval {:foo 8}] "8"; # ! should not be possible !
+  
+  set c [$C new]
+  
+  ? [list $c foo 2] "2"
+  ? [list $c foo 1] "unable to dispatch sub-method \"1\" of $c foo; valid are: foo 2"
+  ? [list $c eval {:foo 1}] "1"
+  ? [list $c foo 3] "unable to dispatch sub-method \"3\" of $c foo; valid are: foo 2"
+  ? [list $c eval {:foo 3}] "3"
+  ? [list $c foo 4] "unable to dispatch sub-method \"4\" of $c foo; valid are: foo 2"
+  ? [list $c eval {:foo 4}] "4"; # ! should not be possible !
+
+}
+
 #
 # Local variables:
 #    mode: tcl
