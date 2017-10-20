@@ -229,7 +229,7 @@ namespace eval ::nx::mongo {
     # The methods "bson encode|decode" perform the low level type
     # mapping. For now, this handles just the array notation.
     #
-    :method "bson decode" {bsontype value} {
+    :public method "bson decode" {bsontype value} {
       #puts stderr "bson decode of ${:name} /$bsontype/ '$value'"
       if {$bsontype eq "array"} {
 	if {![:isMultivalued]} {
@@ -416,7 +416,7 @@ namespace eval ::nx::mongo {
     # (property name or operator name) internal representations
     # (eg. mongo type, or mongo operator).
     #
-    :method "get slot" {att} {
+    :public method "get slot" {att} {
       set classes [concat [self] [:info mixins] [:info heritage]]
       foreach cls $classes {
 	set slot [$cls info slots $att]
@@ -849,7 +849,7 @@ namespace eval ::nx::mongo {
     #
     # Encode all object data in bson notation
     #
-    :method "bson encode" {{-ignore ""}} {
+    :public method "bson encode" {{-ignore ""}} {
       set bson [list]
       set cls [:info class]
       foreach var [:info vars] {
