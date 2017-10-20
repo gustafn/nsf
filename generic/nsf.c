@@ -13300,14 +13300,14 @@ ObjectCmdMethodDispatch(NsfObject *invokedObject, Tcl_Interp *interp, int objc, 
     unsigned long cmdFlags = (unsigned long)Tcl_Command_flags(subMethodCmd);
     if (unlikely((cmdFlags & NSF_CMD_CALL_PROTECTED_METHOD) != 0u)) {
       NsfObject *lastSelf;
-      Tcl_CallFrame *framePtr;
+      Tcl_CallFrame *framePtr0;
       int withinEnsemble = ((cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) != 0u);
       
       if (withinEnsemble) {
         Tcl_CallFrame *framePtr1;
         /* Alternatively: (void)NsfCallStackFindLastInvocation(interp, 0, &framePtr1); */
-        (void)CallStackGetTopFrame(interp, &framePtr);
-        (void)CallStackFindEnsembleCsc(framePtr, &framePtr1);
+        (void)CallStackGetTopFrame(interp, &framePtr0);
+        (void)CallStackFindEnsembleCsc(framePtr0, &framePtr1);
         /* NsfShowStack(interp);
            fprintf(stderr, "framePtr %p\n", framePtr1);*/
         if (framePtr1 != NULL) {
@@ -13324,7 +13324,7 @@ ObjectCmdMethodDispatch(NsfObject *invokedObject, Tcl_Interp *interp, int objc, 
               ObjectName(GetSelfObj(interp)), ObjectName(actualSelf), ObjectName(invokedObject), subMethodName); */
       
       if (actualSelf != lastSelf) {
-        const char *path = withinEnsemble ? ObjStr(NsfMethodNamePath(interp, framePtr, methodName)) : methodName;
+        const char *path = withinEnsemble ? ObjStr(NsfMethodNamePath(interp, framePtr0, methodName)) : methodName;
         
         NsfLog(interp, NSF_LOG_WARN, "'%s %s %s' fails since method %s.%s %s is protected",
                ObjectName(actualSelf), path, subMethodName, (actualClass != NULL) ?
