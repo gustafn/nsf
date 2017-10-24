@@ -5217,12 +5217,13 @@ InterpCompiledColonVarResolver(Tcl_Interp *interp,
    *  prefix. Note that getting the "self" object is a weak protection against
    *  handling of wrong vars
    */
-  NsfObject *object = GetSelfObj(interp);
+  NsfObject *object;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(name != NULL);
   nonnull_assert(rPtr != NULL);
 
+  object = GetSelfObj(interp);
 #if defined(VAR_RESOLVER_TRACE)
   fprintf(stderr, "compiled var resolver for %s, obj %p\n", name, object);
 #endif
@@ -25659,10 +25660,11 @@ cmd colon NsfColonCmd {
 static int
 NsfColonCmd(Tcl_Interp *interp, int nobjc, Tcl_Obj *CONST nobjv[]) {
   const char *methodName = ObjStr(nobjv[0]);
-  NsfObject *self = GetSelfObj(interp);
+  NsfObject  *self;
 
   nonnull_assert(interp != NULL);
 
+  self = GetSelfObj(interp);
   if (unlikely(self == NULL)) {
     return NsfNoCurrentObjectError(interp, methodName);
   }
@@ -27261,13 +27263,14 @@ static int
 NsfMyCmd(Tcl_Interp *interp,
          int withIntrinsic, int withLocal, int withSystem,
          Tcl_Obj *methodObj, int nobjc, Tcl_Obj *CONST nobjv[]) {
-  NsfObject *self = GetSelfObj(interp);
-  unsigned int flags;
-  int result;
+  NsfObject    *self;
+  unsigned int  flags;
+  int           result;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(methodObj != NULL);
 
+  self = GetSelfObj(interp);
   if (unlikely(self == NULL)) {
     return NsfNoCurrentObjectError(interp, method_definitions[NsfMyCmdIdx].methodName);
   }
@@ -28457,10 +28460,11 @@ cmd self NsfSelfCmd {
 */
 static int
 NsfSelfCmd(Tcl_Interp *interp) {
-  NsfObject *object = GetSelfObj(interp);
+  NsfObject *object;
 
   nonnull_assert(interp != NULL);
 
+  object = GetSelfObj(interp);
   if (likely(object != NULL)) {
     Tcl_SetObjResult(interp, object->cmdName);
     return TCL_OK;
