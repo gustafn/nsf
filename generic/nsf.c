@@ -13298,12 +13298,10 @@ ObjectCmdMethodDispatch(NsfObject *invokedObject, Tcl_Interp *interp, int objc, 
 
 #if 1
   if (subMethodCmd != NULL) {
-        unsigned long cmdFlags = (unsigned long)Tcl_Command_flags(subMethodCmd);
-
-    if (((cscPtr->flags & (NSF_CM_LOCAL_METHOD|NSF_CM_IGNORE_PERMISSIONS)) == 0u
-               && ((unsigned int)Tcl_Command_flags(subMethodCmd) & NSF_CMD_CALL_PRIVATE_METHOD) != 0u)
-              ) {
-      fprintf(stderr, "private ensemble method %p %s\n", subMethodCmd, methodName);
+    unsigned long cmdFlags = (unsigned long)Tcl_Command_flags(subMethodCmd);
+    
+    if ((cscPtr->flags & (NSF_CM_LOCAL_METHOD|NSF_CM_IGNORE_PERMISSIONS)) == 0u &&
+        (cmdFlags & NSF_CMD_CALL_PRIVATE_METHOD) != 0u) {
       subMethodCmd = NULL;
     } else if (unlikely((cmdFlags & NSF_CMD_CALL_PROTECTED_METHOD) != 0u)) {
       NsfObject *lastSelf;
