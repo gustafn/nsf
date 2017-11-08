@@ -14232,7 +14232,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
 
   if (likely(cmd == NULL)) {
     NsfMethodContext *mcPtr = methodObj->internalRep.twoPtrValue.ptr1;
-    int               nsfObjectMethodEpoch = rst->objectMethodEpoch;
+    unsigned int               nsfObjectMethodEpoch = rst->objectMethodEpoch;
 
     if (methodObj->typePtr == &NsfObjectMethodObjType
         && mcPtr->context == object
@@ -14290,7 +14290,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
       /* check for an instance method */
       NsfClass         *currentClass = object->cl;
       NsfMethodContext *mcPtr0 = methodObj->internalRep.twoPtrValue.ptr1;
-      int               nsfInstanceMethodEpoch = rst->instanceMethodEpoch;
+      unsigned int               nsfInstanceMethodEpoch = rst->instanceMethodEpoch;
 
 #if defined(METHOD_OBJECT_TRACE)
       fprintf(stderr, "... method %p/%d '%s' type? %d context? %d nsfMethodEpoch %d => %d\n",
@@ -25103,7 +25103,7 @@ NsfDebugShowObj(Tcl_Interp *interp, Tcl_Obj *objPtr) {
       || objPtr->typePtr == &NsfInstanceMethodObjType
       ) {
     NsfMethodContext *mcPtr = objPtr->internalRep.twoPtrValue.ptr1;
-    int currentMethodEpoch = objPtr->typePtr == &NsfObjectMethodObjType ?
+    unsigned int currentMethodEpoch = objPtr->typePtr == &NsfObjectMethodObjType ?
       RUNTIME_STATE(interp)->objectMethodEpoch :
       RUNTIME_STATE(interp)->instanceMethodEpoch;
     Tcl_Command cmd = mcPtr->cmd;

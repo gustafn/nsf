@@ -131,7 +131,7 @@ NsfMethodObjSet(
     register Tcl_Obj *objPtr,   	/* The object to convert. */
     Tcl_ObjType *objectType,
     void *context,			/* context (to avoid over-eager sharing) */
-    int methodEpoch,			/* methodEpoch */
+    unsigned int methodEpoch,		/* methodEpoch */
     Tcl_Command cmd,	  		/* the tclCommand behind the method */
     NsfClass *cl,	  		/* the object/class where the method was defined */
     unsigned int flags			/* flags */

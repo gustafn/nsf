@@ -555,7 +555,7 @@ typedef struct NsfObjectOpt {
   const char *volatileVarName;
 #if defined(PER_OBJECT_PARAMETER_CACHING)
   NsfParsedParam *parsedParamPtr;
-  int classParamPtrEpoch;
+  unsigned int classParamPtrEpoch;
 #endif
   CheckOptions checkoptions;
 } NsfObjectOpt;
@@ -914,10 +914,10 @@ typedef struct NsfRuntimeState {
   Tcl_Command colonCmd;           /* cmdPtr of cmd ":" to dispatch via cmdResolver */
   Proc fakeProc;                  /* dummy proc structure, used for C-implemented methods with local scope */
   Tcl_Command currentMixinCmdPtr; /* cmdPtr of currently active mixin, used for "info activemixin" */
-  int objectMethodEpoch;
-  int instanceMethodEpoch;
+  unsigned int objectMethodEpoch;
+  unsigned int instanceMethodEpoch;
 #if defined(PER_OBJECT_PARAMETER_CACHING)
-  int classParamPtrEpoch;
+  unsigned int classParamPtrEpoch;
 #endif
   unsigned int overloadedMethods; /* bit-array for tracking overloaded methods */
   Tcl_Obj **methodObjNames;       /* global objects of nsf */
@@ -1191,7 +1191,7 @@ EXTERN int NsfMethodObjSet(Tcl_Interp  *UNUSED(interp),
 			   Tcl_Obj     *objPtr,
 			   Tcl_ObjType *objectType,
 			   void        *context,
-			   int          methodEpoch,
+			   unsigned int methodEpoch,
 			   Tcl_Command  cmd,
 			   NsfClass    *cl,
 			   unsigned int flags)
@@ -1204,7 +1204,7 @@ typedef struct {
   void        *context;
   Tcl_Command  cmd;
   NsfClass    *cl;
-  int          methodEpoch;
+  unsigned int methodEpoch;
   unsigned int flags;
 } NsfMethodContext;
 
