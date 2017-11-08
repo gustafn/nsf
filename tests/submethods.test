@@ -969,7 +969,8 @@ nx::test case ensemble-forwards {
   ? [list $C foo 7] "unable to dispatch sub-method \"7\" of $C foo; valid are: foo 6"
   ? [list $C eval {:foo 7}] "7"
   ? [list $C foo 8] "unable to dispatch sub-method \"8\" of $C foo; valid are: foo 6"
-  ? [list $C eval {:foo 8}] "8"; # ! should not be possible !
+  ? [list $C eval {:foo 8}] "unable to dispatch sub-method \"8\" of $C foo; valid are: foo 6";
+  ? [list $C eval {: -local foo 8}] "8";
   
   set c [$C new]
   
@@ -979,7 +980,90 @@ nx::test case ensemble-forwards {
   ? [list $c foo 3] "unable to dispatch sub-method \"3\" of $c foo; valid are: foo 2"
   ? [list $c eval {:foo 3}] "3"
   ? [list $c foo 4] "unable to dispatch sub-method \"4\" of $c foo; valid are: foo 2"
-  ? [list $c eval {:foo 4}] "4"; # ! should not be possible !
+  ? [list $c eval {:foo 4}] "unable to dispatch sub-method \"4\" of $c foo; valid are: foo 2";
+  ? [list $c eval {: -local foo 4}] "4";
+
+}
+
+nx::test case ensemble-private-helper {
+
+  nx::Class create B {
+    :public method "bar 1" {} {return [list B.bar.1 {*}[next]]}
+    :public method "baz 1" {} {return [list B.baz.1 {*}[next]]}
+    :create b1 {
+      :public object method foo {} {: -local bar 1}
+      :public object method foo2 {} {:bar 1}
+      :private object method "bar 1" {} {: -local baz 1}
+      :private object method "baz 1" {} {return [list "b1.baz.1" {*}[next]]}
+    }
+  }
+  nx::Class create C -superclass B {
+    :public method "bar 1" {} {return [list C.bar.1 {*}[next]]}
+    :public method "baz 1" {} {return [list C.baz.1 {*}[next]]}
+    :create c1 {
+      :public object method foo {} {: -local bar 1}
+      :public object method foo2 {} {:bar 1}
+      :private object method "bar 1" {} {: -local baz 1}
+      :private object method "baz 1" {} {return [list "c1.baz.1" {*}[next]]}
+    }
+  }
+
+  ? {b1 bar 1} "B.bar.1"
+  ? {b1 baz 1} "B.baz.1"
+  ? {b1 foo} "b1.baz.1 B.baz.1"
+  ? {b1 foo2} "B.bar.1"
+
+  ? {c1 bar 1} "C.bar.1 B.bar.1"
+  ? {c1 baz 1} "C.baz.1 B.baz.1"
+  ? {c1 foo} "c1.baz.1 C.baz.1 B.baz.1"
+  ? {c1 foo2} "C.bar.1 B.bar.1"
+}
+
+nx::test case ensemble-private-local-checks {
+
+  nx::Class create B {
+    :public method "bar 1" {} {return [list B.bar.1 {*}[next]]}
+    :public method "bar 2" {} {return [list B.bar.2 {*}[next]]}
+    :public method FOO1 {} {: -local bar 1}
+    :public method FOO2 {} {:bar 1}
+    :public method "FOO3 FAR FIM" {} {: -local bar 1}
+    :create b1 {
+      :public  object method foo {} {: -local bar 1}
+      :public  object method faa {} {: -local noop 2}
+      :public  object method fee1 {} {: -local bar 2}
+      :public  object method fee2 {} {: -local bar 3}
+      :private object method "bar 1" {} {: -local baz 1}
+      :private object method "baz 1" {} {return "b1.baz.1"}
+    }
+  }
+  nx::Class create C -superclass B {
+    :public method "bar 1" {} {return [list C.bar.1 {*}[next]]}
+    :public method "baz 1" {} {return [list C.baz.1 {*}[next]]}
+    :create c1 {
+      :public  object method foo {} {: -local bar 1}
+      :public  object method faa {} {: -local noop 2}
+      :public  object method fee1 {} {: -local bar 2}
+      :public  object method fee2 {} {: -local bar 3}
+      :private object method "bar 1" {} {: -local baz 1}
+      :private object method "baz 1" {} {return "c1.baz.1"}
+    }
+  }
+ 
+  ? {b1 faa} "::b1: unable to dispatch method 'noop'"
+  ? {b1 foo} "b1.baz.1"
+  ? {b1 fee1} "B.bar.2"
+  ? {b1 fee2} "unable to dispatch sub-method \"3\" of ::b1 bar; valid are: bar 1, bar 2"
+  ? {b1 FOO1} "B.bar.1"
+  ? {b1 FOO2} "B.bar.1"
+  ? {b1 FOO3 FAR FIM} "B.bar.1"
+  
+  ? {c1 faa} "::c1: unable to dispatch method 'noop'"
+  ? {c1 foo} "c1.baz.1"
+  ? {c1 fee1} "B.bar.2"
+  ? {c1 fee2} "unable to dispatch sub-method \"3\" of ::c1 bar; valid are: bar 1, bar 2"
+  ? {c1 FOO1} "B.bar.1"
+  ? {c1 FOO2} "C.bar.1 B.bar.1"
+  ? {c1 FOO3 FAR FIM} "B.bar.1"
 
 }
 
