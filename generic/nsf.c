@@ -9615,7 +9615,7 @@ static int CanInvokeMixinMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Comma
 static int
 CanInvokeMixinMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Command cmd, NsfCmdList *cmdList) {
   int result = TCL_OK;
-  unsigned long cmdFlags = (unsigned long)Tcl_Command_flags(cmd);
+  unsigned int cmdFlags = (unsigned int)Tcl_Command_flags(cmd);
 
   nonnull_assert(interp != NULL);
   nonnull_assert(object != NULL);
@@ -13298,7 +13298,7 @@ ObjectCmdMethodDispatch(NsfObject *invokedObject, Tcl_Interp *interp, int objc, 
 
 #if 1
   if (subMethodCmd != NULL) {
-    unsigned long cmdFlags = (unsigned long)Tcl_Command_flags(subMethodCmd);
+    unsigned int cmdFlags = (unsigned int)Tcl_Command_flags(subMethodCmd);
     
     if ((cscPtr->flags & (NSF_CM_LOCAL_METHOD|NSF_CM_IGNORE_PERMISSIONS)) == 0u &&
         (cmdFlags & NSF_CMD_CALL_PRIVATE_METHOD) != 0u) {
@@ -14360,7 +14360,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
    */
 
   if (likely(cmd && (flags & NSF_CM_IGNORE_PERMISSIONS) == 0u)) {
-    unsigned long cmdFlags = (unsigned long)Tcl_Command_flags(cmd);
+    unsigned int cmdFlags = (unsigned int)Tcl_Command_flags(cmd);
 
 #if !defined(NDEBUG)
     if (unlikely(((cmdFlags & NSF_CMD_CALL_PRIVATE_METHOD) != 0u)
@@ -24171,11 +24171,11 @@ static int ProtectionMatches(int withCallprotection, Tcl_Command cmd) nonnull(2)
 static int
 ProtectionMatches(int withCallprotection, Tcl_Command cmd) {
   int result, isProtected, isPrivate;
-  unsigned long cmdFlags;
+  unsigned int cmdFlags;
 
   nonnull_assert(cmd != NULL);
 
-  cmdFlags = (unsigned long)Tcl_Command_flags(cmd);
+  cmdFlags = (unsigned int)Tcl_Command_flags(cmd);
   isProtected = (cmdFlags & NSF_CMD_CALL_PROTECTED_METHOD) != 0u;
   isPrivate = (cmdFlags & NSF_CMD_CALL_PRIVATE_METHOD) != 0u;
 
