@@ -195,7 +195,9 @@ static Tcl_ObjType CONST86
   *Nsf_OT_listType = NULL,
   *Nsf_OT_doubleType = NULL,
   *Nsf_OT_intType = NULL,
-  *Nsf_OT_parsedVarNameType = NULL;
+  *Nsf_OT_parsedVarNameType = NULL,
+  *Nsf_OT_byteArrayType = NULL,
+  *Nsf_OT_properByteArrayType = NULL;
 
 /*
  * Function prototypes
@@ -13299,7 +13301,7 @@ ObjectCmdMethodDispatch(NsfObject *invokedObject, Tcl_Interp *interp, int objc, 
 #if 1
   if (subMethodCmd != NULL) {
     unsigned int cmdFlags = (unsigned int)Tcl_Command_flags(subMethodCmd);
-    
+
     if ((cscPtr->flags & (NSF_CM_LOCAL_METHOD|NSF_CM_IGNORE_PERMISSIONS)) == 0u &&
         (cmdFlags & NSF_CMD_CALL_PRIVATE_METHOD) != 0u) {
       subMethodCmd = NULL;
@@ -13307,7 +13309,7 @@ ObjectCmdMethodDispatch(NsfObject *invokedObject, Tcl_Interp *interp, int objc, 
       NsfObject *lastSelf;
       Tcl_CallFrame *framePtr0;
       int withinEnsemble = ((cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) != 0u);
-      
+
       if (withinEnsemble) {
         Tcl_CallFrame *framePtr1;
         /* Alternatively: (void)NsfCallStackFindLastInvocation(interp, 0, &framePtr1); */
@@ -13323,14 +13325,14 @@ ObjectCmdMethodDispatch(NsfObject *invokedObject, Tcl_Interp *interp, int objc, 
       } else {
         lastSelf = GetSelfObj(interp);
       }
-      
-      
-      /* fprintf(stderr, "'%s (%s) == %s == %s? for %s\n", lastSelf != NULL ? ObjectName(lastSelf): "n/a", 
+
+
+      /* fprintf(stderr, "'%s (%s) == %s == %s? for %s\n", lastSelf != NULL ? ObjectName(lastSelf): "n/a",
               ObjectName(GetSelfObj(interp)), ObjectName(actualSelf), ObjectName(invokedObject), subMethodName); */
-      
+
       if (actualSelf != lastSelf) {
         const char *path = withinEnsemble ? ObjStr(NsfMethodNamePath(interp, framePtr0, methodName)) : methodName;
-        
+
         NsfLog(interp, NSF_LOG_WARN, "'%s %s %s' fails since method %s.%s %s is protected",
                ObjectName(actualSelf), path, subMethodName, (actualClass != NULL) ?
                ClassName(actualClass) : ObjectName(actualSelf), path, subMethodName);
@@ -22629,6 +22631,25 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
         pPtr = flagPtr->paramPtr;
         valueObj = flagPtr->payload;
 
+      } else if ((argumentObj->typePtr == Nsf_OT_byteArrayType)
+                 || (argumentObj->typePtr == Nsf_OT_properByteArrayType)
+                 //|| (argumentObj->typePtr == Nsf_OT_intType)
+                 //|| (argumentObj->typePtr == Nsf_OT_doubleType)
+                 ) {
+        /*
+         * The actual argument belongs to the types, for which we assume that
+         * these can't belong to a nonpos flag.  The argument might be e.g. a
+         * pure Tcl bytearray, for which we do not want to add a string rep
+         * via ObjStr() such it looses its purity (Tcl 8.6). For these
+         * argument types.  proceed in the parameter vector to the next block
+         * (positional parameter)
+         */
+        SkipNonposParamDefs(currentParamPtr);
+        pPtr = currentParamPtr;
+        /*
+         * currentParamPtr is either NULL or points to a positional parameter
+         */
+        assert(currentParamPtr == NULL || currentParamPtr->name == NULL || *currentParamPtr->name != '-');
       } else {
         const char *argumentString = ObjStr(argumentObj);
         /*
@@ -25128,6 +25149,19 @@ NsfDebugShowObj(Tcl_Interp *interp, Tcl_Obj *objPtr) {
 
       fprintf(stderr, "... cmd %p flags %.6x name '%s' ns '%s'",
               (void *)cmd, Tcl_Command_flags(cmd), tail, procPtr->nsPtr->name);
+    }
+  } else if ((objPtr->typePtr == Nsf_OT_byteArrayType)
+             || (objPtr->typePtr == Nsf_OT_properByteArrayType)) {
+    char *bytes;
+    int   i, length;
+
+    bytes = (char *)Tcl_GetByteArrayFromObj(objPtr, &length);
+
+    fprintf(stderr, "bytearray proper %d length %d string rep %p: ",
+            (objPtr->typePtr == Nsf_OT_properByteArrayType),
+            length, (void*)objPtr->bytes);
+    for (i = 0; i < length; i++) {
+      fprintf(stderr, "%.2x", (unsigned)(*(bytes+i)) & 0xff);
     }
   }
   fprintf(stderr, "\n");
@@ -32816,6 +32850,31 @@ Nsf_Init(Tcl_Interp *interp) {
 
   Nsf_OT_doubleType = Tcl_GetObjType("double");
   assert(Nsf_OT_doubleType != NULL);
+
+  Nsf_OT_byteArrayType = Tcl_GetObjType("bytearray");
+  assert(Nsf_OT_byteArrayType != NULL);
+
+  /*
+   * Get bytearray and proper bytearray from Tcl (latter if available,
+   * introduced in Tcl 8.7a+)
+   */
+  {
+    Tcl_Obj *newByteObj = Tcl_NewByteArrayObj(NULL, 0);
+
+    Nsf_OT_properByteArrayType = newByteObj->typePtr;
+    if (Nsf_OT_properByteArrayType == Nsf_OT_byteArrayType) {
+        /*
+         * When both values are the same, we are in a Tcl version before 8.7,
+         * where we have no properByteArrayTypePtr. So set it to an invalid
+         * value to avoid potential confusions. Without this stunt, we would
+         * need several ifdefs.
+         */
+      Nsf_OT_properByteArrayType = (Tcl_ObjType *)0xffffff;
+    }
+    Tcl_DecrRefCount(newByteObj);
+  }
+  assert(Nsf_OT_properByteArrayType != NULL);
+
   NsfMutexUnlock(&initMutex);
 
   /*

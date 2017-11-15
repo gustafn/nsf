@@ -359,7 +359,7 @@ nx::test case info-with-dash-class-names {
 # Test abbreviations
 #
 
-nx::test case abbrevs {
+nx::test case abbrevs1 {
 
   nsf::proc x {-super -super11 -superclass -super12} {
     return [info exists super]-[info exists super11]-[info exists superclass]-[info exists super12]
@@ -382,7 +382,7 @@ nx::test case abbrevs {
 # leading dash and and numbers
 #
 
-nx::test case abbrevs {
+nx::test case abbrevs2 {
 
   nsf::proc x {-x y:integer} {
     return [info exists x]-$y
