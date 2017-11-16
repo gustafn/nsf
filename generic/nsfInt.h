@@ -1064,8 +1064,8 @@ EXTERN NsfCallStackContent *NsfCallStackGetTopFrame(const Tcl_Interp *interp, Tc
  * MEM Counting
  */
 #ifdef NSF_MEM_COUNT
-void NsfMemCountAlloc(char *id, void *);
-void NsfMemCountFree(char *id, void *);
+void NsfMemCountAlloc(const char *id, void *);
+void NsfMemCountFree(const char *id, void *);
 void NsfMemCountInit(void);
 void NsfMemCountRelease(void);
 #endif /* NSF_MEM_COUNT */
