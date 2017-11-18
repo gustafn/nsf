@@ -224,7 +224,13 @@ void
 NsfStringIncrInit(NsfStringIncrStruct *iss) {
   const char  *p;
   int          i = 0;
-  const size_t bufSize = (blockIncrement > 2) ? blockIncrement : 2;
+  const size_t bufSize = blockIncrement;
+  /*
+   * The static variable blockIncrement is always large than 2, otherwise we
+   * would have to use:
+   *
+   *   const size_t bufSize = (blockIncrement > 2) ? blockIncrement : 2;
+   */
 
   nonnull_assert(iss != NULL);
 
