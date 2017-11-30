@@ -49,7 +49,6 @@
 static Tcl_Config const cfg[] = {
     {"version",                 NSF_VERSION},
     {"commit",                  NSF_COMMIT},
-    {"commit",                  NSF_COMMIT},
     {"patchLevel",              NSF_PATCHLEVEL},
     {"development",             NsfConfigStr(DEVELOPMENT)},
     {"memcount",                NsfConfigStr(MEM_COUNT)},
