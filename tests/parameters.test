@@ -3367,7 +3367,59 @@ nx::test case parseargs {
 
     ? {set bar} 2
     ? {set baz} hi
+  }
+
+#
+# Testing name binding for type=/class/ converter
+#
+
+nx::test case type-converter-binding {
+  #
+  # Binding strategy: Unqualified names are qualified by the namespace
+  # of the slot-owning object (domain). Resolution is lazy in the
+  # sense that a qualified name is produced but not resolved upon slot
+  # definition.
+  #
+  # set type [namespace qualifiers /obj/]::$type
+  #
+  # This has the same effect as (repeatedly) writing out
+  # type=[namespace current]::$type, or similar, as part of a property
+  # or variable spec.
+  #
+
+  namespace eval :: {
+    namespace eval ns1 {
+      namespace eval ns2 {
+        nx::Class create A
+      }
+      nx::Class create A
+      nx::Class create B {
+        :property b1:object,type=A; # rewritten to ::ns1::A (not ::A as previously!).
+        ? [list [:info slots b1] cget -type] ::ns1::A 
+        :property b2:object,type=ns2::A; # rewritten to ::ns1::ns2::A (not ::ns2::A as previously!).
+        ? [list [:info slots b2] cget -type] ::ns1::ns2::A
+      }
+    }
+    nx::Class create A {
+      :property a1:object,type=B; # rewritten to ::B
+      ? [list [:info slots a1] cget -type] ::B
+      :property a2:object,type=ns1::B; # rewritten to ::ns1::B
+      ? [list [:info slots a2] cget -type] ::ns1::B
+      :property a3:object,type=::B; # untouched
+      ? [list [:info slots a3] cget -type] ::B
+      :property a4:object,type=[expr {[namespace current] eq "::" ? "" : [namespace current]}]::B; # untouched, ::B
+      ? [list [:info slots a4] cget -type] ::B
+      :property a5:object,type=[namespace which B]; # untouched, "", will be dropped
+      ? [list [:info slots a5] cget -type] {can't read "type": no such variable}
+    }
+    nx::Class create B
+  }
+
+  ? {catch {::ns1::B create b1 -b1 [::ns1::A new] -b2 [::ns1::ns2::A new]}} 0
+  
+
 }
+
 
 
 #
