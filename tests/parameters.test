@@ -3407,7 +3407,7 @@ nx::test case type-converter-binding {
       ? [list [:info slots a2] cget -type] ::ns1::B
       :property a3:object,type=::B; # untouched
       ? [list [:info slots a3] cget -type] ::B
-      :property a4:object,type=[expr {[namespace current] eq "::" ? "" : [namespace current]}]::B; # untouched, ::B
+      :property a4:object,type=[namespace qualifiers [namespace current]::]::B; # untouched, ::B
       ? [list [:info slots a4] cget -type] ::B
       :property a5:object,type=[namespace which B]; # untouched, "", will be dropped
       ? [list [:info slots a5] cget -type] {can't read "type": no such variable}
