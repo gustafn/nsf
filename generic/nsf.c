@@ -32936,7 +32936,7 @@ Nsf_Init(Tcl_Interp *interp) {
 #ifdef NSF_BYTECODE
   NsfBytecodeInit();
 #endif
-  NsfReportVars(interp);
+  NsfInitPkgConfig(interp);
 
   Tcl_AddInterpResolvers(interp,"nsf",
                          (Tcl_ResolveCmdProc *)InterpColonCmdResolver,

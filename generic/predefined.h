@@ -92,6 +92,12 @@ static char cmd[] =
 "return $result}\n"
 "set ::nsf::parameter::syntax(::nsf::xotclnext) \"?--noArgs? ?/arg .../?\"\n"
 "set ::nsf::parameter::syntax(::nsf::__unset_unknown_args) \"\"\n"
-"set ::nsf::parameter::syntax(::nsf::exithandler) \"?get?|?set /cmds/?|?unset?\"}\n"
+"set ::nsf::parameter::syntax(::nsf::exithandler) \"?get?|?set /cmds/?|?unset?\"\n"
+"if {[info commands ::nsf::pkgconfig] ne \"\"} {\n"
+"foreach c {version commit patchLevel} {\n"
+"set ::nsf::$c [::nsf::pkgconfig get $c]}\n"
+"foreach c {development memcount memtrace profile dtrace assertions} {\n"
+"set ::nsf::config($c) [::nsf::pkgconfig get $c]}\n"
+"unset -nocomplain c}}\n"
 "";
 

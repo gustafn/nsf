@@ -220,6 +220,24 @@ namespace eval ::nsf {
   set ::nsf::parameter::syntax(::nsf::__unset_unknown_args) ""
   set ::nsf::parameter::syntax(::nsf::exithandler) "?get?|?set /cmds/?|?unset?"
 
+  #
+  # Provide the build-time configuration settings via namespaced
+  # variables, for backward compatibility.
+  #
+
+  if {[info commands ::nsf::pkgconfig] ne ""} {
+    
+    foreach c {version commit patchLevel} {
+      set ::nsf::$c [::nsf::pkgconfig get $c]
+    }
+
+    foreach c {development memcount memtrace profile dtrace assertions} {
+      set ::nsf::config($c) [::nsf::pkgconfig get $c]
+    }
+    
+    unset -nocomplain c
+    
+  }
 }
 
 #

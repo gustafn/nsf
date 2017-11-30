@@ -1124,8 +1124,9 @@ EXTERN int NsfObjWrongArgs(Tcl_Interp *interp, CONST char *msg,
 EXTERN CONST char *NsfMethodName(Tcl_Obj *methodObj)
   nonnull(1) returns_nonnull;
 
-EXTERN void NsfReportVars(Tcl_Interp *interp)
+EXTERN void NsfInitPkgConfig(Tcl_Interp *interp)
   nonnull(1);
+
 EXTERN void NsfDStringArgv(Tcl_DString *dsPtr, int objc, Tcl_Obj *CONST objv[])
   nonnull(1) nonnull(3);
 

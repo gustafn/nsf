@@ -5,6 +5,8 @@
  *
  *  Copyright (C) 1999-2016 Gustaf Neumann (a, b)
  *  Copyright (C) 1999-2007 Uwe Zdun (a, b)
+ *  Copyright (C) 2016-2017 Stefan Sobernig (b)
+ *
  *
  * (a) University of Essen
  *     Specification of Software Systems
@@ -42,57 +44,47 @@
 #include "nsfInt.h"
 #include "nsfAccessInt.h"
 
+#define NsfConfigStr(x) (NsfConfigEnabled(x) ? "1" : "0")
+
+static Tcl_Config const cfg[] = {
+    {"version",                 NSF_VERSION},
+    {"commit",                  NSF_COMMIT},
+    {"commit",                  NSF_COMMIT},
+    {"patchLevel",              NSF_PATCHLEVEL},
+    {"development",             NsfConfigStr(DEVELOPMENT)},
+    {"memcount",                NsfConfigStr(MEM_COUNT)},
+    {"memtrace",                NsfConfigStr(MEM_TRACE)},
+    {"profile", 		NsfConfigStr(PROFILE)},
+    {"dtrace",			NsfConfigStr(DTRACE)},
+    {"assertions",		NsfConfigStr(WITH_ASSERTIONS)},
+    {NULL, NULL}
+};
 
 /*
  *----------------------------------------------------------------------
- * NsfReportVars --
+ * NsfInitPkgConfig --
  *
- *    Report version numbers and configure options as Tcl variables.
+ *    Registers NSF's build configuration according to TIP 59:
+ *    https://core.tcl.tk/tips/doc/trunk/tip/59.md. This way, the build
+ *    configuration is preserved in a non-destructible manner (from the script
+ *    level, at least) and can be queried via a common interface:
+ *    
+ *    ::nsf::pkgconfig list
+ *    ::nsf::pkgconfig get /key/
  *
  * Results:
  *    None.
  *
- * Side effects:
- *    Setting Tcl variables
+ * Side effects: 
+ *   Creates the command ::nsf::pkgconfig, configuration data is
+ *   stored within a dict associated with a given interp.
  *
  *----------------------------------------------------------------------
  */
 
-#define NsfConfigStr(x) (NsfConfigEnabled(x) ? "1" : "0")
-
 void
-NsfReportVars(Tcl_Interp *interp) {
-
-  nonnull_assert(interp != NULL);
-
-  Tcl_SetVar(interp, "::nsf::version", NSF_VERSION, TCL_GLOBAL_ONLY);
-  Tcl_SetVar(interp, "::nsf::commit", NSF_COMMIT, TCL_GLOBAL_ONLY);
-  Tcl_SetVar(interp, "::nsf::patchLevel", NSF_PATCHLEVEL, TCL_GLOBAL_ONLY);
-
-  Tcl_SetVar(interp, "::nsf::config(development)",
-             NsfConfigStr(DEVELOPMENT),
-             TCL_GLOBAL_ONLY);
-
-
-  Tcl_SetVar(interp, "::nsf::config(memcount)",
-             NsfConfigStr(MEM_COUNT),
-             TCL_GLOBAL_ONLY);
-
-  Tcl_SetVar(interp, "::nsf::config(memtrace)",
-             NsfConfigStr(MEM_TRACE),
-             TCL_GLOBAL_ONLY);
-
-  Tcl_SetVar(interp, "::nsf::config(profile)",
-             NsfConfigStr(PROFILE),
-             TCL_GLOBAL_ONLY);
-
-  Tcl_SetVar(interp, "::nsf::config(dtrace)",
-             NsfConfigStr(DTRACE),
-             TCL_GLOBAL_ONLY);
-
-  Tcl_SetVar(interp, "::nsf::config(assertions)",
-             NsfConfigStr(WITH_ASSERTIONS),
-             TCL_GLOBAL_ONLY);
+NsfInitPkgConfig(Tcl_Interp *interp) {
+  Tcl_RegisterConfig(interp, "nsf", cfg, "iso8859-1");
 }
 
 /*
