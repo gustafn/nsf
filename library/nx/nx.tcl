@@ -1227,7 +1227,7 @@ namespace eval ::nx {
     set options [list]
     if {[info exists :default]} {
       if {[string match {*\[*\]*} ${:default}]} {
-        append options substdefault
+        lappend options substdefault
       }
       set :parameterSpec [list [list [:namedParameterSpec $prefix $name $options]] ${:default}]
     } else {
@@ -1485,7 +1485,7 @@ namespace eval ::nx {
         # Only add implicit substdefault, when default is given and
         # substdefault is allowed via substdefault slot property.
         #
-	if {[string match {*\[*\]*} ${:default}] && ${:substdefault}} {
+	if {${:substdefault}} {
 	  lappend options substdefault
 	}
 	set :parameterSpec [list [:namedParameterSpec $prefix ${:name} $options] ${:default}]
@@ -2255,10 +2255,17 @@ namespace eval ::nx {
       set trace ${:trace}
     }
 
-    if {$parameterOptions ne "" && "substdefault" in [split $parameterOptions ,]} {
+    if {[info exists defaultValue] && "substdefault" in [split $parameterOptions ,] &&
+        [string match {*\[*\]*} $defaultValue]} {
+      if {![info complete $defaultValue]} {
+        return -code error "substdefault: default '$defaultValue' is not a complete script"
+      }
+      # TODO: This should be -novariables, and protected by
+      # [apply]. For now, untouched, as ArgumentDefaults() has no
+      # substitution restrictions.
       set defaultValue [subst $defaultValue]
     }
-
+    
     if {$initblock eq "" && !$configurable && !$incremental
         && $accessor eq "none" && ![info exists trace]} {
       #
@@ -2383,6 +2390,24 @@ namespace eval ::nx {
       }
       lappend defaultopts -trace $trace
     }
+
+    lassign [::nx::MetaSlot parseParameterSpec -class $class [self] $spec] \
+               pname parameterOptions _ _
+
+    set paramOptsList [split $parameterOptions ,]
+    if {[info exists defaultValue] && "substdefault" in [split $paramOptsList ,]} {
+      
+      if {![info complete $defaultValue]} {
+        return -code error "substdefault: default '$defaultValue' is not a complete script"
+      }
+      
+      if {![string match {*\[*\]*} $defaultValue]} {
+        set paramOptsList [lsearch -exact -inline -all -not $paramOptsList "substdefault"]
+        set spec [string trimright $pname:[join $paramOptsList ,] :]
+      }
+      
+    }
+    
     set slot [::nx::MetaSlot createFromParameterSpec [::nsf::self] \
 		  -class $class \
 		  -initblock $initblock \

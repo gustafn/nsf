@@ -3416,10 +3416,27 @@ nx::test case type-converter-binding {
   }
 
   ? {catch {::ns1::B create b1 -b1 [::ns1::A new] -b2 [::ns1::ns2::A new]}} 0
-  
-
 }
+  
+nx::test case substdefault-hardening {
+  nx::Class create K {
+    :object property {p2:substdefault "$x"}
+    :property {p4:substdefault "$y"}
+    :create k
+  }
+  
+  ? {::K cget -p2} {$x}
+  ? {::k cget -p4} {$y}
+  
+  ? {::K object property {p3:substdefault "[[set _ 1]"}} {substdefault: default '[[set _ 1]' is not a complete script}
+  ? {::K property {p5:substdefault "[[set _ 2]"}} {substdefault: default '[[set _ 2]' is not a complete script}
 
+  ::K property {p6:substdefault "[set _ 2]]"}
+  ? {[::K new] cget -p6} {2]}
+  ::K object property {p7:substdefault "[set _ 7]]"}
+  ? {::K cget -p7} {7]}
+      
+}
 
 
 #
