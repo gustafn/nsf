@@ -2396,16 +2396,14 @@ namespace eval ::nx {
 
     set paramOptsList [split $parameterOptions ,]
     if {[info exists defaultValue] && "substdefault" in [split $paramOptsList ,]} {
-      
-      if {![info complete $defaultValue]} {
-        return -code error "substdefault: default '$defaultValue' is not a complete script"
-      }
-      
-      if {![string match {*\[*\]*} $defaultValue]} {
+      if {[string match {*\[*\]*} $defaultValue]} {
+        if {![info complete $defaultValue]} {
+          return -code error "substdefault: default '$defaultValue' is not a complete script"
+        }
+      } else {
         set paramOptsList [lsearch -exact -inline -all -not $paramOptsList "substdefault"]
         set spec [string trimright $pname:[join $paramOptsList ,] :]
       }
-      
     }
     
     set slot [::nx::MetaSlot createFromParameterSpec [::nsf::self] \
