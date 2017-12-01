@@ -2395,7 +2395,7 @@ namespace eval ::nx {
                pname parameterOptions _ _
 
     set paramOptsList [split $parameterOptions ,]
-    if {[info exists defaultValue] && "substdefault" in [split $paramOptsList ,]} {
+    if {[info exists defaultValue] && "substdefault" in $paramOptsList} {
       if {[string match {*\[*\]*} $defaultValue]} {
         if {![info complete $defaultValue]} {
           return -code error "substdefault: default '$defaultValue' is not a complete script"
