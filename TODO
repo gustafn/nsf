@@ -5934,6 +5934,18 @@ catch {={*}[list foo 1 2 3 4 5 6]} msg; puts msg=$msg
 ========================================================================
 TODO:
 
+- Refactor: on the property/variable-creation paths,
+  parseParameterSpec is currently called twice. once before
+  createFromParameterSpec, once within. This should not be needed.  -
+  
+  1. extract the parseParameterSpec call out, and pass a parse result
+   to createFromParameterSpec?
+
+  2. handle all cases requiring the early call to parseParameterSpec
+     in createFromParameterSpec?
+
+  My preference is 1. 
+
 - various on slots:
   * RelationSlot value=delete -nocomplain is dead API.
   * value=delete semantics: I think we should provide a full-pass
