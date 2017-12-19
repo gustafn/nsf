@@ -16393,12 +16393,12 @@ ParamParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, unsigned int 
  *----------------------------------------------------------------------
  */
 static int ParamDefsParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *paramSpecObjs,
-                          unsigned int allowedOptinons, int forceParamdefs, NsfParsedParam *parsedParamPtr)
+                          unsigned int allowedOptions, int forceParamdefs, NsfParsedParam *parsedParamPtr)
   nonnull(1) nonnull(3) nonnull(6);
 
 static int
 ParamDefsParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *paramSpecObjs,
-               unsigned int allowedOptinons, int forceParamdefs, NsfParsedParam *parsedParamPtr) {
+               unsigned int allowedOptions, int forceParamdefs, NsfParsedParam *parsedParamPtr) {
   Tcl_Obj **argsv;
   int result, argsc;
 
@@ -16422,7 +16422,7 @@ ParamDefsParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *paramSpecObjs,
     paramPtr = paramsPtr = ParamsNew((size_t)argsc);
 
     for (i = 0; i < argsc; i++, paramPtr++) {
-      result = ParamParse(interp, procNameObj, argsv[i], allowedOptinons,
+      result = ParamParse(interp, procNameObj, argsv[i], allowedOptions,
                           paramPtr, &possibleUnknowns, &plainParams, &nrNonposArgs);
 
       if (result == TCL_OK && paramPtr->converter == ConvertToNothing && i < argsc-1) {
