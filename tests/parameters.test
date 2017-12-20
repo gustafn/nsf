@@ -3371,6 +3371,13 @@ nx::test case parseargs {
     ? {apply {{} {nsf::parseargs a 1; info exists a}}} "1"
     ? {apply {{} {nsf::parseargs {a b} {1 2}; expr {[info exists a]+[info exists b]}}}} "2"
     ? {apply {{} {nsf::parseargs {a b args} {1 2 3 4}; expr {[info exists a]+[info exists b]+[info exists args]}}}} "3"
+
+    ? {apply {{} {nsf::parseargs a 1; expr {"a" in [info vars]};}}} 1
+    ? {apply {{} {nsf::parseargs {} {}; llength [info vars];}}} 0
+
+    # TODO: Are the below cases intended?
+    ? {apply {{} {nsf::parseargs {a} {}; llength [info vars];}}} 0
+    ? {apply {{} {nsf::parseargs {} {1}; llength [info vars];}}} 0
   }
 
 #

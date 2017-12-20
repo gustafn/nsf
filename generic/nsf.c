@@ -26063,7 +26063,7 @@ NsfParseArgsCmd(Tcl_Interp *interp, Tcl_Obj *argspecObj, Tcl_Obj *arglistObj) {
   }
 
   result = Tcl_ListObjGetElements(interp, arglistObj, &objc, &objv);
-  if (likely(result == TCL_OK)) {
+  if (likely(result == TCL_OK) && parsedParam.paramDefs != NULL) {
     ParseContext  pc;
     NsfParamDefs *paramDefs = parsedParam.paramDefs;
     unsigned int  processFlags = 0u;
