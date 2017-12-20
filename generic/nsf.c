@@ -26054,7 +26054,8 @@ NsfParseArgsCmd(Tcl_Interp *interp, Tcl_Obj *argspecObj, Tcl_Obj *arglistObj) {
   int              result, objc;
 
   result = ParamDefsParse(interp, NsfGlobalObjs[NSF_PARSE_ARGS], argspecObj,
-                          NSF_DISALLOWED_ARG_METHOD_PARAMETER, 0,
+                          NSF_DISALLOWED_ARG_METHOD_PARAMETER, 1 /* force use of param structure, 
+                                                                    even for Tcl-only params */,
                           &parsedParam);
 
   if (unlikely(result != TCL_OK)) {

@@ -3367,6 +3367,10 @@ nx::test case parseargs {
 
     ? {set bar} 2
     ? {set baz} hi
+
+    ? {apply {{} {nsf::parseargs a 1; info exists a}}} "1"
+    ? {apply {{} {nsf::parseargs {a b} {1 2}; expr {[info exists a]+[info exists b]}}}} "2"
+    ? {apply {{} {nsf::parseargs {a b args} {1 2 3 4}; expr {[info exists a]+[info exists b]+[info exists args]}}}} "3"
   }
 
 #
