@@ -5934,6 +5934,19 @@ catch {={*}[list foo 1 2 3 4 5 6]} msg; puts msg=$msg
 ========================================================================
 TODO:
 
+- nsf::parseargs would need some more love:
+  * what is the intended behavior, in these edge cases?
+
+   # TODO: Are the below cases intended?
+    ? {apply {{} {nsf::parseargs {a} {}; llength [info vars];}}} 0
+    ? {apply {{} {nsf::parseargs {} {1}; llength [info vars];}}} 0
+
+  Right now, parseargs is more or less a NOOP in these cases (which is
+  not consistent with arg-handling otherwise).
+
+  * Should the behavior in the Tcl-only case be more like [lassign] or
+    procedure-like record checking?
+    
 - Refactor: on the property/variable-creation paths,
   parseParameterSpec is currently called twice. once before
   createFromParameterSpec, once within. This should not be needed.  -
