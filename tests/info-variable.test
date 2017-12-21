@@ -51,6 +51,15 @@ __initblock:cmd,optional,nodashalnum"
   #? {Person info parameter syntax age:integer} "/age/"
   #? {Person info parameter syntax -force:switch} "?-force?"
   #? {Person info parameter name "a b"} "a"
+
+  set emsg [string cat \
+                "wrong # of elements in parameter definition. " \
+                "Should be a list of 1 or 2 elements, but got: ''"]
+
+  foreach subcmd {default syntax type list name} {
+    ? [list nsf::parameter::info $subcmd ""] $emsg
+  }
+  
   ? {nsf::parameter::info syntax age:integer} "/age/"
   ? {nsf::parameter::info syntax -force:switch} "?-force?"
   ? {nsf::parameter::info name "a b"} "a"

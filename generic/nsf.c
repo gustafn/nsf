@@ -16109,12 +16109,22 @@ ParamParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, unsigned int 
   paramPtr->paramObj = arg;
   INCR_REF_COUNT(paramPtr->paramObj);
 
-  result = Tcl_ListObjGetElements(interp, arg, &npac, &npav);
+  result = Tcl_ListObjGetElements(interp, paramPtr->paramObj, &npac, &npav);
   if (unlikely(result != TCL_OK || npac < 1 || npac > 2)) {
+    if (procNameObj != NULL) {
+      result = NsfPrintError(interp,
+                             "wrong # of elements in parameter definition " 
+                             "of method '%s'. "
+                             "Should be a list of 1 or 2 elements, but got: '$s'",
+                             ObjStr(procNameObj), ObjStr(paramPtr->paramObj));
+    } else {
+      result = NsfPrintError(interp,
+                             "wrong # of elements in parameter definition. "
+                             "Should be a list of 1 or 2 elements, but got: '%s'",
+                             ObjStr(paramPtr->paramObj));
+    }
     DECR_REF_COUNT(paramPtr->paramObj);
-    return NsfPrintError(interp, "wrong # of elements in parameter definition for method '%s'"
-                         " (should be 1 or 2 list elements): %s",
-                         ObjStr(procNameObj), ObjStr(arg));
+    return result;
   }
 
   argString = ObjStr(npav[0]);
