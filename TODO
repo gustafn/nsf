@@ -5946,6 +5946,14 @@ TODO:
 
   * Should the behavior in the Tcl-only case be more like [lassign] or
     procedure-like record checking?
+
+  * dependency inversion: parseargs is provided by nsf, but requires
+    nx, occassionally. See:
+
+    % package req nsf
+      2.1.0
+    % nsf::parseargs a:foo b
+      non-existing slot object "::nx::methodParameterSlot"
     
 - Refactor: on the property/variable-creation paths,
   parseParameterSpec is currently called twice. once before
