@@ -186,7 +186,7 @@ nx::test case enumerator2 {
   nx::Class create ATeam -superclass Enumerator {
     #
     # Overload "each" to show overloading. Here, we simply capitalize
-    # the memebers in the "each" method.
+    # the members in the "each" method.
     #
     :public method each {var body} {
       while 1 {

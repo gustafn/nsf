@@ -2,7 +2,7 @@
 package require nx::test
 
 #
-# The first test series without the conveniance layer
+# The first test series without the convenience layer
 #
 nx::test case class-methods-0 {
   nx::Class create M1
@@ -21,7 +21,7 @@ nx::test case class-methods-0 {
 }
 
 #
-# require the conveniance layer
+# require the convenience layer
 # and make it verbose
 #
 package require nx::class-method

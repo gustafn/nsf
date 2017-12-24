@@ -91,7 +91,7 @@ SpecializedWorker instproc respond {} {
 }
 
 @ Httpd h2 {
-  description "Web server with basic authentication using the specialied worker"}
+  description "Web server with basic authentication using the specialized worker"}
 
 if {[info exists env(USER)]} {
   set USER "$env(USER)"

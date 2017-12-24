@@ -93,7 +93,7 @@ created, for example.
 [call [cmd nx::Object] [method new] [opt "[option -object-mixins] [arg mixinSpec]"] [opt "[option -class] [arg newClassName]"] [opt "[option -object-filters] [arg filterSpec]"] [opt [arg initBlock]]]
 
 To create a direct instance of [cmd nx::Object] having an
-automatically assigned, implict object name, use [method new] on [cmd nx::Object]. Note
+automatically assigned, implicit object name, use [method new] on [cmd nx::Object]. Note
 that [method new] is defined by [cmd nx::Class] and is available to
 [cmd nx::Object] being an instance of [cmd nx::Class]. Using [method new] allows
 for creating anonymous, inline objects, for example.

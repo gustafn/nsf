@@ -1465,7 +1465,7 @@ Foo create f1 -a 0
 Since the slots are objects, the slot objects can be configured and
 parametrized like every other object in NX. Slot objects can be
 provided with a scripted initialization as well. We show first the
-definition of properties simliar to the functionality provided as well
+definition of properties similar to the functionality provided as well
 by XOTcl and show afterwards how to use value constraints, optional
 parameters, etc. in NX.
 

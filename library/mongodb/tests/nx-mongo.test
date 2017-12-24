@@ -54,7 +54,7 @@ nx::mongo::db drop collection persons
 
 #
 # The insert operation of above can be achieved with less typing via
-# the conveniance method "insert":
+# the convenience method "insert":
 #
 ? { nx::mongo::db is_oid [Person insert -name Stefan -projects {nsf nx}]} 1
 ? { nx::mongo::db is_oid [Person insert -name Joe -projects abc -age 23]} 1

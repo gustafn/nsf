@@ -163,7 +163,7 @@ namespace eval ::xotcl {
 
   # @method ::xotcl::Object#cleanup
   #
-  # TODO: this is a method not used in the Next Scripting Langauge. This
+  # TODO: this is a method not used in the Next Scripting Language. This
   # method is just called via recreate, so everything necessary can be
   # performed there as well. However, it is available for backward
   # compatibility available in XOTcl 2.0

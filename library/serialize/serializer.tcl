@@ -618,7 +618,7 @@ namespace eval ::nx::serializer {
 
     :method extraMethodProperties {o perObject m} {
       #
-      #  Perserve special method properties like "debug" and
+      #  Preserve special method properties like "debug" and
       #  "deprecated" for arbitrary kind of methods via
       #  "nsf::method::property" calls.
       #
@@ -719,7 +719,7 @@ namespace eval ::nx::serializer {
 	#
 	# The aliasedCmd is fully qualified and could be a method
 	# handle or a primitive cmd.  For a primitive cmd, we have no
-	# alias dependency. If the cmd is registed on an object, we
+	# alias dependency. If the cmd is registered on an object, we
 	# report the dependency.
 	#
 	set regObj [::nsf::method::registered $aliasedCmd]
@@ -885,7 +885,7 @@ namespace eval ::nx::serializer {
       set evalList [:collectVars -serializeSlot $serializeSlot $o $s]
 
       if {$serializeSlot} {
-        # Slots need to be explicitely initialized to ensure
+        # Slots need to be explicitly initialized to ensure
         # __invalidateobjectparameter to be called
 	lappend evalList :init
       }

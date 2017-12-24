@@ -15,7 +15,7 @@ nx::test case plain-methods-0 {
 }
 
 #
-# require the conveniance layer
+# require the convenience layer
 # and make it verbose
 #
 package require nx::plain-object-method

@@ -637,7 +637,7 @@ namespace eval ::nx {
 	return -code error \
 	    "[self]: object does not have an instance variable '$name'"
       }
-      # call explicitly the per-object variant of "info::slotobejcts"
+      # call explicitly the per-object variant of "info::slotobjects"
       set slot [: ::nsf::methods::object::info::slotobjects -type ::nx::Slot $name]
 
       if {$slot ne ""} {
@@ -1860,7 +1860,7 @@ namespace eval ::nx {
   ::nx::VariableSlot protected method setterRedefinedOptions {} {
     #
     # In the :trace = "set" case, the slot will be set via the trace
-    # triggered from the direct assingment. Otherwise, when the
+    # triggered from the direct assignment. Otherwise, when the
     # "value=set" method is provided, tell nsf ot call it (e.g. in
     # configure).
     #
@@ -1987,7 +1987,7 @@ namespace eval ::nx {
   }
 
   ::nx::VariableSlot public method parameter {} {
-    # This is a shortend "lightweight" version of "getParameterSpec"
+    # This is a shortened "lightweight" version of "getParameterSpec"
     # returning less (implicit) details. used e.g. by "info variable parameter"
     set options [:getParameterOptions -withMultiplicity true]
     set spec [:namedParameterSpec -map-private "" ${:name} $options]

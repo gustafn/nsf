@@ -142,7 +142,7 @@ namespace eval ::xotcl::comm::httpd {
       my destroy
     } else {
       #my showMsg "!EOF in http/$version ???"
-      # we close the conneciton actively (e.g. forced by an error)
+      # we close the connection actively (e.g. forced by an error)
       [self]::connection flush
       #puts stderr "DESTROY----this line should never show up"
       my destroy

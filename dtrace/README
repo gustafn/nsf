@@ -26,7 +26,7 @@ following hints might help:
   to the begin of the nxsh script, or add the path to the dtrace invocation
   (see below)
 
-* If dtrace compliation fails (e.g. "... nsf*:::method-entry does not
+* If dtrace compilation fails (e.g. "... nsf*:::method-entry does not
   match any probes"), start an nxsh in a different window to make the
   nsf provider and the probes known to the kernel.
 

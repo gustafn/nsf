@@ -25,7 +25,7 @@
  *      would be interesting to define the instructions in some
  *      e.g. scripting language and to produce different
  *      implementations from the same source to address the
- *      protability issue.
+ *      portability issue.
  *
  *      Most probably, one needs a larger program-code with more
  *      instructions to provide more meaningful results.

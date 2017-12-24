@@ -474,7 +474,7 @@ nx::test new -msg {call proc of subobject via dispatch} \
 #    -cmd {c2 o f 10} -expected 11 -count 5000 \
 #    -post {c2 destroy}
 
-nx::test new -msg {dispatch subobject directy via [self]} \
+nx::test new -msg {dispatch subobject directly via [self]} \
     -pre {C c2; C c2::o; c2::o proc f a {incr a}; c2 proc t a {[self]::o f $a}} \
     -cmd {c2 t 12} -expected 13 -count 5000 \
     -post {c2 destroy}

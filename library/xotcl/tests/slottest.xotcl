@@ -710,7 +710,7 @@ nx::test case nx-serialize-debug-deprecated {
   ? {::nsf::method::property o obar debug} 1
 }
 
-nx::test case nx-retuns+serialize {
+nx::test case nx-returns+serialize {
 
   ::xotcl::Class create Context
   ? {Context instproc default_form_loader {arg} -returns integer {

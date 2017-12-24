@@ -285,7 +285,7 @@ nx::test case objectparameter {
   ? {C eval :__object_configureparameter} \
       "-mixins:mixinreg,slot=::nx::Class::slot::mixins,slotset,method=class-mixin,0..n {-superclasses:class,alias,method=::nsf::methods::class::superclass,1..n ::nx::Object} -filters:filterreg,slot=::nx::Class::slot::filters,slotset,method=class-filter,0..n -object-mixins:mixinreg,slot=::nx::Object::slot::object-mixins,slotset,method=object-mixin,0..n -object-filters:filterreg,slot=::nx::Object::slot::object-filters,slotset,method=object-filter,0..n -class:class,alias,method=::nsf::methods::object::class __initblock:cmd,optional,nodashalnum"
 
-  #### TOOD: remove or add
+  #### TODO: remove or add
   #? {c1 eval :__object_configureparameter} \
   #    "::c1: unable to dispatch method '__objectparameter'"
 }
@@ -475,7 +475,7 @@ nx::test case multivalued {
   D public method foo {m:integer,0..n} {
     return $m
   }
-  ? {d1 foo ""} "" "emtpy list"
+  ? {d1 foo ""} "" "empty list"
   ? {d1 foo 1} "1" "single value"
   ? {d1 foo {1 2}} "1 2" "multiple values"
   ? {d1 foo {1 a 2}} \
@@ -485,7 +485,7 @@ nx::test case multivalued {
   D public method foo {m:object,0..n} {
     return $m
   }
-  ? {d1 foo ""} "" "emtpy list"
+  ? {d1 foo ""} "" "empty list"
   ? {d1 foo o} "o" "single value"
   ? {d1 foo {o d1 x}} \
       {invalid value in "o d1 x": expected object but got "x" for parameter "m"} \
@@ -1193,7 +1193,7 @@ nx::test case multivalued-app-converter {
       error "expected false but got $value"
     }
     # Note that this converter does NOT return a value; it converts all
-    # values into emtpy strings.
+    # values into empty strings.
   }
   ? {::nsf::is -complain mType,slot=::tmpObj,0..* {1 0}} \
       {invalid value in "1 0": expected false but got 1} \

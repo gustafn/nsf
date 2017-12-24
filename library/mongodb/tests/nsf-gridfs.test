@@ -28,7 +28,7 @@ package require nsf::mongo
 ? {set mongoConn [::mongo::connect]} mongoc_client_t:0
 
 #
-# Open a GridFS in the mongo datbase "myfs" and use the usual prefix
+# Open a GridFS in the mongo database "myfs" and use the usual prefix
 # "fs", such GridFS names the collections "fs.chunks" and "fs.files".
 #
 ? {set gridFS [::mongo::gridfs::open $mongoConn myfs fs]} mongoc_gridfs_t:0

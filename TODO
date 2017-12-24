@@ -1256,9 +1256,9 @@ _ added option noforwarder to RelationSlots
 - new parameter option "convert" to signal that an application
   specific parameter checker should convert the value
   (takes the result of the methods as conversion result)
-- added parameters for slots "allowemtpy" and "convert"
+- added parameters for slots "allowempty" and "convert"
 - extended regression test
-- added handling of parameter options "allowemtpy" and "convert"
+- added handling of parameter options "allowempty" and "convert"
   in createFromParameterSyntax
 
 - renamed slot attribute "noforwarder" to "nosetter"
@@ -2992,7 +2992,7 @@ nsf:
 - nsf.c:
   * new file nsfPointer.c
   * generic new value checker ConvertToPointer to handle c-level
-    conversions (which can be registed from nsf extensions)
+    conversions (which can be registered from nsf extensions)
   * extern defined interface for the pointer converter:
     Nsf_PointerTypeLookup(), Nsf_PointerTypeRegister(),
     Nsf_PointerAdd(), Nsf_PointerDelete(),

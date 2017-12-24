@@ -2189,7 +2189,7 @@ Configure parameter for Student s1:
       ?-object-filters /filterreg .../? ?/__initblock/?
 --------------------------------------------------
 
-The given paramter show, how (a) objects can be configured
+The given parameter show, how (a) objects can be configured
 at runtime or (b) how new instances can be configured
 at creation time via the +new+ or +create+ methods.
 Introspection can be used to obtain the configuration

@@ -39,7 +39,7 @@ nx::mongo::db drop collection posts
 ######################################################################
 # The second approach to implement references to other objects via an
 # property pointing to the object id of an other object. This is the
-# classical datbase approach. When the object is fetched, the
+# classical database approach. When the object is fetched, the
 # application developer has to care about fetching/dereferencing the
 # referenced object.
 #

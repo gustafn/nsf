@@ -201,7 +201,7 @@ nx::Class create Script {
 
   if {[catch {:create main} errorMsg]} {
     puts stderr "*** $errorMsg"
-    # Exit sliently, alltough we are leaving from an active stack
+    # Exit silently, alltough we are leaving from an active stack
     # frame.
     ::nsf::configure debug 0
     exit -1

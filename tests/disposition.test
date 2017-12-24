@@ -937,7 +937,7 @@ nx::test case submethods-via-aliasparams {
   # // Parameter (alias) dispatch //
   # 
   # In contrast to an ordinary dispatch, a parameter dispatch results
-  # in a different callstack structure, due to the interferring
+  # in a different callstack structure, due to the interfering
   # configure():
   #
   # N+5 |:CscFrame @Type(ENSEMBLE)|		<-- foo (leaf)

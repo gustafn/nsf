@@ -11,7 +11,7 @@ namespace eval ::xotcl::mixinStrategy {
     mixin-classes, where only one kind of a family of conformant 
     mixins should be registered.
     <@p>
-    Naming convertions for strategies:
+    Naming conventions for strategies:
     All strategies must follow the naming convention 'kind=implementation'. 
     Examples are the persistency strategy 'eager' specfied as 
     'persistent=eager' or the persistency strategy 'lazy' (specified as

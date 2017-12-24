@@ -27,7 +27,7 @@ nx::test case hidden-cmds {
   $i eval [list package req nx]
   ? {$i eval [list info commands ::nx::Object]} ::nx::Object
   #
-  # Tcl's hiding mechansim only applies to objects/classes in the
+  # Tcl's hiding mechanism only applies to objects/classes in the
   # top-level namespace. So any non-globally namespaced ones and
   # nested objects are not concerned ...
   #

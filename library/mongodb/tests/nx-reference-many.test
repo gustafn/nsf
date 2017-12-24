@@ -36,7 +36,7 @@ nx::mongo::db drop collection members
 ######################################################################
 # The second approach to implement references to other objects via an
 # property pointing to the object ids of other objects. This is
-# similar to the classical datbase approach. When the object is
+# similar to the classical database approach. When the object is
 # fetched, the application developer has to care about
 # fetching/dereferencing the referenced objects.
 #

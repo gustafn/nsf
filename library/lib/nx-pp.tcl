@@ -10,7 +10,7 @@ package provide nx::pp 1.0
 #     package require nx::pp
 #     set html [nx::pp render { your script }]
 #
-# Desinged to be usable from asciidoc like gnu source-highligt,
+# Designed to be usable from asciidoc like gnu source-highligt,
 # ignores options.
 #
 # Gustaf Neumann,   Dez 2010

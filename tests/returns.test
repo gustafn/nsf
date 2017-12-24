@@ -44,7 +44,7 @@ nx::test case int-returns {
     # query the returns value
     ? {::nsf::method::property C lappend returns} integer
 
-    # reset it to emtpy
+    # reset it to empty
     ? {::nsf::method::property C lappend returns ""} ""
     ? {::nsf::method::property C bar-ok1 returns ""} ""
     ? {::nsf::method::property C bar-ok2 returns ""} ""
@@ -186,7 +186,7 @@ nx::test case converting-returns {
     # query the returns value
     ? {::nsf::method::property C lappend returns} integer
 
-    # reset it to emtpy
+    # reset it to empty
     ? {::nsf::method::property C lappend returns ""} ""
 
     c1 eval {set :l e1}
@@ -332,7 +332,7 @@ nx::test case converting-returns {
     # query the returns value
     ? {::nsf::method::property C lappend returns} integer
 
-    # reset it to emtpy
+    # reset it to empty
     ? {::nsf::method::property C lappend returns ""} ""
     ? {::nsf::method::property C bar-ok1 returns ""} ""
     ? {::nsf::method::property C bar-ok2 returns ""} ""

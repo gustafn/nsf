@@ -301,7 +301,7 @@ Nsf_PointerTypeRegister(Tcl_Interp *interp, const char* typeName, int *counterPt
  *----------------------------------------------------------------------
  * Nsf_PointerTypeLookup --
  *
- *    Lookup of type name. If the type name is registed, return the
+ *    Lookup of type name. If the type name is registered, return the
  *    converter or NULL otherwise.
  *
  * Results:
