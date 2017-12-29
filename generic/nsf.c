@@ -7453,7 +7453,7 @@ CmdListRemoveDeleted(NsfCmdList **cmdList, NsfFreeCmdListClientData *freeFct) {
      * per-cmd flag CMD_IS_DELETED, set upon processing a command in
      * Tcl_DeleteCommandFromToken().
      */
-    if ((unsigned int)Tcl_Command_flags(f->cmdPtr) & CMD_IS_DELETED /* Tcl_Command_cmdEpoch(f->cmdPtr) */) {
+    if (((unsigned int)Tcl_Command_flags(f->cmdPtr) & CMD_IS_DELETED) != 0u)  {
       del = f;
       f = f->nextPtr;
       del = CmdListRemoveFromList(cmdList, del);
