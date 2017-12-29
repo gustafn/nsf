@@ -4,7 +4,7 @@
  *      Provide API for accessing mallocated data via Tcl.
  *      This is used e.g. via the MongoDB interface.
  *
- * Copyright (C) 2011-2014 Gustaf Neumann
+ * Copyright (C) 2011-2017 Gustaf Neumann
  *
  * Vienna University of Economics and Business
  * Institute of Information Systems and New Media

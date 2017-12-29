@@ -5,7 +5,7 @@
  *      Scripting Framework.
  *
  * Copyright (C) 1998 Paul Duffin
- * Copyright (C) 2001-2014 Gustaf Neumann (a)
+ * Copyright (C) 2001-2017 Gustaf Neumann (a)
  * Copyright (C) 2001-2007 Uwe Zdun (a)
  *
  * (a) Vienna University of Economics and Business

@@ -3,7 +3,7 @@
  *
  *      Tcl_Obj types provided by the Next Scripting Framework.
  *
- * Copyright (C) 1999-2016 Gustaf Neumann
+ * Copyright (C) 1999-2017 Gustaf Neumann
  * Copyright (C) 2016 Stefan Sobernig
  *
  * Vienna University of Economics and Business
@@ -76,14 +76,14 @@ Tcl_ObjType NsfObjectMethodObjType = {
 static void
 MethodFreeInternalRep(
     register Tcl_Obj *objPtr)	/* Tcl_Obj structure object with internal
-				 * representation to free. */
+                                 * representation to free. */
 {
   NsfMethodContext *mcPtr = (NsfMethodContext *)objPtr->internalRep.twoPtrValue.ptr1;
 
   if (mcPtr != NULL) {
 #if defined(METHOD_OBJECT_TRACE)
     fprintf(stderr, "MethodFreeInternalRep %p methodContext %p methodEpoch %d type <%s>\n",
-	    objPtr, mcPtr, mcPtr->methodEpoch, (objPtr->typePtr != NULL) ? objPtr->typePtr->name : "none");
+            objPtr, mcPtr, mcPtr->methodEpoch, (objPtr->typePtr != NULL) ? objPtr->typePtr->name : "none");
 #endif
     /*
      * ... and free structure
@@ -128,21 +128,21 @@ MethodDupInternalRep(
 int
 NsfMethodObjSet(
     Tcl_Interp *UNUSED(interp),		/* Used for error reporting if not NULL. */
-    register Tcl_Obj *objPtr,   	/* The object to convert. */
+    register Tcl_Obj *objPtr,           /* The object to convert. */
     Tcl_ObjType *objectType,
     void *context,			/* context (to avoid over-eager sharing) */
     unsigned int methodEpoch,		/* methodEpoch */
-    Tcl_Command cmd,	  		/* the tclCommand behind the method */
-    NsfClass *cl,	  		/* the object/class where the method was defined */
+    Tcl_Command cmd,                    /* the Tcl command behind the method */
+    NsfClass *cl,                       /* the object/class where the method was defined */
     unsigned int flags			/* flags */
-		)
+                )
 {
   NsfMethodContext *mcPtr;
 
 #if defined(METHOD_OBJECT_TRACE)
   fprintf(stderr, "... NsfMethodObjSet %p %s context %p methodEpoch %d "
-	  "cmd %p cl %p %s old obj type <%s> flags %.6x\n",
-	  objPtr, ObjStr(objPtr), context, methodEpoch, cmd, cl,
+          "cmd %p cl %p %s old obj type <%s> flags %.6x\n",
+          objPtr, ObjStr(objPtr), context, methodEpoch, cmd, cl,
           (cl != NULL) ? ClassName(cl) : "obj",
           (objPtr->typePtr != NULL) ? objPtr->typePtr->name : "none", flags);
 #endif
@@ -162,13 +162,13 @@ NsfMethodObjSet(
     objPtr->typePtr = objectType;
 #if defined(METHOD_OBJECT_TRACE)
     fprintf(stderr, "alloc %p methodContext %p methodEpoch %d type <%s> %s refCount %d\n",
-	    objPtr, mcPtr, methodEpoch, objectType->name, ObjStr(objPtr), objPtr->refCount);
+            objPtr, mcPtr, methodEpoch, objectType->name, ObjStr(objPtr), objPtr->refCount);
 #endif
   } else {
     mcPtr = (NsfMethodContext *)objPtr->internalRep.twoPtrValue.ptr1;
 #if defined(METHOD_OBJECT_TRACE)
     fprintf(stderr, "... NsfMethodObjSet %p reuses internal rep, serial (%d/%d) refCount %d\n",
-	    objPtr, mcPtr->methodEpoch, methodEpoch, objPtr->refCount);
+            objPtr, mcPtr->methodEpoch, methodEpoch, objPtr->refCount);
 #endif
   }
 
@@ -214,7 +214,7 @@ Tcl_ObjType NsfFlagObjType = {
 static void
 FlagFreeInternalRep(
    Tcl_Obj *objPtr)	/* Tcl_Obj structure object with internal
-			 * representation to free. */
+                         * representation to free. */
 {
   register NsfFlag *flagPtr = (NsfFlag *)objPtr->internalRep.twoPtrValue.ptr1;
 
@@ -272,13 +272,13 @@ FlagDupInternalRep(
 int
 NsfFlagObjSet(
     Tcl_Interp *UNUSED(interp),		/* Used for error reporting if not NULL. */
-    register Tcl_Obj *objPtr,   	/* The object to convert. */
+    register Tcl_Obj *objPtr,           /* The object to convert. */
     Nsf_Param const *baseParamPtr,	/* the full parameter block */
     int serial,				/* interface serial */
-    Nsf_Param const *paramPtr,  	/* a single parameter */
-    Tcl_Obj *payload,  			/* payload */
-    unsigned int flags 			/* detail infos */
-	      )
+    Nsf_Param const *paramPtr,          /* a single parameter */
+    Tcl_Obj *payload,                   /* payload */
+    unsigned int flags                  /* detail infos */
+              )
 {
   NsfFlag *flagPtr;
 
@@ -357,7 +357,7 @@ Tcl_ObjType NsfMixinregObjType = {
 static void
 MixinregFreeInternalRep(
     register Tcl_Obj *objPtr)	/* Mixinreg structure object with internal
-				 * representation to free. */
+                                 * representation to free. */
 {
   Mixinreg *mixinRegPtr = (Mixinreg *)objPtr->internalRep.twoPtrValue.ptr1;
 
@@ -394,7 +394,7 @@ MixinregDupInternalRep(
 
 #if defined(METHOD_OBJECT_TRACE)
   fprintf(stderr, "MixinregDupInternalRep src %p dst %p\n",
-	  srcObjPtr, dstObjPtr);
+          srcObjPtr, dstObjPtr);
 #endif
   dstPtr = NEW(Mixinreg);
   memcpy(dstPtr, srcPtr, sizeof(Mixinreg));
@@ -421,78 +421,80 @@ MixinregSetFromAny(
     Tcl_Interp *interp,	/* Used for error reporting if not NULL. */
     Tcl_Obj *objPtr)	/* The object to convert. */
 {
-  NsfClass *mixin = NULL;
-  Tcl_Obj *guardObj = NULL, *nameObj = NULL;
-  Mixinreg *mixinRegPtr;
-  int oc, result; Tcl_Obj **ov;
+  NsfClass  *mixin = NULL;
+  int        oc, result;
+  Tcl_Obj  **ov;
 
   result = Tcl_ListObjGetElements(interp, objPtr, &oc, &ov);
-  if (unlikely(result != TCL_OK)) {
-    /* invalid Tcl list */
-    return result;
-  }
+  if (likely(result == TCL_OK)) {
+    Tcl_Obj *guardObj, *nameObj;
 
-  if (oc == 1) {
-    nameObj = ov[0];
-
-    /*} else if (oc == 2) {
+    /*
+     *  objPtr holds a valid Tcl list
+     */
+    if (oc == 1) {
       nameObj = ov[0];
-      guardObj = ov[1];*/
+      guardObj = NULL;
 
-  } else if (oc == 3 && !strcmp(ObjStr(ov[1]), NsfGlobalStrings[NSF_GUARD_OPTION])) {
-    nameObj = ov[0];
-    guardObj = ov[2];
+    } else if (oc == 3 && !strcmp(ObjStr(ov[1]), NsfGlobalStrings[NSF_GUARD_OPTION])) {
+      nameObj = ov[0];
+      guardObj = ov[2];
 
-  } else {
-    nameObj = objPtr;
-  }
-
-  /*
-   * Syntax was ok. Try to lookup mixin classes:
-   */
-  if (NsfGetClassFromObj(interp, nameObj, &mixin, 1) != TCL_OK) {
-    return NsfObjErrType(interp, "mixin", nameObj, "a class as mixin", NULL);
-  }
-
-  /*
-   * Conversion was ok.
-   * Allocate structure ...
-   */
-  mixinRegPtr = NEW(Mixinreg);
-  mixinRegPtr->mixin = mixin;
-  mixinRegPtr->guardObj = guardObj;
-
-  /*
-   * ... and increment refCounts
-   */
-  NsfObjectRefCountIncr((&mixin->object));
-  if (guardObj != NULL) {INCR_REF_COUNT2("mixinRegPtr->guardObj", guardObj);}
-
-  /*
-   * Build list of Tcl_Objs per mixin class for invalidation.
-   */
-  { NsfClassOpt *clOpt = NsfRequireClassOpt(mixin);
-    if (clOpt->mixinRegObjs == NULL) {
-      clOpt->mixinRegObjs = Tcl_NewListObj(1, &objPtr);
-      INCR_REF_COUNT2("mixinRegObjs", clOpt->mixinRegObjs);
     } else {
-      Tcl_ListObjAppendElement(interp, clOpt->mixinRegObjs, objPtr);
+      nameObj = objPtr;
+      guardObj = NULL;
+    }
+
+    /*
+     * Syntax was ok. Try to lookup mixin classes:
+     */
+    if (NsfGetClassFromObj(interp, nameObj, &mixin, 1) != TCL_OK) {
+      result = NsfObjErrType(interp, "mixin", nameObj, "a class as mixin", NULL);
+    } else {
+      Mixinreg *mixinRegPtr;
+
+      assert(mixin != NULL);
+
+      /*
+       * Conversion was ok.
+       * Allocate structure ...
+       */
+      mixinRegPtr = NEW(Mixinreg);
+      mixinRegPtr->mixin = mixin;
+      mixinRegPtr->guardObj = guardObj;
+
+      /*
+       * ... and increment refCounts
+       */
+      NsfObjectRefCountIncr((&mixin->object));
+      if (guardObj != NULL) {INCR_REF_COUNT2("mixinRegPtr->guardObj", guardObj);}
+
+      /*
+       * Build list of Tcl_Objs per mixin class for invalidation.
+       */
+      { NsfClassOpt *clOpt = NsfRequireClassOpt(mixin);
+        if (clOpt->mixinRegObjs == NULL) {
+          clOpt->mixinRegObjs = Tcl_NewListObj(1, &objPtr);
+          INCR_REF_COUNT2("mixinRegObjs", clOpt->mixinRegObjs);
+        } else {
+          Tcl_ListObjAppendElement(interp, clOpt->mixinRegObjs, objPtr);
+        }
+      }
+
+      /*fprintf(stderr, "MixinregSetFromAny alloc mixinReg %p class %p guard %p object->refCount %d\n",
+        mixinRegPtr, mixinRegPtr->mixin, mixinRegPtr->guardObj, ((&mixin->object)->refCount));*/
+
+      /*
+       * Free the old internal representation and store own structure as internal
+       * representation.
+       */
+      TclFreeIntRep(objPtr);
+      objPtr->internalRep.twoPtrValue.ptr1 = (void *)mixinRegPtr;
+      objPtr->internalRep.twoPtrValue.ptr2 = NULL;
+      objPtr->typePtr = &NsfMixinregObjType;
     }
   }
-
-  /*fprintf(stderr, "MixinregSetFromAny alloc mixinReg %p class %p guard %p object->refCount %d\n",
-    mixinRegPtr, mixinRegPtr->mixin, mixinRegPtr->guardObj, ((&mixin->object)->refCount));*/
-
-  /*
-   * Free the old internal representation and store own structure as internal
-   * representation.
-   */
-  TclFreeIntRep(objPtr);
-  objPtr->internalRep.twoPtrValue.ptr1 = (void *)mixinRegPtr;
-  objPtr->internalRep.twoPtrValue.ptr2 = NULL;
-  objPtr->typePtr = &NsfMixinregObjType;
-
-  return TCL_OK;
+  return result;
 }
 
 /*
@@ -536,9 +538,9 @@ NsfMixinregGet(Tcl_Interp *interp, Tcl_Obj *obj, NsfClass **clPtr, Tcl_Obj **gua
         obj, obj->refCount);*/
 
       if (MixinregSetFromAny(interp, obj) == TCL_OK) {
-	mixinRegPtr = obj->internalRep.twoPtrValue.ptr1;
+        mixinRegPtr = obj->internalRep.twoPtrValue.ptr1;
       } else {
-	return TCL_ERROR;
+        return TCL_ERROR;
       }
     }
 
@@ -626,7 +628,7 @@ Tcl_ObjType NsfFilterregObjType = {
 static void
 FilterregFreeInternalRep(
     register Tcl_Obj *objPtr)	/* Filterreg structure object with internal
-				 * representation to free. */
+                                 * representation to free. */
 {
   Filterreg *filterregPtr = (Filterreg *)objPtr->internalRep.twoPtrValue.ptr1;
 
@@ -777,7 +779,7 @@ NsfFilterregGet(Tcl_Interp *UNUSED(interp), Tcl_Obj *obj, Tcl_Obj **filterObj, T
   } else {
     result = TCL_ERROR;
   }
-  
+
   return result;
 }
 /*

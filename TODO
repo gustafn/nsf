@@ -5948,7 +5948,7 @@ TODO:
     procedure-like record checking?
 
   * dependency inversion: parseargs is provided by nsf, but requires
-    nx, occassionally. See:
+    nx, occasionally. See:
 
     % package req nsf
       2.1.0

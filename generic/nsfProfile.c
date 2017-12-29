@@ -4,7 +4,7 @@
  *      Provides profiling on Next Scripting Framework internals.
  *      For turning on profiling, NSF_PROFILE must be configured.
  *
- * Copyright (C) 2010-2016 Gustaf Neumann
+ * Copyright (C) 2010-2017 Gustaf Neumann
  *
  * Vienna University of Economics and Business
  * Institute of Information Systems and New Media

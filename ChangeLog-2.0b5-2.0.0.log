@@ -407,7 +407,7 @@
 	  tests
 	- avoid double memcpy() in dispatch recreate by using
 	  ObjectDispatch() rather than CallMethod()
-	- removed memcpy() in call-directy for "create"
+	- removed memcpy() in call-directly for "create"
 	- some more cleanup
 
 2014-06-14  Gustaf Neumann  <neumann@wu-wien.ac.at>

@@ -1034,7 +1034,7 @@
 
 2015-12-25  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	* nsf.c, nsfInt.h, nsfProfile.c, configure.ac: Substitue all
+	* nsf.c, nsfInt.h, nsfProfile.c, configure.ac: Substitute all
 	remaning ObjectName and ClassName for variant with trailing "_",
 	where appropriate; allow nsf::procs with zero arguments or plain
 	arguments (when "-debug" is used); extended regression test; bump

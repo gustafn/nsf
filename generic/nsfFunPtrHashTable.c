@@ -5,7 +5,7 @@
  *      as hash keys, and a slim wrapper around Tcl's hashtable
  *      API to manage them.
  *
- * Copyright (C) 2016 Gustaf Neumann
+ * Copyright (C) 2016-2017 Gustaf Neumann
  * Copyright (C) 2016 Stefan Sobernig
  *
  * Vienna University of Economics and Business
