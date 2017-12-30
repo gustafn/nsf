@@ -1025,7 +1025,7 @@ namespace eval ::nx {
   MetaSlot public object method parseParameterSpec {
     {-class ""}
     {-defaultopts ""}
-    target
+    {-target ""}
     spec
     default:optional
   } {
@@ -1093,7 +1093,7 @@ namespace eval ::nx {
     default:optional
   } {
 
-    lassign [:parseParameterSpec -class $class -defaultopts $defaultopts $target $spec] \
+    lassign [:parseParameterSpec -class $class -defaultopts $defaultopts -target $target $spec] \
 	name parameterOptions class opts
 
     lappend opts -incremental $incremental
@@ -2243,7 +2243,7 @@ namespace eval ::nx {
     #puts stderr "Object variable $spec accessor $accessor nocomplain $nocomplain incremental $incremental"
 
     # get name and list of parameter options
-    lassign [::nx::MetaSlot parseParameterSpec -class $class [self] $spec] \
+    lassign [::nx::MetaSlot parseParameterSpec -class $class -target [self] $spec] \
 	name parameterOptions class options
     array set opts $options
 
@@ -2391,7 +2391,7 @@ namespace eval ::nx {
       lappend defaultopts -trace $trace
     }
 
-    lassign [::nx::MetaSlot parseParameterSpec -class $class [self] $spec] \
+    lassign [::nx::MetaSlot parseParameterSpec -class $class -target [self] $spec] \
                pname parameterOptions _ _
 
     set paramOptsList [split $parameterOptions ,]
