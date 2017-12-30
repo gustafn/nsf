@@ -589,7 +589,7 @@ namespace eval ::nx::mongo {
       set result [next [list -accessor $accessor -class $class \
                             -configurable $configurable -incremental=$incremental \
                             $spec $initblock]]
-      lassign [::nx::MetaSlot parseParameterSpec $spec] name 
+      lassign [::nx::MetaSlot parseParameterSpec [self] $spec] name
       [:info slots $name] configure -rep $rep
       return $result
     }
@@ -609,7 +609,7 @@ namespace eval ::nx::mongo {
                             -configurable $configurable -incremental=$incremental \
                             -initblock $initblock $spec \
                             {*}[expr {[info exists defaultValue] ? [list $defaultValue] : ""}]]]
-      lassign [::nx::MetaSlot parseParameterSpec $spec] name 
+      lassign [::nx::MetaSlot parseParameterSpec [self] $spec] name
       [:info slots $name] configure -rep $rep
       return $result
     }
