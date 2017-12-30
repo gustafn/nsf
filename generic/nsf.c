@@ -32980,7 +32980,10 @@ Nsf_Init(Tcl_Interp *interp) {
 #include "predefined.h"
 
     /* fprintf(stderr, "predefined=<<%s>>\n", cmd);*/
-    if (Tcl_Eval(interp, cmd) != TCL_OK) {
+    if (
+        (Tcl_Eval(interp, predefined_part1) != TCL_OK)
+        || (Tcl_Eval(interp, predefined_part2) != TCL_OK)
+        ) {
       static char reportingCmd[] =
         "puts stderr \"Error in predefined code\n\
          $::errorInfo\"";

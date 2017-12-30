@@ -1423,7 +1423,8 @@ Optional Features:
   --enable-memcount=yes|trace
                           build nsf with memcount debug support (default:
                           disabled)
-  --enable-development    build nsf with development support (intensive
+  --enable-development=yes|test
+                          build nsf with development support (intensive
                           runtime checking, etc.; default: disabled)
   --enable-assertions     build nsf with assertion support (default: enabled)
   --enable-assemble=yes|label|call
@@ -5627,6 +5628,11 @@ fi
 if test "$enable_development" = yes; then
 
 $as_echo "#define NSF_DEVELOPMENT 1" >>confdefs.h
+
+fi
+if test "$enable_development" = full; then
+
+$as_echo "#define NSF_DEVELOPMENT_TEST 1" >>confdefs.h
 
 fi
 
