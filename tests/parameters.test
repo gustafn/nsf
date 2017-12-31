@@ -517,7 +517,7 @@ nx::test case multivalued {
 nx::test case subst-default {
 
   nx::Class create D {
-    :property {c 1}
+    :property -accessor public {c 1}
     :property {d 2}
 
     :create d1
@@ -525,7 +525,7 @@ nx::test case subst-default {
     :public method bar {
       {-s:substdefault "[current]"}
       {-literal "[current]"}
-      {-c:substdefault "[:c]"}
+      {-c:substdefault "[:c get]"}
       {-d:integer,substdefault "$d"}
     } {
       return $s-$literal-$c-$d
@@ -563,7 +563,7 @@ nx::test case subst-default {
   D public method bar {
 		{-s:substdefault "[current]"}
 		{-literal "[current]"}
-		{-c:substdefault "[:c]"}
+		{-c:substdefault "[:c get]"}
 		{-d:integer,substdefault "$d"}
 		{-switch:switch}
 		{-optflag}
@@ -576,7 +576,7 @@ nx::test case subst-default {
 
   ? {D info method args bar} {s literal c d switch optflag x y z} "all args"
   ? {D info method parameters bar} \
-      {{-s:substdefault "[current]"} {-literal "[current]"} {-c:substdefault "[:c]"} {-d:integer,substdefault "$d"} -switch:switch -optflag x y:integer {z 1}} \
+      {{-s:substdefault "[current]"} {-literal "[current]"} {-c:substdefault "[:c get]"} {-d:integer,substdefault "$d"} -switch:switch -optflag x y:integer {z 1}} \
       "query method parameter"
 
 
