@@ -152,7 +152,8 @@ EXTERN void		NsfLog(Tcl_Interp *interp, int requiredLevel,
 				const char *fmt, ...);
 /* 27 */
 EXTERN int		Nsf_PointerAdd(Tcl_Interp *interp, char *buffer,
-				const char *typeName, void *valuePtr);
+				size_t size, const char *typeName,
+				void *valuePtr);
 /* 28 */
 EXTERN int		Nsf_PointerDelete(CONST char *key, void *valuePtr,
 				int free);
@@ -241,7 +242,7 @@ typedef struct NsfStubs {
     int (*nsfCreate) (Tcl_Interp *in, Nsf_Class *class, Tcl_Obj *name, int objc, Tcl_Obj *CONST objv[]); /* 24 */
     int (*nsf_ArgumentParse) (Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], Nsf_Object *object, Tcl_Obj *procNameObj, Nsf_Param CONST *paramPtr, int nrParams, int serial, unsigned int processFlags, Nsf_ParseContext *pcPtr); /* 25 */
     void (*nsfLog) (Tcl_Interp *interp, int requiredLevel, const char *fmt, ...); /* 26 */
-    int (*nsf_PointerAdd) (Tcl_Interp *interp, char *buffer, const char *typeName, void *valuePtr); /* 27 */
+    int (*nsf_PointerAdd) (Tcl_Interp *interp, char *buffer, size_t size, const char *typeName, void *valuePtr); /* 27 */
     int (*nsf_PointerDelete) (CONST char *key, void *valuePtr, int free); /* 28 */
     int (*nsf_PointerTypeRegister) (Tcl_Interp *interp, const char*typeName, int *counterPtr); /* 29 */
     int (*nsf_ConvertToBoolean) (Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr, ClientData *clientData, Tcl_Obj **outObjPtr); /* 30 */

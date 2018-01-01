@@ -153,7 +153,7 @@ declare 26 generic {
 }
 
 declare 27 generic {
-  int Nsf_PointerAdd(Tcl_Interp *interp, char *buffer, const char *typeName, void *valuePtr)
+  int Nsf_PointerAdd(Tcl_Interp *interp, char *buffer, size_t size, const char *typeName, void *valuePtr)
 }
 
 declare 28 generic {

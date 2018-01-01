@@ -25098,12 +25098,13 @@ NsfDebugGetDict(Tcl_Interp *interp, Tcl_Obj *objPtr) {
   Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("length", -1));
   Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewIntObj(objPtr->length));
   Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("hex", -1));
+
   if (objPtr->bytes != NULL) {
     int i;
     char buffer[24];
 
     for (i = 0; i < 10 && i < objPtr->length; i++) {
-      sprintf(buffer + i*2, "%.2x", (unsigned)(*((objPtr->bytes)+i) & 0xff));
+      snprintf(buffer + i*2, 24, "%.2x", (unsigned)(*((objPtr->bytes)+i) & 0xff));
     }
     if (objPtr->length > 10) {
       strcat(buffer, "...");

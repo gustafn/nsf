@@ -439,8 +439,8 @@ NsfLog(Tcl_Interp *interp, int requiredLevel, CONST char *fmt, ...)
  * Nsf Pointer converter interface
  */
 
-EXTERN int Nsf_PointerAdd(Tcl_Interp *interp, char *buffer, CONST char *typeName, void *valuePtr)
-  NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3) NSF_nonnull(4);
+EXTERN int Nsf_PointerAdd(Tcl_Interp *interp, char *buffer, size_t size, CONST char *typeName, void *valuePtr)
+  NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(4) NSF_nonnull(5);
 
 EXTERN int Nsf_PointerDelete(CONST char *key, void *valuePtr, int free)
   NSF_nonnull(2);

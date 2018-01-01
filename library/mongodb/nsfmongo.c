@@ -668,7 +668,7 @@ NsfMongoConnect(Tcl_Interp *interp, CONST char *uri)
    * Make an entry in the symbol table and return entry name it as
    * result.
    */
-  if (Nsf_PointerAdd(interp, channelName, "mongoc_client_t", clientPtr) != TCL_OK) {
+  if (Nsf_PointerAdd(interp, channelName, 80u, "mongoc_client_t", clientPtr) != TCL_OK) {
     mongoc_client_destroy(clientPtr);
     return TCL_ERROR;
   }
@@ -761,7 +761,7 @@ NsfCollectionOpen(Tcl_Interp *interp,
   if (collectionPtr != NULL) {
     char buffer[80];
 
-    if (Nsf_PointerAdd(interp, buffer, "mongoc_collection_t", collectionPtr) == TCL_OK) {
+    if (Nsf_PointerAdd(interp, buffer, 80u, "mongoc_collection_t", collectionPtr) == TCL_OK) {
       Tcl_SetObjResult(interp, Tcl_NewStringObj(buffer, -1));
       result = TCL_OK;
     } else {
@@ -1191,7 +1191,7 @@ NsfMongoCursorAggregate(Tcl_Interp *interp,
   if (cursor != NULL) {
     char buffer[80];
 
-    if (Nsf_PointerAdd(interp, buffer, "mongoc_cursor_t", cursor) == TCL_OK) {
+    if (Nsf_PointerAdd(interp, buffer, 80u, "mongoc_cursor_t", cursor) == TCL_OK) {
       Tcl_SetObjResult(interp, Tcl_NewStringObj(buffer, -1));
     } else {
       mongoc_cursor_destroy( cursor );
@@ -1251,7 +1251,7 @@ NsfMongoCursorFind(Tcl_Interp *interp,
 
   if (cursor != NULL) {
     char buffer[80];
-    if (Nsf_PointerAdd(interp, buffer, "mongoc_cursor_t", cursor) == TCL_OK) {
+    if (Nsf_PointerAdd(interp, buffer, 80u, "mongoc_cursor_t", cursor) == TCL_OK) {
       Tcl_SetObjResult(interp, Tcl_NewStringObj(buffer, -1));
     } else {
       mongoc_cursor_destroy( cursor );
@@ -1343,7 +1343,7 @@ NsfMongoGridFSOpen(Tcl_Interp *interp, mongoc_client_t *clientPtr,
     result = NsfPrintError(interp, "mongo::gridfs::open: error: %s", bsonError.message);
   }
 
-  if (Nsf_PointerAdd(interp, buffer, "mongoc_gridfs_t", gfsPtr) == TCL_OK) {
+  if (Nsf_PointerAdd(interp, buffer, 80u, "mongoc_gridfs_t", gfsPtr) == TCL_OK) {
     Tcl_SetObjResult(interp, Tcl_NewStringObj(buffer, -1));
   } else {
     mongoc_gridfs_destroy(gfsPtr);
@@ -1552,7 +1552,7 @@ NsfMongoGridFileOpen(Tcl_Interp *interp,
   if (gridFilePtr != NULL) {
     char buffer[80];
 
-    if (Nsf_PointerAdd(interp, buffer, "mongoc_gridfs_file_t", gridFilePtr) == TCL_OK) {
+    if (Nsf_PointerAdd(interp, buffer, 80u, "mongoc_gridfs_file_t", gridFilePtr) == TCL_OK) {
       Tcl_SetObjResult(interp, Tcl_NewStringObj(buffer, -1));
     } else {
       mongoc_gridfs_file_destroy(gridFilePtr);

@@ -748,7 +748,7 @@ TCL_SRC_DIR_85=/usr/local/src/tcl8.5.19
 TCL_SRC_DIR_86=/usr/local/src/core-8-6-6-rc
 TCL_SRC_DIR_87=/usr/local/src/tcl-trunk
 
-genstubs:
+genstubs: $(src_generic_dir)/nsf.decls
 	mkdir -p $(src_generic_dir)/stubs8.5
 	tclsh8.5 $(TCL_SRC_DIR_85)/tools/genStubs.tcl $(src_generic_dir)/stubs8.5 \
 		$(src_generic_dir)/nsf.decls $(src_generic_dir)/nsfInt.decls
