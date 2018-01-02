@@ -30229,7 +30229,8 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *specifiedNameObj, in
 #endif
 
   if (unlikely(RUNTIME_STATE(interp)->exitHandlerDestroyRound != NSF_EXITHANDLER_OFF)) {
-    fprintf(stderr, "### Can't create instance %s of class %s during interp shutdown.\n", ObjStr(specifiedNameObj), ClassName(cl));
+    fprintf(stderr, "### Can't create instance %s of class %s during interp shutdown.\n",
+            ObjStr(specifiedNameObj), ClassName_(cl));
     return TCL_OK; /* don't fail, if this happens during destroy, it might be canceled */
   }
 
