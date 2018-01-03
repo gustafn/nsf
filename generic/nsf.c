@@ -16081,7 +16081,7 @@ static int ParamOptionParse(Tcl_Interp *interp, const char *argString,
   *----------------------------------------------------------------------
   * ParamDefinitionParse --
   *
-  *    Parse a a single parameter definiton with a possible default provided in
+  *    Parse a a single parameter definition with a possible default provided in
   *    the form of an Tcl_Obj.
   *
   * Results:
