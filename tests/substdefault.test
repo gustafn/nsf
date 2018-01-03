@@ -1,0 +1,208 @@
+# -*- tcl -*-
+package req nx::test
+
+#
+# The state of "substdefault" in object and method parameters:
+#
+# - general
+#   * [self] is always set correctly
+#
+# - object-parameter:
+#
+#    * class-defined properties:
+#
+#       - When referring to instance variables, the user has no control
+#         over the creation order of the variables. So, we cannot
+#         recommend this praxis. Referring to global or namespaced
+#         variables, this problem does not exist.
+#
+#       - [current class] executed directly in a subtdefault does not
+#         return currently an expected result.  calling a method that
+#         returns [current class] works. Defining methods to get
+#         default values is therefore recommended.
+#
+# - method-parameter:
+#
+#   * It is currently possibe to refer to instance variables in the
+#     default scope (without the nsf resolver, without namespace
+#     prefixes)
+
+
+nx::test case substdefaultoptions {
+  set ::X 123
+  nx::Class create D {
+
+    :property {a {a $::X [set x 4] \t}}
+    :property {b:substdefault {a $::X [set x 4] \t}}
+    :property {c:substdefault,substdefaultoptions=0b111 {a $::X [set x 4] \t}}
+    :property {d:substdefault,substdefaultoptions=0b100 {a $::X [set x 4] \t}}
+    :property {e:substdefault,substdefaultoptions=0b010 {a $::X [set x 4] \t}}
+    :property {f:substdefault,substdefaultoptions=0b001 {a $::X [set x 4] \t}}
+    :property {g:substdefault,substdefaultoptions=0b000 {a $::X [set x 4] \t}}
+
+    :public method show {} {
+      return ${:a}-${:b}-${:c}-${:d}-${:e}-${:f}-${:g}
+    }
+
+  }
+
+  ? {D create d1} ::d1
+
+  #? {::d1 eval :__object_configureparameter} ""
+
+  ? {d1 show} {a $::X [set x 4] \t-a 123 4      -a 123 4        -a $::X [set x 4]       -a 123 [set x 4] \t-a $::X 4 \t-a $::X [set x 4] \t}
+
+  unset ::X
+}
+
+#######################################################
+# subst default tests for method properties
+#######################################################
+nx::test case subst-default-method-parameters {
+
+  nx::Class create D {
+    :method "current" {x} { return [current $x] }
+
+    :property -accessor public {c 1}
+    :property {d 2}
+    :property {e 3}
+
+    :create d1
+
+    :public method bar {
+                        {-s:substdefault "[current]"}
+                        {-literal "[current]"}
+                        {-c:substdefault "[:c get]"}
+                        {-d:integer,substdefault "$d"}
+                        {-e:integer,substdefault "${:e}"}
+                        {-f:substdefault "[current class]"}
+                        {-g:substdefault "[:current class]"}
+                      } {
+      return $s-$literal-$c-$d-$e-$f-$g
+    }
+  }
+
+  #
+  # Interesting is arg "-d", since it resolves without a further
+  # namespace resolver to the name of the instance variable. This can
+  # not easily avoided, but i do not see, why we would have to.
+  #
+  # UNEXPECTED: For the value of "f" i would expect ::D.
+  #
+  ? {d1 bar -c 1} {::d1-[current]-1-2-3-::nx::test-::D} "substdefault in method parameter"
+
+  #
+  # the reason that "$d" works is due to the fact, that the method
+  # frame has to contain the instance variables.
+  #
+  D public method i {{-vars:substdefault "[info vars]"}} {
+    set localVars [info vars]
+    set locals [info locals]
+    return [lsort $vars]-[lsort $localVars]-[lsort $locals]
+  }
+
+  ? {d1 i} "c d e-vars-localVars vars"
+
+  #
+  # Let us change the intance variables to make sure the resolving is
+  # dynamic.
+  #
+  d1 configure -c 100 -d 200 -e 300
+
+  ? {d1 bar} {::d1-[current]-100-200-300-::nx::test-::D} "substdefault in method parameter"
+
+  #
+  # To summarize, we can address instance variables in substdefault
+  # with little syntax, and as well global variables. For other kind
+  # of variables, we can use a method, such as e.g. in the following
+  # case, where we have some modules "my-module" whoch might have some
+  # configuration variables (here X), and we define a method to access
+  # it.
+  #
+
+  namespace eval ::my-module {
+    set X 1001
+  }
+
+  D public method file-scoped {x} {
+    namespace eval ::my-module [list set $x ]
+  }
+
+  D public method m {{-x:substdefault "[:file-scoped X]"}} {
+    return $x
+  }
+
+  ? {d1 m} "1001"
+}
+
+#######################################################
+# subst default tests for object properties
+#######################################################
+nx::test case subst-default-object-parameters {
+
+  namespace eval ::my-module {
+    set X 1001
+  }
+
+  nx::Class create D {
+    :object variable Y 1002
+
+    :property {a "[current]"}
+    :property {b:substdefault "[current]"}
+    :property {c:substdefault "[info vars]"}
+    :property {d:substdefault "[:info vars]"}
+
+    :create d1
+
+    :public method show {} {
+      return ${:a}-${:b}-${:c}-${:d}
+    }
+  }
+
+  #
+  # The scope of "current" in the substdefault is "::d1", the same as
+  # for method parameters.
+  #
+  ? {d1 show} {[current]-::d1--}
+
+
+  nx::Class create C {
+    :object variable Y 1002
+    :object property -accessor public {Z 1003}
+
+    :method file-scoped {x} {
+      namespace eval ::my-module [list set $x ]
+    }
+    :method "object getvar" {x} {
+      namespace eval [current class] [list set $x ]
+    }
+    :method "current" {x} { return [current $x] }
+
+    :property {e:substdefault "[:file-scoped X]"}
+    :property {f:substdefault "[:object getvar Y]"}
+    :property {g:substdefault "[current class]"}
+    :property {h:substdefault "[:current class]"}
+    :property {i:substdefault "[[:current class] Z get]"}
+
+    :create c1
+
+    :public method show {} {
+      return ${:e}-${:f}-${:g}-${:h}-${:i}
+    }
+  }
+
+  #
+  # One can use methods to access e.h.  for method parameters.
+  # UNEXPECTED: for "g" where i would expect "::C".
+  #
+  ? {c1 show} {1001-1002-::nx::Class-::C-1003}
+
+}
+
+
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

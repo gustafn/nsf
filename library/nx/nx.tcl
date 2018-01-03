@@ -1450,10 +1450,10 @@ namespace eval ::nx {
     #
     # Get a full object parmeter specification from slot object
     #
-    if {[info exists :parameterSpec]} {
-    } else {
+    if {![info exists :parameterSpec]} {
       set prefix [expr {[info exists :positional] && ${:positional} ? "" : "-"}]
       set options [:getParameterOptions -withMultiplicity true -forObjectParameter true]
+      #puts stderr [self]================raw:$options
 
       if {[info exists :initblock]} {
 	if {[info exists :default]} {
@@ -1486,7 +1486,15 @@ namespace eval ::nx {
         # substdefault is allowed via substdefault slot property.
         #
 	if {${:substdefault}} {
-	  lappend options substdefault
+          set substOptPos [lsearch -glob $options substdefaultoptions=* ]
+          #puts stderr  "[self]================ [list lsearch substdefaultoptions=* $options] => $substOptPos"
+          if {$substOptPos > -1} {
+            set substOpt [lindex $options $substOptPos]
+            set options [lreplace $options $substOptPos $substOptPos]
+            lappend options substdefault $substOpt
+          } else {
+            lappend options substdefault
+          }
 	}
 	set :parameterSpec [list [:namedParameterSpec $prefix ${:name} $options] ${:default}]
       } else {

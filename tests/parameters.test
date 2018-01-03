@@ -924,7 +924,7 @@ nx::test case substdefault {
       return $x
     }
   }
-  ? {s1 foo} 1
+  ? {s1 foo} 1 
   ? {s1 foo 2} 2
 
   ? {S object method foo {a:substdefault} {return 1}} \
@@ -956,7 +956,7 @@ nx::test case substdefault {
   ? {s1 foo} {can't read "aaa": no such variable}
 
   ? {s1 public object method foo {{a:substdefault [current]}} {return $a}} ::s1::foo
-  ? {s1 foo} ::s1
+  ? {s1 foo} ::s1 "final test"
 }
 
 #######################################################
@@ -979,7 +979,7 @@ nx::test case substdefault-objparam-perclass {
     :property -incremental {s3:substdefault "[current]"}
   }
 
-  Bar create ::b
+  ? {Bar create ::b} ::b "create object"
   ? {b cget -s0} {[current]}
   ? {b cget -s1} "::b"
   ? {b cget -s2} "::b"

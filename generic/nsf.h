@@ -311,18 +311,18 @@ EXTERN Nsf_TypeConverter Nsf_ConvertToBoolean, Nsf_ConvertToClass,
   Nsf_ConvertToTclobj, Nsf_ConvertToPointer;
 
 typedef struct Nsf_Param {
-  const char *name;
-  unsigned int flags;
-  int nrArgs;
+  const char        *name;
+  unsigned int       flags;
+  int                nrArgs;
   Nsf_TypeConverter *converter;
-  Tcl_Obj *converterArg;
-  Tcl_Obj *defaultValue;
-  CONST char *type;
-  Tcl_Obj *nameObj;
-  Tcl_Obj *converterName;
-  Tcl_Obj *paramObj;
-  Tcl_Obj *slotObj;
-  Tcl_Obj *method;
+  Tcl_Obj           *converterArg;
+  Tcl_Obj           *defaultValue;
+  CONST char        *type;
+  Tcl_Obj           *nameObj;
+  Tcl_Obj           *converterName;
+  Tcl_Obj           *paramObj;
+  Tcl_Obj           *slotObj;
+  Tcl_Obj           *method;
 } Nsf_Param;
 
 /* Argument parse processing flags */
@@ -336,31 +336,35 @@ typedef struct Nsf_Param {
 
 /* flags for NsfParams */
 
-#define NSF_ARG_REQUIRED		0x00000001u
-#define NSF_ARG_MULTIVALUED		0x00000002u
-#define NSF_ARG_NOARG			0x00000004u
-#define NSF_ARG_NOCONFIG		0x00000008u
-#define NSF_ARG_CURRENTLY_UNKNOWN	0x00000010u
-#define NSF_ARG_SUBST_DEFAULT		0x00000020u
-#define NSF_ARG_ALLOW_EMPTY		0x00000040u
-#define NSF_ARG_INITCMD			0x00000080u
-#define NSF_ARG_CMD			0x00000100u
-#define NSF_ARG_ALIAS			0x00000200u
-#define NSF_ARG_FORWARD			0x00000400u
-#define NSF_ARG_SWITCH			0x00000800u
-#define NSF_ARG_BASECLASS		0x00001000u
-#define NSF_ARG_METACLASS		0x00002000u
-#define NSF_ARG_HAS_DEFAULT		0x00004000u
-#define NSF_ARG_IS_CONVERTER		0x00008000u
-#define NSF_ARG_IS_ENUMERATION		0x00010000u
-#define NSF_ARG_CHECK_NONPOS		0x00020000u
-#define NSF_ARG_SET			0x00040000u
-#define NSF_ARG_WARN			0x00080000u
-#define NSF_ARG_UNNAMED			0x00100000u
-#define NSF_ARG_IS_RETURNVALUE		0x00200000u
-#define NSF_ARG_NODASHALNUM		0x00400000u
-#define NSF_ARG_SLOTSET			0x00800000u
-#define NSF_ARG_SLOTINITIALIZE		0x01000000u
+#define NSF_ARG_REQUIRED		  0x00000001u
+#define NSF_ARG_MULTIVALUED		  0x00000002u
+#define NSF_ARG_NOARG			  0x00000004u
+#define NSF_ARG_NOCONFIG		  0x00000008u
+#define NSF_ARG_CURRENTLY_UNKNOWN	  0x00000010u
+#define NSF_ARG_SUBST_DEFAULT		  0x00000020u
+#define NSF_ARG_ALLOW_EMPTY		  0x00000040u
+#define NSF_ARG_INITCMD			  0x00000080u
+#define NSF_ARG_CMD			  0x00000100u
+#define NSF_ARG_ALIAS			  0x00000200u
+#define NSF_ARG_FORWARD			  0x00000400u
+#define NSF_ARG_SWITCH			  0x00000800u
+#define NSF_ARG_BASECLASS		  0x00001000u
+#define NSF_ARG_METACLASS		  0x00002000u
+#define NSF_ARG_HAS_DEFAULT		  0x00004000u
+#define NSF_ARG_IS_CONVERTER		  0x00008000u
+#define NSF_ARG_IS_ENUMERATION		  0x00010000u
+#define NSF_ARG_CHECK_NONPOS		  0x00020000u
+#define NSF_ARG_SET			  0x00040000u
+#define NSF_ARG_WARN			  0x00080000u
+#define NSF_ARG_UNNAMED			  0x00100000u
+#define NSF_ARG_IS_RETURNVALUE		  0x00200000u
+#define NSF_ARG_NODASHALNUM		  0x00400000u
+#define NSF_ARG_SLOTSET			  0x00800000u
+#define NSF_ARG_SLOTINITIALIZE		  0x01000000u
+#define NSF_ARG_SUBST_DEFAULT_COMMANDS	  0x10000000u
+#define NSF_ARG_SUBST_DEFAULT_VARIABLES   0x20000000u
+#define NSF_ARG_SUBST_DEFAULT_BACKSLASHES 0x40000000u
+#define NSF_ARG_SUBST_DEFAULT_ALL         0x70000000u
 
 #undef  __GNUC_PREREQ
 #if defined __GNUC__ && defined __GNUC_MINOR__
