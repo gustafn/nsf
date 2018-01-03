@@ -95,6 +95,9 @@ cmd configure NsfConfigureCmd {
 cmd colon NsfColonCmd {
   {-argName "args" -type allargs}
 }
+cmd "definitionnamespace" NsfDefinitionNamespaceCmd {
+}
+
 cmd "directdispatch" NsfDirectDispatchCmd {
   {-argName "object"     -required 1 -type object}
   {-argName "-frame"     -typeName "frame" -required 0 -type "method|object|default" -default "default"}

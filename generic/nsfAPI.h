@@ -281,7 +281,7 @@ static int ConvertToRelationtype(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param 
     
 
 /* just to define the symbol */
-static Nsf_methodDefinition method_definitions[119];
+static Nsf_methodDefinition method_definitions[120];
   
 static const char *method_command_namespace_names[] = {
   "::nsf::methods::object::info",
@@ -362,6 +362,8 @@ static int NsfDebugGetDictStub(ClientData clientData, Tcl_Interp *interp, int ob
 static int NsfDebugRunAssertionsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv)
   NSF_nonnull(2) NSF_nonnull(4);
 static int NsfDebugShowObjStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv)
+  NSF_nonnull(2) NSF_nonnull(4);
+static int NsfDefinitionNamespaceCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv)
   NSF_nonnull(2) NSF_nonnull(4);
 static int NsfDirectDispatchCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv)
   NSF_nonnull(2) NSF_nonnull(4);
@@ -600,6 +602,8 @@ static int NsfDebugRunAssertionsCmd(Tcl_Interp *interp)
   NSF_nonnull(1);
 static int NsfDebugShowObj(Tcl_Interp *interp, Tcl_Obj *obj)
   NSF_nonnull(1) NSF_nonnull(2);
+static int NsfDefinitionNamespaceCmd(Tcl_Interp *interp)
+  NSF_nonnull(1);
 static int NsfDirectDispatchCmd(Tcl_Interp *interp, NsfObject *object, FrameIdx_t withFrame, Tcl_Obj *command, int nobjc, Tcl_Obj *CONST* nobjv)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(4);
 static int NsfDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withIntrinsic, int withSystem, Tcl_Obj *command, int nobjc, Tcl_Obj *CONST* nobjv)
@@ -801,6 +805,7 @@ enum {
  NsfDebugGetDictIdx,
  NsfDebugRunAssertionsCmdIdx,
  NsfDebugShowObjIdx,
+ NsfDefinitionNamespaceCmdIdx,
  NsfDirectDispatchCmdIdx,
  NsfDispatchCmdIdx,
  NsfFinalizeCmdIdx,
@@ -1787,6 +1792,22 @@ NsfDebugShowObjStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
       }
     
     return NsfDebugShowObj(interp, objv[1]);
+
+}
+
+static int
+NsfDefinitionNamespaceCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv) {
+  (void)clientData;
+
+    
+
+      if (unlikely(objc != 1)) {
+	return NsfArgumentError(interp, "too many arguments:",
+			     method_definitions[NsfDefinitionNamespaceCmdIdx].paramDefs,
+			     NULL, objv[0]);
+      }
+    
+    return NsfDefinitionNamespaceCmd(interp);
 
 }
 
@@ -3588,7 +3609,7 @@ NsfObjInfoVarsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
   }
 }
 
-static Nsf_methodDefinition method_definitions[119] = {
+static Nsf_methodDefinition method_definitions[120] = {
 {"::nsf::methods::class::alloc", NsfCAllocMethodStub, 1, {
   {"objectName", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
@@ -3739,6 +3760,9 @@ static Nsf_methodDefinition method_definitions[119] = {
 },
 {"::nsf::__db_show_obj", NsfDebugShowObjStub, 1, {
   {"obj", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+},
+{"::nsf::definitionnamespace", NsfDefinitionNamespaceCmdStub, 0, {
+  {NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::directdispatch", NsfDirectDispatchCmdStub, 4, {
   {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Object, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},

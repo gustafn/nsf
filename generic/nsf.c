@@ -25734,6 +25734,24 @@ NsfColonCmd(Tcl_Interp *interp, int nobjc, Tcl_Obj *CONST nobjv[]) {
 }
 
 /*
+cmd "definitionnamespace" NsfDefinitionNamespaceCmd {
+}
+*/
+static int
+NsfDefinitionNamespaceCmd(Tcl_Interp *interp)
+{
+  Tcl_Namespace *nsPtr;
+
+  nonnull_assert(interp != NULL);
+
+  nsPtr = CallingNameSpace(interp);
+  Tcl_SetObjResult(interp, Tcl_NewStringObj(nsPtr->fullName, -1));
+
+  return TCL_OK;
+}
+
+
+/*
 cmd "directdispatch" NsfDirectDispatchCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-frame" -required 0 -nrargs 1 -type "method|object|default" -default "default"}

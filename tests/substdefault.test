@@ -50,7 +50,7 @@ nx::test case substdefaultoptions {
 
   #? {::d1 eval :__object_configureparameter} ""
 
-  ? {d1 show} {a $::X [set x 4] \t-a 123 4      -a 123 4        -a $::X [set x 4]       -a 123 [set x 4] \t-a $::X 4 \t-a $::X [set x 4] \t}
+  ? {d1 show} {a $::X [set x 4] \t-a 123 4 	-a 123 4 	-a $::X [set x 4] 	-a 123 [set x 4] \t-a $::X 4 \t-a $::X [set x 4] \t}
 
   unset ::X
 }
@@ -169,6 +169,7 @@ nx::test case subst-default-object-parameters {
   nx::Class create C {
     :object variable Y 1002
     :object property -accessor public {Z 1003}
+    namespace eval [nsf::definitionnamespace] {set A 2000}
 
     :method file-scoped {x} {
       namespace eval ::my-module [list set $x ]
@@ -176,6 +177,13 @@ nx::test case subst-default-object-parameters {
     :method "object getvar" {x} {
       namespace eval [current class] [list set $x ]
     }
+    :method "definitionnamespace" {x} {
+      namespace eval [nsf::definitionnamespace] [list set $x ]
+    }
+    :public method "current_definitionnamespace" {} {
+      return [nsf::definitionnamespace]
+    }
+
     :method "current" {x} { return [current $x] }
 
     :property {e:substdefault "[:file-scoped X]"}
@@ -183,11 +191,12 @@ nx::test case subst-default-object-parameters {
     :property {g:substdefault "[current class]"}
     :property {h:substdefault "[:current class]"}
     :property {i:substdefault "[[:current class] Z get]"}
+    :property {j:substdefault "[:definitionnamespace A]"}
 
     :create c1
 
     :public method show {} {
-      return ${:e}-${:f}-${:g}-${:h}-${:i}
+      return ${:e}-${:f}-${:g}-${:h}-${:i}-${:j}
     }
   }
 
@@ -195,10 +204,84 @@ nx::test case subst-default-object-parameters {
   # One can use methods to access e.h.  for method parameters.
   # UNEXPECTED: for "g" where i would expect "::C".
   #
-  ? {c1 show} {1001-1002-::nx::Class-::C-1003}
-
+  ? {c1 show} {1001-1002-::nx::Class-::C-1003-2000}
+  ? {c1 current_definitionnamespace} {::}
 }
 
+#######################################################
+# subst default tests for object properties
+#######################################################
+nx::test case subst-default-object-parameters-in-extra-ns {
+
+  namespace eval ::my-module {
+    set X 1001
+
+    nx::Class create D {
+      :object variable Y 1002
+
+      :property {a "[current]"}
+      :property {b:substdefault "[current]"}
+      :property {c:substdefault "[info vars]"}
+      :property {d:substdefault "[:info vars]"}
+
+      :create d1
+
+      :public method show {} {
+        return ${:a}-${:b}-${:c}-${:d}
+      }
+    }
+
+    #
+    # The scope of "current" in the substdefault is "::d1", the same as
+    # for method parameters.
+    #
+    ? {d1 show} {[current]-::my-module::d1--}
+
+    ? {nsf::definitionnamespace} ::my-module
+
+    nx::Class create C {
+      :object variable Y 1002
+      :object property -accessor public {Z 1003}
+      namespace eval [nsf::definitionnamespace] {set A 2000}
+
+      :method file-scoped {x} {
+        namespace eval ::my-module [list set $x ]
+      }
+      :method "object getvar" {x} {
+        namespace eval [current class] [list set $x ]
+      }
+      :method "definitionnamespace" {x} {
+        namespace eval [nsf::definitionnamespace] [list set $x ]
+      }
+      :public method "current_definitionnamespace" {} {
+        return [nsf::definitionnamespace]
+      }
+
+      :method "current" {x} { return [current $x] }
+
+      :property {e:substdefault "[:file-scoped X]"}
+      :property {f:substdefault "[:object getvar Y]"}
+      :property {g:substdefault "[current class]"}
+      :property {h:substdefault "[:current class]"}
+      :property {i:substdefault "[[:current class] Z get]"}
+      :property {j:substdefault "[:definitionnamespace A]"}
+
+      :create c1
+
+      :public method show {} {
+        return ${:e}-${:f}-${:g}-${:h}-${:i}-${:j}
+      }
+    }
+
+    #
+    # One can use methods to access e.h.  for method parameters.
+    # UNEXPECTED: for "g" where i would expect "::C".
+    #
+    ? {c1 show} {1001-1002-::nx::Class-::my-module::C-1003-2000}
+    ? {c1 current_definitionnamespace} {::my-module}
+
+  }
+}
 
 #
 # Local variables:
