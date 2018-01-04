@@ -6494,6 +6494,7 @@ NSCheckNamespace(Tcl_Interp *interp, const char *nameString, Tcl_Namespace *pare
       DSTRING_INIT(dsPtr);
       Tcl_DStringAppend(dsPtr, nameString, parentNameLength);
       parentName = Tcl_DStringValue(dsPtr);
+      DSTRING_FREE(dsPtr);
     } else {
       parentName = NULL;
     }
@@ -6516,10 +6517,6 @@ NSCheckNamespace(Tcl_Interp *interp, const char *nameString, Tcl_Namespace *pare
         /*fprintf(stderr, "===== calling NSRequireParentObject %s %p\n", parentName, cl);*/
         NSRequireParentObject(interp, parentName);
       }
-    }
-
-    if (parentNameLength > 0) {
-      DSTRING_FREE(dsPtr);
     }
   }
 
