@@ -28791,8 +28791,8 @@ ParamSetFromAny2(
     Tcl_Interp *interp,               /* Used for error reporting if not NULL. */
     const char *varNamePrefix,        /* shows up as varName in error message */
     int allowParameter,               /* allow object parameters */
-    register Tcl_Obj *objPtr,
-    const char *qualifier)         /* The object to convert. */
+    register Tcl_Obj *objPtr,         /* The object to convert. */
+    const char *qualifier)         
 {
   Tcl_Obj *fullParamObj = Tcl_NewStringObj(varNamePrefix, -1);
   int result, possibleUnknowns = 0, plainParams = 0, nrNonposArgs = 0;
