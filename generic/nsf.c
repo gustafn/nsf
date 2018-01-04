@@ -15780,7 +15780,7 @@ Unescape(Tcl_Obj *objPtr) {
    } else if (firstChar == 's' && strncmp(option, "substdefaultoptions=", 20) == 0) {
 
      if ((paramPtr->flags & NSF_ARG_SUBST_DEFAULT) == 0u) {
-       return NsfPrintError(interp, "substdefaultoptions only allowes after substdefault'");
+       return NsfPrintError(interp, "substdefaultoptions only allowed after substdefault'");
 
      } else {
        int      result;
