@@ -1673,7 +1673,7 @@ nx::test case checktype {
 
   ? {o f11} 1
   ? {o f12} 1
-  ? {o f13} 1
+  ? {o f13} 0
 }
 
 #
@@ -1684,7 +1684,7 @@ namespace eval foo {
     :create c1
     :public method f21 {} {::nsf::dispatch c1 ::nsf::methods::object::info::hastype nx::Object}
     :public method f22 {} {::nsf::dispatch c1 ::nsf::methods::object::info::hastype C}
-    :public method f31 {} {::nsf::is object,type=Object c1}
+    :public method f31 {} {::nsf::is object,type=::nx::Object c1}
     :public method f32 {} {::nsf::is object,type=C c1}
   }
 
@@ -1696,10 +1696,10 @@ namespace eval foo {
     :public object method f05 {} {::nsf::dispatch c1 ::nsf::methods::object::info::hastype C}
 
     :public object method f11 {} {::nsf::is object,type=::nx::Object c1}
-    :public object method f12 {} {::nsf::is object,type=nx::Object c1}
-    :public object method f13 {} {::nsf::is object,type=Object c1}
-    :public object method f14 {} {::nsf::is object,type=foo::C c1}
-    :public object method f15 {} {::nsf::is object,type=C c1}
+    :public object method f12 {} {::nsf::is object,type=nx::Object c1}; # resolves to ::foo::nx::Object
+    :public object method f13 {} {::nsf::is object,type=Object c1}; # resolves to ::foo::Object
+    :public object method f14 {} {::nsf::is object,type=C c1}; # resolves to ::foo::C
+    :public object method f15 {} {::nsf::is object,type=[namespace which C] c1}; # ::foo::C 
   }
 
   ? {o f01} 1
@@ -1709,8 +1709,8 @@ namespace eval foo {
   ? {o f05} 1
 
   ? {o f11} 1
-  ? {o f12} 1
-  ? {o f13} 1
+  ? {o f12} 0
+  ? {o f13} 0
   ? {o f14} 1
   ? {o f15} 1
 
@@ -3447,6 +3447,98 @@ nx::test case substdefault-hardening {
   ::K object property {p7:substdefault "[set _ 7]]"}
   ? {::K cget -p7} {7]}
       
+}
+
+nx::test case type-reform {
+
+  namespace eval :: {
+    
+    ::nsf::proc foo {p2:object,type=C} {
+      return [$p2 info class]
+    }
+    nx::Class create C
+    nx::Object create o {
+      :public object method foo {p1:object,type=C} {
+        return [$p1 info class]
+      }
+      :public object method faa {p1:object,type=C} -returns object,type=C {
+        return $p1
+      }
+    }
+    
+    ::nsf::method::setter o s1:object,type=C
+    ::nsf::method::setter C s2:object,type=C
+    
+    ::proc bar args {
+      ::nsf::parseargs p1:object,type=C $args
+      return [$p1 info class]
+    }
+    ::proc baz {a} {
+      ::nsf::is object,type=C $a
+      return [$a info class]
+    }
+    namespace eval ns1 {
+      namespace eval ns2 {
+        nx::Class create C
+        nx::Class create A {
+          :public method foo {p1:object,type=C} {
+            return [$p1 info class]
+          }
+          :public method faa {p1:object,type=C} -returns object,type=C {
+            return $p1
+          }
+        }
+        ::nsf::proc foo {p2:object,type=C} {
+          return [$p2 info class]
+        }
+        ::proc bar args {
+          ::nsf::parseargs p2:object,type=C $args
+          return [$p2 info class]
+        }
+        
+        ::proc baz {a} {
+          ::nsf::is object,type=C $a
+          return [$a info class]
+        }
+        
+        ::nsf::method::setter A s3:object,type=C
+        ::nsf::method::setter A -per-object s4:object,type=C
+        
+      }
+    }
+  }
+  
+  set ::C ::ns1::ns2::C
+  
+  ## In the intrep (param structure), unqualified names will be qualified;
+  ? {::o foo [::C new]} ::C
+  ? {[::o faa [::C new]] info class} ::C
+  ? {[::o s1 [::C new]] info class} ::C
+  ? {[[::C new] s2 [::C new]] info class} ::C
+  $::C create ::c1
+  ? {[[::C new] s2 ::c1] info class} {expected object of type ::C but got "::c1" for parameter "s2"}
+  ## the stringrep remains untouched (to allow for cloning, serializing
+  ## method records more easily)
+  ? {nsf::parameter::info type [::o info object method parameters foo p1]} C
+  
+  ? {[::ns1::ns2::A new] foo [$::C new]} $::C
+  ? {nsf::parameter::info type [::ns1::ns2::A info method parameters foo p1]} C
+  ? {[[::ns1::ns2::A new] faa [$::C new]] info class} $::C
+  ? {[[::ns1::ns2::A new] s3 [$::C new]] info class} $::C
+  ? {[::ns1::ns2::A s4 [$::C new]] info class} $::C
+  
+  ? {::ns1::ns2::foo [$::C new]} $::C
+  
+  ? {::foo [::C new]} ::C
+  ? {::bar [::C new]} ::C
+  ? {::baz [::C new]} ::C
+  ? {::ns1::ns2::bar [$::C new]} $::C
+  ? {::ns1::ns2::baz [$::C new]} $::C
+  
+  ## error msgs now contain the qualified type names
+  ::C create ::c
+  ? {[::ns1::ns2::A new] foo ::c} \
+      "expected object of type ::ns1::ns2::C but got \"::c\" for parameter \"p1\""  
 }
 
 

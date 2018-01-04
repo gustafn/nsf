@@ -5934,6 +5934,33 @@ catch {={*}[list foo 1 2 3 4 5 6]} msg; puts msg=$msg
 ========================================================================
 TODO:
 
+- IsObjectOfType(): the error messages provided could be improved:
+
+  rather than saying
+
+  "expected object of type ::C but got "::nsf::__#6" for parameter "s2""
+
+  one could report
+  
+  "expected object of type ::C but got "::nsf::__#6" of type ::D (::A ::B ::C ::nx::Object) for parameter "s2""	
+  Otherwise, the instance name ::nsf::__#6 can be easily confused for
+  the (sought) type name.
+
+- Refactoring option: Why not use ParameterCheck for setters? That is,
+  rather than ParamParse on setter definition time, call
+  ParameterCheck() when calling the setter (and have the param
+  structure build lazily, on first use). Tcl_Obj intrep will do good,
+  in most cases.  And we gain a more unified interface (stripping away
+  one unique path to Param* machinery)?
+
+- nsf::proc should also have a -returns option, right?
+
+% ::nsf::proc x
+required argument 'arguments' is missing, should be:
+	::nsf::proc ?-ad? ?-checkalways? ?-debug? ?-deprecated? /procName/ /arguments/ /body/
+% nsf::proc x {-a:integer} -returns alnum {;}
+invalid argument 'alnum', maybe too many arguments; should be "nsf::proc ?-ad? ?-checkalways? ?-debug? ?-deprecated? /procName/ /arguments/ /body/"
+
 - nsf::parseargs would need some more love:
   * what is the intended behavior, in these edge cases?
 
