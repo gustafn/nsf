@@ -1039,25 +1039,32 @@ namespace eval ::nx {
       set parameterOptions [string range $spec [expr {$colonPos+1}] end]
       set name [string range $spec 0 [expr {$colonPos -1}]]
       foreach property [split $parameterOptions ,] {
-        if {$property in [list "required" "convert" "substdefault" "noarg" "nodashalnum"]} {
+        if {$property in [list "required" "convert" "noarg" "nodashalnum"]} {
 	  if {$property eq "convert" } {set class [:requireClass ::nx::VariableSlot $class]}
           lappend opts -$property 1
         } elseif {$property eq "noconfig"} {
 	  set opt(-configurable) 0 ;# TODO
         } elseif {$property eq "incremental"} {
 	  return -code error "parameter option incremental must not be used; use non-positional argument -incremental instead"
-        } elseif {[string match type=* $property]} {
+        } elseif {[string match "type=*" $property]} {
 	  set class [:requireClass ::nx::VariableSlot $class]
           set type [string range $property 5 end]
           if {$type eq ""} {
             unset type
-          } elseif {![string match ::* $type]} {
+          } elseif {![string match "::*" $type]} {
             set type [namespace qualifier $target]::$type
           }
-        } elseif {[string match arg=* $property]} {
+        } elseif {[string match "arg=*" $property]} {
           set argument [string range $property 4 end]
           lappend opts -arg $argument
-        } elseif {[string match method=* $property]} {
+        } elseif {[string match "substdefault*" $property]} {
+          if {[string match "substdefault=*" $property]} {
+            set argument [string range $property 13 end]
+          } else {
+            set argument 0b111
+          }
+          lappend opts -substdefault $argument
+        } elseif {[string match "method=*" $property]} {
           lappend opts -methodname [string range $property 7 end]
         } elseif {$property eq "optional"} {
 	  lappend opts -required 0
@@ -1124,9 +1131,9 @@ namespace eval ::nx {
     }
 
     set slotObj [::nx::slotObj -container $container $target $slotname]
-    #puts stderr "SLOTCREATE [self] *** [list $class create $slotObj] {*}$opts <$initblock>"
+    #puts stderr "[self] SLOTCREATE *** [list $class create $slotObj] {*}$opts <$initblock>"
     set r [$class create $slotObj {*}$opts $initblock]
-    #puts stderr "*** returned $r"
+    #puts stderr "[self] SLOTCREATE returned $r"
     return $r
   }
 }
@@ -1248,6 +1255,15 @@ namespace eval ::nx {
   createBootstrapVariableSlots ::nx::Slot {
   }
 
+  Slot protected method getParameterOptionSubstdefault {} {
+    if {${:substdefault} eq "0b111"} {
+      return substdefault
+    } else {
+      return substdefault=${:substdefault}
+    }
+  }
+
+
   ######################################################################
   # configure nx::ObjectParameterSlot
   ######################################################################
@@ -1269,7 +1285,7 @@ namespace eval ::nx {
     {required false}
     {default}
     {initblock}
-    {substdefault false}
+    {substdefault}
     {position 0}
     {positional}
     {elementtype}
@@ -1443,6 +1459,9 @@ namespace eval ::nx {
       #puts stderr "### [self] added multiplicity ${:multiplicity}"
       lappend options ${:multiplicity}
     }
+    if {[info exists :substdefault]} {
+      lappend options [:getParameterOptionSubstdefault]
+    }
     return $options
   }
 
@@ -1453,7 +1472,6 @@ namespace eval ::nx {
     if {![info exists :parameterSpec]} {
       set prefix [expr {[info exists :positional] && ${:positional} ? "" : "-"}]
       set options [:getParameterOptions -withMultiplicity true -forObjectParameter true]
-      #puts stderr [self]================raw:$options
 
       if {[info exists :initblock]} {
 	if {[info exists :default]} {
@@ -1481,21 +1499,6 @@ namespace eval ::nx {
 	set :parameterSpec [list [:namedParameterSpec $prefix ${:name} $options] $initblock]
 
       } elseif {[info exists :default]} {
-        #
-        # Only add implicit substdefault, when default is given and
-        # substdefault is allowed via substdefault slot property.
-        #
-	if {${:substdefault}} {
-          set substOptPos [lsearch -glob $options substdefaultoptions=* ]
-          #puts stderr  "[self]================ [list lsearch substdefaultoptions=* $options] => $substOptPos"
-          if {$substOptPos > -1} {
-            set substOpt [lindex $options $substOptPos]
-            set options [lreplace $options $substOptPos $substOptPos]
-            lappend options substdefault $substOpt
-          } else {
-            lappend options substdefault
-          }
-	}
 	set :parameterSpec [list [:namedParameterSpec $prefix ${:name} $options] ${:default}]
       } else {
 	set :parameterSpec [list [:namedParameterSpec $prefix ${:name} $options]]
@@ -1606,7 +1609,8 @@ namespace eval ::nx {
       #
       # Value contains globbing meta characters.
       #
-      if {[info exists :elementtype] && ${:elementtype} eq "mixinreg"
+      if {[info exists :elementtype]
+          && ${:elementtype} eq "mixinreg"
 	  && ![string match ::* $value]} {
 	#
         # Prefix glob pattern with ::, since all object names have
@@ -1853,7 +1857,12 @@ namespace eval ::nx {
     if {!$allowpreset && [::nsf::var::exists $object ${:name}] && !$nocomplain} {
       return -code error "object $object has already an instance variable named '${:name}'"
     }
-    set options [:getParameterOptions -withMultiplicity true]
+
+    #
+    # For checking the default, we do not want substdefault to be
+    # passed to is, or is would have to to do the subst....
+    #
+    set options [:getParameterOptions -withMultiplicity true -withSubstdefault false]
 
     if {[llength $options]} {
       ::nsf::is -configure -complain -name ${:name}: [join $options ,] $value
@@ -1883,6 +1892,7 @@ namespace eval ::nx {
 
   ::nx::VariableSlot protected method getParameterOptions {
     {-withMultiplicity 0}
+    {-withSubstdefault 1}
     {-forObjectParameter 0}
   } {
     set options ""
@@ -1918,6 +1928,9 @@ namespace eval ::nx {
       lappend options slotinitialize
     }
     if {[info exists :arg]} {lappend options arg=${:arg}}
+    if {$withSubstdefault && [info exists :substdefault]} {
+      lappend options [:getParameterOptionSubstdefault]
+    }
     if {${:required}} {
       lappend options required
     } elseif {[info exists :positional] && ${:positional}} {
@@ -1932,7 +1945,7 @@ namespace eval ::nx {
 	lappend options noconfig
       }
     }
-    #puts stderr "*** getParameterOptions $withMultiplicity $forObjectParameter [self] returns '$options'"
+    #puts stderr "[self]*** getParameterOptions $withMultiplicity $withSubstdefault $forObjectParameter [self] returns '$options'"
     return $options
   }
 
@@ -2004,8 +2017,15 @@ namespace eval ::nx {
   }
 
   ::nx::VariableSlot protected method checkDefault {} {
-    if {![info exists :default] || [string match {*\[*\]*} ${:default}]} {return}
-    set options [:getParameterOptions -withMultiplicity true]
+    if {![info exists :default] || [string match {*\[*\]*} ${:default}]} {
+      return
+    }
+    #
+    # For checking the default, we do not want substdefault to be
+    # passed to is, or is would have to to do the subst....
+    #
+    set options [:getParameterOptions -withMultiplicity true -withSubstdefault false]
+
     if {[llength $options] > 0} {
       if {[catch {::nsf::is -complain -configure -name ${:name}: [join $options ,] ${:default}} errorMsg]} {
 	#puts stderr "**** destroy [self] - $errorMsg"
@@ -2016,7 +2036,6 @@ namespace eval ::nx {
   }
 
   ::nx::VariableSlot protected method init {} {
-    #puts "[self] VariableSlot [self] ${:incremental} && ${:accessor} && ${:multiplicity} incremental ${:incremental}"
     if {${:incremental}} {
       if {${:accessor} eq "none"} { set :accessor "public" }
       if {![:isMultivalued]} {
@@ -2030,7 +2049,7 @@ namespace eval ::nx {
   }
 
   ::nx::VariableSlot protected method makeSetter {} {
-    set options [:getParameterOptions -withMultiplicity true]
+    set options [:getParameterOptions -withMultiplicity true -withSubstdefault false]
     set setterParam ${:name}
     if {[llength $options]>0} {append setterParam :[join $options ,]}
     ::nsf::method::setter ${:domain} {*}[expr {${:per-object} ? "-per-object" : ""}] $setterParam
@@ -2061,7 +2080,7 @@ namespace eval ::nx {
   }
 
   ::nx::VariableSlot protected method makeIncrementalOperations {} {
-    set options_single [:getParameterOptions]
+    set options_single [:getParameterOptions -withSubstdefault false]
     #if {[llength $options_single] == 0} {}
     if {![info exists :type]} {
       # No need to make per-slot methods; the general rules on
@@ -2070,7 +2089,7 @@ namespace eval ::nx {
     }
     #puts "makeIncrementalOperations -- single $options_single type ${:type}"
     #if {[info exists :type]} {puts ".... type ${:type}"}
-    set options [:getParameterOptions -withMultiplicity true]
+    set options [:getParameterOptions -withMultiplicity true -withSubstdefault false]
     set slotObj "slot=[::nsf::self]"
     if {$slotObj ni $options} {lappend options $slotObj}
 
@@ -2263,8 +2282,11 @@ namespace eval ::nx {
       set trace ${:trace}
     }
 
-    if {[info exists defaultValue] && "substdefault" in [split $parameterOptions ,] &&
-        [string match {*\[*\]*} $defaultValue]} {
+    #puts "[self] object variable haveDefault? [info exists defaultValue] opts <$parameterOptions> options <$options>"
+
+    if {[info exists defaultValue] && "substdefault" in [split $parameterOptions ,]
+        && [string match {*\[*\]*} $defaultValue]
+      } {
       if {![info complete $defaultValue]} {
         return -code error "substdefault: default '$defaultValue' is not a complete script"
       }
@@ -2279,7 +2301,7 @@ namespace eval ::nx {
       #
       # Slot-less variable
       #
-      #puts "... slotless variable $spec"
+      #puts "[self]... slotless variable $spec"
 
       set isSwitch [regsub {\mswitch\M} $parameterOptions boolean parameterOptions]
 
@@ -2311,12 +2333,13 @@ namespace eval ::nx {
       return
     }
 
-    #puts "... slot variable $spec"
+    #puts "[self]... slot variable $spec"
     #
     # create variable via a slot object
     #
     set defaultopts [list -accessor $accessor]
     if {[info exists trace]} {lappend defaultopts -trace $trace}
+
     set slot [::nx::MetaSlot createFromParameterSpec [self] \
 		  -per-object \
 		  -class $class \
@@ -2346,7 +2369,7 @@ namespace eval ::nx {
     } else {
       set name [$slot cget -name]
     }
-
+    #puts "[self]... $slot cget DONE"
     return [::nsf::directdispatch [self] ::nsf::methods::object::info::method registrationhandle $name]
   }
 
@@ -2403,7 +2426,8 @@ namespace eval ::nx {
                pname parameterOptions _ _
 
     set paramOptsList [split $parameterOptions ,]
-    if {[info exists defaultValue] && "substdefault" in $paramOptsList} {
+    if {[info exists defaultValue]
+        && ("substdefault" in $paramOptsList || [lsearch $paramOptsList "substdefault=*"])} {
       if {[string match {*\[*\]*} $defaultValue]} {
         if {![info complete $defaultValue]} {
           return -code error "substdefault: default '$defaultValue' is not a complete script"

@@ -1095,7 +1095,7 @@ namespace eval ::xotcl {
 
     #:property defaultmethods {get set}
 
-    :property {substdefault true}
+    :property {substdefault}
     :property -accessor public multivalued {
       #
       # The slot object is an nx object, therefore we need the nx
@@ -1179,6 +1179,9 @@ namespace eval ::xotcl {
       # passed. Since nx does not allow this, we simply ignore the passed
       # arguments $args.
       #
+      if {[info exists :default] && ![info exists :substdefault]} {
+        set :substdefault 0b111
+      }
       nsf::next ""
     }
 

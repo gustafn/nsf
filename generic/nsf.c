@@ -12227,7 +12227,26 @@ ParamDefsFormat(Tcl_Interp *interp, Nsf_Param const *paramsPtr, NsfObject *conte
         ParamDefsFormatOption(nameStringObj, "optional", &colonWritten, &first);
       }
       if ((paramsPtr->flags & NSF_ARG_SUBST_DEFAULT) != 0u) {
-        ParamDefsFormatOption(nameStringObj, "substdefault", &colonWritten, &first);
+        char   buffer[30];
+        size_t len = 12u;
+
+        memcpy(buffer, "substdefault", len);
+
+        if ((paramsPtr->flags & NSF_ARG_SUBST_DEFAULT_ALL) != 0u) {
+          memcpy(buffer + len + 1u, "=0b", len);
+          len += 4u;
+          buffer[len] = ((paramsPtr->flags & NSF_ARG_SUBST_DEFAULT_VARIABLES) != 0u) ? '1' : '0';
+          len ++;
+          buffer[len] = ((paramsPtr->flags & NSF_ARG_SUBST_DEFAULT_COMMANDS) != 0u) ? '1' : '0';
+          len ++;
+          buffer[len] = ((paramsPtr->flags & NSF_ARG_SUBST_DEFAULT_BACKSLASHES) != 0u) ? '1' : '0';
+          len ++;
+        } else {
+          len ++;
+        }
+        buffer[len] = '\0';
+        ParamDefsFormatOption(nameStringObj, buffer, &colonWritten, &first);
+
       }
       if ((paramsPtr->flags & NSF_ARG_ALLOW_EMPTY) != 0u || (paramsPtr->flags & NSF_ARG_MULTIVALUED) != 0u) {
         char option[10] = "....";
@@ -14773,14 +14792,15 @@ int NsfObjDispatchNRE(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
   nonnull(1) nonnull(2) nonnull(4);
 
 int
-NsfObjDispatchNRE(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfObjDispatchNRE(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 #else
 
 EXTERN int
-NsfObjDispatch(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfObjDispatch(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 #endif
+{
   int result;
 #ifdef STACK_TRACE
   NsfStackDump(interp);
@@ -15742,75 +15762,70 @@ Unescape(Tcl_Obj *objPtr) {
  *----------------------------------------------------------------------
  */
  
- static int ParamOptionParse(Tcl_Interp *interp, const char *argString,
-                             size_t start, size_t optionLength,
-                             unsigned int disallowedOptions, Nsf_Param *paramPtr, int unescape,
-                             const char *qualifier)
-   nonnull(1) nonnull(2) nonnull(6);
+static int ParamOptionParse(Tcl_Interp *interp, const char *argString,
+                            size_t start, size_t optionLength,
+                            unsigned int disallowedOptions, Nsf_Param *paramPtr, int unescape,
+                            const char *qualifier)
+  nonnull(1) nonnull(2) nonnull(6);
  
- static int
-   ParamOptionParse(Tcl_Interp *interp, const char *argString,
-                    size_t start, size_t optionLength,
-                    unsigned int disallowedOptions, Nsf_Param *paramPtr, int unescape,
-                    const char *qualifier) {
-   const char *dotdot, *option = argString + start;
-   char        firstChar = *option;
-   int         result = TCL_OK;
+static int
+ParamOptionParse(Tcl_Interp *interp, const char *argString,
+                 size_t start, size_t optionLength,
+                 unsigned int disallowedOptions, Nsf_Param *paramPtr, int unescape,
+                 const char *qualifier) {
+  const char *dotdot, *option = argString + start;
+  char        firstChar = *option;
+  int         result = TCL_OK;
 
-   nonnull_assert(interp != NULL);
-   nonnull_assert(argString != NULL);
-   nonnull_assert(paramPtr != NULL);
+  nonnull_assert(interp != NULL);
+  nonnull_assert(argString != NULL);
+  nonnull_assert(paramPtr != NULL);
 
-   /*fprintf(stderr, "ParamOptionParse name %s, option '%s' (%ld) disallowed %.6x\n",
-     paramPtr->name, option, start, disallowedOptions);*/
+  /*fprintf(stderr, "ParamOptionParse name %s, option '%s' (%ld) disallowed %.6x\n",
+    paramPtr->name, option, start, disallowedOptions);*/
 
-   if (firstChar == 'r' && strncmp(option, "required", MAX(3, optionLength)) == 0) {
-     paramPtr->flags |= NSF_ARG_REQUIRED;
+  if (firstChar == 'r' && strncmp(option, "required", MAX(3, optionLength)) == 0) {
+    paramPtr->flags |= NSF_ARG_REQUIRED;
 
-   } else if (firstChar == 'o' && strncmp(option, "optional",  MAX(3, optionLength)) == 0) {
-     paramPtr->flags &= ~NSF_ARG_REQUIRED;
+  } else if (firstChar == 'o' && strncmp(option, "optional",  MAX(3, optionLength)) == 0) {
+    paramPtr->flags &= ~NSF_ARG_REQUIRED;
 
-   } else if (firstChar == 's'
-              && strncmp(option, "substdefault", 12) == 0
-              && *(option+12) != 'o'
-              ) {
-     paramPtr->flags |= NSF_ARG_SUBST_DEFAULT;
-     paramPtr->flags |= NSF_ARG_SUBST_DEFAULT_ALL;
-     
-   } else if (firstChar == 's' && strncmp(option, "substdefaultoptions=", 20) == 0) {
-
-     if ((paramPtr->flags & NSF_ARG_SUBST_DEFAULT) == 0u) {
-       return NsfPrintError(interp, "substdefaultoptions only allowed after substdefault'");
-
-     } else {
-       int      result;
-       Tcl_Obj *ov[2];
-
-       ov[0] = NULL;
-       ov[1] = Tcl_NewStringObj(option + 20, (int)optionLength - 20);
-       INCR_REF_COUNT(ov[1]);
-       result = Nsf_ExprObjCmd(NULL, interp, 2, ov);
-       DECR_REF_COUNT(ov[1]);
-
-       if (result == TCL_OK) {
-         int      value = 0;
-         Tcl_Obj *resultObj = Tcl_GetObjResult(interp);
-
-         if ((Tcl_GetIntFromObj(interp, resultObj, &value) != TCL_OK)
-             || (value < 0) || (value > 7)
+  } else if (firstChar == 's'
+             && strncmp(option, "substdefault", 12) == 0
              ) {
-           return NsfPrintError(interp, "parameter option 'substdefaultoptions=' must be a value between 0b000 and 0b111");
-         }
-         /*
-          * Clear old flags
-          */
-         paramPtr->flags &= ~(NSF_ARG_SUBST_DEFAULT_ALL);
-         /*
-          * Set new flags. The value is placed in the last 4 bit of a 32bit entity
-          */
-         paramPtr->flags |= (value << 28);
-       }
-     }
+    int  substDefaultFlags = 0;
+    char trailingChar = *(option+12);
+
+    if (trailingChar == '=') {
+      int      result;
+      Tcl_Obj *ov[2];
+
+      ov[0] = NULL;
+      ov[1] = Tcl_NewStringObj(option + 13, (int)optionLength - 13);
+      INCR_REF_COUNT(ov[1]);
+      result = Nsf_ExprObjCmd(NULL, interp, 2, ov);
+      DECR_REF_COUNT(ov[1]);
+
+      if (result == TCL_OK) {
+        Tcl_Obj *resultObj = Tcl_GetObjResult(interp);
+
+        if ((Tcl_GetIntFromObj(interp, resultObj, &substDefaultFlags) != TCL_OK)
+            || (substDefaultFlags < 0) || (substDefaultFlags > 7)
+            ) {
+          return NsfPrintError(interp,
+                               "parameter option 'substdefault=' must be a value between 0b000 and 0b111: %s",
+                               option);
+        }
+      } else {
+        return NsfPrintError(interp, "substdefault expression failed: %s", ObjStr(Tcl_GetObjResult(interp)));
+      }
+    } else if (trailingChar == '\0' || trailingChar == ',') {
+      substDefaultFlags = 7;
+    } else {
+      return NsfPrintError(interp, "unexpected character %c (%d) after 'substdefault'", trailingChar, trailingChar);
+    }
+    paramPtr->flags |= NSF_ARG_SUBST_DEFAULT;
+    paramPtr->flags |= (substDefaultFlags << 28);
 
    } else if (firstChar == 'c' && strncmp(option, "convert", 7) == 0) {
      paramPtr->flags |= NSF_ARG_IS_CONVERTER;
@@ -16290,7 +16305,9 @@ ParamDefinitionParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, uns
     goto param_error;
   }
 
-  /* postprocessing the parameter options */
+  /*
+   * Postprocessing the parameter options
+   */
 
   if (paramPtr->converter == NULL) {
     /*
@@ -28805,6 +28822,7 @@ ParamSetFromAny2(
 
   Tcl_AppendLimitedToObj(fullParamObj, ObjStr(objPtr), -1, INT_MAX, NULL);
   INCR_REF_COUNT(fullParamObj);
+
   result = ParamDefinitionParse(interp, NsfGlobalObjs[NSF_VALUECHECK], fullParamObj,
                       (allowParameter == 1) ? NSF_DISALLOWED_ARG_OBJECT_PARAMETER : NSF_DISALLOWED_ARG_VALUECHECK,
                       paramWrapperPtr->paramPtr, &possibleUnknowns,
@@ -28819,7 +28837,7 @@ ParamSetFromAny2(
   if (likely(result == TCL_OK)) {
     /*
      * In success cases, the memory allocated by this function is freed via
-     * the tcl_obj type.
+     * the Tcl_Obj type.
      */
     paramWrapperPtr->paramPtr->flags |= NSF_ARG_UNNAMED;
     if (*(paramWrapperPtr->paramPtr->name) == 'r') {
@@ -29069,7 +29087,15 @@ ParameterCheck(Tcl_Interp *interp, Tcl_Obj *paramObjPtr, Tcl_Obj *valueObj,
     if (likely(result == TCL_OK)) {
       paramWrapperPtr = (NsfParamWrapper *) paramObjPtr->internalRep.twoPtrValue.ptr1;
     } else {
-      return NsfPrintError(interp, "invalid value constraints \"%s\"", ObjStr(paramObjPtr));
+      char *errMsg = ObjStr(Tcl_GetObjResult(interp));
+
+      if (*errMsg != '\0') {
+        return NsfPrintError(interp, "invalid value constraints \"%s\"",
+                             ObjStr(paramObjPtr) );
+      } else {
+        return NsfPrintError(interp, "invalid value constraints \"%s\"",
+                             ObjStr(paramObjPtr), errMsg);
+      }
     }
   }
   paramPtr = paramWrapperPtr->paramPtr;
@@ -29515,12 +29541,13 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
           ov[0] = (paramPtr->method != NULL) ? paramPtr->method : paramPtr->nameObj;
           ov[1] = newValue;
 
-          fprintf(stderr, "SLOTSET %s %s %s %s %s idx %d %p\n", ObjectName(slotObject),
+          /*fprintf(stderr, "SLOTSET %s %s %s %s %s idx %d %p\n", ObjectName(slotObject),
                   ObjStr(NsfGlobalObjs[NSF_SET]), ObjStr(object->cmdName),
                   ObjStr(paramPtr->nameObj), ObjStr(newValue),
-                  NSF_s_set_idx, methodObj);
+                  NSF_s_set_idx, methodObj);*/
 
-          result = NsfCallMethodWithArgs(interp, (Nsf_Object *)slotObject, (methodObj != NULL) ? methodObj : NsfGlobalObjs[NSF_SLOT_SET],
+          result = NsfCallMethodWithArgs(interp, (Nsf_Object *)slotObject,
+                                         (methodObj != NULL) ? methodObj : NsfGlobalObjs[NSF_SLOT_SET],
                                          object->cmdName, 3, ov, NSF_CSC_IMMEDIATE);
         }
         if (unlikely(result != TCL_OK)) {

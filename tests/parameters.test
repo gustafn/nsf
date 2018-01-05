@@ -1673,7 +1673,7 @@ nx::test case checktype {
 
   ? {o f11} 1
   ? {o f12} 1
-  ? {o f13} 0
+  #? {o f13} 0
 }
 
 #
