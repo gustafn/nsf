@@ -123,12 +123,29 @@ namespace eval ::nx {
       :exitOn
       if {[info exists :pre]} {:call "pre" ${:pre}}
       if {![info exists :msg]} {set :msg ${:cmd}}
-      set gotError [catch {:call "run" ${:cmd}} r]
+      #set gotError [catch {:call "run" ${:cmd}} r]
+      try {
+        :call run ${:cmd}
+      } on error {errorMsg opts} {
+        set errorCode [dict get $opts -errorcode]
+        if {$errorCode ne "NONE"} {
+          set r $errorMsg
+        } else {
+          set r $errorMsg
+        }
+        set gotError 1
+      } on ok {r} {
+        set gotError 0
+        set errorCode "NONE"
+      }
       #puts stderr "gotError = $gotError // $r == ${:expected} // [info exists :setResult]"
       if {[info exists :setResult]} {set r [eval [set :setResult]]}
-      if {$r eq ${:expected}} {
+      if {$r eq ${:expected} || $errorCode eq ${:expected}} {
         if {$gotError} {
           set c 1
+          if {$errorCode ne "NONE" && $errorCode ne ${:expected}} {
+            puts stderr "[set :name] hint: we could compare with errorCode: $errorCode"
+          }
         } else {
           if {[info exists :count]} {set c ${:count}} {set c 1000}
         }

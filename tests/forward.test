@@ -271,7 +271,7 @@ nx::test case forwarder-basics {
   ? {obj info object methods foo} ""
   obj public object forward ::ns1::foo
   ? {obj info object methods foo} "foo"
-  ? {obj foo X} {invalid command name "::ns1::foo"}
+  ? {obj foo X} {TCL LOOKUP COMMAND ::ns1::foo} "invalid target command"
   namespace eval ::ns1 {proc foo {p} {return $p}}
   ? {obj foo X} "X"
   obj public object forward ::ns1::foo %method %method
@@ -354,14 +354,14 @@ nx::test case positioning-arg-extended {
   ? {obj foo 1 2 3} [list 1 2 3 %]
 
   obj public object forward foo list {%obj foo}
-  ? {obj foo 1 2 3} "too many nested evaluations (infinite loop?)"
+  ? {obj foo 1 2 3} "TCL LIMIT STACK" "stack overflow"
 
   obj public object forward foo list {%apply {{x} {return $x}} A}
   ? {obj foo 1 2 3} [list A 1 2 3]
 
   ## positioning of "simple" cmd substitution works fine
   obj public object forward foo list {%@end %obj}
-  ? {obj foo 1 2 3} [list 1 2 3 ::obj]
+  ? {obj foo 1 2 3} [list 1 2 3 ::obj] "simple cmd substitution by position"
 
   ## lindex allows for omitting the index arg or passing {} as index value ... forward catches both cases nicely:
   obj public object forward foo list {%@{} %obj}
@@ -376,27 +376,26 @@ nx::test case positioning-arg-extended {
   ##
 
   obj public object forward foo list {%@end %::proc}
-  ? {obj foo 1 2 3} {wrong # args: should be "::proc name args body"}
+  ? {obj foo 1 2 3} {TCL WRONGARGS} "provided wrong arguments for target command"
 
   # the next test does not work unless called from nxsh, which imports ::nx::self
-  #obj public object forward foo list {%@end %::self}
+  # obj public object forward foo list {%@end %::self}
   #? {obj foo 1 2 3} [list 1 2 3 ::obj]
 
   obj public object forward foo list {%@end %::nx::self}
   ? {obj foo 1 2 3} [list 1 2 3 ::obj] "fully qualified self"
 
   obj public object forward foo list {%@end %::1}
-  ? {obj foo 1 2 3} {invalid command name "::1"}
+  ? {obj foo 1 2 3} {TCL LOOKUP COMMAND ::1} "forward to non-existing object"
 
   ##
   ## position prefixes are interpreted in a context-dependent manner:
   ##
 
   obj public object forward foo list {%@1 %@1}
-  ? {obj foo 1 2 3} {invalid command name "@1"}
+  ? {obj foo 1 2 3} {TCL LOOKUP COMMAND @1}  "forward to non-existing cmd"
 
   if {![string length "ISSUES"]} {
-
 
     ## list protection makes this fail
     obj public object forward foo list {%@end {%argclindex {A B C D}}}
@@ -448,7 +447,7 @@ nx::test case earlybinding {
 
   nx::Object public method f args { next }
 
-  nx::Class create NS	
+  nx::Class create NS
   nx::Class create NS::Main {
     :public object method m1 {} { :m2 }
     :public object method m2 {} {
@@ -537,18 +536,18 @@ nx::test case callstack {
   }
   C create c1
 
-  ? {c1 expr {[current]}} 		::c1
-  ? {c1 expr {[current] eq "::c1"}} 	1
-  ? {c1 expr {[:xx]}} 		::c1
-  ? {c1 expr {[:info class]}} 	::C
-  ? {c1 expr {[:info has type C]}} 	1
-  ? {c1 expr {[:info has type ::C]}} 	1
+  ? {c1 expr {[current]}}               ::c1
+  ? {c1 expr {[current] eq "::c1"}}     1
+  ? {c1 expr {[:xx]}}           ::c1
+  ? {c1 expr {[:info class]}}   ::C
+  ? {c1 expr {[:info has type C]}}      1
+  ? {c1 expr {[:info has type ::C]}}    1
 
-  ? {C t ::c1 {[current]}} 		::c1
+  ? {C t ::c1 {[current]}}              ::c1
   ? {C t ::c1 {[current] eq "::c1"}}  1
-  ? {C t ::c1 {[:xx]}} 		::c1
+  ? {C t ::c1 {[:xx]}}          ::c1
   ? {C t ::c1 {[:info class]}} ::C
-  ? {C t ::c1 {[:info has type C]}} 	1
+  ? {C t ::c1 {[:info has type C]}}     1
   ? {C t ::c1 {[:info has type ::C]}}	1
 
   nx::Object method expr {} {}
