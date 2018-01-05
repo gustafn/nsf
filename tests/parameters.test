@@ -104,7 +104,7 @@ nx::test case parametercheck {
   ? {::nsf::is integer 0xy} 0
 
   # built in converter, but not allowed
-  ? {::nsf::is switch 1} {invalid value constraints "switch"}
+  ? {::nsf::is switch 1} {invalid value constraints "switch": invalid parameter type "switch" for argument "value"; type "switch" only allowed for non-positional arguments}
   ? {::nsf::is superclass M} {invalid value constraints "superclass"}
 
   # don't allow convert;

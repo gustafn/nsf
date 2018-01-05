@@ -29089,7 +29089,7 @@ ParameterCheck(Tcl_Interp *interp, Tcl_Obj *paramObjPtr, Tcl_Obj *valueObj,
     } else {
       char *errMsg = ObjStr(Tcl_GetObjResult(interp));
 
-      if (*errMsg != '\0') {
+      if (*errMsg == '\0') {
         return NsfPrintError(interp, "invalid value constraints \"%s\"",
                              ObjStr(paramObjPtr) );
       } else {

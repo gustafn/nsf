@@ -47,7 +47,7 @@ nx::test case basics {
     #
     # Not applicable in parametercheck
     #
-    ? [list ::nsf::is $paramType $msg] "invalid value constraints \"$paramType\""
+    ? [list ::nsf::is $paramType $msg] "invalid value constraints \"$paramType\": parameter option '$paramType' not allowed"
   }
 
   
@@ -141,16 +141,10 @@ nx::test case basics {
   #
   # Without the sketched extension, one could use eval in a forwarder.
   # 
-puts stderr ===1
   C setObjectParams {{{-multi-2:forward,method=eval %self %method}}}
-puts stderr ===2a
-set x [C new -multi-2 {X Y}]
-puts stderr [$x eval {set :multi-2}]
-puts stderr ===2b
 
   ? {[C new -multi-2 {X Y}] eval {set :multi-2}} \
       "X Y"
-puts stderr ===3
 
   #
   # In the positional case, why is FOO not passed on as arg value to
@@ -406,7 +400,8 @@ nx::test case dispo-returns {
     initcmd
   } {
     ::nsf::method::property R $methods(raz) returns $dispoSpec
-    ? {R raz} "invalid value constraints \"$dispoSpec\""
+    set trueSpec [lindex $dispoSpec 0]
+    ? {R raz} "invalid value constraints \"$dispoSpec\": parameter option '$trueSpec' not allowed"
   }
   
 
