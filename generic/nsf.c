@@ -12121,12 +12121,12 @@ ParamDefsRefCountDecr(NsfParamDefs *paramDefs) {
  *
  *----------------------------------------------------------------------
  */
-static void ParamDefsFormatOption(Tcl_Obj *nameStringObj, const char *option,
+static void ParamDefsFormatOption(Tcl_Obj *nameStringObj, const char *option, int optionLength,
                                   int *colonWritten, int *firstOption)
-  nonnull(1) nonnull(2) nonnull(3) nonnull(4);
+  nonnull(1) nonnull(2) nonnull(4) nonnull(5);
 
 static void
-ParamDefsFormatOption(Tcl_Obj *nameStringObj, const char *option,
+ParamDefsFormatOption(Tcl_Obj *nameStringObj, const char *option, int optionLength,
                       int *colonWritten, int *firstOption) {
 
   nonnull_assert(nameStringObj != NULL);
@@ -12143,7 +12143,7 @@ ParamDefsFormatOption(Tcl_Obj *nameStringObj, const char *option,
   } else {
     Tcl_AppendLimitedToObj(nameStringObj, ",", 1, INT_MAX, NULL);
   }
-  Tcl_AppendLimitedToObj(nameStringObj, option, -1, INT_MAX, NULL);
+  Tcl_AppendLimitedToObj(nameStringObj, option, optionLength, INT_MAX, NULL);
 }
 
 /*
@@ -12217,14 +12217,14 @@ ParamDefsFormat(Tcl_Interp *interp, Nsf_Param const *paramsPtr, NsfObject *conte
       nameStringObj = Tcl_NewStringObj(paramsPtr->name, -1);
 
       if (paramsPtr->type != NULL) {
-        ParamDefsFormatOption(nameStringObj, paramsPtr->type, &colonWritten, &first);
+        ParamDefsFormatOption(nameStringObj, paramsPtr->type, -1, &colonWritten, &first);
       } else if (isNonpos && paramsPtr->nrArgs == 0) {
-        ParamDefsFormatOption(nameStringObj, "switch", &colonWritten, &first);
+        ParamDefsFormatOption(nameStringObj, "switch", 6, &colonWritten, &first);
       }
       if (outputRequired != 0) {
-        ParamDefsFormatOption(nameStringObj, "required", &colonWritten, &first);
+        ParamDefsFormatOption(nameStringObj, "required", 8, &colonWritten, &first);
       } else if (outputOptional != 0) {
-        ParamDefsFormatOption(nameStringObj, "optional", &colonWritten, &first);
+        ParamDefsFormatOption(nameStringObj, "optional", 8, &colonWritten, &first);
       }
       if ((paramsPtr->flags & NSF_ARG_SUBST_DEFAULT) != 0u) {
         char   buffer[30];
@@ -12245,7 +12245,7 @@ ParamDefsFormat(Tcl_Interp *interp, Nsf_Param const *paramsPtr, NsfObject *conte
           len ++;
         }
         buffer[len] = '\0';
-        ParamDefsFormatOption(nameStringObj, buffer, &colonWritten, &first);
+        ParamDefsFormatOption(nameStringObj, buffer, len, &colonWritten, &first);
 
       }
       if ((paramsPtr->flags & NSF_ARG_ALLOW_EMPTY) != 0u || (paramsPtr->flags & NSF_ARG_MULTIVALUED) != 0u) {
@@ -12253,23 +12253,23 @@ ParamDefsFormat(Tcl_Interp *interp, Nsf_Param const *paramsPtr, NsfObject *conte
 
         option[0] = ((paramsPtr->flags & NSF_ARG_ALLOW_EMPTY) != 0u) ? '0' : '1';
         option[3] = ((paramsPtr->flags & NSF_ARG_MULTIVALUED) != 0u) ? '*' : '1';
-        ParamDefsFormatOption(nameStringObj, option, &colonWritten, &first);
+        ParamDefsFormatOption(nameStringObj, option, 4, &colonWritten, &first);
       }
       if ((paramsPtr->flags & NSF_ARG_IS_CONVERTER) != 0u) {
-        ParamDefsFormatOption(nameStringObj, "convert", &colonWritten, &first);
+        ParamDefsFormatOption(nameStringObj, "convert", 7, &colonWritten, &first);
       }
       if ((paramsPtr->flags & NSF_ARG_INITCMD) != 0u) {
-        ParamDefsFormatOption(nameStringObj, "initcmd", &colonWritten, &first);
+        ParamDefsFormatOption(nameStringObj, "initcmd", 7, &colonWritten, &first);
       } else if ((paramsPtr->flags & NSF_ARG_CMD) != 0u) {
-        ParamDefsFormatOption(nameStringObj, "cmd", &colonWritten, &first);
+        ParamDefsFormatOption(nameStringObj, "cmd", 3, &colonWritten, &first);
       } else if ((paramsPtr->flags & NSF_ARG_ALIAS) != 0u) {
-        ParamDefsFormatOption(nameStringObj, "alias", &colonWritten, &first);
+        ParamDefsFormatOption(nameStringObj, "alias", 5, &colonWritten, &first);
       } else if ((paramsPtr->flags & NSF_ARG_FORWARD) != 0u) {
-        ParamDefsFormatOption(nameStringObj, "forward", &colonWritten, &first);
+        ParamDefsFormatOption(nameStringObj, "forward", 7, &colonWritten, &first);
       } else if ((paramsPtr->flags & NSF_ARG_NOARG) != 0u) {
-        ParamDefsFormatOption(nameStringObj, "noarg", &colonWritten, &first);
+        ParamDefsFormatOption(nameStringObj, "noarg", 5, &colonWritten, &first);
       } else if ((paramsPtr->flags & NSF_ARG_NOCONFIG) != 0u) {
-        ParamDefsFormatOption(nameStringObj, "noconfig", &colonWritten, &first);
+        ParamDefsFormatOption(nameStringObj, "noconfig", 8, &colonWritten, &first);
       }
 
       innerListObj = Tcl_NewListObj(0, NULL);
