@@ -16916,10 +16916,10 @@ MakeProc(Tcl_Namespace *nsPtr, NsfAssertionStore *aStore, Tcl_Interp *interp,
          Tcl_Obj *nameObj, Tcl_Obj *args, Tcl_Obj *body, Tcl_Obj *precondition,
          Tcl_Obj *postcondition, NsfObject *defObject, NsfObject *regObject,
          int withPer_object, int withInner_namespace, unsigned int checkAlwaysFlag) {
-  Tcl_CallFrame   frame, *framePtr = &frame;
+  //Tcl_CallFrame   frame, *framePtr = &frame;
   const char     *methodName;
   NsfParsedParam  parsedParam;
-  Tcl_Obj        *ov[4];
+  Tcl_Obj        *ov[4], *fullyQualifiedNameObj;
   int             result;
 
   nonnull_assert(nsPtr != NULL);
@@ -16930,16 +16930,18 @@ MakeProc(Tcl_Namespace *nsPtr, NsfAssertionStore *aStore, Tcl_Interp *interp,
   nonnull_assert(defObject != NULL);
 
   methodName = ObjStr(nameObj);
+
   /*
    * Tcl (at least in newer versions) will raise an error in cases, where
    * the methodName starts with a colon.
    */
-
   if (regObject == NULL) {
     regObject = defObject;
   }
 
-  /* Check, if we are allowed to redefine the method */
+  /*
+   * Check, if we are allowed to redefine the method
+   */
   result = CanRedefineCmd(interp, nsPtr, defObject, methodName, 0);
   if (likely(result == TCL_OK)) {
     /* Yes, we can! ...so obtain an method parameter definitions */
@@ -16955,8 +16957,15 @@ MakeProc(Tcl_Namespace *nsPtr, NsfAssertionStore *aStore, Tcl_Interp *interp,
     return result;
   }
 
+  if (isAbsolutePath(methodName)) {
+    fullyQualifiedNameObj = nameObj;
+  } else {
+    fullyQualifiedNameObj = NameInNamespaceObj(methodName, nsPtr);
+    INCR_REF_COUNT2("fullyQualifiedName", fullyQualifiedNameObj);
+  }
+
   ov[0] = NULL; /*objv[0];*/
-  ov[1] = nameObj;
+  ov[1] = fullyQualifiedNameObj; //nameObj;
 
   if (parsedParam.paramDefs != NULL) {
     Nsf_Param *pPtr;
@@ -16978,14 +16987,16 @@ MakeProc(Tcl_Namespace *nsPtr, NsfAssertionStore *aStore, Tcl_Interp *interp,
     ov[3] = AddPrefixToBody(body, 0, &parsedParam);
   }
 
-  Tcl_PushCallFrame(interp, (Tcl_CallFrame *)framePtr, nsPtr, 0);
+  //Tcl_PushCallFrame(interp, (Tcl_CallFrame *)framePtr, nsPtr, 0);
   /*
    * Create the method in the provided namespace.
    */
   result = Tcl_ProcObjCmd(NULL, interp, 4, ov);
 
   if (likely(result == TCL_OK)) {
-    /* retrieve the defined proc */
+    /*
+     * Retrieve the newly defined proc
+     */
     Proc *procPtr = FindProcMethod(nsPtr, methodName);
 
     if (procPtr != NULL) {
@@ -17013,9 +17024,22 @@ MakeProc(Tcl_Namespace *nsPtr, NsfAssertionStore *aStore, Tcl_Interp *interp,
       ParamDefsStore((Tcl_Command)procPtr->cmdPtr, parsedParam.paramDefs, checkAlwaysFlag);
       Tcl_SetObjResult(interp, MethodHandleObj(defObject, withPer_object, methodName));
       result = TCL_OK;
+    } else {
+      result = TCL_ERROR;
+      NsfLog(interp, NSF_LOG_WARN,
+             "cannot retrieve newly defined method %s from namespace %s",
+             methodName, nsPtr->fullName);
+      if (*methodName == ':') {
+        NsfPrintError(interp, "can't create procedure \"%s\" in non-global namespace"
+                      " with name starting with \":\"",
+                      methodName);
+      } else {
+        NsfPrintError(interp, "can't create procedure \"%s\" in non-global namespace",
+                      methodName);
+      }
     }
   }
-  Tcl_PopCallFrame(interp);
+  //Tcl_PopCallFrame(interp);
 
 #if defined(NSF_WITH_ASSERTIONS)
   if (result == TCL_OK && aStore != NULL /* (precondition || postcondition)*/) {
@@ -17027,6 +17051,10 @@ MakeProc(Tcl_Namespace *nsPtr, NsfAssertionStore *aStore, Tcl_Interp *interp,
     DECR_REF_COUNT(ov[2]);
   }
   DECR_REF_COUNT2("resultBody", ov[3]);
+  if (fullyQualifiedNameObj != nameObj) {
+    DECR_REF_COUNT2("fullyQualifiedName", fullyQualifiedNameObj);
+  }
+
 
   return result;
 }
