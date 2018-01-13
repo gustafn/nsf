@@ -377,7 +377,7 @@ C public method FOO {} {}
 ::nsf::method::alias ::C BAR ::foo  
 
 # AliasDelete in AddObjectMethod
-? {info exists ::nsf::alias(::o,BAR,1)} 1
+? {info exists ::nsf::alias(::o,BAR,1)} 1 "delete alias via redefinition of a method"
 ::o public object method BAR {} {;}
 ? {info exists ::nsf::alias(::o,BAR,1)} 0
 

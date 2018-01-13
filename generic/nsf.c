@@ -16987,10 +16987,23 @@ MakeProc(Tcl_Namespace *nsPtr, NsfAssertionStore *aStore, Tcl_Interp *interp,
     ov[3] = AddPrefixToBody(body, 0, &parsedParam);
   }
 
+  /*
+   * Check, if the cmd exists already in the namespace. If so, delete it from
+   * there.
+   */
+  {
+    Tcl_HashEntry *hPtr = Tcl_FindHashEntry(Tcl_Namespace_cmdTablePtr(nsPtr), methodName);
+    if (hPtr != NULL) {
+      NSDeleteCmd(interp, nsPtr, methodName);
+      //fprintf(stderr, "... DELETE preexisting cmd %s in ns %s\n", methodName, nsPtr->fullName);
+    }
+  }
+
   //Tcl_PushCallFrame(interp, (Tcl_CallFrame *)framePtr, nsPtr, 0);
   /*
    * Create the method in the provided namespace.
    */
+
   result = Tcl_ProcObjCmd(NULL, interp, 4, ov);
 
   if (likely(result == TCL_OK)) {
