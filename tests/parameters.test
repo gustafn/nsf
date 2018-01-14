@@ -2622,9 +2622,10 @@ nx::test case object-parameter-switch {
     :object variable foo:switch
     :object variable bar:switch 1
   }} ::o1
-  ? {o1 eval {set :foo}} 0
-  ? {o1 eval {set :bar}} 1
+  ? {o1 eval {set :foo}} 0 "check value of switch variable without default"
+  ? {o1 eval {set :bar}} 1 "check value of switch variable with default"
 }
+
 
 #
 # Test slots with configparameter true/false, accessor true/false
@@ -3540,6 +3541,29 @@ nx::test case type-reform {
   ? {[::ns1::ns2::A new] foo ::c} \
       "expected object of type ::ns1::ns2::C but got \"::c\" for parameter \"p1\""  
 }
+
+#
+# Check per-object variable default value checking.
+# Every test can be performed only once due to the intended semantics
+#
+nx::test configure -count 1
+nx::test case check-object-variables {
+  ::nx::Object create o1
+  ? {::o1 object variable v01:int 1} {}
+  ? {::o1 object variable v11:int a} {expected integer but got "a"}
+
+  ? {::o1 object variable v02:object,type=nx::Object ::nx::Object} {}
+  ? {::o1 object variable v12:object,type=nx::Object a} {expected object but got "a"}
+
+  ? {::o1 object variable v03:upper A} {}
+  ? {::o1 object variable v13:upper a} {expected upper but got "a"}
+
+  ? {::o1 object variable v04:lower,1..n "a b c"} {}
+  ? {::o1 object variable v14:lower,1..n "a B c"} {invalid value in "a B c": expected lower but got "B"}
+
+  ? {::o1 object variable err:object,type:nx::Object ::nx::Object} {invalid value constraints "type:nx::Object"}
+}
+
 
 
 #

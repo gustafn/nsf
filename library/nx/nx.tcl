@@ -1022,6 +1022,51 @@ namespace eval ::nx {
     }
   }
 
+  #
+  # Translate substdefault bitpattern to options passed to the Tcl
+  # "subst" command
+  #
+  MetaSlot public object method substDefaultOptions {
+    bitPattern
+  } {
+    # backslashes, variables, commands
+    set options {}
+    if {($bitPattern & 0b100) == 0} {
+      lappend options -nobackslashes
+    }
+    if {($bitPattern & 0b010) == 0} {
+      lappend options -novariables
+    }
+    if {($bitPattern & 0b001) == 0} {
+      lappend options -nocommands
+    }
+    return $options
+  }
+
+  #
+  # Given a dict of parameter options, translate this into a spec
+  # which can be passed to nsf::is for value checking
+  #
+  MetaSlot public object method optionsToValueCheckingSpec {
+    options
+  } {
+    set noptions ""
+    if {[dict exists $options -type]} {
+      set type [dict get $options -type]
+      if {[string match "::*" $type]} {
+        lappend noptions object type=$type
+      } elseif {$type eq "switch"} {
+        lappend noptions boolean
+      } else {
+        lappend noptions $type
+      }
+    }
+    if {[dict exists $options -multiplicity]} {
+      lappend noptions [dict get $options -multiplicity]
+    }
+    return [join $noptions ,]
+  }
+
   MetaSlot public object method parseParameterSpec {
     {-class ""}
     {-defaultopts ""}
@@ -2272,38 +2317,52 @@ namespace eval ::nx {
     # get name and list of parameter options
     lassign [::nx::MetaSlot parseParameterSpec -class $class -target [self] $spec] \
 	name parameterOptions class options
-    array set opts $options
 
-    if {[info exists opts(-configurable)]} {
-      set configurable $opts(-configurable)
+    #puts "[self] object variable $spec name <$name> parameterOptions <$parameterOptions> class <$class> options <$options>"
+
+
+    if {[dict exists $options -configurable]} {
+      set configurable [dict get $options -configurable]
     }
 
     if {![info exists trace] && [info exists :trace] && ${:trace} ne "none"} {
       set trace ${:trace}
     }
 
-    #puts "[self] object variable haveDefault? [info exists defaultValue] opts <$parameterOptions> options <$options>"
+    #puts "[self] object variable $spec haveDefault? [info exists defaultValue] opts <$parameterOptions> options <$options>"
 
-    if {[info exists defaultValue] && "substdefault" in [split $parameterOptions ,]
+    if {[info exists defaultValue]
+        && [dict exists $options -substdefault]
         && [string match {*\[*\]*} $defaultValue]
       } {
       if {![info complete $defaultValue]} {
         return -code error "substdefault: default '$defaultValue' is not a complete script"
       }
-      # TODO: This should be -novariables, and protected by
-      # [apply]. For now, untouched, as ArgumentDefaults() has no
-      # substitution restrictions.
-      set defaultValue [subst $defaultValue]
+      set substDefaultOptions [::nx::MetaSlot substDefaultOptions [dict get $options -substdefault]]
+      set defaultValue [subst {*}$substDefaultOptions $defaultValue]
     }
-    
-    if {$initblock eq "" && !$configurable && !$incremental
-        && $accessor eq "none" && ![info exists trace]} {
+
+    #
+    # Check for slot-less variables
+    #
+    if {$initblock eq ""
+        && !$configurable
+        && !$incremental
+        && $accessor eq "none"
+        && ![info exists trace]
+      } {
       #
-      # Slot-less variable
+      # The variable is slot-less.
       #
       #puts "[self]... slotless variable $spec"
 
-      set isSwitch [regsub {\mswitch\M} $parameterOptions boolean parameterOptions]
+      # The following tasks have to be still performed:
+      # - If there is an explicit default value, the value has to
+      #   be checked.
+      # - if the type is a switch, we have to set the implicit
+      #   default value, when there is not explicit default
+      #
+      set isSwitch [expr {[dict exists $options -type] && [dict get $options -type] eq "switch"}]
 
       if {[info exists defaultValue]} {
 	if {[info exists :$name] && !$nocomplain} {
@@ -2312,14 +2371,14 @@ namespace eval ::nx {
 	}
 	if {$parameterOptions ne ""} {
 	  #puts stderr "*** ::nsf::is $parameterOptions $defaultValue // opts=$options"
-	  # we rely here that the nsf::is error message expresses the implementation limits
-	  set noptions {}
-	  foreach o [split $parameterOptions ,] {
-	    if {$o ni {noconfig substdefault}} {lappend noptions $o}
-	  }
-
-	  set parameterOptions [join $noptions ,]
-	  ::nsf::is -complain $parameterOptions $defaultValue
+	  #
+          # Extract from the options a spec for value checking, and
+          # let "nsf::is" perform the actual checking. In case, the
+          # check fails, "nsf::is" will raise an error with and error
+          # message communicating the failure.
+          #
+	  set nspec [::nx::MetaSlot optionsToValueCheckingSpec $options]
+	  ::nsf::is -complain $nspec $defaultValue
 	} else {
 	  set name $spec
 	}

@@ -28,7 +28,7 @@ package req nx::test
 #     prefixes)
 
 
-nx::test case substdefaultoptions {
+nx::test case substdefaultoptions-class {
   set ::X 123
   nx::Class create D {
 
@@ -50,16 +50,79 @@ nx::test case substdefaultoptions {
 
   #? {::d1 eval :__object_configureparameter} ""
 
-  ? {d1 show :a} {a $::X [set x 4] \t}
-  ? {d1 show :b} {a 123 4 	}
-  ? {d1 show :c} {a 123 4 	}
-  ? {d1 show :d} {a $::X [set x 4] 	}
-  ? {d1 show :e} {a 123 [set x 4] \t}
-  ? {d1 show :f} {a $::X 4 \t}
-  ? {d1 show :g} {a $::X [set x 4] \t}
+  ? {d1 show :a} {a $::X [set x 4] \t}    "no substdefault"
+  ? {d1 show :b} {a 123 4 	}         "substdefault no options"
+  ? {d1 show :c} {a 123 4 	}         "substdefault 0b111 subst all"
+  ? {d1 show :d} {a $::X [set x 4] 	} "substdefault 0b100 -novars -nocommands"
+  ? {d1 show :e} {a 123 [set x 4] \t}     "substdefault 0b010 -nocommands -nobackslashes"
+  ? {d1 show :f} {a $::X 4 \t}            "substdefault 0b001 -novars -nobackslashes"
+  ? {d1 show :g} {a $::X [set x 4] \t}    "substdefault 0b000 -nocommands -novars -nobackslashes"
 
   unset ::X
 }
+
+#
+# same test cases as above, buf for object cases
+#
+nx::test case substdefaultoptions-object-slot {
+  set ::X 123
+  nx::Object create d1 {
+
+    :object property {a                    {a $::X [set x 4] \t}}
+    :object property {b:substdefault       {a $::X [set x 4] \t}}
+    :object property {c:substdefault=0b111 {a $::X [set x 4] \t}}
+    :object property {d:substdefault=0b100 {a $::X [set x 4] \t}}
+    :object property {e:substdefault=0b010 {a $::X [set x 4] \t}}
+    :object property {f:substdefault=0b001 {a $::X [set x 4] \t}}
+    :object property {g:substdefault=0b000 {a $::X [set x 4] \t}}
+
+    :public object method show {v} {
+      return [set $v]
+    }
+  }
+
+  ? {d1 show :a} {a $::X [set x 4] \t}    "no substdefault"
+  ? {d1 show :b} {a 123 4 	}         "substdefault no options"
+  ? {d1 show :c} {a 123 4 	}         "substdefault 0b111 subst all"
+  ? {d1 show :d} {a $::X [set x 4] 	} "substdefault 0b100 -novars -nocommands"
+  ? {d1 show :e} {a 123 [set x 4] \t}     "substdefault 0b010 -nocommands -nobackslashes"
+  ? {d1 show :f} {a $::X 4 \t}            "substdefault 0b001 -novars -nobackslashes"
+  ? {d1 show :g} {a $::X [set x 4] \t}    "substdefault 0b000 -nocommands -novars -nobackslashes"
+
+  unset ::X
+}
+
+nx::test case substdefaultoptions-object-noslot {
+  set ::X 123
+  nx::Object create d1 {
+
+    :object variable a                    {a $::X [set x 4] \t}
+    :object variable b:substdefault       {a $::X [set x 4] \t}
+    :object variable c:substdefault=0b111 {a $::X [set x 4] \t}
+    :object variable d:substdefault=0b100 {a $::X [set x 4] \t}
+    :object variable e:substdefault=0b010 {a $::X [set x 4] \t}
+    :object variable f:substdefault=0b001 {a $::X [set x 4] \t}
+    :object variable g:substdefault=0b000 {a $::X [set x 4] \t}
+
+    :public object method show {v} {
+      return [set $v]
+    }
+  }
+
+  ? {d1 show :a} {a $::X [set x 4] \t}    "no substdefault"
+  ? {d1 show :b} {a 123 4 	}         "substdefault no options"
+  ? {d1 show :c} {a 123 4 	}         "substdefault 0b111 subst all"
+  ? {d1 show :d} {a $::X [set x 4] 	} "substdefault 0b100 -novars -nocommands"
+  ? {d1 show :e} {a 123 [set x 4] \t}     "substdefault 0b010 -nocommands -nobackslashes"
+  ? {d1 show :f} {a $::X 4 \t}            "substdefault 0b001 -novars -nobackslashes"
+  ? {d1 show :g} {a $::X [set x 4] \t}    "substdefault 0b000 -nocommands -novars -nobackslashes"
+
+  ? {d1 object variable x:int,substdefault 1} {}
+  ? {d1 show :x} 1
+  unset ::X
+}
+
+
 
 #######################################################
 # subst default tests for method properties
