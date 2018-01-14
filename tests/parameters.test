@@ -534,26 +534,27 @@ nx::test case subst-default {
 
   ? {d1 bar -c 1} {::d1-[current]-1-2} "substdefault in method parameter"
 
+  set ::X 1001
   nx::Class create Bar -superclass D {
     :property {s:substdefault "[current]"}
     :property {literal "[current]"}
     :property {c:substdefault "[:info class]"}
     :property {d "literal $d"}
-    :property {e:substdefault "literal $d"}
+    :property {e:substdefault {noliteral $::X}}
   }
 
   ? {Bar property -accessor public ss:switch} "::nsf::classes::Bar::ss"
 
-  Bar create bar1
+  ? {Bar create bar1} ::bar1
   #puts stderr [bar1 __objectparameter]
 
   ? {subst {[bar1 cget -s]-[bar1 cget -literal]-[bar1 cget -c]-[bar1 cget -d]-[bar1 cget -e]}} \
-      {::bar1-[current]-::Bar-literal $d-literal $d} \
+      {::bar1-[current]-::Bar-literal $d-noliteral 1001} \
       "substdefault in object parameter 1"
 
-  Bar create bar2
+  ? {Bar create bar2} ::bar2
   ? {subst {[bar2 cget -s]-[bar2 cget -literal]-[bar2 cget -c]-[bar2 cget -d]-[bar1 cget -e]}} \
-      {::bar2-[current]-::Bar-literal $d-literal $d} \
+      {::bar2-[current]-::Bar-literal $d-noliteral 1001} \
       "substdefault in object parameter 2"
 
   # Observation:
@@ -3432,8 +3433,8 @@ nx::test case type-converter-binding {
   
 nx::test case substdefault-hardening {
   nx::Class create K {
-    :object property {p2:substdefault "$x"}
-    :property {p4:substdefault "$y"}
+    :object property {p2 "$x"}
+    :property {p4 "$y"}
     :create k
   }
   

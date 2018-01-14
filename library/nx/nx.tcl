@@ -2482,18 +2482,21 @@ namespace eval ::nx {
     }
 
     lassign [::nx::MetaSlot parseParameterSpec -class $class -target [self] $spec] \
-               pname parameterOptions _ _
+               pname parameterOptions _ options
 
-    set paramOptsList [split $parameterOptions ,]
     if {[info exists defaultValue]
-        && ("substdefault" in $paramOptsList || [lsearch $paramOptsList "substdefault=*"])} {
+        && [dict exists $options -substdefault]
+      } {
       if {[string match {*\[*\]*} $defaultValue]} {
         if {![info complete $defaultValue]} {
           return -code error "substdefault: default '$defaultValue' is not a complete script"
         }
       } else {
-        set paramOptsList [lsearch -exact -inline -all -not $paramOptsList "substdefault"]
-        set spec [string trimright $pname:[join $paramOptsList ,] :]
+        #
+        # Rewrite the spec such is has no "substdefault" value
+        #
+        #set paramOptsList1 [lsearch -glob -inline -all -not [split $parameterOptions ,] "substdefault*"]
+        #set spec [string trimright $pname:[join $paramOptsList1 ,] :]
       }
     }
     
