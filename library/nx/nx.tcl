@@ -2486,18 +2486,10 @@ namespace eval ::nx {
 
     if {[info exists defaultValue]
         && [dict exists $options -substdefault]
+        && [string match {*\[*\]*} $defaultValue]
+        && ![info complete $defaultValue]
       } {
-      if {[string match {*\[*\]*} $defaultValue]} {
-        if {![info complete $defaultValue]} {
-          return -code error "substdefault: default '$defaultValue' is not a complete script"
-        }
-      } else {
-        #
-        # Rewrite the spec such is has no "substdefault" value
-        #
-        #set paramOptsList1 [lsearch -glob -inline -all -not [split $parameterOptions ,] "substdefault*"]
-        #set spec [string trimright $pname:[join $paramOptsList1 ,] :]
-      }
+      return -code error "substdefault: default '$defaultValue' is not a complete script"
     }
     
     set slot [::nx::MetaSlot createFromParameterSpec [::nsf::self] \
