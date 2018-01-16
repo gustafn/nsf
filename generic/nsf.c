@@ -14396,7 +14396,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
     }
 
     /*
-     * cscAlloc uses for resolvedCmd for allocating the call stack content and
+     * cscAlloc uses resolvedCmd for allocating the call stack content and
      * sets the IS_NRE flag based on it. We use the original cmd in the
      * call-stack content structure for introspection.
      */
