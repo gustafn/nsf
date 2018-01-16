@@ -12227,14 +12227,14 @@ ParamDefsFormat(Tcl_Interp *interp, Nsf_Param const *paramsPtr, NsfObject *conte
         ParamDefsFormatOption(nameStringObj, "optional", 8, &colonWritten, &first);
       }
       if ((paramsPtr->flags & NSF_ARG_SUBST_DEFAULT) != 0u) {
-        char   buffer[30];
-        size_t len = 12u;
+        char buffer[30];
+        int  len = 12;
 
         memcpy(buffer, "substdefault", len);
 
         if ((paramsPtr->flags & NSF_ARG_SUBST_DEFAULT_ALL) != 0u) {
-          memcpy(buffer + len + 1u, "=0b", len);
-          len += 4u;
+          memcpy(buffer + len + 1, "=0b", len);
+          len += 4;
           buffer[len] = ((paramsPtr->flags & NSF_ARG_SUBST_DEFAULT_VARIABLES) != 0u) ? '1' : '0';
           len ++;
           buffer[len] = ((paramsPtr->flags & NSF_ARG_SUBST_DEFAULT_COMMANDS) != 0u) ? '1' : '0';
@@ -15825,7 +15825,7 @@ ParamOptionParse(Tcl_Interp *interp, const char *argString,
       return NsfPrintError(interp, "unexpected character %c (%d) after 'substdefault'", trailingChar, trailingChar);
     }
     paramPtr->flags |= NSF_ARG_SUBST_DEFAULT;
-    paramPtr->flags |= (substDefaultFlags << 28);
+    paramPtr->flags |= ((unsigned int)substDefaultFlags << 28);
 
   } else if (firstChar == 'c' && strncmp(option, "convert", 7) == 0) {
     paramPtr->flags |= NSF_ARG_IS_CONVERTER;
