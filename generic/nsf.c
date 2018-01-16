@@ -15797,7 +15797,6 @@ ParamOptionParse(Tcl_Interp *interp, const char *argString,
     char trailingChar = *(option+12);
 
     if (trailingChar == '=') {
-      int      result;
       Tcl_Obj *ov[2];
 
       ov[0] = NULL;
