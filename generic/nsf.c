@@ -32974,6 +32974,9 @@ Nsf_Init(Tcl_Interp *interp) {
   assert(Nsf_OT_listType != NULL);
 
   Nsf_OT_intType = Tcl_GetObjType("int");
+  if (Nsf_OT_intType == NULL) {
+    Nsf_OT_intType = Tcl_GetObjType("wideInt");
+  }
   assert(Nsf_OT_intType != NULL);
 
   Nsf_OT_doubleType = Tcl_GetObjType("double");
