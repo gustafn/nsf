@@ -26287,7 +26287,7 @@ NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
   int                 result;
   unsigned int        flags;
   NsfClass           *cl = (withPer_object || ! NsfObjectIsClass(object)) ? NULL : (NsfClass *)object;
-  NsfObject          *oldTargetObject, *newTargetObject;
+  NsfObject           *newTargetObject;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(object != NULL);
@@ -26335,6 +26335,13 @@ NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
   newTargetObject = NsfGetObjectFromCmdPtr(cmd);
 
   if (oldCmd != NULL) {
+
+    NSDeleteCmd(interp, nsPtr, methodName);
+#if 0
+    //fprintf(stderr, "... DELETE preexisting cmd %s in ns %s\n", methodName, nsPtr->fullName);
+
+    NsfObject  *oldTargetObject;
+
     oldTargetObject = NsfGetObjectFromCmdPtr(oldCmd);
     /* fprintf(stderr, "oldTargetObject %p flags %.6x newTargetObject %p\n",
        oldTargetObject, (oldTargetObject != NULL) ? oldTargetObject->flags : 0, newTargetObject);*/
@@ -26351,8 +26358,8 @@ NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
       assert(oldTargetObject->refCount > 0);
       AliasDeleteObjectReference(interp, oldCmd);
     }
-  } else {
-    oldTargetObject = NULL;
+#endif
+
   }
 
   if (newTargetObject != NULL) {
