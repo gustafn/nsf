@@ -32893,10 +32893,11 @@ int Nsf_Init(Tcl_Interp *interp) nonnull(1);
 
 int
 Nsf_Init(Tcl_Interp *interp) {
-  static NsfMutex initMutex = 0;
-  ClientData runtimeState;
+  static NsfMutex  initMutex = 0;
+  ClientData       runtimeState;
   NsfRuntimeState *rst;
-  int result, i;
+  int              result, i;
+  Tcl_Obj         *tmpObj;
 #ifdef NSF_BYTECODE
   /*NsfCompEnv *interpstructions = NsfGetCompEnv();*/
 #endif
@@ -32973,14 +32974,17 @@ Nsf_Init(Tcl_Interp *interp) {
   Nsf_OT_listType = Tcl_GetObjType("list");
   assert(Nsf_OT_listType != NULL);
 
-  Nsf_OT_intType = Tcl_GetObjType("int");
-  if (Nsf_OT_intType == NULL) {
-    Nsf_OT_intType = Tcl_GetObjType("wideInt");
-  }
-  assert(Nsf_OT_intType != NULL);
-
   Nsf_OT_doubleType = Tcl_GetObjType("double");
   assert(Nsf_OT_doubleType != NULL);
+
+  /*
+   * Type "int" and "wideInt" are a moving target in Tcl 8.7a+.  So, get the
+   * type from the Tcl_Obj directly, which will continue to work.
+   */
+  tmpObj = Tcl_NewIntObj(0);
+  Nsf_OT_intType = tmpObj->typePtr;
+  Tcl_DecrRefCount(tmpObj);
+  assert(Nsf_OT_intType != NULL);
 
   Nsf_OT_byteArrayType = Tcl_GetObjType("bytearray");
   assert(Nsf_OT_byteArrayType != NULL);
@@ -32989,21 +32993,18 @@ Nsf_Init(Tcl_Interp *interp) {
    * Get bytearray and proper bytearray from Tcl (latter if available,
    * introduced in Tcl 8.7a+)
    */
-  {
-    Tcl_Obj *newByteObj = Tcl_NewByteArrayObj(NULL, 0);
-
-    Nsf_OT_properByteArrayType = newByteObj->typePtr;
-    if (Nsf_OT_properByteArrayType == Nsf_OT_byteArrayType) {
-        /*
-         * When both values are the same, we are in a Tcl version before 8.7,
-         * where we have no properByteArrayTypePtr. So set it to an invalid
-         * value to avoid potential confusions. Without this stunt, we would
-         * need several ifdefs.
-         */
-      Nsf_OT_properByteArrayType = (Tcl_ObjType *)0xffffff;
-    }
-    Tcl_DecrRefCount(newByteObj);
+  tmpObj = Tcl_NewByteArrayObj(NULL, 0);
+  Nsf_OT_properByteArrayType = tmpObj->typePtr;
+  if (Nsf_OT_properByteArrayType == Nsf_OT_byteArrayType) {
+    /*
+     * When both values are the same, we are in a Tcl version before 8.7,
+     * where we have no properByteArrayTypePtr. So set it to an invalid
+     * value to avoid potential confusions. Without this stunt, we would
+     * need several ifdefs.
+     */
+    Nsf_OT_properByteArrayType = (Tcl_ObjType *)0xffffff;
   }
+  Tcl_DecrRefCount(tmpObj);
   assert(Nsf_OT_properByteArrayType != NULL);
 
   NsfMutexUnlock(&initMutex);
