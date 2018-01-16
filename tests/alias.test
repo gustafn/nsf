@@ -792,6 +792,7 @@ nx::test case cyclic-alias {
     ? [list [:] public object alias foo $handle] "::o::foo"
   }
   # at runtime, we get an exception
+  puts stderr ======
   ? {o foo} {target "::o::foo" of alias foo apparently disappeared}
 
   # test indirect case

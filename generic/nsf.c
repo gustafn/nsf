@@ -24993,6 +24993,8 @@ AliasRefetch(Tcl_Interp *interp, NsfObject *object, const char *methodName, Alia
   nonnull_assert(methodName != NULL);
   nonnull_assert(tcd != NULL);
 
+  /*fprintf(stderr, "AliasRefetch %s\n", methodName);*/
+
   defObject = (tcd->class != NULL) ? &(tcd->class->object) : object;
 
   /*
@@ -25083,7 +25085,7 @@ AliasDereference(Tcl_Interp *interp, NsfObject *object, const char *methodName, 
     AliasCmdClientData *tcd = (AliasCmdClientData *)Tcl_Command_objClientData(cmd);
 
     assert(tcd != NULL);
-
+    /*fprintf(stderr, "AliasDereference %s epoch %d\n",methodName, Tcl_Command_cmdEpoch(tcd->aliasedCmd));*/
     if (unlikely(Tcl_Command_cmdEpoch(tcd->aliasedCmd) != 0)) {
 
       /*fprintf(stderr, "NsfProcAliasMethod aliasedCmd %p epoch %p\n",
@@ -26334,12 +26336,15 @@ NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
   newTargetObject = NsfGetObjectFromCmdPtr(cmd);
 
   if (oldCmd != NULL) {
-
-    NSDeleteCmd(interp, nsPtr, methodName);
-#if 0
-    //fprintf(stderr, "... DELETE preexisting cmd %s in ns %s\n", methodName, nsPtr->fullName);
-
+#if 1
+    /*
+     * Old solution, leasds to a broken regression test with Tcl 8.7a1.
+     * However, using Tcl_DeleteCommandFromToken() leads to a crash also with
+     * earlier solutions when defining recursive aliases.
+     */
     NsfObject  *oldTargetObject;
+
+    /*fprintf(stderr, "... DELETE preexisting cmd %s in ns %s\n", methodName, nsPtr->fullName);*/
 
     oldTargetObject = NsfGetObjectFromCmdPtr(oldCmd);
     /* fprintf(stderr, "oldTargetObject %p flags %.6x newTargetObject %p\n",
@@ -26357,6 +26362,9 @@ NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
       assert(oldTargetObject->refCount > 0);
       AliasDeleteObjectReference(interp, oldCmd);
     }
+
+#else
+    Tcl_DeleteCommandFromToken(interp, oldCmd);
 #endif
 
   }
