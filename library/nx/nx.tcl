@@ -2761,11 +2761,16 @@ namespace eval ::nx {
 	      set rest [lassign [$origin ::nsf::methods::class::info::method definition $m] . protection what .]
 
 	      # remove -returns from reported definitions
-	      set p [lsearch -exact $rest -returns]; if {$p > -1} {set rest [lreplace $rest $p $p+1]}
+	      set p [lsearch -exact $rest -returns]
+              if {$p > -1} {set rest [lreplace $rest $p $p+1]}
 
               set pathData  [$obj eval [list :__resolve_method_path $m]]
               set object    [dict get $pathData object]
 
+              #
+              # Create a copy of the instance method and set the method
+              # properties with separate primitive commands.
+              #
 	      set r [::nsf::method::$cmdMap($what) $object [dict get $pathData methodName] {*}$rest]
 
 	      ::nsf::method::property $object $r returns [$origin ::nsf::methods::class::info::method returns $m]
@@ -2796,22 +2801,24 @@ namespace eval ::nx {
 	  set rest [lassign [$origin ::nsf::methods::object::info::method definition $m] . protection . what .]
 
 	  # remove -returns from reported definitions
-	  set p [lsearch -exact $rest -returns]; if {$p > -1} {set rest [lreplace $rest $p $p+1]}
+	  set p [lsearch -exact $rest -returns];
+          if {$p > -1} {set rest [lreplace $rest $p $p+1]}
 
           set pathData  [$obj eval [list :__resolve_method_path -per-object $m]]
           set object    [dict get $pathData object]
 
+          #
+          # Create a copy of the object method and set the method
+          # properties with separate primitive commands.
+          #
 	  set r [::nsf::method::$cmdMap($what) $object -per-object \
                      [dict get $pathData methodName] {*}$rest]
 	  ::nsf::method::property $object -per-object $r \
-	      returns \
-	      [$origin ::nsf::methods::object::info::method returns $m]
+	      returns [$origin ::nsf::methods::object::info::method returns $m]
 	  ::nsf::method::property $object -per-object $r \
-	      call-protected \
-	      [::nsf::method::property $origin -per-object $m call-protected]
+	      call-protected [::nsf::method::property $origin -per-object $m call-protected]
 	  ::nsf::method::property $object -per-object $r \
-	      call-private \
-	      [::nsf::method::property $origin -per-object $m call-private]
+	      call-private [::nsf::method::property $origin -per-object $m call-private]
 	}
 
 	#

@@ -175,6 +175,7 @@ nx::test case scripted-class-level-methods {
   ? {c2 public_method} "public_method"
   ? {catch {c2 protected_method}} 1
   ? {::nsf::dispatch c2 protected_method} "protected_method"
+  ? {info commands ::nsf::classes::C::public_method} ::nsf::classes::C::public_method
 }
 
 # class level forwards
@@ -245,6 +246,7 @@ nx::test case scripted-object-level-methods {
   ? {c1 public_object_method} "public_object_method"
   ? {catch {c1 protected_object_method}} 1
   ? {::nsf::dispatch c1 protected_object_method} "protected_object_method"
+  ? {info commands ::c1::public_object_method} ::c1::public_object_method
 }
 
 # object level forwards
@@ -1274,6 +1276,33 @@ nx::test case object+class+property-copy {
   ? {::e1 a c} "a c"
   ? {::e1 set x 2} 2
 
+}
+
+#
+# Check, if the execution namespace after the builtin or
+# serializer-based copy is correct.
+#
+nx::test case nx-copy-COPY-namespace {
+  nx::Object create o1
+  nx::Object create o1::o {
+    :public object method foo {} {namespace current}
+  }
+  nx::Object create o2
+
+  ::nx::Object public method COPY {target} {
+    set code [::Serializer deepSerialize -objmap [list [self] $target] [self]]
+    #puts CODE=$code
+    eval $code
+    return [$target eval self]
+  }
+
+  ? {o1::o foo} ::o1
+
+  ? {o1::o copy o2::o} ::o2::o
+  ? {o1::o COPY o2::O} ::o2::O
+
+  ? {o2::o foo} ::o2
+  ? {o2::O foo} ::o2
 }
 
 nx::test case xotcl-COPY {

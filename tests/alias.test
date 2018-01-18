@@ -343,7 +343,7 @@ nx::Class create C
 
 ? {o public object method bar args {;}} ::o::bar
 ? {o info object methods bar} bar
-? {info commands ::o::bar} ::bar "a command ::o::bar exists, but WHY THIS"
+? {info commands ::o::bar} ::o::bar "a command ::o::bar exists"
 
 ? {info vars ::nsf::alias} ::nsf::alias
 ? {array exists ::nsf::alias} 1 
@@ -390,7 +390,7 @@ C public method FOO {} {}
 ? {info commands ::BAR} ""
 ? {::o public object method BAR {} {;}} ::o::BAR
 ? {o info object methods BAR} BAR
-? {info commands ::o::BAR} ::BAR          "a command ::o::BAR exists, but WHY THIS?"
+? {info commands ::o::BAR} ::o::BAR          "a command ::o::BAR exists"
 ? {info commands ::BAR} ""
 ? {info exists ::nsf::alias(::o,BAR,1)} 0 "::o::BAR is not an alias"
 
@@ -398,7 +398,7 @@ C public method FOO {} {}
 ? {info exists ::nsf::alias(::C,BAR,0)} 1 "delete alias via redefinition of a an instance method"
 ::C public method BAR {} {;}
 ? {info exists ::nsf::alias(::C,BAR,0)} 0
-? {info commands ::o::BAR} ::BAR "a command ::o::BAR does not exist, but WHY THIS?"
+? {info commands ::o::BAR} ::o::BAR "a command ::o::BAR does not exist"
 
 # AliasDelete in aliasCmdDeleteProc
 ::nsf::method::alias o FOO ::foo
@@ -408,9 +408,9 @@ rename ::foo ""
 #? {info exists ::nsf::alias(::o,FOO,1)} 0
 ? {info exists ::nsf::alias(::o,FOO,1)} 1
 
-? {info commands ::o::bar} ::bar                 "::o::bar does not exist, but WHY THIS?"
+? {info commands ::o::bar} ::o::bar              "::o::bar does not exist"
 ? {info commands ::o::FOO} ::o::FOO              "a command ::o::FOO' exists"
-? {info commands ::o::BAR} ::BAR                 "a command ::o::BAR does not exist, but WHY THIS?"
+? {info commands ::o::BAR} ::o::BAR              "a command ::o::BAR does not exist"
 ? {::nsf::method::alias o FOO ::o::bar} ::o::FOO "redefine an object alias based on existing (?) ::o::bar"
 ? {::nsf::method::alias o BAR ::o::FOO} ::o::BAR "define an object alias based on alias based on existing (?) ::o::bar"
 ? {info exists ::nsf::alias(::o,FOO,1)} 1
@@ -792,7 +792,7 @@ nx::test case cyclic-alias {
     ? [list [:] public object alias foo $handle] "::o::foo"
   }
   # at runtime, we get an exception
-  puts stderr ======
+  #puts stderr ======
   ? {o foo} {target "::o::foo" of alias foo apparently disappeared}
 
   # test indirect case
