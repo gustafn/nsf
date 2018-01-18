@@ -1,6 +1,10 @@
 package provide nx::test 1.0
 package require nx
 
+if {![llength [info commands try]]} {
+  package req try
+}
+
 namespace eval ::nx {
 
   # @file Simple regression test support for XOTcl / NX

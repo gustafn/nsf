@@ -182,7 +182,8 @@ set ::errorinfo $::errorInfo
 set ::errorcode $::errorCode
 ? {set ::errorMsg} {somethingwrong}
 ? {set ::errorinfo} {somethingwrong
-    while executing
+    ::o ::nx::Object->contains
+    invoked from within
 "o contains { return -code error -errorcode {FOO bar baz} somethingwrong}"}
 ? {set ::errorcode} {FOO bar baz}
 

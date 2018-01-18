@@ -52,9 +52,9 @@ __initblock:cmd,optional,nodashalnum"
   #? {Person info parameter syntax -force:switch} "?-force?"
   #? {Person info parameter name "a b"} "a"
 
-  set emsg [string cat \
-                "wrong # of elements in parameter definition. " \
-                "Should be a list of 1 or 2 elements, but got: ''"]
+  set emsg [join [list \
+                      "wrong # of elements in parameter definition. " \
+                      "Should be a list of 1 or 2 elements, but got: ''"] ""]
 
   foreach subcmd {default syntax type list name} {
     ? [list nsf::parameter::info $subcmd ""] $emsg
