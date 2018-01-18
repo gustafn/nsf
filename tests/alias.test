@@ -803,6 +803,46 @@ nx::test case cyclic-alias {
 }
 
 #
+# Test namespace of aliased methods coming from different namespaces
+#
+nx::test case proc-alias-target-namespace {
+
+    proc foo {} {
+	set :foo 1
+	namespace current
+    }
+    
+    namespace eval ns1 {
+	proc bar {} {
+	    set :bar 1
+	    namespace current
+	}
+    }
+    namespace eval ns2 {
+	nx::Object create o {
+	    :public object alias foo ::foo
+	    :public object alias bar ::ns1::bar
+	    :public object method baz {} {namespace current}
+	}
+    }
+
+    namespace eval ns3 {
+	nx::Object create o
+	set handle [o public object method FOO {} {namespace current}]
+	::ns2::o public object alias FOO $handle
+    }
+
+    #
+    # The following tests show, that the defining namespace of the
+    # target method prevails always
+    #
+    ? {ns2::o foo} ::    "alias to a global Tcl proc"
+    ? {ns2::o bar} ::ns1 "alias to a namespaced Tcl proc"
+    ? {ns2::o baz} ::ns2 "a method defined locally in ns2::o"
+    ? {ns2::o FOO} ::ns3 "alias to to method defined in ::ns3"
+}
+
+#
 # Local variables:
 #    mode: tcl
 #    tcl-indent-level: 2
