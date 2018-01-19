@@ -200,7 +200,11 @@ namespace eval ::nx {
       array set map {1 ok -1 error}
       set errorcode $map($statuscode)
       :exitOff
-      return -code $errorcode -level [expr {[info level]-1}] "Test was exited with code $statuscode"
+
+      
+      set lvls [info level]
+      # for {set i 0} {$i<=$lvls} {incr i} {puts $i-->[info level $i]}
+      return -code $errorcode -level $lvls "Test was exited with code $statuscode"
     }
 
     :public method exitOn {} {
