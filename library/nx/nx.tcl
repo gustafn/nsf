@@ -1061,6 +1061,9 @@ namespace eval ::nx {
         lappend noptions $type
       }
     }
+    if {[dict exists $options -arg]} {
+      lappend noptions arg=[dict get $options -arg]
+    }
     if {[dict exists $options -multiplicity]} {
       lappend noptions [dict get $options -multiplicity]
     }
