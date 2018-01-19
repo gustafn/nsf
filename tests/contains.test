@@ -2,6 +2,7 @@
 package prefer latest
 package require nx
 
+set ::tcl86 [package vsatisfies [package req Tcl] 8.6]
 
 #
 # Intentionally, we do not want to make a "namespace import" in this
@@ -181,9 +182,18 @@ C1 destroy
 set ::errorinfo $::errorInfo
 set ::errorcode $::errorCode
 ? {set ::errorMsg} {somethingwrong}
-? {set ::errorinfo} {somethingwrong
+
+if {$::tcl86} {
+  set r {somethingwrong
     while executing
+"o contains { return -code error -errorcode {FOO bar baz} somethingwrong}"} 
+} else {
+  set r {somethingwrong
+    ::o ::nx::Object->contains
+    invoked from within
 "o contains { return -code error -errorcode {FOO bar baz} somethingwrong}"}
+}
+? {set ::errorinfo} $r
 ? {set ::errorcode} {FOO bar baz}
 
 puts stderr "====EXIT [info script]"

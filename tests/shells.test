@@ -87,7 +87,7 @@ nx::test case nxsh {
   ? [list exec $nxsh -c << "catch {nx::Object eval {exit 1}}"] "child process exited abnormally"
 
   # just 8.6 or newer
-  if {[info command try] eq ""} return
+  if {[info command yield] eq ""} return
   ? [list exec $nxsh -c << [list nx::Object eval {try { exit 6 } \
                                                       on break {} {;} \
                                                       on return {} {;} \

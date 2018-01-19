@@ -945,21 +945,21 @@ nx::test case ensemble-callstack-introspection {
 
 nx::test case ensemble-forwards {
   set C [nx::Class new {
-    set handle [:forward "foo 1" string cat %method]
+    set handle [:forward "foo 1" join %method ""]
     ? [list info commands $handle] $handle
-    set handle [:public forward "foo 2" string cat %method]
+    set handle [:public forward "foo 2" join %method ""]
     ? [list info commands $handle] $handle
-    set handle [:protected forward "foo 3" string cat %method]
+    set handle [:protected forward "foo 3" join %method ""]
     ? [list info commands $handle] $handle
-    set handle [:private forward "foo 4" string cat %method]
+    set handle [:private forward "foo 4" join %method ""]
     ? [list info commands $handle] $handle
-    set handle [:object forward "foo 5" string cat %method]
+    set handle [:object forward "foo 5" join %method ""]
     ? [list info commands $handle] $handle
-    set handle [:public object forward "foo 6" string cat %method]
+    set handle [:public object forward "foo 6" join %method ""]
     ? [list info commands $handle] $handle
-    set handle [:protected object forward "foo 7" string cat %method]
+    set handle [:protected object forward "foo 7" join %method ""]
     ? [list info commands $handle] $handle
-    set handle [:private object forward "foo 8" string cat %method]
+    set handle [:private object forward "foo 8" join %method ""]
     ? [list info commands $handle] $handle
   }]
   
