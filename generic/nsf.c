@@ -17031,14 +17031,15 @@ MakeProc(Tcl_Namespace *nsPtr, NsfAssertionStore *aStore, Tcl_Interp *interp,
     /*
      * Retrieve the newly defined proc
      */
-    Namespace *execNsPtr;
-    Proc      *procPtr = FindProcMethod(nsPtr, methodName);
+    Proc *procPtr = FindProcMethod(nsPtr, methodName);
 
     if (procPtr != NULL) {
-      /* modify the cmd of the proc to set the current namespace for the body */
+      Namespace *execNsPtr;
+
       if (withInner_namespace == 1) {
         /*
-         * Set the namespace of the method as inside of the class.
+         * Set the execution namespace to the registration object (e.g. same
+         * as the class).
          */
         if (regObject->nsPtr == NULL) {
           MakeObjNamespace(interp, regObject);
@@ -17050,16 +17051,17 @@ MakeProc(Tcl_Namespace *nsPtr, NsfAssertionStore *aStore, Tcl_Interp *interp,
         execNsPtr =  (Namespace *)regObject->nsPtr;
       } else {
         /*
-         * Set the namespace of the method to the same namespace the cmd of
-         * the defObject has.
+         * Set the execution namespace of the method to the same namespace the
+         * cmd of the defObject has.
          */
-        execNsPtr =  ((Command *)regObject->id)->nsPtr;
+        execNsPtr = ((Command *)regObject->id)->nsPtr;
       }
 
       ParamDefsStore((Tcl_Command)procPtr->cmdPtr, parsedParam.paramDefs, checkAlwaysFlag,
                      (Tcl_Namespace *)execNsPtr);
       Tcl_SetObjResult(interp, MethodHandleObj(defObject, withPer_object, methodName));
       result = TCL_OK;
+
     } else {
       result = TCL_ERROR;
       NsfLog(interp, NSF_LOG_WARN,
