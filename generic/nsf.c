@@ -32808,7 +32808,7 @@ ExitHandler(ClientData clientData) {
    * enumerations, and method definitions.
    */
   Nsf_PointerExit(interp);
-  Nsf_EnumerationTypeRelease(interp);
+  Nsf_EnumerationTypeRelease();
   Nsf_CmdDefinitionRelease();
 
 #if defined(NSF_PROFILE)
@@ -33053,7 +33053,7 @@ Nsf_Init(Tcl_Interp *interp) {
    */
   Nsf_PointerInit(interp);
 
-  Nsf_EnumerationTypeInit(interp);
+  Nsf_EnumerationTypeInit();
   result = Nsf_EnumerationTypeRegister(interp, enumeratorConverterEntries);
   if (unlikely(result != TCL_OK)) {
     return result;

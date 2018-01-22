@@ -59,9 +59,7 @@ static int Register(Tcl_Interp *interp, const char *domain, Nsf_TypeConverter *c
  *----------------------------------------------------------------------
  */
 void
-Nsf_EnumerationTypeInit(Tcl_Interp *interp) {
-
-  nonnull_assert(interp != NULL);
+Nsf_EnumerationTypeInit(void) {
 
   NsfMutexLock(&enumerationMutex);
 
@@ -89,9 +87,7 @@ Nsf_EnumerationTypeInit(Tcl_Interp *interp) {
  *----------------------------------------------------------------------
  */
 void
-Nsf_EnumerationTypeRelease(Tcl_Interp *interp) {
-
-  nonnull_assert(interp != NULL);
+Nsf_EnumerationTypeRelease(void) {
 
   NsfMutexLock(&enumerationMutex);
 

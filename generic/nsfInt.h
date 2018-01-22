@@ -1242,11 +1242,8 @@ EXTERN Tcl_HashEntry *Nsf_FindFunPtrHashEntry(Tcl_HashTable *tablePtr, Nsf_AnyFu
 /*
  * NSF enumeration-type interface
  */
-EXTERN void Nsf_EnumerationTypeInit(Tcl_Interp *interp)
-  nonnull(1);
-
-EXTERN void Nsf_EnumerationTypeRelease(Tcl_Interp *interp)
-  nonnull(1);
+EXTERN void Nsf_EnumerationTypeInit(void);
+EXTERN void Nsf_EnumerationTypeRelease(void);
 
 EXTERN const char *Nsf_EnumerationTypeGetDomain(Nsf_TypeConverter *converter)
   nonnull(1);
