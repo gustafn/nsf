@@ -60,9 +60,7 @@ static int Register(Tcl_Interp *interp, Nsf_methodDefinition *methodDefinition);
  *----------------------------------------------------------------------
  */
 void
-Nsf_CmdDefinitionInit(Tcl_Interp *interp) {
-
-  nonnull_assert(interp != NULL);
+Nsf_CmdDefinitionInit(void) {
 
   NsfMutexLock(&cmdDefinitionMutex);
 

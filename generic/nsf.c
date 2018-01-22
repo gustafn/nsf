@@ -33059,7 +33059,7 @@ Nsf_Init(Tcl_Interp *interp) {
     return result;
   }
 
-  Nsf_CmdDefinitionInit(interp);
+  Nsf_CmdDefinitionInit();
   Nsf_CmdDefinitionRegister(interp, method_definitions);
 
   /*

@@ -1254,8 +1254,7 @@ EXTERN const char *Nsf_EnumerationTypeGetDomain(Nsf_TypeConverter *converter)
 /*
  * NSF command definitions interface
  */
-EXTERN void Nsf_CmdDefinitionInit(Tcl_Interp *interp)
-  nonnull(1);
+EXTERN void Nsf_CmdDefinitionInit(void);
 
 EXTERN void Nsf_CmdDefinitionRelease(Tcl_Interp *interp)
   nonnull(1);
