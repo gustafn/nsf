@@ -86,9 +86,7 @@ Nsf_CmdDefinitionInit(void) {
  *----------------------------------------------------------------------
  */
 void
-Nsf_CmdDefinitionRelease(Tcl_Interp *interp) {
-  
-  nonnull_assert(interp != NULL);
+Nsf_CmdDefinitionRelease(void) {
   
   NsfMutexLock(&cmdDefinitionMutex);
   

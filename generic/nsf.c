@@ -32809,7 +32809,7 @@ ExitHandler(ClientData clientData) {
    */
   Nsf_PointerExit(interp);
   Nsf_EnumerationTypeRelease(interp);
-  Nsf_CmdDefinitionRelease(interp);
+  Nsf_CmdDefinitionRelease();
 
 #if defined(NSF_PROFILE)
   NsfProfileFree(interp);
