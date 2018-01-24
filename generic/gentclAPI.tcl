@@ -138,6 +138,22 @@ proc genifd {parameterDefinitions} {
   }
 }
 
+proc varName {type name} {
+  if {$type eq "tclobj" && $name ne "obj"} {
+    set varName ${name}Obj
+  } elseif {$type eq "object" && $name ne "object"} {
+    regsub -all _object $name "" name
+    set varName ${name}Object
+  } elseif {$type eq "class" && $name ne "class"} {
+    regsub -all _class $name "" name
+    set varName ${name}Class
+  } else {
+    set varName $name
+  }
+  return $varName
+}
+
+
 proc gencall {methodName fn parameterDefinitions clientData
 	      cDefsVar ifDefVar arglistVar preVar postVar introVar nnVar cleanupVar
 	    } {
@@ -187,9 +203,8 @@ proc gencall {methodName fn parameterDefinitions clientData
       #
       # non positional args
       #
-      if {$(-type) eq "tclobj" && ${switchName} ne "obj"} {
-        set varName ${switchName}Obj
-      } else {
+      set varName [varName $(-type) $switchName]
+      if {$varName eq $switchName} {
         set varName with[string totitle $switchName]
       }
       set calledArg $varName
@@ -215,13 +230,7 @@ proc gencall {methodName fn parameterDefinitions clientData
       #
       # positionals
       #
-      if {$(-type) eq "tclobj" && $(-argName) ne "obj"} {
-        set varName $(-argName)Obj
-        puts stderr "POSNAME <$(-argName)> -> <$varName>" 
-
-      } else {
-        set varName $(-argName)
-      }
+      set varName [varName $(-type) $(-argName)]
       set calledArg $varName
       switch -glob $(-type) {
         ""           {set type "const char *"}

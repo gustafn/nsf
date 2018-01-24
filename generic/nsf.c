@@ -25636,13 +25636,13 @@ cmd "cmd::info" NsfCmdInfoCmd {
 } {-nxdoc 1}
 */
 static int
-NsfCmdInfoCmd(Tcl_Interp *interp, InfomethodsubcmdIdx_t subcmd, NsfObject *context,
+NsfCmdInfoCmd(Tcl_Interp *interp, InfomethodsubcmdIdx_t subcmd, NsfObject *contextObject,
               Tcl_Obj *methodNameObj, const char *pattern) {
 
   nonnull_assert(interp != NULL);
   nonnull_assert(methodNameObj != NULL);
 
-  return ListMethodResolve(interp, subcmd, context, pattern, NULL, NULL, methodNameObj, 0);
+  return ListMethodResolve(interp, subcmd, contextObject, pattern, NULL, NULL, methodNameObj, 0);
 }
 
 /*
@@ -27202,7 +27202,7 @@ NsfObjectExistsCmd(Tcl_Interp *interp, Tcl_Obj *valueObj) {
 
 /*
 cmd "object::property" NsfObjectPropertyCmd {
-  {-argName "objectName" -required 1 -type object}
+  {-argName "object" -required 1 -type object}
   {-argName "objectproperty" -type "initialized|class|rootmetaclass|rootclass|volatile|slotcontainer|hasperobjectslots|keepcallerself|perobjectdispatch" -required 1}
   {-argName "value" -required 0 -type tclobj}
 }
@@ -31032,12 +31032,12 @@ objectInfoMethod children NsfObjInfoChildrenMethod {
 }
 */
 static int
-NsfObjInfoChildrenMethod(Tcl_Interp *interp, NsfObject *object, NsfClass *type, const char *pattern) {
+NsfObjInfoChildrenMethod(Tcl_Interp *interp, NsfObject *object, NsfClass *typeClass, const char *pattern) {
 
   nonnull_assert(interp != NULL);
   nonnull_assert(object != NULL);
 
-  return ListChildren(interp, object, pattern, 0, type);
+  return ListChildren(interp, object, pattern, 0, typeClass);
 }
 
 /*
@@ -31399,7 +31399,7 @@ objectInfoMethod lookupslots NsfObjInfoLookupSlotsMethod {
 static int
 NsfObjInfoLookupSlotsMethod(Tcl_Interp *interp, NsfObject *object,
                             DefinitionsourceIdx_t withSource,
-                            NsfClass *type,
+                            NsfClass *typeClass,
                             const char *pattern) {
   Tcl_Obj *listObj = Tcl_NewListObj(0, NULL);
   NsfClasses *precedenceList, *clPtr;
@@ -31421,7 +31421,7 @@ NsfObjInfoLookupSlotsMethod(Tcl_Interp *interp, NsfObject *object,
    */
   if (MethodSourceMatches(withSource, NULL, object)) {
     AddSlotObjects(interp, object, "::per-object-slot", &slotTable,
-                   type, pattern, listObj);
+                   typeClass, pattern, listObj);
   }
 
   /*
@@ -31430,7 +31430,7 @@ NsfObjInfoLookupSlotsMethod(Tcl_Interp *interp, NsfObject *object,
   for (clPtr = precedenceList; likely(clPtr != NULL); clPtr = clPtr->nextPtr) {
     if (MethodSourceMatches(withSource, clPtr->cl, NULL)) {
       AddSlotObjects(interp, &clPtr->cl->object, "::slot", &slotTable,
-                     type, pattern, listObj);
+                     typeClass, pattern, listObj);
     }
   }
 
@@ -31577,14 +31577,14 @@ objectInfoMethod slotobjects NsfObjInfoSlotobjectsMethod {
 */
 static int
 NsfObjInfoSlotobjectsMethod(Tcl_Interp *interp, NsfObject *object,
-                      NsfClass *type, const char *pattern) {
+                      NsfClass *typeClass, const char *pattern) {
   Tcl_Obj *listObj = Tcl_NewListObj(0, NULL);
 
   nonnull_assert(interp != NULL);
   nonnull_assert(object != NULL);
 
   AddSlotObjects(interp, object, "::per-object-slot", NULL,
-                 type, pattern, listObj);
+                 typeClass, pattern, listObj);
 
   Tcl_SetObjResult(interp, listObj);
   return TCL_OK;
@@ -31598,8 +31598,8 @@ objectInfoMethod vars NsfObjInfoVarsMethod {
 */
 static int
 NsfObjInfoVarsMethod(Tcl_Interp *interp, NsfObject *object, const char *pattern) {
-  Tcl_Obj *varList, *okList, *element;
-  int i, length;
+  Tcl_Obj         *varList, *okList, *element;
+  int              i, length;
   TclVarHashTable *varTablePtr;
 
   nonnull_assert(interp != NULL);
@@ -31673,12 +31673,12 @@ classInfoMethod forward NsfClassInfoForwardMethod {
 */
 static int
 NsfClassInfoForwardMethod(Tcl_Interp *interp, NsfClass *class,
-                          int withDefinition, const char *pattern) {
+                          int withDefinition, const char *name) {
 
   nonnull_assert(interp != NULL);
   nonnull_assert(class != NULL);
 
-  return ListForward(interp, Tcl_Namespace_cmdTablePtr(class->nsPtr), pattern, withDefinition);
+  return ListForward(interp, Tcl_Namespace_cmdTablePtr(class->nsPtr), name, withDefinition);
 }
 
 /*
@@ -32049,14 +32049,15 @@ classInfoMethod slots NsfClassInfoSlotobjectsMethod {
 }
 */
 static int
-NsfClassInfoSlotobjectsMethod(Tcl_Interp *interp, NsfClass *class,
+NsfClassInfoSlotobjectsMethod(Tcl_Interp *interp,
+                              NsfClass *class,
                               int withClosure,
                               DefinitionsourceIdx_t withSource,
-                              NsfClass *type,
+                              NsfClass *typeClass,
                               const char *pattern) {
-  NsfClasses *clPtr, *intrinsicClasses, *precedenceList = NULL;
-  Tcl_Obj *listObj = Tcl_NewListObj(0, NULL);
-  Tcl_HashTable slotTable;
+  NsfClasses    *clPtr, *intrinsicClasses, *precedenceList = NULL;
+  Tcl_Obj       *listObj = Tcl_NewListObj(0, NULL);
+  Tcl_HashTable  slotTable;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(class != NULL);
@@ -32105,7 +32106,7 @@ NsfClassInfoSlotobjectsMethod(Tcl_Interp *interp, NsfClass *class,
   for (clPtr = precedenceList; clPtr != NULL; clPtr = clPtr->nextPtr) {
     if (MethodSourceMatches(withSource, clPtr->cl, NULL)) {
       AddSlotObjects(interp, &clPtr->cl->object, "::slot", &slotTable,
-                     type, pattern, listObj);
+                     typeClass, pattern, listObj);
     }
   }
 

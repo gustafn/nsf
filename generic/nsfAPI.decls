@@ -261,7 +261,7 @@ cmd "object::exists" NsfObjectExistsCmd {
   {-argName "value" -required 1 -type tclobj}
 } {-nxdoc 1}
 cmd "object::property" NsfObjectPropertyCmd {
-  {-argName "objectName" -required 1 -type object}
+  {-argName "object" -required 1 -type object}
   {-argName "objectProperty" -type "initialized|class|rootmetaclass|rootclass|volatile|slotcontainer|hasperobjectslots|keepcallerself|perobjectdispatch" -required 1}
   {-argName "value" -required 0 -type tclobj}
 } {-nxdoc 1}
