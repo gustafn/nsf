@@ -31402,14 +31402,14 @@ NsfObjInfoLookupSlotsMethod(Tcl_Interp *interp, NsfObject *object,
                             NsfClass *type,
                             const char *pattern) {
   Tcl_Obj *listObj = Tcl_NewListObj(0, NULL);
-  NsfClasses *precendenceList, *clPtr;
+  NsfClasses *precedenceList, *clPtr;
   Tcl_HashTable slotTable;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(object != NULL);
 
-  precendenceList = ComputePrecedenceList(interp, object, NULL /* pattern*/, 1, 1);
-  assert(precendenceList != NULL);
+  precedenceList = ComputePrecedenceList(interp, object, NULL /* pattern*/, 1, 1);
+  assert(precedenceList != NULL);
 
   if (withSource == 0) {withSource = 1;}
 
@@ -31427,7 +31427,7 @@ NsfObjInfoLookupSlotsMethod(Tcl_Interp *interp, NsfObject *object,
   /*
    * Then add the class provided slot objects.
    */
-  for (clPtr = precendenceList; likely(clPtr != NULL); clPtr = clPtr->nextPtr) {
+  for (clPtr = precedenceList; likely(clPtr != NULL); clPtr = clPtr->nextPtr) {
     if (MethodSourceMatches(withSource, clPtr->cl, NULL)) {
       AddSlotObjects(interp, &clPtr->cl->object, "::slot", &slotTable,
                      type, pattern, listObj);
@@ -31437,7 +31437,7 @@ NsfObjInfoLookupSlotsMethod(Tcl_Interp *interp, NsfObject *object,
   Tcl_DeleteHashTable(&slotTable);
   MEM_COUNT_FREE("Tcl_InitHashTable", &slotTable);
 
-  NsfClassListFree(precendenceList);
+  NsfClassListFree(precedenceList);
   Tcl_SetObjResult(interp, listObj);
 
   return TCL_OK;
