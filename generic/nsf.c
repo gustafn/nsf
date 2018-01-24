@@ -1194,11 +1194,11 @@ Tcl_Obj * Nsf_ObjGetVar2(Nsf_Object *object, Tcl_Interp *interp, Tcl_Obj *name1,
 int NsfCreate(Tcl_Interp *interp, Nsf_Class *class, Tcl_Obj *nameObj, int objc, Tcl_Obj *CONST objv[])
   nonnull(1) nonnull(2) nonnull(3) nonnull(5);
 int NsfDeleteObject(Tcl_Interp *interp, Nsf_Object *object) nonnull(1) nonnull(2);
-int NsfRemoveObjectMethod(Tcl_Interp *interp, Nsf_Object *object1, const char *methodName)
+int NsfRemoveObjectMethod(Tcl_Interp *interp, Nsf_Object *object, const char *methodName)
   nonnull(1) nonnull(2) nonnull(3);
 int NsfRemoveClassMethod(Tcl_Interp *interp, Nsf_Class *class, const char *methodName)
   nonnull(1) nonnull(2) nonnull(3);
-int Nsf_UnsetVar2(Nsf_Object *object1, Tcl_Interp *interp,
+int Nsf_UnsetVar2(Nsf_Object *object, Tcl_Interp *interp,
                   const char *name1, const char *name2, unsigned int flags)
   nonnull(1) nonnull(2) nonnull(4);
 
@@ -1289,20 +1289,20 @@ Nsf_ObjGetVar2(Nsf_Object *object, Tcl_Interp *interp, Tcl_Obj *name1, Tcl_Obj *
 }
 
 int
-Nsf_UnsetVar2(Nsf_Object *object1, Tcl_Interp *interp,
+Nsf_UnsetVar2(Nsf_Object *object, Tcl_Interp *interp,
                    const char *name1, const char *name2, unsigned int flags) {
   CallFrame frame, *framePtr = &frame;
-  NsfObject *object;
+  NsfObject *o;
   int result;
 
-  nonnull_assert(object1 != NULL);
+  nonnull_assert(object != NULL);
   nonnull_assert(interp != NULL);
   nonnull_assert(name1 != NULL);
   nonnull_assert(name2 != NULL);
 
-  object = (NsfObject *) object1;
-  Nsf_PushFrameObj(interp, object, framePtr);
-  if (object->nsPtr != NULL) {
+  o = (NsfObject *) object;
+  Nsf_PushFrameObj(interp, o, framePtr);
+  if (o->nsPtr != NULL) {
     flags |= TCL_NAMESPACE_ONLY;
   }
   result = Tcl_UnsetVar2(interp, name1, name2, (int)flags);
@@ -1347,30 +1347,30 @@ NsfDeleteObject(Tcl_Interp *interp, Nsf_Object *object) {
 }
 
 int
-NsfRemoveObjectMethod(Tcl_Interp *interp, Nsf_Object *object1, const char *methodName) {
-  NsfObject *object;
+NsfRemoveObjectMethod(Tcl_Interp *interp, Nsf_Object *object, const char *methodName) {
+  NsfObject *currentObject;
 
   nonnull_assert(interp != NULL);
-  nonnull_assert(object1 != NULL);
+  nonnull_assert(object != NULL);
   nonnull_assert(methodName != NULL);
 
-  object = (NsfObject *) object1;
-  /*fprintf(stderr, "... NsfRemoveObjectMethod %s %s\n", ObjectName(object), methodName);*/
+  currentObject = (NsfObject *) object;
+  /*fprintf(stderr, "... NsfRemoveObjectMethod %s %s\n", ObjectName(currentObject), methodName);*/
 
   NsfObjectMethodEpochIncr("NsfRemoveObjectMethod");
-  AliasDelete(interp, object->cmdName, methodName, 1);
+  AliasDelete(interp, currentObject->cmdName, methodName, 1);
 
 #if defined(NSF_WITH_ASSERTIONS)
-  if (object->opt != NULL && object->opt->assertions != NULL) {
-    AssertionRemoveProc(object->opt->assertions, methodName);
+  if (currentObject->opt != NULL && currentObject->opt->assertions != NULL) {
+    AssertionRemoveProc(currentObject->opt->assertions, methodName);
   }
 #endif
 
-  if (object->nsPtr != NULL) {
-    int rc = NSDeleteCmd(interp, object->nsPtr, methodName);
+  if (currentObject->nsPtr != NULL) {
+    int rc = NSDeleteCmd(interp, currentObject->nsPtr, methodName);
     if (rc < 0) {
       return NsfPrintError(interp, "%s: cannot delete object specific method '%s'",
-                           ObjectName_(object), methodName);
+                           ObjectName_(currentObject), methodName);
     }
   }
   return TCL_OK;
@@ -6811,37 +6811,37 @@ CanRedefineCmd(Tcl_Interp *interp, Tcl_Namespace *nsPtr, NsfObject *object, cons
  *
  *----------------------------------------------------------------------
  */
-int NsfAddObjectMethod(Tcl_Interp *interp, Nsf_Object *object1, const char *methodName,
+int NsfAddObjectMethod(Tcl_Interp *interp, Nsf_Object *object, const char *methodName,
                        Tcl_ObjCmdProc *proc, ClientData clientData, Tcl_CmdDeleteProc *dp,
                        unsigned int flags) nonnull(1) nonnull(2) nonnull(3) nonnull(4);
 
 int
-NsfAddObjectMethod(Tcl_Interp *interp, Nsf_Object *object1, const char *methodName,
+NsfAddObjectMethod(Tcl_Interp *interp, Nsf_Object *object, const char *methodName,
                    Tcl_ObjCmdProc *proc, ClientData clientData, Tcl_CmdDeleteProc *dp,
                    unsigned int flags) {
-  NsfObject *object;
+  NsfObject *currentObject;
   Tcl_DString newCmdName, *dsPtr = &newCmdName;
   Tcl_Namespace *ns;
   Tcl_Command newCmd;
   int result;
 
   nonnull_assert(interp != NULL);
-  nonnull_assert(object1 != NULL);
+  nonnull_assert(object != NULL);
   nonnull_assert(methodName != NULL);
   nonnull_assert(proc != NULL);
 
-  object = (NsfObject *)object1;
-  ns = RequireObjNamespace(interp, object);
+  currentObject = (NsfObject *)object;
+  ns = RequireObjNamespace(interp, currentObject);
 
   /* Check, if we are allowed to redefine the method */
-  result = CanRedefineCmd(interp, object->nsPtr, object, (char *)methodName, flags);
+  result = CanRedefineCmd(interp, currentObject->nsPtr, currentObject, (char *)methodName, flags);
   if (unlikely(result != TCL_OK)) {
     return result;
   }
   NsfObjectMethodEpochIncr("NsfAddObjectMethod");
 
   /* delete an alias definition, if it exists */
-  AliasDelete(interp, object->cmdName, methodName, 1);
+  AliasDelete(interp, currentObject->cmdName, methodName, 1);
 
   Tcl_DStringInit(dsPtr);
   DStringAppendQualName(dsPtr, ns, methodName);

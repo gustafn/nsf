@@ -56,9 +56,9 @@ static Tcl_CallFrame* CallStackGetActiveProcFrame(Tcl_CallFrame *framePtr)
 NSF_INLINE static NsfObject* GetSelfObj2(const Tcl_Interp *interp, Tcl_CallFrame *framePtr)
   nonnull(1) nonnull(2);
 
-static  Tcl_CallFrame* CallStackGetTclFrame(const Tcl_Interp *interp,
-                                            Tcl_CallFrame *startFramePtr,
-                                            int skip)
+static Tcl_CallFrame* CallStackGetTclFrame(const Tcl_Interp *interp,
+                                           Tcl_CallFrame *varFramePtr,
+                                           int skip)
   nonnull(1);
 
 static NsfCallStackContent* CallStackGetTopFrame(const Tcl_Interp *interp, Tcl_CallFrame **framePtrPtr)

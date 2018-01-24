@@ -72,15 +72,17 @@ declare 5 generic {
   int NsfDeleteObject(Tcl_Interp *interp, struct Nsf_Object *object)
 }
 declare 6 generic {
-  int NsfRemoveObjectMethod(Tcl_Interp *interp, struct Nsf_Object *object, const char *nm)
+    int NsfRemoveObjectMethod(Tcl_Interp *interp, struct Nsf_Object *object,
+			      const char *methodName)
 }
 declare 7 generic {
-  int NsfRemoveClassMethod(Tcl_Interp *interp, struct Nsf_Class *cl, const char *nm)
+    int NsfRemoveClassMethod(Tcl_Interp *interp, struct Nsf_Class *class,
+			     const char *methodName)
 }
 declare 8 generic {
   Tcl_Obj *Nsf_ObjSetVar2(struct Nsf_Object *object,
 			  Tcl_Interp *interp, Tcl_Obj *name1, Tcl_Obj *name2,
-			  Tcl_Obj *value, unsigned int flags)
+			  Tcl_Obj *valueObj, unsigned int flags)
 }
 declare 9 generic {
   Tcl_Obj *Nsf_ObjGetVar2(struct Nsf_Object *object, 
@@ -92,7 +94,7 @@ declare 10 generic {
 		    const char *name1, const char *name2, unsigned int flags)
 }
 declare 11 generic {
-  void NsfDStringVPrintf(Tcl_DString *dsPtr, const char *fmt, va_list apSrc)
+  void NsfDStringVPrintf(Tcl_DString *dsPtr, const char *fmt, va_list argPtr)
 }
 declare 12 generic {
   int NsfPrintError(Tcl_Interp *interp, const char *fmt, ...)
@@ -125,21 +127,24 @@ declare 20 generic {
 }
 declare 21 generic {
   int  NsfCallMethodWithArgs(Tcl_Interp *interp, Nsf_Object *object,
-			     Tcl_Obj *method, Tcl_Obj *arg,
-			     int objc, Tcl_Obj *CONST objv[], unsigned int flags)
+			     Tcl_Obj *methodObj, Tcl_Obj *arg1,
+			     int givenObjc, Tcl_Obj *CONST objv[],
+			     unsigned int flags)
 }
 declare 22 generic {
   int NsfAddObjectMethod(Tcl_Interp *interp, struct Nsf_Object *object, 
-                         CONST char *nm, Tcl_ObjCmdProc *proc,
-	                 ClientData cd, Tcl_CmdDeleteProc *dp, unsigned int flags)
+                         CONST char *methodName, Tcl_ObjCmdProc *proc,
+	                 ClientData clientData, Tcl_CmdDeleteProc *dp,
+			 unsigned int flags)
 }
 declare 23 generic {
-  int NsfAddClassMethod(Tcl_Interp *interp, struct Nsf_Class *cl, 
-			CONST char *nm, Tcl_ObjCmdProc *proc,
-			ClientData cd, Tcl_CmdDeleteProc *dp, unsigned int flags)
+  int NsfAddClassMethod(Tcl_Interp *interp, struct Nsf_Class *class, 
+			CONST char *methodName, Tcl_ObjCmdProc *proc,
+			ClientData clientData, Tcl_CmdDeleteProc *dp,
+			unsigned int flags)
 }
 declare 24 generic {
-  int NsfCreate(Tcl_Interp *in, Nsf_Class *class, Tcl_Obj *name, 
+  int NsfCreate(Tcl_Interp *interp, Nsf_Class *class, Tcl_Obj *nameObj, 
 		int objc, Tcl_Obj *CONST objv[])
 }
 declare 25 generic {

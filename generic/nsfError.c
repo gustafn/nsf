@@ -74,9 +74,9 @@ Tcl_Obj *NsfParamDefsSyntax(Tcl_Interp *interp, Nsf_Param const *paramsPtr,
  */
 
 void
-NsfDStringVPrintf(Tcl_DString *dsPtr, const char *fmt, va_list vargs) {
+NsfDStringVPrintf(Tcl_DString *dsPtr, const char *fmt, va_list argPtr) {
   int      result, failure, avail, offset;
-  va_list  vargsCopy;
+  va_list  argPtrCopy;
 
   /*
    * Tcl_DStringLength returns the current length *without* the
@@ -100,9 +100,9 @@ NsfDStringVPrintf(Tcl_DString *dsPtr, const char *fmt, va_list vargs) {
    * 1) Copy va_list so that the caller's copy is untouched.
    * 2) Run vsnprintf() eagerly.
    */
-  va_copy(vargsCopy, vargs);
-  result = vsnprintf(dsPtr->string + offset, (size_t)avail, fmt, vargsCopy);
-  va_end(vargsCopy);
+  va_copy(argPtrCopy, argPtr);
+  result = vsnprintf(dsPtr->string + offset, (size_t)avail, fmt, argPtrCopy);
+  va_end(argPtrCopy);
 
 #if defined(_MSC_VER)
   /*
@@ -141,9 +141,9 @@ NsfDStringVPrintf(Tcl_DString *dsPtr, const char *fmt, va_list vargs) {
      */
 
 #if defined(_MSC_VER)
-    va_copy(vargsCopy, vargs);
-    addedStringLength = _vscprintf(fmt, vargsCopy);
-    va_end(vargsCopy);
+    va_copy(argPtrCopy, argPtr);
+    addedStringLength = _vscprintf(fmt, argPtrCopy);
+    va_end(argPtrCopy);
 #else
     addedStringLength = result;
 #endif
@@ -162,9 +162,9 @@ NsfDStringVPrintf(Tcl_DString *dsPtr, const char *fmt, va_list vargs) {
     avail = dsPtr->spaceAvl - offset;
 #endif
 
-    va_copy(vargsCopy, vargs);
-    result = vsnprintf(dsPtr->string + offset, (size_t)avail, fmt, vargsCopy);
-    va_end(vargsCopy);
+    va_copy(argPtrCopy, argPtr);
+    result = vsnprintf(dsPtr->string + offset, (size_t)avail, fmt, argPtrCopy);
+    va_end(argPtrCopy);
 
 #if defined(_MSC_VER)
     failure = (result == -1);
