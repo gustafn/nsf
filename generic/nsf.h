@@ -295,13 +295,13 @@ typedef struct Nsf_ParseContext {
 struct Nsf_Param;
 typedef int (Nsf_TypeConverter)(Tcl_Interp *interp,
 				 Tcl_Obj *obj,
-				 struct Nsf_Param CONST *pPtr,
+				 struct Nsf_Param const *pPtr,
 				 ClientData *clientData,
 				 Tcl_Obj **outObjPtr);
 
 typedef struct {
   Nsf_TypeConverter *converter;
-  CONST char *domain;
+  const char *domain;
 } Nsf_EnumeratorConverterEntry;
 
 EXTERN Nsf_TypeConverter Nsf_ConvertToBoolean, Nsf_ConvertToClass,
@@ -317,7 +317,7 @@ typedef struct Nsf_Param {
   Nsf_TypeConverter *converter;
   Tcl_Obj           *converterArg;
   Tcl_Obj           *defaultValue;
-  CONST char        *type;
+  const char        *type;
   Tcl_Obj           *nameObj;
   Tcl_Obj           *converterName;
   Tcl_Obj           *paramObj;
@@ -398,33 +398,33 @@ typedef struct Nsf_Param {
 #endif
 
 EXTERN int
-NsfArgumentError(Tcl_Interp *interp, CONST char *errorMsg, Nsf_Param CONST *paramPtr,
-		 Tcl_Obj *cmdNameObj, Tcl_Obj *methodObj)
+NsfArgumentError(Tcl_Interp *interp, const char *errorMsg, Nsf_Param const *paramPtr,
+		 Tcl_Obj *cmdNameObj, Tcl_Obj *methodPathObj)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
 
 
 EXTERN int
 NsfDispatchClientDataError(Tcl_Interp *interp, ClientData clientData,
-			   CONST char *what, CONST char *methodName)
+			   const char *what, const char *methodName)
   NSF_nonnull(1) NSF_nonnull(3) NSF_nonnull(4);
 
 EXTERN int
-NsfNoCurrentObjectError(Tcl_Interp *interp, CONST char *methodName)
+NsfNoCurrentObjectError(Tcl_Interp *interp, const char *methodName)
   NSF_nonnull(1);
 
 EXTERN int
-NsfUnexpectedArgumentError(Tcl_Interp *interp, CONST char *argumentString,
-			   Nsf_Object *object, Nsf_Param CONST *paramPtr,
-			   Tcl_Obj *procNameObj)
+NsfUnexpectedArgumentError(Tcl_Interp *interp, const char *argumentString,
+			   Nsf_Object *object, Nsf_Param const *paramPtr,
+			   Tcl_Obj *methodPathObj)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(4) NSF_nonnull(5);
 
 EXTERN int
 NsfUnexpectedNonposArgumentError(Tcl_Interp *interp,
-				 CONST char *argumentString,
+				 const char *argumentString,
 				 Nsf_Object *object,
-				 Nsf_Param CONST *currentParamPtr,
-				 Nsf_Param CONST *paramPtr,
-				 Tcl_Obj *procNameObj)
+				 Nsf_Param const *currentParamPtr,
+				 Nsf_Param const *paramPtr,
+				 Tcl_Obj *methodPathObj)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(4) NSF_nonnull(5) NSF_nonnull(6);
 
 /*
@@ -436,17 +436,17 @@ NsfUnexpectedNonposArgumentError(Tcl_Interp *interp,
 #define NSF_LOG_DEBUG  0
 
 EXTERN void
-NsfLog(Tcl_Interp *interp, int requiredLevel, CONST char *fmt, ...)
+NsfLog(Tcl_Interp *interp, int requiredLevel, const char *fmt, ...)
   NSF_nonnull(1) NSF_nonnull(3) NSF_attribute_format((printf,3,4));
 
 /*
  * Nsf Pointer converter interface
  */
 
-EXTERN int Nsf_PointerAdd(Tcl_Interp *interp, char *buffer, size_t size, CONST char *typeName, void *valuePtr)
+EXTERN int Nsf_PointerAdd(Tcl_Interp *interp, char *buffer, size_t size, const char *typeName, void *valuePtr)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(4) NSF_nonnull(5);
 
-EXTERN int Nsf_PointerDelete(CONST char *key, void *valuePtr, int free)
+EXTERN int Nsf_PointerDelete(const char *key, void *valuePtr, int free)
   NSF_nonnull(2);
 
 EXTERN void Nsf_PointerInit(Tcl_Interp *interp)
@@ -455,10 +455,10 @@ EXTERN void Nsf_PointerInit(Tcl_Interp *interp)
 EXTERN void Nsf_PointerExit(Tcl_Interp *interp)
   NSF_nonnull(1);
 
-EXTERN void *Nsf_PointerTypeLookup(Tcl_Interp *interp, CONST char* typeName)
+EXTERN void *Nsf_PointerTypeLookup(Tcl_Interp *interp, const char* typeName)
   NSF_nonnull(1) NSF_nonnull(2);
 
-EXTERN int Nsf_PointerTypeRegister(Tcl_Interp *interp, CONST char* typeName, int *counterPtr)
+EXTERN int Nsf_PointerTypeRegister(Tcl_Interp *interp, const char* typeName, int *counterPtr)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
 
 /*
@@ -507,8 +507,8 @@ EXTERN int  Nsf_CmdDefinitionRegister(Tcl_Interp *interp, Nsf_methodDefinition *
 # ifdef __cplusplus
 EXTERN "C"
 # endif
-CONST char *
-Nsf_InitStubs(Tcl_Interp *interp, CONST char *version, int exact);
+const char *
+Nsf_InitStubs(Tcl_Interp *interp, const char *version, int exact);
 #else
 # define Nsf_InitStubs(interp, version, exact) \
       Tcl_PkgRequire(interp, "nx", version, exact)

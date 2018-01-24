@@ -150,23 +150,25 @@ proc gencall {methodName fn parameterDefinitions clientData
 
   switch $clientData {
     class {
-      set a  [list cl]
-      set if [list "NsfClass *cl"]
+      set a  [list class]
+      set if [list "NsfClass *class"]
       set argNum 3
       append intro \
-          "  NsfClass *cl;" \n\n \
+          "  NsfClass *class;" \n\n \
           "  assert(objc > 0);" \n\n \
-          "  cl = NsfObjectToClass(clientData);" \n \
-          "  if (unlikely(cl == NULL)) return NsfDispatchClientDataError(interp, clientData, \"class\", ObjStr(objv\[0\]));"
+          "  class = NsfObjectToClass(clientData);" \n \
+          "  if (unlikely(class == NULL)) {" \n \
+          "      return NsfDispatchClientDataError(interp, clientData, \"class\", ObjStr(objv\[0\]));" \n \
+          "  }" \n
     }
     object {
-      set a  [list obj]
-      set if [list "NsfObject *obj"]
+      set a  [list object]
+      set if [list "NsfObject *object"]
       set argNum 3
       append intro \
-          "  NsfObject *obj;" \n\n \
+          "  NsfObject *object;" \n\n \
           "  assert(objc > 0);" \n\n \
-          "  obj = (NsfObject *)clientData;"
+          "  object = (NsfObject *)clientData;"
     }
     ""    {
       append intro "  (void)clientData;\n"
@@ -185,7 +187,11 @@ proc gencall {methodName fn parameterDefinitions clientData
       #
       # non positional args
       #
-      set varName with[string totitle $switchName]
+      if {$(-type) eq "tclobj" && ${switchName} ne "obj"} {
+        set varName ${switchName}Obj
+      } else {
+        set varName with[string totitle $switchName]
+      }
       set calledArg $varName
       set type "int "
       if {$(-nrargs) == 1} {
@@ -209,7 +215,13 @@ proc gencall {methodName fn parameterDefinitions clientData
       #
       # positionals
       #
-      set varName $(-argName)
+      if {$(-type) eq "tclobj" && $(-argName) ne "obj"} {
+        set varName $(-argName)Obj
+        puts stderr "POSNAME <$(-argName)> -> <$varName>" 
+
+      } else {
+        set varName $(-argName)
+      }
       set calledArg $varName
       switch -glob $(-type) {
         ""           {set type "const char *"}
@@ -444,8 +456,8 @@ proc genstubs {} {
     append fns [genSimpleStub $d(stub) $intro $d(idx) "" $pre $call $post $cleanup]
   } else {
       switch $d(methodType) {
-        objectMethod {set obj "obj"}
-        classMethod {set obj "(NsfObject *) cl"}
+        objectMethod {set obj "object"}
+        classMethod {set obj "(NsfObject *) class"}
         default {set obj "NULL"}
       }
       append fns [genStub $d(stub) $intro $obj $d(idx) $cDefs $pre $call $post $cleanup]

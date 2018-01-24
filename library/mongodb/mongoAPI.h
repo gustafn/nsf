@@ -157,27 +157,27 @@ static int NsfCollectionOpen(Tcl_Interp *interp, mongoc_client_t *connPtr, const
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3) NSF_nonnull(4);
 static int NsfMongoClose(Tcl_Interp *interp, mongoc_client_t *connPtr, Tcl_Obj *connObj)
   NSF_nonnull(1) NSF_nonnull(2);
-static int NsfMongoCollectionCount(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *query)
+static int NsfMongoCollectionCount(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *queryObj)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
-static int NsfMongoCollectionDelete(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *condition)
+static int NsfMongoCollectionDelete(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *conditionObj)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
-static int NsfMongoCollectionIndex(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *attributes, const char *withName, int withBackground, int withDropdups, int withSparse, int withTtl, int withUnique)
+static int NsfMongoCollectionIndex(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *attributesObj, const char *withName, int withBackground, int withDropdups, int withSparse, int withTtl, int withUnique)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
-static int NsfMongoCollectionInsert(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *values)
+static int NsfMongoCollectionInsert(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *valuesObj)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
-static int NsfMongoCollectionQuery(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *filter, Tcl_Obj *withOpts)
+static int NsfMongoCollectionQuery(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *filterObj, Tcl_Obj *optsObj)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
-static int NsfMongoCollectionStats(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *withOptions)
+static int NsfMongoCollectionStats(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *optionsObj)
   NSF_nonnull(1) NSF_nonnull(2);
-static int NsfMongoCollectionUpdate(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *cond, Tcl_Obj *values, int withUpsert, int withAll)
+static int NsfMongoCollectionUpdate(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *condObj, Tcl_Obj *valuesObj, int withUpsert, int withAll)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3) NSF_nonnull(4);
 static int NsfMongoConnect(Tcl_Interp *interp, const char *withUri)
   NSF_nonnull(1);
-static int NsfMongoCursorAggregate(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *pipeline, Tcl_Obj *options, int withTailable, int withAwaitdata)
+static int NsfMongoCursorAggregate(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *pipelineObj, Tcl_Obj *optionsObj, int withTailable, int withAwaitdata)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3) NSF_nonnull(4);
 static int NsfMongoCursorClose(Tcl_Interp *interp, mongoc_cursor_t *cursorPtr, Tcl_Obj *cursorObj)
   NSF_nonnull(1) NSF_nonnull(2);
-static int NsfMongoCursorFind(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *filter, Tcl_Obj *withOpts)
+static int NsfMongoCursorFind(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *filterObj, Tcl_Obj *optsObj)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
 static int NsfMongoCursorNext(Tcl_Interp *interp, mongoc_cursor_t *cursorPtr)
   NSF_nonnull(1) NSF_nonnull(2);
@@ -187,9 +187,9 @@ static int NsfMongoGridFSOpen(Tcl_Interp *interp, mongoc_client_t *connPtr, cons
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3) NSF_nonnull(4);
 static int NsfMongoGridFileClose(Tcl_Interp *interp, mongoc_gridfs_file_t *gridfilePtr, Tcl_Obj *gridfileObj)
   NSF_nonnull(1) NSF_nonnull(2);
-static int NsfMongoGridFileCreate(Tcl_Interp *interp, GridfilesourceIdx_t withSource, mongoc_gridfs_t *gfsPtr, const char *value, const char *name, const char *contenttype, Tcl_Obj *withMetadata)
+static int NsfMongoGridFileCreate(Tcl_Interp *interp, GridfilesourceIdx_t withSource, mongoc_gridfs_t *gfsPtr, const char *value, const char *name, const char *contenttype, Tcl_Obj *metadataObj)
   NSF_nonnull(1) NSF_nonnull(3) NSF_nonnull(4) NSF_nonnull(5) NSF_nonnull(6);
-static int NsfMongoGridFileDelete(Tcl_Interp *interp, mongoc_gridfs_t *gfsPtr, Tcl_Obj *query)
+static int NsfMongoGridFileDelete(Tcl_Interp *interp, mongoc_gridfs_t *gfsPtr, Tcl_Obj *queryObj)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
 static int NsfMongoGridFileGetContentType(Tcl_Interp *interp, mongoc_gridfs_file_t *gridfilePtr)
   NSF_nonnull(1) NSF_nonnull(2);
@@ -197,17 +197,17 @@ static int NsfMongoGridFileGetContentlength(Tcl_Interp *interp, mongoc_gridfs_fi
   NSF_nonnull(1) NSF_nonnull(2);
 static int NsfMongoGridFileGetMetaData(Tcl_Interp *interp, mongoc_gridfs_file_t *gridfilePtr)
   NSF_nonnull(1) NSF_nonnull(2);
-static int NsfMongoGridFileOpen(Tcl_Interp *interp, mongoc_gridfs_t *gfsPtr, Tcl_Obj *query)
+static int NsfMongoGridFileOpen(Tcl_Interp *interp, mongoc_gridfs_t *gfsPtr, Tcl_Obj *queryObj)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
 static int NsfMongoGridFileRead(Tcl_Interp *interp, mongoc_gridfs_file_t *gridfilePtr, int size)
   NSF_nonnull(1) NSF_nonnull(2);
 static int NsfMongoGridFileSeek(Tcl_Interp *interp, mongoc_gridfs_file_t *gridfilePtr, int offset)
   NSF_nonnull(1) NSF_nonnull(2);
-static int NsfMongoJsonGenerate(Tcl_Interp *interp, Tcl_Obj *list)
+static int NsfMongoJsonGenerate(Tcl_Interp *interp, Tcl_Obj *listObj)
   NSF_nonnull(1) NSF_nonnull(2);
-static int NsfMongoJsonParse(Tcl_Interp *interp, Tcl_Obj *json)
+static int NsfMongoJsonParse(Tcl_Interp *interp, Tcl_Obj *jsonObj)
   NSF_nonnull(1) NSF_nonnull(2);
-static int NsfMongoRunCmd(Tcl_Interp *interp, int withNocomplain, mongoc_client_t *connPtr, const char *db, Tcl_Obj *cmd)
+static int NsfMongoRunCmd(Tcl_Interp *interp, int withNocomplain, mongoc_client_t *connPtr, const char *db, Tcl_Obj *cmdObj)
   NSF_nonnull(1) NSF_nonnull(3) NSF_nonnull(4) NSF_nonnull(5);
 static int NsfMongoStatus(Tcl_Interp *interp, mongoc_client_t *connPtr, Tcl_Obj *connObj)
   NSF_nonnull(1) NSF_nonnull(2);
@@ -318,10 +318,10 @@ NsfMongoCollectionCountStub(ClientData clientData, Tcl_Interp *interp, int objc,
                      method_definitions[NsfMongoCollectionCountIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     mongoc_collection_t *collectionPtr = (mongoc_collection_t *)pc.clientData[0];
-    Tcl_Obj *query = (Tcl_Obj *)pc.clientData[1];
+    Tcl_Obj *queryObj = (Tcl_Obj *)pc.clientData[1];
 
     assert(pc.status == 0);
-    return NsfMongoCollectionCount(interp, collectionPtr, query);
+    return NsfMongoCollectionCount(interp, collectionPtr, queryObj);
 
   } else {
     
@@ -339,10 +339,10 @@ NsfMongoCollectionDeleteStub(ClientData clientData, Tcl_Interp *interp, int objc
                      method_definitions[NsfMongoCollectionDeleteIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     mongoc_collection_t *collectionPtr = (mongoc_collection_t *)pc.clientData[0];
-    Tcl_Obj *condition = (Tcl_Obj *)pc.clientData[1];
+    Tcl_Obj *conditionObj = (Tcl_Obj *)pc.clientData[1];
 
     assert(pc.status == 0);
-    return NsfMongoCollectionDelete(interp, collectionPtr, condition);
+    return NsfMongoCollectionDelete(interp, collectionPtr, conditionObj);
 
   } else {
     
@@ -360,7 +360,7 @@ NsfMongoCollectionIndexStub(ClientData clientData, Tcl_Interp *interp, int objc,
                      method_definitions[NsfMongoCollectionIndexIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     mongoc_collection_t *collectionPtr = (mongoc_collection_t *)pc.clientData[0];
-    Tcl_Obj *attributes = (Tcl_Obj *)pc.clientData[1];
+    Tcl_Obj *attributesObj = (Tcl_Obj *)pc.clientData[1];
     const char *withName = (const char *)pc.clientData[2];
     int withBackground = (int )PTR2INT(pc.clientData[3]);
     int withDropdups = (int )PTR2INT(pc.clientData[4]);
@@ -369,7 +369,7 @@ NsfMongoCollectionIndexStub(ClientData clientData, Tcl_Interp *interp, int objc,
     int withUnique = (int )PTR2INT(pc.clientData[7]);
 
     assert(pc.status == 0);
-    return NsfMongoCollectionIndex(interp, collectionPtr, attributes, withName, withBackground, withDropdups, withSparse, withTtl, withUnique);
+    return NsfMongoCollectionIndex(interp, collectionPtr, attributesObj, withName, withBackground, withDropdups, withSparse, withTtl, withUnique);
 
   } else {
     
@@ -387,10 +387,10 @@ NsfMongoCollectionInsertStub(ClientData clientData, Tcl_Interp *interp, int objc
                      method_definitions[NsfMongoCollectionInsertIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     mongoc_collection_t *collectionPtr = (mongoc_collection_t *)pc.clientData[0];
-    Tcl_Obj *values = (Tcl_Obj *)pc.clientData[1];
+    Tcl_Obj *valuesObj = (Tcl_Obj *)pc.clientData[1];
 
     assert(pc.status == 0);
-    return NsfMongoCollectionInsert(interp, collectionPtr, values);
+    return NsfMongoCollectionInsert(interp, collectionPtr, valuesObj);
 
   } else {
     
@@ -408,11 +408,11 @@ NsfMongoCollectionQueryStub(ClientData clientData, Tcl_Interp *interp, int objc,
                      method_definitions[NsfMongoCollectionQueryIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     mongoc_collection_t *collectionPtr = (mongoc_collection_t *)pc.clientData[0];
-    Tcl_Obj *filter = (Tcl_Obj *)pc.clientData[1];
-    Tcl_Obj *withOpts = (Tcl_Obj *)pc.clientData[2];
+    Tcl_Obj *filterObj = (Tcl_Obj *)pc.clientData[1];
+    Tcl_Obj *optsObj = (Tcl_Obj *)pc.clientData[2];
 
     assert(pc.status == 0);
-    return NsfMongoCollectionQuery(interp, collectionPtr, filter, withOpts);
+    return NsfMongoCollectionQuery(interp, collectionPtr, filterObj, optsObj);
 
   } else {
     
@@ -430,10 +430,10 @@ NsfMongoCollectionStatsStub(ClientData clientData, Tcl_Interp *interp, int objc,
                      method_definitions[NsfMongoCollectionStatsIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     mongoc_collection_t *collectionPtr = (mongoc_collection_t *)pc.clientData[0];
-    Tcl_Obj *withOptions = (Tcl_Obj *)pc.clientData[1];
+    Tcl_Obj *optionsObj = (Tcl_Obj *)pc.clientData[1];
 
     assert(pc.status == 0);
-    return NsfMongoCollectionStats(interp, collectionPtr, withOptions);
+    return NsfMongoCollectionStats(interp, collectionPtr, optionsObj);
 
   } else {
     
@@ -451,13 +451,13 @@ NsfMongoCollectionUpdateStub(ClientData clientData, Tcl_Interp *interp, int objc
                      method_definitions[NsfMongoCollectionUpdateIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     mongoc_collection_t *collectionPtr = (mongoc_collection_t *)pc.clientData[0];
-    Tcl_Obj *cond = (Tcl_Obj *)pc.clientData[1];
-    Tcl_Obj *values = (Tcl_Obj *)pc.clientData[2];
+    Tcl_Obj *condObj = (Tcl_Obj *)pc.clientData[1];
+    Tcl_Obj *valuesObj = (Tcl_Obj *)pc.clientData[2];
     int withUpsert = (int )PTR2INT(pc.clientData[3]);
     int withAll = (int )PTR2INT(pc.clientData[4]);
 
     assert(pc.status == 0);
-    return NsfMongoCollectionUpdate(interp, collectionPtr, cond, values, withUpsert, withAll);
+    return NsfMongoCollectionUpdate(interp, collectionPtr, condObj, valuesObj, withUpsert, withAll);
 
   } else {
     
@@ -495,13 +495,13 @@ NsfMongoCursorAggregateStub(ClientData clientData, Tcl_Interp *interp, int objc,
                      method_definitions[NsfMongoCursorAggregateIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     mongoc_collection_t *collectionPtr = (mongoc_collection_t *)pc.clientData[0];
-    Tcl_Obj *pipeline = (Tcl_Obj *)pc.clientData[1];
-    Tcl_Obj *options = (Tcl_Obj *)pc.clientData[2];
+    Tcl_Obj *pipelineObj = (Tcl_Obj *)pc.clientData[1];
+    Tcl_Obj *optionsObj = (Tcl_Obj *)pc.clientData[2];
     int withTailable = (int )PTR2INT(pc.clientData[3]);
     int withAwaitdata = (int )PTR2INT(pc.clientData[4]);
 
     assert(pc.status == 0);
-    return NsfMongoCursorAggregate(interp, collectionPtr, pipeline, options, withTailable, withAwaitdata);
+    return NsfMongoCursorAggregate(interp, collectionPtr, pipelineObj, optionsObj, withTailable, withAwaitdata);
 
   } else {
     
@@ -539,11 +539,11 @@ NsfMongoCursorFindStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
                      method_definitions[NsfMongoCursorFindIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     mongoc_collection_t *collectionPtr = (mongoc_collection_t *)pc.clientData[0];
-    Tcl_Obj *filter = (Tcl_Obj *)pc.clientData[1];
-    Tcl_Obj *withOpts = (Tcl_Obj *)pc.clientData[2];
+    Tcl_Obj *filterObj = (Tcl_Obj *)pc.clientData[1];
+    Tcl_Obj *optsObj = (Tcl_Obj *)pc.clientData[2];
 
     assert(pc.status == 0);
-    return NsfMongoCursorFind(interp, collectionPtr, filter, withOpts);
+    return NsfMongoCursorFind(interp, collectionPtr, filterObj, optsObj);
 
   } else {
     
@@ -647,10 +647,10 @@ NsfMongoGridFileCreateStub(ClientData clientData, Tcl_Interp *interp, int objc, 
     const char *value = (const char *)pc.clientData[2];
     const char *name = (const char *)pc.clientData[3];
     const char *contenttype = (const char *)pc.clientData[4];
-    Tcl_Obj *withMetadata = (Tcl_Obj *)pc.clientData[5];
+    Tcl_Obj *metadataObj = (Tcl_Obj *)pc.clientData[5];
 
     assert(pc.status == 0);
-    return NsfMongoGridFileCreate(interp, withSource, gfsPtr, value, name, contenttype, withMetadata);
+    return NsfMongoGridFileCreate(interp, withSource, gfsPtr, value, name, contenttype, metadataObj);
 
   } else {
     
@@ -668,10 +668,10 @@ NsfMongoGridFileDeleteStub(ClientData clientData, Tcl_Interp *interp, int objc, 
                      method_definitions[NsfMongoGridFileDeleteIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     mongoc_gridfs_t *gfsPtr = (mongoc_gridfs_t *)pc.clientData[0];
-    Tcl_Obj *query = (Tcl_Obj *)pc.clientData[1];
+    Tcl_Obj *queryObj = (Tcl_Obj *)pc.clientData[1];
 
     assert(pc.status == 0);
-    return NsfMongoGridFileDelete(interp, gfsPtr, query);
+    return NsfMongoGridFileDelete(interp, gfsPtr, queryObj);
 
   } else {
     
@@ -749,10 +749,10 @@ NsfMongoGridFileOpenStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
                      method_definitions[NsfMongoGridFileOpenIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     mongoc_gridfs_t *gfsPtr = (mongoc_gridfs_t *)pc.clientData[0];
-    Tcl_Obj *query = (Tcl_Obj *)pc.clientData[1];
+    Tcl_Obj *queryObj = (Tcl_Obj *)pc.clientData[1];
 
     assert(pc.status == 0);
-    return NsfMongoGridFileOpen(interp, gfsPtr, query);
+    return NsfMongoGridFileOpen(interp, gfsPtr, queryObj);
 
   } else {
     
@@ -846,10 +846,10 @@ NsfMongoRunCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
     int withNocomplain = (int )PTR2INT(pc.clientData[0]);
     mongoc_client_t *connPtr = (mongoc_client_t *)pc.clientData[1];
     const char *db = (const char *)pc.clientData[2];
-    Tcl_Obj *cmd = (Tcl_Obj *)pc.clientData[3];
+    Tcl_Obj *cmdObj = (Tcl_Obj *)pc.clientData[3];
 
     assert(pc.status == 0);
-    return NsfMongoRunCmd(interp, withNocomplain, connPtr, db, cmd);
+    return NsfMongoRunCmd(interp, withNocomplain, connPtr, db, cmdObj);
 
   } else {
     

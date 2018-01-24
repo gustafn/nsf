@@ -1045,11 +1045,12 @@ EXTERN void NsfProfileInit(Tcl_Interp *interp) nonnull(1);
 EXTERN void NsfProfileFree(Tcl_Interp *interp) nonnull(1);
 EXTERN void NsfProfileClearData(Tcl_Interp *interp) nonnull(1);
 EXTERN void NsfProfileGetData(Tcl_Interp *interp) nonnull(1);
-EXTERN int NsfProfileTrace(Tcl_Interp *interp, int withEnable, int withVerbose, int withInmemory, Tcl_Obj *builtins);
+EXTERN int NsfProfileTrace(Tcl_Interp *interp, int withEnable, int withVerbose, int withDontsave, Tcl_Obj *builtinObjs);
 
 EXTERN void NsfProfileTraceCall(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, const char *methodName)
   nonnull(1) nonnull(2) nonnull(4);
-EXTERN void NsfProfileTraceExit(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, const char *methodName, struct Tcl_Time *trt)
+EXTERN void NsfProfileTraceExit(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, const char *methodName,
+				struct Tcl_Time *callTime)
   nonnull(1) nonnull(2) nonnull(4) nonnull(5);
 EXTERN void NsfProfileTraceCallAppend(Tcl_Interp *interp, const char *label)
   nonnull(1) nonnull(2);
@@ -1116,8 +1117,8 @@ EXTERN int NsfGetClassFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr,
 			      NsfClass **clPtr, int withUnknown)
   nonnull(1) nonnull(2) nonnull(3);
 
-EXTERN int NsfObjWrongArgs(Tcl_Interp *interp, CONST char *msg,
-			   Tcl_Obj *cmdName, Tcl_Obj *methodName,
+EXTERN int NsfObjWrongArgs(Tcl_Interp *interp, const char *msg,
+			   Tcl_Obj *cmdNameObj, Tcl_Obj *methodPathObj,
 			   const char *arglist)
   nonnull(1) nonnull(2);
 

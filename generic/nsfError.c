@@ -567,10 +567,10 @@ NsfObjErrType(Tcl_Interp *interp,
 	      const char *context,
 	      Tcl_Obj *value,
 	      const char *type,
-	      Nsf_Param const *paramPtr)
+	      Nsf_Param const *NsfObjErrType)
 {
-  int         named       = (paramPtr && (paramPtr->flags & NSF_ARG_UNNAMED) == 0);
-  int         returnValue = !named && paramPtr && (paramPtr->flags & NSF_ARG_IS_RETURNVALUE);
+  int         named       = (NsfObjErrType && (NsfObjErrType->flags & NSF_ARG_UNNAMED) == 0);
+  int         returnValue = !named && NsfObjErrType && (NsfObjErrType->flags & NSF_ARG_IS_RETURNVALUE);
   int         errMsgLen;
   const char *prevErrMsg  = Tcl_GetStringFromObj(Tcl_GetObjResult(interp), &errMsgLen);
   Tcl_DString ds;
@@ -588,7 +588,7 @@ NsfObjErrType(Tcl_Interp *interp,
 
   Nsf_DStringPrintf(&ds, "expected %s but got \"%s\"", type, ObjStr(value));
   if (named != 0) {
-    Nsf_DStringPrintf(&ds, " for parameter \"%s\"", paramPtr->name);
+    Nsf_DStringPrintf(&ds, " for parameter \"%s\"", NsfObjErrType->name);
   } else if (returnValue != 0) {
     Tcl_DStringAppend(&ds, " as return value", -1);
   }
