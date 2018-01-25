@@ -515,11 +515,11 @@ MixinregSetFromAny(
  */
 
 int
-NsfMixinregGet(Tcl_Interp *interp, Tcl_Obj *obj, NsfClass **clPtr, Tcl_Obj **guardObj) {
+NsfMixinregGet(Tcl_Interp *interp, Tcl_Obj *obj, NsfClass **classPtr, Tcl_Obj **guardObj) {
 
   nonnull_assert(interp != NULL);
   nonnull_assert(obj != NULL);
-  nonnull_assert(clPtr != NULL);
+  nonnull_assert(classPtr != NULL);
   nonnull_assert(guardObj != NULL);
 
   if (obj->typePtr == &NsfMixinregObjType) {
@@ -545,7 +545,7 @@ NsfMixinregGet(Tcl_Interp *interp, Tcl_Obj *obj, NsfClass **clPtr, Tcl_Obj **gua
     }
 
     *guardObj = mixinRegPtr->guardObj;
-    *clPtr = mixinRegPtr->mixin;
+    *classPtr = mixinRegPtr->mixin;
 
     return TCL_OK;
   }

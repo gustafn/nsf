@@ -530,7 +530,7 @@ static int NsfObjInfoVarsMethodStub(ClientData clientData, Tcl_Interp *interp, i
 
 static int NsfCAllocMethod(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *objectNameObj)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
-static int NsfCCreateMethod(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *objectNameObj, int nobjc, Tcl_Obj *CONST* nobjv)
+static int NsfCCreateMethod(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *objectNameObj, int trailingObjc, Tcl_Obj *CONST* trailingObjv)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
 static int NsfCDeallocMethod(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *objectObj)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
@@ -540,9 +540,9 @@ static int NsfCGetCachendParametersMethod(Tcl_Interp *interp, NsfClass *class)
   NSF_nonnull(1) NSF_nonnull(2);
 static int NsfCMixinGuardMethod(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *mixinObj, Tcl_Obj *guardObj)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3) NSF_nonnull(4);
-static int NsfCNewMethod(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *childofObj, int nobjc, Tcl_Obj *CONST* nobjv)
+static int NsfCNewMethod(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *childofObj, int trailingObjc, Tcl_Obj *CONST* trailingObjv)
   NSF_nonnull(1) NSF_nonnull(2);
-static int NsfCRecreateMethod(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *objectNameObj, int nobjc, Tcl_Obj *CONST* nobjv)
+static int NsfCRecreateMethod(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *objectNameObj, int trailingObjc, Tcl_Obj *CONST* trailingObjv)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
 static int NsfCSuperclassMethod(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *superclassesObj)
   NSF_nonnull(1) NSF_nonnull(2);
@@ -604,9 +604,9 @@ static int NsfDebugShowObj(Tcl_Interp *interp, Tcl_Obj *obj)
   NSF_nonnull(1) NSF_nonnull(2);
 static int NsfDefinitionNamespaceCmd(Tcl_Interp *interp)
   NSF_nonnull(1);
-static int NsfDirectDispatchCmd(Tcl_Interp *interp, NsfObject *object, FrameIdx_t withFrame, Tcl_Obj *commandObj, int nobjc, Tcl_Obj *CONST* nobjv)
+static int NsfDirectDispatchCmd(Tcl_Interp *interp, NsfObject *object, FrameIdx_t withFrame, Tcl_Obj *commandObj, int trailingObjc, Tcl_Obj *CONST* trailingObjv)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(4);
-static int NsfDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withIntrinsic, int withSystem, Tcl_Obj *commandObj, int nobjc, Tcl_Obj *CONST* nobjv)
+static int NsfDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withIntrinsic, int withSystem, Tcl_Obj *commandObj, int trailingObjc, Tcl_Obj *CONST* trailingObjv)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(5);
 static int NsfFinalizeCmd(Tcl_Interp *interp, int withKeepvars)
   NSF_nonnull(1);
@@ -624,7 +624,7 @@ static int NsfMethodCreateCmd(Tcl_Interp *interp, NsfObject *object, int withChe
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(7) NSF_nonnull(8) NSF_nonnull(9);
 static int NsfMethodDeleteCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj *methodNameObj)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(4);
-static int NsfMethodForwardCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj *methodObj, Tcl_Obj *defaultObj, int withEarlybinding, Tcl_Obj *onerrorObj, Tcl_Obj *prefixObj, FrameIdx_t withFrame, int withVerbose, Tcl_Obj *targetObj, int nobjc, Tcl_Obj *CONST* nobjv)
+static int NsfMethodForwardCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj *methodObj, Tcl_Obj *defaultObj, int withEarlybinding, Tcl_Obj *onerrorObj, Tcl_Obj *prefixObj, FrameIdx_t withFrame, int withVerbose, Tcl_Obj *targetObj, int trailingObjc, Tcl_Obj *CONST* trailingObjv)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(4);
 static int NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj *methodNameObj, MethodpropertyIdx_t methodProperty, Tcl_Obj *valueObj)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(4);
@@ -632,7 +632,7 @@ static int NsfMethodRegisteredCmd(Tcl_Interp *interp, Tcl_Obj *handleObj)
   NSF_nonnull(1) NSF_nonnull(2);
 static int NsfMethodSetterCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj *parameterObj)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(4);
-static int NsfMyCmd(Tcl_Interp *interp, int withIntrinsic, int withLocal, int withSystem, Tcl_Obj *methodNameObj, int nobjc, Tcl_Obj *CONST* nobjv)
+static int NsfMyCmd(Tcl_Interp *interp, int withIntrinsic, int withLocal, int withSystem, Tcl_Obj *methodNameObj, int trailingObjc, Tcl_Obj *CONST* trailingObjv)
   NSF_nonnull(1) NSF_nonnull(5);
 static int NsfNSCopyVarsCmd(Tcl_Interp *interp, Tcl_Obj *fromNsObj, Tcl_Obj *toNsObj)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
@@ -680,7 +680,7 @@ static int NsfVarExistsCmd(Tcl_Interp *interp, int withArray, NsfObject *object,
   NSF_nonnull(1) NSF_nonnull(3) NSF_nonnull(4);
 static int NsfVarGetCmd(Tcl_Interp *interp, int withArray, int withNotrace, NsfObject *object, Tcl_Obj *varNameObj)
   NSF_nonnull(1) NSF_nonnull(4) NSF_nonnull(5);
-static int NsfVarImportCmd(Tcl_Interp *interp, NsfObject *object, int nobjc, Tcl_Obj *CONST* nobjv)
+static int NsfVarImportCmd(Tcl_Interp *interp, NsfObject *object, int trailingObjc, Tcl_Obj *CONST* trailingObjv)
   NSF_nonnull(1) NSF_nonnull(2);
 static int NsfVarSetCmd(Tcl_Interp *interp, int withArray, int withNotrace, NsfObject *object, Tcl_Obj *varNameObj, Tcl_Obj *valueObj)
   NSF_nonnull(1) NSF_nonnull(4) NSF_nonnull(5);
@@ -694,7 +694,7 @@ static int NsfOClassMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *class
   NSF_nonnull(1) NSF_nonnull(2);
 static int NsfOCleanupMethod(Tcl_Interp *interp, NsfObject *object)
   NSF_nonnull(1) NSF_nonnull(2);
-static int NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int nobjc, Tcl_Obj *CONST* nobjv, Tcl_Obj *objv0)
+static int NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int trailingObjc, Tcl_Obj *CONST* trailingObjv, Tcl_Obj *objv0)
   NSF_nonnull(1) NSF_nonnull(2);
 static int NsfODestroyMethod(Tcl_Interp *interp, NsfObject *object)
   NSF_nonnull(1) NSF_nonnull(2);
@@ -934,7 +934,7 @@ NsfCCreateMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
     Tcl_Obj *objectNameObj = (Tcl_Obj *)pc.clientData[0];
 
     assert(pc.status == 0);
-    return NsfCCreateMethod(interp, class, objectNameObj, objc-pc.lastObjc, objv+pc.lastObjc);
+    return NsfCCreateMethod(interp, class, objectNameObj, objc - pc.lastObjc, objv + pc.lastObjc);
 
   } else {
     
@@ -1068,7 +1068,7 @@ NsfCNewMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
     Tcl_Obj *childofObj = (Tcl_Obj *)pc.clientData[0];
 
     assert(pc.status == 0);
-    return NsfCNewMethod(interp, class, childofObj, objc-pc.lastObjc, objv+pc.lastObjc);
+    return NsfCNewMethod(interp, class, childofObj, objc - pc.lastObjc, objv + pc.lastObjc);
 
   } else {
     
@@ -1096,7 +1096,7 @@ NsfCRecreateMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
     Tcl_Obj *objectNameObj = (Tcl_Obj *)pc.clientData[0];
 
     assert(pc.status == 0);
-    return NsfCRecreateMethod(interp, class, objectNameObj, objc-pc.lastObjc, objv+pc.lastObjc);
+    return NsfCRecreateMethod(interp, class, objectNameObj, objc - pc.lastObjc, objv + pc.lastObjc);
 
   } else {
     
@@ -1891,7 +1891,7 @@ NsfDirectDispatchCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
     Tcl_Obj *commandObj = (Tcl_Obj *)pc.clientData[2];
 
     assert(pc.status == 0);
-    return NsfDirectDispatchCmd(interp, object, withFrame, commandObj, objc-pc.lastObjc, objv+pc.lastObjc);
+    return NsfDirectDispatchCmd(interp, object, withFrame, commandObj, objc - pc.lastObjc, objv + pc.lastObjc);
 
   } else {
     
@@ -1914,7 +1914,7 @@ NsfDispatchCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
     Tcl_Obj *commandObj = (Tcl_Obj *)pc.clientData[3];
 
     assert(pc.status == 0);
-    return NsfDispatchCmd(interp, object, withIntrinsic, withSystem, commandObj, objc-pc.lastObjc, objv+pc.lastObjc);
+    return NsfDispatchCmd(interp, object, withIntrinsic, withSystem, commandObj, objc - pc.lastObjc, objv + pc.lastObjc);
 
   } else {
     
@@ -2129,7 +2129,7 @@ NsfMethodForwardCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
     Tcl_Obj *targetObj = (Tcl_Obj *)pc.clientData[9];
 
     assert(pc.status == 0);
-    return NsfMethodForwardCmd(interp, object, withPer_object, methodObj, defaultObj, withEarlybinding, onerrorObj, prefixObj, withFrame, withVerbose, targetObj, objc-pc.lastObjc, objv+pc.lastObjc);
+    return NsfMethodForwardCmd(interp, object, withPer_object, methodObj, defaultObj, withEarlybinding, onerrorObj, prefixObj, withFrame, withVerbose, targetObj, objc - pc.lastObjc, objv + pc.lastObjc);
 
   } else {
     
@@ -2214,7 +2214,7 @@ NsfMyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
     Tcl_Obj *methodNameObj = (Tcl_Obj *)pc.clientData[3];
 
     assert(pc.status == 0);
-    return NsfMyCmd(interp, withIntrinsic, withLocal, withSystem, methodNameObj, objc-pc.lastObjc, objv+pc.lastObjc);
+    return NsfMyCmd(interp, withIntrinsic, withLocal, withSystem, methodNameObj, objc - pc.lastObjc, objv + pc.lastObjc);
 
   } else {
     
@@ -2691,7 +2691,7 @@ NsfVarImportCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
     NsfObject *object = (NsfObject *)pc.clientData[0];
 
     assert(pc.status == 0);
-    return NsfVarImportCmd(interp, object, objc-pc.lastObjc, objv+pc.lastObjc);
+    return NsfVarImportCmd(interp, object, objc - pc.lastObjc, objv + pc.lastObjc);
 
   } else {
     
@@ -2847,7 +2847,7 @@ NsfOConfigureMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
     
 
     
-    return NsfOConfigureMethod(interp, object, objc-pc.lastObjc, objv+pc.lastObjc, objv[0]);
+    return NsfOConfigureMethod(interp, object, objc - pc.lastObjc, objv + pc.lastObjc, objv[0]);
 
   } else {
     

@@ -243,8 +243,8 @@ proc gencall {methodName fn parameterDefinitions clientData
         "virtualclassargs" -
         "args"       {
           set type "int "
-          set calledArg "objc-pc.lastObjc, objv+pc.lastObjc"
-          lappend if "int nobjc" "Tcl_Obj *CONST* nobjv"
+          set calledArg "objc - pc.lastObjc, objv + pc.lastObjc"
+          lappend if "int trailingObjc" "Tcl_Obj *CONST* trailingObjv"
           set ifSet 1
           set cVar 0
         }
