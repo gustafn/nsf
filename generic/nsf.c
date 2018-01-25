@@ -8938,13 +8938,17 @@ AddClassListEntriesToMixinsOfSet(Tcl_Interp *interp, Tcl_HashTable *destTablePtr
     rc = AddToResultSet(interp, destTablePtr, resultSet,
                         &cl->object, &new,
                         appendResult, pattern, matchObject);
-    if (rc != 0) {return 1;}
+    if (rc != 0) {
+      return 1;
+    }
     if (new != 0) {
       /*fprintf(stderr, "... new mixin -closure of %s => %s\n",
         ClassName(startCl), ClassName(cl));*/
       rc = GetAllClassMixinsOf(interp, destTablePtr, resultSet, cl, 1,
                                appendResult, pattern, matchObject);
-      if (rc != 0) {return 1;}
+      if (rc != 0) {
+        return 1;
+      }
     }
   }
   return 0;
@@ -8991,7 +8995,9 @@ GetAllClassMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTablePtr,
     rc = AddToResultSet(interp, destTablePtr, resultSet,
                         &startCl->object, &new,
                         appendResult, pattern, matchObject);
-    if (rc == 1) {return rc;}
+    if (rc == 1) {
+      return rc;
+    }
 
     /*
      * check all subclasses of startCl for mixins
@@ -25460,8 +25466,12 @@ NsfProfileTraceStub(Tcl_Interp *interp, int withEnable, int withVerbose, int wit
 }
 
 #else
-static int NsfProfileClearDataStub(Tcl_Interp *UNUSED(interp)) {return TCL_OK;}
-static int NsfProfileGetDataStub(  Tcl_Interp *UNUSED(interp)) {return TCL_OK;}
+static int NsfProfileClearDataStub(Tcl_Interp *UNUSED(interp)) {
+  return TCL_OK;
+}
+static int NsfProfileGetDataStub(  Tcl_Interp *UNUSED(interp)) {
+  return TCL_OK;
+}
 static int NsfProfileTraceStub(    Tcl_Interp *UNUSED(interp),
                     int UNUSED(withEnable),
                     int UNUSED(withVerbose),
@@ -25522,11 +25532,21 @@ NsfCallgrindZeroStatsCmd(Tcl_Interp *UNUSED(interp)) {
 }
 #else
 
-static int NsfCallgrindDumpStatsCmd(Tcl_Interp *UNUSED(interp), const char *UNUSED(nameString)) {  return TCL_OK; }
-static int NsfCallgrindStartInstrumentationCmd(Tcl_Interp *UNUSED(interp)) {return TCL_OK;}
-static int NsfCallgrindStopInstrumentationCmd(Tcl_Interp *UNUSED(interp))  {return TCL_OK;}
-static int NsfCallgrindToggleCollectCmd(Tcl_Interp *UNUSED(interp))        {return TCL_OK;}
-static int NsfCallgrindZeroStatsCmd(Tcl_Interp *UNUSED(interp))            {return TCL_OK;}
+static int NsfCallgrindDumpStatsCmd(Tcl_Interp *UNUSED(interp), const char *UNUSED(nameString)) {
+  return TCL_OK;
+}
+static int NsfCallgrindStartInstrumentationCmd(Tcl_Interp *UNUSED(interp)) {
+  return TCL_OK;
+}
+static int NsfCallgrindStopInstrumentationCmd(Tcl_Interp *UNUSED(interp))  {
+  return TCL_OK;
+}
+static int NsfCallgrindToggleCollectCmd(Tcl_Interp *UNUSED(interp))        {
+  return TCL_OK;
+}
+static int NsfCallgrindZeroStatsCmd(Tcl_Interp *UNUSED(interp))            {
+  return TCL_OK;
+}
 
 #endif
 
