@@ -432,11 +432,6 @@ static int SetInstVar(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj, T
 static int UnsetInstVar(Tcl_Interp *interp, int withNocomplain, NsfObject *object, const char *name)
   nonnull(1) nonnull(3) nonnull(4);
 
-static int ListDefinedMethods(Tcl_Interp *interp, NsfObject *object, const char *pattern,
-                              int withPer_object, int methodType, int withCallprotection,
-                              int withPath)
-  nonnull(1) nonnull(2);
-
 static int NextSearchAndInvoke(Tcl_Interp *interp,
                                const char *methodName, int objc, Tcl_Obj *CONST objv[],
                                NsfCallStackContent *cscPtr, int freeArgumentVector)
@@ -23642,13 +23637,18 @@ static int ListMethod(Tcl_Interp *interp,
                       NsfObject *defObject,
                       const char *methodName,
                       Tcl_Command cmd,
-                      int subcmd,
+                      InfomethodsubcmdIdx_t subcmd,
                       NsfObject *contextObject,
                       const char *pattern,
                       int withPer_object)
   nonnull(1) nonnull(4) nonnull(5);
 
-
+static int ListDefinedMethods(Tcl_Interp *interp, NsfObject *object, const char *pattern,
+                              int withPer_object,
+                              MethodtypeIdx_t methodType,
+                              CallprotectionIdx_t withCallprotection,
+                              int withPath)
+  nonnull(1) nonnull(2);
 
 static int
 ListMethod(Tcl_Interp *interp,
@@ -23656,7 +23656,7 @@ ListMethod(Tcl_Interp *interp,
            NsfObject *defObject,
            const char *methodName,
            Tcl_Command cmd,
-           int subcmd,
+           InfomethodsubcmdIdx_t subcmd,
            NsfObject *contextObject,
            const char *pattern,
            int withPer_object) {
@@ -23793,6 +23793,13 @@ ListMethod(Tcl_Interp *interp,
       Tcl_SetObjResult(interp, NsfGlobalObjs[NSF_EMPTY]);
       return TCL_OK;
     }
+
+  case InfomethodsubcmdBodyIdx:       /* fall through */
+  case InfomethodsubcmdOriginIdx:     /* fall through */
+  case InfomethodsubcmdTypeIdx:       /* fall through */
+  case InfomethodsubcmdDefinitionIdx: /* fall through */
+  case InfomethodsubcmdNULL:
+    break;
   }
 
   /*
@@ -23891,6 +23898,19 @@ ListMethod(Tcl_Interp *interp,
         Tcl_SetObjResult(interp, resultObj);
         break;
       }
+    case InfomethodsubcmdArgsIdx:               /* fall through */
+    case InfomethodsubcmdDefinitionhandleIdx:   /* fall through */
+    case InfomethodsubcmdExistsIdx:             /* fall through */
+    case InfomethodsubcmdOriginIdx:             /* fall through */
+    case InfomethodsubcmdParameterIdx:          /* fall through */
+    case InfomethodsubcmdPostconditionIdx:      /* fall through */
+    case InfomethodsubcmdPreconditionIdx:       /* fall through */
+    case InfomethodsubcmdRegistrationhandleIdx: /* fall through */
+    case InfomethodsubcmdReturnsIdx:            /* fall through */
+    case InfomethodsubcmdSubmethodsIdx:         /* fall through */
+    case InfomethodsubcmdSyntaxIdx:             /* fall through */
+    case InfomethodsubcmdNULL:
+    break;
     }
 
   } else if (procPtr == NsfForwardMethod) {
@@ -23916,6 +23936,20 @@ ListMethod(Tcl_Interp *interp,
         }
       }
       break;
+    case InfomethodsubcmdArgsIdx:                /* fall through */
+    case InfomethodsubcmdBodyIdx:                /* fall through */
+    case InfomethodsubcmdDefinitionhandleIdx:    /* fall through */
+    case InfomethodsubcmdExistsIdx:              /* fall through */
+    case InfomethodsubcmdOriginIdx:              /* fall through */
+    case InfomethodsubcmdParameterIdx:           /* fall through */
+    case InfomethodsubcmdPostconditionIdx:       /* fall through */
+    case InfomethodsubcmdPreconditionIdx:        /* fall through */
+    case InfomethodsubcmdRegistrationhandleIdx:  /* fall through */
+    case InfomethodsubcmdReturnsIdx:             /* fall through */
+    case InfomethodsubcmdSubmethodsIdx:          /* fall through */
+    case InfomethodsubcmdSyntaxIdx:              /* fall through */
+    case InfomethodsubcmdNULL:
+      break;
     }
 
   } else if (procPtr == NsfSetterMethod) {
@@ -23935,6 +23969,20 @@ ListMethod(Tcl_Interp *interp,
                                  cmd, 0, outputPerObject, 1);
         Tcl_SetObjResult(interp, resultObj);
       }
+      break;
+    case InfomethodsubcmdArgsIdx:                /* fall through */
+    case InfomethodsubcmdBodyIdx:                /* fall through */
+    case InfomethodsubcmdDefinitionhandleIdx:    /* fall through */
+    case InfomethodsubcmdExistsIdx:              /* fall through */
+    case InfomethodsubcmdOriginIdx:              /* fall through */
+    case InfomethodsubcmdParameterIdx:           /* fall through */
+    case InfomethodsubcmdPostconditionIdx:       /* fall through */
+    case InfomethodsubcmdPreconditionIdx:        /* fall through */
+    case InfomethodsubcmdRegistrationhandleIdx:  /* fall through */
+    case InfomethodsubcmdReturnsIdx:             /* fall through */
+    case InfomethodsubcmdSubmethodsIdx:          /* fall through */
+    case InfomethodsubcmdSyntaxIdx:              /* fall through */
+    case InfomethodsubcmdNULL:
       break;
     }
   } else if (procPtr == NsfProcStub) {
@@ -23982,6 +24030,20 @@ ListMethod(Tcl_Interp *interp,
         Tcl_ListObjAppendElement(interp, resultObj, Tcl_GetObjResult(interp));
         Tcl_SetObjResult(interp, resultObj);
         Tcl_DStringFree(dsPtr);
+        break;
+
+      case InfomethodsubcmdArgsIdx:                /* fall through */
+      case InfomethodsubcmdDefinitionhandleIdx:    /* fall through */
+      case InfomethodsubcmdExistsIdx:              /* fall through */
+      case InfomethodsubcmdOriginIdx:              /* fall through */
+      case InfomethodsubcmdParameterIdx:           /* fall through */
+      case InfomethodsubcmdPostconditionIdx:       /* fall through */
+      case InfomethodsubcmdPreconditionIdx:        /* fall through */
+      case InfomethodsubcmdRegistrationhandleIdx:  /* fall through */
+      case InfomethodsubcmdReturnsIdx:             /* fall through */
+      case InfomethodsubcmdSubmethodsIdx:          /* fall through */
+      case InfomethodsubcmdSyntaxIdx:              /* fall through */
+      case InfomethodsubcmdNULL:
         break;
       }
     }
@@ -24039,6 +24101,20 @@ ListMethod(Tcl_Interp *interp,
           Tcl_SetObjResult(interp, listElements[nrElements-1]);
           break;
         }
+
+      case InfomethodsubcmdArgsIdx:                /* fall through */
+      case InfomethodsubcmdBodyIdx:                /* fall through */
+      case InfomethodsubcmdDefinitionhandleIdx:    /* fall through */
+      case InfomethodsubcmdExistsIdx:              /* fall through */
+      case InfomethodsubcmdParameterIdx:           /* fall through */
+      case InfomethodsubcmdPostconditionIdx:       /* fall through */
+      case InfomethodsubcmdPreconditionIdx:        /* fall through */
+      case InfomethodsubcmdRegistrationhandleIdx:  /* fall through */
+      case InfomethodsubcmdReturnsIdx:             /* fall through */
+      case InfomethodsubcmdSubmethodsIdx:          /* fall through */
+      case InfomethodsubcmdSyntaxIdx:              /* fall through */
+      case InfomethodsubcmdNULL:
+        break;
       }
     } else {
       /* check, to be on the safe side */
@@ -24060,6 +24136,21 @@ ListMethod(Tcl_Interp *interp,
             Tcl_SetObjResult(interp, resultObj);
             break;
           }
+
+        case InfomethodsubcmdArgsIdx:                /* fall through */
+        case InfomethodsubcmdBodyIdx:                /* fall through */
+        case InfomethodsubcmdDefinitionhandleIdx:    /* fall through */
+        case InfomethodsubcmdExistsIdx:              /* fall through */
+        case InfomethodsubcmdParameterIdx:           /* fall through */
+        case InfomethodsubcmdPostconditionIdx:       /* fall through */
+        case InfomethodsubcmdPreconditionIdx:        /* fall through */
+        case InfomethodsubcmdRegistrationhandleIdx:  /* fall through */
+        case InfomethodsubcmdReturnsIdx:             /* fall through */
+        case InfomethodsubcmdSubmethodsIdx:          /* fall through */
+        case InfomethodsubcmdSyntaxIdx:              /* fall through */
+        case InfomethodsubcmdOriginIdx:              /* fall through */
+        case InfomethodsubcmdNULL:
+          break;
         }
       } else {
         /*
@@ -24077,7 +24168,6 @@ ListMethod(Tcl_Interp *interp,
     /*
      * The cmd must be a plain unregistered cmd
      */
-
     switch (subcmd) {
     case InfomethodsubcmdTypeIdx:
       Tcl_SetObjResult(interp, NsfGlobalObjs[NSF_CMD]);
@@ -24085,6 +24175,20 @@ ListMethod(Tcl_Interp *interp,
     case InfomethodsubcmdDefinitionIdx:
       break;
     case InfomethodsubcmdOriginIdx:
+      break;
+
+    case InfomethodsubcmdArgsIdx:                /* fall through */
+    case InfomethodsubcmdBodyIdx:                /* fall through */
+    case InfomethodsubcmdDefinitionhandleIdx:    /* fall through */
+    case InfomethodsubcmdExistsIdx:              /* fall through */
+    case InfomethodsubcmdParameterIdx:           /* fall through */
+    case InfomethodsubcmdPostconditionIdx:       /* fall through */
+    case InfomethodsubcmdPreconditionIdx:        /* fall through */
+    case InfomethodsubcmdRegistrationhandleIdx:  /* fall through */
+    case InfomethodsubcmdReturnsIdx:             /* fall through */
+    case InfomethodsubcmdSubmethodsIdx:          /* fall through */
+    case InfomethodsubcmdSyntaxIdx:              /* fall through */
+    case InfomethodsubcmdNULL:
       break;
     }
   }
@@ -24108,14 +24212,14 @@ ListMethod(Tcl_Interp *interp,
  *----------------------------------------------------------------------
  */
 static int
-ListMethodResolve(Tcl_Interp *interp, int subcmd,
+ListMethodResolve(Tcl_Interp *interp, InfomethodsubcmdIdx_t subcmd,
                   NsfObject *contextObject, const char *pattern,
                   Tcl_Namespace *nsPtr, NsfObject *object,
                   Tcl_Obj *methodNameObj, int fromClassNS)
   nonnull(1) nonnull(7);
 
 static int
-ListMethodResolve(Tcl_Interp *interp, int subcmd,
+ListMethodResolve(Tcl_Interp *interp, InfomethodsubcmdIdx_t subcmd,
                   NsfObject *contextObject, const char *pattern,
                   Tcl_Namespace *nsPtr, NsfObject *object,
                   Tcl_Obj *methodNameObj, int fromClassNS) {
@@ -24211,13 +24315,13 @@ static int MethodSourceMatches(DefinitionsourceIdx_t withSource, NsfClass *class
  *----------------------------------------------------------------------
  */
 
-static int MethodTypeMatches(Tcl_Interp *interp, int methodType, Tcl_Command cmd,
+static int MethodTypeMatches(Tcl_Interp *interp, MethodtypeIdx_t methodType, Tcl_Command cmd,
                              NsfObject *object, const char *methodName, int withPer_object,
                              int *isObject)
   nonnull(1) nonnull(3) nonnull(5) nonnull(7);
 
 static int
-MethodTypeMatches(Tcl_Interp *interp, int methodType, Tcl_Command cmd,
+MethodTypeMatches(Tcl_Interp *interp, MethodtypeIdx_t methodType, Tcl_Command cmd,
                   NsfObject *object, const char *methodName, int withPer_object,
                   int *isObject) {
   Tcl_ObjCmdProc *proc;
@@ -24298,11 +24402,11 @@ MethodTypeMatches(Tcl_Interp *interp, int methodType, Tcl_Command cmd,
  *
  *----------------------------------------------------------------------
  */
-static int ProtectionMatches(int withCallprotection, Tcl_Command cmd) nonnull(2);
+static int ProtectionMatches(CallprotectionIdx_t withCallprotection, Tcl_Command cmd) nonnull(2);
 
 static int
-ProtectionMatches(int withCallprotection, Tcl_Command cmd) {
-  int result, isProtected, isPrivate;
+ProtectionMatches(CallprotectionIdx_t withCallprotection, Tcl_Command cmd) {
+  int          result, isProtected, isPrivate;
   unsigned int cmdFlags;
 
   nonnull_assert(cmd != NULL);
@@ -24319,6 +24423,7 @@ ProtectionMatches(int withCallprotection, Tcl_Command cmd) {
   case CallprotectionPublicIdx: result = (isProtected == 0); break;
   case CallprotectionProtectedIdx: result = isProtected && !isPrivate; break;
   case CallprotectionPrivateIdx: result = isPrivate; break;
+  case CallprotectionNULL: /* fall through */
   default: result = 1;
   }
   return result;
@@ -24345,14 +24450,14 @@ ProtectionMatches(int withCallprotection, Tcl_Command cmd) {
  */
 static int ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
                           Tcl_DString *prefix, const char *pattern,
-                          int methodType, int withCallprotection, int withPath,
+                          MethodtypeIdx_t methodType, CallprotectionIdx_t withCallprotection, int withPath,
                           Tcl_HashTable *dups, NsfObject *object, int withPer_object)
   nonnull(1) nonnull(2);
 
 static int
 ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
                Tcl_DString *prefix, const char *pattern,
-               int methodType, int withCallprotection, int withPath,
+               MethodtypeIdx_t methodType, CallprotectionIdx_t withCallprotection, int withPath,
                Tcl_HashTable *dups, NsfObject *object, int withPer_object) {
   Tcl_HashSearch       hSrch;
   const Tcl_HashEntry *hPtr;
@@ -24678,7 +24783,7 @@ ListForward(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
  */
 static int
 ListDefinedMethods(Tcl_Interp *interp, NsfObject *object, const char *pattern,
-                   int withPer_object, int methodType, int withCallprotection,
+                   int withPer_object, MethodtypeIdx_t methodType, CallprotectionIdx_t withCallprotection,
                    int withPath) {
   Tcl_HashTable *cmdTablePtr;
   Tcl_DString ds, *dsPtr = NULL;
@@ -26757,11 +26862,17 @@ NsfMethodForwardCmd(Tcl_Interp *interp,
   nonnull_assert(object != NULL);
   nonnull_assert(methodObj != NULL);
 
-  result = ForwardProcessOptions(interp, methodObj,
-                                 defaultObj, withEarlybinding,
-                                 onerrorObj, prefixObj,
-                                 withFrame, withVerbose,
-                                 targetObj, trailingObjc, trailingObjv, &tcd);
+  result = ForwardProcessOptions(interp,
+                                 methodObj,
+                                 defaultObj,
+                                 withEarlybinding,
+                                 onerrorObj,
+                                 prefixObj,
+                                 (int)withFrame,
+                                 withVerbose,
+                                 targetObj,
+                                 trailingObjc, trailingObjv,
+                                 &tcd);
 
   if (likely(result == TCL_OK)) {
     const char *methodName = NSTail(ObjStr(methodObj));
@@ -30123,9 +30234,10 @@ objectMethod residualargs NsfOResidualargsMethod {
 */
 static int
 NsfOResidualargsMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CONST objv[]) {
-  int i, start = 1, argc, nextArgc, normalArgs, result = TCL_OK, isdasharg = NO_DASH;
-  const char *methodName, *nextMethodName, *initString = NULL;
-  Tcl_Obj **argv, **nextArgv;
+  int          i, start = 1, argc, nextArgc, normalArgs, result = TCL_OK;
+  dashArgType  isdasharg = NO_DASH;
+  const char  *methodName, *nextMethodName, *initString = NULL;
+  Tcl_Obj    **argv, **nextArgv;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(object != NULL);
@@ -30206,6 +30318,7 @@ NsfOResidualargsMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj 
         }
         break;
       }
+    case NO_DASH: /* fall through */
     default:
       {
         return NsfPrintError(interp, "%s configure: unexpected argument '%s' between parameters",
@@ -31017,8 +31130,8 @@ NsfCSuperclassMethod(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *superclassesO
  * End Class Methods
  ***********************************************************************/
 
-static int
-AggregatedMethodType(int methodType) {
+static MethodtypeIdx_t
+AggregatedMethodType(MethodtypeIdx_t methodType) {
   switch (methodType) {
   case MethodtypeNULL: /* default */
   case MethodtypeAllIdx:
@@ -31301,7 +31414,7 @@ objectInfoMethod lookupmethods NsfObjInfoLookupMethodsMethod {
 */
 static int ListMethodKeysClassList(Tcl_Interp *interp, NsfClasses *classListPtr,
                         DefinitionsourceIdx_t withSource, const char *pattern,
-                        int methodType, int withCallprotection,
+                        MethodtypeIdx_t methodType, CallprotectionIdx_t withCallprotection,
                         int withPath, Tcl_HashTable *dups,
                         NsfObject *object, int withPer_object)
   nonnull(1) nonnull(8) nonnull(9);
@@ -31309,7 +31422,7 @@ static int ListMethodKeysClassList(Tcl_Interp *interp, NsfClasses *classListPtr,
 static int
 ListMethodKeysClassList(Tcl_Interp *interp, NsfClasses *classListPtr,
                         DefinitionsourceIdx_t withSource, const char *pattern,
-                        int methodType, int withCallprotection,
+                        MethodtypeIdx_t methodType, CallprotectionIdx_t withCallprotection,
                         int withPath, Tcl_HashTable *dups,
                         NsfObject *object, int withPer_object) {
   nonnull_assert(interp != NULL);
@@ -31351,9 +31464,9 @@ NsfObjInfoLookupMethodsMethod(Tcl_Interp *interp, NsfObject *object,
                               int withPath,
                               DefinitionsourceIdx_t withSource,
                               const char *pattern) {
-  int withPer_object = 1;
-  Tcl_HashTable dupsTable, *dups = &dupsTable;
-  int result, methodType = AggregatedMethodType(withType);
+  int             result, withPer_object = 1;
+  Tcl_HashTable   dupsTable, *dups = &dupsTable;
+  MethodtypeIdx_t methodType = AggregatedMethodType(withType);
 
   nonnull_assert(interp != NULL);
   nonnull_assert(object != NULL);
