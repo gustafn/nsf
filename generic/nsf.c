@@ -1198,10 +1198,10 @@ int Nsf_UnsetVar2(Nsf_Object *object, Tcl_Interp *interp,
                   const char *name1, const char *name2, unsigned int flags)
   nonnull(1) nonnull(2) nonnull(4);
 
-void NsfSetObjClientData(Tcl_Interp *interp, Nsf_Object *object, ClientData data) nonnull(1) nonnull(2);
-ClientData NsfGetObjClientData(Tcl_Interp *interp, Nsf_Object *object) nonnull(1) nonnull(2);
-void NsfSetClassClientData(Tcl_Interp *interp, Nsf_Class *cl, ClientData data) nonnull(1) nonnull(2);
-ClientData NsfGetClassClientData(Tcl_Interp *interp, Nsf_Class *cl) nonnull(1) nonnull(2);
+void NsfSetObjClientData(Tcl_Interp *UNUSED(interp), Nsf_Object *object, ClientData data) nonnull(1) nonnull(2);
+ClientData NsfGetObjClientData(Tcl_Interp *UNUSED(interp), Nsf_Object *object) nonnull(1) nonnull(2);
+void NsfSetClassClientData(Tcl_Interp *UNUSED(interp), Nsf_Class *class, ClientData data) nonnull(1) nonnull(2);
+ClientData NsfGetClassClientData(Tcl_Interp *UNUSED(interp), Nsf_Class *class) nonnull(1) nonnull(2);
 
 Nsf_Object *
 NsfGetSelfObj(const Tcl_Interp *interp) {
@@ -1409,9 +1409,8 @@ NsfRemoveClassMethod(Tcl_Interp *interp, Nsf_Class *class, const char *methodNam
  */
 
 void
-NsfSetObjClientData(Tcl_Interp *interp, Nsf_Object *object, ClientData data) {
+NsfSetObjClientData(Tcl_Interp *UNUSED(interp), Nsf_Object *object, ClientData data) {
 
-  nonnull_assert(interp != NULL);
   nonnull_assert(object != NULL);
   nonnull_assert(data != NULL);
 
@@ -1419,10 +1418,9 @@ NsfSetObjClientData(Tcl_Interp *interp, Nsf_Object *object, ClientData data) {
 }
 
 ClientData
-NsfGetObjClientData(Tcl_Interp *interp, Nsf_Object *object) {
+NsfGetObjClientData(Tcl_Interp *UNUSED(interp), Nsf_Object *object) {
   NsfObject *object_;
 
-  nonnull_assert(interp != NULL);
   nonnull_assert(object != NULL);
 
   object_ = (NsfObject *) object;
@@ -1430,23 +1428,19 @@ NsfGetObjClientData(Tcl_Interp *interp, Nsf_Object *object) {
 }
 
 void
-NsfSetClassClientData(Tcl_Interp *interp, Nsf_Class *cl, ClientData data) {
+NsfSetClassClientData(Tcl_Interp *UNUSED(interp), Nsf_Class *class, ClientData data) {
 
-  nonnull_assert(interp != NULL);
-  nonnull_assert(cl != NULL);
+  nonnull_assert(class != NULL);
 
-  NsfRequireClassOpt((NsfClass *)cl) -> clientData = data;
+  NsfRequireClassOpt((NsfClass *)class) -> clientData = data;
 }
 
 ClientData
-NsfGetClassClientData(Tcl_Interp *interp, Nsf_Class *cl) {
-  NsfClass *cl_;
+NsfGetClassClientData(Tcl_Interp *UNUSED(interp), Nsf_Class *class) {
+  NsfClass *cl;
 
-  nonnull_assert(interp != NULL);
-  nonnull_assert(cl != NULL);
-
-  cl_ = (NsfClass *) cl;
-  return (cl_->opt != NULL) ? cl_->opt->clientData : NULL;
+  cl = (NsfClass *) class;
+  return (cl->opt != NULL) ? cl->opt->clientData : NULL;
 }
 
 /***********************************************************************
@@ -14916,19 +14910,18 @@ NoMetaChars(const char *pattern) {
  */
 
 int Nsf_ConvertToString(Tcl_Interp *UNUSED(interp), Tcl_Obj *objPtr, Nsf_Param const *UNUSED(pPtr),
-                        ClientData *clientData, Tcl_Obj **outObjPtr)
-  nonnull(2) nonnull(4) nonnull(5);
+                        ClientData *clientData, Tcl_Obj **UNUSED(outObjPtr))
+  nonnull(2) nonnull(4);
 
 int
 Nsf_ConvertToString(Tcl_Interp *UNUSED(interp), Tcl_Obj *objPtr, Nsf_Param const *UNUSED(pPtr),
-                    ClientData *clientData, Tcl_Obj **outObjPtr) {
+                    ClientData *clientData, Tcl_Obj **UNUSED(outObjPtr)) {
 
   nonnull_assert(objPtr != NULL);
   nonnull_assert(clientData != NULL);
-  nonnull_assert(outObjPtr != NULL);
 
   *clientData = (char *)ObjStr(objPtr);
-  assert(*outObjPtr == objPtr);
+
   return TCL_OK;
 }
 
@@ -14991,18 +14984,18 @@ static const char *stringTypeOpts[] = {"alnum", "alpha", "ascii", "boolean", "co
                                        NULL};
 
 int Nsf_ConvertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
-                           ClientData *clientData, Tcl_Obj **outObjPtr) nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(5);
+                        ClientData *clientData, Tcl_Obj **UNUSED(outObjPtr))
+  nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(5);
 
 int
 Nsf_ConvertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
-                           ClientData *clientData, Tcl_Obj **outObjPtr) {
+                    ClientData *clientData, Tcl_Obj **UNUSED(outObjPtr)) {
   int result;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(objPtr != NULL);
   nonnull_assert(pPtr != NULL);
   nonnull_assert(clientData != NULL);
-  nonnull_assert(outObjPtr != NULL);
 
   if (unlikely(pPtr->converterArg != NULL)) {
     Tcl_Obj *objv[4];
@@ -15046,7 +15039,6 @@ Nsf_ConvertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
 #endif
     *clientData = objPtr;
   }
-  assert(*outObjPtr == objPtr);
   return result;
 }
 
@@ -15068,19 +15060,18 @@ Nsf_ConvertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
  */
 
 int Nsf_ConvertToBoolean(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
-                            ClientData *clientData, Tcl_Obj **outObjPtr)
+                         ClientData *clientData, Tcl_Obj **UNUSED(outObjPtr))
   nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(5);
 
 int
 Nsf_ConvertToBoolean(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
-                            ClientData *clientData, Tcl_Obj **outObjPtr) {
+                     ClientData *clientData, Tcl_Obj **UNUSED(outObjPtr)) {
   int result, boolVal;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(objPtr != NULL);
   nonnull_assert(pPtr != NULL);
   nonnull_assert(clientData != NULL);
-  nonnull_assert(outObjPtr != NULL);
 
   result = Tcl_GetBooleanFromObj(interp, objPtr, &boolVal);
   if (likely(result == TCL_OK)) {
@@ -15089,7 +15080,7 @@ Nsf_ConvertToBoolean(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr
     Tcl_ResetResult(interp);
     NsfObjErrType(interp, NULL, objPtr, "boolean", pPtr);
   }
-  assert(*outObjPtr == objPtr);
+
   return result;
 }
 
@@ -15110,24 +15101,23 @@ Nsf_ConvertToBoolean(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr
  *----------------------------------------------------------------------
  */
 int Nsf_ConvertToInt32(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
-                   ClientData *clientData, Tcl_Obj **outObjPtr) nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(5);
+                       ClientData *clientData, Tcl_Obj **UNUSED(outObjPtr))
+  nonnull(1) nonnull(2) nonnull(3) nonnull(4);
 
 int
 Nsf_ConvertToInt32(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
-                   ClientData *clientData, Tcl_Obj **outObjPtr) {
+                   ClientData *clientData, Tcl_Obj **UNUSED(outObjPtr)) {
   int result, i;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(objPtr != NULL);
   nonnull_assert(pPtr != NULL);
   nonnull_assert(clientData != NULL);
-  nonnull_assert(outObjPtr != NULL);
 
   result = Tcl_GetIntFromObj(interp, objPtr, &i);
 
   if (likely(result == TCL_OK)) {
     *clientData = (ClientData)INT2PTR(i);
-    assert(*outObjPtr == objPtr);
   } else {
     Tcl_ResetResult(interp);
     NsfObjErrType(interp, NULL, objPtr, "int32", (Nsf_Param *)pPtr);
@@ -15159,14 +15149,13 @@ int Nsf_ConvertToInteger(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *
 
 int
 Nsf_ConvertToInteger(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
-                     ClientData *clientData, Tcl_Obj **outObjPtr) {
+                     ClientData *clientData, Tcl_Obj **UNUSED(outObjPtr)) {
   int result;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(objPtr != NULL);
   nonnull_assert(pPtr != NULL);
   nonnull_assert(clientData != NULL);
-  nonnull_assert(outObjPtr != NULL);
 
   /*
    * Try to short_cut common cases to avoid conversion to bignums, since
@@ -15203,7 +15192,6 @@ Nsf_ConvertToInteger(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr
 
   if (likely(result == TCL_OK)) {
     *clientData = (ClientData)objPtr;
-    assert(*outObjPtr == objPtr);
   } else {
     Tcl_ResetResult(interp);
     NsfObjErrType(interp, NULL, objPtr, "integer", (Nsf_Param *)pPtr);
@@ -15264,20 +15252,18 @@ Nsf_ConvertToSwitch(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
  */
 
 int Nsf_ConvertToObject(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
-                ClientData *clientData, Tcl_Obj **outObjPtr)
-  nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(5);
+                        ClientData *clientData, Tcl_Obj **UNUSED(outObjPtr))
+  nonnull(1) nonnull(2) nonnull(3) nonnull(4);
 
 int
 Nsf_ConvertToObject(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
-                ClientData *clientData, Tcl_Obj **outObjPtr) {
+                    ClientData *clientData, Tcl_Obj **UNUSED(outObjPtr)) {
   int result;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(objPtr != NULL);
   nonnull_assert(pPtr != NULL);
   nonnull_assert(clientData != NULL);
-  nonnull_assert(outObjPtr != NULL);
-  assert(*outObjPtr == objPtr);
 
   if (likely(GetObjectFromObj(interp, objPtr, (NsfObject **)clientData) == TCL_OK)) {
     result = IsObjectOfType(interp, (NsfObject *)*clientData, "object", objPtr, pPtr);
@@ -15305,20 +15291,18 @@ Nsf_ConvertToObject(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
  */
 
 int Nsf_ConvertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
-               ClientData *clientData, Tcl_Obj **outObjPtr)
-  nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(5);
+                       ClientData *clientData, Tcl_Obj **UNUSED(outObjPtr))
+  nonnull(1) nonnull(2) nonnull(3) nonnull(4);
 
 int
 Nsf_ConvertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
-               ClientData *clientData, Tcl_Obj **outObjPtr) {
+                   ClientData *clientData, Tcl_Obj **UNUSED(outObjPtr)) {
   int withUnknown, result;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(objPtr != NULL);
   nonnull_assert(pPtr != NULL);
   nonnull_assert(clientData != NULL);
-  nonnull_assert(outObjPtr != NULL);
-  assert(*outObjPtr == objPtr);
 
   withUnknown = (RUNTIME_STATE(interp)->doClassConverterOmitUnknown == 0);
 
@@ -15351,21 +15335,19 @@ Nsf_ConvertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
  */
 
 int Nsf_ConvertToFilterreg(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
-               ClientData *clientData, Tcl_Obj **outObjPtr)
-  nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(5);
+                           ClientData *clientData, Tcl_Obj **UNUSED(outObjPtr))
+  nonnull(1) nonnull(2) nonnull(3) nonnull(4);
 
 int
 Nsf_ConvertToFilterreg(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
-               ClientData *clientData, Tcl_Obj **outObjPtr) {
+                       ClientData *clientData, Tcl_Obj **UNUSED(outObjPtr)) {
   int result;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(objPtr != NULL);
   nonnull_assert(pPtr != NULL);
   nonnull_assert(clientData != NULL);
-  nonnull_assert(outObjPtr != NULL);
 
-  assert(*outObjPtr == objPtr);
   result = Tcl_ConvertToType(interp, objPtr, &NsfFilterregObjType);
   if (likely(result == TCL_OK)) {
     *clientData = objPtr;
@@ -15394,20 +15376,18 @@ Nsf_ConvertToFilterreg(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pP
  */
 
 int Nsf_ConvertToMixinreg(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
-               ClientData *clientData, Tcl_Obj **outObjPtr)
-  nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(5);
+                          ClientData *clientData, Tcl_Obj **UNUSED(outObjPtr))
+  nonnull(1) nonnull(2) nonnull(3) nonnull(4);
 
 int
 Nsf_ConvertToMixinreg(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
-               ClientData *clientData, Tcl_Obj **outObjPtr) {
+                      ClientData *clientData, Tcl_Obj **UNUSED(outObjPtr)) {
   int result;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(objPtr != NULL);
   nonnull_assert(pPtr != NULL);
   nonnull_assert(clientData != NULL);
-  nonnull_assert(outObjPtr != NULL);
-  assert(*outObjPtr == objPtr);
 
   result = Tcl_ConvertToType(interp, objPtr, &NsfMixinregObjType);
   if (likely(result == TCL_OK)) {
@@ -15437,12 +15417,12 @@ Nsf_ConvertToMixinreg(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPt
  */
 
 int Nsf_ConvertToParameter(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
-                   ClientData *clientData, Tcl_Obj **outObjPtr)
-  nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(5);
+                           ClientData *clientData, Tcl_Obj **UNUSED(outObjPtr))
+  nonnull(1) nonnull(2) nonnull(3) nonnull(4);
 
 int
 Nsf_ConvertToParameter(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
-                   ClientData *clientData, Tcl_Obj **outObjPtr) {
+                       ClientData *clientData, Tcl_Obj **UNUSED(outObjPtr)) {
   const char *value;
   int         result;
 
@@ -15450,9 +15430,6 @@ Nsf_ConvertToParameter(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPt
   nonnull_assert(objPtr != NULL);
   nonnull_assert(pPtr != NULL);
   nonnull_assert(clientData != NULL);
-  nonnull_assert(outObjPtr != NULL);
-
-  assert(*outObjPtr == objPtr);
 
   value = ObjStr(objPtr);
   /*fprintf(stderr, "convert to parameter '%s' t '%s'\n", value, pPtr->type);*/

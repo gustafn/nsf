@@ -53,8 +53,8 @@ static void Nsf_PopFrameCsc(Tcl_Interp *interp, CallFrame *UNUSED(framePtr))
 static Tcl_CallFrame* CallStackGetActiveProcFrame(Tcl_CallFrame *framePtr)
   nonnull(1);
 
-NSF_INLINE static NsfObject* GetSelfObj2(const Tcl_Interp *interp, Tcl_CallFrame *framePtr)
-  nonnull(1) nonnull(2);
+NSF_INLINE static NsfObject* GetSelfObj2(const Tcl_Interp *UNUSED(interp), Tcl_CallFrame *framePtr)
+  nonnull(2);
 
 static Tcl_CallFrame* CallStackGetTclFrame(const Tcl_Interp *interp,
                                            Tcl_CallFrame *varFramePtr,
@@ -428,10 +428,9 @@ CallStackGetActiveProcFrame(Tcl_CallFrame *framePtr) {
   GetSelfObj2((interp), (Tcl_CallFrame *)Tcl_Interp_varFramePtr((interp)))
 
 NSF_INLINE static NsfObject*
-GetSelfObj2(const Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
+GetSelfObj2(const Tcl_Interp *UNUSED(interp), Tcl_CallFrame *framePtr) {
   register Tcl_CallFrame *varFramePtr;
 
-  nonnull_assert(interp != NULL);
   nonnull_assert(framePtr != NULL);
 
   /*fprintf(stderr, "GetSelfObj interp has frame %p and var-frame %p\n",
