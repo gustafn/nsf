@@ -483,7 +483,7 @@ objectInfoMethod filters NsfObjInfoFiltersMethod {
 }
 objectInfoMethod forward NsfObjInfoForwardMethod {
   {-argName "-definition" -nrargs 0 -type switch}
-  {-argName "name"}
+  {-argName "pattern"}
 }
 objectInfoMethod hasmixin NsfObjInfoHasMixinMethod {
   {-argName "class" -required 1 -type class}
@@ -568,7 +568,7 @@ classInfoMethod filters NsfClassInfoFiltersMethod {
 }
 classInfoMethod forward NsfClassInfoForwardMethod {
   {-argName "-definition" -nrargs 0 -type switch}
-  {-argName "name"}
+  {-argName "pattern"}
 }
 classInfoMethod heritage NsfClassInfoHeritageMethod {
   {-argName "pattern"}

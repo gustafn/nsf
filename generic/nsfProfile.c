@@ -74,19 +74,19 @@ NsfProfileObjectLabel(Tcl_DString *dsPtr, NsfObject *object) {
   Tcl_DStringAppend(dsPtr, ClassName(object->cl), -1);
 }
 
-static void NsfProfileMethodLabel(Tcl_DString *dsPtr, NsfClass *cl, const char *methodName)
+static void NsfProfileMethodLabel(Tcl_DString *dsPtr, NsfClass *class, const char *methodName)
   nonnull(1) nonnull(3);
 
 static void
-NsfProfileMethodLabel(Tcl_DString *dsPtr, NsfClass *cl, const char *methodName) {
+NsfProfileMethodLabel(Tcl_DString *dsPtr, NsfClass *class, const char *methodName) {
 
   nonnull_assert(dsPtr != NULL);
   nonnull_assert(methodName != NULL);
 
   Tcl_DStringAppendElement(dsPtr, methodName);
-  if (cl != NULL) {
+  if (class != NULL) {
     Tcl_DStringAppend(dsPtr, " ", 1);
-    Tcl_DStringAppend(dsPtr, ObjStr(cl->object.cmdName), -1);
+    Tcl_DStringAppend(dsPtr, ObjStr(class->object.cmdName), -1);
   }
 
 }
@@ -108,7 +108,7 @@ NsfProfileMethodLabel(Tcl_DString *dsPtr, NsfClass *cl, const char *methodName) 
  *----------------------------------------------------------------------
  */
 void
-NsfProfileDeprecatedCall(Tcl_Interp *interp, NsfObject *object, NsfClass *cl,
+NsfProfileDeprecatedCall(Tcl_Interp *interp, NsfObject *object, NsfClass *class,
                          const char *methodName, const char *altMethod) {
   Tcl_DString ds;
 
@@ -119,7 +119,7 @@ NsfProfileDeprecatedCall(Tcl_Interp *interp, NsfObject *object, NsfClass *cl,
 
   Tcl_DStringInit(&ds);
   Tcl_DStringAppend(&ds, "{", 1);
-  NsfProfileMethodLabel(&ds, cl, methodName);
+  NsfProfileMethodLabel(&ds, class, methodName);
   Tcl_DStringAppend(&ds, "}", 1);
 
   NsfDeprecatedCmd(interp,"method", ds.string, altMethod);
@@ -143,7 +143,7 @@ NsfProfileDeprecatedCall(Tcl_Interp *interp, NsfObject *object, NsfClass *cl,
  *----------------------------------------------------------------------
  */
 void
-NsfProfileDebugCall(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, const char *methodName,
+NsfProfileDebugCall(Tcl_Interp *interp, NsfObject *object, NsfClass *class, const char *methodName,
                     int objc, Tcl_Obj **objv) {
   NsfRuntimeState *rst;
   Tcl_Obj         *listObj;
@@ -161,7 +161,7 @@ NsfProfileDebugCall(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, const c
     NsfProfileObjectLabel(&ds, object);
   }
   Tcl_DStringAppend(&ds, "} {", 3);
-  NsfProfileMethodLabel(&ds, cl, methodName);
+  NsfProfileMethodLabel(&ds, class, methodName);
   Tcl_DStringAppend(&ds, "}", 1);
 
   listObj = Tcl_NewListObj(objc, objv);
@@ -176,7 +176,7 @@ NsfProfileDebugCall(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, const c
 }
 
 void
-NsfProfileDebugExit(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, const char *methodName,
+NsfProfileDebugExit(Tcl_Interp *interp, NsfObject *object, NsfClass *class, const char *methodName,
                     long startSec, long startUsec) {
   Tcl_DString      ds, *dsPtr = &ds;
   NsfRuntimeState *rst;
@@ -192,7 +192,7 @@ NsfProfileDebugExit(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, const c
     NsfProfileObjectLabel(dsPtr, object);
   }
   Tcl_DStringAppend(dsPtr, "} {", 3);
-  NsfProfileMethodLabel(dsPtr, cl, methodName);
+  NsfProfileMethodLabel(dsPtr, class, methodName);
   Tcl_DStringAppend(dsPtr, "} ", 1);
   Tcl_DStringAppendElement(dsPtr, ObjStr(Tcl_GetObjResult(interp)));
 
@@ -590,7 +590,7 @@ NsfProfileTraceExitAppend(Tcl_Interp *interp, const char *label, double duration
  */
 
 void
-NsfProfileTraceCall(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, const char *methodName) {
+NsfProfileTraceCall(Tcl_Interp *interp, NsfObject *object, NsfClass *class, const char *methodName) {
   NsfRuntimeState *rst = RUNTIME_STATE(interp);
 
   if (rst->doTrace) {
@@ -604,7 +604,7 @@ NsfProfileTraceCall(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, const c
     Tcl_DStringAppend(&traceLabel, " ", 1);
 
     Tcl_DStringSetLength(&ds, 0);
-    NsfProfileMethodLabel(&ds, cl, methodName);
+    NsfProfileMethodLabel(&ds, class, methodName);
     Tcl_DStringAppendElement(&traceLabel, Tcl_DStringValue(&ds));
 
     NsfProfileTraceCallAppend(interp, Tcl_DStringValue(&traceLabel));
@@ -615,7 +615,7 @@ NsfProfileTraceCall(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, const c
 
 
 void
-NsfProfileTraceExit(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, const char *methodName,
+NsfProfileTraceExit(Tcl_Interp *interp, NsfObject *object, NsfClass *class, const char *methodName,
                     struct Tcl_Time *callTime) {
   NsfRuntimeState *rst = RUNTIME_STATE(interp);
 
@@ -635,7 +635,7 @@ NsfProfileTraceExit(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, const c
     Tcl_DStringAppend(&traceLabel, " ", 1);
 
     Tcl_DStringSetLength(&ds, 0);
-    NsfProfileMethodLabel(&ds, cl, methodName);
+    NsfProfileMethodLabel(&ds, class, methodName);
     Tcl_DStringAppendElement(&traceLabel, Tcl_DStringValue(&ds));
 
     NsfProfileTraceExitAppend(interp, Tcl_DStringValue(&traceLabel), totalMicroSec);

@@ -550,7 +550,7 @@ static int NsfClassInfoFilterguardMethod(Tcl_Interp *interp, NsfClass *class, co
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
 static int NsfClassInfoFiltersMethod(Tcl_Interp *interp, NsfClass *class, int withGuards, const char *pattern)
   NSF_nonnull(1) NSF_nonnull(2);
-static int NsfClassInfoForwardMethod(Tcl_Interp *interp, NsfClass *class, int withDefinition, const char *name)
+static int NsfClassInfoForwardMethod(Tcl_Interp *interp, NsfClass *class, int withDefinition, const char *pattern)
   NSF_nonnull(1) NSF_nonnull(2);
 static int NsfClassInfoHeritageMethod(Tcl_Interp *interp, NsfClass *class, const char *pattern)
   NSF_nonnull(1) NSF_nonnull(2);
@@ -728,7 +728,7 @@ static int NsfObjInfoFilterguardMethod(Tcl_Interp *interp, NsfObject *object, co
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
 static int NsfObjInfoFiltersMethod(Tcl_Interp *interp, NsfObject *object, int withGuards, const char *pattern)
   NSF_nonnull(1) NSF_nonnull(2);
-static int NsfObjInfoForwardMethod(Tcl_Interp *interp, NsfObject *object, int withDefinition, const char *name)
+static int NsfObjInfoForwardMethod(Tcl_Interp *interp, NsfObject *object, int withDefinition, const char *pattern)
   NSF_nonnull(1) NSF_nonnull(2);
 static int NsfObjInfoHasMixinMethod(Tcl_Interp *interp, NsfObject *object, NsfClass *class)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
@@ -1203,10 +1203,10 @@ NsfClassInfoForwardMethodStub(ClientData clientData, Tcl_Interp *interp, int obj
                      method_definitions[NsfClassInfoForwardMethodIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     int withDefinition = (int )PTR2INT(pc.clientData[0]);
-    const char *name = (const char *)pc.clientData[1];
+    const char *pattern = (const char *)pc.clientData[1];
 
     assert(pc.status == 0);
-    return NsfClassInfoForwardMethod(interp, class, withDefinition, name);
+    return NsfClassInfoForwardMethod(interp, class, withDefinition, pattern);
 
   } else {
     
@@ -3233,10 +3233,10 @@ NsfObjInfoForwardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc,
                      method_definitions[NsfObjInfoForwardMethodIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     int withDefinition = (int )PTR2INT(pc.clientData[0]);
-    const char *name = (const char *)pc.clientData[1];
+    const char *pattern = (const char *)pc.clientData[1];
 
     assert(pc.status == 0);
-    return NsfObjInfoForwardMethod(interp, object, withDefinition, name);
+    return NsfObjInfoForwardMethod(interp, object, withDefinition, pattern);
 
   } else {
     
@@ -3757,7 +3757,7 @@ static Nsf_methodDefinition method_definitions[120] = {
 },
 {"::nsf::methods::class::info::forward", NsfClassInfoForwardMethodStub, 2, {
   {"-definition", 0, 0, Nsf_ConvertTo_Boolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
-  {"name", 0, 1, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"pattern", 0, 1, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::class::info::heritage", NsfClassInfoHeritageMethodStub, 1, {
   {"pattern", 0, 1, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
@@ -4154,7 +4154,7 @@ static Nsf_methodDefinition method_definitions[120] = {
 },
 {"::nsf::methods::object::info::forward", NsfObjInfoForwardMethodStub, 2, {
   {"-definition", 0, 0, Nsf_ConvertTo_Boolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
-  {"name", 0, 1, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"pattern", 0, 1, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::info::hasmixin", NsfObjInfoHasMixinMethodStub, 1, {
   {"class", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Class, NULL,NULL,"class",NULL,NULL,NULL,NULL,NULL}}

@@ -743,7 +743,7 @@ const char *NsfGlobalStrings[] = {
 
 /* obj types */
 EXTERN Tcl_ObjType NsfMixinregObjType;
-EXTERN int NsfMixinregGet(Tcl_Interp *interp, Tcl_Obj *obj, NsfClass **clPtr, Tcl_Obj **guardObj)
+EXTERN int NsfMixinregGet(Tcl_Interp *interp, Tcl_Obj *obj, NsfClass **classPtr, Tcl_Obj **guardObj)
   nonnull(1) nonnull(2) nonnull(3) nonnull(4);
 EXTERN int NsfMixinregInvalidate(Tcl_Interp *interp, Tcl_Obj *obj)
   nonnull(1) nonnull(2);
@@ -967,16 +967,16 @@ typedef struct NsfRuntimeState {
 
 #ifdef NSF_OBJECTDATA
 EXTERN void
-NsfSetObjectData(struct NsfObject *obj, struct NsfClass *cl, ClientData data)
+NsfSetObjectData(struct NsfObject *object, struct NsfClass *class, ClientData data)
   nonnull(1) nonnull(2) nonnull(3);
 EXTERN int
-NsfGetObjectData(struct NsfObject *obj, struct NsfClass *cl, ClientData *data)
+NsfGetObjectData(struct NsfObject *object, struct NsfClass *class, ClientData *data)
   nonnull(1) nonnull(2) nonnull(3);
 EXTERN int
-NsfUnsetObjectData(struct NsfObject *obj, struct NsfClass *cl)
+NsfUnsetObjectData(struct NsfObject *object, struct NsfClass *class)
   nonnull(1) nonnull(2);
 EXTERN void
-NsfFreeObjectData(NsfClass *cl)
+NsfFreeObjectData(NsfClass *class)
   nonnull(1);
 #endif
 
@@ -1026,13 +1026,13 @@ EXTERN void NsfCleanupObject_(NsfObject *object) nonnull(1);
 
 EXTERN void NsfDeprecatedCmd(Tcl_Interp *interp, const char *what, const char *oldCmd, const char *newCmd)
   nonnull(1) nonnull(2) nonnull(3) nonnull(4);
-EXTERN void NsfProfileDeprecatedCall(Tcl_Interp *interp, NsfObject *object, NsfClass *cl,
+EXTERN void NsfProfileDeprecatedCall(Tcl_Interp *interp, NsfObject *object, NsfClass *class,
 				     const char *methodName, const char *altMethod)
   nonnull(1) nonnull(2) nonnull(4) nonnull(5);
-EXTERN void NsfProfileDebugCall(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, const char *methodName,
+EXTERN void NsfProfileDebugCall(Tcl_Interp *interp, NsfObject *object, NsfClass *class, const char *methodName,
 				int objc, Tcl_Obj **objv)
   nonnull(1) nonnull(4);
-EXTERN void NsfProfileDebugExit(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, const char *methodName,
+EXTERN void NsfProfileDebugExit(Tcl_Interp *interp, NsfObject *object, NsfClass *class, const char *methodName,
 		    long startSec, long startUsec)
   nonnull(1) nonnull(4);
 
@@ -1047,9 +1047,9 @@ EXTERN void NsfProfileClearData(Tcl_Interp *interp) nonnull(1);
 EXTERN void NsfProfileGetData(Tcl_Interp *interp) nonnull(1);
 EXTERN int NsfProfileTrace(Tcl_Interp *interp, int withEnable, int withVerbose, int withDontsave, Tcl_Obj *builtinObjs);
 
-EXTERN void NsfProfileTraceCall(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, const char *methodName)
+EXTERN void NsfProfileTraceCall(Tcl_Interp *interp, NsfObject *object, NsfClass *class, const char *methodName)
   nonnull(1) nonnull(2) nonnull(4);
-EXTERN void NsfProfileTraceExit(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, const char *methodName,
+EXTERN void NsfProfileTraceExit(Tcl_Interp *interp, NsfObject *object, NsfClass *class, const char *methodName,
 				struct Tcl_Time *callTime)
   nonnull(1) nonnull(2) nonnull(4) nonnull(5);
 EXTERN void NsfProfileTraceCallAppend(Tcl_Interp *interp, const char *label)
@@ -1114,7 +1114,7 @@ int NsfDirectSelfDispatch(ClientData cd, Tcl_Interp *interp,
 #endif
 
 EXTERN int NsfGetClassFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr,
-			      NsfClass **clPtr, int withUnknown)
+			      NsfClass **classPtr, int withUnknown)
   nonnull(1) nonnull(2) nonnull(3);
 
 EXTERN int NsfObjWrongArgs(Tcl_Interp *interp, const char *msg,
@@ -1195,7 +1195,7 @@ EXTERN int NsfMethodObjSet(Tcl_Interp  *UNUSED(interp),
 			   void        *context,
 			   unsigned int methodEpoch,
 			   Tcl_Command  cmd,
-			   NsfClass    *cl,
+			   NsfClass    *class,
 			   unsigned int flags)
   nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(6);
 

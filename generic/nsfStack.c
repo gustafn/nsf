@@ -109,7 +109,7 @@ static NsfCallStackContent* CscAlloc(Tcl_Interp *interp, NsfCallStackContent *cs
   nonnull(2);
 #endif
 
-NSF_INLINE static void CscInit_(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *cl,
+NSF_INLINE static void CscInit_(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *class,
                                 Tcl_Command cmd, unsigned short frameType, unsigned int flags)
   nonnull(1) nonnull(2);
 
@@ -1188,7 +1188,7 @@ CscAlloc(Tcl_Interp *interp, NsfCallStackContent *cscPtr, Tcl_Command cmd) {
  *----------------------------------------------------------------------
  */
 NSF_INLINE static void
-CscInit_(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *cl,
+CscInit_(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *class,
         Tcl_Command cmd, unsigned short frameType, unsigned int flags) {
 #if defined(NSF_PROFILE)
   struct Tcl_Time trt;
@@ -1221,12 +1221,12 @@ CscInit_(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass 
     /*
      * Track class activations
      */
-    if (cl != NULL) {
+    if (class != NULL) {
       /*
        * handle class activation count
        */
-      cl->object.activationCount ++;
-      MEM_COUNT_ALLOC("class.activationCount", cl);
+      class->object.activationCount ++;
+      MEM_COUNT_ALLOC("class.activationCount", class);
       /*
        * Increment the namespace ptr in case Tcl tries to delete
        * this namespace during the invocation
@@ -1239,7 +1239,7 @@ CscInit_(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass 
   }
   cscPtr->flags        |= flags & NSF_CSC_COPY_FLAGS;
   cscPtr->self          = object;
-  cscPtr->cl            = cl;
+  cscPtr->cl            = class;
   cscPtr->cmdPtr        = cmd;
   cscPtr->objv          = NULL;
   cscPtr->filterStackEntry = object->filterStack;
