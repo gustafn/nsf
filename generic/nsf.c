@@ -317,7 +317,7 @@ static int ForwardProcessOptions(Tcl_Interp *interp, Tcl_Obj *nameObj,
 static bool IsRootClass(NsfClass *cls) nonnull(1) pure;
 static bool IsRootMetaClass(NsfClass *cl) nonnull(1) pure;
 static bool IsBaseClass(NsfObject *object) nonnull(1) pure;
-static bool IsMetaClass(Tcl_Interp *interp, NsfClass *class, int withMixins) nonnull(1) nonnull(2);
+static bool IsMetaClass(Tcl_Interp *interp, NsfClass *class, bool withMixins) nonnull(1) nonnull(2);
 static bool IsSubType(NsfClass *subClass, NsfClass *class) nonnull(1) nonnull(2);
 static NsfClass *DefaultSuperClass(Tcl_Interp *interp, NsfClass *class, NsfClass *metaClass, bool isMeta)
   nonnull(1) nonnull(2) nonnull(3);
@@ -2013,7 +2013,8 @@ IsObjectOfType(Tcl_Interp *interp, NsfObject *object, const char *what, Tcl_Obj 
     what = "baseclass";
     goto type_error;
   }
-  if (unlikely((pPtr->flags & NSF_ARG_METACLASS) != 0u) && !IsMetaClass(interp, (NsfClass *)object, 1)) {
+  if (unlikely((pPtr->flags & NSF_ARG_METACLASS) != 0u)
+      && !IsMetaClass(interp, (NsfClass *)object, NSF_TRUE)) {
     what = "metaclass";
     goto type_error;
   }
@@ -2426,7 +2427,7 @@ NsfClassListUnlink(NsfClasses **firstPtrPtr, const void *key) {
  *    the processed nodes in WHITE, GRAY or BLACK.
  *
  * Results:
- *    Indicates whether a cycle was detected (0) or not (1); and,
+ *    Boolean indicating whether a cycle was detected (0) or not (1); and,
  *    therefore, whether the sort failed (0) or succeeded (1).
  *
  * Side effects:
@@ -2437,13 +2438,13 @@ NsfClassListUnlink(NsfClasses **firstPtrPtr, const void *key) {
 
 enum colors { WHITE, GRAY, BLACK };
 
-static int TopoSortSub(NsfClass *class, NsfClass *baseClass, int withMixinOfs)
+static bool TopoSortSub(NsfClass *class, NsfClass *baseClass, bool withMixinOfs)
   nonnull(1) nonnull(2);
 
-static int
-TopoSortSub(NsfClass *class, NsfClass *baseClass, int withMixinOfs) {
+static bool
+TopoSortSub(NsfClass *class, NsfClass *baseClass, bool withMixinOfs) {
   NsfClasses *sl, *pl;
-  int         isAcyclic = 1;
+  bool        isAcyclic = NSF_TRUE;
 
   nonnull_assert(class != NULL);
   nonnull_assert(baseClass != NULL);
@@ -2468,13 +2469,13 @@ TopoSortSub(NsfClass *class, NsfClass *baseClass, int withMixinOfs) {
     if (sc->color == GRAY ||
         unlikely(sc->color == WHITE &&
                  !TopoSortSub(sc, baseClass, withMixinOfs))) {
-      isAcyclic = 0;
+      isAcyclic = NSF_FALSE;
       break;
     }
 
   }
 
-  if (isAcyclic != 0 && withMixinOfs != 0) {
+  if (isAcyclic && withMixinOfs) {
     NsfCmdList *classMixins = ((class->opt != NULL) && class->opt->isClassMixinOf) ? class->opt->isClassMixinOf : NULL;
 
     for (; classMixins != NULL; classMixins = classMixins->nextPtr) {
@@ -2502,7 +2503,7 @@ TopoSortSub(NsfClass *class, NsfClass *baseClass, int withMixinOfs) {
     for (pc = class->order; pc != NULL; pc = pc->nextPtr) {
       pc->cl->color = WHITE;
     }
-    assert(isAcyclic != 0 && baseClass->order != NULL);
+    assert(isAcyclic && baseClass->order != NULL);
   }
 
   return isAcyclic;
@@ -2834,20 +2835,21 @@ static void AssertOrderIsWhite(NsfClasses *order) {
  * TopoSortSuper --
  *
  *    Compute the precedence order for baseClass based on the superclasses. If
- *    the order is computable, update base class and return 1. Otherwise
- *    return 0.
+ *    the order is computable, update base class and return NSF_TRUE. Otherwise
+ *    return NSF_FALSE.
  *
  * Results:
- *    Success/Failure.
+ *    Boolean indicating success
  *
  * Side effects:
  *    None.
  *
  *----------------------------------------------------------------------
  */
-static int TopoSortSuper(NsfClass *class, NsfClass *baseClass) nonnull(1) nonnull(2);
+static bool TopoSortSuper(NsfClass *class, NsfClass *baseClass)
+  nonnull(1) nonnull(2);
 
-static int
+static bool
 TopoSortSuper(NsfClass *class, NsfClass *baseClass) {
   NsfClasses *pl, *sl;
 
@@ -2869,11 +2871,11 @@ TopoSortSuper(NsfClass *class, NsfClass *baseClass) {
 
     if (sc->color == GRAY) {
       class->color = WHITE;
-      return 0;
+      return NSF_FALSE;
     }
     if (unlikely(sc->color == WHITE && !TopoSortSuper(sc, baseClass))) {
       class->color = WHITE;
-      return 0;
+      return NSF_FALSE;
     }
   }
 
@@ -2913,7 +2915,7 @@ TopoSortSuper(NsfClass *class, NsfClass *baseClass) {
    */
   baseClass->order = pl;
 
-  return 1;
+  return NSF_TRUE;
 }
 
 
@@ -2938,7 +2940,7 @@ TopoSortSuper(NsfClass *class, NsfClass *baseClass) {
 NSF_INLINE static NsfClasses *
 PrecedenceOrder(NsfClass *cl) {
   register NsfClasses *sl;
-  int                  success, haveMultipleInheritance;
+  bool                 success, haveMultipleInheritance;
 
   nonnull_assert(cl != NULL);
 
@@ -2956,15 +2958,15 @@ PrecedenceOrder(NsfClass *cl) {
    * can't do this in MergeInheritanceLists() within TopoSortSuper(), since
    * there the class node coloring might be half done.
    */
-  haveMultipleInheritance = 0;
+  haveMultipleInheritance = NSF_FALSE;
   for (sl = cl->super; sl != NULL; sl = sl->cl->super) {
     if (sl != NULL && sl->nextPtr != NULL) {
-      haveMultipleInheritance = 1;
+      haveMultipleInheritance = NSF_TRUE;
       break;
     }
   }
 
-  if (unlikely(haveMultipleInheritance != 0)) {
+  if (unlikely(haveMultipleInheritance)) {
     /*
      * In the class hierarchy is somewhere a place with multiple
      * inheritance. All precedence orders of superclasses must be computed,
@@ -3060,17 +3062,17 @@ PrecedenceOrder(NsfClass *cl) {
  */
 
 NSF_INLINE static NsfClasses *
-GetSubClasses(NsfClass *class, int withMixinOfs)
+GetSubClasses(NsfClass *class, bool withMixinOfs)
   nonnull(1) returns_nonnull;
 
 #define TransitiveSubClasses(class)                         \
-  GetSubClasses((class), 0)
+  GetSubClasses((class), NSF_FALSE)
 
 #define DependentSubClasses(class)                         \
-  GetSubClasses((class), 1)
+  GetSubClasses((class), NSF_TRUE)
 
 NSF_INLINE static NsfClasses *
-GetSubClasses(NsfClass *class, int withMixinOfs) {
+GetSubClasses(NsfClass *class, bool withMixinOfs) {
   NsfClasses *order, *savedOrder;
 
   nonnull_assert(class != NULL);
@@ -10076,7 +10078,7 @@ GuardCall(NsfObject *object, Tcl_Interp *interp, Tcl_Obj *guardObj, NsfCallStack
  *    client data.
  *
  * Results:
- *    Returns 0 or 1 depending on whether the cmd is part of the
+ *    Returns Boolean value depending on whether the cmd is part of the
  *    definition list.
  *
  * Side effects:
@@ -10084,11 +10086,11 @@ GuardCall(NsfObject *object, Tcl_Interp *interp, Tcl_Obj *guardObj, NsfCallStack
  *
  *----------------------------------------------------------------------
  */
-static int GuardAddFromDefinitionList(NsfCmdList *dest, Tcl_Command interceptorCmd,
+static bool GuardAddFromDefinitionList(NsfCmdList *dest, Tcl_Command interceptorCmd,
                                       NsfCmdList *interceptorDefList)
   nonnull(1) nonnull(2) nonnull(3);
 
-static int
+static bool
 GuardAddFromDefinitionList(NsfCmdList *dest, Tcl_Command interceptorCmd,
                            NsfCmdList *interceptorDefList) {
   NsfCmdList *h;
@@ -10102,10 +10104,10 @@ GuardAddFromDefinitionList(NsfCmdList *dest, Tcl_Command interceptorCmd,
     if (h->clientData != NULL) {
       GuardAdd(dest, (Tcl_Obj *) h->clientData);
     }
-    return 1;
+    return NSF_TRUE;
   }
 
-  return 0;
+  return NSF_FALSE;
 }
 
 /*
@@ -10129,8 +10131,8 @@ static void GuardAddInheritedGuards(Tcl_Interp *interp, NsfCmdList *dest,
 static void
 GuardAddInheritedGuards(Tcl_Interp *interp, NsfCmdList *dest,
                         NsfObject *object, Tcl_Command filterCmd) {
-  NsfClasses *pl;
-  int guardAdded = 0;
+  NsfClasses   *pl;
+  bool          guardAdded = NSF_FALSE;
   NsfObjectOpt *opt;
 
   nonnull_assert(filterCmd != NULL);
@@ -10156,13 +10158,13 @@ GuardAddInheritedGuards(Tcl_Interp *interp, NsfCmdList *dest,
 
   /* search per-object filters */
   opt = object->opt;
-  if (!guardAdded && opt != NULL && opt->objFilters != NULL) {
+  if (!guardAdded && (opt != NULL) && (opt->objFilters != NULL)) {
     guardAdded = GuardAddFromDefinitionList(dest, filterCmd, opt->objFilters);
   }
 
-  if (guardAdded == 0) {
+  if (!guardAdded) {
     /* search per-class filters */
-    for (pl = PrecedenceOrder(object->cl); !guardAdded && pl != NULL; pl = pl->nextPtr) {
+    for (pl = PrecedenceOrder(object->cl); !guardAdded && (pl != NULL); pl = pl->nextPtr) {
       NsfClassOpt *clopt = pl->cl->opt;
       if (clopt != NULL && clopt->classFilters != NULL) {
         guardAdded = GuardAddFromDefinitionList(dest, filterCmd, clopt->classFilters);
@@ -10178,7 +10180,7 @@ GuardAddInheritedGuards(Tcl_Interp *interp, NsfCmdList *dest,
      *   B filter f
      * -> get the guard from the filter that inherits it (here B->f)
      */
-    if (guardAdded == 0) {
+    if (!guardAdded) {
       NsfCmdList *registeredFilter =
         CmdListFindNameInList(interp, (char *) Tcl_GetCommandName(interp, filterCmd),
                               object->filterOrder);
@@ -11378,7 +11380,7 @@ MakeProcError(
  *    Function to determine whether a proc is already byte compiled or not.
  *
  * Results:
- *    0 or 1 based on success
+ *    Standard Tcl return code
  *
  * Side effects:
  *    none
@@ -19978,7 +19980,7 @@ CleanupDestroyClass(Tcl_Interp *interp, NsfClass *class, int softrecreate, int r
 
   clopt = class->opt;
   /*fprintf(stderr, "CleanupDestroyClass %p %s (ismeta=%d) softrecreate=%d, recreate=%d, %p\n",
-          cl, ClassName(cl), IsMetaClass(interp, cl, 1),
+          cl, ClassName(cl), IsMetaClass(interp, cl, NSF_TRUE),
           softrecreate, recreate, clopt);*/
 
   subClasses = DependentSubClasses(class);
@@ -20065,7 +20067,7 @@ CleanupDestroyClass(Tcl_Interp *interp, NsfClass *class, int softrecreate, int r
      * class).
      */
     baseClass = DefaultSuperClass(interp, class, class->object.cl,
-                                  IsMetaClass(interp, class, 1));
+                                  IsMetaClass(interp, class, NSF_TRUE));
     /*
      * We do not have to reclassing in case, cl is a root class
      */
@@ -20440,16 +20442,16 @@ ChangeClass(Tcl_Interp *interp, NsfObject *object, NsfClass *class) {
 
   /*fprintf(stderr, "changing %s to class %s ismeta %d\n",
           ObjectName(object), ClassName(cl),
-          IsMetaClass(interp, cl, 1));*/
+          IsMetaClass(interp, cl, NSF_TRUE));*/
 
   if (class != object->cl) {
-    if (IsMetaClass(interp, class, 1)) {
+    if (IsMetaClass(interp, class, NSF_TRUE)) {
       /* Do not allow upgrading from a class to a meta-class (in
          other words, don't make an object to a class). To allow
          this, it would be necessary to reallocate the base
          structures.
       */
-      if (!IsMetaClass(interp, object->cl, 1)) {
+      if (!IsMetaClass(interp, object->cl, NSF_TRUE)) {
         return NsfPrintError(interp, "cannot turn object into a class");
       }
     } else {
@@ -20663,34 +20665,34 @@ IsRootClass(NsfClass *cls) {
  *----------------------------------------------------------------------
  */
 static bool
-IsMetaClass(Tcl_Interp *interp, NsfClass *class, int withMixins) {
+IsMetaClass(Tcl_Interp *interp, NsfClass *class, bool withMixins) {
   NsfClasses *pl;
+  bool        result = NSF_FALSE;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(class != NULL);
 
   /* is the class the most general meta-class? */
   if (IsRootMetaClass(class)) {
-    return 1;
+    return NSF_TRUE;
   }
 
   /* is the class a subclass of a meta-class? */
   for (pl = PrecedenceOrder(class); pl != NULL; pl = pl->nextPtr) {
     if (IsRootMetaClass(pl->cl)) {
-      return 1;
+      return NSF_TRUE;
     }
   }
 
   if (withMixins == 1) {
     NsfClasses *checkList = NULL, *mixinClasses = NULL, *mc;
-    int hasMCM = 0;
 
     /* has the class metaclass mixed in? */
     NsfClassListAddPerClassMixins(interp, class, &mixinClasses, &checkList);
 
     for (mc = mixinClasses; mc != NULL; mc = mc->nextPtr) {
-      if (IsMetaClass(interp, mc->cl, 0)) {
-        hasMCM = 1;
+      if (IsMetaClass(interp, mc->cl, NSF_FALSE)) {
+        result = NSF_TRUE;
         break;
       }
     }
@@ -20701,13 +20703,9 @@ IsMetaClass(Tcl_Interp *interp, NsfClass *class, int withMixins) {
       NsfClassListFree(checkList);
     }
     /*fprintf(stderr, "has MC returns %d, mixinClasses = %p\n",
-      hasMCM, mixinClasses);*/
-
-    return hasMCM;
-  } else {
-    return 0;
+      result, mixinClasses);*/
   }
-
+  return result;
 }
 
 /*
@@ -30543,7 +30541,7 @@ NsfCAllocMethod_(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *nameObj, Tcl_Name
   /*
    * Create a new object from scratch.
    */
-  if (! IsMetaClass(interp, class, 1)) {
+  if (! IsMetaClass(interp, class, NSF_TRUE)) {
     /*
      * If the base class is an ordinary class, we create an object.
      */
@@ -30719,9 +30717,9 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *nameObj, int objc
 
   /*fprintf(stderr, "+++ createspecifiedName '%s', nameString '%s', newObject=%p ismeta(%s) %d, ismeta(%s) %d\n",
           ObjStr(specifiedNameObj), nameString, newObject,
-          ClassName(class), IsMetaClass(interp, class, 1),
+          ClassName(class), IsMetaClass(interp, class, NSF_TRUE),
           (newObject != NULL) ? ClassName(newObject->cl) : "NULL",
-          (newObject != NULL) ? IsMetaClass(interp, newObject->cl, 1) : 0
+          (newObject != NULL) ? IsMetaClass(interp, newObject->cl, NSF_TRUE) : 0
           );*/
 
   /*
@@ -30742,7 +30740,7 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *nameObj, int objc
    */
 
   if ((newObject != NULL)
-      && (IsMetaClass(interp, class, 1) == IsMetaClass(interp, newObject->cl, 1))
+      && (IsMetaClass(interp, class, NSF_TRUE) == IsMetaClass(interp, newObject->cl, NSF_TRUE))
       && GetObjectSystem(newObject) == class->osPtr) {
 
     /*fprintf(stderr, "%%%% recreate, call recreate method ... %s, objc=%d oldOs %p != newOs %p EQ %d\n",
