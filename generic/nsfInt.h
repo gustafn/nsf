@@ -52,6 +52,53 @@
 #endif
 
 /*
+ * Well behaved compiler with C99 support should define __STDC_VERSION__
+ */
+#if defined(__STDC_VERSION__)
+# if __STDC_VERSION__ >= 199901L
+#  define NSF_HAVE_C99
+# endif
+#endif
+
+/*
+ * Starting with Visual Studio 2013, Microsoft provides C99 library support.
+ */
+#if (!defined(NSF_HAVE_C99)) && defined(_MSC_VER) && (_MSC_VER >= 1800)
+# define NSF_HAVE_C99
+#endif
+
+/*
+ * Boolean type "bool" and constants
+ */
+#ifdef NSF_HAVE_C99
+   /*
+    * C99
+    */
+# include <stdbool.h>
+# define NSF_TRUE                    true
+# define NSF_FALSE                   false
+#else
+   /*
+    * Not C99
+    */
+# if defined(__cplusplus)
+   /*
+    * C++ is similar to C99, but no include necessary
+    */
+#  define NSF_TRUE                    true
+#  define NSF_FALSE                   false
+# else
+   /*
+    * If everything fails, use int type and int values for bool
+    */
+typedef int bool;
+#  define NSF_TRUE                    1
+#  define NSF_FALSE                   0
+# endif
+#endif
+
+
+/*
  * MinGW and MinGW-w64 provide both MSCRT-compliant and ANSI-compliant
  * implementations of certain I/O operations (e.g., *printf()). By
  * setting __USE_MINGW_ANSI_STDIO to 1 explicitly, we can assume the
@@ -63,7 +110,7 @@
  */
 
 #if defined(__MINGW32__) && !defined(__USE_MINGW_ANSI_STDIO)
-#define __USE_MINGW_ANSI_STDIO 1
+# define __USE_MINGW_ANSI_STDIO 1
 #endif
 
 #include <tclInt.h>
