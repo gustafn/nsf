@@ -43,7 +43,7 @@ static Tcl_HashTable enumerationHashTable, *enumerationHashTablePtr = &enumerati
 static int enumerationTypeRefCount = 0;
 static NsfMutex enumerationMutex = 0;
 
-static int Register(Tcl_Interp *interp, const char *domain, Nsf_TypeConverter *converter) nonnull(1) nonnull(3);
+static int Register(const char *domain, Nsf_TypeConverter *converter) nonnull(2);
 /*
  *----------------------------------------------------------------------
  * Nsf_EnumerationTypeInit --
@@ -121,7 +121,7 @@ Nsf_EnumerationTypeRegister(Tcl_Interp *interp, Nsf_EnumeratorConverterEntry *ty
   nonnull_assert(typeRecords != NULL);
 
   for (ePtr = typeRecords; ePtr->converter; ePtr++) {
-    int result = Register(interp, ePtr->domain, ePtr->converter);
+    int result = Register(ePtr->domain, ePtr->converter);
     if (unlikely(result != TCL_OK)) {
       return result;
     }
@@ -181,11 +181,10 @@ Nsf_EnumerationTypeGetDomain(Nsf_TypeConverter *converter) {
  */
 
 static int
-Register(Tcl_Interp *interp, const char *domain, Nsf_TypeConverter *converter) {
+Register(const char *domain, Nsf_TypeConverter *converter) {
   Tcl_HashEntry *hPtr;
   int isNew;
 
-  nonnull_assert(interp != NULL);
   nonnull_assert(converter != NULL);
 
   NsfMutexLock(&enumerationMutex);

@@ -67,7 +67,7 @@ Nsf_PointerAdd(Tcl_Interp *interp, char *buffer, size_t size, const char *typeNa
   nonnull_assert(typeName != NULL);
   nonnull_assert(valuePtr != NULL);
 
-  counterPtr = Nsf_PointerTypeLookup(interp, typeName);
+  counterPtr = Nsf_PointerTypeLookup(typeName);
   if (counterPtr != NULL) {
     Tcl_DString    ds, *dsPtr = &ds;
     Tcl_HashEntry *hPtr;
@@ -314,10 +314,9 @@ Nsf_PointerTypeRegister(Tcl_Interp *interp, const char* typeName, int *counterPt
  */
 
 void *
-Nsf_PointerTypeLookup(Tcl_Interp *interp, const char* typeName) {
+Nsf_PointerTypeLookup(const char* typeName) {
   const Tcl_HashEntry *hPtr;
 
-  nonnull_assert(interp != NULL);
   nonnull_assert(typeName != NULL);
 
   NsfMutexLock(&pointerMutex);
@@ -346,9 +345,7 @@ Nsf_PointerTypeLookup(Tcl_Interp *interp, const char* typeName) {
  */
 
 void
-Nsf_PointerInit(Tcl_Interp *interp) {
-
-  nonnull_assert(interp != NULL);
+Nsf_PointerInit(void) {
 
   NsfMutexLock(&pointerMutex);
 

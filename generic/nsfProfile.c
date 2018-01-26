@@ -108,12 +108,12 @@ NsfProfileMethodLabel(Tcl_DString *dsPtr, NsfClass *class, const char *methodNam
  *----------------------------------------------------------------------
  */
 void
-NsfProfileDeprecatedCall(Tcl_Interp *interp, NsfObject *object, NsfClass *class,
+NsfProfileDeprecatedCall(Tcl_Interp *interp, NsfObject *UNUSED(object), NsfClass *class,
                          const char *methodName, const char *altMethod) {
   Tcl_DString ds;
 
   nonnull_assert(interp != NULL);
-  nonnull_assert(object != NULL);
+  //nonnull_assert(object != NULL);
   nonnull_assert(methodName != NULL);
   nonnull_assert(altMethod != NULL);
 

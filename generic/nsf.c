@@ -16102,7 +16102,7 @@ ParamOptionParse(Tcl_Interp *interp, const char *argString,
       return TCL_ERROR;
     }
 
-    if (Nsf_PointerTypeLookup(interp, Tcl_DStringValue(dsPtr))) {
+    if (Nsf_PointerTypeLookup(Tcl_DStringValue(dsPtr))) {
       /*
        * Check, if the option refers to a pointer converter
        */
@@ -33262,7 +33262,7 @@ Nsf_Init(Tcl_Interp *interp) {
    * definitions tables and load it with the generated information for
    * introspection.
    */
-  Nsf_PointerInit(interp);
+  Nsf_PointerInit();
 
   Nsf_EnumerationTypeInit();
   result = Nsf_EnumerationTypeRegister(interp, enumeratorConverterEntries);

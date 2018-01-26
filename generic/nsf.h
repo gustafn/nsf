@@ -449,14 +449,13 @@ EXTERN int Nsf_PointerAdd(Tcl_Interp *interp, char *buffer, size_t size, const c
 EXTERN int Nsf_PointerDelete(const char *key, void *valuePtr, int free)
   NSF_nonnull(2);
 
-EXTERN void Nsf_PointerInit(Tcl_Interp *interp)
-  NSF_nonnull(1);
+EXTERN void Nsf_PointerInit(void);
 
 EXTERN void Nsf_PointerExit(Tcl_Interp *interp)
   NSF_nonnull(1);
 
-EXTERN void *Nsf_PointerTypeLookup(Tcl_Interp *interp, const char* typeName)
-  NSF_nonnull(1) NSF_nonnull(2);
+EXTERN void *Nsf_PointerTypeLookup(const char* typeName)
+  NSF_nonnull(1);
 
 EXTERN int Nsf_PointerTypeRegister(Tcl_Interp *interp, const char* typeName, int *counterPtr)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
