@@ -716,12 +716,12 @@ CallStackUseActiveFrame(const Tcl_Interp *interp, callFrameContext *ctx) {
 
   if (inFramePtr == framePtr) {
     /* call frame pointers are fine */
-    ctx->frameSaved = 0;
+    ctx->frameSaved = NSF_FALSE;
   } else {
     ctx->varFramePtr = inFramePtr;
     /*fprintf(stderr, "CallStackUseActiveFrame stores %p\n", framePtr);*/
     Tcl_Interp_varFramePtr(interp) = (CallFrame *)framePtr;
-    ctx->frameSaved = 1;
+    ctx->frameSaved = NSF_TRUE;
   }
 }
 
@@ -747,7 +747,7 @@ CallStackRestoreSavedFrames(Tcl_Interp *interp, callFrameContext *ctx) {
   nonnull_assert(interp != NULL);
   nonnull_assert(ctx != NULL);
 
-  if (ctx->frameSaved != 0) {
+  if (ctx->frameSaved) {
     /*fprintf(stderr, "CallStackRestoreSavedFrames drops %p restores %p\n",
       Tcl_Interp_varFramePtr(interp), ctx->varFramePtr);*/
     Tcl_Interp_varFramePtr(interp) = (CallFrame *)ctx->varFramePtr;
