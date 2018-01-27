@@ -9968,12 +9968,12 @@ MixinSearchProc(Tcl_Interp *interp, NsfObject *object,
  * info option for mixins and class mixins
  */
 static int MixinInfo(Tcl_Interp *interp, NsfCmdList *m, const char *pattern,
-                     int withGuards, NsfObject *matchObject)
+                     bool withGuards, NsfObject *matchObject)
   nonnull(1);
 
 static int
 MixinInfo(Tcl_Interp *interp, NsfCmdList *m, const char *pattern,
-          int withGuards, NsfObject *matchObject) {
+          bool withGuards, NsfObject *matchObject) {
   Tcl_Obj *list = Tcl_NewListObj(0, NULL);
 
   nonnull_assert(interp != NULL);
@@ -9991,9 +9991,10 @@ MixinInfo(Tcl_Interp *interp, NsfCmdList *m, const char *pattern,
         (pattern == NULL
          || (matchObject != NULL && &(mixinClass->object) == matchObject)
          || (matchObject == NULL && Tcl_StringMatch(ObjStr(mixinClass->object.cmdName), pattern)))) {
-      if (withGuards && m->clientData) {
+      if (withGuards && (m->clientData != NULL)) {
         Tcl_Obj *l = Tcl_NewListObj(0, NULL);
         Tcl_Obj *g = (Tcl_Obj *) m->clientData;
+
         Tcl_ListObjAppendElement(interp, l, mixinClass->object.cmdName);
         Tcl_ListObjAppendElement(interp, l, NsfGlobalObjs[NSF_GUARD_OPTION]);
         Tcl_ListObjAppendElement(interp, l, g);
@@ -10833,12 +10834,12 @@ MethodHandleObj(NsfObject *object, int withPer_object, const char *methodName) {
  *----------------------------------------------------------------------
  */
 static int FilterInfo(Tcl_Interp *interp, NsfCmdList *f, const char *pattern,
-           int withGuards, int withMethodHandles)
+                      bool withGuards, bool withMethodHandles)
   nonnull(1);
 
 static int
 FilterInfo(Tcl_Interp *interp, NsfCmdList *f, const char *pattern,
-           int withGuards, int withMethodHandles) {
+           bool withGuards, bool withMethodHandles) {
   Tcl_Obj *list = Tcl_NewListObj(0, NULL);
 
   nonnull_assert(interp != NULL);
@@ -10847,15 +10848,15 @@ FilterInfo(Tcl_Interp *interp, NsfCmdList *f, const char *pattern,
    * Guard lists should only have unqualified filter lists when withGuards is
    * activated. withMethodHandles has no effect when withGuards is specified.
    */
-  if (withGuards != 0) {
-    withMethodHandles = 0;
+  if (withGuards) {
+    withMethodHandles = NSF_FALSE;
   }
 
   while (f != NULL) {
     const char *simpleName = Tcl_GetCommandName(interp, f->cmdPtr);
 
     if (pattern == NULL || Tcl_StringMatch(simpleName, pattern)) {
-      if (withGuards && f->clientData) {
+      if (withGuards && (f->clientData != NULL)) {
         Tcl_Obj *innerList = Tcl_NewListObj(0, NULL);
         Tcl_Obj *g = (Tcl_Obj *) f->clientData;
 
@@ -10865,7 +10866,7 @@ FilterInfo(Tcl_Interp *interp, NsfCmdList *f, const char *pattern,
         Tcl_ListObjAppendElement(interp, innerList, g);
         Tcl_ListObjAppendElement(interp, list, innerList);
       } else {
-        if (withMethodHandles != 0) {
+        if (withMethodHandles) {
           NsfClass *filterClass = f->clorobj;
 
           Tcl_ListObjAppendElement(interp, list,
@@ -28580,9 +28581,9 @@ NsfRelationSetCmd(Tcl_Interp *interp, NsfObject *object, RelationtypeIdx_t type,
     if (valueObj == NULL) {
       objopt = object->opt;
       if (type == RelationtypeObject_mixinIdx) {
-        return (objopt != NULL) ? MixinInfo(interp, objopt->objMixins, NULL, 1, NULL) : TCL_OK;
+        return (objopt != NULL) ? MixinInfo(interp, objopt->objMixins, NULL, NSF_TRUE, NULL) : TCL_OK;
       } else /* (type == RelationtypeObject_filterIdx) */ {
-        return (objopt != NULL) ? FilterInfo(interp, objopt->objFilters, NULL, 1, 0) : TCL_OK;
+        return (objopt != NULL) ? FilterInfo(interp, objopt->objFilters, NULL, NSF_TRUE, NSF_FALSE) : TCL_OK;
       }
     }
     if (unlikely(Tcl_ListObjGetElements(interp, valueObj, &oc, &ov) != TCL_OK)) {
@@ -28597,9 +28598,9 @@ NsfRelationSetCmd(Tcl_Interp *interp, NsfObject *object, RelationtypeIdx_t type,
     if (valueObj == NULL) {
       clopt = class->opt;
       if (type == RelationtypeClass_mixinIdx) {
-        return (clopt != NULL) ? MixinInfo(interp, clopt->classMixins, NULL, 1, NULL) : TCL_OK;
+        return (clopt != NULL) ? MixinInfo(interp, clopt->classMixins, NULL, NSF_TRUE, NULL) : TCL_OK;
       } else /* if (relationtype == RelationtypeClass_filterIdx) */ {
-        return (clopt != NULL) ? FilterInfo(interp, clopt->classFilters, NULL, 1, 0) : TCL_OK;
+        return (clopt != NULL) ? FilterInfo(interp, clopt->classFilters, NULL, NSF_TRUE, NSF_FALSE) : TCL_OK;
       }
     }
 
@@ -31494,7 +31495,7 @@ NsfObjInfoFiltersMethod(Tcl_Interp *interp, NsfObject *object, int withGuards,
   nonnull_assert(object != NULL);
 
   opt = object->opt;
-  return (opt != NULL) ? FilterInfo(interp, opt->objFilters, pattern, withGuards, 0) : TCL_OK;
+  return (opt != NULL) ? FilterInfo(interp, opt->objFilters, pattern, (withGuards == 1), NSF_FALSE) : TCL_OK;
 }
 
 /*
@@ -31618,7 +31619,7 @@ NsfObjInfoLookupFiltersMethod(Tcl_Interp *interp, NsfObject *object, int withGua
   if ((object->flags & NSF_FILTER_ORDER_VALID) == 0u) {
     FilterComputeDefined(interp, object);
   }
-  return FilterInfo(interp, object->filterOrder, pattern, withGuards, 1);
+  return FilterInfo(interp, object->filterOrder, pattern, (withGuards == 1), NSF_TRUE);
 }
 
 /*
@@ -31795,7 +31796,7 @@ NsfObjInfoLookupMixinsMethod(Tcl_Interp *interp, NsfObject *object, int withGuar
   if ((object->flags & NSF_MIXIN_ORDER_VALID) == 0u) {
     MixinComputeDefined(interp, object);
   }
-  return MixinInfo(interp, object->mixinOrder, patternString, withGuards, patternObject);
+  return MixinInfo(interp, object->mixinOrder, patternString, (withGuards == 1), patternObject);
 }
 
 
@@ -31901,7 +31902,7 @@ NsfObjInfoMixinsMethod(Tcl_Interp *interp, NsfObject *object, int withGuards,
   nonnull_assert(object != NULL);
 
   return (object->opt != NULL) ?
-    MixinInfo(interp, object->opt->objMixins, patternString, withGuards, patternObject) :
+    MixinInfo(interp, object->opt->objMixins, patternString, (withGuards == 1), patternObject) :
     TCL_OK;
 }
 
@@ -32072,7 +32073,8 @@ NsfClassInfoFiltersMethod(Tcl_Interp *interp, NsfClass *class,
   nonnull_assert(interp != NULL);
   nonnull_assert(class != NULL);
 
-  return (class->opt != NULL) ? FilterInfo(interp, class->opt->classFilters, pattern, withGuards, 0) : TCL_OK;
+  return (class->opt != NULL) ?
+    FilterInfo(interp, class->opt->classFilters, pattern, (withGuards == 1), NSF_FALSE) : TCL_OK;
 }
 
 /*
@@ -32357,7 +32359,8 @@ NsfClassInfoMixinsMethod(Tcl_Interp *interp, NsfClass *class,
     MEM_COUNT_FREE("Tcl_InitHashTable", commandTable);
 
   } else {
-    result = (opt != NULL) ? MixinInfo(interp, opt->classMixins, patternString, withGuards, patternObject) : TCL_OK;
+    result = (opt != NULL) ?
+      MixinInfo(interp, opt->classMixins, patternString, (withGuards == 1), patternObject) : TCL_OK;
   }
 
   return result;
