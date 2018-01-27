@@ -19549,11 +19549,11 @@ NsfUnsetTrace(ClientData clientData, Tcl_Interp *interp,
  *
  *----------------------------------------------------------------------
  */
-static void CleanupDestroyObject(Tcl_Interp *interp, NsfObject *object, int softrecreate)
+static void CleanupDestroyObject(Tcl_Interp *interp, NsfObject *object, bool softrecreate)
   nonnull(1) nonnull(2);
 
 static void
-CleanupDestroyObject(Tcl_Interp *interp, NsfObject *object, int softrecreate) {
+CleanupDestroyObject(Tcl_Interp *interp, NsfObject *object, bool softrecreate) {
 
   nonnull_assert(interp != NULL);
   nonnull_assert(object != NULL);
@@ -19575,7 +19575,7 @@ CleanupDestroyObject(Tcl_Interp *interp, NsfObject *object, int softrecreate) {
    */
   if (!IsBaseClass(object)) {
 
-    if (softrecreate == 0) {
+    if (!softrecreate) {
       RemoveInstance(object, object->cl);
     }
   }
@@ -19613,7 +19613,7 @@ CleanupDestroyObject(Tcl_Interp *interp, NsfObject *object, int softrecreate) {
     }
 #endif
 
-    if (softrecreate == 0) {
+    if (!softrecreate) {
       /*
        * Remove this object from all per object mixin lists and clear the
        * mixin list.
@@ -19659,12 +19659,12 @@ CleanupDestroyObject(Tcl_Interp *interp, NsfObject *object, int softrecreate) {
  *----------------------------------------------------------------------
  */
 static void CleanupInitObject(Tcl_Interp *interp, NsfObject *object,
-                              NsfClass *class, Tcl_Namespace *nsPtr, int softrecreate)
+                              NsfClass *class, Tcl_Namespace *nsPtr, bool softrecreate)
   nonnull(1) nonnull(2);
 
 static void
 CleanupInitObject(Tcl_Interp *interp, NsfObject *object,
-                  NsfClass *class, Tcl_Namespace *nsPtr, int softrecreate) {
+                  NsfClass *class, Tcl_Namespace *nsPtr, bool softrecreate) {
 
   nonnull_assert(interp != NULL);
   nonnull_assert(object != NULL);
@@ -19826,7 +19826,7 @@ PrimitiveODestroy(ClientData clientData) {
           object, object->id, cmdPtr->refCount, (object->flags & NSF_DESTROY_CALLED), ObjectName(object));
   }
 #endif
-  CleanupDestroyObject(interp, object, 0);
+  CleanupDestroyObject(interp, object, NSF_FALSE);
 
   while (object->mixinStack != NULL) {
     MixinStackPop(object);
@@ -19996,7 +19996,7 @@ PrimitiveOInit(NsfObject *object, Tcl_Interp *interp, const char *name,
   }
 
   /* fprintf(stderr, "PrimitiveOInit %p %s, ns %p\n", object, name, nsPtr); */
-  CleanupInitObject(interp, object, class, nsPtr, 0);
+  CleanupInitObject(interp, object, class, nsPtr, NSF_FALSE);
 
   /* TODO: would be nice, if we could init object flags */
   /* object->flags = NSF_MIXIN_ORDER_VALID | NSF_FILTER_ORDER_VALID;*/
@@ -20180,11 +20180,11 @@ DefaultSuperClass(Tcl_Interp *interp, NsfClass *class, NsfClass *metaClass, bool
  *----------------------------------------------------------------------
  */
 
-static void CleanupDestroyClass(Tcl_Interp *interp, NsfClass *class, int softrecreate, int recreate)
+static void CleanupDestroyClass(Tcl_Interp *interp, NsfClass *class, bool softrecreate, bool recreate)
   nonnull(1) nonnull(2);
 
 static void
-CleanupDestroyClass(Tcl_Interp *interp, NsfClass *class, int softrecreate, int recreate) {
+CleanupDestroyClass(Tcl_Interp *interp, NsfClass *class, bool softrecreate, bool recreate) {
   NsfClassOpt *clopt;
   NsfClass    *baseClass = NULL;
   NsfClasses  *subClasses;
@@ -20193,7 +20193,7 @@ CleanupDestroyClass(Tcl_Interp *interp, NsfClass *class, int softrecreate, int r
   nonnull_assert(class != NULL);
 
   PRINTOBJ("CleanupDestroyClass", (NsfObject *)class);
-  assert((softrecreate != 0) ? recreate == 1 : 1);
+  assert(softrecreate ? recreate : NSF_TRUE);
 
   clopt = class->opt;
   /*fprintf(stderr, "CleanupDestroyClass %p %s (ismeta=%d) softrecreate=%d, recreate=%d, %p\n",
@@ -20232,7 +20232,7 @@ CleanupDestroyClass(Tcl_Interp *interp, NsfClass *class, int softrecreate, int r
       clopt->mixinRegObjs = NULL;
     }
 
-    if (recreate == 0) {
+    if (!recreate) {
       /*
        *  Remove this class from all mixin lists and clear the isObjectMixinOf list
        */
@@ -20273,7 +20273,7 @@ CleanupDestroyClass(Tcl_Interp *interp, NsfClass *class, int softrecreate, int r
   NSCleanupNamespace(interp, class->nsPtr);
   NSDeleteChildren(interp, class->nsPtr);
 
-  if (softrecreate == 0) {
+  if (!softrecreate) {
 
     /*
      * Reclass all instances of the current class to the appropriate
@@ -20313,7 +20313,7 @@ CleanupDestroyClass(Tcl_Interp *interp, NsfClass *class, int softrecreate, int r
     MEM_COUNT_FREE("Tcl_InitHashTable", &class->instances);
   }
 
-  if (clopt != NULL && recreate == 0) {
+  if (clopt != NULL && !recreate) {
     FREE(NsfClassOpt, clopt);
     class->opt = NULL;
   }
@@ -20332,7 +20332,7 @@ CleanupDestroyClass(Tcl_Interp *interp, NsfClass *class, int softrecreate, int r
     (void)RemoveSuper(class, class->super->cl);
   }
 
-  if (softrecreate == 0) {
+  if (!softrecreate) {
     /*
      * flush all caches, unlink superClasses
      */
@@ -20373,18 +20373,18 @@ CleanupDestroyClass(Tcl_Interp *interp, NsfClass *class, int softrecreate, int r
  *----------------------------------------------------------------------
  */
 static void CleanupInitClass(Tcl_Interp *interp, NsfClass *class, Tcl_Namespace *nsPtr,
-                             int softrecreate, int recreate)
+                             bool softrecreate, bool recreate)
   nonnull(1) nonnull(2) nonnull(3);
 
 static void
 CleanupInitClass(Tcl_Interp *interp, NsfClass *class, Tcl_Namespace *nsPtr,
-                 int softrecreate, int recreate) {
+                 bool softrecreate, bool recreate) {
   NsfClass *defaultSuperclass;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(class != NULL);
   nonnull_assert(nsPtr != NULL);
-  assert((softrecreate != 0) ? recreate == 1 : 1);
+  assert((softrecreate) ? recreate : NSF_TRUE);
 
 #ifdef OBJDELETION_TRACE
   fprintf(stderr, "+++ CleanupInitClass\n");
@@ -20396,7 +20396,7 @@ CleanupInitClass(Tcl_Interp *interp, NsfClass *class, Tcl_Namespace *nsPtr,
   NsfObjectSetClass((NsfObject *)class);
   class->nsPtr = nsPtr;
 
-  if (softrecreate == 0) {
+  if (!softrecreate) {
     /*
      * Subclasses are preserved during recreate, superClasses not (since the
      * creation statement defined the superclass, might be different the
@@ -20422,12 +20422,12 @@ CleanupInitClass(Tcl_Interp *interp, NsfClass *class, Tcl_Namespace *nsPtr,
   class->color = WHITE;
   class->order = NULL;
 
-  if (softrecreate == 0) {
+  if (!softrecreate) {
     Tcl_InitHashTable(&class->instances, TCL_ONE_WORD_KEYS);
     MEM_COUNT_ALLOC("Tcl_InitHashTable", &class->instances);
   }
 
-  if (recreate == 0) {
+  if (!recreate) {
     class->opt = NULL;
   }
 }
@@ -20483,7 +20483,7 @@ PrimitiveCDestroy(ClientData clientData) {
   /*fprintf(stderr, "PrimitiveCDestroy %s flags %.6x\n", ObjectName(object), object->flags);*/
 
   object->teardown = NULL;
-  CleanupDestroyClass(interp, cl, 0, 0);
+  CleanupDestroyClass(interp, cl, NSF_FALSE, NSF_FALSE);
 
   /*
    * handoff the primitive teardown
@@ -29668,8 +29668,8 @@ objectMethod cleanup NsfOCleanupMethod {
 static int
 NsfOCleanupMethod(Tcl_Interp *interp, NsfObject *object) {
   NsfClass *cl = NsfObjectToClass(object);
-  Tcl_Obj *savedNameObj;
-  int softrecreate;
+  Tcl_Obj  *savedNameObj;
+  bool      softrecreate;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(object != NULL);
@@ -29684,15 +29684,15 @@ NsfOCleanupMethod(Tcl_Interp *interp, NsfObject *object) {
 
   /* save and pass around softrecreate*/
   softrecreate =
-    (object->flags & NSF_RECREATE) != 0u
-    && RUNTIME_STATE(interp)->doSoftrecreate;
+    ((object->flags & NSF_RECREATE) != 0u
+     && RUNTIME_STATE(interp)->doSoftrecreate);
 
   CleanupDestroyObject(interp, object, softrecreate);
   CleanupInitObject(interp, object, object->cl, object->nsPtr, softrecreate);
 
   if (cl != NULL) {
-    CleanupDestroyClass(interp, cl, softrecreate, 1);
-    CleanupInitClass(interp, cl, cl->nsPtr, softrecreate, 1);
+    CleanupDestroyClass(interp, cl, softrecreate, NSF_TRUE);
+    CleanupInitClass(interp, cl, cl->nsPtr, softrecreate, NSF_TRUE);
   }
 
   DECR_REF_COUNT(savedNameObj);
