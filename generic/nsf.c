@@ -8309,10 +8309,10 @@ AssertionSetInvariants(Tcl_Interp *interp, NsfAssertionStore **assertions, Tcl_O
 /*
  * push a mixin stack information on this object
  */
-static int MixinStackPush(NsfObject *object)
+static void MixinStackPush(NsfObject *object)
   nonnull(1);
 
-static int
+static void
 MixinStackPush(NsfObject *object) {
   register NsfMixinStack *h = NEW(NsfMixinStack);
 
@@ -8322,7 +8322,6 @@ MixinStackPush(NsfObject *object) {
   h->nextPtr = object->mixinStack;
   object->mixinStack = h;
   /*fprintf(stderr, "MixinStackPush %p %s\n", object, ObjectName(object));*/
-  return 1;
 }
 
 /*
@@ -10132,14 +10131,28 @@ FilterSearch(const char *name, NsfObject *startingObject,
  * Filter Guards
  */
 
-/* check a filter guard, return 1 if ok */
+/*
+ *----------------------------------------------------------------------
+ * GuardCheck --
+ *
+ *    Check, a filter guard
+ *
+ * Results:
+ *    Tcl result code or NSF_CHECK_FAILED in case, search should continue
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+
 static int GuardCheck(Tcl_Interp *interp, Tcl_Obj *guardObj)
   nonnull(1) nonnull(2);
 
 static int
 GuardCheck(Tcl_Interp *interp, Tcl_Obj *guardObj) {
   NsfRuntimeState *rst = RUNTIME_STATE(interp);
-  int result;
+  int              result;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(guardObj != NULL);
@@ -10160,7 +10173,6 @@ GuardCheck(Tcl_Interp *interp, Tcl_Obj *guardObj) {
 
   if (likely(result == TCL_OK)) {
     /* fprintf(stderr, " +++ OK\n"); */
-    return TCL_OK;
 
   } else if (unlikely(result == TCL_ERROR)) {
     Tcl_Obj *sr = Tcl_GetObjResult(interp);
@@ -10168,13 +10180,14 @@ GuardCheck(Tcl_Interp *interp, Tcl_Obj *guardObj) {
     INCR_REF_COUNT(sr);
     NsfPrintError(interp, "Guard error: '%s'\n%s", ObjStr(guardObj), ObjStr(sr));
     DECR_REF_COUNT(sr);
-    return TCL_ERROR;
-  }
 
-  /*
-    fprintf(stderr, " +++ FAILED\n");
-  */
-  return NSF_CHECK_FAILED;
+  } else {
+    /*
+      fprintf(stderr, " +++ FAILED\n");
+    */
+    result = NSF_CHECK_FAILED;
+  }
+  return result;
 }
 
 /*
@@ -15109,21 +15122,38 @@ AddPrefixToBody(Tcl_Obj *body, bool useParamDefs, NsfParsedParam *paramPtr) {
   return resultBody;
 }
 
-NSF_INLINE static int NoMetaChars(const char *pattern)
-  nonnull(1);
+/*
+ *----------------------------------------------------------------------
+ * NoMetaChars --
+ *
+ *    Check, of the provided string contains meta characters
+ *    (i.e. "*", "?", or "[")
+ *
+ * Results:
+ *    Boolean value
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+NSF_INLINE static bool NoMetaChars(const char *pattern)
+  nonnull(1) pure;
 
-NSF_INLINE static int
+NSF_INLINE static bool
 NoMetaChars(const char *pattern) {
   register char c;
+  bool          result = NSF_TRUE;
 
   nonnull_assert(pattern != NULL);
 
   for (c = *pattern; c; c = *++pattern) {
     if (c == '*' || c == '?' || c == '[') {
-      return 0;
+      result = NSF_FALSE;
+      break;
     }
   }
-  return 1;
+  return result;
 }
 
 /***********************************************************************
@@ -24549,7 +24579,7 @@ static bool MethodSourceMatches(DefinitionsourceIdx_t withSource, NsfClass *clas
  *    all|scripted|builtin|alias|forwarder|object|setter).
  *
  * Results:
- *    Returns true or false
+ *    Returns Boolean value
  *
  * Side effects:
  *    None.
@@ -24557,12 +24587,12 @@ static bool MethodSourceMatches(DefinitionsourceIdx_t withSource, NsfClass *clas
  *----------------------------------------------------------------------
  */
 
-static int MethodTypeMatches(Tcl_Interp *interp, MethodtypeIdx_t methodType, Tcl_Command cmd,
-                             NsfObject *object, const char *methodName, int withPer_object,
-                             bool *isObject)
+static bool MethodTypeMatches(Tcl_Interp *interp, MethodtypeIdx_t methodType, Tcl_Command cmd,
+                              NsfObject *object, const char *methodName, int withPer_object,
+                              bool *isObject)
   nonnull(1) nonnull(3) nonnull(5) nonnull(7);
 
-static int
+static bool
 MethodTypeMatches(Tcl_Interp *interp, MethodtypeIdx_t methodType, Tcl_Command cmd,
                   NsfObject *object, const char *methodName, int withPer_object,
                   bool *isObject) {
@@ -24586,14 +24616,14 @@ MethodTypeMatches(Tcl_Interp *interp, MethodtypeIdx_t methodType, Tcl_Command cm
   if (methodType == NSF_METHODTYPE_ALIAS) {
     if (!(proc == NsfProcAliasMethod
           || AliasGet(interp, object->cmdName, methodName, withPer_object, NSF_FALSE))) {
-        return 0;
+      return NSF_FALSE;
       }
   } else {
     Tcl_ObjCmdProc *resolvedProc;
 
     if (proc == NsfProcAliasMethod) {
       if ((methodType & NSF_METHODTYPE_ALIAS) == 0) {
-        return 0;
+        return NSF_FALSE;
       }
     }
     resolvedProc = Tcl_Command_objProc(importedCmd);
@@ -24602,31 +24632,31 @@ MethodTypeMatches(Tcl_Interp *interp, MethodtypeIdx_t methodType, Tcl_Command cm
     if (CmdIsProc(importedCmd)) {
       /*fprintf(stderr,"%s scripted %d\n", methodName, methodType & NSF_METHODTYPE_SCRIPTED);*/
       if ((methodType & NSF_METHODTYPE_SCRIPTED) == 0) {
-        return 0;
+        return NSF_FALSE;
       }
     } else if (resolvedProc == NsfForwardMethod) {
       if ((methodType & NSF_METHODTYPE_FORWARDER) == 0) {
-        return 0;
+        return NSF_FALSE;
       }
     } else if (resolvedProc == NsfSetterMethod) {
       if ((methodType & NSF_METHODTYPE_SETTER) == 0) {
-        return 0;
+        return NSF_FALSE;
       }
     } else if (*isObject) {
       if ((methodType & NSF_METHODTYPE_OBJECT) == 0) {
-        return 0;
+        return NSF_FALSE;
       }
     } else if (resolvedProc == NsfProcStub) {
       if ((methodType & NSF_METHODTYPE_NSFPROC) == 0) {
-        return 0;
+        return NSF_FALSE;
       }
     } else if ((methodType & NSF_METHODTYPE_OTHER) == 0) {
       /* fprintf(stderr,"OTHER %s not wanted %.4x\n", methodName, methodType);*/
-      return 0;
+      return NSF_FALSE;
     }
     /* NsfObjscopedMethod ??? */
   }
-  return 1;
+  return NSF_TRUE;
 }
 
 /*
@@ -24637,37 +24667,38 @@ MethodTypeMatches(Tcl_Interp *interp, MethodtypeIdx_t methodType, Tcl_Command cm
  *    required call-protection (typically all|public|protected|private).
  *
  * Results:
- *    Returns true or false
+ *    Returns boolean
  *
  * Side effects:
  *    None.
  *
  *----------------------------------------------------------------------
  */
-static int ProtectionMatches(CallprotectionIdx_t withCallprotection, Tcl_Command cmd)
+static bool ProtectionMatches(CallprotectionIdx_t withCallprotection, Tcl_Command cmd)
   nonnull(2);
 
-static int
+static bool
 ProtectionMatches(CallprotectionIdx_t withCallprotection, Tcl_Command cmd) {
-  int          result, isProtected, isPrivate;
+  int          result;
+  bool         isProtected, isPrivate;
   unsigned int cmdFlags;
 
   nonnull_assert(cmd != NULL);
 
-  cmdFlags = (unsigned int)Tcl_Command_flags(cmd);
-  isProtected = (cmdFlags & NSF_CMD_CALL_PROTECTED_METHOD) != 0u;
-  isPrivate = (cmdFlags & NSF_CMD_CALL_PRIVATE_METHOD) != 0u;
+  cmdFlags    = (unsigned int)Tcl_Command_flags(cmd);
+  isProtected = ((cmdFlags & NSF_CMD_CALL_PROTECTED_METHOD) != 0u);
+  isPrivate   = ((cmdFlags & NSF_CMD_CALL_PRIVATE_METHOD) != 0u);
 
   if (withCallprotection == CallprotectionNULL) {
     withCallprotection = CallprotectionPublicIdx;
   }
   switch (withCallprotection) {
-  case CallprotectionAllIdx: result = 1; break;
+  case CallprotectionAllIdx: result = NSF_TRUE; break;
   case CallprotectionPublicIdx: result = (isProtected == 0); break;
-  case CallprotectionProtectedIdx: result = isProtected && !isPrivate; break;
+  case CallprotectionProtectedIdx: result = (isProtected && !isPrivate); break;
   case CallprotectionPrivateIdx: result = isPrivate; break;
   case CallprotectionNULL: /* fall through */
-  default: result = 1;
+  default: result = NSF_TRUE;
   }
   return result;
 }
@@ -24706,8 +24737,7 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
   const Tcl_HashEntry *hPtr;
   Tcl_Command          cmd;
   const char          *key;
-  bool                 isObject;
-  int                  methodTypeMatch;
+  bool                 isObject, methodTypeMatch;
   Tcl_Obj             *resultObj;
 
   nonnull_assert(interp != NULL);
@@ -24841,7 +24871,7 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
         continue;
       }
       if (!ProtectionMatches(withCallprotection, cmd)
-          || !methodTypeMatch) {
+          || (!methodTypeMatch)) {
         continue;
       }
 
