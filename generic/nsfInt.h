@@ -1161,7 +1161,7 @@ int NsfDirectSelfDispatch(ClientData cd, Tcl_Interp *interp,
 #endif
 
 EXTERN int NsfGetClassFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr,
-			      NsfClass **classPtr, int withUnknown)
+			      NsfClass **classPtr, bool withUnknown)
   nonnull(1) nonnull(2) nonnull(3);
 
 EXTERN int NsfObjWrongArgs(Tcl_Interp *interp, const char *msg,
