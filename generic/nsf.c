@@ -484,7 +484,7 @@ static int UnsetInstVar(Tcl_Interp *interp, int withNocomplain, NsfObject *objec
 
 static int NextSearchAndInvoke(Tcl_Interp *interp,
                                const char *methodName, int objc, Tcl_Obj *CONST objv[],
-                               NsfCallStackContent *cscPtr, int freeArgumentVector)
+                               NsfCallStackContent *cscPtr, bool freeArgumentVector)
   nonnull(1) nonnull(2) nonnull(4) nonnull(5);
 
 static void CmdListFree(NsfCmdList **cmdList, NsfFreeCmdListClientData *freeFct)
@@ -13183,7 +13183,7 @@ ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
            */
 
           /*fprintf(stderr, "... calling nextmethod cscPtr %p\n", cscPtr);*/
-          result = NextSearchAndInvoke(interp, methodName, objc, objv, cscPtr, 0);
+          result = NextSearchAndInvoke(interp, methodName, objc, objv, cscPtr, NSF_FALSE);
           /*fprintf(stderr, "... after nextmethod result %d\n", result);*/
         }
 
@@ -13529,9 +13529,9 @@ ObjectCmdMethodDispatch(NsfObject *invokedObject, Tcl_Interp *interp, int objc, 
         (cmdFlags & NSF_CMD_CALL_PRIVATE_METHOD) != 0u) {
       subMethodCmd = NULL;
     } else if (unlikely((cmdFlags & NSF_CMD_CALL_PROTECTED_METHOD) != 0u)) {
-      NsfObject *lastSelf;
+      NsfObject     *lastSelf;
       Tcl_CallFrame *framePtr0;
-      int withinEnsemble = ((cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) != 0u);
+      bool           withinEnsemble = ((cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) != 0u);
 
       if (withinEnsemble) {
         Tcl_CallFrame *framePtr1;
@@ -13648,7 +13648,7 @@ ObjectCmdMethodDispatch(NsfObject *invokedObject, Tcl_Interp *interp, int objc, 
     /* fprintf(stderr, "==> trying to find <%s> in ensemble <%s> via next\n",
        subMethodName, MethodName(cscPtr1->objv[0]));*/
     result = NextSearchAndInvoke(interp, MethodName(cscPtr1->objv[0]),
-                                 cscPtr1->objc, cscPtr1->objv, cscPtr1, 0);
+                                 cscPtr1->objc, cscPtr1->objv, cscPtr1, NSF_FALSE);
 
     /*fprintf(stderr, "==> next %s.%s subMethodName %s (obj %s) cscPtr %p (flags %.8x)) cscPtr1 %p (flags %.8x) result %d unknown %d\n",
             ObjectName(callerSelf), methodName, subMethodName, ObjectName(invokedObject),
@@ -18778,16 +18778,17 @@ NextSearchMethod(NsfObject *object, Tcl_Interp *interp, NsfCallStackContent *csc
  */
 static int NextGetArguments(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
                  NsfCallStackContent **cscPtrPtr, const char **methodNamePtr,
-                 int *outObjc, Tcl_Obj ***outObjv, int *freeArgumentVector)
+                 int *outObjc, Tcl_Obj ***outObjv, bool *freeArgumentVector)
   nonnull(1) nonnull(4) nonnull(5) nonnull(6) nonnull(7) nonnull(8);
 
 static int
 NextGetArguments(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
                  NsfCallStackContent **cscPtrPtr, const char **methodNamePtr,
-                 int *outObjc, Tcl_Obj ***outObjv, int *freeArgumentVector) {
-  Tcl_Obj **nobjv;
-  int nobjc, oc, inEnsemble;
-  Tcl_CallFrame *framePtr;
+                 int *outObjc, Tcl_Obj ***outObjv, bool *freeArgumentVector) {
+  Tcl_Obj            **nobjv;
+  int                  nobjc, oc;
+  bool                 inEnsemble;
+  Tcl_CallFrame       *framePtr;
   NsfCallStackContent *cscPtr;
 
   nonnull_assert(interp != NULL);
@@ -18800,7 +18801,7 @@ NextGetArguments(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
   /*
    * Initialize to zero to make sure, we only decrement when necessary.
    */
-  *freeArgumentVector = 0;
+  *freeArgumentVector = NSF_FALSE;
 
   cscPtr = CallStackGetTopFrame(interp, &framePtr);
   if (cscPtr == NULL) {
@@ -18822,10 +18823,10 @@ NextGetArguments(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
      */
     cscPtr = CallStackFindEnsembleCsc(framePtr, &framePtr);
     assert(cscPtr != NULL);
-    inEnsemble = 1;
+    inEnsemble = NSF_TRUE;
     *methodNamePtr = MethodName(cscPtr->objv[0]);
   } else {
-    inEnsemble = 0;
+    inEnsemble = NSF_FALSE;
     *methodNamePtr = Tcl_GetCommandName(interp, cscPtr->cmdPtr);
   }
 
@@ -18839,7 +18840,7 @@ NextGetArguments(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
      * vector with the first argument(s) as the method name. In an
      * ensemble, we have to insert the objs of the full ensemble name.
      */
-    if (inEnsemble != 0) {
+    if (inEnsemble) {
       methodNameLength = 1 + cscPtr->objc - oc;
       nobjc = objc + methodNameLength;
       nobjv = (Tcl_Obj **)ckalloc((unsigned)sizeof(Tcl_Obj *) * (unsigned)nobjc);
@@ -18872,7 +18873,7 @@ NextGetArguments(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
     }
 
     INCR_REF_COUNT(nobjv[0]); /* we seem to need this here */
-    *freeArgumentVector = 1;
+    *freeArgumentVector = NSF_TRUE;
   } else {
     /*
      * No arguments were provided
@@ -18976,7 +18977,7 @@ static int
 NextSearchAndInvoke(Tcl_Interp *interp, const char *methodName,
                     int objc, Tcl_Obj *CONST objv[],
                     NsfCallStackContent *cscPtr,
-                    int freeArgumentVector) {
+                    bool freeArgumentVector) {
   Tcl_Command cmd = NULL, currentCmd = NULL;
   int result, isMixinEntry = 0, isFilterEntry = 0,
     endOfFilterChain = 0;
@@ -19065,7 +19066,7 @@ NextSearchAndInvoke(Tcl_Interp *interp, const char *methodName,
          * to call NextInvokeFinalize manually on return.
          */
         Tcl_NRAddCallback(interp, NextInvokeFinalize,
-                          (freeArgumentVector != 0) ? (ClientData)objv : NULL,
+                          freeArgumentVector ? (ClientData)objv : NULL,
                           cscPtr, NULL, NULL);
         return MethodDispatch(interp, objc, objv, cmd,
                               object, cl, methodName, frameType, flags);
@@ -19192,10 +19193,11 @@ NsfNextObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, int objc, Tcl_O
 
 static int
 NsfNextObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  int freeArgumentVector, result, nobjc = 0;
-  const char *methodName = NULL;
+  int                  result, nobjc = 0;
+  bool                 freeArgumentVector;
+  const char          *methodName = NULL;
   NsfCallStackContent *cscPtr;
-  Tcl_Obj **nobjv;
+  Tcl_Obj            **nobjv;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(objv != NULL);
@@ -25085,11 +25087,11 @@ ListDefinedMethods(Tcl_Interp *interp, NsfObject *object, const char *pattern,
  *----------------------------------------------------------------------
  */
 
-static int ListSuperClasses(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *pattern, int withClosure)
+static int ListSuperClasses(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *pattern, bool withClosure)
   nonnull(1) nonnull(2);
 
 static int
-ListSuperClasses(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *pattern, int withClosure) {
+ListSuperClasses(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *pattern, bool withClosure) {
 
   nonnull_assert(interp != NULL);
   nonnull_assert(class != NULL);
@@ -25122,7 +25124,7 @@ ListSuperClasses(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *pattern, int with
       }
     }
 
-    if (withClosure != 0) {
+    if (withClosure) {
       NsfClasses *pl = PrecedenceOrder(class);
 
       if (pl != NULL) {
@@ -27130,11 +27132,11 @@ NsfMethodForwardCmd(Tcl_Interp *interp,
     if (class == NULL) {
       result = NsfAddObjectMethod(interp, (Nsf_Object *)object, methodName,
                                   (Tcl_ObjCmdProc *)NsfForwardMethod,
-                                  tcd, ForwardCmdDeleteProc, 0);
+                                  tcd, ForwardCmdDeleteProc, 0u);
     } else {
       result = NsfAddClassMethod(interp, (Nsf_Class *)class, methodName,
                                  (Tcl_ObjCmdProc *)NsfForwardMethod,
-                                 tcd, ForwardCmdDeleteProc, 0);
+                                 tcd, ForwardCmdDeleteProc, 0u);
     }
     if (likely(result == TCL_OK)) {
       Tcl_SetObjResult(interp, MethodHandleObj(object, (class == NULL), methodName));
@@ -27504,11 +27506,11 @@ NsfMethodSetterCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tc
   if (cl != NULL) {
     result = NsfAddClassMethod(interp, (Nsf_Class *)cl, methodName,
                                (Tcl_ObjCmdProc *)NsfSetterMethod,
-                               setterClientData, SetterCmdDeleteProc, 0);
+                               setterClientData, SetterCmdDeleteProc, 0u);
   } else {
     result = NsfAddObjectMethod(interp, (Nsf_Object *)object, methodName,
                                 (Tcl_ObjCmdProc *)NsfSetterMethod,
-                                setterClientData, SetterCmdDeleteProc, 0);
+                                setterClientData, SetterCmdDeleteProc, 0u);
   }
   if (likely(result == TCL_OK)) {
     Tcl_SetObjResult(interp, MethodHandleObj(object, cl == NULL, methodName));
@@ -27919,7 +27921,8 @@ cmd next NsfNextCmd {
 */
 static int
 NsfNextCmd(Tcl_Interp *interp, Tcl_Obj *argumentsObj) {
-  int                  freeArgumentVector, oc, nobjc = 0, result;
+  int                  oc, nobjc = 0, result;
+  bool                 freeArgumentVector;
   NsfCallStackContent *cscPtr = NULL;
   const char          *methodName = NULL;
   Tcl_Obj            **nobjv = NULL, **ov;
@@ -28618,7 +28621,7 @@ NsfRelationSetCmd(Tcl_Interp *interp, NsfObject *object, RelationtypeIdx_t type,
     }
     class = (NsfClass *)object;
     if (valueObj == NULL) {
-      return ListSuperClasses(interp, class, NULL, 0);
+      return ListSuperClasses(interp, class, NULL, NSF_FALSE);
     }
     if (unlikely(Tcl_ListObjGetElements(interp, valueObj, &oc, &ov) != TCL_OK)) {
       return TCL_ERROR;
@@ -32595,7 +32598,7 @@ NsfClassInfoSuperclassMethod(Tcl_Interp *interp, NsfClass *class, int withClosur
   nonnull_assert(interp != NULL);
   nonnull_assert(class != NULL);
 
-  return ListSuperClasses(interp, class, patternObj, withClosure);
+  return ListSuperClasses(interp, class, patternObj, (withClosure == 1));
 }
 
 /***********************************************************************
