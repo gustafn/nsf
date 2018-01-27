@@ -5981,11 +5981,11 @@ NSDeleteCmd(Tcl_Interp *interp, Tcl_Namespace *nsPtr, const char *methodName) {
  *
  *----------------------------------------------------------------------
  */
-static bool NSDeleteChild(Tcl_Interp *interp, Tcl_Command cmd, int deleteObjectsOnly)
+static bool NSDeleteChild(Tcl_Interp *interp, Tcl_Command cmd, bool deleteObjectsOnly)
   nonnull(1) nonnull(2);
 
 static bool
-NSDeleteChild(Tcl_Interp *interp, Tcl_Command cmd, int deleteObjectsOnly) {
+NSDeleteChild(Tcl_Interp *interp, Tcl_Command cmd, bool deleteObjectsOnly) {
   bool deleted;
 
   nonnull_assert(cmd != NULL);
@@ -6142,7 +6142,7 @@ NSDeleteChildren(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
     fprintf(stderr, "NSDeleteChild %p table %p numEntries before %d\n",
     cmd, hPtr->tablePtr, cmdTablePtr->numEntries );*/
     expected = cmdTablePtr->numEntries -
-      (int)NSDeleteChild(interp, (Tcl_Command)Tcl_GetHashValue(hPtr), 1);
+      (int)NSDeleteChild(interp, (Tcl_Command)Tcl_GetHashValue(hPtr), NSF_TRUE);
   }
  /*
   * Finally, delete the classes.
@@ -6151,7 +6151,7 @@ NSDeleteChildren(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
        hPtr != NULL;
        hPtr = Nsf_NextHashEntry(cmdTablePtr, expected, &hSrch)) {
     expected = cmdTablePtr->numEntries -
-      (int)NSDeleteChild(interp, (Tcl_Command)Tcl_GetHashValue(hPtr), 0);
+      (int)NSDeleteChild(interp, (Tcl_Command)Tcl_GetHashValue(hPtr), NSF_FALSE);
   }
 }
 
@@ -7314,11 +7314,13 @@ CallStackDestroyObject(Tcl_Interp *interp, NsfObject *object) {
  *
  *----------------------------------------------------------------------
  */
-static NsfCmdList *CmdListAdd(NsfCmdList **cList, Tcl_Command cmd, NsfClass *clorobj, int noDuplicates, int atEnd)
+static NsfCmdList *CmdListAdd(NsfCmdList **cList, Tcl_Command cmd, NsfClass *clorobj,
+                              bool noDuplicates, bool atEnd)
   nonnull(1) nonnull(2) returns_nonnull;
 
 static NsfCmdList *
-CmdListAdd(NsfCmdList **cList, Tcl_Command cmd, NsfClass *clorobj, int noDuplicates, int atEnd) {
+CmdListAdd(NsfCmdList **cList, Tcl_Command cmd, NsfClass *clorobj,
+           bool noDuplicates, bool atEnd) {
   NsfCmdList *l, *nextPtr, *new;
 
   nonnull_assert(cmd != NULL);
@@ -8561,7 +8563,8 @@ MixinComputeOrder(Tcl_Interp *interp, NsfObject *object) {
 
       /*fprintf(stderr, "--- adding to mixinOrder %s to cmdlist %p of object %s\n",
         ClassName(cl), object->mixinOrder, ObjectName(object));*/
-      new = CmdListAdd(&object->mixinOrder, cl->object.id, NULL, /*noDuplicates*/ 0, 1);
+      new = CmdListAdd(&object->mixinOrder, cl->object.id, NULL,
+                       /*noDuplicates*/ NSF_FALSE, NSF_TRUE);
       /*CmdListPrint(interp, "mixinOrder", object->mixinOrder);*/
 
       /*
@@ -8631,7 +8634,8 @@ MixinAdd(Tcl_Interp *interp, NsfCmdList **mixinList, Tcl_Obj *nameObj) {
 
   assert(((unsigned int)Tcl_Command_flags(mixinCl->object.id) & CMD_IS_DELETED) == 0);
 
-  new = CmdListAdd(mixinList, mixinCl->object.id, NULL, /*noDuplicates*/ 1, 1);
+  new = CmdListAdd(mixinList, mixinCl->object.id, NULL,
+                   /*noDuplicates*/ NSF_TRUE, NSF_TRUE);
 
   if (guardObj != NULL) {
     GuardAdd(new, guardObj);
@@ -8840,7 +8844,8 @@ GetAllInstances(Tcl_Interp *interp, NsfCmdList **instances, NsfClass *startClass
         ObjectName(inst), inst->id, cmdPtr->flags, (cmdPtr->nsPtr != NULL) ? cmdPtr->nsPtr->flags : 0,
         ClassName(clPtr->cl));*/
 
-      CmdListAdd(instances, inst->id, (NsfClass *)inst, 0, 0);
+      CmdListAdd(instances, inst->id, (NsfClass *)inst,
+                 NSF_FALSE, NSF_FALSE);
     }
   }
 
@@ -10575,7 +10580,8 @@ FilterAdd(Tcl_Interp *interp, NsfCmdList **filterList, Tcl_Obj *filterregObj,
 
     /*fprintf(stderr, " +++ adding filter %s cl %p\n", ObjStr(nameObj), cl);*/
 
-    new = CmdListAdd(filterList, cmd, cl, /*noDuplicates*/ 1, 1);
+    new = CmdListAdd(filterList, cmd, cl,
+                     /*noDuplicates*/ NSF_TRUE, NSF_TRUE);
     FilterAddActive(interp, ObjStr(filterObj));
 
     if (guardObj != NULL) {
@@ -10915,7 +10921,8 @@ FilterComputeOrderFullList(Tcl_Interp *interp, NsfCmdList **filters,
     const char *simpleName = Tcl_GetCommandName(interp, f->cmdPtr);
 
     fcl = f->clorobj;
-    CmdListAdd(filterList, f->cmdPtr, fcl, /*noDuplicates*/ 0, 1);
+    CmdListAdd(filterList, f->cmdPtr, fcl,
+               /*noDuplicates*/ NSF_FALSE, NSF_TRUE);
 
     if (fcl && !NsfObjectIsClass(&fcl->object)) {
       /* get the class from the object for per-object filter */
@@ -10933,7 +10940,8 @@ FilterComputeOrderFullList(Tcl_Interp *interp, NsfCmdList **filters,
           Tcl_Command pi = FindMethod(pl->cl->nsPtr, simpleName);
 
           if (pi != NULL) {
-            CmdListAdd(filterList, pi, pl->cl, /*noDuplicates*/ 0, 1);
+            CmdListAdd(filterList, pi, pl->cl,
+                       /*noDuplicates*/ NSF_FALSE, NSF_TRUE);
             /*
               fprintf(stderr, " %s::%s, ", ClassName(pl->cl), simpleName);
             */
@@ -11034,7 +11042,7 @@ FilterComputeOrder(Tcl_Interp *interp, NsfObject *object) {
        * filterList->cmdPtr was found
        */
       newList = CmdListAdd(&object->filterOrder, filterList->cmdPtr, filterList->clorobj,
-                           /*noDuplicates*/ 0, 1);
+                           /*noDuplicates*/ NSF_FALSE, NSF_TRUE);
       GuardAddInheritedGuards(interp, newList, object, filterList->cmdPtr);
       /*
         GuardPrint(interp, newList->clientData);
