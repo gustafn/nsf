@@ -1524,6 +1524,19 @@ nx::test case debug+deprecated {
   ? {C info object method deprecated obar} 1
 }
 
+nx::test case eval-next {
+  ? {nx::Object eval {::nsf::next}} ""
+  ? {nx::Object eval {::nsf::current nextmethod}} ""
+  nx::Object create ::o {
+    :public object method foo {} {
+      lappend _ [nx::Object eval {::nsf::current method}]
+      lappend _ [nx::Object eval {::nsf::current callingmethod}]
+      lappend _ [nx::Object eval {::nsf::current callingobject}]
+    }
+    ? [list set _ [:foo]] "eval foo ::o"
+  }
+}
+
 #
 # Local variables:
 #    mode: tcl
