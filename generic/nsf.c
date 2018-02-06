@@ -19024,7 +19024,7 @@ NextSearchAndInvoke(Tcl_Interp *interp, const char *methodName,
 
   nonnull_assert(interp != NULL);
   nonnull_assert(methodName != NULL);
-  nonnull_assert(objv != NULL);
+  /* nonnull_assert(objv != NULL); */
   nonnull_assert(cscPtr != NULL);
 
   /*
