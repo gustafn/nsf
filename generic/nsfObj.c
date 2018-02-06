@@ -56,7 +56,7 @@ static Tcl_FreeInternalRepProc	MethodFreeInternalRep;
 static Tcl_DupInternalRepProc MethodDupInternalRep;
 
 Tcl_ObjType NsfInstanceMethodObjType = {
-  "nsfInstanceMethod",		/* name */
+    "nsfInstanceMethod",	/* name */
     MethodFreeInternalRep,	/* freeIntRepProc */
     MethodDupInternalRep,	/* dupIntRepProc */
     NULL,			/* updateStringProc */
@@ -75,9 +75,9 @@ Tcl_ObjType NsfObjectMethodObjType = {
  */
 static void
 MethodFreeInternalRep(
-    register Tcl_Obj *objPtr)	/* Tcl_Obj structure object with internal
+    register Tcl_Obj *objPtr	/* Tcl_Obj structure object with internal
                                  * representation to free. */
-{
+) {
   NsfMethodContext *mcPtr = (NsfMethodContext *)objPtr->internalRep.twoPtrValue.ptr1;
 
   if (mcPtr != NULL) {
@@ -100,8 +100,8 @@ MethodFreeInternalRep(
 static void
 MethodDupInternalRep(
     Tcl_Obj *srcObjPtr,
-    Tcl_Obj *dstObjPtr)
-{
+    Tcl_Obj *dstObjPtr
+) {
   register NsfMethodContext *srcMcPtr = srcObjPtr->internalRep.twoPtrValue.ptr1, *dstMcPtr;
 
 #if defined(METHOD_OBJECT_TRACE)
@@ -127,16 +127,15 @@ MethodDupInternalRep(
  */
 int
 NsfMethodObjSet(
-    Tcl_Interp *UNUSED(interp),		/* Used for error reporting if not NULL. */
+    Tcl_Interp       *UNUSED(interp),	/* Used for error reporting if not NULL. */
     register Tcl_Obj *objPtr,           /* The object to convert. */
-    Tcl_ObjType *objectType,
-    void *context,			/* context (to avoid over-eager sharing) */
-    unsigned int methodEpoch,		/* methodEpoch */
-    Tcl_Command cmd,                    /* the Tcl command behind the method */
-    NsfClass *cl,                       /* the object/class where the method was defined */
-    unsigned int flags			/* flags */
-                )
-{
+    Tcl_ObjType      *objectType,
+    void             *context,		/* context (to avoid over-eager sharing) */
+    unsigned int      methodEpoch,	/* methodEpoch */
+    Tcl_Command       cmd,              /* the Tcl command behind the method */
+    NsfClass         *cl,               /* the object/class where the method was defined */
+    unsigned int      flags		/* flags */
+) {
   NsfMethodContext *mcPtr;
 
 #if defined(METHOD_OBJECT_TRACE)
@@ -213,9 +212,9 @@ Tcl_ObjType NsfFlagObjType = {
  */
 static void
 FlagFreeInternalRep(
-   Tcl_Obj *objPtr)	/* Tcl_Obj structure object with internal
+    Tcl_Obj *objPtr	/* Tcl_Obj structure object with internal
                          * representation to free. */
-{
+) {
   register NsfFlag *flagPtr = (NsfFlag *)objPtr->internalRep.twoPtrValue.ptr1;
 
   if (flagPtr != NULL) {
@@ -244,8 +243,8 @@ FlagFreeInternalRep(
 static void
 FlagDupInternalRep(
     Tcl_Obj *srcObjPtr,
-    Tcl_Obj *dstObjPtr)
-{
+    Tcl_Obj *dstObjPtr
+) {
   register NsfFlag *srcPtr = (NsfFlag *)srcObjPtr->internalRep.twoPtrValue.ptr1, *dstPtr;
 
 #if defined(METHOD_OBJECT_TRACE)
@@ -278,8 +277,7 @@ NsfFlagObjSet(
     Nsf_Param const *paramPtr,          /* a single parameter */
     Tcl_Obj *payload,                   /* payload */
     unsigned int flags                  /* detail infos */
-              )
-{
+) {
   NsfFlag *flagPtr;
 
   /*fprintf(stderr, "NsfFlagObjSet %p %s signature %p (%d) param %p payload %p flags %.4x\n",
@@ -356,9 +354,9 @@ Tcl_ObjType NsfMixinregObjType = {
  */
 static void
 MixinregFreeInternalRep(
-    register Tcl_Obj *objPtr)	/* Mixinreg structure object with internal
+    register Tcl_Obj *objPtr	/* Mixinreg structure object with internal
                                  * representation to free. */
-{
+) {
   Mixinreg *mixinRegPtr = (Mixinreg *)objPtr->internalRep.twoPtrValue.ptr1;
 
   nonnull_assert(mixinRegPtr != NULL);
@@ -386,8 +384,8 @@ MixinregFreeInternalRep(
 static void
 MixinregDupInternalRep(
     Tcl_Obj *srcObjPtr,
-    Tcl_Obj *dstObjPtr)
-{
+    Tcl_Obj *dstObjPtr
+) {
   register Mixinreg *srcPtr = (Mixinreg *)srcObjPtr->internalRep.twoPtrValue.ptr1, *dstPtr;
 
   nonnull_assert(srcPtr != NULL);
@@ -419,8 +417,8 @@ MixinregDupInternalRep(
 static int
 MixinregSetFromAny(
     Tcl_Interp *interp,	/* Used for error reporting if not NULL. */
-    Tcl_Obj *objPtr)	/* The object to convert. */
-{
+    Tcl_Obj *objPtr	/* The object to convert. */
+) {
   NsfClass  *mixin = NULL;
   int        oc, result;
   Tcl_Obj  **ov;
@@ -515,7 +513,12 @@ MixinregSetFromAny(
  */
 
 int
-NsfMixinregGet(Tcl_Interp *interp, Tcl_Obj *obj, NsfClass **classPtr, Tcl_Obj **guardObj) {
+NsfMixinregGet(
+    Tcl_Interp *interp,
+    Tcl_Obj *obj,
+    NsfClass **classPtr,
+    Tcl_Obj **guardObj
+) {
 
   nonnull_assert(interp != NULL);
   nonnull_assert(obj != NULL);
@@ -572,7 +575,10 @@ NsfMixinregGet(Tcl_Interp *interp, Tcl_Obj *obj, NsfClass **classPtr, Tcl_Obj **
  */
 
 int
-NsfMixinregInvalidate(Tcl_Interp *interp, Tcl_Obj *obj) {
+NsfMixinregInvalidate(
+    Tcl_Interp *interp,
+    Tcl_Obj *obj
+) {
   int i, result, oc = 0;
   Tcl_Obj **objv;
 
@@ -627,9 +633,9 @@ Tcl_ObjType NsfFilterregObjType = {
  */
 static void
 FilterregFreeInternalRep(
-    register Tcl_Obj *objPtr)	/* Filterreg structure object with internal
+    register Tcl_Obj *objPtr	/* Filterreg structure object with internal
                                  * representation to free. */
-{
+) {
   Filterreg *filterregPtr = (Filterreg *)objPtr->internalRep.twoPtrValue.ptr1;
 
   nonnull_assert(filterregPtr != NULL);
@@ -657,7 +663,8 @@ FilterregFreeInternalRep(
 static void
 FilterregDupInternalRep(
     Tcl_Obj *srcObjPtr,
-    Tcl_Obj *dstObjPtr) {
+    Tcl_Obj *dstObjPtr
+) {
   register Filterreg *srcPtr, *dstPtr;
 
   assert(srcObjPtr != NULL);
@@ -692,8 +699,8 @@ FilterregDupInternalRep(
 static int
 FilterregSetFromAny(
     Tcl_Interp *interp,		/* Used for error reporting if not NULL. */
-    register Tcl_Obj *objPtr)	/* The object to convert. */
-{
+    register Tcl_Obj *objPtr	/* The object to convert. */
+) {
   Tcl_Obj *guardObj = NULL, *filterObj;
   Filterreg *filterregPtr;
   int oc; Tcl_Obj **ov;
@@ -764,7 +771,12 @@ FilterregSetFromAny(
  */
 
 int
-NsfFilterregGet(Tcl_Interp *UNUSED(interp), Tcl_Obj *obj, Tcl_Obj **filterObj, Tcl_Obj **guardObj) {
+NsfFilterregGet(
+    Tcl_Interp *UNUSED(interp),
+    Tcl_Obj *obj,
+    Tcl_Obj **filterObj,
+    Tcl_Obj **guardObj
+) {
   int result;
 
   nonnull_assert(obj != NULL);
@@ -792,5 +804,6 @@ NsfFilterregGet(Tcl_Interp *UNUSED(interp), Tcl_Obj *obj, Tcl_Obj **filterObj, T
  * c-basic-offset: 2
  * fill-column: 78
  * indent-tabs-mode: nil
+ * eval: (c-guess)
  * End:
  */
