@@ -11602,21 +11602,20 @@ MakeProcError(
  *----------------------------------------------------------------------
  */
 static int ByteCompiled(Tcl_Interp *interp, unsigned int *flagsPtr,
-                        Proc *procPtr, const char *procName)
-  nonnull(1) nonnull(2) nonnull(3) nonnull(4);
+                        Proc *procPtr, Namespace *nsPtr, const char *procName)
+  nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(5);
 
 static int
 ByteCompiled(Tcl_Interp *interp, unsigned int *flagsPtr,
-             Proc *procPtr, const char *procName) {
-  Namespace *nsPtr;
+             Proc *procPtr,  Namespace *nsPtr, const char *procName) {
   Tcl_Obj *bodyObj;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(flagsPtr != NULL);
   nonnull_assert(procPtr != NULL);
   nonnull_assert(procName != NULL);
+  nonnull_assert(nsPtr != NULL);
 
-  nsPtr = procPtr->cmdPtr->nsPtr;
   bodyObj = procPtr->bodyPtr;
 
   if (likely(bodyObj->typePtr == Nsf_OT_byteCodeType)) {
@@ -11744,7 +11743,7 @@ PushProcCallFrame(Proc *procPtr, Tcl_Interp *interp,
   /*fprintf(stderr, "Stack Frame %p procPtr %p compiledLocals %p firstLocal %p\n",
     framePtr, procPtr, Tcl_CallFrame_compiledLocals(framePtr), procPtr->firstLocalPtr);*/
 
-  return ByteCompiled(interp, &cscPtr->flags, procPtr, ObjStr(objv[0]));
+  return ByteCompiled(interp, &cscPtr->flags, procPtr, (Namespace *)execNsPtr, ObjStr(objv[0]));
 }
 
 #include "nsfAPI.h"
@@ -17586,7 +17585,7 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, Pa
 
   if (likely(result == TCL_OK)) {
     unsigned int dummy = 0;
-    result = ByteCompiled(interp, &dummy, procPtr, fullMethodName);
+    result = ByteCompiled(interp, &dummy, procPtr,  procPtr->cmdPtr->nsPtr, fullMethodName);
   }
   if (unlikely(result != TCL_OK)) {
     /* todo: really? error msg? */
