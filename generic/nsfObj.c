@@ -128,13 +128,13 @@ MethodDupInternalRep(
 int
 NsfMethodObjSet(
     Tcl_Interp       *UNUSED(interp),	/* Used for error reporting if not NULL. */
-    register Tcl_Obj *objPtr,           /* The object to convert. */
-    Tcl_ObjType      *objectType,
-    void             *context,		/* context (to avoid over-eager sharing) */
-    unsigned int      methodEpoch,	/* methodEpoch */
-    Tcl_Command       cmd,              /* the Tcl command behind the method */
-    NsfClass         *cl,               /* the object/class where the method was defined */
-    unsigned int      flags		/* flags */
+    register Tcl_Obj  *objPtr,          /* The object to convert. */
+    const Tcl_ObjType *objectType,
+    void              *context,		/* context (to avoid over-eager sharing) */
+    unsigned int       methodEpoch,	/* methodEpoch */
+    Tcl_Command        cmd,             /* the Tcl command behind the method */
+    NsfClass          *cl,              /* the object/class where the method was defined */
+    unsigned int       flags		/* flags */
 ) {
   NsfMethodContext *mcPtr;
 

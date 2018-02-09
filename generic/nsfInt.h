@@ -1236,15 +1236,17 @@ typedef struct {
  */
 EXTERN Tcl_ObjType NsfInstanceMethodObjType;
 EXTERN Tcl_ObjType NsfObjectMethodObjType;
-EXTERN int NsfMethodObjSet(Tcl_Interp  *UNUSED(interp),
-			   Tcl_Obj     *objPtr,
-			   Tcl_ObjType *objectType,
-			   void        *context,
-			   unsigned int methodEpoch,
-			   Tcl_Command  cmd,
-			   NsfClass    *class,
-			   unsigned int flags)
-  nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(6);
+
+EXTERN int NsfMethodObjSet(
+    Tcl_Interp  *UNUSED(interp),
+    Tcl_Obj     *objPtr,
+    const Tcl_ObjType *objectType,
+    void        *context,
+    unsigned int methodEpoch,
+    Tcl_Command  cmd,
+    NsfClass    *class,
+    unsigned int flags
+) nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(6);
 
 
 

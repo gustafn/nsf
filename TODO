@@ -5937,7 +5937,6 @@ TODO:
   * memcheck
   * use free list rather then obj list for freeing NsfColonCmdContext 
     since the Tcl_Obj might be changed
-  * apply to object methods
   * maybe merge approach with Tcl obj type nsfInstanceMethod (and nsfObjectMethod)
 
 

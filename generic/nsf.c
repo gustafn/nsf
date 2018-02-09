@@ -14369,15 +14369,34 @@ NsfFindClassMethod(Tcl_Interp *interp, NsfClass *class, const char *methodName) 
 #endif
 
 
-
-
+/*
+ *----------------------------------------------------------------------
+ * CmdObjProcName --
+ *
+ *    Try to find a symbolic name for the objCmdProc of a Tcl_command.
+ *
+ * Results:
+ *    String name, potentially "other"
+ *
+ * Side effects:
+ *    None
+ *
+ *----------------------------------------------------------------------
+ */
+static const char *CmdObjProcName(
+    Tcl_Command cmd
+) nonnull(1);
+  
 static const char *
-CmdType(
+CmdObjProcName(
     Tcl_Command cmd
 ) {
   const char     *result;
-  Tcl_ObjCmdProc *proc = Tcl_Command_objProc(cmd);
+  Tcl_ObjCmdProc *proc;
 
+  nonnull_assert(cmd != NULL);
+
+  proc = Tcl_Command_objProc(cmd);
   if (CmdIsNsfObject(cmd)) {
     result = "object";
   } else if (CmdIsProc(cmd)) {
@@ -14394,8 +14413,6 @@ CmdType(
     result = "new";
   } else if (proc == NsfOConfigureMethodStub) {
     result = "configure";
-  } else if (proc == NsfOVolatileMethodStub) {
-    result = "volatile";
   } else if (proc == NsfOVolatileMethodStub) {
     result = "volatile";
   } else if (proc == NsfOAutonameMethodStub) {
@@ -14442,6 +14459,92 @@ ColonCmdCacheSet(
   ccCtxPtr->flags = flags;
 }
 
+static void CacheCmd(
+    Tcl_Interp        *interp,
+    Tcl_Command        cmd,
+    Tcl_Obj           *methodObj,
+    const Tcl_ObjType *nsfObjTypePtr,
+    void              *context,
+    unsigned int       methodEpoch,
+    NsfClass          *class,
+    unsigned int       flags,
+    bool               isColonCmd
+) {
+  const Tcl_ObjType *methodObjTypePtr = methodObj->typePtr;
+  
+  if (((methodObjTypePtr != Nsf_OT_tclCmdNameType))
+      && (methodObjTypePtr != Nsf_OT_parsedVarNameType)
+     ) {
+    /*fprintf(stderr, "==== SET OBJ TYPE for %s.%s to NsfInstanceMethodObjType cmd %p\n",
+      ObjectName(object), calledName, (void*)cmd);*/
+    NsfMethodObjSet(interp, methodObj, nsfObjTypePtr,
+                    context, methodEpoch, cmd, class, flags);
+  } else if (
+      isColonCmd
+      || (methodObjTypePtr != Nsf_OT_tclCmdNameType)
+      || (Tcl_Command_objProc(cmd) == NsfProcAliasMethod)
+  ) {
+    NsfProcContext     *pCtxPtr = ProcContextGet(cmd);
+    NsfColonCmdContext *ccCtxPtr = methodObj->internalRep.twoPtrValue.ptr2;
+
+    // COLONCMD_CACHE
+
+    /*fprintf(stderr, "==== CHECK ptr2 for %s.%s methodObj %p %s cmd %p ptr2 %p\n",
+      ObjectName(object), calledName, (void*)methodObj, ObjStr(methodObj),
+      (void*)cmd, (void*)methodObj->internalRep.twoPtrValue.ptr2);*/
+    if (ccCtxPtr != NULL) {
+
+      if (ccCtxPtr->cmd != cmd) {
+        //fprintf(stderr, "======== ptr2 cached cmd for %s.%s differs from actual value\n",
+        //        ObjectName(object), ObjStr(methodObj));
+
+        /*
+         * Cached cmd differs from actual one. This is due to an
+         * invalidaton, that happend before the search for the cmd.
+         */
+        ColonCmdCacheSet(ccCtxPtr, context, methodEpoch, cmd, class, flags);
+      }
+
+    } else {
+      /*
+       * No ccCtxPtr exists, since no twoPtrValue.ptr2 value was
+       * provided.  If there is no proc context is available. create
+       * one on the fly.
+       */
+      if (pCtxPtr == NULL) {
+        pCtxPtr = ProcContextRequire(cmd);
+      }
+              
+      ccCtxPtr = NEW(NsfColonCmdContext);
+      ColonCmdCacheSet(ccCtxPtr, context, methodEpoch, cmd, class, flags);
+              
+      /*
+       * Save methodObj in proc context for memory management. The saved
+       * Tcl_Obj has the ccCtxPtr in ptr2, which has to be freed on
+       * cleanup.
+       */
+      // TODO: probably, a plain list for free operations is saver
+      AddObjToTclList(interp, &(pCtxPtr->freeListObj), methodObj);
+
+      //ccCtxPtr->pCtxPtr = pCtxPtr;
+      methodObj->internalRep.twoPtrValue.ptr2 = ccCtxPtr;
+              
+      /*fprintf(stderr, "==== ptr2 of %s empty, is set %p for obj %p %p %s target proc ctx %p ccCtx %p\n",
+        ObjStr(methodObj),
+        (void*)cmd, (void*)object, (void*)methodObj, ObjStr(methodObj),
+        (void*)pCtxPtr, (void*)pCtxPtr->freeListObj);*/
+    }
+  } else {
+    /*
+     * We found a command, but we do not cache it...
+     */
+    /* fprintf(stderr, "... found cmd '%s' type of methodObj '%s' type %s, procType %s but we do not cache\n",
+       Tcl_GetCommandName(NULL, cmd), ObjStr(methodObj),
+       methodObjTypePtr ? methodObjTypePtr->name : "NONE",
+       CmdObjProcName(cmd));*/
+  }
+}
+
 /*
  *----------------------------------------------------------------------
  * ObjectDispatch --
@@ -14477,7 +14580,7 @@ ObjectDispatch(
   unsigned int           objflags;
   unsigned short         frameType = NSF_CSC_TYPE_PLAIN;
   register NsfObject    *object;
-  const char            *methodName;
+  const char            *methodName, *calledName;
   NsfObject             *calledObject;
   NsfClass              *cl = NULL;
   Tcl_Obj               *cmdName, *methodObj;
@@ -14506,11 +14609,14 @@ ObjectDispatch(
     shift = 0;
     methodObj = objv[0];
     methodName = MethodName(methodObj);
+    calledName =  ObjStr(methodObj);;
+
   } else {
     assert(objc > 1);
     shift = 1;
     methodObj = objv[1];
     methodName = ObjStr(methodObj);
+    calledName = methodName;
     if (unlikely(FOR_COLON_RESOLVER(methodName))) {
       return NsfPrintError(interp, "%s: method name '%s' must not start with a colon",
                            ObjectName_(object), methodName);
@@ -14754,9 +14860,10 @@ ObjectDispatch(
                 " => %p objProc %p\n",
                 (void*)object, methodName, (void*)object->nsPtr, (void*)cmd,
                 (cmd != NULL) ? (void*)((Command *)cmd)->objProc : NULL);*/
+       
         if (cmd != NULL) {
           /*
-           * Reject call when
+           * Reject resolved cmd when
            * a) trying to call a private method without the local flag or ignore permissions, or
            * b) trying to call an object with no method interface
            */
@@ -14765,11 +14872,10 @@ ObjectDispatch(
               ) {
             cmd = NULL;
           } else {
-            /* fprintf(stderr, "==== SET OBJ TYPE for %s.%s to NsfObjectMethodObjType\n",
-               ObjectName(object), ObjStr(methodObj));*/
-            NsfMethodObjSet(interp, methodObj, &NsfObjectMethodObjType,
-                            object, nsfObjectMethodEpoch,
-                            cmd, NULL, flags);
+            CacheCmd(interp,
+                     cmd, methodObj, &NsfObjectMethodObjType,
+                     object, nsfObjectMethodEpoch, NULL, flags,
+                     (*calledName == ':'));
           }
         }
       }
@@ -14824,6 +14930,7 @@ ObjectDispatch(
           ) {
         cmd = ccCtxPtr->cmd;
         cl = ccCtxPtr ->cl;
+
 #if defined(METHOD_OBJECT_TRACE)
         fprintf(stderr, "... use internal rep ptr2 method %p %s cmd %p (objProc %p) cl %p %s\n",
                 (void*)methodObj, ObjStr(methodObj),
@@ -14831,8 +14938,7 @@ ObjectDispatch(
                 (void*)cl, (cl != NULL) ? ClassName(cl) : ObjectName(object));
 #endif
       } else {
-        const char *calledName = ObjStr(methodObj);
-
+        
         /*
          * We could call PrecedenceOrder(currentClass) to recompute
          * currentClass->order on demand, but by construction this is already
@@ -14864,84 +14970,11 @@ ObjectDispatch(
                  && methodObjTypePtr != Nsf_OT_parsedVarNameType
                  && likely(cmd != NULL)  )
                  );*/
-
-        if (((methodObjTypePtr != Nsf_OT_tclCmdNameType))
-            && (methodObjTypePtr != Nsf_OT_parsedVarNameType)
-            && likely(cmd != NULL)
-           ) {
-          /*fprintf(stderr, "==== SET OBJ TYPE for %s.%s to NsfInstanceMethodObjType cmd %p\n",
-            ObjectName(object), calledName, (void*)cmd);*/
-          NsfMethodObjSet(interp, methodObj, &NsfInstanceMethodObjType,
-                          currentClass, nsfInstanceMethodEpoch, cmd, cl, flags);
-        } else if (
-            cmd != NULL && ((methodObjTypePtr != Nsf_OT_tclCmdNameType) || *calledName == ':')
-        ) {
-          NsfProcContext  *pCtxPtr = ProcContextGet(cmd);
-
-          // COLONCMD_CACHE
-
-          /*fprintf(stderr, "==== CHECK ptr2 for %s.%s methodObj %p %s cmd %p ptr2 %p\n",
-                  ObjectName(object), calledName, (void*)methodObj, ObjStr(methodObj),
-                  (void*)cmd, (void*)methodObj->internalRep.twoPtrValue.ptr2);*/
-          if (ccCtxPtr != NULL) {
-
-            if (ccCtxPtr->cmd != cmd) {
-              //fprintf(stderr, "======== ptr2 cached cmd for %s.%s differs from actual value\n",
-              //        ObjectName(object), ObjStr(methodObj));
-
-              /*
-               * Cached cmd differs from actual one. This is due to an
-               * invalidaton, that happend before the search for the cmd.
-               */
-              ColonCmdCacheSet(ccCtxPtr, currentClass, nsfInstanceMethodEpoch, cmd, cl, flags);
-            }
-
-          } else {
-            /*
-             * No ccCtxPtr exists, since no twoPtrValue.ptr2 value was
-             * provided.
-             */
-            if (pCtxPtr == NULL) {
-              //const char *type = CmdType(cmd);
-
-              /*
-               * No proc context is available. create one on the fly.
-               */
-              //fprintf(stderr, "==== ptr2 of %s empty, ADD procCtx for methodName %s cmd type %s\n",
-              //        ObjStr(methodObj), methodName, CmdType(cmd));
-              //if (!strcmp(type, "unknown")) {
-              //  char *p = NULL; *p=1;
-              //}
-              //if (Tcl_Command_objProc(cmd) != NsfProcAliasMethod) {...}
-              pCtxPtr = ProcContextRequire(cmd);
-            }
-
-            // TODO the following test is obsolete, in case we really want to
-            // create a proc context for every method.
-            if (pCtxPtr != NULL) {
-              assert(pCtxPtr != NULL);
-              assert(ccCtxPtr == NULL);
-
-              ccCtxPtr = NEW(NsfColonCmdContext);
-
-              ColonCmdCacheSet(ccCtxPtr, currentClass, nsfInstanceMethodEpoch, cmd, cl, flags);
-              /*
-               * Save methodObj in proc context for memory management. The saved
-               * Tcl_Obj has the ccCtxPtr in ptr2, which has to be freed on
-               * cleanup.
-               */
-              // TODO: probably, a plain list for free operations is saver
-              AddObjToTclList(interp, &(pCtxPtr->freeListObj), methodObj);
-
-              //ccCtxPtr->pCtxPtr = pCtxPtr;
-              methodObj->internalRep.twoPtrValue.ptr2 = ccCtxPtr;
-
-              /*fprintf(stderr, "==== ptr2 of %s empty, is set %p for obj %p %p %s target proc ctx %p ccCtx %p\n",
-                      ObjStr(methodObj),
-                      (void*)cmd, (void*)object, (void*)methodObj, ObjStr(methodObj),
-                      (void*)pCtxPtr, (void*)pCtxPtr->freeListObj);*/
-            }
-          }
+        if (likely(cmd != NULL)) {
+          CacheCmd(interp,
+                   cmd, methodObj, &NsfInstanceMethodObjType,
+                   currentClass, nsfInstanceMethodEpoch, cl, flags,
+                   (*calledName == ':'));
         }
       }
     }
@@ -21874,11 +21907,12 @@ NsfForwardPrintError(Tcl_Interp *interp, ForwardCmdClientData *tcd,
  *
  *----------------------------------------------------------------------
  */
-static int ForwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
-                      Tcl_Obj *forwardArgObj, ForwardCmdClientData *tcd, Tcl_Obj **out,
-                      Tcl_Obj **freeList, int *inputArg, long *mapvalue,
-                      int firstPosArg, int *outputincr)
-  nonnull(1) nonnull(3) nonnull(4) nonnull(5) nonnull(6) nonnull(7) nonnull(8) nonnull(9) nonnull(11);
+static int ForwardArg(
+    Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
+    Tcl_Obj *forwardArgObj, ForwardCmdClientData *tcd, Tcl_Obj **out,
+    Tcl_Obj **freeListObjPtr, int *inputArg, long *mapvalue,
+    int firstPosArg, int *outputincr
+) nonnull(1) nonnull(3) nonnull(4) nonnull(5) nonnull(6) nonnull(7) nonnull(8) nonnull(9) nonnull(11);
 
 static int
 ForwardArg(
@@ -26034,8 +26068,9 @@ NsfDebugShowObj(Tcl_Interp *interp, Tcl_Obj *obj) {
       Command *procPtr = (Command *)cmd;
       char    *tail = Tcl_GetHashKey(procPtr->hPtr->tablePtr, procPtr->hPtr);
 
-      fprintf(stderr, "... cmd %p flags %.6x name '%s' ns '%s'",
-              (void *)cmd, Tcl_Command_flags(cmd), tail, procPtr->nsPtr->name);
+      fprintf(stderr, "... cmd %p flags %.6x name '%s' ns '%s' objProcName %s",
+              (void *)cmd, Tcl_Command_flags(cmd), tail, procPtr->nsPtr->name,
+              CmdObjProcName(cmd));
     }
   } else if ((obj->typePtr == Nsf_OT_byteArrayType)
              || (obj->typePtr == Nsf_OT_properByteArrayType)) {
@@ -28775,6 +28810,8 @@ NsfParameterSpecsCmd(Tcl_Interp *interp, int withConfigure, int withNonposargs, 
     if (GetObjectFromObj(interp, objv[i], &slotObject) != TCL_OK) {
       return NsfPrintError(interp, "objectparameter: slot element is not a next scripting object");
     }
+    assert(slotObject != NULL);
+    
     /*
      * When withConfigure is provided, skip this parameter ...
      *  - when configure is not set
@@ -28802,6 +28839,7 @@ NsfParameterSpecsCmd(Tcl_Interp *interp, int withConfigure, int withNonposargs, 
                                              NsfGlobalObjs[NSF_POSITIONAL], NULL, 0);
       if (positionalObj != NULL) {
         int positional = 0;
+        
         Tcl_GetBooleanFromObj(interp, positionalObj, &positional);
         if (positional != 0) {
           continue;
@@ -28818,7 +28856,7 @@ NsfParameterSpecsCmd(Tcl_Interp *interp, int withConfigure, int withNonposargs, 
                           NSF_CM_IGNORE_PERMISSIONS|NSF_CSC_IMMEDIATE);
       if (unlikely(result != TCL_OK)) {
         return NsfPrintError(interp, "objectparameter: %s %s returned error",
-                             ObjectName(slotObject),
+                             ObjectName_(slotObject),
                              NsfGlobalStrings[NSF_GET_PARAMETER_SPEC]);
       }
       specObj = Tcl_GetObjResult(interp);
