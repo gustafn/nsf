@@ -96,13 +96,22 @@ typedef struct callFrameContext {
   bool           frameSaved;
 } callFrameContext;
 
+typedef struct {
+  void        *context;
+  Tcl_Command  cmd;
+  NsfClass    *cl;
+  unsigned int methodEpoch;
+  unsigned int flags;
+} NsfColonCmdContext;
+
 typedef struct NsfProcContext {
-  ClientData         oldDeleteData;
-  Tcl_CmdDeleteProc *oldDeleteProc;
-  NsfParamDefs      *paramDefs;
-  int               *colonLocalVarCache;
-  unsigned int       checkAlwaysFlag;
-  Tcl_Namespace     *execNsPtr;
+  ClientData          oldDeleteData;
+  Tcl_CmdDeleteProc  *oldDeleteProc;
+  NsfParamDefs       *paramDefs;
+  int                *colonLocalVarCache;
+  unsigned int        checkAlwaysFlag;
+  Tcl_Namespace      *execNsPtr;
+  Tcl_Obj            *freeListObj;
 } NsfProcContext;
 
 /*
@@ -212,7 +221,7 @@ static Tcl_ObjCmdProc NsfObjscopedMethod;
 static Tcl_ObjCmdProc NsfSetterMethod;
 static Tcl_ObjCmdProc NsfProcAliasMethod;
 static Tcl_ObjCmdProc NsfAsmProc;
-
+Tcl_ObjCmdProc NsfProcStub;
 
 
 /*
@@ -395,23 +404,40 @@ static int ParameterCheck(Tcl_Interp *interp, Tcl_Obj *paramObjPtr, Tcl_Obj *val
 
 static void ParamDefsRefCountIncr(NsfParamDefs *paramDefs)
   nonnull(1);
-static void ParamDefsRefCountDecr(NsfParamDefs *paramDefs)
-  nonnull(1);
-static void ParsedParamFree(NsfParsedParam *parsedParamPtr)
-  nonnull(1);
-NSF_INLINE static NsfParamDefs *ParamDefsGet(Tcl_Command cmdPtr,
-                                             unsigned int *checkAlwaysFlagPtr,
-                                             Tcl_Namespace **execNsPtrPtr)
-  nonnull(1);
 
-static NsfProcContext *ProcContextRequire(Tcl_Command cmd)
-  nonnull(1);
+static void ParamDefsRefCountDecr(
+    NsfParamDefs *paramDefs
+) nonnull(1);
 
-static int ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
-                         NsfObject *object, Tcl_Obj *procNameObj,
-                         Nsf_Param const *paramPtr, int nrParams, int serial,
-                         unsigned int processFlags, ParseContext *pcPtr)
-  nonnull(1) nonnull(3) nonnull(5) nonnull(6) nonnull(10);
+static void ParsedParamFree(
+    NsfParsedParam *parsedParamPtr
+) nonnull(1);
+
+NSF_INLINE static NsfParamDefs *ParamDefsGet(
+    Tcl_Command cmdPtr,
+    unsigned int *checkAlwaysFlagPtr,
+    Tcl_Namespace **execNsPtrPtr
+) nonnull(1);
+
+NSF_INLINE static NsfProcContext *ProcContextGet(
+    Tcl_Command cmdPtr
+) nonnull(1);
+
+static NsfProcContext *ProcContextRequire(
+    Tcl_Command cmd
+) nonnull(1);
+
+static int ArgumentParse(
+    Tcl_Interp *interp,
+    int objc, Tcl_Obj *CONST objv[],
+    NsfObject *object,
+    Tcl_Obj *procNameObj,
+    Nsf_Param const *paramPtr,
+    int nrParams,
+    int serial,
+    unsigned int processFlags,
+    ParseContext *pcPtr
+) nonnull(1) nonnull(3) nonnull(5) nonnull(6) nonnull(10);
 
 static int ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param const *pPtr,
                          unsigned int doCheckArguments,
@@ -3398,24 +3424,24 @@ RemoveSuper(NsfClass *class, NsfClass *superClass) {
  *
  *----------------------------------------------------------------------
  */
-static NsfObject *GetEnsembleObjectFromName(Tcl_Interp *interp, Tcl_Namespace *nsPtr, Tcl_Obj *name,
+static NsfObject *GetEnsembleObjectFromName(Tcl_Interp *interp, Tcl_Namespace *nsPtr, Tcl_Obj *nameObj,
                                             Tcl_Command *cmdPtr, bool *fromClassNS)
   nonnull(1) nonnull(3) nonnull(4) nonnull(5);
 
 static NsfObject *
-GetEnsembleObjectFromName(Tcl_Interp *interp, Tcl_Namespace *nsPtr, Tcl_Obj *name,
+GetEnsembleObjectFromName(Tcl_Interp *interp, Tcl_Namespace *nsPtr, Tcl_Obj *nameObj,
                          Tcl_Command *cmdPtr, bool *fromClassNS) {
   Tcl_Command  cmd;
   const char  *nameString;
 
   nonnull_assert(interp != NULL);
-  nonnull_assert(name != NULL);
+  nonnull_assert(nameObj != NULL);
   nonnull_assert(cmdPtr != NULL);
   nonnull_assert(fromClassNS != NULL);
 
-  nameString = ObjStr(name);
+  nameString = ObjStr(nameObj);
   if (*nameString == ':') {
-    cmd = Tcl_GetCommandFromObj(interp, name);
+    cmd = Tcl_GetCommandFromObj(interp, nameObj);
     *fromClassNS = IsClassNsName(nameString, NULL);
   } else {
     cmd = (nsPtr != NULL) ? FindMethod(nsPtr, nameString) : NULL;
@@ -3554,11 +3580,11 @@ ResolveMethodName(Tcl_Interp *interp, Tcl_Namespace *nsPtr, Tcl_Obj *methodObj,
 #endif
 
   if (tailContainsSpace != 0) {
-    const char *firstElementString;
+    const char          *firstElementString;
     const Tcl_Namespace *parentNsPtr;
-    const NsfObject *ensembleObject;
-    Tcl_Obj *methodHandleObj, **ov;
-    int oc, i;
+    const NsfObject     *ensembleObject;
+    Tcl_Obj             *methodHandleObj, **ov;
+    int                  oc, i;
 
     /*
      * When the methodName is required, we have to provide a methodNameDS as
@@ -6506,7 +6532,7 @@ NSGetFreshNamespace(Tcl_Interp *interp, NsfObject *object, const char *name) {
  *    tries to load a parent object via ::nsf::object::unknown.
  *
  * Results:
- *    returns 1 on success
+ *    Tcl result code
  *
  * Side effects:
  *    might create an object
@@ -6524,14 +6550,15 @@ NSRequireParentObject(Tcl_Interp *interp, const char *parentName) {
   nonnull_assert(parentName != NULL);
 
   result = NsfCallObjectUnknownHandler(interp, Tcl_NewStringObj(parentName, -1));
-
   if (likely(result == TCL_OK)) {
-    NsfObject *parentObj = (NsfObject *) GetObjectFromString(interp, parentName);
+    NsfObject *parentObj = (NsfObject *)GetObjectFromString(interp, parentName);
+
     if (parentObj != NULL) {
       RequireObjNamespace(interp, parentObj);
     }
     result = (Tcl_FindNamespace(interp, parentName,
-                            (Tcl_Namespace *) NULL, TCL_GLOBAL_ONLY) != NULL);
+                                (Tcl_Namespace *) NULL, TCL_GLOBAL_ONLY) != NULL
+              ? TCL_OK: TCL_ERROR);
   }
   return result;
 
@@ -7855,6 +7882,45 @@ TclObjListAdd(Tcl_Interp *interp, NsfTclObjList **list, Tcl_Obj *key, Tcl_Obj *v
   TclObjListNewElement(prevPtr, key, Tcl_NewListObj(1, &value));
 
   return;
+}
+
+/*
+ *----------------------------------------------------------------------
+ * AddObjToTclList --
+ *
+ *    Add a Tcl_Obj to a potential not-existing Tcl list, which is created on
+ *    demand.
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    Add Tcl_Obj to the Tcl list, potentially creating list.
+ *
+ *----------------------------------------------------------------------
+ */
+static void
+AddObjToTclList(
+    Tcl_Interp  *interp,
+    Tcl_Obj    **listObjPtr,
+    Tcl_Obj     *obj
+) nonnull(2) nonnull(3);
+
+static void
+AddObjToTclList(
+    Tcl_Interp  *interp,
+    Tcl_Obj    **listObjPtr,
+    Tcl_Obj     *obj
+) {
+  nonnull_assert(listObjPtr != NULL);
+  nonnull_assert(obj != NULL);
+
+  if (*listObjPtr == NULL) {
+    *listObjPtr = Tcl_NewListObj(1, &obj);
+    INCR_REF_COUNT2("AddObjToTclList", *listObjPtr);
+  } else {
+    Tcl_ListObjAppendElement(interp, *listObjPtr, obj);
+  }
 }
 
 #if defined(NSF_WITH_ASSERTIONS)
@@ -11999,7 +12065,11 @@ ParamsFree(Nsf_Param *paramsPtr) {
  *----------------------------------------------------------------------
  */
 NSF_INLINE static NsfParamDefs *
-ParamDefsGet(Tcl_Command cmdPtr, unsigned int *checkAlwaysFlagPtr, Tcl_Namespace **execNsPtrPtr) {
+ParamDefsGet(
+    Tcl_Command cmdPtr,
+    unsigned int *checkAlwaysFlagPtr,
+    Tcl_Namespace **execNsPtrPtr
+) {
   NsfParamDefs *result;
 
   nonnull_assert(cmdPtr != NULL);
@@ -12020,6 +12090,7 @@ ParamDefsGet(Tcl_Command cmdPtr, unsigned int *checkAlwaysFlagPtr, Tcl_Namespace
 
   return result;
 }
+
 
 /*----------------------------------------------------------------------
  * NsfParamDefsNonposLookup --
@@ -12133,7 +12204,9 @@ NsfParamDefsNonposLookup(Tcl_Interp *interp, const char *nameString,
  *----------------------------------------------------------------------
  */
 static void
-NsfProcDeleteProc(ClientData clientData) {
+NsfProcDeleteProc(
+    ClientData clientData
+) {
   NsfProcContext *ctxPtr;
 
   nonnull_assert(clientData != NULL);
@@ -12150,6 +12223,33 @@ NsfProcDeleteProc(ClientData clientData) {
     /*fprintf(stderr, "free colonLocalVarCache %p\n", (void*)ctxPtr->colonLocalVarCache);*/
     FREE(Tcl_Var*, ctxPtr->colonLocalVarCache);
   }
+
+  if (ctxPtr->freeListObj != NULL) {
+    int       oc, i;
+    Tcl_Obj **ov;
+
+    /*
+     * Iteraterate over elements of the free list to free the twoPtrValue.ptr2
+     * values, which are supposed to be NsfColonCmdContext elements.
+     */
+    Tcl_ListObjGetElements(NULL, ctxPtr->freeListObj, &oc, &ov);
+    //fprintf(stderr, "--- NsfProcDeleteProc len %d content %s\n", oc, ObjStr(ov[0]));
+
+    for (i= 0; i< oc; i++) {
+      Tcl_Obj *methodObj = ov[i];
+
+      if (methodObj->typePtr != Nsf_OT_tclCmdNameType) {
+        fprintf(stderr, "--- NsfProcDeleteProc methodObj %s lost type\n", ObjStr(methodObj));
+      } else if (methodObj->internalRep.twoPtrValue.ptr2 == NULL) {
+        fprintf(stderr, "--- NsfProcDeleteProc methodObj %s lost ptr2\n", ObjStr(methodObj));
+      } else {
+        FREE(NsfColonCmdContext, methodObj->internalRep.twoPtrValue.ptr2);
+        methodObj->internalRep.twoPtrValue.ptr2 = NULL;
+      }
+    }
+    DECR_REF_COUNT2("AddObjToTclList", ctxPtr->freeListObj);
+  }
+
   /*fprintf(stderr, "free %p\n", ctxPtr);*/
   FREE(NsfProcContext, ctxPtr);
 }
@@ -12169,9 +12269,10 @@ NsfProcDeleteProc(ClientData clientData) {
  *
  *----------------------------------------------------------------------
  */
-
 static NsfProcContext *
-ProcContextRequire(Tcl_Command cmd) {
+ProcContextRequire(
+    Tcl_Command cmd
+) {
   NsfProcContext *ctxPtr;
   Command        *cmdPtr;
 
@@ -12194,12 +12295,43 @@ ProcContextRequire(Tcl_Command cmd) {
     ctxPtr->checkAlwaysFlag    = 0;
     ctxPtr->execNsPtr          = NULL;
     ctxPtr->colonLocalVarCache = NULL;
+    ctxPtr->freeListObj        = NULL;
   } else {
     ctxPtr = (NsfProcContext *)Tcl_Command_deleteData(cmdPtr);
   }
   return ctxPtr;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * ProcContextGet --
+ *
+ *    Obtain a NsfProcContext for the given cmd when it is defined.
+ *
+ * Results:
+ *    NsfProcContext * or NULL
+ *
+ * Side effects:
+ *    None
+ *
+ *----------------------------------------------------------------------
+ */
+NSF_INLINE static NsfProcContext *
+ProcContextGet(
+    Tcl_Command cmdPtr
+) {
+  NsfProcContext *result;
+
+  nonnull_assert(cmdPtr != NULL);
+
+  if (likely(Tcl_Command_deleteProc(cmdPtr) == NsfProcDeleteProc)) {
+    result = (NsfProcContext *)Tcl_Command_deleteData(cmdPtr);
+  } else {
+    result = NULL;
+  }
+
+  return result;
+}
 
 /*
  *----------------------------------------------------------------------
@@ -12217,13 +12349,20 @@ ProcContextRequire(Tcl_Command cmd) {
  *
  *----------------------------------------------------------------------
  */
-static void ParamDefsStore(Tcl_Command cmd, NsfParamDefs *paramDefs, unsigned int checkAlwaysFlag,
-                           Tcl_Namespace *execNsPtr)
-  nonnull(1);
+static void ParamDefsStore(
+    Tcl_Command cmd,
+    NsfParamDefs *paramDefs,
+    unsigned int checkAlwaysFlag,
+    Tcl_Namespace *execNsPtr
+) nonnull(1);
 
 static void
-ParamDefsStore(Tcl_Command cmd, NsfParamDefs *paramDefs, unsigned int checkAlwaysFlag,
-               Tcl_Namespace *execNsPtr) {
+ParamDefsStore(
+    Tcl_Command cmd,
+    NsfParamDefs *paramDefs,
+    unsigned int checkAlwaysFlag,
+    Tcl_Namespace *execNsPtr
+) {
   NsfProcContext *ctxPtr;
 
   nonnull_assert(cmd != NULL);
@@ -14130,8 +14269,9 @@ ObjectDispatchFinalize(Tcl_Interp *interp, NsfCallStackContent *cscPtr,
   rst = RUNTIME_STATE(interp);
 
   /*fprintf(stderr, "ObjectDispatchFinalize %p %s flags %.6x (%d) frame %.6x unk %d m %s\n",
-          cscPtr, ObjectName(object), flags,
-          result, cscPtr->frameType, RUNTIME_STATE(interp)->unknown, (cscPtr->cmdPtr != NULL) ? Tcl_GetCommandName(interp, cscPtr->cmdPtr) : "");*/
+          (void*)cscPtr, ObjectName(object), flags,
+          result, cscPtr->frameType, RUNTIME_STATE(interp)->unknown,
+          (cscPtr->cmdPtr != NULL) ? Tcl_GetCommandName(interp, cscPtr->cmdPtr) : "");*/
 
   /*
    * Check the return value if wanted
@@ -14228,6 +14368,80 @@ NsfFindClassMethod(Tcl_Interp *interp, NsfClass *class, const char *methodName) 
 }
 #endif
 
+
+
+
+static const char *
+CmdType(
+    Tcl_Command cmd
+) {
+  const char     *result;
+  Tcl_ObjCmdProc *proc = Tcl_Command_objProc(cmd);
+
+  if (CmdIsNsfObject(cmd)) {
+    result = "object";
+  } else if (CmdIsProc(cmd)) {
+    result = "proc";
+  } else if (proc == NsfForwardMethod) {
+    result = "forward";
+  } else if (proc == NsfProcAliasMethod) {
+    result = "alias";
+  } else if (proc == NsfODestroyMethodStub) {
+    result = "destroy";
+  } else if (proc == NsfCCreateMethodStub) {
+    result = "create";
+  } else if (proc == NsfCNewMethodStub) {
+    result = "new";
+  } else if (proc == NsfOConfigureMethodStub) {
+    result = "configure";
+  } else if (proc == NsfOVolatileMethodStub) {
+    result = "volatile";
+  } else if (proc == NsfOVolatileMethodStub) {
+    result = "volatile";
+  } else if (proc == NsfOAutonameMethodStub) {
+    result = "autoname";
+  } else if (proc == NsfOUplevelMethodStub) {
+    result = "uplevel";
+  } else if (proc == NsfOUpvarMethodStub) {
+    result = "upvar";
+  } else if (proc == NsfObjscopedMethod) {
+    result = "objscoped";
+  } else if (proc == NsfProcStub) {
+    result = "nsfproc";
+  } else if (proc == NsfSetterMethod) {
+    result = "setter";
+  } else if (proc == NsfAsmProc) {
+    result = "asm";
+  } else if (proc == TclObjInterpProc) {
+    result = "alt proc";
+#if 0
+  } else if (proc == Tcl_ApplyObjCmd) {
+    result = "apply";
+  } else if (proc == Tcl_EvalObjCmd) {
+    result = "eval";
+#endif
+  } else {
+    result = "unknown";
+  }
+  return result;
+}
+
+NSF_INLINE static void
+ColonCmdCacheSet(
+    NsfColonCmdContext *ccCtxPtr,
+    NsfClass *currentClass,
+    unsigned int methodEpoch,
+    Tcl_Command cmd,
+    NsfClass *class,
+    unsigned int flags
+) {
+  ccCtxPtr->context = currentClass;
+  ccCtxPtr->methodEpoch = methodEpoch;
+  ccCtxPtr->cmd = cmd;
+  ccCtxPtr->cl = class;
+  ccCtxPtr->flags = flags;
+}
+
 /*
  *----------------------------------------------------------------------
  * ObjectDispatch --
@@ -14252,20 +14466,25 @@ NSF_INLINE static int ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
   nonnull(1) nonnull(2) nonnull(4);
 
 NSF_INLINE static int
-ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
-               int objc, Tcl_Obj *CONST objv[],
-               unsigned int flags) {
-  register NsfObject *object;
-  int                 result = TCL_OK, shift, isValidCsc = 1;
-  unsigned int        objflags;
-  unsigned short      frameType = NSF_CSC_TYPE_PLAIN;
-  const char         *methodName;
-  NsfObject          *calledObject;
-  NsfClass           *cl = NULL;
-  Tcl_Command         cmd = NULL;
-  Tcl_Obj            *cmdName, *methodObj;
-  NsfCallStackContent csc, *cscPtr = NULL;
+ObjectDispatch(
+    ClientData clientData,
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[],
+    unsigned int flags
+) {
+  int                    result = TCL_OK, shift, isValidCsc = 1;
+  unsigned int           objflags;
+  unsigned short         frameType = NSF_CSC_TYPE_PLAIN;
+  register NsfObject    *object;
+  const char            *methodName;
+  NsfObject             *calledObject;
+  NsfClass              *cl = NULL;
+  Tcl_Obj               *cmdName, *methodObj;
+  const Tcl_ObjType     *methodObjTypePtr;
   const NsfRuntimeState *rst;
+  NsfCallStackContent    csc, *cscPtr = NULL;
+  Tcl_Command            cmd = NULL;
 
   nonnull_assert(clientData != NULL);
   nonnull_assert(interp != NULL);
@@ -14275,9 +14494,14 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
   cmdName = object->cmdName;
   rst = RUNTIME_STATE(interp);
 
-  /* none of the higher copy-flags must be passed */
+  /*
+   * None of the higher copy-flags must be passed
+   */
   assert((flags & (NSF_CSC_COPY_FLAGS & 0x000FFF000U)) == 0u);
 
+  /*
+   * Do we have to shift the argument vector?
+   */
   if (unlikely((flags & NSF_CM_NO_SHIFT) != 0u)) {
     shift = 0;
     methodObj = objv[0];
@@ -14292,17 +14516,30 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
                            ObjectName_(object), methodName);
     }
   }
+  methodObjTypePtr = methodObj->typePtr;
+
   assert(object->teardown != NULL);
 
 #if defined(METHOD_OBJECT_TRACE)
   fprintf(stderr, "method %p/%d '%s' type %p <%s>\n",
-          methodObj, methodObj->refCount, methodName, methodObj->typePtr,
-          (methodObj->typePtr != NULL) ? methodObj->typePtr->name : "");
+          methodObj, methodObj->refCount, methodName, methodObjTypePtr,
+          (methodObjTypePtr != NULL) ? methodObjTypePtr->name : "");
 #endif
-
-  /*fprintf(stderr, "ObjectDispatch obj = %s objc = %d 0=%s methodName=%s shift %d\n", (object != NULL) ? ObjectName(object) : NULL,
+  /*fprintf(stderr, "==== ObjectDispatch obj = %s objc = %d 0=%s methodName=%s method-obj-type %s cmd %p shift %d\n",
+          (object != NULL) ? ObjectName(object) : NULL,
           objc, objv[0] ? ObjStr(objv[0]) : NULL,
-          methodName, shift);*/
+          methodName, methodObjTypePtr ? methodObjTypePtr->name : "NONE",
+          (void*)cmd, shift);*/
+
+  // COLONCMD_CACHE
+  //if (methodObjTypePtr == Nsf_OT_tclCmdNameType && (void*)methodObj->internalRep.twoPtrValue.ptr2 != NULL) {
+  //  /*
+  //   * potential earlier place for checking
+  //   */
+  //  /*fprintf(stderr, "==== ObjectDispatch methodObj %p %s, resolved cmd %p\n",
+  //         (void*)methodObj, ObjStr(methodObj),
+  //          (void*)methodObj->internalRep.twoPtrValue.ptr2);*/
+  //}
 
   objflags = object->flags; /* avoid stalling */
 
@@ -14342,8 +14579,10 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
     if (rst->doFilters && !rst->guardCount) {
       NsfCallStackContent *cscPtr1 = CallStackGetTopFrame0(interp);
 
-      if (cscPtr1 == NULL ||
-          (object != cscPtr1->self || (cscPtr1->frameType != NSF_CSC_TYPE_ACTIVE_FILTER))) {
+      if ((cscPtr1 == NULL)
+          || (object != cscPtr1->self)
+          || (cscPtr1->frameType != NSF_CSC_TYPE_ACTIVE_FILTER)
+         ) {
         FilterStackPush(object, methodObj);
         flags |= NSF_CSC_FILTER_STACK_PUSHED;
 
@@ -14377,8 +14616,9 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
       cmd = FindMethod(object->nsPtr, methodName);
     }
 
-    /*fprintf(stderr, "ObjectDispatch NSF_CM_LOCAL_METHOD obj %s methodName %s => cl %p %s cmd %p \n", (object != NULL) ? ObjectName(object) : NULL,
-            methodName, cl, (cl != NULL) ? ClassName(cl) : "NONE", cmd);*/
+    /*fprintf(stderr, "ObjectDispatch NSF_CM_LOCAL_METHOD obj %s methodName %s => cl %p %s cmd %p \n",
+            (object != NULL) ? ObjectName(object) : NULL,
+            methodName, (void*)cl, (cl != NULL) ? ClassName(cl) : "NONE", (void*)cmd);*/
 
   } else if (unlikely(*methodName == ':')) {
     NsfObject *regObject;
@@ -14424,8 +14664,9 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
         /* ignore permissions for fully qualified method names */
         flags |= NSF_CM_IGNORE_PERMISSIONS;
       }
-      /*fprintf(stderr, "ObjectDispatch fully qualified obj %s methodName %s => cl %p cmd %p \n", (object != NULL) ? ObjectName(object) : NULL,
-        methodName, cl, cmd);*/
+      /*fprintf(stderr, "ObjectDispatch fully qualified obj %s methodName %s => cl %p cmd %p \n",
+              (object != NULL) ? ObjectName(object) : NULL,
+              methodName, (void*)cl, (void*)cmd);*/
     }
   }
 
@@ -14433,12 +14674,13 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
     object, ObjectName(object), methodName, objflags & NSF_MIXIN_ORDER_DEFINED_AND_VALID,
     (objflags & NSF_MIXIN_ORDER_DEFINED_AND_VALID) == NSF_MIXIN_ORDER_DEFINED_AND_VALID);*/
   /*
-   * Check if a mixed in method has to be called.
+   * Check if a mixed in method has to be called. This is necessary, even when
+   * cmd is already determined.
    */
   if (unlikely((objflags & NSF_MIXIN_ORDER_DEFINED_AND_VALID) == NSF_MIXIN_ORDER_DEFINED_AND_VALID
                && (flags & (NSF_CM_SYSTEM_METHOD|NSF_CM_INTRINSIC_METHOD)) == 0u
-               && ((flags & NSF_CM_LOCAL_METHOD) == 0u || cl != NULL))) {
-
+               && ((flags & NSF_CM_LOCAL_METHOD) == 0u || cl != NULL))
+     ) {
     /*
      * The current logic allocates first an entry on the per-object
      * stack and searches then for a mixin. This could be improved by
@@ -14472,6 +14714,9 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
     }
   }
 
+  /*fprintf(stderr, "ObjectDispatch ordinary lookup %s.%s cmd %p\n",
+    ObjectName(object), ObjStr(methodObj), (void*)cmd);*/
+
   /*
    * If no fully qualified method name/filter/mixin was found then perform
    * ordinary method lookup. First, try to resolve the method name as a
@@ -14480,9 +14725,9 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
 
   if (likely(cmd == NULL)) {
     NsfMethodContext *mcPtr = methodObj->internalRep.twoPtrValue.ptr1;
-    unsigned int               nsfObjectMethodEpoch = rst->objectMethodEpoch;
+    unsigned int      nsfObjectMethodEpoch = rst->objectMethodEpoch;
 
-    if (methodObj->typePtr == &NsfObjectMethodObjType
+    if (methodObjTypePtr == &NsfObjectMethodObjType
         && mcPtr->context == object
         && mcPtr->methodEpoch == nsfObjectMethodEpoch
         && mcPtr->flags == flags
@@ -14491,22 +14736,24 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
 
 #if defined(METHOD_OBJECT_TRACE)
       fprintf(stderr, "... use internal rep method %p %s cmd %p (objProc %p) cl %p %s\n",
-              methodObj, ObjStr(methodObj),
-              cmd, (cmd != NULL) ? ((Command *)cmd)->objProc : 0,
-              cl, (cl != NULL) ? ClassName(cl) : ObjectName(object));
+              (void*)methodObj, ObjStr(methodObj),
+              (void*)cmd, (cmd != NULL) ? (void*)((Command *)cmd)->objProc : 0,
+              (void*)cl, (cl != NULL) ? ClassName(cl) : ObjectName(object));
 #endif
 
       assert((cmd != NULL) ? ((Command *)cmd)->objProc != NULL : 1);
+
     } else {
       /*
-       * Do we have an object-specific cmd?
+       * Check if the call can be resolved against an object-specific method.
        */
       if (unlikely((object->nsPtr != NULL)
                    && (flags & (NSF_CM_NO_OBJECT_METHOD|NSF_CM_SYSTEM_METHOD)) == 0u)) {
         cmd = FindMethod(object->nsPtr, methodName);
-        /*fprintf(stderr, "lookup for per-object method in obj %p method %s nsPtr %p"
+        /*fprintf(stderr, "ObjectDispatch lookup for per-object method in obj %p method %s nsPtr %p"
                 " => %p objProc %p\n",
-                object, methodName, object->nsPtr, cmd, (cmd != NULL) ? ((Command *)cmd)->objProc : NULL);*/
+                (void*)object, methodName, (void*)object->nsPtr, (void*)cmd,
+                (cmd != NULL) ? (void*)((Command *)cmd)->objProc : NULL);*/
         if (cmd != NULL) {
           /*
            * Reject call when
@@ -14518,7 +14765,8 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
               ) {
             cmd = NULL;
           } else {
-
+            /* fprintf(stderr, "==== SET OBJ TYPE for %s.%s to NsfObjectMethodObjType\n",
+               ObjectName(object), ObjStr(methodObj));*/
             NsfMethodObjSet(interp, methodObj, &NsfObjectMethodObjType,
                             object, nsfObjectMethodEpoch,
                             cmd, NULL, flags);
@@ -14535,35 +14783,55 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
 #endif
 
     if (likely(cmd == NULL)) {
-      /* check for an instance method */
-      NsfClass         *currentClass = object->cl;
-      NsfMethodContext *mcPtr0 = methodObj->internalRep.twoPtrValue.ptr1;
-      unsigned int               nsfInstanceMethodEpoch = rst->instanceMethodEpoch;
+      /*
+       * Check if the call can be resolved against an instance method.
+       */
+      NsfClass           *currentClass = object->cl;
+      NsfMethodContext   *mcPtr0 = methodObj->internalRep.twoPtrValue.ptr1;
+      NsfColonCmdContext *ccCtxPtr = methodObj->internalRep.twoPtrValue.ptr2;
+      unsigned int        nsfInstanceMethodEpoch = rst->instanceMethodEpoch;
 
 #if defined(METHOD_OBJECT_TRACE)
       fprintf(stderr, "... method %p/%d '%s' type? %d context? %d nsfMethodEpoch %d => %d\n",
               methodObj, methodObj->refCount, ObjStr(methodObj),
-              methodObj->typePtr == &NsfInstanceMethodObjType,
-              methodObj->typePtr == &NsfInstanceMethodObjType ? mcPtr0->context == currentClass : 0,
-              methodObj->typePtr == &NsfInstanceMethodObjType ? mcPtr0->methodEpoch : 0,
+              methodObjTypePtr == &NsfInstanceMethodObjType,
+              methodObjTypePtr == &NsfInstanceMethodObjType ? mcPtr0->context == currentClass : 0,
+              methodObjTypePtr == &NsfInstanceMethodObjType ? mcPtr0->methodEpoch : 0,
               nsfInstanceMethodEpoch );
 #endif
 
-      if (methodObj->typePtr == &NsfInstanceMethodObjType
+      if (methodObjTypePtr == &NsfInstanceMethodObjType
           && mcPtr0->context == currentClass
           && mcPtr0->methodEpoch == nsfInstanceMethodEpoch
           && mcPtr0->flags == flags
           ) {
         cmd = mcPtr0->cmd;
         cl = mcPtr0->cl;
+
 #if defined(METHOD_OBJECT_TRACE)
         fprintf(stderr, "... use internal rep method %p %s cmd %p (objProc %p) cl %p %s\n",
-                methodObj, ObjStr(methodObj),
-                cmd, (cmd != NULL) ?((Command *)cmd)->objProc : NULL,
-                cl, (cl != NULL) ? ClassName(cl) : ObjectName(object));
+                (void*)methodObj, ObjStr(methodObj),
+                (void*)cmd, (cmd != NULL) ? (void*)((Command *)cmd)->objProc : NULL,
+                (void*)cl, (cl != NULL) ? ClassName(cl) : ObjectName(object));
 #endif
         assert((cmd != NULL) ? ((Command *)cmd)->objProc != NULL : 1);
+
+      } else if (methodObjTypePtr == Nsf_OT_tclCmdNameType
+                 && ccCtxPtr != NULL
+                 && ccCtxPtr->context == currentClass
+                 && ccCtxPtr->methodEpoch == nsfInstanceMethodEpoch
+                 && ccCtxPtr->flags == flags
+          ) {
+        cmd = ccCtxPtr->cmd;
+        cl = ccCtxPtr ->cl;
+#if defined(METHOD_OBJECT_TRACE)
+        fprintf(stderr, "... use internal rep ptr2 method %p %s cmd %p (objProc %p) cl %p %s\n",
+                (void*)methodObj, ObjStr(methodObj),
+                (void*)cmd, (cmd != NULL) ? (void*)((Command *)cmd)->objProc : NULL,
+                (void*)cl, (cl != NULL) ? ClassName(cl) : ObjectName(object));
+#endif
       } else {
+        const char *calledName = ObjStr(methodObj);
 
         /*
          * We could call PrecedenceOrder(currentClass) to recompute
@@ -14574,8 +14842,9 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
 
         if (unlikely((flags & NSF_CM_SYSTEM_METHOD) != 0u)) {
           NsfClasses *classListPtr = currentClass->order;
+
           /*
-           * Skip entries until the first base class.
+           * Skip entries until the (first) base class.
            */
           do {
             if (IsBaseClass(&classListPtr->cl->object)) {
@@ -14588,13 +14857,91 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
         } else {
           cl = SearchPLMethod(currentClass->order, methodName, &cmd, NSF_CMD_CALL_PRIVATE_METHOD);
         }
-        if (methodObj->typePtr != Nsf_OT_tclCmdNameType
-            && methodObj->typePtr != Nsf_OT_parsedVarNameType
+
+        /*fprintf(stderr, "... check type of methodObj %s type %s check %d\n",
+                calledName, methodObjTypePtr ? methodObjTypePtr->name : "NONE",
+                (((methodObjTypePtr != Nsf_OT_tclCmdNameType) || *calledName == ':')
+                 && methodObjTypePtr != Nsf_OT_parsedVarNameType
+                 && likely(cmd != NULL)  )
+                 );*/
+
+        if (((methodObjTypePtr != Nsf_OT_tclCmdNameType))
+            && (methodObjTypePtr != Nsf_OT_parsedVarNameType)
             && likely(cmd != NULL)
-            ) {
+           ) {
+          /*fprintf(stderr, "==== SET OBJ TYPE for %s.%s to NsfInstanceMethodObjType cmd %p\n",
+            ObjectName(object), calledName, (void*)cmd);*/
           NsfMethodObjSet(interp, methodObj, &NsfInstanceMethodObjType,
-                          currentClass, nsfInstanceMethodEpoch,
-                          cmd, cl, flags);
+                          currentClass, nsfInstanceMethodEpoch, cmd, cl, flags);
+        } else if (
+            cmd != NULL && ((methodObjTypePtr != Nsf_OT_tclCmdNameType) || *calledName == ':')
+        ) {
+          NsfProcContext  *pCtxPtr = ProcContextGet(cmd);
+
+          // COLONCMD_CACHE
+
+          /*fprintf(stderr, "==== CHECK ptr2 for %s.%s methodObj %p %s cmd %p ptr2 %p\n",
+                  ObjectName(object), calledName, (void*)methodObj, ObjStr(methodObj),
+                  (void*)cmd, (void*)methodObj->internalRep.twoPtrValue.ptr2);*/
+          if (ccCtxPtr != NULL) {
+
+            if (ccCtxPtr->cmd != cmd) {
+              //fprintf(stderr, "======== ptr2 cached cmd for %s.%s differs from actual value\n",
+              //        ObjectName(object), ObjStr(methodObj));
+
+              /*
+               * Cached cmd differs from actual one. This is due to an
+               * invalidaton, that happend before the search for the cmd.
+               */
+              ColonCmdCacheSet(ccCtxPtr, currentClass, nsfInstanceMethodEpoch, cmd, cl, flags);
+            }
+
+          } else {
+            /*
+             * No ccCtxPtr exists, since no twoPtrValue.ptr2 value was
+             * provided.
+             */
+            if (pCtxPtr == NULL) {
+              //const char *type = CmdType(cmd);
+
+              /*
+               * No proc context is available. create one on the fly.
+               */
+              //fprintf(stderr, "==== ptr2 of %s empty, ADD procCtx for methodName %s cmd type %s\n",
+              //        ObjStr(methodObj), methodName, CmdType(cmd));
+              //if (!strcmp(type, "unknown")) {
+              //  char *p = NULL; *p=1;
+              //}
+              //if (Tcl_Command_objProc(cmd) != NsfProcAliasMethod) {...}
+              pCtxPtr = ProcContextRequire(cmd);
+            }
+
+            // TODO the following test is obsolete, in case we really want to
+            // create a proc context for every method.
+            if (pCtxPtr != NULL) {
+              assert(pCtxPtr != NULL);
+              assert(ccCtxPtr == NULL);
+
+              ccCtxPtr = NEW(NsfColonCmdContext);
+
+              ColonCmdCacheSet(ccCtxPtr, currentClass, nsfInstanceMethodEpoch, cmd, cl, flags);
+              /*
+               * Save methodObj in proc context for memory management. The saved
+               * Tcl_Obj has the ccCtxPtr in ptr2, which has to be freed on
+               * cleanup.
+               */
+              // TODO: probably, a plain list for free operations is saver
+              AddObjToTclList(interp, &(pCtxPtr->freeListObj), methodObj);
+
+              //ccCtxPtr->pCtxPtr = pCtxPtr;
+              methodObj->internalRep.twoPtrValue.ptr2 = ccCtxPtr;
+
+              /*fprintf(stderr, "==== ptr2 of %s empty, is set %p for obj %p %p %s target proc ctx %p ccCtx %p\n",
+                      ObjStr(methodObj),
+                      (void*)cmd, (void*)object, (void*)methodObj, ObjStr(methodObj),
+                      (void*)pCtxPtr, (void*)pCtxPtr->freeListObj);*/
+            }
+          }
         }
       }
     }
@@ -14674,12 +15021,15 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
       cscPtr->objv = objv+shift;
     }
 
-    /*fprintf(stderr, "MethodDispatchCsc %s.%s %p flags %.6x cscPtr %p\n",
-            ObjectName(object), methodName, object->mixinStack, cscPtr->flags,
-            cscPtr);*/
+    /* fprintf(stderr, "MethodDispatchCsc %s.%s %p flags %.6x cscPtr %p method-obj-type %s\n",
+            ObjectName(object), methodName, (void*)object->mixinStack, cscPtr->flags,
+            (void*)cscPtr, methodObj->typePtr ? methodObj->typePtr-> name : "NONE");*/
 
     result = MethodDispatchCsc(clientData, interp, objc-shift, objv+shift,
                                resolvedCmd, cscPtr, methodName, &isValidCsc);
+    /* fprintf(stderr, "MethodDispatchCsc %s.%s %p flags %.6x cscPtr %p method-obj-type %s DONE\n",
+            ObjectName(object), methodName, (void*)object->mixinStack, cscPtr->flags,
+            (void*)cscPtr, methodObj->typePtr ? methodObj->typePtr-> name : "NONE"); */
 
     if (unlikely(result == TCL_ERROR)) {
       /*fprintf(stderr, "Call ErrInProc cl = %p, cmd %p, methodName %s flags %.6x\n",
@@ -17655,8 +18005,6 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, Pa
  *
  *----------------------------------------------------------------------
  */
-int NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
-  nonnull(2) nonnull(4) nonnull(1);
 
 int
 NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
@@ -21533,12 +21881,20 @@ static int ForwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
   nonnull(1) nonnull(3) nonnull(4) nonnull(5) nonnull(6) nonnull(7) nonnull(8) nonnull(9) nonnull(11);
 
 static int
-ForwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
-           Tcl_Obj *forwardArgObj, ForwardCmdClientData *tcd, Tcl_Obj **out,
-           Tcl_Obj **freeList, int *inputArg, long *mapvalue,
-           int firstPosArg, int *outputincr) {
+ForwardArg(
+    Tcl_Interp *interp,
+    int objc, Tcl_Obj *CONST objv[],
+    Tcl_Obj *forwardArgObj,
+    ForwardCmdClientData *tcd,
+    Tcl_Obj **out,
+    Tcl_Obj **freeListObjPtr,
+    int *inputArg,
+    long *mapvalue,
+    int firstPosArg,
+    int *outputincr
+) {
   const char *ForwardArgString, *p;
-  int         totalargs;
+  int         totalargs, result = TCL_OK;
   char        c;
 
   nonnull_assert(interp != NULL);
@@ -21546,7 +21902,7 @@ ForwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
   nonnull_assert(forwardArgObj != NULL);
   nonnull_assert(tcd != NULL);
   nonnull_assert(out != NULL);
-  nonnull_assert(freeList != NULL);
+  nonnull_assert(freeListObjPtr != NULL);
   nonnull_assert(inputArg != NULL);
   nonnull_assert(mapvalue != NULL);
   nonnull_assert(outputincr != NULL);
@@ -21565,7 +21921,7 @@ ForwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
   c = *ForwardArgString;
   if (c == '%' && *(ForwardArgString+1) == '@') {
     char *remainder = NULL;
-    long pos;
+    long  pos;
 
     ForwardArgString += 2;
     pos = strtol(ForwardArgString, &remainder, 0);
@@ -21602,9 +21958,9 @@ ForwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
   }
 
   if (c == '%') {
-    Tcl_Obj *list = NULL, **listElements;
-    int nrArgs = objc-1, nrPosArgs = objc - firstPosArg, nrElements = 0;
-    char c1, *firstActualArgument = nrArgs > 0 ? ObjStr(objv[1]) : NULL;
+    Tcl_Obj *listObj = NULL, **listElements;
+    int      nrArgs = objc-1, nrPosArgs = objc - firstPosArg, nrElements = 0;
+    char     c1, *firstActualArgument = nrArgs > 0 ? ObjStr(objv[1]) : NULL;
 
     c = *++ForwardArgString;
     c1 = *(ForwardArgString+1);
@@ -21615,6 +21971,7 @@ ForwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
                || (c == 'm' && !strcmp(ForwardArgString, "method"))
                ) {
       const char *methodName = ObjStr(objv[0]);
+
       /*
        * If we dispatch a method via ".", we do not want to see the "." in the
        * %proc, e.g. for the interceptor slots (such as mixin, ...)
@@ -21624,20 +21981,21 @@ ForwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
       } else {
         *out = objv[0];
       }
-      goto add_to_freelist;
+      AddObjToTclList(interp, freeListObjPtr, *out);
+      //goto add_to_freelist;
 
     } else if (c == '1' && (c1 == '\0' || NsfHasTclSpace(&c1))) {
 
       if (c1 != '\0') {
-        if (unlikely(Tcl_ListObjIndex(interp, forwardArgObj, 1, &list) != TCL_OK)) {
+        if (unlikely(Tcl_ListObjIndex(interp, forwardArgObj, 1, &listObj) != TCL_OK)) {
           return NsfForwardPrintError(interp, tcd, objc, objv,
                                       "forward: %%1 must be followed by a valid list, given: '%s'",
                                       ObjStr(forwardArgObj));
         }
-        if (unlikely(Tcl_ListObjGetElements(interp, list, &nrElements, &listElements) != TCL_OK)) {
+        if (unlikely(Tcl_ListObjGetElements(interp, listObj, &nrElements, &listElements) != TCL_OK)) {
           return NsfForwardPrintError(interp, tcd, objc, objv,
                                       "forward: %%1 contains invalid list '%s'",
-                                      ObjStr(list));
+                                      ObjStr(listObj));
         }
       } else if (unlikely(tcd->subcommands != NULL)) { /* deprecated part */
         if (Tcl_ListObjGetElements(interp, tcd->subcommands, &nrElements, &listElements) != TCL_OK) {
@@ -21660,9 +22018,9 @@ ForwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
         *out = listElements[nrPosArgs];
       } else if (objc <= 1) {
 
-        return NsfForwardPrintError(interp, tcd, objc, objv,
-                                    "%%1 requires argument; should be \"%s arg ...\"",
-                                    ObjStr(objv[0]));
+        result = NsfForwardPrintError(interp, tcd, objc, objv,
+                                      "%%1 requires argument; should be \"%s arg ...\"",
+                                      ObjStr(objv[0]));
       } else {
         /*fprintf(stderr, "copying %%1: '%s'\n", ObjStr(objv[firstPosArg]));*/
         *out = objv[firstPosArg];
@@ -21670,7 +22028,7 @@ ForwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
       }
     } else if (c == '-') {
       const char *firstElementString;
-      int insertRequired, done = 0;
+      int         insertRequired, done = 0;
 
       /*fprintf(stderr, "process flag '%s'\n", firstActualArgument);*/
       if (Tcl_ListObjGetElements(interp, forwardArgObj, &nrElements, &listElements) != TCL_OK) {
@@ -21688,8 +22046,8 @@ ForwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 
       if (firstActualArgument && *firstActualArgument == '-') {
         int i;
-        /*fprintf(stderr, "we have a flag in first argument '%s'\n", firstActualArgument);*/
 
+        /*fprintf(stderr, "we have a flag in first argument '%s'\n", firstActualArgument);*/
         for (i = 1; i < firstPosArg; i++) {
           if (strcmp(firstElementString, ObjStr(objv[i])) == 0) {
             /*fprintf(stderr, "We have a MATCH for '%s' oldInputArg %d\n", ForwardArgString, *inputArg);*/
@@ -21725,7 +22083,9 @@ ForwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
           /*fprintf(stderr, "no match, but insert of %s required\n", firstElementString);*/
           *out = Tcl_NewStringObj(firstElementString, -1);
           *outputincr = 1;
-          goto add_to_freelist;
+
+          AddObjToTclList(interp, freeListObjPtr, *out);
+          //goto add_to_freelist;
         } else {
           /*
            * No match, no insert of flag required, we skip the forwarder
@@ -21737,58 +22097,54 @@ ForwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
       }
 
     } else if (c == 'a' && !strncmp(ForwardArgString, "argcl", 4)) {
-      if (Tcl_ListObjIndex(interp, forwardArgObj, 1, &list) != TCL_OK) {
-        return NsfForwardPrintError(interp, tcd, objc, objv,
-                                    "forward: %%argclindex must by a valid list, given: '%s'",
-                                    ForwardArgString);
+
+      if (Tcl_ListObjIndex(interp, forwardArgObj, 1, &listObj) != TCL_OK) {
+        result = NsfForwardPrintError(interp, tcd, objc, objv,
+                                      "forward: %%argclindex must by a valid list, given: '%s'",
+                                      ForwardArgString);
+
+      } else if (Tcl_ListObjGetElements(interp, listObj, &nrElements, &listElements) != TCL_OK) {
+        result = NsfForwardPrintError(interp, tcd, objc, objv,
+                                      "forward: %%argclindex contains invalid list '%s'",
+                                      ObjStr(listObj));
+
+      } else if (nrArgs >= nrElements) {
+        result = NsfForwardPrintError(interp, tcd, objc, objv,
+                                      "forward: not enough elements in specified list of ARGC argument %s",
+                                      ForwardArgString);
+      } else {
+        *out = listElements[nrArgs];
       }
-      if (Tcl_ListObjGetElements(interp, list, &nrElements, &listElements) != TCL_OK) {
-        return NsfForwardPrintError(interp, tcd, objc, objv,
-                                    "forward: %%argclindex contains invalid list '%s'",
-                                    ObjStr(list));
-      }
-      if (nrArgs >= nrElements) {
-        return NsfForwardPrintError(interp, tcd, objc, objv,
-                                    "forward: not enough elements in specified list of ARGC argument %s",
-                                    ForwardArgString);
-      }
-      *out = listElements[nrArgs];
     } else if (c == '%') {
       Tcl_Obj *newarg = Tcl_NewStringObj(ForwardArgString, -1);
+
       *out = newarg;
-      goto add_to_freelist;
+      //goto add_to_freelist;
+      AddObjToTclList(interp, freeListObjPtr, *out);
+
     } else {
       /*
        * Evaluate the given command
        */
-      int result;
       /*fprintf(stderr, "evaluating '%s'\n", ForwardArgString);*/
-      if ((result = Tcl_EvalEx(interp, ForwardArgString, -1, 0)) != TCL_OK) {
-        return result;
+      result = Tcl_EvalEx(interp, ForwardArgString, -1, 0);
+      if (likely(result == TCL_OK)) {
+        *out = Tcl_DuplicateObj(Tcl_GetObjResult(interp));
+        AddObjToTclList(interp, freeListObjPtr, *out);
+        /*fprintf(stderr, "result = '%s'\n", ObjStr(*out));*/
       }
-      *out = Tcl_DuplicateObj(Tcl_GetObjResult(interp));
-      /*fprintf(stderr, "result = '%s'\n", ObjStr(*out));*/
-      goto add_to_freelist;
     }
   } else {
     if (likely(p == ForwardArgString)) {
       *out = forwardArgObj;
     } else {
       Tcl_Obj *newarg = Tcl_NewStringObj(ForwardArgString, -1);
+
       *out = newarg;
-      goto add_to_freelist;
+      AddObjToTclList(interp, freeListObjPtr, *out);
     }
   }
-  return TCL_OK;
-
- add_to_freelist:
-  if (*freeList == NULL) {
-    *freeList = Tcl_NewListObj(1, out);
-    INCR_REF_COUNT2("freeList", *freeList);
-  } else {
-    Tcl_ListObjAppendElement(interp, *freeList, *out);
-  }
-  return TCL_OK;
+  return result;
 }
 
 /*
@@ -22081,7 +22437,9 @@ NsfForwardMethod(ClientData clientData, Tcl_Interp *interp,
         DECR_REF_COUNT(ov[1]);
       }
     exitforwardmethod:
-      if (freeList != NULL)    {DECR_REF_COUNT2("freeList", freeList);}
+      if (freeList != NULL) {
+        DECR_REF_COUNT2("AddObjToTclList", freeList);
+      }
 
       FREE_ON_STACK(long, objvmap);
     }
@@ -23452,24 +23810,54 @@ ListVarKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr, const char *pattern) {
  *----------------------------------------------------------------------
  */
 static Tcl_Command
-GetOriginalCommand(Tcl_Command cmd)  /* The imported command for which the original
-                                     * command should be returned.
-                                     */
-{
+GetOriginalCommand(
+    Tcl_Command cmd  /* The imported command for which the original
+                      * command should be returned.
+                      */
+) {
   Tcl_Command importedCmd;
 
   nonnull_assert(cmd != NULL);
 
   while (1) {
-    /* dereference the namespace import reference chain */
+    AliasCmdClientData *tcd;
+
+    /*
+     * Dereference the namespace import reference chain
+     */
     if ((importedCmd = TclGetOriginalCommand(cmd))) {
       cmd = importedCmd;
     }
-    /* dereference the Next Scripting alias chain */
+    /*
+     * Dereference the Next Scripting alias chain
+     */
     if (Tcl_Command_deleteProc(cmd) == AliasCmdDeleteProc) {
-      AliasCmdClientData *tcd = (AliasCmdClientData *)Tcl_Command_objClientData(cmd);
+      tcd = (AliasCmdClientData *)Tcl_Command_objClientData(cmd);
+      //fprintf(stderr, "... GetOriginalCommand finds alias %s -> %s\n",
+      //        Tcl_GetCommandName(NULL, cmd), Tcl_GetCommandName(NULL, tcd->aliasedCmd));
       cmd = tcd->aliasedCmd;
       continue;
+    }
+    /*
+     * Dereference the Next Scripting alias chain via potential proc contexts,
+     * since we identify the alias reference on the AliasCmdDeleteProc.
+     */
+    if (Tcl_Command_deleteProc(cmd) == NsfProcDeleteProc
+       && Tcl_Command_objProc(cmd) == NsfProcAliasMethod) {
+      NsfProcContext *ctxPtr = Tcl_Command_deleteData(cmd);
+
+      if (ctxPtr->oldDeleteProc == AliasCmdDeleteProc) {
+        tcd = (AliasCmdClientData *)Tcl_Command_objClientData(cmd);
+
+        //fprintf(stderr, "... GetOriginalCommand finds alias via oldDeleteProc %s -> %s (%p -> %p)\n",
+        //        Tcl_GetCommandName(NULL, cmd), Tcl_GetCommandName(NULL, tcd->aliasedCmd),
+        //        (void*)cmd, (void*)tcd->aliasedCmd  );
+        //char *name =Tcl_GetCommandName(NULL, cmd);
+        //if (!strcmp("incr",name)) {char *p = NULL; *p=1;}
+
+        cmd = tcd->aliasedCmd;
+        continue;
+      }
     }
     break;
   }
@@ -24614,7 +25002,8 @@ MethodTypeMatches(Tcl_Interp *interp, MethodtypeIdx_t methodType, Tcl_Command cm
 
   if (methodType == NSF_METHODTYPE_ALIAS) {
     if (!(proc == NsfProcAliasMethod
-          || AliasGet(interp, object->cmdName, methodName, withPer_object, NSF_FALSE))) {
+          || AliasGet(interp, object->cmdName, methodName, withPer_object, NSF_FALSE))
+       ) {
       return NSF_FALSE;
       }
   } else {
@@ -26227,66 +26616,91 @@ NsfColonCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   /*fprintf(stderr, "Colon dispatch %s.%s (%d)\n",
     ObjectName(self), ObjStr(nobjv[0]), nobjc);*/
 
+  /*
+   * Do we have a method, which is NOT a single colon?
+   */
   if (likely(!(*methodName == ':' && *(methodName + 1) == '\0'))) {
-    return ObjectDispatch(self, interp, objc, objv, NSF_CM_NO_SHIFT);
-  }
-  /*
-   * First arg is a single colon and no other args are given.
-   */
-  if (objc <= 1) {
-    Tcl_SetObjResult(interp, self->cmdName);
-    return TCL_OK;
-  }
+    {
+      // COLONCMD_CACHE
+      //Tcl_Obj     *methodObj = objv[0];
+      //Tcl_Obj     *fullNameObj = Tcl_NewObj();
+      //Tcl_Command  cmd1 = Tcl_GetCommandFromObj(interp, methodObj);
 
-  /*
-   * Multiple arguments were given.
-   */
-  methodName = ObjStr(objv[1]);
-
-  if (*methodName != '-') {
-    /*
-     * No need to parse arguments (local, intrinsic, ...).
-     */
-    result = ObjectDispatch(self, interp, objc, objv, 0u);
+      //Tcl_GetCommandFullName(interp, cmd1, fullNameObj);
+      /* fprintf(stderr, "NsfColonCmd BEFORE CALL methodName %s %p <%s> type %s fullname %s ptr1 %p ptr2 %p\n",
+              ObjectName(self), (void*)methodObj, methodName,
+              methodObj->typePtr ? methodObj->typePtr->name : "NONE",
+              ObjStr(fullNameObj),
+              (void*)(methodObj->internalRep.twoPtrValue.ptr1),
+              (void*)(methodObj->internalRep.twoPtrValue.ptr2));*/
+      result = ObjectDispatch(self, interp, objc, objv, NSF_CM_NO_SHIFT);
+      /* fprintf(stderr, "NsfColonCmd AFTER CALL methodName %s %p <%s> type %s\n",
+              ObjectName(self), (void*)methodObj, methodName,
+              methodObj->typePtr ? methodObj->typePtr->name : "NONE");*/
+    }
   } else {
-    ParseContext pc;
 
     /*
-     * Parse arguments, use definitions from nsf::my
+     * The name is a single colon, and might have one ore more arguments.
      */
-    result = ArgumentParse(interp, objc, objv, NULL, objv[0],
-                           method_definitions[NsfMyCmdIdx].paramDefs,
-                           method_definitions[NsfMyCmdIdx].nrParameters,
-                           0, NSF_ARGPARSE_BUILTIN, &pc);
-    if (likely(result == TCL_OK)) {
-      int      withIntrinsic, withLocal, withSystem;
-      Tcl_Obj *methodObj;
+    if (objc <= 1) {
+      /*
+       * Single colon and no arguments.
+       */
+      Tcl_SetObjResult(interp, self->cmdName);
+      result = TCL_OK;
+    } else {
 
-      withIntrinsic = (int)PTR2INT(pc.clientData[0]);
-      withLocal     = (int)PTR2INT(pc.clientData[1]);
-      withSystem    = (int)PTR2INT(pc.clientData[2]);
-      methodObj     = (Tcl_Obj *)pc.clientData[3];
-
-      assert(pc.status == 0);
-
-      if ((withIntrinsic && withLocal)
-          || (withIntrinsic && withSystem)
-          || (withLocal && withSystem)) {
-        result = NsfPrintError(interp, "flags '-intrinsic', '-local' and '-system' are mutual exclusive");
+      /*
+       * Single colon and multiple arguments.
+       */
+      methodName = ObjStr(objv[1]);
+      if (*methodName != '-') {
+        /*
+         * No need to parse arguments (local, intrinsic, ...).
+         */
+        result = ObjectDispatch(self, interp, objc, objv, 0u);
       } else {
-        unsigned int flags;
+        ParseContext pc;
 
-        flags = NSF_CSC_IMMEDIATE;
-        if (withIntrinsic != 0) {
-          flags |= NSF_CM_INTRINSIC_METHOD;
+        /*
+         * Parse arguments, use definitions from nsf::my
+         */
+        result = ArgumentParse(interp, objc, objv, NULL, objv[0],
+                               method_definitions[NsfMyCmdIdx].paramDefs,
+                               method_definitions[NsfMyCmdIdx].nrParameters,
+                               0, NSF_ARGPARSE_BUILTIN, &pc);
+        if (likely(result == TCL_OK)) {
+          int      withIntrinsic, withLocal, withSystem;
+          Tcl_Obj *methodObj;
+
+          withIntrinsic = (int)PTR2INT(pc.clientData[0]);
+          withLocal     = (int)PTR2INT(pc.clientData[1]);
+          withSystem    = (int)PTR2INT(pc.clientData[2]);
+          methodObj     = (Tcl_Obj *)pc.clientData[3];
+
+          assert(pc.status == 0);
+
+          if ((withIntrinsic && withLocal)
+              || (withIntrinsic && withSystem)
+              || (withLocal && withSystem)) {
+            result = NsfPrintError(interp, "flags '-intrinsic', '-local' and '-system' are mutual exclusive");
+          } else {
+            unsigned int flags;
+
+            flags = NSF_CSC_IMMEDIATE;
+            if (withIntrinsic != 0) {
+              flags |= NSF_CM_INTRINSIC_METHOD;
+            }
+            if (withLocal != 0)     {
+              flags |= NSF_CM_LOCAL_METHOD;
+            }
+            if (withSystem != 0)    {
+              flags |= NSF_CM_SYSTEM_METHOD;
+            }
+            result = CallMethod(self, interp, methodObj, (objc - pc.lastObjc) + 2, objv + pc.lastObjc, flags);
+          }
         }
-        if (withLocal != 0)     {
-          flags |= NSF_CM_LOCAL_METHOD;
-        }
-        if (withSystem != 0)    {
-          flags |= NSF_CM_SYSTEM_METHOD;
-        }
-        result = CallMethod(self, interp, methodObj, (objc - pc.lastObjc) + 2, objv + pc.lastObjc, flags);
       }
     }
   }
@@ -26882,7 +27296,9 @@ NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
 
     objProc         = newObjProc;
     deleteProc      = AliasCmdDeleteProc;
-    if (tcd->cmdName != NULL) {INCR_REF_COUNT(tcd->cmdName);}
+    if (tcd->cmdName != NULL) {
+      INCR_REF_COUNT(tcd->cmdName);
+    }
   } else {
     /*
      * Call the command directly (must be a c-implemented command not
@@ -27423,8 +27839,9 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
 
         if (paramDefs == NULL) {
           /*
-           * Acquire new paramDefs and place it into the ParamDefsStore. Make
-           * sure, we keep the original checkAlwaysFlag and execNsPtr.
+           * Acquire new (empty) paramDefs and place it into the
+           * ParamDefsStore. Make sure, we keep the original checkAlwaysFlag
+           * and execNsPtr.
            */
           paramDefs = ParamDefsNew();
           ParamDefsStore(cmd, paramDefs, checkAlwaysFlag, execNsPtr);

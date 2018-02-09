@@ -5933,6 +5933,13 @@ catch {={*}[list foo 1 2 3 4 5 6]} msg; puts msg=$msg
 
 ========================================================================
 TODO:
+- coloncmd reform:
+  * memcheck
+  * use free list rather then obj list for freeing NsfColonCmdContext 
+    since the Tcl_Obj might be changed
+  * apply to object methods
+  * maybe merge approach with Tcl obj type nsfInstanceMethod (and nsfObjectMethod)
+
 
 - IsObjectOfType(): the error messages provided could be improved:
 
