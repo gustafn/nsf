@@ -1,0 +1,102 @@
+# -*- Tcl -*-
+package req nx::test
+
+package req msgcat
+
+::msgcat::mcset [::msgcat::mclocale] m1 [set ::msg1 "[namespace current] message1"]
+
+namespace eval ::foo {
+  ::msgcat::mcset [::msgcat::mclocale] m1 [set ::msg2 "[namespace current] message2"]
+}
+
+namespace eval ::foo::bar {
+  ::msgcat::mcset [::msgcat::mclocale] m1 [set ::msg3 "[namespace current] message3"]
+}
+
+namespace import ::msgcat::mc
+
+nx::Class create C {
+  :require namespace
+  ? [list set _ [mc m1]] $::msg1
+  :public method foo {} {
+    return [mc m1]
+  }
+  :public object method bar {} {
+    return [mc m1]
+  }
+
+  :property baz {
+    :public object method value=get {args} {
+      return [namespace current]-[mc m1]
+    } 
+  }
+}
+
+? {[::C new] foo} $::msg1
+? {::C bar} $::msg1
+? {[::C new] cget -baz} "::C::slot-$::msg1"
+
+namespace eval ::foo {
+  nx::Class create C {
+    :require namespace
+    ? [list set _ [mc m1]] $::msg2
+    :public method foo {} {
+      return [mc m1]
+    }
+    :public object method bar {} {
+      return [mc m1]
+    }
+    :property baz {
+      :public object method value=get {args} {
+        return [namespace current]-[mc m1]
+      } 
+    }
+  }
+  
+  ? {[::foo::C new] foo} $::msg2
+  ? {::foo::C bar} $::msg2
+  ? {[::foo::C new] cget -baz} "::foo::C::slot-$::msg2"
+}
+
+namespace eval ::foo::bar {
+  nx::Class create C {
+    :require namespace
+    ? [list set _ [mc m1]] $::msg3
+    :public method foo {} {
+      return [mc m1]
+    }
+    :public object method bar {} {
+      return [mc m1]
+    }
+    :property baz {
+      :public object method value=get {args} {
+        return [namespace current]-[mc m1]
+      } 
+    }
+
+    :property -accessor public baf {
+      :public object method value=set {obj prop value} {
+        ::msgcat::mcset [::msgcat::mclocale] $value [set ::msg4 "[namespace current] message4"]
+        next
+      } 
+      :public object method value=get {args} {
+        mc [next]
+      }
+    }
+    :create ::c
+  }
+  ? {[::foo::bar::C new] foo} $::msg3
+  ? {::foo::bar::C bar} $::msg3
+  ? {[::foo::bar::C new] cget -baz} "::foo::bar::C::slot-$::msg3"
+  ::c baf set m1
+  ? {::c baf get} $::msg4
+  
+}
+
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:
+#
