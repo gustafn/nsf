@@ -111,6 +111,7 @@ typedef struct NsfProcContext {
   int                *colonLocalVarCache;
   unsigned int        checkAlwaysFlag;
   Tcl_Namespace      *execNsPtr;
+  Tcl_Obj            *returnsObj;
   //NsfList           *freeListPtr;
   //Tcl_Obj            *freeListObj;
 } NsfProcContext;
@@ -12124,6 +12125,33 @@ ParamDefsGet(
   return result;
 }
 
+/*----------------------------------------------------------------------
+ * ParamDefsGetReturns --
+ *
+ *    Obtain the "returns" value from paramdefs
+ *
+ * Results:
+ *    Tcl_Obj or NULL
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+NSF_INLINE static Tcl_Obj *
+ParamDefsGetReturns(Tcl_Command cmdPtr) {
+  NsfProcContext *pCtx;
+  Tcl_Obj        *resultObj;
+
+  pCtx = ProcContextGet(cmdPtr);
+  if (pCtx != NULL) {
+    resultObj = pCtx->returnsObj;
+  } else {
+    resultObj = NULL;
+  }
+  return resultObj;
+}
+
 
 /*----------------------------------------------------------------------
  * NsfParamDefsNonposLookup --
@@ -12275,6 +12303,9 @@ NsfProcDeleteProc(
     /*fprintf(stderr, "free colonLocalVarCache %p\n", (void*)ctxPtr->colonLocalVarCache);*/
     FREE(Tcl_Var*, ctxPtr->colonLocalVarCache);
   }
+  if (ctxPtr->returnsObj != NULL) {
+    DECR_REF_COUNT2("returnsObj", ctxPtr->returnsObj);
+  }
 
   //if (ctxPtr->freeListPtr != NULL) {
     //NsfListFree(ctxPtr->freeListPtr, NsfColonCmdContextFree);
@@ -12353,6 +12384,7 @@ ProcContextRequire(
     ctxPtr->checkAlwaysFlag    = 0;
     ctxPtr->execNsPtr          = NULL;
     ctxPtr->colonLocalVarCache = NULL;
+    ctxPtr->returnsObj         = NULL;
     //ctxPtr->freeListPtr        = NULL;
     //ctxPtr->freeListObj        = NULL;
   } else {
@@ -12504,9 +12536,7 @@ ParamDefsFree(NsfParamDefs *paramDefs) {
   if (paramDefs->paramsPtr != NULL) {
     ParamsFree(paramDefs->paramsPtr);
   }
-  if (paramDefs->returns != NULL) {
-    DECR_REF_COUNT2("paramDefsObj", paramDefs->returns);
-  }
+
   FREE(NsfParamDefs, paramDefs);
 }
 
@@ -14338,14 +14368,14 @@ ObjectDispatchFinalize(Tcl_Interp *interp, NsfCallStackContent *cscPtr,
   if (likely((result == TCL_OK)
              && (cscPtr->cmdPtr != NULL)
              && (Tcl_Command_cmdEpoch(cscPtr->cmdPtr) == 0))) {
-    const NsfParamDefs *paramDefs = ParamDefsGet(cscPtr->cmdPtr, NULL, NULL);
+    Tcl_Obj *returnsObj = ParamDefsGetReturns(cscPtr->cmdPtr);
 
-    if ((paramDefs != NULL) && (paramDefs->returns != NULL)) {
-      NsfObject  *ctx = (cscPtr->cl != NULL) ? (NsfObject *)cscPtr->cl : object;
-      Tcl_Namespace *nsPtr = Tcl_Command_nsPtr(ctx->id);
-      Tcl_Obj *valueObj = Tcl_GetObjResult(interp);
+    if (returnsObj != NULL) {
+      NsfObject     *ctxObject = (cscPtr->cl != NULL) ? (NsfObject *)cscPtr->cl : object;
+      Tcl_Namespace *nsPtr = Tcl_Command_nsPtr(ctxObject->id);
+      Tcl_Obj       *valueObj = Tcl_GetObjResult(interp);
 
-      result = ParameterCheck(interp, paramDefs->returns, valueObj, "return-value:",
+      result = ParameterCheck(interp, returnsObj, valueObj, "return-value:",
                               rst->doCheckResults, NSF_FALSE, NSF_FALSE, NULL,
                               nsPtr != NULL ? nsPtr->fullName : NULL);
     }
@@ -14598,16 +14628,8 @@ static void CacheCmd(
       NsfRuntimeState *rst = RUNTIME_STATE(interp);
 
       /*
-       * No ccCtxPtr exists, since no twoPtrValue.ptr2 value was
-       * provided.  If there is no proc context is available. create
-       * one on the fly.
-       */
-      //if (pCtxPtr == NULL) {
-      //  pCtxPtr = ProcContextRequire(cmd);
-      //}
-
-      /*
-       * Create a NsfColonCmdContext and supply it with data (primarily the cmd, the other data is for validation.
+       * Create a NsfColonCmdContext and supply it with data (primarily the
+       * cmd, the other data is for validation).
        */
       ccCtxPtr = NEW(NsfColonCmdContext);
       ColonCmdCacheSet(ccCtxPtr, context, methodEpoch, cmd, class, flags);
@@ -24168,7 +24190,7 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd,  NsfObject *contextObject,
      */
     Nsf_methodDefinition *mdPtr = Nsf_CmdDefinitionGet(((Command *)cmd)->objProc);
     if (mdPtr != NULL) {
-      NsfParamDefs localParamDefs = {mdPtr->paramDefs, mdPtr->nrParameters, 1, NULL, 0};
+      NsfParamDefs localParamDefs = {mdPtr->paramDefs, mdPtr->nrParameters, 1, 0};
       Tcl_Obj     *list = ListParamDefs(interp, localParamDefs.paramsPtr, contextObject, pattern, printStyle);
 
       Tcl_SetObjResult(interp, list);
@@ -24379,17 +24401,17 @@ static void AppendReturnsClause(Tcl_Interp *interp, Tcl_Obj *listObj, Tcl_Comman
 
 static void
 AppendReturnsClause(Tcl_Interp *interp, Tcl_Obj *listObj, Tcl_Command cmd) {
-  NsfParamDefs *paramDefs;
+  Tcl_Obj *returnsObj;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(listObj != NULL);
   nonnull_assert(cmd != NULL);
 
-  paramDefs = ParamDefsGet(cmd, NULL, NULL);
-  if (paramDefs != NULL && paramDefs->returns != NULL) {
+  returnsObj = ParamDefsGetReturns(cmd);
+  if (returnsObj != NULL) {
     /* TODO: avoid hard-coding the script-level/NX-specific keyword "-returns" */
     Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-returns", -1));
-    Tcl_ListObjAppendElement(interp, listObj, paramDefs->returns);
+    Tcl_ListObjAppendElement(interp, listObj, returnsObj);
   }
 }
 
@@ -24494,13 +24516,10 @@ ListMethod(Tcl_Interp *interp,
     }
   case InfomethodsubcmdReturnsIdx:
     {
-      Tcl_Command importedCmd;
-      NsfParamDefs *paramDefs;
+      Tcl_Obj *returnsObj = ParamDefsGetReturns(GetOriginalCommand(cmd));
 
-      importedCmd = GetOriginalCommand(cmd);
-      paramDefs = ParamDefsGet(importedCmd, NULL, NULL);
-      if (paramDefs != NULL && paramDefs->returns != NULL) {
-        Tcl_SetObjResult(interp, paramDefs->returns);
+      if (returnsObj != NULL) {
+        Tcl_SetObjResult(interp, returnsObj);
       }
       return TCL_OK;
     }
@@ -27936,12 +27955,8 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
 
   case MethodpropertyReturnsIdx:
     {
-      NsfParamDefs  *paramDefs;
-      Tcl_Obj      **objPtr;
-      Tcl_Namespace *execNsPtr = NULL;
-      unsigned int   checkAlwaysFlag = 0;
+      NsfProcContext *pCtx = ProcContextGet(cmd);
 
-      paramDefs = ParamDefsGet(cmd, &checkAlwaysFlag, &execNsPtr);
       /*fprintf(stderr, "MethodProperty, ParamDefsGet cmd %p paramDefs %p returns %p\n",
         cmd, paramDefs, (paramDefs != NULL) ?paramDefs->returns:NULL);*/
 
@@ -27951,11 +27966,10 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
          */
         Tcl_Obj *resultObj;
 
-        if (paramDefs == NULL) {
+        if (pCtx == NULL || pCtx->returnsObj == NULL) {
           resultObj = NsfGlobalObjs[NSF_EMPTY];
         } else {
-          objPtr = &paramDefs->returns;
-          resultObj = *objPtr ? *objPtr : NsfGlobalObjs[NSF_EMPTY];
+          resultObj = pCtx->returnsObj;
         }
         Tcl_SetObjResult(interp, resultObj);
 
@@ -27964,30 +27978,25 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
          * Set the value of "returns".
          */
         const char *valueString = ObjStr(valueObj);
+        Tcl_Obj    *returnsObj;
 
-        if (paramDefs == NULL) {
-          /*
-           * Acquire new (empty) paramDefs and place it into the
-           * ParamDefsStore. Make sure, we keep the original checkAlwaysFlag
-           * and execNsPtr.
-           */
-          paramDefs = ParamDefsNew();
-          ParamDefsStore(cmd, paramDefs, checkAlwaysFlag, execNsPtr);
-          /*fprintf(stderr, "new param definitions %p for cmd %p %s\n", paramDefs, cmd, ObjStr(methodNameObj));*/
+        if (pCtx == NULL) {
+          pCtx = ProcContextRequire(cmd);
         }
-
-        objPtr = &paramDefs->returns;
+        returnsObj = pCtx->returnsObj;
 
         /* Set a new value; if there is already a value, free it */
-        if (*objPtr) {
-          DECR_REF_COUNT2("paramDefsObj", *objPtr);
+        if (pCtx->returnsObj != NULL) {
+          DECR_REF_COUNT2("returnsObj", pCtx->returnsObj);
         }
         if (*valueString == '\0') {
-          /* set the value to NULL */
-          *objPtr = NULL;
+          /*
+           * Set returnsObj to NULL
+           */
+          pCtx->returnsObj = NULL;
         } else {
-          *objPtr = valueObj;
-          INCR_REF_COUNT2("paramDefsObj", *objPtr);
+          pCtx->returnsObj = valueObj;
+          INCR_REF_COUNT2("returnsObj", pCtx->returnsObj);
         }
       }
     }

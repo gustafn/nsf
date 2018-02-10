@@ -585,7 +585,6 @@ typedef struct NsfParamDefs {
   Nsf_Param *paramsPtr;
   int nrParams;
   int refCount;
-  Tcl_Obj *returns;
   int serial;
 } NsfParamDefs;
 
