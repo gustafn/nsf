@@ -96,12 +96,19 @@ typedef struct callFrameContext {
   bool           frameSaved;
 } callFrameContext;
 
+// # define COLON_CMD_STATS 1
+
 typedef struct {
   void        *context;
   Tcl_Command  cmd;
   NsfClass    *cl;
   unsigned int methodEpoch;
   unsigned int flags;
+#if defined(COLON_CMD_STATS)
+  size_t       hits;
+  size_t       invalidates;
+  Tcl_Obj     *obj;
+#endif
 } NsfColonCmdContext;
 
 typedef struct NsfProcContext {
@@ -12310,25 +12317,6 @@ NsfParamDefsNonposLookup(Tcl_Interp *interp, const char *nameString,
 
 /*
  *----------------------------------------------------------------------
- * NsfColonCmdContextFree --
- *
- *    FreeProc for NsfColonCmdContext
- *
- * Results:
- *    None.
- *
- * Side effects:
- *    Freeing memory.
- *
- *----------------------------------------------------------------------
- */
-static void
-NsfColonCmdContextFree(void *clientData) {
-  FREE(NsfColonCmdContext, clientData);
-}
-
-/*
- *----------------------------------------------------------------------
  * NsfProcDeleteProc --
  *
  *    FreeProc for procs with associated parameter definitions.
@@ -14574,17 +14562,64 @@ CmdObjProcName(
 NSF_INLINE static void
 ColonCmdCacheSet(
     NsfColonCmdContext *ccCtxPtr,
-    NsfClass *currentClass,
-    unsigned int methodEpoch,
-    Tcl_Command cmd,
-    NsfClass *class,
-    unsigned int flags
+    NsfClass           *currentClass,
+    unsigned int        methodEpoch,
+    Tcl_Command         cmd,
+    NsfClass           *class,
+    unsigned int        flags
 ) {
   ccCtxPtr->context = currentClass;
   ccCtxPtr->methodEpoch = methodEpoch;
   ccCtxPtr->cmd = cmd;
   ccCtxPtr->cl = class;
   ccCtxPtr->flags = flags;
+}
+
+#if defined(COLON_CMD_STATS)
+static void ColonCmdCacheNew(NsfColonCmdContext *ccCtxPtr, Tcl_Obj *obj) {
+  ccCtxPtr->hits = 0u;
+  ccCtxPtr->invalidates = 0u;
+  ccCtxPtr->obj = obj;
+  INCR_REF_COUNT(obj);
+}
+static void ColonCmdCacheInvalidate(NsfColonCmdContext *ccCtxPtr) {
+  ccCtxPtr->invalidates ++;
+}
+static void ColonCmdCacheHit(NsfColonCmdContext *ccCtxPtr) {
+  ccCtxPtr->hits ++;
+}
+#else
+#define ColonCmdCacheNew(ccCtxPtr, obj)
+#define ColonCmdCacheInvalidate(ccCtxPtr)
+#define ColonCmdCacheHit(ccCtxPtr)
+#endif
+
+
+
+/*
+ *----------------------------------------------------------------------
+ * NsfColonCmdContextFree --
+ *
+ *    FreeProc for NsfColonCmdContext
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    Freeing memory.
+ *
+ *----------------------------------------------------------------------
+ */
+static void
+NsfColonCmdContextFree(void *clientData) {
+#if defined(COLON_CMD_STATS)
+  NsfColonCmdContext *ccCtxPtr = clientData;
+
+  fprintf(stderr, "### free colonCmdContext for %s: hits %lu invalidates %lu\n",
+          ObjStr(ccCtxPtr->obj), ccCtxPtr->hits, ccCtxPtr->invalidates);
+  DECR_REF_COUNT(ccCtxPtr->obj);
+#endif
+  FREE(NsfColonCmdContext, clientData);
 }
 
 /*
@@ -14622,19 +14657,19 @@ static void CacheCmd(
       ObjectName(object), calledName, (void*)cmd);*/
     NsfMethodObjSet(interp, methodObj, nsfObjTypePtr,
                     context, methodEpoch, cmd, class, flags);
-  } else if (
-      isColonCmd
-      || (methodObjTypePtr != Nsf_OT_tclCmdNameType)
-      || (Tcl_Command_objProc(cmd) == NsfProcAliasMethod)
-  ) {
-    //NsfProcContext        *pCtxPtr = ProcContextGet(cmd);
-    NsfColonCmdContext    *ccCtxPtr = methodObj->internalRep.twoPtrValue.ptr2;
 
-    // COLONCMD_CACHE
+  } else if (isColonCmd && (methodObj->refCount > 1)) {
+    /*
+     * When the refCount <= 1, the object is a temporary object, for which
+     * caching is not useful. We could also cache the following types, but the
+     * benefit is not clear.
+     *
+     *     (methodObjTypePtr != Nsf_OT_tclCmdNameType)
+     *     || (Tcl_Command_objProc(cmd) == NsfProcAliasMethod)
+     *
+     */
+    NsfColonCmdContext *ccCtxPtr = methodObj->internalRep.twoPtrValue.ptr2;
 
-    /*fprintf(stderr, "==== CHECK ptr2 for %s.%s methodObj %p %s cmd %p ptr2 %p\n",
-      ObjectName(object), calledName, (void*)methodObj, ObjStr(methodObj),
-      (void*)cmd, (void*)methodObj->internalRep.twoPtrValue.ptr2);*/
     if (ccCtxPtr != NULL) {
 
       if (ccCtxPtr->cmd != cmd) {
@@ -14646,16 +14681,24 @@ static void CacheCmd(
          * invalidaton, that happened before the search for the cmd.
          */
         ColonCmdCacheSet(ccCtxPtr, context, methodEpoch, cmd, class, flags);
+        ColonCmdCacheInvalidate(ccCtxPtr);
+      } else {
+        ColonCmdCacheHit(ccCtxPtr);
       }
 
     } else {
       NsfRuntimeState *rst = RUNTIME_STATE(interp);
+
+      /*fprintf(stderr, "======== new entry for %s type %s refCount %d\n",
+              ObjStr(methodObj),
+              methodObjTypePtr != NULL ? methodObjTypePtr->name : "NONE", methodObj->refCount);*/
 
       /*
        * Create a NsfColonCmdContext and supply it with data (primarily the
        * cmd, the other data is for validation).
        */
       ccCtxPtr = NEW(NsfColonCmdContext);
+      ColonCmdCacheNew(ccCtxPtr, methodObj);
       ColonCmdCacheSet(ccCtxPtr, context, methodEpoch, cmd, class, flags);
 
       /*
@@ -27144,7 +27187,10 @@ NsfFinalizeCmd(Tcl_Interp *interp, int withKeepvars) {
     {
       NsfDList *dlPtr = &rst->freeDList;
       size_t    i;
-      //fprintf(stderr, "#### DList free size %lu avail %lu\n", dlPtr->size, dlPtr->avail);
+
+#if defined(COLON_CMD_STATS)
+      fprintf(stderr, "#### DList free size %lu avail %lu\n", dlPtr->size, dlPtr->avail);
+#endif
       for (i = 0u; i < dlPtr->size; i++) {
         //fprintf(stderr, "#### DList free data[%lu] %p: %p\n", i, (void*)&(dlPtr->data[i]), (void*)dlPtr->data[i]);
         NsfColonCmdContextFree(dlPtr->data[i]);
