@@ -28011,12 +28011,10 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
          * Set the value of "returns".
          */
         const char *valueString = ObjStr(valueObj);
-        Tcl_Obj    *returnsObj;
 
         if (pCtx == NULL) {
           pCtx = ProcContextRequire(cmd);
         }
-        returnsObj = pCtx->returnsObj;
 
         /* Set a new value; if there is already a value, free it */
         if (pCtx->returnsObj != NULL) {
