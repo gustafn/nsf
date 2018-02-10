@@ -549,6 +549,60 @@ static void DeleteProcsAndVars(Tcl_Interp *interp, Tcl_Namespace *nsPtr, bool wi
   nonnull(1) nonnull(2);
 #endif
 
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * NsfDListInit, NsfDListAppend, NsfDListFree   --
+ *
+ *      Functions similar to Tcl_DString, but working on (void*) elements
+ *      instead of chars. The NsfDList operations work on static data as long
+ *      the space is sufficcicent, and doubles in size afterwards. In the
+ *      worst case, half of the data is unsued, but that is the same size of
+ *      overhead like for a single linked list.
+ *
+ * Results:
+ *      None.
+ *
+ * Side effects:
+ *      Potentially allocating/reallocating memory.
+ *
+ *----------------------------------------------------------------------
+ */
+static void
+NsfDListInit(NsfDList *dlPtr) {
+  dlPtr->data = &dlPtr->static_data[0];
+  dlPtr->avail = nr_elements(dlPtr->static_data);
+  dlPtr->size = 0u;
+}
+
+static void
+NsfDListAppend(NsfDList *dlPtr, void *element) {
+  if (dlPtr->avail < 1) {
+    size_t requiredSize = dlPtr->size * 2u;
+    if (dlPtr->data != &dlPtr->static_data[0]) {
+      //fprintf(stderr, "#### NsfDListAppend realloc from %lu to %lu\n", dlPtr->size, requiredSize);
+      dlPtr->data = (void **)ckrealloc((char *)dlPtr->data, sizeof(dlPtr->data[0]) * requiredSize);
+    } else {
+      //fprintf(stderr, "#### NsfDListAppend alloc from %lu to %lu\n", dlPtr->size, requiredSize);
+      dlPtr->data = (void **)ckalloc(sizeof(dlPtr->data[0]) * requiredSize);
+      memcpy(dlPtr->data, &dlPtr->static_data[0], dlPtr->size * sizeof(dlPtr->data[0]));
+    }
+    dlPtr->avail = requiredSize - dlPtr->size;
+  }
+  dlPtr->avail --;
+  dlPtr->data[dlPtr->size] = element;
+  dlPtr->size ++;
+}
+
+static void
+NsfDListFree(NsfDList *dlPtr) {
+  if (dlPtr->data != &dlPtr->static_data[0]) {
+    ckfree((char*)dlPtr->data);
+  }
+  NsfDListInit(dlPtr);
+}
+
 /*
  *----------------------------------------------------------------------
  *
@@ -851,6 +905,7 @@ ParseContextInit(ParseContext *pcPtr, int objc, NsfObject *object, Tcl_Obj *proc
  *
  *----------------------------------------------------------------------
  */
+
 static void ParseContextExtendObjv(ParseContext *pcPtr, unsigned from, unsigned elts, Tcl_Obj *CONST source[])
   nonnull(1) nonnull(4);
 
@@ -7947,13 +8002,15 @@ NsfListFree(NsfList *startPtr, Tcl_CmdDeleteProc *delProc)
   for (lPtr = startPtr; lPtr != NULL; lPtr = nextPtr) {
     nextPtr = lPtr->nextPtr;
 
+    //fprintf(stderr, "#### NsfListFree elem[%d] :%p\n", count, (void*)lPtr->data);
     if (delProc != NULL) {
       (*delProc)(lPtr->data);
-      count ++;
     }
+    count ++;
+
     FREE(NsfList, lPtr);
   }
-  //fprintf(stderr, "############### NsfListFree deleted %d elements\n", count);
+  fprintf(stderr, "############### NsfListFree deleted %d elements\n", count);
 
 }
 
@@ -12307,38 +12364,6 @@ NsfProcDeleteProc(
     DECR_REF_COUNT2("returnsObj", ctxPtr->returnsObj);
   }
 
-  //if (ctxPtr->freeListPtr != NULL) {
-    //NsfListFree(ctxPtr->freeListPtr, NsfColonCmdContextFree);
-  //}
-#if 0
-  if (ctxPtr->freeListObj != NULL) {
-    int       oc, i;
-    Tcl_Obj **ov;
-
-    /*
-     * Iterate over elements of the free list to free the twoPtrValue.ptr2
-     * values, which are supposed to be NsfColonCmdContext elements.
-     */
-    Tcl_ListObjGetElements(NULL, ctxPtr->freeListObj, &oc, &ov);
-    //fprintf(stderr, "--- NsfProcDeleteProc len %d content %s\n", oc, ObjStr(ov[0]));
-    for (i= 0; i< oc; i++) {
-      Tcl_Obj *methodObj = ov[i];
-
-      if (methodObj->typePtr != Nsf_OT_tclCmdNameType) {
-        fprintf(stderr, "--- NsfProcDeleteProc methodObj %s lost type (have now %s ptr2 %p)\n",
-                ObjStr(methodObj),
-                methodObj->typePtr != NULL ? methodObj->typePtr->name : "NONE",
-                (void*)methodObj->internalRep.twoPtrValue.ptr2);
-      } else if (methodObj->internalRep.twoPtrValue.ptr2 == NULL) {
-        fprintf(stderr, "--- NsfProcDeleteProc methodObj %s lost ptr2\n", ObjStr(methodObj));
-      } else {
-        FREE(NsfColonCmdContext, methodObj->internalRep.twoPtrValue.ptr2);
-        methodObj->internalRep.twoPtrValue.ptr2 = NULL;
-      }
-    }
-    DECR_REF_COUNT2("AddObjToTclList", ctxPtr->freeListObj);
-  }
-#endif
   /*fprintf(stderr, "free %p\n", ctxPtr);*/
   FREE(NsfProcContext, ctxPtr);
 }
@@ -12385,8 +12410,6 @@ ProcContextRequire(
     ctxPtr->execNsPtr          = NULL;
     ctxPtr->colonLocalVarCache = NULL;
     ctxPtr->returnsObj         = NULL;
-    //ctxPtr->freeListPtr        = NULL;
-    //ctxPtr->freeListObj        = NULL;
   } else {
     ctxPtr = (NsfProcContext *)Tcl_Command_deleteData(cmdPtr);
   }
@@ -14638,8 +14661,8 @@ static void CacheCmd(
        * Save the NsfColonCmdContext in the proc context for memory management
        * and as well for reuse in twoPtrValue.ptr2.
        */
-      rst->freeListPtr = NsfListCons(ccCtxPtr,rst->freeListPtr);
-      //AddObjToTclList(interp, &(pCtxPtr->freeListObj), methodObj);
+      //rst->freeListPtr = NsfListCons(ccCtxPtr,rst->freeListPtr);
+      NsfDListAppend(&rst->freeDList, ccCtxPtr);
       methodObj->internalRep.twoPtrValue.ptr2 = ccCtxPtr;
 
       /*fprintf(stderr, "==== ptr2 of %s empty, is set %p for obj %p %p %s target proc ctx %p ccCtx %p\n",
@@ -27115,8 +27138,18 @@ NsfFinalizeCmd(Tcl_Interp *interp, int withKeepvars) {
       MEM_COUNT_FREE("TclNamespace",rst->NsfNS);
       Tcl_DeleteNamespace(rst->NsfNS);
     }
-    NsfListFree(rst->freeListPtr, NsfColonCmdContextFree);
-    rst->freeListPtr = NULL;
+    //NsfListFree(rst->freeListPtr, NULL/*NsfColonCmdContextFree*/);
+    //rst->freeListPtr = NULL;
+    {
+      NsfDList *dlPtr = &rst->freeDList;
+      size_t    i;
+      //fprintf(stderr, "#### DList free size %lu avail %lu\n", dlPtr->size, dlPtr->avail);
+      for (i = 0u; i < dlPtr->size; i++) {
+        //fprintf(stderr, "#### DList free data[%lu] %p: %p\n", i, (void*)&(dlPtr->data[i]), (void*)dlPtr->data[i]);
+        NsfColonCmdContextFree(dlPtr->data[i]);
+      }
+      NsfDListFree(dlPtr);
+    }
   }
 #endif
   return TCL_OK;
@@ -34102,7 +34135,8 @@ Nsf_Init(Tcl_Interp *interp) {
   rst->doFilters = 1;
   rst->doCheckResults = 1;
   rst->doCheckArguments = NSF_ARGPARSE_CHECK;
-  rst->freeListPtr = NULL;
+  //rst->freeListPtr = NULL;
+  NsfDListInit(&rst->freeDList);
 
 #if defined(NSF_STACKCHECK)
   { int someVar;

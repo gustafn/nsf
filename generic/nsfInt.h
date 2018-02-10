@@ -952,6 +952,14 @@ typedef struct NsfList {
   struct NsfList *nextPtr;
 } NsfList;
 
+typedef struct NsfDList {
+  void  **data;
+  size_t  size;
+  size_t  avail;
+  void   *static_data[30];
+} NsfDList;
+
+
 typedef struct NsfRuntimeState {
   /*
    * The defined object systems
@@ -1000,7 +1008,7 @@ typedef struct NsfRuntimeState {
 
   Tcl_HashTable activeFilterTablePtr;   /* keep track of defined filters */
   NsfList *freeListPtr;                 /* list of elements to free when interp shuts down */
-
+  NsfDList freeDList;
 #if defined(NSF_PROFILE)
   NsfProfile profile;
 #endif
