@@ -947,6 +947,12 @@ typedef struct NsfProfile {
 # define NSF_PROFILE_EXIT(interp, object, methodName)
 #endif
 
+typedef struct NsfList {
+  void           *data;
+  Tcl_Obj        *obj;
+  struct NsfList *nextPtr;
+} NsfList;
+
 typedef struct NsfRuntimeState {
   /*
    * The defined object systems
@@ -994,6 +1000,7 @@ typedef struct NsfRuntimeState {
   int exitHandlerDestroyRound;          /* shutdown handling */
 
   Tcl_HashTable activeFilterTablePtr;   /* keep track of defined filters */
+  NsfList *freeListPtr;                 /* list of elements to free when interp shuts down */
 
 #if defined(NSF_PROFILE)
   NsfProfile profile;

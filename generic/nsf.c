@@ -111,7 +111,8 @@ typedef struct NsfProcContext {
   int                *colonLocalVarCache;
   unsigned int        checkAlwaysFlag;
   Tcl_Namespace      *execNsPtr;
-  Tcl_Obj            *freeListObj;
+  //NsfList           *freeListPtr;
+  //Tcl_Obj            *freeListObj;
 } NsfProcContext;
 
 /*
@@ -7923,6 +7924,38 @@ AddObjToTclList(
   }
 }
 
+
+static NsfList *
+NsfListCons(void *data, NsfList *lPtr)
+{
+    NsfList *newlPtr;
+
+    newlPtr = (NsfList *) NEW(NsfList);
+    //fprintf(stderr, "### add data %p elem %p to list %p\n", (void*)data, (void*)newlPtr, (void*)lPtr);
+    newlPtr->data = data;
+    newlPtr->nextPtr = lPtr;
+    return newlPtr;
+}
+
+static void
+NsfListFree(NsfList *startPtr, Tcl_CmdDeleteProc *delProc)
+{
+  NsfList *lPtr, *nextPtr;
+  int      count = 0;
+
+  for (lPtr = startPtr; lPtr != NULL; lPtr = nextPtr) {
+    nextPtr = lPtr->nextPtr;
+
+    if (delProc != NULL) {
+      (*delProc)(lPtr->data);
+      count ++;
+    }
+    FREE(NsfList, lPtr);
+  }
+  //fprintf(stderr, "############### NsfListFree deleted %d elements\n", count);
+
+}
+
 #if defined(NSF_WITH_ASSERTIONS)
 /*********************************************************************
  * Assertions
@@ -12191,6 +12224,25 @@ NsfParamDefsNonposLookup(Tcl_Interp *interp, const char *nameString,
 
 /*
  *----------------------------------------------------------------------
+ * NsfColonCmdContextFree --
+ *
+ *    FreeProc for NsfColonCmdContext
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    Freeing memory.
+ *
+ *----------------------------------------------------------------------
+ */
+static void
+NsfColonCmdContextFree(void *clientData) {
+  FREE(NsfColonCmdContext, clientData);
+}
+
+/*
+ *----------------------------------------------------------------------
  * NsfProcDeleteProc --
  *
  *    FreeProc for procs with associated parameter definitions.
@@ -12224,22 +12276,28 @@ NsfProcDeleteProc(
     FREE(Tcl_Var*, ctxPtr->colonLocalVarCache);
   }
 
+  //if (ctxPtr->freeListPtr != NULL) {
+    //NsfListFree(ctxPtr->freeListPtr, NsfColonCmdContextFree);
+  //}
+#if 0
   if (ctxPtr->freeListObj != NULL) {
     int       oc, i;
     Tcl_Obj **ov;
 
     /*
-     * Iteraterate over elements of the free list to free the twoPtrValue.ptr2
+     * Iterate over elements of the free list to free the twoPtrValue.ptr2
      * values, which are supposed to be NsfColonCmdContext elements.
      */
     Tcl_ListObjGetElements(NULL, ctxPtr->freeListObj, &oc, &ov);
     //fprintf(stderr, "--- NsfProcDeleteProc len %d content %s\n", oc, ObjStr(ov[0]));
-
     for (i= 0; i< oc; i++) {
       Tcl_Obj *methodObj = ov[i];
 
       if (methodObj->typePtr != Nsf_OT_tclCmdNameType) {
-        fprintf(stderr, "--- NsfProcDeleteProc methodObj %s lost type\n", ObjStr(methodObj));
+        fprintf(stderr, "--- NsfProcDeleteProc methodObj %s lost type (have now %s ptr2 %p)\n",
+                ObjStr(methodObj),
+                methodObj->typePtr != NULL ? methodObj->typePtr->name : "NONE",
+                (void*)methodObj->internalRep.twoPtrValue.ptr2);
       } else if (methodObj->internalRep.twoPtrValue.ptr2 == NULL) {
         fprintf(stderr, "--- NsfProcDeleteProc methodObj %s lost ptr2\n", ObjStr(methodObj));
       } else {
@@ -12249,7 +12307,7 @@ NsfProcDeleteProc(
     }
     DECR_REF_COUNT2("AddObjToTclList", ctxPtr->freeListObj);
   }
-
+#endif
   /*fprintf(stderr, "free %p\n", ctxPtr);*/
   FREE(NsfProcContext, ctxPtr);
 }
@@ -12295,7 +12353,8 @@ ProcContextRequire(
     ctxPtr->checkAlwaysFlag    = 0;
     ctxPtr->execNsPtr          = NULL;
     ctxPtr->colonLocalVarCache = NULL;
-    ctxPtr->freeListObj        = NULL;
+    //ctxPtr->freeListPtr        = NULL;
+    //ctxPtr->freeListObj        = NULL;
   } else {
     ctxPtr = (NsfProcContext *)Tcl_Command_deleteData(cmdPtr);
   }
@@ -14386,7 +14445,7 @@ NsfFindClassMethod(Tcl_Interp *interp, NsfClass *class, const char *methodName) 
 static const char *CmdObjProcName(
     Tcl_Command cmd
 ) nonnull(1);
-  
+
 static const char *
 CmdObjProcName(
     Tcl_Command cmd
@@ -14443,6 +14502,21 @@ CmdObjProcName(
   return result;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * ColonCmdCacheSet --
+ *
+ *     Fill out an ColonCmdCacheSet entry
+ *
+ * Results:
+ *    None
+ *
+ * Side effects:
+ *    None
+ *
+ *----------------------------------------------------------------------
+ */
+
 NSF_INLINE static void
 ColonCmdCacheSet(
     NsfColonCmdContext *ccCtxPtr,
@@ -14459,6 +14533,21 @@ ColonCmdCacheSet(
   ccCtxPtr->flags = flags;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * CacheCmd --
+ *
+ *     Cache a Tcl_Command element in a Tcl_Obj, using either the NSF sepcific
+ *     object types, or the colon cmd cache for Tcl cmd types.
+ *
+ * Results:
+ *    None
+ *
+ * Side effects:
+ *    Add cache entry
+ *
+ *----------------------------------------------------------------------
+ */
 static void CacheCmd(
     Tcl_Interp        *interp,
     Tcl_Command        cmd,
@@ -14471,7 +14560,7 @@ static void CacheCmd(
     bool               isColonCmd
 ) {
   const Tcl_ObjType *methodObjTypePtr = methodObj->typePtr;
-  
+
   if (((methodObjTypePtr != Nsf_OT_tclCmdNameType))
       && (methodObjTypePtr != Nsf_OT_parsedVarNameType)
      ) {
@@ -14484,8 +14573,8 @@ static void CacheCmd(
       || (methodObjTypePtr != Nsf_OT_tclCmdNameType)
       || (Tcl_Command_objProc(cmd) == NsfProcAliasMethod)
   ) {
-    NsfProcContext     *pCtxPtr = ProcContextGet(cmd);
-    NsfColonCmdContext *ccCtxPtr = methodObj->internalRep.twoPtrValue.ptr2;
+    //NsfProcContext        *pCtxPtr = ProcContextGet(cmd);
+    NsfColonCmdContext    *ccCtxPtr = methodObj->internalRep.twoPtrValue.ptr2;
 
     // COLONCMD_CACHE
 
@@ -14500,35 +14589,37 @@ static void CacheCmd(
 
         /*
          * Cached cmd differs from actual one. This is due to an
-         * invalidaton, that happend before the search for the cmd.
+         * invalidaton, that happened before the search for the cmd.
          */
         ColonCmdCacheSet(ccCtxPtr, context, methodEpoch, cmd, class, flags);
       }
 
     } else {
+      NsfRuntimeState *rst = RUNTIME_STATE(interp);
+
       /*
        * No ccCtxPtr exists, since no twoPtrValue.ptr2 value was
        * provided.  If there is no proc context is available. create
        * one on the fly.
        */
-      if (pCtxPtr == NULL) {
-        pCtxPtr = ProcContextRequire(cmd);
-      }
-              
+      //if (pCtxPtr == NULL) {
+      //  pCtxPtr = ProcContextRequire(cmd);
+      //}
+
+      /*
+       * Create a NsfColonCmdContext and supply it with data (primarily the cmd, the other data is for validation.
+       */
       ccCtxPtr = NEW(NsfColonCmdContext);
       ColonCmdCacheSet(ccCtxPtr, context, methodEpoch, cmd, class, flags);
-              
-      /*
-       * Save methodObj in proc context for memory management. The saved
-       * Tcl_Obj has the ccCtxPtr in ptr2, which has to be freed on
-       * cleanup.
-       */
-      // TODO: probably, a plain list for free operations is saver
-      AddObjToTclList(interp, &(pCtxPtr->freeListObj), methodObj);
 
-      //ccCtxPtr->pCtxPtr = pCtxPtr;
+      /*
+       * Save the NsfColonCmdContext in the proc context for memory management
+       * and as well for reuse in twoPtrValue.ptr2.
+       */
+      rst->freeListPtr = NsfListCons(ccCtxPtr,rst->freeListPtr);
+      //AddObjToTclList(interp, &(pCtxPtr->freeListObj), methodObj);
       methodObj->internalRep.twoPtrValue.ptr2 = ccCtxPtr;
-              
+
       /*fprintf(stderr, "==== ptr2 of %s empty, is set %p for obj %p %p %s target proc ctx %p ccCtx %p\n",
         ObjStr(methodObj),
         (void*)cmd, (void*)object, (void*)methodObj, ObjStr(methodObj),
@@ -14860,7 +14951,7 @@ ObjectDispatch(
                 " => %p objProc %p\n",
                 (void*)object, methodName, (void*)object->nsPtr, (void*)cmd,
                 (cmd != NULL) ? (void*)((Command *)cmd)->objProc : NULL);*/
-       
+
         if (cmd != NULL) {
           /*
            * Reject resolved cmd when
@@ -14938,7 +15029,7 @@ ObjectDispatch(
                 (void*)cl, (cl != NULL) ? ClassName(cl) : ObjectName(object));
 #endif
       } else {
-        
+
         /*
          * We could call PrecedenceOrder(currentClass) to recompute
          * currentClass->order on demand, but by construction this is already
@@ -27005,6 +27096,8 @@ NsfFinalizeCmd(Tcl_Interp *interp, int withKeepvars) {
       MEM_COUNT_FREE("TclNamespace",rst->NsfNS);
       Tcl_DeleteNamespace(rst->NsfNS);
     }
+    NsfListFree(rst->freeListPtr, NsfColonCmdContextFree);
+    rst->freeListPtr = NULL;
   }
 #endif
   return TCL_OK;
@@ -28811,7 +28904,7 @@ NsfParameterSpecsCmd(Tcl_Interp *interp, int withConfigure, int withNonposargs, 
       return NsfPrintError(interp, "objectparameter: slot element is not a next scripting object");
     }
     assert(slotObject != NULL);
-    
+
     /*
      * When withConfigure is provided, skip this parameter ...
      *  - when configure is not set
@@ -28839,7 +28932,7 @@ NsfParameterSpecsCmd(Tcl_Interp *interp, int withConfigure, int withNonposargs, 
                                              NsfGlobalObjs[NSF_POSITIONAL], NULL, 0);
       if (positionalObj != NULL) {
         int positional = 0;
-        
+
         Tcl_GetBooleanFromObj(interp, positionalObj, &positional);
         if (positional != 0) {
           continue;
@@ -32895,7 +32988,7 @@ NsfClassInfoMixinOfMethod(Tcl_Interp *interp, NsfClass *class,
   NsfClassOpt *opt;
   int          perClass, perObject;
   Tcl_Obj     *resultObj;
-  bool         done;
+  bool         done = NSF_FALSE;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(class != NULL);
@@ -33748,7 +33841,7 @@ ExitHandler(ClientData clientData) {
    * Free runtime state.
    */
   /*fprintf(stderr, "+++ ExiHandler frees runtime state of interp %p\n",interp);*/
-  ckfree((char *) RUNTIME_STATE(interp));
+  ckfree((char *) rst);
 #if defined(USE_ASSOC_DATA)
   Tcl_DeleteAssocData(interp, "NsfRuntimeState");
 #else
@@ -34000,6 +34093,7 @@ Nsf_Init(Tcl_Interp *interp) {
   rst->doFilters = 1;
   rst->doCheckResults = 1;
   rst->doCheckArguments = NSF_ARGPARSE_CHECK;
+  rst->freeListPtr = NULL;
 
 #if defined(NSF_STACKCHECK)
   { int someVar;
