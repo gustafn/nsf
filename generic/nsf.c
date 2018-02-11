@@ -12226,7 +12226,7 @@ ParamDefsGetReturns(Tcl_Command cmdPtr) {
  *    NSF_ABBREV_MIN_CHARS leading chars which are identical.
  *
  * Results:
- *    Parameter definition or NULL
+ *    Standard Tcl result; might set paramPtrPtr;
  *
  * Side effects:
  *    None.
@@ -12313,6 +12313,89 @@ NsfParamDefsNonposLookup(Tcl_Interp *interp, const char *nameString,
   }
   *paramPtrPtr = NULL;
   return TCL_OK;
+}
+
+/*
+ *----------------------------------------------------------------------
+ * CGetParamLookup --
+ *
+ *    Obtain the parameter definition for a Tcl_Obj starting with a "-".  it
+ *    can return an error, when the specified parameter is ambiguous.
+ *
+ * Results:
+ *    Tcl return code, on success paramPtr in last argument
+ *
+ * Side effects:
+ *    None
+ *
+ *----------------------------------------------------------------------
+ */
+static int
+CGetParamLookup(
+    Tcl_Interp       *interp,
+    Tcl_Obj          *nameObj,
+    NsfParamDefs     *paramDefs,
+    const Nsf_Param **paramPtrPtr
+) nonnull(1) nonnull(2) nonnull(3) nonnull(4);
+
+static int
+CGetParamLookup(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfParamDefs *paramDefs, const Nsf_Param **paramPtrPtr)
+{
+  const char *nameString;
+  int         result = TCL_OK;
+
+  nonnull_assert(interp != NULL);
+  nonnull_assert(nameObj != NULL);
+  nonnull_assert(paramDefs != NULL);
+  nonnull_assert(paramPtrPtr != NULL);
+
+  /*
+   * Does provided value start with a dash?
+   */
+  nameString = ObjStr(nameObj);
+  if (unlikely(*nameString != '-')) {
+    result = NsfPrintError(interp,
+                           "cget: parameter must start with a '-': %s",
+                           nameString);
+
+  } else {
+    NsfFlag *flagPtr = nameObj->internalRep.twoPtrValue.ptr1;
+
+    if ((nameObj->typePtr == &NsfFlagObjType)
+        && (flagPtr->signature == paramDefs->paramsPtr)
+        && (flagPtr->serial == paramDefs->serial)
+        ) {
+      *paramPtrPtr = flagPtr->paramPtr;
+
+    } else {
+      Nsf_Param  *paramPtr;
+
+      /*
+       * Skip leading parameters from the definition, which are no nonpos args
+       * (very unlikely).
+       */
+      for (paramPtr = paramDefs->paramsPtr;
+           (paramPtr->name != NULL) && (*paramPtr->name != '-');
+           paramPtr++) {
+        ;
+      }
+
+      /*
+       * Perform the lookup from the group starting with paramPtr.
+       */
+      result = NsfParamDefsNonposLookup(interp, nameString, paramPtr, paramPtrPtr);
+      if (unlikely(result == TCL_OK)) {
+        /*
+         * Set the the flag value. Probably, we should prohibiting conversion
+         * on some types.
+         */
+        NsfFlagObjSet(interp, nameObj, paramDefs->paramsPtr, paramDefs->serial,
+                      *paramPtrPtr, NULL, 0u);
+      }
+    }
+  }
+
+  return result;
 }
 
 /*
@@ -30129,7 +30212,23 @@ ComputeParameterDefinition(Tcl_Interp *interp, Tcl_Obj *procNameObj,
   return result;
 }
 
-
+/*
+ *----------------------------------------------------------------------
+ * GetObjectParameterDefinition --
+ *
+ *    Obtain the parameter definitions for an object by calling the method
+ *    "__objectparameter" if the value is not cached already. Caching is
+ *    performed on the class, the cached values are used in case there are no
+ *    object-specific slots.
+ *
+ * Results:
+ *    Tcl return code, parsed structure in last argument
+ *
+ * Side effects:
+ *    Updates potentially cl->parsedParamPtr
+ *
+ *----------------------------------------------------------------------
+ */
 static int
 GetObjectParameterDefinition(Tcl_Interp *interp, Tcl_Obj *procNameObj,
                              NsfObject *object, NsfClass *class,
@@ -30775,12 +30874,9 @@ objectMethod cget NsfOCgetMethod {
 static int
 NsfOCgetMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj) {
   int              result;
-  bool             found;
   NsfParsedParam   parsedParam;
   Nsf_Param const *paramPtr;
-  NsfParamDefs    *paramDefs;
   CallFrame        frame, *framePtr = &frame, *uplevelVarFramePtr;
-  const char      *nameString;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(object != NULL);
@@ -30823,115 +30919,86 @@ NsfOCgetMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj) {
    * obj accessible as locals.
    */
   Nsf_PushFrameObj(interp, object, framePtr);
+  ParamDefsRefCountIncr(parsedParam.paramDefs);
 
-  paramDefs = parsedParam.paramDefs;
-  ParamDefsRefCountIncr(paramDefs);
-
-  /*
-   * Does provided value start with a dash?
-   */
-  nameString = ObjStr(nameObj);
-  if (*nameString == '-') {
-    //fprintf(stderr, "cget nameobj %s, type %s\n", nameString, ObjTypeStr(nameObj));
+  result = CGetParamLookup(interp, nameObj, parsedParam.paramDefs, &paramPtr);
+  if (result != TCL_OK) {
     /*
-     * Skip leading parameters from the definition, which are no nonpos args
-     * (very unlikely).
+     * Error message is already set by CGetParamLookup()
      */
-    for (paramPtr = paramDefs->paramsPtr;
-         (paramPtr->name != NULL) && (*paramPtr->name != '-');
-         paramPtr++) {
-      ;
-    }
+  } else if (paramPtr == NULL) {
+    result = NsfPrintError(interp, "cget: unknown configure parameter %s", ObjStr(nameObj));
 
-    /*
-     * Perform the lookup from the next group.
-     */
-    if (unlikely(NsfParamDefsNonposLookup(interp, nameString, paramPtr, &paramPtr) != TCL_OK)) {
-      result = TCL_ERROR;
-      goto cget_exit;
-    }
   } else {
-    paramPtr = NULL;
-  }
-  found = (paramPtr != NULL);
-
-  if (!found) {
-    result = NsfPrintError(interp, "cget: unknown configure parameter %s", nameString);
-    goto cget_exit;
-  }
-
-  /*fprintf(stderr, "cget: arg %s found, flags %.8x\n", nameString, paramPtr->flags);*/
-
-  /*
-   * Check for slot invocation
-   */
-  if (paramPtr->slotObj != NULL) {
-    NsfObject *slotObject = GetSlotObject(interp, paramPtr->slotObj);
-    Tcl_Obj *methodObj = NsfMethodObj(object, NSF_s_get_idx);
-    Tcl_Obj *ov[1];
 
     /*
-     * Get instance variable via slot.
+     * Check for slot invocation
      */
-    if (uplevelVarFramePtr != NULL) {
-      Tcl_Interp_varFramePtr(interp) = uplevelVarFramePtr;
-    }
-    ov[0] = (paramPtr->method != NULL) ? paramPtr->method : paramPtr->nameObj;
+    if (paramPtr->slotObj != NULL) {
+      NsfObject *slotObject = GetSlotObject(interp, paramPtr->slotObj);
+      Tcl_Obj   *methodObj = NsfMethodObj(object, NSF_s_get_idx);
+      Tcl_Obj   *ov[1];
 
-    /*fprintf(stderr, "SLOTGET %s idx %d %p method %s\n", ObjectName(slotObject),
-      NSF_s_get_idx, (void *)methodObj, ObjStr(ov[0]));*/
-
-    result = NsfCallMethodWithArgs(interp, (Nsf_Object *)slotObject,
-                                   (methodObj != NULL) ? methodObj : NsfGlobalObjs[NSF_SLOT_GET],
-                                   object->cmdName, 2, ov, NSF_CSC_IMMEDIATE);
-    goto cget_exit;
-  }
-
-  /*
-   * We do NOT have a slot
-   */
-  if (found && (paramPtr->flags & NSF_ARG_METHOD_CALL) != 0u) {
-    if ((paramPtr->flags & NSF_ARG_ALIAS) != 0u) {
       /*
-       * It is a parameter associated with an aliased method. Invoke the
-       * method without an argument.
+       * Get instance variable via slot.
        */
-      Tcl_Obj *methodObj = (paramPtr->method != NULL) ? paramPtr->method : paramPtr->nameObj;
-
       if (uplevelVarFramePtr != NULL) {
         Tcl_Interp_varFramePtr(interp) = uplevelVarFramePtr;
       }
+      ov[0] = (paramPtr->method != NULL) ? paramPtr->method : paramPtr->nameObj;
 
-      result = CallMethod(object, interp, methodObj, 2, NULL, NSF_CSC_IMMEDIATE);
+      /*fprintf(stderr, "SLOTGET %s idx %d %p method %s\n", ObjectName(slotObject),
+        NSF_s_get_idx, (void *)methodObj, ObjStr(ov[0]));*/
+
+      result = NsfCallMethodWithArgs(interp, (Nsf_Object *)slotObject,
+                                     (methodObj != NULL) ? methodObj : NsfGlobalObjs[NSF_SLOT_GET],
+                                     object->cmdName, 2, ov, NSF_CSC_IMMEDIATE);
     } else {
       /*
-       * Must be NSF_ARG_FORWARD
+       * We do NOT have a slot
        */
-      assert((paramPtr->flags & NSF_ARG_FORWARD) != 0u);
+      if ((paramPtr->flags & NSF_ARG_METHOD_CALL) != 0u) {
+        if ((paramPtr->flags & NSF_ARG_ALIAS) != 0u) {
+          /*
+           * It is a parameter associated with an aliased method. Invoke the
+           * method without an argument.
+           */
+          Tcl_Obj *methodObj = (paramPtr->method != NULL) ? paramPtr->method : paramPtr->nameObj;
 
-      /* since we have no cscPtr, we provide NULL */
-      result = ParameterMethodForwardDispatch(interp, object,
-                                              paramPtr, NULL, NULL /* cscPtr */);
-    }
-  } else {
-    /*
-     * Must be a parameter associated with a variable
-     */
-    unsigned int flags = (object->nsPtr != NULL) ? (TCL_LEAVE_ERR_MSG|TCL_NAMESPACE_ONLY) : TCL_LEAVE_ERR_MSG;
-    Tcl_Obj *resultObj = Tcl_ObjGetVar2(interp, paramPtr->nameObj, NULL, (int)flags);
+          if (uplevelVarFramePtr != NULL) {
+            Tcl_Interp_varFramePtr(interp) = uplevelVarFramePtr;
+          }
 
-    if (resultObj != NULL) {
+          result = CallMethod(object, interp, methodObj, 2, NULL, NSF_CSC_IMMEDIATE);
+        } else {
+          /*
+           * Must be NSF_ARG_FORWARD
+           */
+          assert((paramPtr->flags & NSF_ARG_FORWARD) != 0u);
+
+          /* since we have no cscPtr, we provide NULL */
+          result = ParameterMethodForwardDispatch(interp, object,
+                                                  paramPtr, NULL, NULL /* cscPtr */);
+        }
+      } else {
       /*
-       * The value exists
+       * Must be a parameter associated with a variable
        */
-      Tcl_SetObjResult(interp, resultObj);
+        unsigned int flags = (object->nsPtr != NULL) ? (TCL_LEAVE_ERR_MSG|TCL_NAMESPACE_ONLY) : TCL_LEAVE_ERR_MSG;
+        Tcl_Obj *resultObj = Tcl_ObjGetVar2(interp, paramPtr->nameObj, NULL, (int)flags);
+
+        if (resultObj != NULL) {
+          /*
+           * The value exists
+           */
+          Tcl_SetObjResult(interp, resultObj);
+        }
+      }
     }
   }
 
- cget_exit:
-
   Nsf_PopFrameObj(interp, framePtr);
-  ParamDefsRefCountDecr(paramDefs);
+  ParamDefsRefCountDecr(parsedParam.paramDefs);
 
   return result;
 }

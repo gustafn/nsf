@@ -36,7 +36,7 @@ nx::test case cget-simple {
   #
   ? {p1 cget} {wrong # of arguments: should be "cget /name/"}
   ? {p1 cget -foo} "cget: unknown configure parameter -foo"
-  ? {p1 cget foo} "cget: unknown configure parameter foo"
+  ? {p1 cget foo} "cget: parameter must start with a '-': foo"
   ? {p1 cget -sex} {can't read "sex": no such variable}
 
   # 
