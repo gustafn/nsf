@@ -2735,7 +2735,7 @@ MustBeBefore(NsfClass *aClass, NsfClass *bClass, NsfClasses *superClasses) {
    */
   if (!success) {
     NsfClasses *sl;
-    int         bFound = NSF_FALSE;
+    bool        found = NSF_FALSE;
 
 #if defined(NSF_LINEARIZER_TRACE)
     fprintf(stderr, "--> check %s before %s?\n", ClassName(b), ClassName(a));
@@ -2743,8 +2743,8 @@ MustBeBefore(NsfClass *aClass, NsfClass *bClass, NsfClasses *superClasses) {
 #endif
     for (sl = superClasses; sl != NULL; sl = sl->nextPtr) {
       if (sl->cl == bClass) {
-        bFound = NSF_TRUE;
-      } else if (bFound && sl->cl == aClass) {
+        found = NSF_TRUE;
+      } else if (found && sl->cl == aClass) {
 #if defined(NSF_LINEARIZER_TRACE)
         fprintf(stderr, "%s in inheritanceList before %s therefore a < b\n",
                 ClassName(bClass), ClassName(aClass));
@@ -23475,8 +23475,10 @@ static int
 ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
               NsfObject *object, Tcl_Obj *procNameObj,
               Nsf_Param const *paramPtr, int nrParams, int serial,
-              unsigned int processFlags, ParseContext *pcPtr) {
-  int              o, dashdash = 0, fromArg;
+              unsigned int processFlags, ParseContext *pcPtr
+              ) {
+  int              o, fromArg;
+  bool             dashdash = NSF_FALSE;
   long             j;
   Nsf_Param const *currentParamPtr = paramPtr;
   Nsf_Param const *lastParamPtr = paramPtr + nrParams - 1;
@@ -23571,7 +23573,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
            * element from objv.
            */
           SkipNonposParamDefs(currentParamPtr);
-          assert(dashdash == 0);
+          assert(!dashdash);
           continue;
         } else if ((flagPtr->flags & NSF_FLAG_CONTAINS_VALUE) != 0u) {
           /*
@@ -23630,8 +23632,8 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
           char ch1 = *(argumentString+1);
 
           /* Is there a "--" ? */
-          if (ch1 == '-' && *(argumentString+2) == '\0' && dashdash == 0) {
-            dashdash = 1;
+          if (ch1 == '-' && *(argumentString+2) == '\0' && !dashdash) {
+            dashdash = NSF_TRUE;
             NsfFlagObjSet(interp, argumentObj, paramPtr, serial,
                           NULL, NULL, NSF_FLAG_DASHDAH);
             SkipNonposParamDefs(currentParamPtr);
@@ -23640,7 +23642,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 
           valueInArgument = strchr(argumentString, '=');
           if (valueInArgument != NULL) {
-            int    found = 0;
+            bool   found = NSF_FALSE;
             long   equalOffset = valueInArgument - argumentString;
 
             /*
@@ -23660,11 +23662,11 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
                 /*fprintf(stderr, "... value from argument = %s\n", ObjStr(valueObj));*/
                 NsfFlagObjSet(interp, argumentObj, paramPtr, serial,
                               pPtr, valueObj, NSF_FLAG_CONTAINS_VALUE);
-                found = 1;
+                found = NSF_TRUE;
                 break;
               }
             }
-            if (found == 0) {
+            if (!found) {
               Nsf_Param const *nextParamPtr = NextParam(currentParamPtr, lastParamPtr);
 
               if (nextParamPtr > lastParamPtr
@@ -23685,7 +23687,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
              * Must be a classical nonpos arg; check for a matching parameter
              * definition.
              */
-            int found = 0;
+            bool found = NSF_FALSE;
 
             assert(pPtr == currentParamPtr);
 
@@ -23694,7 +23696,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
                 return TCL_ERROR;
               } else {
                 if (pPtr != NULL) {
-                  found = 1;
+                  found = NSF_TRUE;
                   NsfFlagObjSet(interp, argumentObj, paramPtr, serial, pPtr, NULL, 0u);
                 }
               }
@@ -23706,7 +23708,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
              * advance to the next positional parameter and stuff the value in
              * there, if the parameter definition allows this.
              */
-            if (found == 0) {
+            if (!found) {
               int nonposArgError = 0;
               Nsf_Param const *nextParamPtr = NextParam(currentParamPtr, lastParamPtr);
 
@@ -23818,7 +23820,8 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 
 
 #if defined(PARSE_TRACE_FULL)
-      fprintf(stderr, "... args found o %d objc %d is dashdash %d [%ld] <%s>\n", o, objc, dashdash, j, ObjStr(argumentObj));
+      fprintf(stderr, "... args found o %d objc %d is dashdash %d [%ld] <%s>\n",
+              o, objc, (int)dashdash, j, ObjStr(argumentObj));
 #endif
       break;
 
@@ -23846,7 +23849,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
       }
       if (unlikely(dashdash)) {
         /* reset dashdash */
-        dashdash = 0;
+        dashdash = NSF_FALSE;
       }
 
       valueObj = argumentObj;
@@ -23935,7 +23938,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 
     /*fprintf(stderr, ".... not all parms processed, pPtr '%s' j %ld nrParams %d last '%s' varArgs %d dashdash %d\n",
             currentParamPtr->name, currentParamPtr - paramPtr, nrParams, lastParamPtr->name,
-            pcPtr->varArgs, dashdash);*/
+            pcPtr->varArgs, (int)dashdash);*/
 
     if (lastParamPtr->converter == ConvertToNothing) {
       pcPtr->varArgs = NSF_TRUE;
@@ -30772,12 +30775,13 @@ objectMethod cget NsfOCgetMethod {
 */
 static int
 NsfOCgetMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj) {
-  int result, found;
-  NsfParsedParam parsedParam;
+  int              result;
+  bool             found;
+  NsfParsedParam   parsedParam;
   Nsf_Param const *paramPtr;
-  NsfParamDefs *paramDefs;
-  CallFrame frame, *framePtr = &frame, *uplevelVarFramePtr;
-  const char *nameString;
+  NsfParamDefs    *paramDefs;
+  CallFrame        frame, *framePtr = &frame, *uplevelVarFramePtr;
+  const char      *nameString;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(object != NULL);
@@ -30851,7 +30855,7 @@ NsfOCgetMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj) {
   }
   found = (paramPtr != NULL);
 
-  if (found == 0) {
+  if (!found) {
     result = NsfPrintError(interp, "cget: unknown configure parameter %s", nameString);
     goto cget_exit;
   }
@@ -33226,7 +33230,7 @@ static int
 NsfClassInfoSubclassMethod(Tcl_Interp *interp, NsfClass *class,
                            int withClosure, int withDependent,
                            const char *patternString, NsfObject *patternObject) {
-  int found = NSF_FALSE;
+  bool found = NSF_FALSE;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(class != NULL);
