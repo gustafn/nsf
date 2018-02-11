@@ -96,7 +96,7 @@ typedef struct callFrameContext {
   bool           frameSaved;
 } callFrameContext;
 
-// # define COLON_CMD_STATS 1
+//#define COLON_CMD_STATS 1
 
 typedef struct {
   void        *context;
@@ -107,6 +107,7 @@ typedef struct {
 #if defined(COLON_CMD_STATS)
   size_t       hits;
   size_t       invalidates;
+  size_t       requiredRefetches;
   Tcl_Obj     *obj;
 #endif
 } NsfColonCmdContext;
@@ -14579,11 +14580,15 @@ ColonCmdCacheSet(
 static void ColonCmdCacheNew(NsfColonCmdContext *ccCtxPtr, Tcl_Obj *obj) {
   ccCtxPtr->hits = 0u;
   ccCtxPtr->invalidates = 0u;
+  ccCtxPtr->requiredRefetches = 0u;
   ccCtxPtr->obj = obj;
   INCR_REF_COUNT(obj);
 }
 static void ColonCmdCacheInvalidate(NsfColonCmdContext *ccCtxPtr) {
   ccCtxPtr->invalidates ++;
+}
+static void ColonCmdCacheRequiredRefetch(NsfColonCmdContext *ccCtxPtr) {
+  ccCtxPtr->requiredRefetches ++;
 }
 static void ColonCmdCacheHit(NsfColonCmdContext *ccCtxPtr) {
   ccCtxPtr->hits ++;
@@ -14591,6 +14596,7 @@ static void ColonCmdCacheHit(NsfColonCmdContext *ccCtxPtr) {
 #else
 #define ColonCmdCacheNew(ccCtxPtr, obj)
 #define ColonCmdCacheInvalidate(ccCtxPtr)
+#define ColonCmdCacheRequiredRefetch(ccCtxPtr)
 #define ColonCmdCacheHit(ccCtxPtr)
 #endif
 
@@ -14615,8 +14621,9 @@ NsfColonCmdContextFree(void *clientData) {
 #if defined(COLON_CMD_STATS)
   NsfColonCmdContext *ccCtxPtr = clientData;
 
-  fprintf(stderr, "### free colonCmdContext for %s: hits %lu invalidates %lu\n",
-          ObjStr(ccCtxPtr->obj), ccCtxPtr->hits, ccCtxPtr->invalidates);
+  fprintf(stderr, "### free colonCmdContext for %s: hits %lu invalidates %lu required-refetches %lu\n",
+          ObjStr(ccCtxPtr->obj), (unsigned long)ccCtxPtr->hits,
+          (unsigned long)ccCtxPtr->invalidates, (unsigned long)ccCtxPtr->requiredRefetches);
   DECR_REF_COUNT(ccCtxPtr->obj);
 #endif
   FREE(NsfColonCmdContext, clientData);
@@ -14671,20 +14678,19 @@ static void CacheCmd(
     NsfColonCmdContext *ccCtxPtr = methodObj->internalRep.twoPtrValue.ptr2;
 
     if (ccCtxPtr != NULL) {
+      /*
+       * We had already a ccCtxPtr, so the values was invalidated before.
+       */
+      ColonCmdCacheInvalidate(ccCtxPtr);
 
       if (ccCtxPtr->cmd != cmd) {
-        //fprintf(stderr, "======== ptr2 cached cmd for %s.%s differs from actual value\n",
-        //        ObjectName(object), ObjStr(methodObj));
-
         /*
-         * Cached cmd differs from actual one. This is due to an
-         * invalidaton, that happened before the search for the cmd.
+         * The cached cmd differs from actual one, so this was a required
+         * refetch operation, where the invalidation was truely necessary.
          */
-        ColonCmdCacheSet(ccCtxPtr, context, methodEpoch, cmd, class, flags);
-        ColonCmdCacheInvalidate(ccCtxPtr);
-      } else {
-        ColonCmdCacheHit(ccCtxPtr);
+        ColonCmdCacheRequiredRefetch(ccCtxPtr);
       }
+      ColonCmdCacheSet(ccCtxPtr, context, methodEpoch, cmd, class, flags);
 
     } else {
       NsfRuntimeState *rst = RUNTIME_STATE(interp);
@@ -14765,6 +14771,7 @@ ObjectDispatch(
   NsfClass              *cl = NULL;
   Tcl_Obj               *cmdName, *methodObj;
   const Tcl_ObjType     *methodObjTypePtr;
+  NsfColonCmdContext    *ccCtxPtr;
   const NsfRuntimeState *rst;
   NsfCallStackContent    csc, *cscPtr = NULL;
   Tcl_Command            cmd = NULL;
@@ -14803,6 +14810,8 @@ ObjectDispatch(
     }
   }
   methodObjTypePtr = methodObj->typePtr;
+  ccCtxPtr = methodObj->internalRep.twoPtrValue.ptr2;
+
 
   assert(object->teardown != NULL);
 
@@ -14816,16 +14825,6 @@ ObjectDispatch(
           objc, objv[0] ? ObjStr(objv[0]) : NULL,
           methodName, methodObjTypePtr ? methodObjTypePtr->name : "NONE",
           (void*)cmd, shift);*/
-
-  // COLONCMD_CACHE
-  //if (methodObjTypePtr == Nsf_OT_tclCmdNameType && (void*)methodObj->internalRep.twoPtrValue.ptr2 != NULL) {
-  //  /*
-  //   * potential earlier place for checking
-  //   */
-  //  /*fprintf(stderr, "==== ObjectDispatch methodObj %p %s, resolved cmd %p\n",
-  //         (void*)methodObj, ObjStr(methodObj),
-  //          (void*)methodObj->internalRep.twoPtrValue.ptr2);*/
-  //}
 
   objflags = object->flags; /* avoid stalling */
 
@@ -15029,6 +15028,16 @@ ObjectDispatch(
 
       assert((cmd != NULL) ? ((Command *)cmd)->objProc != NULL : 1);
 
+    } else if (methodObjTypePtr == Nsf_OT_tclCmdNameType
+               && ccCtxPtr != NULL
+               && ccCtxPtr->context == object
+               && ccCtxPtr->methodEpoch == nsfObjectMethodEpoch
+               && ccCtxPtr->flags == flags
+               ) {
+      cmd = ccCtxPtr->cmd;
+      cl = ccCtxPtr ->cl;
+      ColonCmdCacheHit(ccCtxPtr);
+
     } else {
       /*
        * Check if the call can be resolved against an object-specific method.
@@ -15074,7 +15083,6 @@ ObjectDispatch(
        */
       NsfClass           *currentClass = object->cl;
       NsfMethodContext   *mcPtr0 = methodObj->internalRep.twoPtrValue.ptr1;
-      NsfColonCmdContext *ccCtxPtr = methodObj->internalRep.twoPtrValue.ptr2;
       unsigned int        nsfInstanceMethodEpoch = rst->instanceMethodEpoch;
 
 #if defined(METHOD_OBJECT_TRACE)
@@ -15110,6 +15118,7 @@ ObjectDispatch(
           ) {
         cmd = ccCtxPtr->cmd;
         cl = ccCtxPtr ->cl;
+        ColonCmdCacheHit(ccCtxPtr);
 
 #if defined(METHOD_OBJECT_TRACE)
         fprintf(stderr, "... use internal rep ptr2 method %p %s cmd %p (objProc %p) cl %p %s\n",
@@ -26832,28 +26841,16 @@ NsfColonCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
    * Do we have a method, which is NOT a single colon?
    */
   if (likely(!(*methodName == ':' && *(methodName + 1) == '\0'))) {
-    {
-      // COLONCMD_CACHE
-      //Tcl_Obj     *methodObj = objv[0];
-      //Tcl_Obj     *fullNameObj = Tcl_NewObj();
-      //Tcl_Command  cmd1 = Tcl_GetCommandFromObj(interp, methodObj);
+    /*
+     * A method like ":foo" is called via plain ObjectDispatch().
+     */
+    result = ObjectDispatch(self, interp, objc, objv, NSF_CM_NO_SHIFT);
 
-      //Tcl_GetCommandFullName(interp, cmd1, fullNameObj);
-      /* fprintf(stderr, "NsfColonCmd BEFORE CALL methodName %s %p <%s> type %s fullname %s ptr1 %p ptr2 %p\n",
-              ObjectName(self), (void*)methodObj, methodName,
-              methodObj->typePtr ? methodObj->typePtr->name : "NONE",
-              ObjStr(fullNameObj),
-              (void*)(methodObj->internalRep.twoPtrValue.ptr1),
-              (void*)(methodObj->internalRep.twoPtrValue.ptr2));*/
-      result = ObjectDispatch(self, interp, objc, objv, NSF_CM_NO_SHIFT);
-      /* fprintf(stderr, "NsfColonCmd AFTER CALL methodName %s %p <%s> type %s\n",
-              ObjectName(self), (void*)methodObj, methodName,
-              methodObj->typePtr ? methodObj->typePtr->name : "NONE");*/
-    }
   } else {
 
     /*
-     * The name is a single colon, and might have one ore more arguments.
+     * The method name is a single colon, and might have one or more
+     * arguments.
      */
     if (objc <= 1) {
       /*
@@ -26861,8 +26858,8 @@ NsfColonCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
        */
       Tcl_SetObjResult(interp, self->cmdName);
       result = TCL_OK;
-    } else {
 
+    } else {
       /*
        * Single colon and multiple arguments.
        */
