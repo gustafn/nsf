@@ -1611,7 +1611,7 @@ ObjTrace(char *string, NsfObject *object) {
   nonnull_assert(object != NULL);
 
   fprintf(stderr, "--- %s Tcl %p %s (%d %p) nsf %p (%d) %s \n", string,
-          object->cmdName, (object->cmdName->typePtr != NULL) ? object->cmdName->typePtr->name : "NULL",
+          object->cmdName, ObjTypeStr(object->cmdName),
           object->cmdName->refCount, object->cmdName->internalRep.twoPtrValue.ptr1,
           object, object->refCount, ObjectName(object));
 }
@@ -1876,7 +1876,7 @@ GetObjectFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfObject **objectPtr) {
   nonnull_assert(objectPtr != NULL);
 
   /*fprintf(stderr, "GetObjectFromObj obj %p %s is of type %s\n",
-    objPtr, ObjStr(objPtr), (objPtr->typePtr != NULL) ? objPtr->typePtr->name : "(null)");*/
+    objPtr, ObjStr(objPtr), ObjTypeStr(objPtr));*/
 
   /*
    * Use the standard Tcl_GetCommandFromObj() which might convert the objPtr
@@ -1909,7 +1909,7 @@ GetObjectFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfObject **objectPtr) {
     }
   }
   /*fprintf(stderr, "GetObjectFromObj convertFromAny for %s type %p %s\n", ObjStr(objPtr),
-    objPtr->typePtr, (objPtr->typePtr != NULL) ? objPtr->typePtr->name : "(none)");*/
+    objPtr->typePtr, ObjTypeStr(objPtr));*/
 
   /* In case, we have to revolve via the CallingNameSpace (i.e. the
    * argument is not fully qualified), we retry here.
@@ -3618,7 +3618,7 @@ ResolveMethodName(Tcl_Interp *interp, Tcl_Namespace *nsPtr, Tcl_Obj *methodObj,
   methodName = ObjStr(methodObj);
 
   /*fprintf(stderr,"methodName '%s' comp %d type %s\n",
-    methodName, strchr(methodName, ' ')>0, (methodObj->typePtr != NULL) ? methodObj->typePtr->name : "(none)");*/
+    methodName, strchr(methodName, ' ')>0, ObjTypeStr(methodObj));*/
 
   if (methodObj->typePtr == Nsf_OT_listType) {
     int length;
@@ -8784,8 +8784,7 @@ MixinAdd(Tcl_Interp *interp, NsfCmdList **mixinList, Tcl_Obj *nameObj) {
   nonnull_assert(nameObj != NULL);
 
   /*fprintf(stderr, "MixinAdd gets obj %p type %p %s\n",
-    nameObj, nameObj->typePtr,
-    (nameObj->typePtr != NULL) ?nameObj->typePtr->name : "NULL");*/
+    nameObj, nameObj->typePtr, ObjTypeStr(nameObj));*/
 
   /*
    * When the provided nameObj is of type NsfMixinregObjType, the nsf specific
@@ -16020,7 +16019,7 @@ Nsf_ConvertToInteger(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr
 
     /*if (objPtr->typePtr != NULL) {
       fprintf(stderr, "type is on call %p %s value %s \n",
-          objPtr->typePtr, (objPtr->typePtr != NULL) ? objPtr->typePtr->name:"NULL", ObjStr(objPtr));
+          objPtr->typePtr, ObjTypeStr(objPtr), ObjStr(objPtr));
           }*/
 
     if ((result = Tcl_GetBignumFromObj(interp, objPtr, &bignumValue)) == TCL_OK) {
@@ -26228,7 +26227,7 @@ NsfDebugShowObj(Tcl_Interp *interp, Tcl_Obj *obj) {
   nonnull_assert(obj != NULL);
 
   fprintf(stderr, "*** obj %p refCount %d type <%s> ",
-          (void *)obj, obj->refCount, (obj->typePtr != NULL) ? obj->typePtr->name : "");
+          (void *)obj, obj->refCount, ObjTypeStr(obj));
 
   if (obj->typePtr == &NsfObjectMethodObjType
       || obj->typePtr == &NsfInstanceMethodObjType
@@ -30833,6 +30832,7 @@ NsfOCgetMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj) {
    */
   nameString = ObjStr(nameObj);
   if (*nameString == '-') {
+    //fprintf(stderr, "cget nameobj %s, type %s\n", nameString, ObjTypeStr(nameObj));
     /*
      * Skip leading parameters from the definition, which are no nonpos args
      * (very unlikely).
@@ -31486,7 +31486,7 @@ NsfCAllocMethod_(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *nameObj, Tcl_Name
 
   /*fprintf(stderr, "PrimitiveCCreate returns nameObj %p typePtr %p %s\n",
           nameObj, nameObj->typePtr,
-          nameObj->typePtr != NULL ? nameObj->typePtr->name : "NULL"); */
+          ObjTypeStr(nameObj)); */
   Tcl_SetObjResult(interp, nameObj);
 
   return TCL_OK;
