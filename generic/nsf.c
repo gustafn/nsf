@@ -14777,9 +14777,9 @@ static void CacheCmd(
     } else {
       NsfRuntimeState *rst = RUNTIME_STATE(interp);
 
-      /*fprintf(stderr, "======== new entry for %s type %s refCount %d\n",
-              ObjStr(methodObj),
-              methodObjTypePtr != NULL ? methodObjTypePtr->name : "NONE", methodObj->refCount);*/
+      /*fprintf(stderr, "======== new entry for %p %s type %s refCount %d ccCtxPtr %p\n",
+              (void*)methodObj, ObjStr(methodObj), ObjTypeStr(methodObj),
+              methodObj->refCount, (void*)ccCtxPtr);*/
 
       /*
        * Create a NsfColonCmdContext and supply it with data (primarily the
@@ -22039,6 +22039,7 @@ static int
 NsfSetterMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   SetterCmdClientData *cd;
   NsfObject           *object;
+  int                  result;
 
   nonnull_assert(clientData != NULL);
   nonnull_assert(interp != NULL);
@@ -22048,36 +22049,53 @@ NsfSetterMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CO
   object = cd->object;
 
   if (objc > 2) {
-    return NsfObjWrongArgs(interp, "wrong # args", object->cmdName,
-                           NsfMethodNamePath(interp, CallStackGetTclFrame(interp, NULL, 1),
-                                             NsfMethodName(objv[0])), "?value?");
-  }
-  if (object == NULL) {
-    return NsfDispatchClientDataError(interp, clientData, "object", ObjStr(objv[0]));
-  }
-
-  if (cd->paramsPtr != NULL && objc == 2) {
-    Tcl_Obj   *outObjPtr;
-    int        result;
-    unsigned   flags = 0u;
-    ClientData checkedData;
-
-    result = ArgumentCheck(interp, objv[1], cd->paramsPtr,
-                           RUNTIME_STATE(interp)->doCheckArguments,
-                           &flags, &checkedData, &outObjPtr);
-
-    if (likely(result == TCL_OK)) {
-      result = SetInstVar(interp, object, objv[0], outObjPtr, NSF_VAR_TRIGGER_TRACE);
-    }
-
-    if ((flags & NSF_PC_MUST_DECR) != 0u) {
-      DECR_REF_COUNT2("valueObj", outObjPtr);
-    }
-    return result;
+    result = NsfObjWrongArgs(interp, "wrong # args", object->cmdName,
+                             NsfMethodNamePath(interp, CallStackGetTclFrame(interp, NULL, 1),
+                                               NsfMethodName(objv[0])), "?value?");
+  } else if (object == NULL) {
+    result = NsfDispatchClientDataError(interp, clientData, "object", ObjStr(objv[0]));
 
   } else {
-    return SetInstVar(interp, object, objv[0], objc == 2 ? objv[1] : NULL, NSF_VAR_TRIGGER_TRACE);
+    Tcl_Obj    *nameObj;
+    const char *nameString = ObjStr(objv[0]);
+
+    /*
+     * When the setter method is called with a leading colon, pass plain
+     * object to SetInstVar(), otherwise we might run into shimmering with
+     * tclCmds.
+     */
+    if (FOR_COLON_RESOLVER(nameString)) {
+      nameString ++;
+      nameObj = Tcl_NewStringObj(nameString, -1);
+      INCR_REF_COUNT(nameObj);
+    } else {
+      nameObj = objv[0];
+    }
+
+    if (cd->paramsPtr != NULL && objc == 2) {
+      Tcl_Obj   *outObjPtr;
+      unsigned   flags = 0u;
+      ClientData checkedData;
+
+      result = ArgumentCheck(interp, nameObj, cd->paramsPtr,
+                             RUNTIME_STATE(interp)->doCheckArguments,
+                             &flags, &checkedData, &outObjPtr);
+
+      if (likely(result == TCL_OK)) {
+        result = SetInstVar(interp, object, nameObj, outObjPtr, NSF_VAR_TRIGGER_TRACE);
+      }
+
+      if ((flags & NSF_PC_MUST_DECR) != 0u) {
+        DECR_REF_COUNT2("valueObj", outObjPtr);
+      }
+    } else {
+      result = SetInstVar(interp, object, nameObj, objc == 2 ? objv[1] : NULL, NSF_VAR_TRIGGER_TRACE);
+    }
+    if (nameObj != objv[0]) {
+      DECR_REF_COUNT(nameObj);
+    }
   }
+  return result;
 }
 
 
