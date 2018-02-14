@@ -4396,10 +4396,10 @@ ObjectSystemsCleanup(Tcl_Interp *interp, bool withKeepvars) {
  *
  *----------------------------------------------------------------------
  */
-static int CallDirectly(Tcl_Interp *interp, NsfObject *object, int methodIdx, Tcl_Obj **methodObjPtr)
+static bool CallDirectly(Tcl_Interp *interp, NsfObject *object, int methodIdx, Tcl_Obj **methodObjPtr)
   nonnull(1) nonnull(2) nonnull(4);
 
-static int
+static bool
 CallDirectly(Tcl_Interp *interp, NsfObject *object, int methodIdx, Tcl_Obj **methodObjPtr) {
   /*
    * We can/must call a C-implemented method directly, when
@@ -4412,8 +4412,8 @@ CallDirectly(Tcl_Interp *interp, NsfObject *object, int methodIdx, Tcl_Obj **met
    *   c) filters are not active on the object
    */
   NsfObjectSystem *osPtr = GetObjectSystem(object);
-  int callDirectly = 1;
-  Tcl_Obj *methodObj;
+  bool             callDirectly = NSF_TRUE;
+  Tcl_Obj         *methodObj;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(object != NULL);
@@ -4434,14 +4434,14 @@ CallDirectly(Tcl_Interp *interp, NsfObject *object, int methodIdx, Tcl_Obj **met
     if ((osPtr->overloadedMethods & flag) != 0u) {
       /* overloaded, we must dispatch */
       /*fprintf(stderr, "overloaded\n");*/
-      callDirectly = 0;
+      callDirectly = NSF_FALSE;
     } else if ((osPtr->definedMethods & flag) == 0u) {
       /* not defined, we must call directly */
       /*fprintf(stderr, "Warning: CallDirectly object %s idx %s not defined\n",
         ObjectName(object), Nsf_SystemMethodOpts[methodIdx]+1);*/
     } else {
 #if defined(DISPATCH_ALWAYS_DEFINED_METHODS)
-      callDirectly = 0;
+      callDirectly = NSF_FALSE;
 #else
       if ((object->flags & NSF_FILTER_ORDER_VALID) == 0u) {
         FilterComputeDefined(interp, object);
@@ -4453,7 +4453,7 @@ CallDirectly(Tcl_Interp *interp, NsfObject *object, int methodIdx, Tcl_Obj **met
       if ((object->flags & NSF_FILTER_ORDER_DEFINED_AND_VALID) == NSF_FILTER_ORDER_DEFINED_AND_VALID) {
         /*fprintf(stderr, "CallDirectly object %s idx %s has filter \n",
           ObjectName(object), Nsf_SystemMethodOpts[methodIdx]+1);*/
-        callDirectly = 0;
+        callDirectly = NSF_FALSE;
       }
 #endif
     }
@@ -6983,7 +6983,8 @@ static int CanRedefineCmd(Tcl_Interp *interp, Tcl_Namespace *nsPtr, NsfObject *o
 static int
 CanRedefineCmd(Tcl_Interp *interp, Tcl_Namespace *nsPtr, NsfObject *object,
                const char *methodName, unsigned int flags) {
-  int result, ok;
+  int         result;
+  bool        ok;
   Tcl_Command cmd;
 
   nonnull_assert(interp != NULL);
@@ -7002,13 +7003,14 @@ CanRedefineCmd(Tcl_Interp *interp, Tcl_Namespace *nsPtr, NsfObject *object,
                            "refuse to overwrite child object with method %s; delete/rename it before overwriting",
                            methodName);
     }
-    ok = ((unsigned int)Tcl_Command_flags(cmd) & NSF_CMD_REDEFINE_PROTECTED_METHOD) == 0u;
+    ok = (((unsigned int)Tcl_Command_flags(cmd) & NSF_CMD_REDEFINE_PROTECTED_METHOD) == 0u);
   } else {
-    ok = 1;
+    ok = NSF_TRUE;
   }
 
-  if (likely(ok != 0)) {
+  if (likely(ok)) {
     result = TCL_OK;
+
   } else {
     /*
      * We could test, whether we are bootstrapping the "right" object
@@ -7016,6 +7018,7 @@ CanRedefineCmd(Tcl_Interp *interp, Tcl_Namespace *nsPtr, NsfObject *object,
      * object system, but this seems necessary by now.
      */
     Tcl_Obj *bootstrapObj = Tcl_GetVar2Ex(interp, "::nsf::bootstrap", NULL, TCL_GLOBAL_ONLY);
+
     if (bootstrapObj == NULL) {
       result = NsfPrintError(interp, "refuse to overwrite protected method '%s'; "
                              "derive e.g. a sub-class!", methodName, ObjectName_(object));
@@ -7198,7 +7201,7 @@ AutonameIncr(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfObject *object,
     resultObj = NsfGlobalObjs[NSF_EMPTY];
     INCR_REF_COUNT2("autoname", resultObj);
   } else {
-    int mustCopy = 1, format = 0;
+    bool        mustCopy = NSF_TRUE, format = NSF_FALSE;
     const char *c;
 
     if (valueObj == NULL) {
@@ -7217,10 +7220,10 @@ AutonameIncr(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfObject *object,
         resultObj = Tcl_NewStringObj(buffer, 1);
         INCR_REF_COUNT2("autoname", resultObj);
         Tcl_AppendLimitedToObj(resultObj, nextChars, -1, INT_MAX, NULL);
-        mustCopy = 0;
+        mustCopy = NSF_FALSE;
       }
     }
-    if (mustCopy == 1) {
+    if (mustCopy) {
       resultObj = Tcl_DuplicateObj(nameObj);
       INCR_REF_COUNT2("autoname", resultObj);
       /*
@@ -7235,7 +7238,7 @@ AutonameIncr(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfObject *object,
     for (c = ObjStr(resultObj); *c != '\0'; c++) {
       if (*c == '%') {
         if (*(c+1) != '%') {
-          format = 1;
+          format = NSF_TRUE;
           break;
         } else {
           /* when we find a %% we format and then append autoname, e.g.
@@ -7244,7 +7247,7 @@ AutonameIncr(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfObject *object,
         }
       }
     }
-    if (format == 1) {
+    if (format) {
       Tcl_Obj *savedResultObj;
 
       ALLOC_ON_STACK(Tcl_Obj*, 3, ov);
@@ -15619,11 +15622,11 @@ DispatchUnknownMethod(Tcl_Interp *interp, NsfObject *object,
     /*
      * back off and try unknown;
      */
-    int mustCopy = *(ObjStr(methodObj)) == ':';
+    bool mustCopy = (*(ObjStr(methodObj)) == ':');
     ALLOC_ON_STACK(Tcl_Obj*, objc+3, tov);
 
     if (callInfoObj == NULL) {
-      callInfoObj = (mustCopy != 0) ? Tcl_NewStringObj(methodName, -1) : methodObj;
+      callInfoObj = mustCopy ? Tcl_NewStringObj(methodName, -1) : methodObj;
     }
     INCR_REF_COUNT(callInfoObj);
 
@@ -16684,14 +16687,14 @@ Unescape(Tcl_Obj *objPtr) {
 
 static int ParamOptionParse(Tcl_Interp *interp, const char *argString,
                             size_t start, size_t optionLength,
-                            unsigned int disallowedOptions, Nsf_Param *paramPtr, int unescape,
+                            unsigned int disallowedOptions, Nsf_Param *paramPtr, bool unescape,
                             const char *qualifier)
   nonnull(1) nonnull(2) nonnull(6);
 
 static int
 ParamOptionParse(Tcl_Interp *interp, const char *argString,
                  size_t start, size_t optionLength,
-                 unsigned int disallowedOptions, Nsf_Param *paramPtr, int unescape,
+                 unsigned int disallowedOptions, Nsf_Param *paramPtr, bool unescape,
                  const char *qualifier) {
   const char *dotdot, *option = argString + start;
   char        firstChar = *option;
@@ -17136,31 +17139,37 @@ ParamDefinitionParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, uns
   if (argString[j] == ':') {
     /* we found a ':' */
     size_t l, start, end;
-    int unescape = 0;
+    bool   unescape = NSF_FALSE;
 
-    /* get parameter name */
+    /*
+     * Get parameter name
+     */
     STRING_NEW(paramPtr->name, argString, j);
     paramPtr->nameObj = Tcl_NewStringObj(argName, (isNonposArgument != 0) ? (int)j-1 : (int)j);
     INCR_REF_COUNT(paramPtr->nameObj);
 
-    /* skip space at begin */
+    /*
+     * Skip space at begin
+     */
     for (start = j+1; start<length && isspace((int)argString[start]); start++) {
       ;
     }
 
-    /* search for unescaped ',' */
+    /*
+     * Search for unescaped ','
+     */
     for (l = start; l < length; l++) {
       if (unlikely(argString[l] == ',')) {
         if (likely(argString[l+1]) == ',') {
           l++;
-          unescape = 1;
+          unescape = NSF_TRUE;
           continue;
         }
         /* skip space from end */
         for (end = l; end > 0 && isspace((int)argString[end-1]); end--);
         result = ParamOptionParse(interp, argString, start, end-start, disallowedFlags, paramPtr, unescape,
                                   qualifier);
-        unescape = 0;
+        unescape = NSF_FALSE;
         if (unlikely(result != TCL_OK)) {
           goto param_error;
         }
@@ -17169,9 +17178,14 @@ ParamDefinitionParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, uns
         for (start = l; start<length && isspace((int)argString[start]); start++) {;}
       }
     }
-    /* skip space from end */
+    /*
+     * skip space from end
+     */
     for (end = l; end > 0 && isspace((int)argString[end-1]); end--);
-    /* process last option */
+
+    /*
+     * process last option
+     */
     if (end-start > 0) {
       result = ParamOptionParse(interp, argString, start, end-start, disallowedFlags, paramPtr, unescape,
                                 qualifier);
@@ -19289,16 +19303,16 @@ FindCalledClass(Tcl_Interp *interp, NsfObject *object) {
  */
 NSF_INLINE static int NextSearchMethod(NsfObject *object, Tcl_Interp *interp, NsfCallStackContent *cscPtr,
                  NsfClass **classPtr, const char **methodNamePtr, Tcl_Command *cmdPtr,
-                 int *isMixinEntry, int *isFilterEntry,
-                 int *endOfFilterChain, Tcl_Command *currentCmdPtr)
+                 bool *isMixinEntry, bool *isFilterEntry,
+                 bool *endOfFilterChain, Tcl_Command *currentCmdPtr)
   nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(5) nonnull(6) nonnull(7) nonnull(8) nonnull(9) nonnull(10);
 
 NSF_INLINE static int
 NextSearchMethod(NsfObject *object, Tcl_Interp *interp, NsfCallStackContent *cscPtr,
                  NsfClass **classPtr, const char **methodNamePtr, Tcl_Command *cmdPtr,
-                 int *isMixinEntry, int *isFilterEntry,
-                 int *endOfFilterChain, Tcl_Command *currentCmdPtr) {
-  int          endOfChain = 0;
+                 bool *isMixinEntry, bool *isFilterEntry,
+                 bool *endOfFilterChain, Tcl_Command *currentCmdPtr) {
+  bool         endOfChain = NSF_FALSE;
   unsigned int objflags;
 
   nonnull_assert(object != NULL);
@@ -19339,15 +19353,15 @@ NextSearchMethod(NsfObject *object, Tcl_Interp *interp, NsfCallStackContent *csc
          * to the values they had before calling the filters.
          */
         *methodNamePtr = MethodName(object->filterStack->calledProc);
-        endOfChain = 1;
-        *endOfFilterChain = 1;
+        endOfChain = NSF_TRUE;
+        *endOfFilterChain = NSF_TRUE;
         *classPtr = NULL;
         /*fprintf(stderr, "EndOfChain resetting cl\n");*/
       }
     } else {
       *methodNamePtr = (char *) Tcl_GetCommandName(interp, *cmdPtr);
-      *endOfFilterChain = 0;
-      *isFilterEntry = 1;
+      *endOfFilterChain = NSF_FALSE;
+      *isFilterEntry = NSF_TRUE;
       return TCL_OK;
     }
   }
@@ -19370,11 +19384,11 @@ NextSearchMethod(NsfObject *object, Tcl_Interp *interp, NsfCallStackContent *csc
 
     if (*cmdPtr == NULL) {
       if (cscPtr->frameType == NSF_CSC_TYPE_ACTIVE_MIXIN) {
-        endOfChain = 1;
+        endOfChain = NSF_TRUE;
         *classPtr = NULL;
       }
     } else {
-      *isMixinEntry = 1;
+      *isMixinEntry = NSF_TRUE;
       return TCL_OK;
     }
   }
@@ -19391,7 +19405,7 @@ NextSearchMethod(NsfObject *object, Tcl_Interp *interp, NsfCallStackContent *csc
    * When a mixin or filter chain reached its end, we have to check for
    * fully qualified method names and search the obj-specific methods as well.
    */
-  if (endOfChain == 1) {
+  if (endOfChain) {
     if (**methodNamePtr == ':') {
       *cmdPtr = Tcl_FindCommand(interp, *methodNamePtr, NULL, TCL_GLOBAL_ONLY);
       /* fprintf(stderr, "NEXT found absolute cmd %s => %p\n", *methodNamePtr, *cmdPtr); */
@@ -19669,12 +19683,14 @@ NextSearchAndInvoke(Tcl_Interp *interp, const char *methodName,
                     int objc, Tcl_Obj *CONST objv[],
                     NsfCallStackContent *cscPtr,
                     bool freeArgumentVector) {
-  Tcl_Command cmd = NULL, currentCmd = NULL;
-  int result, isMixinEntry = 0, isFilterEntry = 0,
-    endOfFilterChain = 0;
+  Tcl_Command      cmd = NULL, currentCmd = NULL;
+  int              result;
+  bool             endOfFilterChain = NSF_FALSE,
+                   isMixinEntry = NSF_FALSE,
+                   isFilterEntry = NSF_FALSE;
   NsfRuntimeState *rst = RUNTIME_STATE(interp);
-  NsfObject *object;
-  NsfClass *cl;
+  NsfObject       *object;
+  NsfClass        *cl;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(methodName != NULL);
@@ -19709,7 +19725,7 @@ NextSearchAndInvoke(Tcl_Interp *interp, const char *methodName,
         cscPtr->frameType = NSF_CSC_TYPE_INACTIVE_MIXIN;
       }
       /* otherwise move the command pointer forward */
-      if (isMixinEntry != 0) {
+      if (isMixinEntry) {
         frameType = NSF_CSC_TYPE_ACTIVE_MIXIN;
         object->mixinStack->currentCmdPtr = currentCmd;
       }
@@ -19724,7 +19740,7 @@ NextSearchAndInvoke(Tcl_Interp *interp, const char *methodName,
       }
 
       /* otherwise move the command pointer forward */
-      if (isFilterEntry != 0) {
+      if (isFilterEntry) {
         /*fprintf(stderr, "next moves filter forward\n");*/
         frameType = NSF_CSC_TYPE_ACTIVE_FILTER;
         object->filterStack->currentCmdPtr = currentCmd;
@@ -19936,7 +19952,7 @@ static Tcl_Obj *FindNextMethod(Tcl_Interp *interp, Tcl_CallFrame *framePtr)
   nonnull(1) nonnull(2);
 
 static Tcl_Obj *FindNextMethod(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
-  Tcl_Obj     *result;
+  Tcl_Obj             *result;
   NsfCallStackContent *cscPtr;
 
   nonnull_assert(interp != NULL);
@@ -19947,13 +19963,16 @@ static Tcl_Obj *FindNextMethod(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
     result = NULL;
 
   } else {
-    int          isEnsemble, isMixinEntry = 0, isFilterEntry = 0, endOfFilterChain = 0;
+    bool         isEnsemble,
+                 isMixinEntry = NSF_FALSE,
+                 isFilterEntry = NSF_FALSE,
+                 endOfFilterChain = NSF_FALSE;
     Tcl_Command  cmd = NULL, currentCmd = NULL;
     const char  *lookupMethodName, *methodName;
     NsfClass    *cl;
     NsfObject   *object;
 
-    isEnsemble = (cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) != 0u;
+    isEnsemble = ((cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) != 0u);
 
     methodName = Tcl_GetCommandName(interp, cscPtr->cmdPtr);
     if (isEnsemble) {
@@ -20003,7 +20022,7 @@ static Tcl_Obj * ComputeLevelObj(Tcl_Interp *interp, CallStackLevel level)
 static Tcl_Obj *
 ComputeLevelObj(Tcl_Interp *interp, CallStackLevel level) {
   Tcl_CallFrame *framePtr;
-  Tcl_Obj *resultObj;
+  Tcl_Obj       *resultObj;
 
   nonnull_assert(interp != NULL);
 
@@ -20192,8 +20211,8 @@ static const char *
 NsfUnsetTrace(ClientData clientData, Tcl_Interp *interp,
               const char *UNUSED(name), const char *UNUSED(name2), unsigned int flags)
 {
-  Tcl_Obj *objPtr = (Tcl_Obj *)clientData;
-  NsfObject *object;
+  Tcl_Obj    *objPtr = (Tcl_Obj *)clientData;
+  NsfObject  *object;
   const char *resultMsg = NULL;
 
   nonnull_assert(clientData != NULL);
