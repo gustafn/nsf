@@ -887,7 +887,7 @@ namespace eval ::nx::serializer {
       if {$serializeSlot} {
         # Slots need to be explicitly initialized to ensure
         # __invalidateobjectparameter to be called
-	lappend evalList :init
+	lappend evalList ": init"
       }
 
       set objectName [::nsf::directdispatch $o -frame method ::nsf::current object]
