@@ -1255,6 +1255,7 @@ static Tcl_HashEntry * Nsf_NextHashEntry(Tcl_HashTable *tablePtr, int expected, 
 
 static Tcl_HashEntry *
 Nsf_NextHashEntry(Tcl_HashTable *tablePtr, int expected, Tcl_HashSearch *hSrchPtr) {
+  Tcl_HashEntry *result;
 
   nonnull_assert(tablePtr != NULL);
   nonnull_assert(hSrchPtr != NULL);
@@ -1262,12 +1263,13 @@ Nsf_NextHashEntry(Tcl_HashTable *tablePtr, int expected, Tcl_HashSearch *hSrchPt
   /*fprintf(stderr, "Nsf_NextHashEntry %p expected %d numEntries %d\n",
     tablePtr, expected, tablePtr->numEntries);*/
   if (tablePtr->numEntries < 1) {
-    return NULL;
+    result = NULL;
   } else if (tablePtr->numEntries != expected) {
-    return Tcl_FirstHashEntry(tablePtr, hSrchPtr);
+    result = Tcl_FirstHashEntry(tablePtr, hSrchPtr);
   } else {
-    return Tcl_NextHashEntry(hSrchPtr);
+    result = Tcl_NextHashEntry(hSrchPtr);
   }
+  return result;
 }
 
 /*
@@ -24285,8 +24287,9 @@ static int
 ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd,  NsfObject *contextObject,
                 const char *pattern, const char *methodName, NsfParamsPrintStyle printStyle) {
   NsfParamDefs *paramDefs;
-  Tcl_Obj *listObj;
-  Proc *procPtr;
+  Tcl_Obj      *listObj;
+  Proc         *procPtr;
+  int           result = TCL_OK;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(methodName != NULL);
@@ -24423,8 +24426,9 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd,  NsfObject *contextObject,
   }
 
   if (Tcl_Command_objProc(cmd) == NsfForwardMethod) {
-    return NsfPrintError(interp, "could not obtain parameter definition for forwarder '%s'",
-                         methodName);
+    result = NsfPrintError(interp, "could not obtain parameter definition for forwarder '%s'",
+                           methodName);
+
   } else if (CmdIsNsfObject(cmd)) {
     /* procPtr == NsfObjDispatch:
 
@@ -24432,19 +24436,18 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd,  NsfObject *contextObject,
        ... ensemble objects
        ... plain objects
      */
-    return TCL_OK;
   } else if (Tcl_Command_objProc(cmd) == NsfProcStub) {
     /*
      * Reached for C-implemented Tcl command procs
      */
-    return TCL_OK;
 
   } else {
     /*
      * Reached for other C-implemented command procs
      */
-    return NsfPrintError(interp, "could not obtain parameter definition for method '%s'", methodName);
+    result = NsfPrintError(interp, "could not obtain parameter definition for method '%s'", methodName);
   }
+  return result;
 }
 
 
