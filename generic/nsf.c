@@ -14777,9 +14777,9 @@ static void CacheCmd(
     } else {
       NsfRuntimeState *rst = RUNTIME_STATE(interp);
 
-      /*fprintf(stderr, "======== new entry for %p %s type %s refCount %d ccCtxPtr %p\n",
+      /*fprintf(stderr, "======== new entry for %p %s type %s refCount %d ccCtxPtr %p flags %.6x context %s\n",
               (void*)methodObj, ObjStr(methodObj), ObjTypeStr(methodObj),
-              methodObj->refCount, (void*)ccCtxPtr);*/
+              methodObj->refCount, (void*)ccCtxPtr, flags, ObjectName((NsfObject*)context));*/
 
       /*
        * Create a NsfColonCmdContext and supply it with data (primarily the
@@ -22077,7 +22077,7 @@ NsfSetterMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CO
       unsigned   flags = 0u;
       ClientData checkedData;
 
-      result = ArgumentCheck(interp, nameObj, cd->paramsPtr,
+      result = ArgumentCheck(interp, objv[1], cd->paramsPtr,
                              RUNTIME_STATE(interp)->doCheckArguments,
                              &flags, &checkedData, &outObjPtr);
 
@@ -27054,7 +27054,7 @@ NsfDirectDispatchCmd(Tcl_Interp *interp, NsfObject *object, FrameIdx_t withFrame
   CallFrame       frame, *framePtr = &frame;
   Tcl_ObjCmdProc *proc;
   unsigned int    flags = 0u;
-  int             useCmdDispatch = 1;
+  bool            useCmdDispatch = NSF_TRUE;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(object != NULL);
@@ -27094,12 +27094,10 @@ NsfDirectDispatchCmd(Tcl_Interp *interp, NsfObject *object, FrameIdx_t withFrame
       return NsfPrintError(interp, "cannot use -frame object|method in dispatch for command '%s'",
                            methodName);
     }
-    useCmdDispatch = 0;
+    useCmdDispatch = NSF_FALSE;
   } else {
     if (unlikely(withFrame == FrameMethodIdx)) {
-      useCmdDispatch = 0;
-    } else {
-      useCmdDispatch = 1;
+      useCmdDispatch = NSF_FALSE;
     }
   }
 
@@ -27116,7 +27114,7 @@ NsfDirectDispatchCmd(Tcl_Interp *interp, NsfObject *object, FrameIdx_t withFrame
    * vector, we can include the cmd name in the objv by using
    * nobjv-1; this way, we avoid a memcpy().
    */
-  if (useCmdDispatch != 0) {
+  if (useCmdDispatch) {
 
     if (NSF_DTRACE_METHOD_ENTRY_ENABLED()) {
       NSF_DTRACE_METHOD_ENTRY(ObjectName(object),
@@ -28332,21 +28330,21 @@ NsfObjectAllocCmd(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *nameObj, Tcl_Obj
 
   result = NsfCAllocMethod(interp, class, nameObj);
 
-  if (result == TCL_OK && initcmdObj) {
+  if (result == TCL_OK && initcmdObj != NULL) {
     NsfObject *object;
     Tcl_Obj   *initNameObj = Tcl_GetObjResult(interp);
 
     INCR_REF_COUNT(initNameObj);
     if (unlikely(GetObjectFromObj(interp, initNameObj, &object) != TCL_OK)) {
-      return NsfPrintError(interp, "couldn't find result of alloc");
+      result = NsfPrintError(interp, "couldn't find result of alloc");
+    } else {
+      result = NsfDirectDispatchCmd(interp, object, 1,
+                                    NsfGlobalObjs[NSF_EVAL],
+                                    1, &initcmdObj);
+      if (likely(result == TCL_OK)) {
+        Tcl_SetObjResult(interp, initNameObj);
+      }
     }
-    result = NsfDirectDispatchCmd(interp, object, 1,
-                                  NsfGlobalObjs[NSF_EVAL],
-                                  1, &initcmdObj);
-    if (likely(result == TCL_OK)) {
-      Tcl_SetObjResult(interp, initNameObj);
-    }
-
     DECR_REF_COUNT(initNameObj);
   }
 
