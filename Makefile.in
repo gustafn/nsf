@@ -747,8 +747,8 @@ nsfUtil.$(OBJEXT): $(src_generic_dir)/nsfUtil.c $(PKG_HEADERS)
 #
 
 TCL_SRC_DIR_85=/usr/local/src/tcl8.5.19
-TCL_SRC_DIR_86=/usr/local/src/core-8-6-6-rc
-TCL_SRC_DIR_87=/usr/local/src/tcl-trunk
+TCL_SRC_DIR_86=/usr/local/src/tcl8.6.8
+TCL_SRC_DIR_87=/usr/local/src/core-8-branch
 
 genstubs: $(src_generic_dir)/nsf.decls
 	mkdir -p $(src_generic_dir)/stubs8.5
