@@ -691,9 +691,9 @@ typedef enum SystemMethodsIdx {
 } SystemMethodsIdx;
 
 #if !defined(NSF_C)
-EXTERN CONST char *Nsf_SystemMethodOpts[];
+EXTERN const char *Nsf_SystemMethodOpts[];
 #else
-CONST char *Nsf_SystemMethodOpts[] = {
+const char *Nsf_SystemMethodOpts[] = {
   "-class.alloc",
   "-class.create",
   "-class.dealloc",
@@ -815,7 +815,7 @@ typedef enum {NSF_PARAMS_NAMES, NSF_PARAMS_LIST,
 	      NSF_PARAMS_PARAMETER, NSF_PARAMS_SYNTAX} NsfParamsPrintStyle;
 
 int NsfCallCommand(Tcl_Interp *interp, NsfGlobalNames name,
-		     int objc, Tcl_Obj *CONST objv[])
+		     int objc, Tcl_Obj *const objv[])
   nonnull(1) nonnull(4);
 
 int NsfShadowTclCommands(Tcl_Interp *interp, NsfShadowOperations load)
@@ -842,13 +842,13 @@ typedef struct NsfCallStackContent {
   NsfClass *cl;
   Tcl_Command cmdPtr;
   NsfFilterStack *filterStackEntry;
-  Tcl_Obj *CONST* objv;
+  Tcl_Obj *const* objv;
   int objc;
   unsigned int flags;
 #if defined(NSF_PROFILE) || defined(NSF_DTRACE)
   long int startUsec;
   long int startSec;
-  CONST char *methodName;
+  const char *methodName;
 #endif
   unsigned short frameType;
 } NsfCallStackContent;
@@ -1171,7 +1171,7 @@ Tcl_ObjCmdProc NsfInitProcNSCmd, NsfSelfDispatchCmd,
 
 EXTERN NsfCompEnv *NsfGetCompEnv(void);
 int NsfDirectSelfDispatch(ClientData cd, Tcl_Interp *interp,
-		     int objc, Tcl_Obj *CONST objv[])
+		     int objc, Tcl_Obj *const objv[])
   nonnull(1) nonnull(2);
 #endif
 
@@ -1184,13 +1184,13 @@ EXTERN int NsfObjWrongArgs(Tcl_Interp *interp, const char *msg,
 			   const char *arglist)
   nonnull(1) nonnull(2);
 
-EXTERN CONST char *NsfMethodName(Tcl_Obj *methodObj)
+EXTERN const char *NsfMethodName(Tcl_Obj *methodObj)
   nonnull(1) returns_nonnull;
 
 EXTERN void NsfInitPkgConfig(Tcl_Interp *interp)
   nonnull(1);
 
-EXTERN void NsfDStringArgv(Tcl_DString *dsPtr, int objc, Tcl_Obj *CONST objv[])
+EXTERN void NsfDStringArgv(Tcl_DString *dsPtr, int objc, Tcl_Obj *const objv[])
   nonnull(1) nonnull(3);
 
 EXTERN Tcl_Obj *NsfMethodNamePath(Tcl_Interp *interp,
@@ -1236,8 +1236,8 @@ EXTERN int NsfFlagObjSet(Tcl_Interp      *UNUSED(interp),
 			 Tcl_Obj         *payload,
 			 unsigned int     flags);
 typedef struct {
-  CONST Nsf_Param *signature;
-  Nsf_Param CONST *paramPtr;
+  const Nsf_Param *signature;
+  Nsf_Param const *paramPtr;
   Tcl_Obj         *payload;
   int              serial;
   unsigned int     flags;

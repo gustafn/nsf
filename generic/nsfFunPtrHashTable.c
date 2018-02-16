@@ -5,7 +5,7 @@
  *      as hash keys, and a slim wrapper around Tcl's hashtable
  *      API to manage them.
  *
- * Copyright (C) 2016-2017 Gustaf Neumann
+ * Copyright (C) 2016-2018 Gustaf Neumann
  * Copyright (C) 2016 Stefan Sobernig
  *
  * Vienna University of Economics and Business
@@ -52,9 +52,9 @@
  * pointers safely.
  *
  */
-static unsigned int FunPtrKey(Tcl_HashTable *tablePtr, VOID *keyPtr);
-static int CompareFunPtrKeys(VOID *keyPtr, Tcl_HashEntry *hPtr);
-static Tcl_HashEntry *AllocFunPtrEntry(Tcl_HashTable *tablePtr, VOID *keyPtr);
+static unsigned int FunPtrKey(Tcl_HashTable *tablePtr, void *keyPtr);
+static int CompareFunPtrKeys(void *keyPtr, Tcl_HashEntry *hPtr);
+static Tcl_HashEntry *AllocFunPtrEntry(Tcl_HashTable *tablePtr, void *keyPtr);
 
 
 typedef struct funPtrEntry_t {
@@ -88,11 +88,11 @@ static Tcl_HashKeyType funPtrHashKeyType = {
 
 static unsigned int
 FunPtrKey(
-          Tcl_HashTable *UNUSED(tablePtr), /* Hash table. */
-          VOID *keyPtr)		           /* Key from which to compute hash value. */
-{
-  funPtrEntry_t  *e = (funPtrEntry_t *)keyPtr;
-  Nsf_AnyFun *value  = e->funPtr;
+    Tcl_HashTable *UNUSED(tablePtr),      /* Hash table. */
+    void *keyPtr                          /* Key from which to compute hash value. */
+) {
+  funPtrEntry_t *e = (funPtrEntry_t *)keyPtr;
+  Nsf_AnyFun    *value  = e->funPtr;
 
   /*
    * This is a very simple approach for obtaining a hash value. Maybe one
@@ -121,11 +121,11 @@ FunPtrKey(
 
 static int
 CompareFunPtrKeys(
-                  VOID *keyPtr,		/* New key to compare. */
-                  Tcl_HashEntry *hPtr)	/* Existing key to compare. */
-{
-  funPtrEntry_t  *e = (funPtrEntry_t *)keyPtr;
-  Nsf_AnyFun *existingValue;
+    void *keyPtr,		/* New key to compare. */
+    Tcl_HashEntry *hPtr         /* Existing key to compare. */
+) {
+  funPtrEntry_t *e = (funPtrEntry_t *)keyPtr;
+  Nsf_AnyFun    *existingValue;
 
   memcpy(&existingValue, &hPtr->key.oneWordValue, sizeof(Nsf_AnyFun *));
 
@@ -149,13 +149,13 @@ CompareFunPtrKeys(
  */
 static Tcl_HashEntry *
 AllocFunPtrEntry(
-                 Tcl_HashTable *UNUSED(tablePtr), /* Hash table. */
-                 VOID *keyPtr)		          /* Key to store in the hash table entry. */
-{
-  funPtrEntry_t   *e = (funPtrEntry_t *)keyPtr;
-  Tcl_HashEntry   *hPtr;
-  unsigned int     size;
-  Nsf_AnyFun  *value = e->funPtr;
+    Tcl_HashTable *UNUSED(tablePtr),	/* Hash table. */
+    void *keyPtr			/* Key to store in the hash table entry. */
+) {
+  funPtrEntry_t  *e = (funPtrEntry_t *)keyPtr;
+  Tcl_HashEntry  *hPtr;
+  unsigned int    size;
+  Nsf_AnyFun     *value = e->funPtr;
 
   size = sizeof(Tcl_HashEntry) + (sizeof(Nsf_AnyFun *)) - sizeof(hPtr->key);
   if (size < sizeof(Tcl_HashEntry)) {
@@ -191,7 +191,7 @@ void
 Nsf_InitFunPtrHashTable(Tcl_HashTable *tablePtr) {
 
   nonnull_assert(tablePtr != NULL);
-  
+
   Tcl_InitCustomHashTable(tablePtr, TCL_CUSTOM_PTR_KEYS, &funPtrHashKeyType);
 
 }
@@ -213,17 +213,21 @@ Nsf_InitFunPtrHashTable(Tcl_HashTable *tablePtr) {
  */
 
 Tcl_HashEntry *
-Nsf_CreateFunPtrHashEntry(Tcl_HashTable *tablePtr, Nsf_AnyFun *key, int *isNew) {
+Nsf_CreateFunPtrHashEntry(
+    Tcl_HashTable *tablePtr,
+    Nsf_AnyFun *key,
+    int *isNew
+) {
   Tcl_HashEntry *hPtr;
-  funPtrEntry_t entry;
-  
+  funPtrEntry_t  entry;
+
   nonnull_assert(tablePtr != NULL);
   nonnull_assert(key != NULL);
 
   entry.funPtr = key;
   hPtr = Tcl_CreateHashEntry(tablePtr, (const char *)&entry, isNew);
+
   return hPtr;
-  
 }
 
 /*
@@ -245,15 +249,15 @@ Nsf_CreateFunPtrHashEntry(Tcl_HashTable *tablePtr, Nsf_AnyFun *key, int *isNew) 
 Tcl_HashEntry *
 Nsf_FindFunPtrHashEntry(Tcl_HashTable *tablePtr, Nsf_AnyFun *key) {
   Tcl_HashEntry *hPtr;
-  funPtrEntry_t entry;
-  
+  funPtrEntry_t  entry;
+
   nonnull_assert(tablePtr != NULL);
   nonnull_assert(key != NULL);
 
   entry.funPtr = key;
   hPtr = Tcl_FindHashEntry(tablePtr, (const char *)&entry);
   return hPtr;
-  
+
 }
 
 /*
@@ -262,5 +266,6 @@ Nsf_FindFunPtrHashEntry(Tcl_HashTable *tablePtr, Nsf_AnyFun *key) {
  * c-basic-offset: 2
  * fill-column: 78
  * indent-tabs-mode: nil
+ * eval: (c-guess)
  * End:
  */

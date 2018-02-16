@@ -199,7 +199,7 @@ NsfReplaceCommand(Tcl_Interp *interp, Tcl_Obj *nameObj,
  */
 
 static int
-Nsf_InfoBodyObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+Nsf_InfoBodyObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
   Tcl_Command cmd;
 
   nonnull_assert(interp != NULL);
@@ -249,7 +249,7 @@ Nsf_InfoBodyObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, int objc, 
  */
 
 static int
-Nsf_RenameObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+Nsf_RenameObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
   Tcl_Command cmd;
 
   if (objc != 3) {
@@ -299,7 +299,7 @@ Nsf_RenameObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, int objc, Tc
  */
 
 static int
-Nsf_InfoFrameObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+Nsf_InfoFrameObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
   int result;
 
   result = NsfCallCommand(interp, NSF_INFO_FRAME, objc, objv);
@@ -475,7 +475,7 @@ NsfShadowTclCommands(Tcl_Interp *interp, NsfShadowOperations load) {
  *----------------------------------------------------------------------
  */
 int NsfCallCommand(Tcl_Interp *interp, NsfGlobalNames name,
-	    int objc, Tcl_Obj *CONST objv[]) {
+	    int objc, Tcl_Obj *const objv[]) {
   int result;
   NsfShadowTclCommandInfo *ti = &RUNTIME_STATE(interp)->tclCommands[name-NSF_EXPR];
   ALLOC_ON_STACK(Tcl_Obj*, objc, ov);

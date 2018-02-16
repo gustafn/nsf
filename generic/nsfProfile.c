@@ -310,7 +310,7 @@ NsfProfileFillTable(Tcl_HashTable *table, const char *keyStr, double totalMicroS
  *----------------------------------------------------------------------
  */
 static int
-Nsf_ProfileFilterObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+Nsf_ProfileFilterObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
   NsfShadowTclCommandInfo *ti;
   int             result;
   struct Tcl_Time start;

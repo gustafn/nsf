@@ -129,29 +129,29 @@ declare 20 generic {
 declare 21 generic {
   int  NsfCallMethodWithArgs(Tcl_Interp *interp, Nsf_Object *object,
 			     Tcl_Obj *methodObj, Tcl_Obj *arg1,
-			     int givenObjc, Tcl_Obj *CONST objv[],
+			     int givenObjc, Tcl_Obj *const objv[],
 			     unsigned int flags)
 }
 declare 22 generic {
   int NsfAddObjectMethod(Tcl_Interp *interp, struct Nsf_Object *object, 
-                         CONST char *methodName, Tcl_ObjCmdProc *proc,
+                         const char *methodName, Tcl_ObjCmdProc *proc,
 	                 ClientData clientData, Tcl_CmdDeleteProc *dp,
 			 unsigned int flags)
 }
 declare 23 generic {
   int NsfAddClassMethod(Tcl_Interp *interp, struct Nsf_Class *class, 
-			CONST char *methodName, Tcl_ObjCmdProc *proc,
+			const char *methodName, Tcl_ObjCmdProc *proc,
 			ClientData clientData, Tcl_CmdDeleteProc *dp,
 			unsigned int flags)
 }
 declare 24 generic {
   int NsfCreate(Tcl_Interp *interp, Nsf_Class *class, Tcl_Obj *nameObj, 
-		int objc, Tcl_Obj *CONST objv[])
+		int objc, Tcl_Obj *const objv[])
 }
 declare 25 generic {
-  int Nsf_ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
+  int Nsf_ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[],
 		  Nsf_Object *object, Tcl_Obj *procNameObj,
-		  Nsf_Param CONST *paramPtr, int nrParams, int serial,
+		  Nsf_Param const *paramPtr, int nrParams, int serial,
 		  unsigned int processFlags, Nsf_ParseContext *pcPtr)
 }
 declare 26 generic {
@@ -163,7 +163,7 @@ declare 27 generic {
 }
 
 declare 28 generic {
-  int Nsf_PointerDelete(CONST char *key, void *valuePtr, int free)
+  int Nsf_PointerDelete(const char *key, void *valuePtr, int free)
 }
 declare 29 generic {
   int Nsf_PointerTypeRegister(Tcl_Interp *interp, const char* typeName, int *counterPtr)

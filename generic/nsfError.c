@@ -225,7 +225,7 @@ Nsf_DStringPrintf(Tcl_DString *dsPtr, const char *fmt, ...)
  *----------------------------------------------------------------------
  */
 void
-NsfDStringArgv(Tcl_DString *dsPtr, int objc, Tcl_Obj *CONST objv[]) {
+NsfDStringArgv(Tcl_DString *dsPtr, int objc, Tcl_Obj *const objv[]) {
 
   nonnull_assert(dsPtr != NULL);
   nonnull_assert(objv != NULL);

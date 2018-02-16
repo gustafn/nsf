@@ -30,7 +30,7 @@
 #
 
 set ::converter ""
-set ::objCmdProc "(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv)"
+set ::objCmdProc "(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const* objv)"
 
 proc convertername {type typename} {
   if {[info exists ::registeredConverter($type)]} {
@@ -244,14 +244,14 @@ proc gencall {methodName fn parameterDefinitions clientData
         "args"       {
           set type "int "
           set calledArg "objc - pc.lastObjc, objv + pc.lastObjc"
-          lappend if "int trailingObjc" "Tcl_Obj *CONST* trailingObjv"
+          lappend if "int trailingObjc" "Tcl_Obj *const* trailingObjv"
           set ifSet 1
           set cVar 0
         }
         "allargs" {
           set type "int "
           set calledArg "objc, objv"
-          lappend if "int objc" "Tcl_Obj *CONST* objv"
+          lappend if "int objc" "Tcl_Obj *const* objv"
           set ifSet 1
           set cVar 0
         }
@@ -333,7 +333,7 @@ proc genStub {stub intro obj idx cDefs pre call post cleanup} {
   }
   return [subst -nocommands {
 static int
-${stub}(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv) {
+${stub}(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const* objv) {
   ParseContext pc;
 $intro
   if (likely(ArgumentParse(interp, objc, objv, $obj, objv[0],
@@ -356,7 +356,7 @@ proc genSimpleStub {stub intro idx cDefs pre call post cleanup} {
   if {$cleanup ne ""} {error "$stub cleanup code '$cleanup' must be empty"}
   return [subst -nocommands {
 static int
-${stub}(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST* objv) {
+${stub}(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const* objv) {
 $intro
     $cDefs
 $pre
