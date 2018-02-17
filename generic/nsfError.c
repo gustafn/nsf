@@ -153,13 +153,13 @@ NsfDStringVPrintf(Tcl_DString *dsPtr, const char *fmt, va_list argPtr) {
     Tcl_DStringSetLength(dsPtr, offset + addedStringLength);
 
 #if defined(_MSC_VER)
-    /* 
-     * Pre-C99: currently free storage, excluding NTC 
+    /*
+     * Pre-C99: currently free storage, excluding NTC
      */
-    avail = dsPtr->spaceAvl - offset - 1; 
+    avail = dsPtr->spaceAvl - offset - 1;
 #else
-    /* 
-     * C99: currently free storage, including NTC 
+    /*
+     * C99: currently free storage, including NTC
      */
     avail = dsPtr->spaceAvl - offset;
 #endif
@@ -435,8 +435,8 @@ NsfArgumentError(
  */
 int
 NsfUnexpectedArgumentError(Tcl_Interp *interp, const char *argumentString,
-			   Nsf_Object *object, Nsf_Param const *paramPtr,
-			   Tcl_Obj *methodPathObj) {
+                           Nsf_Object *object, Nsf_Param const *paramPtr,
+                           Tcl_Obj *methodPathObj) {
   Tcl_DString ds, *dsPtr = &ds;
 
   nonnull_assert(interp != NULL);
@@ -447,7 +447,7 @@ NsfUnexpectedArgumentError(Tcl_Interp *interp, const char *argumentString,
   DSTRING_INIT(dsPtr);
   Nsf_DStringPrintf(dsPtr, "invalid argument '%s', maybe too many arguments;", argumentString);
   NsfArgumentError(interp, Tcl_DStringValue(dsPtr), paramPtr, (object != NULL) ? object->cmdName : NULL,
-		   methodPathObj);
+                   methodPathObj);
   DSTRING_FREE(dsPtr);
   return TCL_ERROR;
 }
@@ -498,7 +498,7 @@ NsfUnexpectedNonposArgumentError(
   Tcl_DStringAppend(dsPtr, ";\n", 2);
 
   NsfArgumentError(interp, Tcl_DStringValue(dsPtr), paramPtr, (object != NULL) ? object->cmdName : NULL,
-		   methodPathObj);
+                   methodPathObj);
   DSTRING_FREE(dsPtr);
   return TCL_ERROR;
 }
@@ -531,7 +531,7 @@ NsfDispatchClientDataError(
 
   if (clientData != NULL) {
     return NsfPrintError(interp, "method %s not dispatched on valid %s",
-			 methodName, what);
+                         methodName, what);
   } else {
     return NsfNoCurrentObjectError(interp, methodName);
   }
