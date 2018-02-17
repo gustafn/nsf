@@ -106,7 +106,7 @@ declare 13 generic {
 declare 14 generic {
   int NsfObjErrType(Tcl_Interp *interp, const char *context, 
 		    Tcl_Obj *value, const char *type,
-		    Nsf_Param const *paramPtr)
+		    Nsf_Param const *NsfObjErrType)
 }
 declare 15 generic {
   void NsfStackDump (Tcl_Interp *interp)
