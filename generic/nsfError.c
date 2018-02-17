@@ -3,7 +3,7 @@
  *
  *      Error reporting functions for the Next Scripting Framework.
  *
- * Copyright (C) 1999-2017 Gustaf Neumann (a, b)
+ * Copyright (C) 1999-2018 Gustaf Neumann (a, b)
  * Copyright (C) 1999-2007 Uwe Zdun (a, b)
  * Copyright (C) 2011-2016 Stefan Sobernig (b)
  *
@@ -44,9 +44,10 @@
 #include "nsfInt.h"
 
 /* function prototypes */
-Tcl_Obj *NsfParamDefsSyntax(Tcl_Interp *interp, Nsf_Param const *paramsPtr,
-			    NsfObject *contextObject, const char *pattern)
-  nonnull(1) nonnull(2) returns_nonnull;
+Tcl_Obj *NsfParamDefsSyntax(
+    Tcl_Interp *interp, Nsf_Param const *paramsPtr,
+    NsfObject *contextObject, const char *pattern
+) nonnull(1) nonnull(2) returns_nonnull;
 
 
 /*
@@ -75,8 +76,9 @@ Tcl_Obj *NsfParamDefsSyntax(Tcl_Interp *interp, Nsf_Param const *paramsPtr,
 
 void
 NsfDStringVPrintf(Tcl_DString *dsPtr, const char *fmt, va_list argPtr) {
-  int      result, failure, avail, offset;
+  int      result, avail, offset;
   va_list  argPtrCopy;
+  bool     failure;
 
   /*
    * Tcl_DStringLength returns the current length *without* the
@@ -126,7 +128,7 @@ NsfDStringVPrintf(Tcl_DString *dsPtr, const char *fmt, va_list argPtr) {
   failure = (result >= (int)avail);
 #endif
 
-  if (likely(failure == 0)) {
+  if (likely(! failure)) {
     /*
      * vsnprintf() copied all content, adjust the Tcl_DString length.
      */
@@ -173,11 +175,11 @@ NsfDStringVPrintf(Tcl_DString *dsPtr, const char *fmt, va_list argPtr) {
 #endif
 
 #if defined(NDEBUG)
-    if (unlikely(failure != 0)) {
+    if (unlikely(failure)) {
       Tcl_Panic("writing string-formatting output to a dynamic Tcl string failed");
     }
 #endif
-    assert(failure == 0);
+    assert(! failure);
   }
 }
 
@@ -199,7 +201,7 @@ NsfDStringVPrintf(Tcl_DString *dsPtr, const char *fmt, va_list argPtr) {
 void
 Nsf_DStringPrintf(Tcl_DString *dsPtr, const char *fmt, ...)
 {
-    va_list         ap;
+    va_list ap;
 
     nonnull_assert(dsPtr != NULL);
     nonnull_assert(fmt != NULL);
@@ -225,8 +227,10 @@ Nsf_DStringPrintf(Tcl_DString *dsPtr, const char *fmt, ...)
  *----------------------------------------------------------------------
  */
 void
-NsfDStringArgv(Tcl_DString *dsPtr, int objc, Tcl_Obj *const objv[]) {
-
+NsfDStringArgv(
+    Tcl_DString *dsPtr,
+    int objc, Tcl_Obj *const objv[]
+) {
   nonnull_assert(dsPtr != NULL);
   nonnull_assert(objv != NULL);
 
@@ -289,8 +293,12 @@ NsfPrintError(Tcl_Interp *interp, const char *fmt, ...) {
  *----------------------------------------------------------------------
  */
 int
-NsfErrInProc(Tcl_Interp *interp, Tcl_Obj *objName,
-               Tcl_Obj *clName, const char *procName) {
+NsfErrInProc(
+    Tcl_Interp *interp,
+    Tcl_Obj *objName,
+    Tcl_Obj *clName,
+    const char *procName
+) {
   Tcl_DString errMsg;
   const char *cName, *space;
 
@@ -330,9 +338,12 @@ NsfErrInProc(Tcl_Interp *interp, Tcl_Obj *objName,
  *----------------------------------------------------------------------
  */
 int
-NsfObjWrongArgs(Tcl_Interp *interp, const char *msg, Tcl_Obj *cmdNameObj,
-		Tcl_Obj *methodPathObj, const char *arglist) {
-  int need_space = 0;
+NsfObjWrongArgs(
+    Tcl_Interp *interp,
+    const char *msg, Tcl_Obj *cmdNameObj,
+    Tcl_Obj *methodPathObj, const char *arglist
+) {
+  bool        need_space = NSF_FALSE;
   Tcl_DString ds;
 
   nonnull_assert(interp != NULL);
@@ -343,11 +354,11 @@ NsfObjWrongArgs(Tcl_Interp *interp, const char *msg, Tcl_Obj *cmdNameObj,
   Nsf_DStringPrintf(&ds, "%s should be \"", msg);
   if (cmdNameObj != NULL) {
     Tcl_DStringAppend(&ds, ObjStr(cmdNameObj), -1);
-    need_space = 1;
+    need_space = NSF_TRUE;
   }
 
   if (methodPathObj != NULL) {
-    if (need_space != 0) {
+    if (need_space) {
       Tcl_DStringAppend(&ds, " ", 1);
     }
 
@@ -355,17 +366,17 @@ NsfObjWrongArgs(Tcl_Interp *interp, const char *msg, Tcl_Obj *cmdNameObj,
     Tcl_DStringAppend(&ds, ObjStr(methodPathObj), -1);
     DECR_REF_COUNT(methodPathObj);
 
-    need_space = 1;
+    need_space = NSF_TRUE;
   }
   if (arglist != NULL) {
-    if (need_space != 0) {
+    if (need_space) {
       Tcl_DStringAppend(&ds, " ", 1);
     }
     Tcl_DStringAppend(&ds, arglist, -1);
   }
   Tcl_DStringAppend(&ds, "\"", 1);
 
-  Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_DStringValue(&ds), Tcl_DStringLength(&ds)));
+  Tcl_SetObjResult(interp, Tcl_NewStringObj(ds.string, ds.length));
   Tcl_DStringFree(&ds);
 
   return TCL_ERROR;
@@ -389,8 +400,11 @@ NsfObjWrongArgs(Tcl_Interp *interp, const char *msg, Tcl_Obj *cmdNameObj,
  *----------------------------------------------------------------------
  */
 int
-NsfArgumentError(Tcl_Interp *interp, const char *errorMsg, Nsf_Param const *paramPtr,
-              Tcl_Obj *cmdNameObj, Tcl_Obj *methodPathObj) {
+NsfArgumentError(
+    Tcl_Interp *interp,
+    const char *errorMsg, Nsf_Param const *paramPtr,
+    Tcl_Obj *cmdNameObj, Tcl_Obj *methodPathObj
+) {
   Tcl_Obj *argStringObj = NsfParamDefsSyntax(interp, paramPtr, NULL, NULL);
 
   nonnull_assert(interp != NULL);
@@ -454,12 +468,14 @@ NsfUnexpectedArgumentError(Tcl_Interp *interp, const char *argumentString,
  *----------------------------------------------------------------------
  */
 int
-NsfUnexpectedNonposArgumentError(Tcl_Interp *interp,
-				 const char *argumentString,
-				 Nsf_Object *object,
-				 Nsf_Param const *currentParamPtr,
-				 Nsf_Param const *paramPtr,
-				 Tcl_Obj *methodPathObj) {
+NsfUnexpectedNonposArgumentError(
+    Tcl_Interp *interp,
+    const char *argumentString,
+    Nsf_Object *object,
+    Nsf_Param const *currentParamPtr,
+    Nsf_Param const *paramPtr,
+    Tcl_Obj *methodPathObj
+) {
   Tcl_DString ds, *dsPtr = &ds;
   const Nsf_Param *pPtr;
 
@@ -504,8 +520,10 @@ NsfUnexpectedNonposArgumentError(Tcl_Interp *interp,
  *----------------------------------------------------------------------
  */
 int
-NsfDispatchClientDataError(Tcl_Interp *interp, ClientData clientData,
-			   const char *what, const char *methodName) {
+NsfDispatchClientDataError(
+    Tcl_Interp *interp, ClientData clientData,
+    const char *what, const char *methodName
+) {
 
   nonnull_assert(interp != NULL);
   nonnull_assert(what != NULL);
@@ -563,14 +581,15 @@ NsfNoCurrentObjectError(Tcl_Interp *interp, const char *methodName) {
  *----------------------------------------------------------------------
  */
 int
-NsfObjErrType(Tcl_Interp *interp,
-	      const char *context,
-	      Tcl_Obj *value,
-	      const char *type,
-	      Nsf_Param const *NsfObjErrType)
-{
-  int         named       = (NsfObjErrType && (NsfObjErrType->flags & NSF_ARG_UNNAMED) == 0);
-  int         returnValue = !named && NsfObjErrType && (NsfObjErrType->flags & NSF_ARG_IS_RETURNVALUE);
+NsfObjErrType(
+    Tcl_Interp *interp,
+    const char *context,
+    Tcl_Obj *value,
+    const char *type,
+    Nsf_Param const *NsfObjErrType
+) {
+  bool        isNamed     = (NsfObjErrType && (NsfObjErrType->flags & NSF_ARG_UNNAMED) == 0);
+  int         returnValue = !isNamed && NsfObjErrType && (NsfObjErrType->flags & NSF_ARG_IS_RETURNVALUE);
   int         errMsgLen;
   const char *prevErrMsg  = Tcl_GetStringFromObj(Tcl_GetObjResult(interp), &errMsgLen);
   Tcl_DString ds;
@@ -587,7 +606,7 @@ NsfObjErrType(Tcl_Interp *interp,
   }
 
   Nsf_DStringPrintf(&ds, "expected %s but got \"%s\"", type, ObjStr(value));
-  if (named != 0) {
+  if (isNamed) {
     Nsf_DStringPrintf(&ds, " for parameter \"%s\"", NsfObjErrType->name);
   } else if (returnValue != 0) {
     Tcl_DStringAppend(&ds, " as return value", -1);
@@ -605,5 +624,6 @@ NsfObjErrType(Tcl_Interp *interp,
  * c-basic-offset: 2
  * fill-column: 72
  * indent-tabs-mode: nil
+ * eval: (c-guess)
  * End:
  */
