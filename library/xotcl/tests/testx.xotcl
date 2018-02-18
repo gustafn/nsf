@@ -674,9 +674,11 @@ TestX filterGuards -proc run {{n 20}} {
       ::errorCheck [lrange $errorMsg 0 4] "Guard error: '1 2 3'" errormsg
 
       set ::filterResult ""
-      B instfilter {f01 {f02 -guard "a b"}}
+      B instfilter {f01 {f02 -guard "a b"}} ;# guard with error
 
-      if {[info commands ::b] ne ""} {catch {::b destroy}}
+      if {[info commands ::b] ne ""} {
+        catch {::b destroy}
+      }
       set r [catch {B b}]
       ::errorCheck $r-$::filterResult "1-11" "Filter guard: Filter guard with error via next"
 
