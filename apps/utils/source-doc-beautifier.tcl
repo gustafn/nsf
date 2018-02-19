@@ -38,7 +38,10 @@ nx::Object create output {
 	#set w0 [lindex $cmd 0]
 	if { ($w0 eq "?" && [llength $cmd] == 3) || 
 	     ($w0 eq "!" && [llength $cmd] == 2) } {
-	  append result "% [lindex $cmd 1]\n"
+          set body [lindex $cmd 1]
+          regsub -all -line {^\s*#//.*//\s*$} $body {} body
+          set body [string trim $body]
+	  append result "% $body\n"
 	  set cmdresult [lindex $cmd 2]
 	  if {$cmdresult ne "" && ![string match ::nsf::__* $cmdresult]} {append result $cmdresult \n}
 	} else {
@@ -96,3 +99,9 @@ nsf::proc run {-notitle:switch args} {
 }
 
 run {*}$argv
+
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:
