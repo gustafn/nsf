@@ -3,7 +3,7 @@
  *
  *      Conversion from CmdPtr to Class / Object
  *
- * Copyright (C) 2014-2016 Gustaf Neumann
+ * Copyright (C) 2014-2018 Gustaf Neumann
  *
  * Vienna University of Economics and Business
  * Institute of Information Systems and New Media
@@ -36,50 +36,55 @@
 
  */
 
-static NSF_INLINE NsfObject* NsfGetObjectFromCmdPtr(Tcl_Command cmd) nonnull(1);
-static NSF_INLINE ClientData NsfGetClientDataFromCmdPtr(Tcl_Command cmd) nonnull(1);
+static NSF_INLINE NsfObject* NsfGetObjectFromCmdPtr(const Tcl_Command cmd) nonnull(1);
+static NSF_INLINE ClientData NsfGetClientDataFromCmdPtr(const Tcl_Command cmd) nonnull(1);
 #ifdef NSF_C
-static NSF_INLINE NsfClass*  NsfGetClassFromCmdPtr(Tcl_Command cmd) nonnull(1);
+static NSF_INLINE NsfClass*  NsfGetClassFromCmdPtr(const Tcl_Command cmd) nonnull(1);
 #endif
 
 static NSF_INLINE ClientData
-NsfGetClientDataFromCmdPtr(Tcl_Command cmd) {
-  
+NsfGetClientDataFromCmdPtr(const Tcl_Command cmd) {
+  ClientData result;
+
   nonnull_assert(cmd != NULL);
-  
+
   /*fprintf(stderr, "objProc=%p %p\n", Tcl_Command_objProc(cmd),NsfObjDispatch);*/
   if (likely(Tcl_Command_objProc(cmd) == NsfObjDispatch)) {
-    return Tcl_Command_objClientData(cmd);
-    
+    result = Tcl_Command_objClientData(cmd);
+
   } else {
     Tcl_Command cmd1 = TclGetOriginalCommand(cmd);
-    
+
     if (likely(cmd1 != NULL) && unlikely(Tcl_Command_objProc(cmd1) == NsfObjDispatch)) {
-      return Tcl_Command_objClientData(cmd1);
+      result = Tcl_Command_objClientData(cmd1);
+    } else {
+      result = NULL;
     }
-    return NULL;
   }
+  return result;
 }
 
 #ifdef NSF_C
 static NSF_INLINE NsfClass*
-NsfGetClassFromCmdPtr(Tcl_Command cmd) {
-  ClientData cd;
+NsfGetClassFromCmdPtr(const Tcl_Command cmd) {
+  ClientData  cd;
+  NsfClass   *result;
 
   nonnull_assert(cmd != NULL);
 
   cd = NsfGetClientDataFromCmdPtr(cmd);
   /*fprintf(stderr, "cd=%p\n",cd);*/
   if (likely(cd != NULL)) {
-    return NsfObjectToClass(cd);
+    result = NsfObjectToClass(cd);
   } else {
-    return NULL;
+    result = NULL;
   }
+  return result;
 }
 #endif
 
 static NSF_INLINE NsfObject*
-NsfGetObjectFromCmdPtr(Tcl_Command cmd) {
+NsfGetObjectFromCmdPtr(const Tcl_Command cmd) {
 
   nonnull_assert(cmd != NULL);
 
