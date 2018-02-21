@@ -22,7 +22,7 @@ Once SIP has been disarmed, and once DTrace support is compiled into
 NSF, one can run D scripts like so:
 
 1) (Terminal window 1): sudo dtrace -q -F -s dtrace/timestamps.d -W tclsh
-2) (Terminal window 2): tclsh dtrace/sample.tcl
+2) (Terminal window 2): ./nxsh dtrace/sample.tcl
 
 (Note: The "dtrace -c" option, as shown below, is not operative unless
 SIP is fully disabled: Run "csrutil disable" only, omit the fourth
