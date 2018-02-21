@@ -26962,14 +26962,10 @@ NsfConfigureCmd(Tcl_Interp *interp, ConfigureoptionIdx_t option, Tcl_Obj *valueO
   int boolVal;
 
   nonnull_assert(interp != NULL);
-
 #if defined(NSF_DTRACE)
   if (NSF_DTRACE_CONFIGURE_PROBE_ENABLED()) {
-    /* TODO: opts copied from tclAPI.h; maybe make global value? */
-    static const char *opts[] = {
-      "debug", "dtrace", "filter", "profile", "trace", "softrecreate",
-      "objectsystems", "keepcmds", "checkresults", "checkarguments", NULL};
-    NSF_DTRACE_CONFIGURE_PROBE((char *)opts[configureoption-1], (valueObj != NULL) ? ObjStr(valueObj) : NULL);
+    NSF_DTRACE_CONFIGURE_PROBE((char *)Nsf_Configureoption[option-1],
+                               (valueObj != NULL) ? ObjStr(valueObj) : NULL);
   }
 #endif
 
