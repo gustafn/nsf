@@ -821,8 +821,8 @@ int NsfCallCommand(Tcl_Interp *interp, NsfGlobalNames name,
 int NsfShadowTclCommands(Tcl_Interp *interp, NsfShadowOperations load)
   nonnull(1);
 
-Tcl_Obj *NsfMethodObj(NsfObject *object, int methodIdx)
-  nonnull(1);
+Tcl_Obj *NsfMethodObj(const NsfObject *object, int methodIdx)
+  nonnull(1) pure;
 
 int NsfReplaceCommandCleanup(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfShadowTclCommandInfo *ti)
   nonnull(1) nonnull(2) nonnull(3);
@@ -1323,7 +1323,7 @@ EXTERN Nsf_methodDefinition *Nsf_CmdDefinitionGet(Tcl_ObjCmdProc *proc)
 
 
 #ifndef HAVE_STRNSTR
-char *strnstr(const char *buffer, const char *needle, size_t buffer_len);
+char *strnstr(const char *buffer, const char *needle, size_t buffer_len) pure;
 #endif
 
 /*
