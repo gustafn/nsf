@@ -4,6 +4,7 @@
  *	Next Scripting Framework DTrace provider.
  *
  * Copyright (c) 2011-2014 Gustaf Neumann
+ * Copyright (c) 2018 Stefan Sobernig
  *
  * Vienna University of Economics and Business
  * Institute of Information Systems and New Media
@@ -37,7 +38,7 @@
 typedef struct Tcl_Obj Tcl_Obj;
 
 /*
- * Next Scripting DTrace probes
+ * Next Scripting Framework (NSF) DTrace probes
  * 
  * Modeled in alignment with the Tcl DTrace probes
  */
@@ -55,7 +56,7 @@ provider nsf {
      */
     probe method__entry(char* object, char *class, char* method, int objc, Tcl_Obj **objv);
     /*
-     *	nsf*:::proc-return probe
+     *	nsf*:::method-return probe
      *	    triggered immediately after proc bytecode execution
      *		arg0: object name			(string)
      *		arg1: class/object name			(string)
@@ -63,14 +64,6 @@ provider nsf {
      *		arg3: return code			(int)
      */
     probe method__return(char *object, char *class, char* name, int code);
-    /*
-     *	tcl*:::proc-result probe
-     *	    triggered after proc-return probe and result processing
-     *		arg0: proc name				(string)
-     *		arg1: return code			(int)
-     *		arg2: proc result			(string)
-     *		arg3: proc result object		(Tcl_Obj*)
-     */
 
     /***************************** Object probes ******************************/
     /*
@@ -82,13 +75,13 @@ provider nsf {
     probe object__alloc(char *object, char *class);
    /*
      *	nsf*:::object-free probe
-     *	    triggered whean an NSF object is freeed
+     *	    triggered whean an NSF object is freed
      *		arg0: object 			(string)
      *		arg1: class 			(string)
      */
     probe object__free(char *object, char *class);
 
-    /***************************** nsf configure probe ******************************/
+    /***************************** NSF configure probe ******************************/
     /*
      *	nsf*:::configure-probe probe
      *	    triggered when the ::nsf::configure is called
