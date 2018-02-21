@@ -42,25 +42,43 @@ proc convertername {type typename} {
   return $name
 }
 
-proc createconverter {type typename} {
+proc createconverter {type typename isGlobal} {
   set name [convertername $type $typename]
   if {[info exists ::createdConverter($name)]} {
     return ""
   }
   set domain [split $type |]
-  set opts "static const char *opts\[\] = {\"[join $domain {", "}]\", NULL};"
+
+  set localOpts [set globalOpts ""]
+  
+  if {!$isGlobal} {
+    set storageClass "static "
+    set optsName "opts"
+    set scope "localOpts"
+  } else {
+    set storageClass ""
+    set optsName "Nsf_${name}"
+    set scope "globalOpts"
+  }
+  set $scope "${storageClass}const char *$optsName\[\] = {\"[join $domain {", "}]\", NULL};"
   set ::createdConverter($name) "ConvertTo${name}, \"$type\""
+
   set enums [list ${name}NULL]
   foreach d $domain {lappend enums $name[string totitle [string map [list - _] $d]]Idx}
-  subst {
-typedef enum {[join $enums {, }]} ${name}Idx_t;
+  set enums [join $enums {, }]
 
-static int ConvertTo${name}(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
+  set bindings [list @enums@ $enums @name@ $name @globalOpts@ $globalOpts \
+                    @localOpts@ $localOpts @optsName@ $optsName @typeName@ $typename]
+  
+  string map $bindings {
+typedef enum {@enums@} @name@Idx_t;
+@globalOpts@
+static int ConvertTo@name@(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
-  $opts
+  @localOpts@
   (void)pPtr;
-  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "$typename", 0, &index);
+  result = Tcl_GetIndexFromObj(interp, objPtr, @optsName@, "@typeName@", 0, &index);
   *clientData = (ClientData) INT2PTR(index + 1);
   *outObjPtr = objPtr;
   return result;
@@ -79,6 +97,7 @@ proc genifd {parameterDefinitions} {
   foreach parameterDefinition $parameterDefinitions {
     array unset ""
     array set "" {-flags 0}
+    array set "" {-global 0}
     array set "" $parameterDefinition
     switch $(-type) {
       "" {set type NULL}
@@ -104,7 +123,7 @@ proc genifd {parameterDefinitions} {
       *|* {
 	if {![info exists (-typeName)]} {set (-typeName) $(-argName)}
         set converter [convertername $type $(-typeName)]
-        append ::converter [createconverter $type $(-typeName)]
+        append ::converter [createconverter $type $(-typeName) $(-global)]
         addFlags flags "NSF_ARG_IS_ENUMERATION"
       }
       default {

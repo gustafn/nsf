@@ -130,13 +130,13 @@ static int ConvertToMixinscope(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param co
 }
   
 typedef enum {ConfigureoptionNULL, ConfigureoptionDebugIdx, ConfigureoptionDtraceIdx, ConfigureoptionFilterIdx, ConfigureoptionSoftrecreateIdx, ConfigureoptionObjectsystemsIdx, ConfigureoptionKeepcmdsIdx, ConfigureoptionCheckresultsIdx, ConfigureoptionCheckargumentsIdx} ConfigureoptionIdx_t;
-
+const char *Nsf_Configureoption[] = {"debug", "dtrace", "filter", "softrecreate", "objectsystems", "keepcmds", "checkresults", "checkarguments", NULL};
 static int ConvertToConfigureoption(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
-  static const char *opts[] = {"debug", "dtrace", "filter", "softrecreate", "objectsystems", "keepcmds", "checkresults", "checkarguments", NULL};
+  
   (void)pPtr;
-  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "configureoption", 0, &index);
+  result = Tcl_GetIndexFromObj(interp, objPtr, Nsf_Configureoption, "configureoption", 0, &index);
   *clientData = (ClientData) INT2PTR(index + 1);
   *outObjPtr = objPtr;
   return result;
