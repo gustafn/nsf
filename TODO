@@ -5933,6 +5933,12 @@ catch {={*}[list foo 1 2 3 4 5 6]} msg; puts msg=$msg
 
 ========================================================================
 TODO:
+
+- DTrace: --with-dtrace vs. --enable-dtrace (as in Tcl)? generate
+  header file only for distributions, auto-generated otherwise? -G
+  option not supported anymore on Mac OS X (although man dtrace
+  maintains references to it?)
+
 - coloncmd reform:
   * memcheck
   * use free list rather then obj list for freeing NsfColonCmdContext 
