@@ -78,7 +78,7 @@ static NsfCallStackContent* NsfCallStackFindActiveFrame(const Tcl_Interp *interp
 static void CallStackUseActiveFrame(const Tcl_Interp *interp, callFrameContext *ctx)
   nonnull(1) nonnull(2);
 
-static void CallStackRestoreSavedFrames(Tcl_Interp *interp, callFrameContext *ctx)
+static void CallStackRestoreSavedFrames(Tcl_Interp *interp, const callFrameContext *ctx)
   nonnull(1) nonnull(2);
 
 static NsfCallStackContent* CallStackFindActiveFilter(const Tcl_Interp *interp)
@@ -109,7 +109,7 @@ static NsfCallStackContent* CscAlloc(Tcl_Interp *interp, NsfCallStackContent *cs
   nonnull(2);
 #endif
 
-NSF_INLINE static void CscInit_(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *class,
+NSF_INLINE static void CscInit_(NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *class,
                                 Tcl_Command cmd, unsigned short frameType, unsigned int flags)
   nonnull(1) nonnull(2);
 
@@ -742,7 +742,7 @@ CallStackUseActiveFrame(const Tcl_Interp *interp, callFrameContext *ctx) {
  *----------------------------------------------------------------------
  */
 static void
-CallStackRestoreSavedFrames(Tcl_Interp *interp, callFrameContext *ctx) {
+CallStackRestoreSavedFrames(Tcl_Interp *interp, const callFrameContext *ctx) {
 
   nonnull_assert(interp != NULL);
   nonnull_assert(ctx != NULL);
@@ -1188,8 +1188,8 @@ CscAlloc(Tcl_Interp *interp, NsfCallStackContent *cscPtr, Tcl_Command cmd) {
  *----------------------------------------------------------------------
  */
 NSF_INLINE static void
-CscInit_(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *class,
-        Tcl_Command cmd, unsigned short frameType, unsigned int flags) {
+CscInit_(NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *class,
+        const Tcl_Command cmd, unsigned short frameType, unsigned int flags) {
 #if defined(NSF_PROFILE)
   struct Tcl_Time trt;
 #endif

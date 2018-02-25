@@ -788,7 +788,9 @@ const char *NsfGlobalStrings[] = {
 
 #define NsfGlobalObjs RUNTIME_STATE(interp)->methodObjNames
 
-/* obj types */
+/* 
+ * Interface for Tcl_Obj types 
+ */
 EXTERN Tcl_ObjType NsfMixinregObjType;
 EXTERN int NsfMixinregGet(Tcl_Interp *interp, Tcl_Obj *obj, NsfClass **classPtr, Tcl_Obj **guardObj)
   nonnull(1) nonnull(2) nonnull(3) nonnull(4);
@@ -799,10 +801,13 @@ EXTERN Tcl_ObjType NsfFilterregObjType;
 EXTERN int NsfFilterregGet(Tcl_Interp *interp, Tcl_Obj *obj, Tcl_Obj **filterObj, Tcl_Obj **guardObj)
   nonnull(1) nonnull(2) nonnull(3) nonnull(4);
 
-EXTERN NsfClassOpt *NsfRequireClassOpt(/*@notnull@*/ NsfClass *cl) nonnull(1) returns_nonnull;
+EXTERN NsfClassOpt *NsfRequireClassOpt(NsfClass *class)
+  nonnull(1) returns_nonnull;
 
 
-/* Next Scripting ShadowTclCommands */
+/* 
+ * Next Scripting ShadowTclCommands 
+ */
 typedef struct NsfShadowTclCommandInfo {
   TclObjCmdProcType proc;
   ClientData clientData;
