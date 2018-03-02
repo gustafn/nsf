@@ -9230,7 +9230,7 @@ AddToResultSetWithGuards(
     if (pattern == NULL || Tcl_StringMatch(ClassName_(class), pattern)) {
       Tcl_Obj *listObj = Tcl_NewListObj(0, NULL);
       Tcl_Obj *g       = (Tcl_Obj *)clientData;
-      
+
       INCR_REF_COUNT(listObj);
       Tcl_ListObjAppendElement(interp, listObj, class->object.cmdName);
       Tcl_ListObjAppendElement(interp, listObj, NsfGlobalObjs[NSF_GUARD_OPTION]);
@@ -12001,13 +12001,13 @@ ByteCompiled(Tcl_Interp *interp, unsigned int *flagsPtr,
       Namespace *oldNsPtr = procPtr->cmdPtr->nsPtr;
 
       procPtr->cmdPtr->nsPtr = nsPtr;
-#endif      
+#endif
       result = TclProcCompileProc(interp, procPtr, bodyObj,
                                   (Namespace *) nsPtr, "body of proc",
                                   procName);
-#if defined(PRE86)      
+#if defined(PRE86)
       procPtr->cmdPtr->nsPtr = oldNsPtr;
-#endif      
+#endif
     }
     /*fprintf(stderr, "compiling '%s' with ns %s DONE\n", procName, nsPtr->name);*/
     *flagsPtr &= ~NSF_CSC_CALL_IS_COMPILE;
