@@ -11990,7 +11990,17 @@ ByteCompiled(Tcl_Interp *interp, unsigned int *flagsPtr,
     /*fprintf(stderr, "compiling '%s' with ns %s\n", procName, nsPtr->name);*/
     {
 #if defined(PRE86)
+      /*
+       * For whatever reason, Tcl 8.5 does not use the provided nsPtr as basis
+       * for resolving commands, but instead the nsPtr of the command. This
+       * has the consequence, that "info" might get resolved against
+       * ::nsf::classes::nx::Class::info when compiling a method. In earlier
+       * versions, this was not an issue, since we patched the cmdPtr
+       * always. Now we do this just locally and fo Tcl 8.5 only.
+       */
       Namespace *oldNsPtr = procPtr->cmdPtr->nsPtr;
+
+      procPtr->cmdPtr->nsPtr = nsPtr;
 #endif      
       result = TclProcCompileProc(interp, procPtr, bodyObj,
                                   (Namespace *) nsPtr, "body of proc",
