@@ -5955,6 +5955,8 @@ NsfNamespaceInit(Tcl_Namespace *nsPtr) {
 #endif
 }
 
+static NsfObject *NSNamespaceClientDataObject(ClientData clientData) nonnull(1) pure;
+
 static NsfObject *
 NSNamespaceClientDataObject(ClientData clientData) {
 #ifdef NSF_MEM_COUNT
@@ -11986,9 +11988,17 @@ ByteCompiled(Tcl_Interp *interp, unsigned int *flagsPtr,
 
     *flagsPtr |= NSF_CSC_CALL_IS_COMPILE;
     /*fprintf(stderr, "compiling '%s' with ns %s\n", procName, nsPtr->name);*/
-    result = TclProcCompileProc(interp, procPtr, bodyObj,
-                              (Namespace *) nsPtr, "body of proc",
-                              procName);
+    {
+#if defined(PRE86)
+      Namespace *oldNsPtr = procPtr->cmdPtr->nsPtr;
+#endif      
+      result = TclProcCompileProc(interp, procPtr, bodyObj,
+                                  (Namespace *) nsPtr, "body of proc",
+                                  procName);
+#if defined(PRE86)      
+      procPtr->cmdPtr->nsPtr = oldNsPtr;
+#endif      
+    }
     /*fprintf(stderr, "compiling '%s' with ns %s DONE\n", procName, nsPtr->name);*/
     *flagsPtr &= ~NSF_CSC_CALL_IS_COMPILE;
 
@@ -25473,7 +25483,7 @@ ListMethodResolve(Tcl_Interp *interp, InfomethodsubcmdIdx_t subcmd,
  *
  *----------------------------------------------------------------------
  */
-static bool MethodSourceMatches(DefinitionsourceIdx_t withSource, NsfClass *class, NsfObject *object);
+static bool MethodSourceMatches(DefinitionsourceIdx_t withSource, NsfClass *class, NsfObject *object) pure;
 
 static bool MethodSourceMatches(DefinitionsourceIdx_t withSource, NsfClass *class, NsfObject *object) {
   bool result;
