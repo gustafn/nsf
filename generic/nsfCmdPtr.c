@@ -32,9 +32,11 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-/*
 
+/*
+ * nsfInt is just needed for NSF_INLINE
  */
+#include <nsfInt.h>
 
 static NSF_INLINE NsfObject* NsfGetObjectFromCmdPtr(const Tcl_Command cmd) nonnull(1);
 static NSF_INLINE ClientData NsfGetClientDataFromCmdPtr(const Tcl_Command cmd) nonnull(1);

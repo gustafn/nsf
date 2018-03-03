@@ -6770,7 +6770,6 @@ NSCheckNamespace(
   Namespace   *nsPtr, *dummy1Ptr, *dummy2Ptr, *parentNsPtr = (Namespace *)parentNsPtr1;
   const char  *parentName, *dummy;
   Tcl_DString ds, *dsPtr = &ds;
-  int         parentNameLength;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(nameString != NULL);
@@ -6804,7 +6803,6 @@ NSCheckNamespace(
   }
 
   if (parentNsPtr != NULL) {
-    parentNameLength = 0;
     parentName = parentNsPtr->fullName;
     if (*(parentName + 2) == '\0') {
       parentName = NULL;
@@ -6812,6 +6810,7 @@ NSCheckNamespace(
     /*fprintf(stderr, "NSCheckNamespace parentNs %s parentName of '%s' => '%s'\n",
       parentNsPtr->fullName, nameString, parentName);*/
   } else {
+    int         parentNameLength;
     const char *n = nameString + strlen(nameString);
     /*
      * search for last '::'
@@ -10892,14 +10891,18 @@ FilterAdd(Tcl_Interp *interp, NsfCmdList **filterList, Tcl_Obj *filterregObj,
     result = NsfFilterregGet(interp, filterregObj, &filterObj, &guardObj);
 
     if (result == TCL_OK) {
-      if (!(cmd = FilterSearch(ObjStr(filterObj), startingObject, startingClass, &class))) {
+      const char *filterName = ObjStr(filterObj);
+
+      cmd = FilterSearch(filterName, startingObject, startingClass, &class);
+      if (cmd == NULL) {
         if (startingObject != NULL) {
           result = NsfPrintError(interp, "object filter: can't find filterproc '%s' on %s ",
-                                 ObjStr(filterObj), ObjectName(startingObject));
+                                 filterName, ObjectName(startingObject));
         } else {
           result = NsfPrintError(interp, "class filter: can't find filterproc '%s' on %s ",
-                                 ObjStr(filterObj), ClassName(startingClass));
+                                 filterName, ClassName(startingClass));
         }
+        assert(result == TCL_ERROR);
       }
     }
   }
@@ -26668,7 +26671,7 @@ NsfDebugGetDict(Tcl_Interp *interp, Tcl_Obj *obj) {
       snprintf(buffer + i*2, 24, "%.2x", (unsigned)(*((obj->bytes)+i) & 0xff));
     }
     if (obj->length > 10) {
-      strcat(buffer, "...");
+      strncat(buffer, "...", 3u);
     }
     Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj(buffer, -1));
 
@@ -30410,9 +30413,9 @@ ParamSetFromAny(
  * GetObjectParameterDefinition --
  *
  *    Obtain the parameter definitions for an object by calling the method
- *    "__objectparameter" if the value is not cached already. Caching is
- *    performed on the class, the cached values are used in case there are no
- *    object-specific slots.
+ *    "__objectparameter" if the value is not cached already. Either "object"
+ *    or "class" must be non-null. Caching is performed on the class, the
+ *    cached values are used in case there are no object-specific slots.
  *
  * Results:
  *    Tcl return code, parsed structure in last argument
