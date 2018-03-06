@@ -11985,33 +11985,30 @@ ByteCompiled(Tcl_Interp *interp, unsigned int *flagsPtr,
     return TCL_OK;
   } else {
     int result;
+    Namespace *definitionNsPtr;
 #if defined(HAVE_TCL_COMPILE_H)
   doCompilation:
 #endif
 
     *flagsPtr |= NSF_CSC_CALL_IS_COMPILE;
     /*fprintf(stderr, "compiling '%s' with ns %s\n", procName, nsPtr->name);*/
-    {
-#if defined(PRE86)
-      /*
-       * For whatever reason, Tcl 8.5 does not use the provided nsPtr as basis
-       * for resolving commands, but instead the nsPtr of the command. This
-       * has the consequence, that "info" might get resolved against
-       * ::nsf::classes::nx::Class::info when compiling a method. In earlier
-       * versions, this was not an issue, since we patched the cmdPtr
-       * always. Now we do this just locally and fo Tcl 8.5 only.
-       */
-      Namespace *oldNsPtr = procPtr->cmdPtr->nsPtr;
 
-      procPtr->cmdPtr->nsPtr = nsPtr;
-#endif
-      result = TclProcCompileProc(interp, procPtr, bodyObj,
-                                  (Namespace *) nsPtr, "body of proc",
-                                  procName);
-#if defined(PRE86)
-      procPtr->cmdPtr->nsPtr = oldNsPtr;
-#endif
-    }
+    /* 
+     * Tcl's bytecode compiler (TclCompileScript & friends) will access the
+     * proc command's namespace as resolution context for command lookups
+     * (Tcl_FindCommand) when compiling the proc. We, therefore, have to patch
+     * the proc command for the compilation step to point to the execution
+     * namespace; and restore the definition namespace on leaving.
+     */
+    
+    definitionNsPtr = procPtr->cmdPtr->nsPtr;
+    procPtr->cmdPtr->nsPtr = nsPtr;
+    
+    result = TclProcCompileProc(interp, procPtr, bodyObj,
+                                (Namespace *) nsPtr, "body of proc",
+                                procName);
+    procPtr->cmdPtr->nsPtr = definitionNsPtr;
+
     /*fprintf(stderr, "compiling '%s' with ns %s DONE\n", procName, nsPtr->name);*/
     *flagsPtr &= ~NSF_CSC_CALL_IS_COMPILE;
 
