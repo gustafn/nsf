@@ -34608,6 +34608,11 @@ Nsf_Init(
   rst->NsfClassesNS =
     Tcl_CreateNamespace(interp, "::nsf::classes", NULL,
                         (Tcl_NamespaceDeleteProc *)NULL);
+
+#if !defined(PRE86)
+  ((Namespace *)rst->NsfClassesNS)->flags |= NS_SUPPRESS_COMPILATION;
+#endif
+
   MEM_COUNT_ALLOC("TclNamespace", rst->NsfClassesNS);
 
   /*
