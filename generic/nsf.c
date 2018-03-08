@@ -439,7 +439,7 @@ static void ParsedParamFree(
 ) nonnull(1);
 
 NSF_INLINE static NsfParamDefs *ParamDefsGet(
-    Tcl_Command cmdPtr,
+    const Tcl_Command cmdPtr,
     unsigned int *checkAlwaysFlagPtr,
     Tcl_Namespace **execNsPtrPtr
 ) nonnull(1);
@@ -457,45 +457,55 @@ static int ArgumentParse(
     int objc, Tcl_Obj *const objv[],
     NsfObject *object,
     Tcl_Obj *procNameObj,
-    Nsf_Param const *paramPtr,
+    const Nsf_Param *paramPtr,
     int nrParams,
     int serial,
     unsigned int processFlags,
     ParseContext *pcPtr
 ) nonnull(1) nonnull(3) nonnull(5) nonnull(6) nonnull(10);
 
-static int ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param const *pPtr,
-                         unsigned int doCheckArguments,
-                         unsigned int *flags, ClientData *clientData, Tcl_Obj **outObjPtr)
-  nonnull(1) nonnull(2) nonnull(3) nonnull(5) nonnull(6) nonnull(7);
+static int ArgumentCheck(
+    Tcl_Interp *interp, Tcl_Obj *objPtr, const struct Nsf_Param *pPtr,
+    unsigned int doCheckArguments,
+    unsigned int *flags, ClientData *clientData, Tcl_Obj **outObjPtr
+) nonnull(1) nonnull(2) nonnull(3) nonnull(5) nonnull(6) nonnull(7);
 
-static int GetMatchObject(Tcl_Interp *interp, Tcl_Obj *patternObj, Tcl_Obj *origObj,
-                          NsfObject **matchObjectPtr, const char **patternPtr)
-  nonnull(1) nonnull(4) nonnull(5);
+static int GetMatchObject(
+    Tcl_Interp *interp, Tcl_Obj *patternObj, Tcl_Obj *origObj,
+    NsfObject **matchObjectPtr, const char **patternPtr
+) nonnull(1) nonnull(4) nonnull(5);
+
 static void NsfProcDeleteProc(ClientData clientData)
   nonnull(1);
 
-static int NsfParameterCacheObjectInvalidateCmd(Tcl_Interp *interp, NsfObject *object)
-  nonnull(1) nonnull(2);
+static int NsfParameterCacheObjectInvalidateCmd(
+    Tcl_Interp *interp, NsfObject *object
+) nonnull(1) nonnull(2);
 
-static int GetObjectParameterDefinition(Tcl_Interp *interp, Tcl_Obj *procNameObj,
-                                        NsfObject *object, NsfClass *class,
-                                        NsfParsedParam *parsedParamPtr)
-  nonnull(1) nonnull(2) nonnull(5);
+static int GetObjectParameterDefinition(
+    Tcl_Interp *interp, Tcl_Obj *procNameObj,
+    NsfObject *object, NsfClass *class,
+    NsfParsedParam *parsedParamPtr
+) nonnull(1) nonnull(2) nonnull(5);
 
-typedef Tcl_Obj *(NsfFormatFunction)(Tcl_Interp *interp, Nsf_Param const *paramsPtr,
-                                      NsfObject *contextObject, const char *pattern);
+typedef Tcl_Obj *(NsfFormatFunction)(
+    Tcl_Interp *interp, const Nsf_Param *paramsPtr,
+    NsfObject *contextObject, const char *pattern
+);
 
-static Tcl_Obj *NsfParamDefsVirtualFormat(Tcl_Interp *interp, Nsf_Param const *pPtr,
-                                          NsfObject *contextObject,  const char *pattern,
-                                          NsfFormatFunction formatFunction)
-  nonnull(1) nonnull(2) nonnull(3) nonnull(5);
+static Tcl_Obj *NsfParamDefsVirtualFormat(
+    Tcl_Interp *interp, const Nsf_Param *pPtr,
+    NsfObject *contextObject, const char *pattern,
+    NsfFormatFunction formatFunction
+) nonnull(1) nonnull(2) nonnull(3) nonnull(5);
 
-static bool NsfParamDefsAppendVirtual(Tcl_Interp *interp, Tcl_Obj *listObj,
-                                      Nsf_Param const *paramsPtr, NsfObject *contextObject,
-                                      const char *pattern,
-                                      NsfFormatFunction formatFunction)
-  nonnull(1) nonnull(2) nonnull(3) nonnull(6);
+static bool NsfParamDefsAppendVirtual(
+    Tcl_Interp *interp, Tcl_Obj *listObj,
+    const Nsf_Param *paramsPtr,
+    NsfObject *contextObject,
+    const char *pattern,
+    NsfFormatFunction formatFunction
+) nonnull(1) nonnull(2) nonnull(3) nonnull(6);
 
 /*
  * Prototypes for alias management
@@ -2206,13 +2216,13 @@ NsfGetClassFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr,
 
 static int IsObjectOfType(
     Tcl_Interp *interp, NsfObject *object, const char *what, Tcl_Obj *objPtr,
-    Nsf_Param const *pPtr
+    const Nsf_Param *pPtr
 ) nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(5);
 
 static int
 IsObjectOfType(
     Tcl_Interp *interp, NsfObject *object, const char *what, Tcl_Obj *objPtr,
-    Nsf_Param const *pPtr
+    const Nsf_Param *pPtr
 ) {
   NsfClass *class;
   int       result = TCL_ERROR;
@@ -11888,11 +11898,11 @@ VarExists(
  */
 static void
 MakeProcError(
-              Tcl_Interp *interp,        /* The interpreter in which the procedure was called. */
-              Tcl_Obj *procNameObj)        /* Name of the procedure. Used for error
-                                         * messages and trace information. */
-{
-  int overflow, limit = 60, nameLen;
+    Tcl_Interp *interp,        /* The interpreter in which the procedure was called. */
+    Tcl_Obj *procNameObj       /* Name of the procedure. Used for error
+                                * messages and trace information. */
+) {
+  int         overflow, limit = 60, nameLen;
   const char *procName;
 
   /*fprintf(stderr, "MakeProcError %p type %p refCount %d\n",
@@ -11921,13 +11931,16 @@ MakeProcError(
  *
  *----------------------------------------------------------------------
  */
-static int ByteCompiled(Tcl_Interp *interp, unsigned int *flagsPtr,
-                        Proc *procPtr, Namespace *nsPtr, const char *procName)
-  nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(5);
+static int ByteCompiled(
+    Tcl_Interp *interp, unsigned int *flagsPtr,
+    Proc *procPtr, Namespace *nsPtr, const char *procName
+) nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(5);
 
 static int
-ByteCompiled(Tcl_Interp *interp, unsigned int *flagsPtr,
-             Proc *procPtr,  Namespace *nsPtr, const char *procName) {
+ByteCompiled(
+    Tcl_Interp *interp, unsigned int *flagsPtr,
+    Proc *procPtr, Namespace *nsPtr, const char *procName
+) {
   Tcl_Obj *bodyObj;
 
   nonnull_assert(interp != NULL);
@@ -11941,7 +11954,7 @@ ByteCompiled(Tcl_Interp *interp, unsigned int *flagsPtr,
   if (likely(bodyObj->typePtr == Nsf_OT_byteCodeType)) {
 #if defined(HAVE_TCL_COMPILE_H)
     ByteCode *codePtr;
-    Interp *iPtr = (Interp *) interp;
+    Interp   *iPtr = (Interp *) interp;
 
     /*
      * When we've got bytecode, this is the check for validity. That is,
@@ -11984,8 +11997,9 @@ ByteCompiled(Tcl_Interp *interp, unsigned int *flagsPtr,
 #endif
     return TCL_OK;
   } else {
-    int result;
+    int        result;
     Namespace *definitionNsPtr;
+
 #if defined(HAVE_TCL_COMPILE_H)
   doCompilation:
 #endif
@@ -11993,17 +12007,17 @@ ByteCompiled(Tcl_Interp *interp, unsigned int *flagsPtr,
     *flagsPtr |= NSF_CSC_CALL_IS_COMPILE;
     /*fprintf(stderr, "compiling '%s' with ns %s\n", procName, nsPtr->name);*/
 
-    /* 
+    /*
      * Tcl's bytecode compiler (TclCompileScript & friends) will access the
      * proc command's namespace as resolution context for command lookups
      * (Tcl_FindCommand) when compiling the proc. We, therefore, have to patch
      * the proc command for the compilation step to point to the execution
      * namespace; and restore the definition namespace on leaving.
      */
-    
+
     definitionNsPtr = procPtr->cmdPtr->nsPtr;
     procPtr->cmdPtr->nsPtr = nsPtr;
-    
+
     result = TclProcCompileProc(interp, procPtr, bodyObj,
                                 (Namespace *) nsPtr, "body of proc",
                                 procName);
@@ -12031,19 +12045,22 @@ ByteCompiled(Tcl_Interp *interp, unsigned int *flagsPtr,
  *
  *----------------------------------------------------------------------
  */
-static int PushProcCallFrame(Proc *procPtr, Tcl_Interp *interp,
-                             int objc, Tcl_Obj *const objv[],
-                             Tcl_Namespace *execNsPtr,
-                             NsfCallStackContent *cscPtr)
-  nonnull(1) nonnull(2) nonnull(4) nonnull(6);
+static int PushProcCallFrame(
+    Proc *procPtr, Tcl_Interp *interp,
+    int objc, Tcl_Obj *const objv[],
+    Tcl_Namespace *execNsPtr,
+    NsfCallStackContent *cscPtr
+) nonnull(1) nonnull(2) nonnull(4) nonnull(6);
 
 static int
-PushProcCallFrame(Proc *procPtr, Tcl_Interp *interp,
-                  int objc, Tcl_Obj *const objv[],
-                  Tcl_Namespace *execNsPtr,
-                  NsfCallStackContent *cscPtr) {
+PushProcCallFrame(
+    Proc *procPtr, Tcl_Interp *interp,
+    int objc, Tcl_Obj *const objv[],
+    Tcl_Namespace *execNsPtr,
+    NsfCallStackContent *cscPtr
+) {
   Tcl_CallFrame *framePtr;
-  int result;
+  int            result;
 
   nonnull_assert(procPtr != NULL);
   nonnull_assert(interp != NULL);
@@ -12061,24 +12078,28 @@ PushProcCallFrame(Proc *procPtr, Tcl_Interp *interp,
   if (execNsPtr == NULL) {
     execNsPtr = (Tcl_Namespace *) procPtr->cmdPtr->nsPtr;
   }
-  /* TODO: we could use Tcl_PushCallFrame(), if we would allocate the Tcl stack frame earlier */
+
+  /*
+   * TODO: we could use Tcl_PushCallFrame(), if we would allocate the Tcl stack frame earlier
+   */
   result = TclPushStackFrame(interp, (Tcl_CallFrame **)&framePtr,
                              execNsPtr,
                              (FRAME_IS_PROC|FRAME_IS_NSF_METHOD));
 
-  if (unlikely(result != TCL_OK)) {
-    return result;
+  if (likely(result == TCL_OK)) {
+
+    Tcl_CallFrame_objc(framePtr) = objc;
+    Tcl_CallFrame_objv(framePtr) = objv;
+    Tcl_CallFrame_procPtr(framePtr) = procPtr;
+    Tcl_CallFrame_clientData(framePtr) = cscPtr;
+
+    /*fprintf(stderr, "Stack Frame %p procPtr %p compiledLocals %p firstLocal %p\n",
+      framePtr, procPtr, Tcl_CallFrame_compiledLocals(framePtr), procPtr->firstLocalPtr);*/
+
+    result = ByteCompiled(interp, &cscPtr->flags, procPtr, (Namespace *)execNsPtr, ObjStr(objv[0]));
   }
 
-  Tcl_CallFrame_objc(framePtr) = objc;
-  Tcl_CallFrame_objv(framePtr) = objv;
-  Tcl_CallFrame_procPtr(framePtr) = procPtr;
-  Tcl_CallFrame_clientData(framePtr) = cscPtr;
-
-  /*fprintf(stderr, "Stack Frame %p procPtr %p compiledLocals %p firstLocal %p\n",
-    framePtr, procPtr, Tcl_CallFrame_compiledLocals(framePtr), procPtr->firstLocalPtr);*/
-
-  return ByteCompiled(interp, &cscPtr->flags, procPtr, (Namespace *)execNsPtr, ObjStr(objv[0]));
+  return result;
 }
 
 #include "nsfAPI.h"
@@ -12103,7 +12124,7 @@ ObjectSystemsCheckSystemMethod(
     Tcl_Interp *interp, const char *methodName, const NsfObject *object, unsigned int flags
 ) {
   NsfObjectSystem *osPtr, *defOsPtr;
-  char firstChar;
+  char             firstChar;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(object != NULL);
@@ -12337,7 +12358,7 @@ ParamsFree(Nsf_Param *paramsPtr) {
  */
 NSF_INLINE static NsfParamDefs *
 ParamDefsGet(
-    Tcl_Command cmdPtr,
+    const Tcl_Command cmdPtr,
     unsigned int *checkAlwaysFlagPtr,
     Tcl_Namespace **execNsPtrPtr
 ) {
@@ -12375,10 +12396,16 @@ ParamDefsGet(
  *
  *----------------------------------------------------------------------
  */
+NSF_INLINE static Tcl_Obj *ParamDefsGetReturns(
+    const Tcl_Command cmdPtr
+) nonnull(1);
+
 NSF_INLINE static Tcl_Obj *
-ParamDefsGetReturns(Tcl_Command cmdPtr) {
-  NsfProcContext *pCtx;
-  Tcl_Obj        *resultObj;
+ParamDefsGetReturns(const Tcl_Command cmdPtr) {
+  const NsfProcContext *pCtx;
+  Tcl_Obj              *resultObj;
+
+  nonnull_assert(cmdPtr != NULL);
 
   pCtx = ProcContextGet(cmdPtr);
   if (pCtx != NULL) {
@@ -12405,14 +12432,17 @@ ParamDefsGetReturns(Tcl_Command cmdPtr) {
  *
  *----------------------------------------------------------------------
  */
-static int NsfParamDefsNonposLookup(Tcl_Interp *interp, const char *nameString,
-                                    Nsf_Param const *paramsPtr,  Nsf_Param const **paramPtrPtr)
-  nonnull(1) nonnull(2) nonnull(3) nonnull(4);
+static int NsfParamDefsNonposLookup(
+    Tcl_Interp *interp, const char *nameString,
+    const Nsf_Param *paramsPtr,  const Nsf_Param **paramPtrPtr
+) nonnull(1) nonnull(2) nonnull(3) nonnull(4);
 
 static int
-NsfParamDefsNonposLookup(Tcl_Interp *interp, const char *nameString,
-                         Nsf_Param const *paramsPtr, Nsf_Param const **paramPtrPtr) {
-  Nsf_Param const *paramPtr;
+NsfParamDefsNonposLookup(
+    Tcl_Interp *interp, const char *nameString,
+    const Nsf_Param *paramsPtr, const Nsf_Param **paramPtrPtr
+) {
+  const Nsf_Param *paramPtr;
   char             ch1;
   size_t           length;
 
@@ -12455,7 +12485,7 @@ NsfParamDefsNonposLookup(Tcl_Interp *interp, const char *nameString,
 
       if (ch1 == paramPtr->name[2]
           && strncmp(nameString, paramPtr->name, length) == 0) {
-        Nsf_Param const *pPtr;
+        const Nsf_Param *pPtr;
 
         /* fprintf(stderr, "... <%s> is an abbrev of <%s>\n", nameString, paramPtr->name); */
         /*
@@ -12588,7 +12618,7 @@ static void
 NsfProcDeleteProc(
     ClientData clientData
 ) {
-  NsfProcContext *ctxPtr;
+  const NsfProcContext *ctxPtr;
 
   nonnull_assert(clientData != NULL);
 
@@ -12676,7 +12706,7 @@ ProcContextRequire(
  */
 NSF_INLINE static NsfProcContext *
 ProcContextGet(
-    Tcl_Command cmdPtr
+    const Tcl_Command cmdPtr
 ) {
   NsfProcContext *result;
 
@@ -12755,9 +12785,9 @@ ParamDefsStore(
  */
 static NsfParamDefs *
 ParamDefsNew(void) {
-  NsfParamDefs *paramDefs;
-  static NsfMutex serialMutex = 0;
-  static int serial = 0;
+  NsfParamDefs    *paramDefs;
+  static NsfMutex  serialMutex = 0;
+  static int       serial = 0;
 
   paramDefs = NEW(NsfParamDefs);
   memset(paramDefs, 0, sizeof(NsfParamDefs));
@@ -12863,13 +12893,16 @@ ParamDefsRefCountDecr(NsfParamDefs *paramDefs) {
  *
  *----------------------------------------------------------------------
  */
-static void ParamDefsFormatOption(Tcl_Obj *nameStringObj, const char *option, int optionLength,
-                                  int *colonWritten, int *firstOption)
-  nonnull(1) nonnull(2) nonnull(4) nonnull(5);
+static void ParamDefsFormatOption(
+    Tcl_Obj *nameStringObj, const char *option, int optionLength,
+    int *colonWritten, int *firstOption
+) nonnull(1) nonnull(2) nonnull(4) nonnull(5);
 
 static void
-ParamDefsFormatOption(Tcl_Obj *nameStringObj, const char *option, int optionLength,
-                      int *colonWritten, int *firstOption) {
+ParamDefsFormatOption(
+    Tcl_Obj *nameStringObj, const char *option, int optionLength,
+    int *colonWritten, int *firstOption
+) {
 
   nonnull_assert(nameStringObj != NULL);
   nonnull_assert(option != NULL);
@@ -12903,20 +12936,24 @@ ParamDefsFormatOption(Tcl_Obj *nameStringObj, const char *option, int optionLeng
  *
  *----------------------------------------------------------------------
  */
-static Tcl_Obj *ParamDefsFormat(Tcl_Interp *interp, Nsf_Param const *paramsPtr, NsfObject *contextObject, const char *pattern)
-  nonnull(1) nonnull(2) returns_nonnull;
+static Tcl_Obj *ParamDefsFormat(
+    Tcl_Interp *interp, const Nsf_Param *paramsPtr, NsfObject *contextObject, const char *pattern
+) nonnull(1) nonnull(2) returns_nonnull;
 
-static int ParamsDefMatchPattern(Nsf_Param const *paramsPtr, const char *pattern) {
+static int ParamsDefMatchPattern(const Nsf_Param *paramsPtr, const char *pattern) {
   if (paramsPtr->nameObj != NULL) {
     return Tcl_StringMatch(ObjStr(paramsPtr->nameObj), pattern);
+  } else {
+    return Tcl_StringMatch(paramsPtr->name, pattern);
   }
-  return Tcl_StringMatch(paramsPtr->name, pattern);
 }
 
 
 static Tcl_Obj *
-ParamDefsFormat(Tcl_Interp *interp, Nsf_Param const *paramsPtr, NsfObject *contextObject, const char *pattern) {
-  int first, colonWritten;
+ParamDefsFormat(
+    Tcl_Interp *interp, const Nsf_Param *paramsPtr, NsfObject *contextObject, const char *pattern
+) {
+  int      first, colonWritten;
   Tcl_Obj *listObj = Tcl_NewListObj(0, NULL), *innerListObj, *nameStringObj;
 
   nonnull_assert(interp != NULL);
@@ -13042,11 +13079,14 @@ ParamDefsFormat(Tcl_Interp *interp, Nsf_Param const *paramsPtr, NsfObject *conte
  *
  *----------------------------------------------------------------------
  */
-static Tcl_Obj *ParamDefsList(Tcl_Interp *interp, Nsf_Param const *paramsPtr, NsfObject *contextObject, const char *pattern)
-  nonnull(1) nonnull(2) returns_nonnull;
+static Tcl_Obj *ParamDefsList(
+    Tcl_Interp *interp, const Nsf_Param *paramsPtr, NsfObject *contextObject, const char *pattern
+) nonnull(1) nonnull(2) returns_nonnull;
 
 static Tcl_Obj *
-ParamDefsList(Tcl_Interp *interp, Nsf_Param const *paramsPtr, NsfObject *contextObject, const char *pattern) {
+ParamDefsList(
+    Tcl_Interp *interp, const Nsf_Param *paramsPtr, NsfObject *contextObject, const char *pattern
+) {
   Tcl_Obj *listObj = Tcl_NewListObj(0, NULL);
 
   nonnull_assert(interp != NULL);
@@ -13084,11 +13124,14 @@ ParamDefsList(Tcl_Interp *interp, Nsf_Param const *paramsPtr, NsfObject *context
  *
  *----------------------------------------------------------------------
  */
-static Tcl_Obj * ParamDefsNames(Tcl_Interp *interp, Nsf_Param const *paramsPtr, NsfObject *contextObject, const char *pattern)
-  nonnull(1) nonnull(2) returns_nonnull;
+static Tcl_Obj * ParamDefsNames(
+    Tcl_Interp *interp, const Nsf_Param *paramsPtr, NsfObject *contextObject, const char *pattern
+) nonnull(1) nonnull(2) returns_nonnull;
 
 static Tcl_Obj *
-ParamDefsNames(Tcl_Interp *interp, Nsf_Param const *paramsPtr, NsfObject *contextObject, const char *pattern) {
+ParamDefsNames(
+    Tcl_Interp *interp, const Nsf_Param *paramsPtr, NsfObject *contextObject, const char *pattern
+) {
   Tcl_Obj *listObj = Tcl_NewListObj(0, NULL);
 
   nonnull_assert(interp != NULL);
@@ -13211,11 +13254,11 @@ ParamGetDomain(Nsf_Param const *paramPtr) {
  *----------------------------------------------------------------------
  */
 
-static void NsfParamDefsSyntaxOne(Tcl_Obj *argStringObj, Nsf_Param const *pPtr)
+static void NsfParamDefsSyntaxOne(Tcl_Obj *argStringObj, const Nsf_Param *pPtr)
   nonnull(1) nonnull(2);
 
 static void
-NsfParamDefsSyntaxOne(Tcl_Obj *argStringObj, Nsf_Param const *pPtr) {
+NsfParamDefsSyntaxOne(Tcl_Obj *argStringObj, const Nsf_Param *pPtr) {
 
   nonnull_assert(argStringObj != NULL);
   nonnull_assert(pPtr != NULL);
@@ -13262,8 +13305,11 @@ NsfParamDefsSyntaxOne(Tcl_Obj *argStringObj, Nsf_Param const *pPtr) {
  */
 
 static Tcl_Obj *
-NsfParamDefsVirtualFormat(Tcl_Interp *interp, Nsf_Param const *pPtr, NsfObject *contextObject, const char *pattern,
-                          NsfFormatFunction formatFunction) {
+NsfParamDefsVirtualFormat(
+    Tcl_Interp *interp, const Nsf_Param *pPtr,
+    NsfObject *contextObject, const char *pattern,
+    NsfFormatFunction formatFunction
+) {
   NsfParsedParam parsedParam;
   int result;
 
@@ -13306,9 +13352,11 @@ NsfParamDefsVirtualFormat(Tcl_Interp *interp, Nsf_Param const *pPtr, NsfObject *
  *----------------------------------------------------------------------
  */
 static bool
-NsfParamDefsAppendVirtual(Tcl_Interp *interp, Tcl_Obj *listObj,
-                          Nsf_Param const *paramsPtr, NsfObject *contextObject,
-                          const char *pattern, NsfFormatFunction formatFunction) {
+NsfParamDefsAppendVirtual(
+    Tcl_Interp *interp, Tcl_Obj *listObj,
+    const Nsf_Param *paramsPtr, NsfObject *contextObject,
+    const char *pattern, NsfFormatFunction formatFunction
+) {
   nonnull_assert(interp != NULL);
   nonnull_assert(listObj != NULL);
   nonnull_assert(paramsPtr != NULL);
@@ -13352,14 +13400,17 @@ NsfParamDefsAppendVirtual(Tcl_Interp *interp, Tcl_Obj *listObj,
  *----------------------------------------------------------------------
  */
 
-Tcl_Obj *NsfParamDefsSyntax(Tcl_Interp *interp, Nsf_Param const *paramsPtr, NsfObject *contextObject, const char *pattern)
-  nonnull(1) nonnull(2) returns_nonnull;
+Tcl_Obj *NsfParamDefsSyntax(
+    Tcl_Interp *interp, const Nsf_Param *paramsPtr, NsfObject *contextObject, const char *pattern
+) nonnull(1) nonnull(2) returns_nonnull;
 
 Tcl_Obj *
-NsfParamDefsSyntax(Tcl_Interp *interp, Nsf_Param const *paramsPtr, NsfObject *contextObject, const char *pattern) {
-  Tcl_Obj *argStringObj = Tcl_NewObj();
-  Nsf_Param const *pPtr;
-  int needSpace = 0;
+NsfParamDefsSyntax(
+    Tcl_Interp *interp, const Nsf_Param *paramsPtr, NsfObject *contextObject, const char *pattern
+) {
+  Tcl_Obj         *argStringObj = Tcl_NewObj();
+  const Nsf_Param *pPtr;
+  int              needSpace = 0;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(paramsPtr != NULL);
@@ -16024,12 +16075,12 @@ NoMetaChars(const char *pattern) {
  *----------------------------------------------------------------------
  */
 
-int Nsf_ConvertToString(Tcl_Interp *UNUSED(interp), Tcl_Obj *objPtr, Nsf_Param const *UNUSED(pPtr),
+int Nsf_ConvertToString(Tcl_Interp *UNUSED(interp), Tcl_Obj *objPtr, const Nsf_Param *UNUSED(pPtr),
                         ClientData *clientData, Tcl_Obj **UNUSED(outObjPtr))
   nonnull(2) nonnull(4);
 
 int
-Nsf_ConvertToString(Tcl_Interp *UNUSED(interp), Tcl_Obj *objPtr, Nsf_Param const *UNUSED(pPtr),
+Nsf_ConvertToString(Tcl_Interp *UNUSED(interp), Tcl_Obj *objPtr, const Nsf_Param *UNUSED(pPtr),
                     ClientData *clientData, Tcl_Obj **UNUSED(outObjPtr)) {
 
   nonnull_assert(objPtr != NULL);
@@ -16056,12 +16107,12 @@ Nsf_ConvertToString(Tcl_Interp *UNUSED(interp), Tcl_Obj *objPtr, Nsf_Param const
  *----------------------------------------------------------------------
  */
 
-static int ConvertToNothing(Tcl_Interp *UNUSED(interp), Tcl_Obj *objPtr,  Nsf_Param const *UNUSED(pPtr),
+static int ConvertToNothing(Tcl_Interp *UNUSED(interp), Tcl_Obj *objPtr,  const Nsf_Param *UNUSED(pPtr),
                             ClientData *UNUSED(clientData), Tcl_Obj **outObjPtr)
   nonnull(2) nonnull(5) pure;
 
 static int
-ConvertToNothing(Tcl_Interp *UNUSED(interp), Tcl_Obj *objPtr,  Nsf_Param const *UNUSED(pPtr),
+ConvertToNothing(Tcl_Interp *UNUSED(interp), Tcl_Obj *objPtr,  const Nsf_Param *UNUSED(pPtr),
                  ClientData *UNUSED(clientData), Tcl_Obj **outObjPtr) {
 
   nonnull_assert(objPtr != NULL);
@@ -16098,12 +16149,12 @@ static const char *stringTypeOpts[] = {"alnum", "alpha", "ascii", "boolean", "co
                                        "upper", "wideinteger", "wordchar", "xdigit",
                                        NULL};
 
-int Nsf_ConvertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
+int Nsf_ConvertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr,
                         ClientData *clientData, Tcl_Obj **UNUSED(outObjPtr))
   nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(5);
 
 int
-Nsf_ConvertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
+Nsf_ConvertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr,
                     ClientData *clientData, Tcl_Obj **UNUSED(outObjPtr)) {
   int result;
 
@@ -16174,12 +16225,12 @@ Nsf_ConvertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
  *----------------------------------------------------------------------
  */
 
-int Nsf_ConvertToBoolean(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
+int Nsf_ConvertToBoolean(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr,
                          ClientData *clientData, Tcl_Obj **UNUSED(outObjPtr))
   nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(5);
 
 int
-Nsf_ConvertToBoolean(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
+Nsf_ConvertToBoolean(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr,
                      ClientData *clientData, Tcl_Obj **UNUSED(outObjPtr)) {
   int result, boolVal;
 
@@ -16215,12 +16266,12 @@ Nsf_ConvertToBoolean(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr
  *
  *----------------------------------------------------------------------
  */
-int Nsf_ConvertToInt32(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
+int Nsf_ConvertToInt32(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr,
                        ClientData *clientData, Tcl_Obj **UNUSED(outObjPtr))
   nonnull(1) nonnull(2) nonnull(3) nonnull(4);
 
 int
-Nsf_ConvertToInt32(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
+Nsf_ConvertToInt32(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr,
                    ClientData *clientData, Tcl_Obj **UNUSED(outObjPtr)) {
   int result, i;
 
@@ -16258,12 +16309,12 @@ Nsf_ConvertToInt32(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
  */
 
 #include <tclTomMath.h>
-int Nsf_ConvertToInteger(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
+int Nsf_ConvertToInteger(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr,
                      ClientData *clientData, Tcl_Obj **outObjPtr)
   nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(5);
 
 int
-Nsf_ConvertToInteger(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
+Nsf_ConvertToInteger(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr,
                      ClientData *clientData, Tcl_Obj **UNUSED(outObjPtr)) {
   int result;
 
@@ -16333,12 +16384,12 @@ Nsf_ConvertToInteger(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr
  *----------------------------------------------------------------------
  */
 
-int Nsf_ConvertToSwitch(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
+int Nsf_ConvertToSwitch(Tcl_Interp *interp, Tcl_Obj *objPtr, const Nsf_Param *pPtr,
                         ClientData *clientData, Tcl_Obj **outObjPtr)
   nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(5);
 
 int
-Nsf_ConvertToSwitch(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
+Nsf_ConvertToSwitch(Tcl_Interp *interp, Tcl_Obj *objPtr, const Nsf_Param *pPtr,
                     ClientData *clientData, Tcl_Obj **outObjPtr) {
   nonnull_assert(interp != NULL);
   nonnull_assert(objPtr != NULL);
@@ -16366,12 +16417,12 @@ Nsf_ConvertToSwitch(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
  *----------------------------------------------------------------------
  */
 
-int Nsf_ConvertToObject(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
+int Nsf_ConvertToObject(Tcl_Interp *interp, Tcl_Obj *objPtr, const Nsf_Param *pPtr,
                         ClientData *clientData, Tcl_Obj **UNUSED(outObjPtr))
   nonnull(1) nonnull(2) nonnull(3) nonnull(4);
 
 int
-Nsf_ConvertToObject(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
+Nsf_ConvertToObject(Tcl_Interp *interp, Tcl_Obj *objPtr, const Nsf_Param *pPtr,
                     ClientData *clientData, Tcl_Obj **UNUSED(outObjPtr)) {
   int result;
 
@@ -16405,12 +16456,12 @@ Nsf_ConvertToObject(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
  *----------------------------------------------------------------------
  */
 
-int Nsf_ConvertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
+int Nsf_ConvertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr,
                        ClientData *clientData, Tcl_Obj **UNUSED(outObjPtr))
   nonnull(1) nonnull(2) nonnull(3) nonnull(4);
 
 int
-Nsf_ConvertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
+Nsf_ConvertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr,
                    ClientData *clientData, Tcl_Obj **UNUSED(outObjPtr)) {
   bool withUnknown;
   int  result;
@@ -16450,12 +16501,12 @@ Nsf_ConvertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
  *----------------------------------------------------------------------
  */
 
-int Nsf_ConvertToFilterreg(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
+int Nsf_ConvertToFilterreg(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr,
                            ClientData *clientData, Tcl_Obj **UNUSED(outObjPtr))
   nonnull(1) nonnull(2) nonnull(3) nonnull(4);
 
 int
-Nsf_ConvertToFilterreg(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
+Nsf_ConvertToFilterreg(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr,
                        ClientData *clientData, Tcl_Obj **UNUSED(outObjPtr)) {
   int result;
 
@@ -16491,12 +16542,12 @@ Nsf_ConvertToFilterreg(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pP
  *----------------------------------------------------------------------
  */
 
-int Nsf_ConvertToMixinreg(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
+int Nsf_ConvertToMixinreg(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr,
                           ClientData *clientData, Tcl_Obj **UNUSED(outObjPtr))
   nonnull(1) nonnull(2) nonnull(3) nonnull(4);
 
 int
-Nsf_ConvertToMixinreg(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
+Nsf_ConvertToMixinreg(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr,
                       ClientData *clientData, Tcl_Obj **UNUSED(outObjPtr)) {
   int result;
 
@@ -16532,12 +16583,12 @@ Nsf_ConvertToMixinreg(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPt
  *----------------------------------------------------------------------
  */
 
-int Nsf_ConvertToParameter(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
+int Nsf_ConvertToParameter(Tcl_Interp *interp, Tcl_Obj *objPtr, const Nsf_Param *pPtr,
                            ClientData *clientData, Tcl_Obj **UNUSED(outObjPtr))
   nonnull(1) nonnull(2) nonnull(3) nonnull(4);
 
 int
-Nsf_ConvertToParameter(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
+Nsf_ConvertToParameter(Tcl_Interp *interp, Tcl_Obj *objPtr, const Nsf_Param *pPtr,
                        ClientData *clientData, Tcl_Obj **UNUSED(outObjPtr)) {
   const char *value;
   int         result;
@@ -16577,12 +16628,12 @@ Nsf_ConvertToParameter(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPt
  *----------------------------------------------------------------------
  */
 
-static int ConvertViaCmd(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
+static int ConvertViaCmd(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr,
               ClientData *clientData, Tcl_Obj **outObjPtr)
   nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(5);
 
 static int
-ConvertViaCmd(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
+ConvertViaCmd(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr,
               ClientData *clientData, Tcl_Obj **outObjPtr) {
   Tcl_Obj *ov[5], *savedResult;
   NsfObject *object;
@@ -16700,12 +16751,12 @@ ConvertViaCmd(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
  *
  *----------------------------------------------------------------------
  */
-static int ConvertToObjpattern(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *UNUSED(pPtr),
+static int ConvertToObjpattern(Tcl_Interp *interp, Tcl_Obj *objPtr, const Nsf_Param *UNUSED(pPtr),
                     ClientData *clientData, Tcl_Obj **outObjPtr)
   nonnull(1) nonnull(2) nonnull(4) nonnull(5);
 
 static int
-ConvertToObjpattern(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *UNUSED(pPtr),
+ConvertToObjpattern(Tcl_Interp *interp, Tcl_Obj *objPtr, const Nsf_Param *UNUSED(pPtr),
                     ClientData *clientData, Tcl_Obj **outObjPtr) {
   Tcl_Obj    *patternObj;
   const char *pattern;
@@ -17724,13 +17775,13 @@ static int ParamDefsParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *par
  *----------------------------------------------------------------------
  */
 static int ParameterMethodForwardDispatch(Tcl_Interp *interp, NsfObject *object,
-                                          Nsf_Param const *paramPtr, Tcl_Obj *newValue,
+                                          const Nsf_Param *paramPtr, Tcl_Obj *newValue,
                                           NsfCallStackContent *cscPtr)
   nonnull(1) nonnull(2) nonnull(3);
 
 static int
 ParameterMethodForwardDispatch(Tcl_Interp *interp, NsfObject *object,
-                               Nsf_Param const *paramPtr, Tcl_Obj *newValue,
+                               const Nsf_Param *paramPtr, Tcl_Obj *newValue,
                                NsfCallStackContent *cscPtr) {
   Tcl_Obj **nobjv, *ov[3], *methodObj, *forwardSpec;
   ForwardCmdClientData *tcd = NULL;
@@ -23320,11 +23371,11 @@ CallingNameSpace(Tcl_Interp *interp) {
  * argument handling
  ***********************************/
 
-static void ArgumentResetRefCounts(struct Nsf_Param const *pPtr, Tcl_Obj *valueObj)
+static void ArgumentResetRefCounts(const struct Nsf_Param *pPtr, Tcl_Obj *valueObj)
   nonnull(1) nonnull(2);
 
 static void
-ArgumentResetRefCounts(struct Nsf_Param const *pPtr, Tcl_Obj *valueObj) {
+ArgumentResetRefCounts(const struct Nsf_Param *pPtr, Tcl_Obj *valueObj) {
 
   nonnull_assert(pPtr != NULL);
   nonnull_assert(valueObj != NULL);
@@ -23349,14 +23400,14 @@ ArgumentResetRefCounts(struct Nsf_Param const *pPtr, Tcl_Obj *valueObj) {
  *
  *----------------------------------------------------------------------
  */
-static int ArgumentCheckHelper(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param const *pPtr, unsigned int *flags,
+static int ArgumentCheckHelper(Tcl_Interp *interp, Tcl_Obj *objPtr, const struct Nsf_Param *pPtr, unsigned int *flags,
                                ClientData *clientData, Tcl_Obj **outObjPtr)
   nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(5) nonnull(6);
 
 static int
 ArgumentCheckHelper(Tcl_Interp *interp,
                     Tcl_Obj *objPtr,
-                    struct Nsf_Param const *pPtr,
+                    const struct Nsf_Param *pPtr,
                     unsigned int *flags,
                     ClientData *clientData,
                     Tcl_Obj **outObjPtr) {
@@ -23434,7 +23485,7 @@ ArgumentCheckHelper(Tcl_Interp *interp,
  *----------------------------------------------------------------------
  */
 static int
-ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param const *pPtr,
+ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, const struct Nsf_Param *pPtr,
               unsigned int doCheckArguments,
               unsigned int *flags, ClientData *clientData, Tcl_Obj **outObjPtr) {
   int result;
@@ -23563,13 +23614,13 @@ ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param const *pPtr,
  *----------------------------------------------------------------------
  */
 static int ArgumentDefaults(ParseContext *pcPtr, Tcl_Interp *interp,
-                            Nsf_Param const *ifd, int nrParams, unsigned int processFlags)
+                            const Nsf_Param *ifd, int nrParams, unsigned int processFlags)
   nonnull(1) nonnull(2) nonnull(3);
 
 static int
 ArgumentDefaults(ParseContext *pcPtr, Tcl_Interp *interp,
-                 Nsf_Param const *ifd, int nrParams, unsigned int processFlags) {
-  Nsf_Param const *pPtr;
+                 const Nsf_Param *ifd, int nrParams, unsigned int processFlags) {
+  const Nsf_Param *pPtr;
   int i;
 
   nonnull_assert(pcPtr != NULL);
@@ -23755,7 +23806,7 @@ ArgumentDefaults(ParseContext *pcPtr, Tcl_Interp *interp,
 int
 Nsf_ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[],
                   Nsf_Object *object, Tcl_Obj *procNameObj,
-                  Nsf_Param const *paramPtr, int nrParams, int serial,
+                  const Nsf_Param *paramPtr, int nrParams, int serial,
                   unsigned int processFlags, Nsf_ParseContext *pcPtr) {
 
   nonnull_assert(interp != NULL);
@@ -23783,11 +23834,11 @@ Nsf_ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[],
  *----------------------------------------------------------------------
  */
 
-static Nsf_Param const * NextParam(Nsf_Param const *paramPtr, Nsf_Param const *lastParamPtr)
+static const Nsf_Param * NextParam(Nsf_Param const *paramPtr, const Nsf_Param *lastParamPtr)
   nonnull(1) nonnull(2) returns_nonnull;
 
-static Nsf_Param const *
-NextParam(Nsf_Param const *paramPtr, Nsf_Param const *lastParamPtr) {
+static const Nsf_Param *
+NextParam(Nsf_Param const *paramPtr, const Nsf_Param *lastParamPtr) {
 
   nonnull_assert(paramPtr != NULL);
   nonnull_assert(lastParamPtr != NULL);
@@ -23818,14 +23869,14 @@ NextParam(Nsf_Param const *paramPtr, Nsf_Param const *lastParamPtr) {
 static int
 ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[],
               NsfObject *object, Tcl_Obj *procNameObj,
-              Nsf_Param const *paramPtr, int nrParams, int serial,
+              const Nsf_Param *paramPtr, int nrParams, int serial,
               unsigned int processFlags, ParseContext *pcPtr
               ) {
   int              o, fromArg;
   bool             dashdash = NSF_FALSE;
   long             j;
-  Nsf_Param const *currentParamPtr = paramPtr;
-  Nsf_Param const *lastParamPtr = paramPtr + nrParams - 1;
+  const Nsf_Param *currentParamPtr = paramPtr;
+  const Nsf_Param *lastParamPtr = paramPtr + nrParams - 1;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(objv != NULL);
@@ -23842,7 +23893,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[],
   ParseContextInit(pcPtr, nrParams, object, procNameObj);
 
 #if defined(PARSE_TRACE)
-  { Nsf_Param const *pPtr;
+  { const Nsf_Param *pPtr;
     fprintf(stderr, "PARAMETER ");
     for (o = 0, pPtr = paramPtr; pPtr->name != NULL; o++, pPtr++) {
       fprintf(stderr, "[%d]%s (nrargs %d %s) ", o,
@@ -23864,7 +23915,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[],
 #endif
 
   for (o = fromArg; o < objc; o++) {
-    Nsf_Param const *pPtr = currentParamPtr;
+    const Nsf_Param *pPtr = currentParamPtr;
     Tcl_Obj         *argumentObj = objv[o], *valueObj = NULL;
     const char      *valueInArgument = NULL;
 
@@ -24011,7 +24062,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[],
               }
             }
             if (!found) {
-              Nsf_Param const *nextParamPtr = NextParam(currentParamPtr, lastParamPtr);
+              const Nsf_Param *nextParamPtr = NextParam(currentParamPtr, lastParamPtr);
 
               if (nextParamPtr > lastParamPtr
                   || ((nextParamPtr->flags & NSF_ARG_NODASHALNUM) != 0u)) {
@@ -24054,7 +24105,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[],
              */
             if (!found) {
               int nonposArgError = 0;
-              Nsf_Param const *nextParamPtr = NextParam(currentParamPtr, lastParamPtr);
+              const Nsf_Param *nextParamPtr = NextParam(currentParamPtr, lastParamPtr);
 
               /*fprintf(stderr, "non-pos-arg '%s' not found, current %p %s last %p %s next %p %s\n",
                       argumentString,
@@ -24480,13 +24531,13 @@ ListProcBody(Tcl_Interp *interp, Proc *procPtr) {
  *
  *----------------------------------------------------------------------
  */
-static Tcl_Obj *ListParamDefs(Tcl_Interp *interp, Nsf_Param const *paramsPtr,
+static Tcl_Obj *ListParamDefs(Tcl_Interp *interp, const Nsf_Param *paramsPtr,
                               NsfObject *contextObject, const char *pattern,
                               NsfParamsPrintStyle style)
   nonnull(1) nonnull(2) returns_nonnull;
 
 static Tcl_Obj *
-ListParamDefs(Tcl_Interp *interp, Nsf_Param const *paramsPtr,
+ListParamDefs(Tcl_Interp *interp, const Nsf_Param *paramsPtr,
               NsfObject *contextObject,  const char *pattern,
               NsfParamsPrintStyle style) {
   Tcl_Obj *listObj;
@@ -30423,11 +30474,13 @@ ParamSetFromAny(
  *----------------------------------------------------------------------
  */
 static int
-ComputeParameterDefinition(Tcl_Interp *interp, Tcl_Obj *procNameObj,
-                           NsfObject *object, NsfClass *class,
-                           NsfParsedParam *parsedParamPtr) {
-  int result = TCL_OK;
-  Tcl_Obj *methodObj;
+ComputeParameterDefinition(
+    Tcl_Interp *interp, Tcl_Obj *procNameObj,
+    NsfObject *object, NsfClass *class,
+    NsfParsedParam *parsedParamPtr
+) {
+  int        result = TCL_OK;
+  Tcl_Obj   *methodObj;
   NsfObject *self;
 
   if (object != NULL) {
@@ -30469,6 +30522,7 @@ ComputeParameterDefinition(Tcl_Interp *interp, Tcl_Obj *procNameObj,
 #if defined(PER_OBJECT_PARAMETER_CACHING)
         } else if (object != NULL) {
           NsfObjectOpt *opt = NsfRequireObjectOpt(object);
+
           if (object->opt->parsedParamPtr != NULL) {
             NsfParameterCacheObjectInvalidateCmd(interp, object);
           }
@@ -30506,9 +30560,11 @@ ComputeParameterDefinition(Tcl_Interp *interp, Tcl_Obj *procNameObj,
  *----------------------------------------------------------------------
  */
 static int
-GetObjectParameterDefinition(Tcl_Interp *interp, Tcl_Obj *procNameObj,
-                             NsfObject *object, NsfClass *class,
-                             NsfParsedParam *parsedParamPtr) {
+GetObjectParameterDefinition(
+    Tcl_Interp *interp, Tcl_Obj *procNameObj,
+    NsfObject *object, NsfClass *class,
+    NsfParsedParam *parsedParamPtr
+) {
   int result = TCL_OK;
 
   nonnull_assert(interp != NULL);
@@ -31151,7 +31207,7 @@ static int
 NsfOCgetMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj) {
   int              result;
   NsfParsedParam   parsedParam;
-  Nsf_Param const *paramPtr;
+  const Nsf_Param *paramPtr;
   CallFrame        frame, *framePtr = &frame, *uplevelVarFramePtr;
 
   nonnull_assert(interp != NULL);
