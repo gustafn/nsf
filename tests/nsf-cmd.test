@@ -233,7 +233,7 @@ nx::test case nsf-method-get-variants {
   ? {nsf::cmd::info definitionhandle $::handle} ""
   ? {nsf::cmd::info origin $::handle} ""
   ? {nsf::cmd::info parameter $::handle} "subcmd -context:object methodName pattern:optional"
-  ? {nsf::cmd::info syntax $::handle} "args|body|definition|exists|registrationhandle|definitionhandle|origin|parameter|syntax|type|precondition|postcondition|submethods|returns ?-context /object/? /methodName/ ?/pattern/?"
+  ? {nsf::cmd::info syntax $::handle} "args|body|definition|exists|registrationhandle|definitionhandle|origin|parameter|syntax|type|precondition|postcondition|submethods|returns|disassemble ?-context /object/? /methodName/ ?/pattern/?"
   ? {nsf::cmd::info type $::handle} "cmd"
   ? {nsf::cmd::info precondition $::handle} ""
   ? {nsf::cmd::info postcondition $::handle} ""

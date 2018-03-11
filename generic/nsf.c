@@ -24892,6 +24892,33 @@ AppendReturnsClause(Tcl_Interp *interp, Tcl_Obj *listObj, Tcl_Command cmd) {
   }
 }
 
+static Tcl_Obj *DisassembleProc(Tcl_Interp *interp, Proc *procPtr,
+                                const char *procName, Namespace *nsPtr)
+  nonnull(1) nonnull(2) nonnull(3) nonnull(4);
+
+static Tcl_Obj *DisassembleProc(Tcl_Interp *interp, Proc *procPtr,
+                                const char *procName, Namespace *nsPtr) {
+  unsigned int dummy = 0;
+  Tcl_Obj *byteCodeObj = NULL;
+   
+  if ((procPtr->bodyPtr->typePtr == Nsf_OT_byteCodeType) ||
+      (ByteCompiled(interp, &dummy, procPtr, nsPtr, procName) == TCL_OK)) {
+    Tcl_Obj *ov[3];
+    
+    ov[0] = NULL;
+    ov[1] = NsfGlobalObjs[NSF_SCRIPT];
+    ov[2] = procPtr->bodyPtr;
+    
+    if ((NsfCallCommand(interp, NSF_DISASSEMBLE, 3, ov) == TCL_OK)) {
+      byteCodeObj = Tcl_GetObjResult(interp);
+    }
+  }
+  
+  return byteCodeObj;
+}
+
+
+
 /*
  *----------------------------------------------------------------------
  * ListMethod --
@@ -24937,7 +24964,8 @@ ListMethod(Tcl_Interp *interp,
            const char *pattern,
            bool withPer_object) {
 
-  Tcl_ObjCmdProc *procPtr;
+  Tcl_ObjCmdProc *objCmdProc;
+  Proc           *procPtr;
   bool            outputPerObject;
   Tcl_Obj        *resultObj;
 
@@ -24956,8 +24984,6 @@ ListMethod(Tcl_Interp *interp,
   } else {
     outputPerObject = withPer_object;
   }
-
-  procPtr = Tcl_Command_objProc(cmd);
 
   switch (subcmd) {
   case InfomethodsubcmdRegistrationhandleIdx:
@@ -25071,9 +25097,13 @@ ListMethod(Tcl_Interp *interp,
   case InfomethodsubcmdOriginIdx:     /* fall through */
   case InfomethodsubcmdTypeIdx:       /* fall through */
   case InfomethodsubcmdDefinitionIdx: /* fall through */
+  case InfomethodsubcmdDisassembleIdx: /* fall through */
   case InfomethodsubcmdNULL:
     break;
   }
+
+  objCmdProc = Tcl_Command_objProc(cmd);
+  procPtr = GetTclProcFromCommand(cmd);
 
   /*
    * The subcommands differ per type of method. The converter in
@@ -25081,7 +25111,7 @@ ListMethod(Tcl_Interp *interp,
    *
    *    all|scripted|builtin|alias|forwarder|object|setter|nsfproc
    */
-  if (GetTclProcFromCommand(cmd)) {
+  if (procPtr != NULL) {
     /* a scripted method */
     switch (subcmd) {
 
@@ -25094,30 +25124,28 @@ ListMethod(Tcl_Interp *interp,
       break;
 
     case InfomethodsubcmdBodyIdx:
-      ListProcBody(interp, GetTclProcFromCommand(cmd));
+      ListProcBody(interp, procPtr);
       break;
 
-#ifdef HAVE_TCL_DISASSAEMBLE_BYTE_CODE
-      /*
-       * In order to get the case label, add |disassemble 3x (to
-       * infomethodsubcmd and methodgetcmd) in nsfAPI.decls and
-       * add "info method disassemble" and per-object variant
-       */
     case InfomethodsubcmdDisassembleIdx:
-      {
-        Proc *procPtr = GetTclProcFromCommand(cmd);
+    {
+      Tcl_Namespace *nsPtr;
+      NsfParamDefs  *paramDefs;
+      
+      paramDefs = ParamDefsGet(cmd, NULL, &nsPtr);
 
-        if (procPtr == NULL) {
-          Tcl_SetObjResult(interp, Tcl_NewStringObj("body not available for this kind of method", -1));
-          return TCL_ERROR;
-        }
-        if (procPtr->bodyPtr->typePtr == Nsf_OT_byteCodeType) {
-          EXTERN Tcl_Obj *Tcl_DisassembleByteCodeObj(Tcl_Interp *interp, Tcl_Obj *objPtr);
-
-          Tcl_SetObjResult(interp, Tcl_DisassembleByteCodeObj(interp, procPtr->bodyPtr));
+      if (paramDefs == NULL || nsPtr == NULL) {
+        nsPtr = (Tcl_Namespace *)procPtr->cmdPtr->nsPtr;
       }
-      break;
-#endif
+      
+      resultObj = DisassembleProc(interp, procPtr, methodName,
+                                  (Namespace *)nsPtr);
+      
+      if (resultObj != NULL) {
+        Tcl_SetObjResult(interp, resultObj);
+      }
+    }
+    break;
     case InfomethodsubcmdDefinitionIdx:
       {
         resultObj = Tcl_NewListObj(0, NULL);
@@ -25143,7 +25171,7 @@ ListMethod(Tcl_Interp *interp,
 
         AppendReturnsClause(interp, resultObj, cmd);
 
-        ListProcBody(interp, GetTclProcFromCommand(cmd));
+        ListProcBody(interp, procPtr);
         Tcl_ListObjAppendElement(interp, resultObj, Tcl_GetObjResult(interp));
 
 #if defined(NSF_WITH_ASSERTIONS)
@@ -25186,7 +25214,7 @@ ListMethod(Tcl_Interp *interp,
     break;
     }
 
-  } else if (procPtr == NsfForwardMethod) {
+  } else if (objCmdProc == NsfForwardMethod) {
     /* forwarder */
     switch (subcmd) {
     case InfomethodsubcmdTypeIdx:
@@ -25221,11 +25249,12 @@ ListMethod(Tcl_Interp *interp,
     case InfomethodsubcmdReturnsIdx:             /* fall through */
     case InfomethodsubcmdSubmethodsIdx:          /* fall through */
     case InfomethodsubcmdSyntaxIdx:              /* fall through */
+    case InfomethodsubcmdDisassembleIdx:         /* fall through */
     case InfomethodsubcmdNULL:
       break;
     }
 
-  } else if (procPtr == NsfSetterMethod) {
+  } else if (objCmdProc == NsfSetterMethod) {
     /* setter methods */
     switch (subcmd) {
     case InfomethodsubcmdTypeIdx:
@@ -25255,10 +25284,11 @@ ListMethod(Tcl_Interp *interp,
     case InfomethodsubcmdReturnsIdx:             /* fall through */
     case InfomethodsubcmdSubmethodsIdx:          /* fall through */
     case InfomethodsubcmdSyntaxIdx:              /* fall through */
+    case InfomethodsubcmdDisassembleIdx:         /* fall through */
     case InfomethodsubcmdNULL:
       break;
     }
-  } else if (procPtr == NsfProcStub) {
+  } else if (objCmdProc == NsfProcStub) {
     /*
      * Special nsfproc handling:
      */
@@ -25266,6 +25296,7 @@ ListMethod(Tcl_Interp *interp,
 
     if (tcd != NULL && tcd->procName) {
       Tcl_Command  procCmd = Tcl_GetCommandFromObj(interp, tcd->procName);
+      Proc         *tProcPtr = GetTclProcFromCommand(procCmd);
       Tcl_DString  ds, *dsPtr = &ds;
 
       switch (subcmd) {
@@ -25275,7 +25306,7 @@ ListMethod(Tcl_Interp *interp,
         break;
 
       case InfomethodsubcmdBodyIdx:
-        ListProcBody(interp, GetTclProcFromCommand(procCmd));
+        ListProcBody(interp, tProcPtr);
         break;
 
       case InfomethodsubcmdDefinitionIdx:
@@ -25299,12 +25330,20 @@ ListMethod(Tcl_Interp *interp,
                                                   Tcl_DStringLength(dsPtr)));
         ListCmdParams(interp, cmd, NULL, NULL, Tcl_DStringValue(dsPtr), NSF_PARAMS_PARAMETER);
         Tcl_ListObjAppendElement(interp, resultObj, Tcl_GetObjResult(interp));
-        ListProcBody(interp, GetTclProcFromCommand(procCmd));
+        ListProcBody(interp, tProcPtr);
         Tcl_ListObjAppendElement(interp, resultObj, Tcl_GetObjResult(interp));
         Tcl_SetObjResult(interp, resultObj);
         Tcl_DStringFree(dsPtr);
         break;
+      case InfomethodsubcmdDisassembleIdx:
+        
+        resultObj = DisassembleProc(interp, tProcPtr, methodName,
+                                    tProcPtr->cmdPtr->nsPtr);
 
+        if (resultObj != NULL) {
+          Tcl_SetObjResult(interp, resultObj);
+        }
+        break;
       case InfomethodsubcmdArgsIdx:                /* fall through */
       case InfomethodsubcmdDefinitionhandleIdx:    /* fall through */
       case InfomethodsubcmdExistsIdx:              /* fall through */
@@ -25325,7 +25364,7 @@ ListMethod(Tcl_Interp *interp,
     /*
      * The cmd must be an alias or object.
      *
-     * Note that some aliases come with procPtr == NsfObjDispatch.  In order
+     * Note that some aliases come with objCmdProc == NsfObjDispatch.  In order
      * to distinguish between "object" and alias, we have to do the lookup for
      * the entryObj to determine whether it is really an alias.
      */
@@ -25358,7 +25397,7 @@ ListMethod(Tcl_Interp *interp,
           /* todo: don't hard-code registering command name "alias" / NSF_ALIAS */
           AppendMethodRegistration(interp, resultObj, NsfGlobalStrings[NSF_ALIAS],
                                    regObject, methodName, cmd,
-                                   procPtr == NsfObjscopedMethod,
+                                   objCmdProc == NsfObjscopedMethod,
                                    outputPerObject, 1);
           AppendReturnsClause(interp, resultObj, cmd);
           Tcl_ListObjAppendElement(interp, resultObj, listElements[nrElements-1]);
@@ -25386,6 +25425,7 @@ ListMethod(Tcl_Interp *interp,
       case InfomethodsubcmdReturnsIdx:             /* fall through */
       case InfomethodsubcmdSubmethodsIdx:          /* fall through */
       case InfomethodsubcmdSyntaxIdx:              /* fall through */
+      case InfomethodsubcmdDisassembleIdx:         /* fall through */
       case InfomethodsubcmdNULL:
         break;
       }
@@ -25423,6 +25463,7 @@ ListMethod(Tcl_Interp *interp,
         case InfomethodsubcmdSubmethodsIdx:          /* fall through */
         case InfomethodsubcmdSyntaxIdx:              /* fall through */
         case InfomethodsubcmdOriginIdx:              /* fall through */
+        case InfomethodsubcmdDisassembleIdx:         /* fall through */
         case InfomethodsubcmdNULL:
           break;
         }
@@ -25462,6 +25503,7 @@ ListMethod(Tcl_Interp *interp,
     case InfomethodsubcmdReturnsIdx:             /* fall through */
     case InfomethodsubcmdSubmethodsIdx:          /* fall through */
     case InfomethodsubcmdSyntaxIdx:              /* fall through */
+    case InfomethodsubcmdDisassembleIdx:         /* fall through */
     case InfomethodsubcmdNULL:
       break;
     }

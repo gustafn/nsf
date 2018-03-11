@@ -749,13 +749,13 @@ typedef enum {
   /* constants */
   NSF_ALIAS, NSF_ARGS, NSF_CMD, NSF_FILTER, NSF_FORWARD,
   NSF_METHOD,  NSF_OBJECT, NSF_SETTER, NSF_SETTERNAME, NSF_VALUECHECK,
-  NSF_GUARD_OPTION, NSF___UNKNOWN__, NSF_ARRAY, NSF_GET, NSF_SET, NSF_OPTION_STRICT,
+  NSF_GUARD_OPTION, NSF___UNKNOWN__, NSF_ARRAY, NSF_GET, NSF_SET, NSF_OPTION_STRICT, NSF_SCRIPT,
   NSF_OBJECT_UNKNOWN_HANDLER, NSF_ARGUMENT_UNKNOWN_HANDLER,
   NSF_PARSE_ARGS,
   /* Partly redefined Tcl commands; leave them together at the end */
   NSF_EXPR, NSF_FORMAT, NSF_INFO_BODY, NSF_INFO_FRAME, NSF_INTERP,
-  NSF_STRING_IS, NSF_EVAL,
-  NSF_RENAME
+  NSF_STRING_IS, NSF_EVAL, NSF_DISASSEMBLE,
+  NSF_RENAME 
 } NsfGlobalNames;
 #if !defined(NSF_C)
 EXTERN const char *NsfGlobalStrings[];
@@ -774,14 +774,14 @@ const char *NsfGlobalStrings[] = {
   /* constants */
   "alias", "args", "cmd", "filter",  "forward",
   "method", "object", "setter", "settername", "valuecheck",
-  "-guard", "__unknown__", "::array", "get", "set", "-strict",
+  "-guard", "__unknown__", "::array", "get", "set", "-strict", "script",
   /* nsf Tcl commands */
   "::nsf::object::unknown",
   "::nsf::argument::unknown",
   "::nsf::parseargs",
   /* Tcl commands */
   "expr", "format", "::tcl::info::body", "::tcl::info::frame", "interp",
-  "::tcl::string::is", "::eval",
+  "::tcl::string::is", "::eval", "::tcl::unsupported::disassemble",
   "rename"
 };
 #endif

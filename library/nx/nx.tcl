@@ -891,7 +891,9 @@ namespace eval ::nx {
     #:alias "info method" ::nsf::methods::class::info::method
     :method "info method args"         {name} {: ::nsf::methods::class::info::method args $name}
     :method "info method body"         {name} {: ::nsf::methods::class::info::method body $name}
-    #:method "info method disassemble"  {name} {: ::nsf::methods::class::info::method disassemble $name}
+    if {[::nsf::pkgconfig get development]} {
+      :method "info method disassemble" {name} {: ::nsf::methods::class::info::method disassemble $name}
+    }
     :method "info method definition"   {name} {: ::nsf::methods::class::info::method definition $name}
     :method "info method exists"       {name} {: ::nsf::methods::class::info::method exists $name}
     :method "info method handle"       {name} {: ::nsf::methods::class::info::method definitionhandle $name}
@@ -927,6 +929,9 @@ namespace eval ::nx {
     :method "info object method args"         {name} {: ::nsf::methods::object::info::method args $name}
     :method "info object method body"         {name} {: ::nsf::methods::object::info::method body $name}
     :method "info object method definition"   {name} {: ::nsf::methods::object::info::method definition $name}
+    if {[::nsf::pkgconfig get development]} {
+      :method "info object method disassemble" {name} {: ::nsf::methods::object::info::method disassemble $name}
+    }
     :method "info object method exists"       {name} {: ::nsf::methods::object::info::method exists $name}
     :method "info object method handle"       {name} {: ::nsf::methods::object::info::method definitionhandle $name}
     :method "info object method registrationhandle" {name} {: ::nsf::methods::object::info::method registrationhandle $name}

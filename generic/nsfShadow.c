@@ -436,6 +436,7 @@ NsfShadowTclCommands(Tcl_Interp *interp, NsfShadowOperations load) {
     rc |= NsfReplaceCommand(interp, NsfGlobalObjs[NSF_FORMAT],     NULL, NULL, CMD_INFO(rst, NSF_FORMAT));
     rc |= NsfReplaceCommand(interp, NsfGlobalObjs[NSF_INTERP],     NULL, NULL, CMD_INFO(rst, NSF_INTERP));
     rc |= NsfReplaceCommand(interp, NsfGlobalObjs[NSF_STRING_IS],  NULL, NULL, CMD_INFO(rst, NSF_STRING_IS));
+    rc |= NsfReplaceCommand(interp, NsfGlobalObjs[NSF_DISASSEMBLE],  NULL, NULL, CMD_INFO(rst, NSF_DISASSEMBLE));
 
     /* for the following commands, we have to add our own semantics */
     rc |= NsfReplaceCommand(interp, NsfGlobalObjs[NSF_INFO_BODY],  Nsf_InfoBodyObjCmd,  NULL, CMD_INFO(rst, NSF_INFO_BODY));
