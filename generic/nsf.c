@@ -7382,9 +7382,8 @@ AutonameIncr(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfObject *object,
       }
     }
     if (format) {
-      Tcl_Obj *savedResultObj;
+      Tcl_Obj *savedResultObj, *ov[3];
 
-      ALLOC_ON_STACK(Tcl_Obj*, 3, ov);
       savedResultObj = Tcl_GetObjResult(interp);
       INCR_REF_COUNT(savedResultObj);
       ov[0] = NULL;
@@ -7393,7 +7392,6 @@ AutonameIncr(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfObject *object,
       if (NsfCallCommand(interp, NSF_FORMAT, 3, ov) != TCL_OK) {
         Nsf_PopFrameObj(interp, framePtr);
         DECR_REF_COUNT(savedResultObj);
-        FREE_ON_STACK(Tcl_Obj*, ov);
         return NULL;
       }
       DECR_REF_COUNT(resultObj);
@@ -7401,7 +7399,6 @@ AutonameIncr(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfObject *object,
       INCR_REF_COUNT2("autoname", resultObj);
       Tcl_SetObjResult(interp, savedResultObj);
       DECR_REF_COUNT(savedResultObj);
-      FREE_ON_STACK(Tcl_Obj*, ov);
 
     } else {
       const char *valueString = Tcl_GetString(valueObj);
