@@ -177,7 +177,7 @@ namespace eval ::xotcl {
   # namespaces are cleared, and the object's relationships (e.g., mixin
   # relations) are reset.
   #
-  # @properties interally-called
+  # @properties internally-called
 
   # @method ::xotcl::Object#destroy
   #

@@ -1823,7 +1823,7 @@ nx::Object create o4 {
 o4 foo a
 --------------------------------------------------
 
-Value contraints are specified as parameter options in the parameter
+Value constraints are specified as parameter options in the parameter
 specifications. The parameter specification +x:integer+ defines +x+ as
 a required positional parmeter which value is constraint to an
 integer. The parameter specification +o:object,optional+ shows how to

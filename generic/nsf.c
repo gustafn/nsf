@@ -7365,7 +7365,7 @@ AutonameIncr(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfObject *object,
       */
     }
     /* if we find a % in the autoname -> We use Tcl_FormatObjCmd
-       to let the autoname string be formated, like Tcl "format"
+       to let the autoname string be formatted, like Tcl "format"
        command, with the value. E.g.:
        autoname a%06d --> a000000, a000001, a000002, ...
     */
