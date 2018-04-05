@@ -1520,7 +1520,7 @@ namespace eval ::nx {
 
   ObjectParameterSlot public method getParameterSpec {} {
     #
-    # Get a full object parmeter specification from slot object
+    # Get a full object parameter specification from slot object
     #
     if {![info exists :parameterSpec]} {
       set prefix [expr {[info exists :positional] && ${:positional} ? "" : "-"}]
