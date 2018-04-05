@@ -215,7 +215,7 @@ namespace eval ::xotcl::scriptCreation::recoveryPoint {
     }
 
     #
-    # append parent obj/classes/namespaces of an object completly
+    # append parent obj/classes/namespaces of an object completely
     #
 
     RecoveryPoint instproc appendParents {name} {

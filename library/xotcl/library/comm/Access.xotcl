@@ -1002,7 +1002,7 @@ namespace eval ::xotcl::comm::httpAccess {
     }
     Http instproc resubmitAuthenticated headerField {
 	#my showCall
-	# the server requires authentification
+	# the server requires authentication
 	my instvar path method
 	if {[pwdManager checkRequestedAuthentification $method $path $headerField \
 		 type realm]} {
@@ -1306,8 +1306,8 @@ namespace eval ::xotcl::comm::httpAccess {
     }
     pwdManager proc checkRequestedAuthentification {reqMethod path headerField 
 						    typeVar realmVar} {
-	# check for which realm with which authentification method the
-	# server wants an authentification
+	# check for which realm with which authentication method the
+	# server wants an authentication
 	#my showCall
 	upvar [self callinglevel] $typeVar type $realmVar realm
 	my instvar authMethod digestResponseData requestUri requestMethod

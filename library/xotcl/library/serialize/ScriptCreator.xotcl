@@ -132,7 +132,7 @@ namespace eval ::xotcl::scriptCreation::scriptCreator {
     }
 
     #
-    # check parent obj/classes/namespaces of an object completly
+    # check parent obj/classes/namespaces of an object completely
     #
     ScriptCreator instproc checkParents {name} {
 	set p ""

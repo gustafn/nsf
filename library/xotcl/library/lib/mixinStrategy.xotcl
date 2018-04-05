@@ -13,7 +13,7 @@ namespace eval ::xotcl::mixinStrategy {
     <@p>
     Naming conventions for strategies:
     All strategies must follow the naming convention 'kind=implementation'. 
-    Examples are the persistency strategy 'eager' specfied as 
+    Examples are the persistency strategy 'eager' specified as
     'persistent=eager' or the persistency strategy 'lazy' (specified as
     'persistent=lazy')
   }}
