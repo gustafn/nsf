@@ -1,5 +1,5 @@
 #
-# Object orientend mapping between MongoDB and nx. 
+# Object orientend mapping between MongoDB and NX.
 #
 # Gustaf Neumann              fecit, April 2011
 #
@@ -85,7 +85,7 @@ namespace eval ::nx::mongo {
 
     #
     # GridFS
-    # 
+    #
     :object property gridFs
 
     :public object method "gridfs open" {{name fs}} {
@@ -135,7 +135,7 @@ namespace eval ::nx::mongo {
       mongo::gridfile::close $f
       return $content
     }
-    
+
     :public object method "gridfs set attribute" {query attribute value} {
       set info [::nx::mongo::db gridfs list $query]
       if {$info eq ""} {return -code error "no such file <$query> stored in gridfs"}
@@ -146,7 +146,7 @@ namespace eval ::nx::mongo {
       } elseif {[dict exists $d $attribute]} {
         # wrong value replace it
         set bson {}
-        foreach {att type v} $info { 
+        foreach {att type v} $info {
           if {$att eq $attribute} {
             lappend bson $att $type $value
           } else {
@@ -186,20 +186,20 @@ namespace eval ::nx::mongo {
 
 
   }
-  
+
   #######################################################################
   # nx::mongo::Attribute is a specialized property slot
   #
   ::nx::MetaSlot create ::nx::mongo::Attribute -superclass ::nx::VariableSlot {
     :property mongotype
     :property rep
-    
+
     #
     # manage logging of mongo concerns
     #
     :public method log {msg} {
       if {$::nx::mongo::log} {
-	nsf::log notice "mongo-attribute: $msg"
+        nsf::log notice "mongo-attribute: $msg"
       }
     }
 
@@ -209,14 +209,14 @@ namespace eval ::nx::mongo {
       # from "type". Not all types are mappable easily to mongo types.
       #
       if {![info exists :mongotype]} {
-	set :mongotype string
-	if {[info exists :type]} {
-	  switch -glob ${:type} {
-	    "boolean" -
-	    "integer" {set :mongotype ${:type}}
-	    "embedded" {set :mongotype embedded_object}
+        set :mongotype string
+        if {[info exists :type]} {
+          switch -glob ${:type} {
+            "boolean" -
+            "integer" {set :mongotype ${:type}}
+            "embedded" {set :mongotype embedded_object}
     }
-    
+
     #
     # The methods "bson encode|decode" perform the low level type
     # mapping. For now, this handles just the array notation.
@@ -224,30 +224,30 @@ namespace eval ::nx::mongo {
     :public method "bson decode" {bsontype value} {
       #puts stderr "bson decode of ${:name} /$bsontype/ '$value'"
       if {$bsontype eq "array"} {
-	if {![:isMultivalued]} {
-	  # We got an array, but the slot is not multivalued. Maybe
-	  # generating an error is too harsh, but for the mapping back,
-	  # we check for multivalued as well.
+        if {![:isMultivalued]} {
+          # We got an array, but the slot is not multivalued. Maybe
+          # generating an error is too harsh, but for the mapping back,
+          # we check for multivalued as well.
 
-	  return -code error "Attribute ${:name} should be multivalued, but it is not"
-	}
-	set result [list]
-	foreach {pos type v} $value {lappend result [:bson decode $type $v]}
-	return $result
+          return -code error "Attribute ${:name} should be multivalued, but it is not"
+        }
+        set result [list]
+        foreach {pos type v} $value {lappend result [:bson decode $type $v]}
+        return $result
       } elseif {$bsontype eq "document"} {
-	#puts stderr "*** we have an document '$value', [:serialize]"
-	if {${:type} eq "embedded" && [info exists :arg]} {
-	  #puts stderr "*** we have an embedded class = ${:arg}"
-	  set value [${:arg} bson create $value]
-	  #puts stderr "*** ${:arg} bson create ==> $value"
-	} elseif {${:type} eq "reference" && [info exists :arg]} {
-	  #puts stderr "*** we have a reference, class = ${:arg}"
-	  # TODO we assume auto_deref
-	  set value [:bson deref ${:arg} $value]
-	  #puts stderr "*** bson deref ${:arg} ==> $value"
-	} else {
-	  return -code error "don't know how to decode document with value '$value'; [:serialize]"
-	}
+        #puts stderr "*** we have an document '$value', [:serialize]"
+        if {${:type} eq "embedded" && [info exists :arg]} {
+          #puts stderr "*** we have an embedded class = ${:arg}"
+          set value [${:arg} bson create $value]
+          #puts stderr "*** ${:arg} bson create ==> $value"
+        } elseif {${:type} eq "reference" && [info exists :arg]} {
+          #puts stderr "*** we have a reference, class = ${:arg}"
+          # TODO we assume auto_deref
+          set value [:bson deref ${:arg} $value]
+          #puts stderr "*** bson deref ${:arg} ==> $value"
+        } else {
+          return -code error "don't know how to decode document with value '$value'; [:serialize]"
+        }
       }
       return $value
     }
@@ -255,20 +255,20 @@ namespace eval ::nx::mongo {
     :method "bson deref" {class value} {
       #puts stderr "*** bson deref $class '$value'"
       foreach {name type v} $value {
-	if {[string match {$*} $name]} {set ([string range $name 1 end]) $v}
+        if {[string match {$*} $name]} {set ([string range $name 1 end]) $v}
       }
       if {![info exists (id)]} {
-	return -code error "value to be dereferenced does not contain dbref id: $value"
+        return -code error "value to be dereferenced does not contain dbref id: $value"
       }
       if {[info exists (db)]} {
-	if {$(db) ne [$class cget -mongo_db]} {
-	  return -code error "$(db) is different to [$class cget -mongo_db]"
-	}
+        if {$(db) ne [$class cget -mongo_db]} {
+          return -code error "$(db) is different to [$class cget -mongo_db]"
+        }
       }
       if {[info exists (ref)]} {
-	if {$(ref) ne [$class cget -mongo_collection]} {
-	  return -code error "$(ref) is different to [$class cget -mongo_collection]"
-	}
+        if {$(ref) ne [$class cget -mongo_collection]} {
+          return -code error "$(ref) is different to [$class cget -mongo_collection]"
+        }
       }
       return [$class find first -cond [list _id = $(id)]]
     }
@@ -276,20 +276,20 @@ namespace eval ::nx::mongo {
     :method "bson encodeValue" {value} {
       if {${:mongotype} eq "embedded_object"} {
         #puts "embedded_object <$value>"
-	return [list document [$value bson encode]]
+        return [list document [$value bson encode]]
       } elseif {${:mongotype} eq "referenced_object"} {
-	if {![::nsf::var::exists $value _id]} {
-	  :log "autosave $value to obtain an object_id"
-	  $value save
-	}
-	set _id [$value cget -_id]
-	set cls [$value info class]
-	return [list document [list \
-				 {$ref} string [$cls cget -mongo_collection] \
-				 {$id} oid $_id \
-				 {$db} string [$cls cget -mongo_db]]]
+        if {![::nsf::var::exists $value _id]} {
+          :log "autosave $value to obtain an object_id"
+          $value save
+        }
+        set _id [$value cget -_id]
+        set cls [$value info class]
+        return [list document [list \
+                                 {$ref} string [$cls cget -mongo_collection] \
+                                 {$id} oid $_id \
+                                 {$db} string [$cls cget -mongo_db]]]
       } else {
-	return [list ${:mongotype} $value]
+        return [list ${:mongotype} $value]
       }
     }
 
@@ -302,23 +302,23 @@ namespace eval ::nx::mongo {
 
     :public method "bson encode" {-array:switch value} {
       if {[:isMultivalued] || $array} {
-	return [:bson encodeArray $value]
+        return [:bson encodeArray $value]
       } else {
-	return [:bson encodeValue $value]
+        return [:bson encodeValue $value]
       }
     }
 
     :public method remove {object value} {
       if {[:isMultivalued]} {
-	set values [::nsf::var::set $object ${:name}]
-	set p [lsearch $values $value]
-	if {$p < 0} {
-	  return -code error "$value not included in $object.$value ($values)"
-	}
-	set newValues [lreplace $values $p $p]
-	::nsf::var::set $object ${:name} $newValues
+        set values [::nsf::var::set $object ${:name}]
+        set p [lsearch $values $value]
+        if {$p < 0} {
+          return -code error "$value not included in $object.$value ($values)"
+        }
+        set newValues [lreplace $values $p $p]
+        ::nsf::var::set $object ${:name} $newValues
       } else {
-	return -code error "remove just implemented for multivalued slots"
+        return -code error "remove just implemented for multivalued slots"
       }
     }
 
@@ -350,10 +350,10 @@ namespace eval ::nx::mongo {
       }
 
       if {[::nsf::object::exists $value] && [::nsf::is class $arg] && [$value info has type $arg]} {
-	::nsf::var::set $value __embedded_in [list $s $name]
-	::nsf::var::set $s __contains($value) 1
+        ::nsf::var::set $value __embedded_in [list $s $name]
+        ::nsf::var::set $s __contains($value) 1
       } else {
-	return -code error "value '$value' for property $name is not of type $arg"
+        return -code error "value '$value' for property $name is not of type $arg"
       }
     }
     #
@@ -364,16 +364,16 @@ namespace eval ::nx::mongo {
       set s [:uplevel self]
       #puts stderr "check $name '$value' arg='$arg' s=$s"
       if {[::nsf::object::exists $value] && [::nsf::is class $arg] && [$value info has type $arg]} {
-	set ref [list $s $name]
-	if {[::nsf::var::exists $value __referenced_in]} {
-	  set refs [::nsf::var::set $value __referenced_in]
-	  if {[lsearch $refs $ref] == -1} {lappend refs $ref}
-	} else {
-	  set refs [list $ref]
-	}
-	::nsf::var::set $value __referenced_in $refs
+        set ref [list $s $name]
+        if {[::nsf::var::exists $value __referenced_in]} {
+          set refs [::nsf::var::set $value __referenced_in]
+          if {[lsearch $refs $ref] == -1} {lappend refs $ref}
+        } else {
+          set refs [list $ref]
+        }
+        ::nsf::var::set $value __referenced_in $refs
       } else {
-	return -code error "value '$value' for property $name is not of type $arg"
+        return -code error "value '$value' for property $name is not of type $arg"
       }
     }
     #
@@ -387,14 +387,14 @@ namespace eval ::nx::mongo {
       return [expr {[clock scan $value] * 1000}]
     }
   }
-  
+
 
   #######################################################################
   # The class mongo::Class provides methods for mongo classes (such as
   # "find", "insert", ...)
   #
   ::nx::Class create ::nx::mongo::Class -superclass nx::Class {
-    
+
     #
     # Every mongo class can be configured with a mongo_ns, from which
     # its instance data is queried.
@@ -402,7 +402,7 @@ namespace eval ::nx::mongo {
     :property mongo_ns
     :property mongo_db
     :property mongo_collection
-    
+
     #
     # Provide helper methods to access from an external specifier
     # (property name or operator name) internal representations
@@ -412,18 +412,18 @@ namespace eval ::nx::mongo {
       set classes [list [self] {*}[:info mixins] {*}[:info heritage]]
       #puts stderr "searching for <$att> along <$classes>"
       foreach cls $classes {
-	set slot [$cls info slots $att]
-	if {$slot ne ""} {
-	  return $slot
-	}
+        set slot [$cls info slots $att]
+        if {$slot ne ""} {
+          return $slot
+        }
       }
     }
-    
+
     :public method "get relop" {op} {
       array set "" {< $lt > $gt <= $lte >= $gte != $ne in $in all $all}
       return $($op)
     }
-    
+
     #
     # For interaction with bson structures, we provide on the class
     # level "bson cond" (a small dsl for a more convenient syntax in
@@ -437,28 +437,28 @@ namespace eval ::nx::mongo {
       #puts "bson cond $cond"
       set bson [list]
       foreach {att op value} $cond {
-	set slot [:get slot $att]
-	if {$slot eq ""} {return -code error "could not obtain slot for <$att $op $value>"}
-	switch $op {
-	  "=" {lappend bson $att [$slot cget -mongotype] $value}
-	  ">" - "<" - "<=" - ">=" - "!="  {
-	    lappend bson $att document [list [:get relop $op] [$slot cget -mongotype] $value]
-	  }
-	  "in" - "all" {
-	    lappend bson $att document [list [:get relop $op] {*}[$slot bson encode -array $value]]
-	  }
+        set slot [:get slot $att]
+        if {$slot eq ""} {return -code error "could not obtain slot for <$att $op $value>"}
+        switch $op {
+          "=" {lappend bson $att [$slot cget -mongotype] $value}
+          ">" - "<" - "<=" - ">=" - "!="  {
+            lappend bson $att document [list [:get relop $op] [$slot cget -mongotype] $value]
+          }
+          "in" - "all" {
+            lappend bson $att document [list [:get relop $op] {*}[$slot bson encode -array $value]]
+          }
           "~" {
             # value should be a two-element list contain pattern and options
-	    lappend bson $att document [list {$regex} regex $value]
-	  }
+            lappend bson $att document [list {$regex} regex $value]
+          }
 
-	  default {return -code error "unknown operator $op"}
-	}
+          default {return -code error "unknown operator $op"}
+        }
       }
       #puts "bson cond <$cond> => $bson"
       return $bson
     }
-    
+
     :method "bson opts" {{-orderby ""} {-atts ""} -limit:integer -skip:integer} {
       set result ""
       if {$atts ne ""} {
@@ -484,14 +484,14 @@ namespace eval ::nx::mongo {
       }
       return $bson
     }
-    
+
     :method "bson atts" {atts} {
       set result {}
       foreach {att value} $atts {
-	if {![string is integer -strict $value]} {
-	  return -code error "$atts: $value should be integer"
-	}
-	lappend result $att int $value
+        if {![string is integer -strict $value]} {
+          return -code error "$atts: $value should be integer"
+        }
+        lappend result $att int $value
       }
       return $result
     }
@@ -504,9 +504,9 @@ namespace eval ::nx::mongo {
       #puts "bson parameter: <$tuple>"
       set objParams [list]
       foreach {att type value} $tuple {
-	set slot [:get slot $att]
-	if {$slot eq ""} {return -code error "could not obtain slot for <$att $type $value>"}
-	lappend objParams -$att [$slot bson decode $type $value]
+        set slot [:get slot $att]
+        if {$slot eq ""} {return -code error "could not obtain slot for <$att $type $value>"}
+        lappend objParams -$att [$slot bson decode $type $value]
       }
       #puts "bson parameter <$tuple> => $objParams"
       return $objParams
@@ -520,8 +520,8 @@ namespace eval ::nx::mongo {
       #puts "bson setvalues: <$tuple>"
       set cmd ""
       foreach {att type value} $tuple {
-	set slot [:get slot $att]
-	if {$slot eq ""} {return -code error "could not obtain slot for <$att $type $value>"}
+        set slot [:get slot $att]
+        if {$slot eq ""} {return -code error "could not obtain slot for <$att $type $value>"}
         if {[nx::var exists $slot rep] && [nx::var set $slot rep] ne ""} {
           set script [:bson rep decode [nx::var set $slot rep] $slot $att $type $value]
           append cmd $script\n
@@ -558,11 +558,11 @@ namespace eval ::nx::mongo {
     :method "bson pp_array" {{-indent 0} list} {
       set result [list]
       foreach {name type value} $list {
-	switch $type {
-	  document { lappend result "\{ [:bson pp -indent $indent $value] \}" }
-	  array    { lappend result "\[ [:bson pp_array -indent $indent $value] \]" }
-	  default  { lappend result [list $value]}
-	}
+        switch $type {
+          document { lappend result "\{ [:bson pp -indent $indent $value] \}" }
+          array    { lappend result "\[ [:bson pp_array -indent $indent $value] \]" }
+          default  { lappend result [list $value]}
+        }
       }
       return [join $result ", "]
     }
@@ -571,12 +571,12 @@ namespace eval ::nx::mongo {
       set result [list]
       set nextIndent [expr {$indent + 2}]
       foreach {name type value} $list {
-	set prefix "\n[string repeat { } $indent]$name: "
-	switch $type {
-	  document { lappend result "$prefix\{ [:bson pp -indent $nextIndent $value] \}" }
-	  array    { lappend result "$prefix\[ [:bson pp_array -indent $nextIndent $value] \]" }
-	  default  { lappend result $prefix[list $value]}
-	}
+        set prefix "\n[string repeat { } $indent]$name: "
+        switch $type {
+          document { lappend result "$prefix\{ [:bson pp -indent $nextIndent $value] \}" }
+          array    { lappend result "$prefix\[ [:bson pp_array -indent $nextIndent $value] \]" }
+          default  { lappend result $prefix[list $value]}
+        }
       }
       return [join $result ", "]
     }
@@ -648,7 +648,7 @@ namespace eval ::nx::mongo {
       }
       return $vars
     }
-    
+
     #
     # index method
     #
@@ -658,7 +658,7 @@ namespace eval ::nx::mongo {
       # todo: multi-property indices
       db index ${:mongo_ns} [list $att int $type] {*}$args
     }
-    
+
     #
     # A convenience method for inserting a fresh tuple
     #
@@ -677,19 +677,19 @@ namespace eval ::nx::mongo {
     :public method count {{-cond ""}} {
       return [::nx::mongo::db count ${:mongo_ns} [:bson cond $cond]]
     }
-    
+
     #
     # The query interface consists currently of "find first" (returning
     # a single instance) and "find all" (returning a list of instances).
     #
     :public method "find first" {
-				 {-instance ""}
-				 {-atts ""}
-				 {-cond ""}
-				 {-orderby ""} 
-			       } {
+                                 {-instance ""}
+                                 {-atts ""}
+                                 {-cond ""}
+                                 {-orderby ""}
+                               } {
       set tuple [lindex [::nx::mongo::db query ${:mongo_ns} \
-			     [:bson cond $cond] \
+                             [:bson cond $cond] \
                              -opts [:bson opts -atts $atts -limit 1 -orderby $orderby] \
                             ] 0]
       if {$tuple eq ""} {
@@ -698,68 +698,68 @@ namespace eval ::nx::mongo {
       if {$instance ne ""} {set instance [:uplevel [list ::nsf::object::qualify $instance]]}
       return [:bson create -name $instance $tuple]
     }
-    
+
     :public method "find all" {
-			       {-atts ""}
-			       {-cond ""} 
-			       {-orderby ""} 
-			       {-limit:integer} 
-			       {-skip:integer} 
-			     } {
+                               {-atts ""}
+                               {-cond ""}
+                               {-orderby ""}
+                               {-limit:integer}
+                               {-skip:integer}
+                             } {
       set result [list]
       set opts [list]
       if {[info exists limit]} {lappend opts -limit $limit}
       if {[info exists skip]} {lappend opts -skip $skip}
       set fetched [::nx::mongo::db query ${:mongo_ns} \
-		       [:bson cond $cond] \
+                       [:bson cond $cond] \
                        -opts [:bson opts -orderby $orderby -atts $atts {*}$opts] ]
 
       foreach tuple $fetched {
-	lappend result [:bson create $tuple]
+        lappend result [:bson create $tuple]
       }
       return $result
     }
 
     :public method show {
-			 {-atts ""}
-			 {-cond ""} 
-			 {-orderby ""} 
-			 {-limit} 
-			 {-skip} 
-			 {-puts:boolean 1} 
+                         {-atts ""}
+                         {-cond ""}
+                         {-orderby ""}
+                         {-limit}
+                         {-skip}
+                         {-puts:boolean 1}
                        } {
       set opts [list]
       if {[info exists limit]} {lappend opts -limit $limit}
       if {[info exists skip]} {lappend opts -skip $skip}
       set fetched [::nx::mongo::db query ${:mongo_ns} \
-		       [:bson cond $cond] \
+                       [:bson cond $cond] \
                        -opts [:bson opts -orderby $orderby -atts $atts {*}$opts] ]
       set tuples [list]
       foreach tuple $fetched {
-	lappend tuples "\{[:bson pp -indent 4 $tuple]\n\}"
+        lappend tuples "\{[:bson pp -indent 4 $tuple]\n\}"
       }
       if {$puts} {puts [join $tuples ", "]}
       return $tuples
     }
-    
+
     :method mongo_setup {} {
       #
       # setup mongo_collection, mongo_db and mongo_ns
       #
       if {[info exists :mongo_ns]} {
-	#puts stderr "given mongo_ns ${:mongo_ns}"
-	if {![regexp {^([^.]+)[.](.*)$} ${:mongo_ns} :mongo_db :mongo_collection]} {
-	  return -code error "${:mongo_ns} does not contain a dot."
-	}
+        #puts stderr "given mongo_ns ${:mongo_ns}"
+        if {![regexp {^([^.]+)[.](.*)$} ${:mongo_ns} :mongo_db :mongo_collection]} {
+          return -code error "${:mongo_ns} does not contain a dot."
+        }
       } else {
-	if {![info exists :mongo_collection]} {
-	  set :mongo_collection [string tolower [namespace tail [self]]]s
-	}
-	if {![info exists :mongo_db]} {
-	  set :mongo_db [::nx::mongo::db cget -db]
-	}
-	set :mongo_ns ${:mongo_db}.${:mongo_collection}
-	#puts stderr "mongo_ns is set to ${:mongo_ns}"
+        if {![info exists :mongo_collection]} {
+          set :mongo_collection [string tolower [namespace tail [self]]]s
+        }
+        if {![info exists :mongo_db]} {
+          set :mongo_db [::nx::mongo::db cget -db]
+        }
+        set :mongo_ns ${:mongo_db}.${:mongo_collection}
+        #puts stderr "mongo_ns is set to ${:mongo_ns}"
       }
     }
 
@@ -767,7 +767,7 @@ namespace eval ::nx::mongo {
     # When a mongo::Class is created, mixin the mongo::Object to make
     # "save" etc. available
     #
-    
+
     :method init {} {
       :mixins add ::nx::mongo::Object
       :mongo_setup
@@ -795,7 +795,7 @@ namespace eval ::nx::mongo {
   # variables and for decode an setting these. The codecs
   # (coder/decoder) are extensible on the application level by
   # defining ensemble methods with the name of the codec as last part.
-  
+
   ::nx::mongo::Class eval {
     #
     # rep codec "array"
@@ -811,7 +811,7 @@ namespace eval ::nx::mongo {
     :public method "bson rep decode array" {slot name bsontype value} {
       set av ""
       foreach {pos type entry} $value {
-        lappend av [lindex $entry 2] [lindex $entry 5] 
+        lappend av [lindex $entry 2] [lindex $entry 5]
       }
       return "array set :$name [list $av]"
     }
@@ -822,7 +822,7 @@ namespace eval ::nx::mongo {
     :public method "bson rep encode dict" {slot obj name} {
       set body {}
       dict for {k v} [$obj eval [list set :$name]] {
-        lappend body $k string $v 
+        lappend body $k string $v
       }
       return [list document $body]
     }
@@ -834,19 +834,19 @@ namespace eval ::nx::mongo {
       return "set :$name \[dict create $result\]"
     }
   }
-  
+
   #######################################################################
   # The class mongo::Object provides methods for mongo objects (such as
   # "save")
   #
   ::nx::Class create ::nx::mongo::Object {
-    
+
     #
     # manage logging of mongo concerns
     #
     :public method log {msg} {
       if {$::nx::mongo::log} {
-	nsf::log notice "mongo: $msg"
+        nsf::log notice "mongo: $msg"
       }
     }
 
@@ -866,14 +866,14 @@ namespace eval ::nx::mongo {
       lappend bson "__class" string $cls
       foreach var [:info vars] {
         if {$var in $ignore} continue
-	set slot [$cls get slot $var]
-	if {$slot ne ""} {
+        set slot [$cls get slot $var]
+        if {$slot ne ""} {
           if {[nx::var exists $slot rep] && [nx::var set $slot rep] ne ""} {
             lappend bson $var {*}[$cls bson rep encode [nx::var set $slot rep] $slot [self] $var]
           } else {
             lappend bson $var {*}[$slot bson encode [set :$var]]
           }
-	}
+        }
       }
       return $bson
     }
@@ -883,15 +883,15 @@ namespace eval ::nx::mongo {
     #
     :public method destroy {} {
       if {[array exists :__contains]} {
-	# destroy embedded object
-	foreach o [array names :__contains] {
-	  :log "[self] contains $o -> destroy"
-	  $o destroy
-	}
+        # destroy embedded object
+        foreach o [array names :__contains] {
+          :log "[self] contains $o -> destroy"
+          $o destroy
+        }
       }
       if {[info exists :__embedded_in]} {
-	lassign ${:__embedded_in} parent att
-	::nsf::var::unset $parent __contains([self])
+        lassign ${:__embedded_in} parent att
+        ::nsf::var::unset $parent __contains([self])
       }
       next
     }
@@ -902,45 +902,45 @@ namespace eval ::nx::mongo {
     :public method delete {} {
       if {[info exists :__embedded_in]} {
         #
-	# When an embedded object is deleted, it is removed for the
-	# reference list. The containing object is not automatically
-	# saved for the time being. We could consider an automatic
-	# save or mongo-$pull update operation.
+        # When an embedded object is deleted, it is removed for the
+        # reference list. The containing object is not automatically
+        # saved for the time being. We could consider an automatic
+        # save or mongo-$pull update operation.
         #
-	#puts "[self] is embedded in ${:__embedded_in}"
-	lassign ${:__embedded_in} parent att
-	set slot [[$parent info class] get slot $att]
-	if {$slot eq ""} {return -code error "could not obtain slot for <[$parent info class] $att>"}
-	$slot remove $parent [self]
-	#puts stderr [:serialize]
-	:log "[self] must save parent $parent in db"
-	:destroy
+        #puts "[self] is embedded in ${:__embedded_in}"
+        lassign ${:__embedded_in} parent att
+        set slot [[$parent info class] get slot $att]
+        if {$slot eq ""} {return -code error "could not obtain slot for <[$parent info class] $att>"}
+        $slot remove $parent [self]
+        #puts stderr [:serialize]
+        :log "[self] must save parent $parent in db"
+        :destroy
       } elseif {[info exists :__referenced_in]} {
         #
-	# When a referenced is deleted, we do for now essentially the
-	# same as for embedded objects. However, the same object might
-	# be referenced by several objects.
+        # When a referenced is deleted, we do for now essentially the
+        # same as for embedded objects. However, the same object might
+        # be referenced by several objects.
         #
-	#puts "[self] is referenced in ${:__referenced_in}"
-	foreach reference ${:__referenced_in} {
-	  lassign $reference parent att
-	  set slot [[$parent info class] get slot $att]
-	  if {$slot eq ""} {return -code error "could not obtain slot for <[$parent info class] $att>"}
-	  $slot remove $parent [self]
-	  :log "[self] must save parent $parent in db"
-	}
-	:destroy
+        #puts "[self] is referenced in ${:__referenced_in}"
+        foreach reference ${:__referenced_in} {
+          lassign $reference parent att
+          set slot [[$parent info class] get slot $att]
+          if {$slot eq ""} {return -code error "could not obtain slot for <[$parent info class] $att>"}
+          $slot remove $parent [self]
+          :log "[self] must save parent $parent in db"
+        }
+        :destroy
       } else {
-	#puts "delete a non-embedded entry"
-	if {[info exists :_id]} {
-	  set mongo_ns [[:info class] cget -mongo_ns]
-	  ::nx::mongo::db delete $mongo_ns [list _id oid ${:_id}]
-	} else {
-	  return -code error "[self]: object does not contain an _id; it can't be delete from the mongo db."
-	}
+        #puts "delete a non-embedded entry"
+        if {[info exists :_id]} {
+          set mongo_ns [[:info class] cget -mongo_ns]
+          ::nx::mongo::db delete $mongo_ns [list _id oid ${:_id}]
+        } else {
+          return -code error "[self]: object does not contain an _id; it can't be delete from the mongo db."
+        }
       }
     }
-    
+
     #
     # Save the current object. When we have an _id, perform an update,
     # otherwise perform an insert
@@ -948,24 +948,24 @@ namespace eval ::nx::mongo {
     :public method save {} {
       set mongo_ns [[:info class] cget -mongo_ns]
       if {$mongo_ns eq ""} {
-	# We could perform the delegation probably automatically, but
-	# for now we provide an error
-	return -code error "No mongo_ns specified for [:info class]. In case this is an embedded object, save the embedding one."
+        # We could perform the delegation probably automatically, but
+        # for now we provide an error
+        return -code error "No mongo_ns specified for [:info class]. In case this is an embedded object, save the embedding one."
       } else {
-	set bson [:bson encode]
-	if {[info exists :_id]} {
-	  :log "we have to update [[:info class] bson pp -indent 4 $bson]"
-	  ::nx::mongo::db update $mongo_ns [list _id oid ${:_id}] $bson
-	  set :_id
-	} else {
-	  :log "we have to insert [[:info class] bson pp -indent 4 $bson]"
-	  set r [::nx::mongo::db insert $mongo_ns $bson]
-	  set :_id [lindex $r 2]
-	}
+        set bson [:bson encode]
+        if {[info exists :_id]} {
+          :log "we have to update [[:info class] bson pp -indent 4 $bson]"
+          ::nx::mongo::db update $mongo_ns [list _id oid ${:_id}] $bson
+          set :_id
+        } else {
+          :log "we have to insert [[:info class] bson pp -indent 4 $bson]"
+          set r [::nx::mongo::db insert $mongo_ns $bson]
+          set :_id [lindex $r 2]
+        }
       }
     }
   }
-  
+
 }
 #puts stderr "NX MONGO LOADED"
 #
