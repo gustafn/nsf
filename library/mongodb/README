@@ -9,8 +9,8 @@ Ingredients:
 The current version is tested with
 - Tcl 8.5 and Tcl 8.6
 - MongoDB v3.4.0 (released Nov 26, 2016)
-- mongodb-c-driver 1.5.1 (released Dec 17, 2016)
-- libbson 1.5.1 (released Dec 17, 2016)
+- mongodb-c-driver 1.9.3 (released Feb 28, 2018)
+- libbson 1.9.3 (released Dec Feb 28, 2018)
 
 Follow the following steps to get MongoDB up and running
 and to compile the MongoDB driver for NX.
@@ -23,10 +23,10 @@ OBTAIN MONGODB and MONGO-C-DRIVER:
 - Compile or obtain the mongo-c-driver (client interface)
 
       cd /usr/local/src
-      wget https://github.com/mongodb/mongo-c-driver/releases/download/1.5.1/mongo-c-driver-1.5.1.tar.gz
-      tar zxvf mongo-c-driver-1.5.1.tar.gz
+      wget https://github.com/mongodb/mongo-c-driver/releases/download/1.9.3/mongo-c-driver-1.9.3.tar.gz
+      tar zxvf mongo-c-driver-1.9.3.tar.gz
       rm -rf mongo-c-driver
-      ln -s mongo-c-driver-1.5.1 mongo-c-driver
+      ln -sf mongo-c-driver-1.9.3 mongo-c-driver
       cd mongo-c-driver
       ./configure --disable-automatic-init-and-cleanup
       make
