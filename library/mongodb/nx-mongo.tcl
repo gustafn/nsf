@@ -11,10 +11,9 @@ package provide nx::mongo 2.1
 # todo: all references are currently auto-fetched. make this optional
 # todo: If "embeds" or "references" are used, the object must be of
 #       the specified classes, no subclasses allowed
-# todo: extend the query language syntax, e.g. regexp, ...
+# todo: extend the query language syntax, e.g. regexp, ... (handled at least partly via "~" operator)
 # todo: handle remove for non-multivalued embedded objects
 # idea: handle names of nx objects (e.g. property like __name)
-# idea: handle classes von nx objects (e.g. property like __class)
 # idea: combine incremental slot operations with e.g. add -> $push, remove -> $pull
 # todo: make "embedded", "reference" spec even nicer?
 
@@ -216,13 +215,6 @@ namespace eval ::nx::mongo {
 	    "boolean" -
 	    "integer" {set :mongotype ${:type}}
 	    "embedded" {set :mongotype embedded_object}
-	    "reference" {set :mongotype referenced_object}
-	  }
-	  #"::*" {set :mongotype object}
-	}
-      }
-      #puts stderr "mongo type of ${:name} is ${:mongotype} [info exists :type]"
-      next
     }
     
     #
@@ -245,7 +237,7 @@ namespace eval ::nx::mongo {
       } elseif {$bsontype eq "document"} {
 	#puts stderr "*** we have an document '$value', [:serialize]"
 	if {${:type} eq "embedded" && [info exists :arg]} {
-	  #puts stderr "*** we have an embed class = ${:arg}"
+	  #puts stderr "*** we have an embedded class = ${:arg}"
 	  set value [${:arg} bson create $value]
 	  #puts stderr "*** ${:arg} bson create ==> $value"
 	} elseif {${:type} eq "reference" && [info exists :arg]} {
@@ -417,7 +409,8 @@ namespace eval ::nx::mongo {
     # (eg. mongo type, or mongo operator).
     #
     :public method "get slot" {att} {
-      set classes [concat [self] [:info mixins] [:info heritage]]
+      set classes [list [self] {*}[:info mixins] {*}[:info heritage]]
+      #puts stderr "searching for <$att> along <$classes>"
       foreach cls $classes {
 	set slot [$cls info slots $att]
 	if {$slot ne ""} {
@@ -519,7 +512,7 @@ namespace eval ::nx::mongo {
       return $objParams
     }
 
-    :method "bson setvalues" {tuple} {
+    :public method "bson setvalues" {tuple} {
       #
       # Translate bson tuple into a cmd to set instance values, which
       # can be evaluated in the context of an object.
@@ -541,7 +534,23 @@ namespace eval ::nx::mongo {
     }
 
     :public method "bson create" {{-name ""} tuple} {
-      set o [::nsf::object::alloc [self] $name [:bson setvalues $tuple]]
+      #puts stderr "=== [self] bson create name <$name> tuple <$tuple>"
+      set class [self]
+      set filtered_tuple {}
+      foreach {att_name att_type att_value} $tuple {
+        if {$att_name eq "__class"} {
+          #
+          # Special handlnig of "__class" attribute
+          #
+          if {[nsf::is class $att_value]} {
+            set class $att_value
+          }
+          continue
+        }
+        lappend filtered_tuple $att_name $att_type $att_value
+      }
+      #puts "FINAL class $class, values\n[$class bson setvalues $filtered_tuple]"
+      set o [::nsf::object::alloc $class $name [$class bson setvalues $filtered_tuple]]
       $o eval :init
       return $o
     }
@@ -577,19 +586,21 @@ namespace eval ::nx::mongo {
     # default slot class
     #
     :public method property {
-                             {-accessor ""}
-                             {-class ::nx::mongo::Attribute}
-                             {-configurable:boolean true}
-                             {-incremental:switch}
-                             {-rep ""}
-                             spec:parameter
-                             {initblock ""}
-                           } {
+      {-accessor ""}
+      {-class ::nx::mongo::Attribute}
+      {-configurable:boolean true}
+      {-incremental:switch}
+      {-rep ""}
+      spec:parameter
+      {initblock ""}
+    } {
       regsub -all {,type=::} $spec {,arg=::} spec
       set result [next [list -accessor $accessor -class $class \
                             -configurable $configurable -incremental=$incremental \
                             $spec $initblock]]
-      lassign [::nx::MetaSlot parseParameterSpec -target [self] $spec] name
+      lassign [::nx::MetaSlot parseParameterSpec -target [self] {*}$spec] name parameterOptions class options
+      #puts stderr "==== spec <$spec> => name <$name> parameterOptions <$parameterOptions> class <$class> options <$options>"
+      #puts stderr "==== [list [self] property [:info slots $name] configure -rep $rep]"
       [:info slots $name] configure -rep $rep
       return $result
     }
@@ -852,6 +863,7 @@ namespace eval ::nx::mongo {
     :public method "bson encode" {{-ignore ""}} {
       set bson [list]
       set cls [:info class]
+      lappend bson "__class" string $cls
       foreach var [:info vars] {
         if {$var in $ignore} continue
 	set slot [$cls get slot $var]
@@ -955,7 +967,7 @@ namespace eval ::nx::mongo {
   }
   
 }
-
+#puts stderr "NX MONGO LOADED"
 #
 # Local variables:
 #    mode: tcl

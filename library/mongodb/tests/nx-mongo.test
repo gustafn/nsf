@@ -138,6 +138,23 @@ puts "\nFind oldies:"
 ? {llength [set persons [Person find oldies]]} 1
 ? {lsort [lmap p $persons {$p cget -name}]} "Gustaf"
 
+
+puts "\nCreate user with default for password:"
+
+? {
+  #nsf::__profile_trace -enable true -dontsave true -verbose 1
+
+  nx::mongo::Class create User {
+    :index name
+
+    :property name:required
+    :property -incremental {groups:0..n ""}
+    :property {password ""}
+  }
+} ::User
+#nsf::__profile_trace -enable false
+
+
 # check autoclosing
 nx::mongo::db close
 
