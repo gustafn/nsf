@@ -20029,7 +20029,7 @@ NextSearchAndInvoke(
       if (flags == 0) {
         /*
          * The call is NRE-enabled. We register the callback and return
-         * here immediately.  All other exists form this functions have
+         * here immediately.  All other forms of this function have
          * to call NextInvokeFinalize manually on return.
          */
         Tcl_NRAddCallback(interp, NextInvokeFinalize,
