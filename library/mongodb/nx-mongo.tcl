@@ -215,6 +215,13 @@ namespace eval ::nx::mongo {
             "boolean" -
             "integer" {set :mongotype ${:type}}
             "embedded" {set :mongotype embedded_object}
+            "reference" {set :mongotype referenced_object}
+          }
+          #"::*" {set :mongotype object}
+        }
+      }
+      #puts stderr "mongo type of ${:name} is ${:mongotype} [info exists :type]"
+      next
     }
 
     #
@@ -285,9 +292,9 @@ namespace eval ::nx::mongo {
         set _id [$value cget -_id]
         set cls [$value info class]
         return [list document [list \
-                                 {$ref} string [$cls cget -mongo_collection] \
-                                 {$id} oid $_id \
-                                 {$db} string [$cls cget -mongo_db]]]
+                                   {$ref} string [$cls cget -mongo_collection] \
+                                   {$id} oid $_id \
+                                   {$db} string [$cls cget -mongo_db]]]
       } else {
         return [list ${:mongotype} $value]
       }
@@ -606,15 +613,15 @@ namespace eval ::nx::mongo {
     }
 
     :public method variable {
-                             {-accessor "none"}
-                             {-class ::nx::mongo::Attribute}
-                             {-configurable:boolean false}
-                             {-incremental:switch}
-                             {-initblock ""}
-                             {-rep ""}
-                             spec:parameter
-                             defaultValue:optional
-                           } {
+      {-accessor "none"}
+      {-class ::nx::mongo::Attribute}
+      {-configurable:boolean false}
+      {-incremental:switch}
+      {-initblock ""}
+      {-rep ""}
+      spec:parameter
+      defaultValue:optional
+    } {
       regsub -all {,type=::} $spec {,arg=::} spec
       set result [next [list -accessor $accessor -class $class \
                             -configurable $configurable -incremental=$incremental \
@@ -683,11 +690,11 @@ namespace eval ::nx::mongo {
     # a single instance) and "find all" (returning a list of instances).
     #
     :public method "find first" {
-                                 {-instance ""}
-                                 {-atts ""}
-                                 {-cond ""}
-                                 {-orderby ""}
-                               } {
+      {-instance ""}
+      {-atts ""}
+      {-cond ""}
+      {-orderby ""}
+    } {
       set tuple [lindex [::nx::mongo::db query ${:mongo_ns} \
                              [:bson cond $cond] \
                              -opts [:bson opts -atts $atts -limit 1 -orderby $orderby] \
@@ -700,12 +707,12 @@ namespace eval ::nx::mongo {
     }
 
     :public method "find all" {
-                               {-atts ""}
-                               {-cond ""}
-                               {-orderby ""}
-                               {-limit:integer}
-                               {-skip:integer}
-                             } {
+      {-atts ""}
+      {-cond ""}
+      {-orderby ""}
+      {-limit:integer}
+      {-skip:integer}
+    } {
       set result [list]
       set opts [list]
       if {[info exists limit]} {lappend opts -limit $limit}
@@ -721,13 +728,13 @@ namespace eval ::nx::mongo {
     }
 
     :public method show {
-                         {-atts ""}
-                         {-cond ""}
-                         {-orderby ""}
-                         {-limit}
-                         {-skip}
-                         {-puts:boolean 1}
-                       } {
+      {-atts ""}
+      {-cond ""}
+      {-orderby ""}
+      {-limit}
+      {-skip}
+      {-puts:boolean 1}
+    } {
       set opts [list]
       if {[info exists limit]} {lappend opts -limit $limit}
       if {[info exists skip]} {lappend opts -skip $skip}
