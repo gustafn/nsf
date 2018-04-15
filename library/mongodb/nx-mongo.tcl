@@ -858,6 +858,21 @@ namespace eval ::nx::mongo {
     }
 
     #
+    # Manage lifecycle concerns for NaviServer/AOLserver: at the end
+    # of every request, all global variables are deleted. We can use
+    # this to destroy as well volatile mongoDB objects via Tcl
+    # variable traces.
+    #
+    :public method destroy_on_cleanup {} {
+      set name ::__volatile_mongo_objects([self])
+      set $name 1
+      trace add variable $name unset [list [self] __cleanup]
+    }
+    :public method __cleanup {args} {
+      :destroy
+    }
+
+    #
     # _id is the special property maintained by mongoDB
     #
     :property -accessor public -class ::nx::mongo::Attribute _id  {
