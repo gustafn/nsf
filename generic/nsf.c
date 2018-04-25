@@ -4915,7 +4915,7 @@ CompiledColonLocalsLookup(CallFrame *varFramePtr, const char *varName) {
 
   /*
    * Get the string table of the compiled locals and the length of the
-   * variable to search for for faster access into local variables.
+   * variable to search for faster access into local variables.
    */
   localNames = &varFramePtr->localCachePtr->varName0;
   nameLength = (int)strlen(varName);
@@ -5630,7 +5630,7 @@ InterpColonVarResolver(Tcl_Interp *interp, const char *varName, Tcl_Namespace *U
     /*
      * Ordinary names (not starting with our prefix) and namespace only
      * lookups are not for us. We cannot filter for TCL_GLOBAL_ONLY, since
-     * "vwait :varName" is called with with this flag.
+     * "vwait :varName" is called with this flag.
      */
 #if defined(VAR_RESOLVER_TRACE)
     fprintf(stderr, "InterpColonVarResolver '%s' flags %.6x not for us\n",
@@ -5992,7 +5992,7 @@ NSNamespaceClientDataObject(ClientData clientData) {
  *    This is a specialized cmd resolver for slotcontainer.  The command
  *    resolver should be registered for a namespace and avoids the lookup of
  *    childobjs for unqualified calls. This way, it is e.g. possible to call
- *    in a slot-obj a method [list], even in cases, where a a property "list"
+ *    in a slot-obj a method [list], even in cases, where a property "list"
  *    is defined.
  *
  * Results:
@@ -6805,7 +6805,7 @@ NSCheckNamespace(
   /*
    * If there is a parentNs provided (or obtained from the full
    * namespace), we can determine the parent name from it. Otherwise,
-   * we have to to perform the string operations.
+   * we have to perform the string operations.
    */
 
   if (parentNsPtr == NULL && nsPtr != NULL) {
@@ -12585,7 +12585,7 @@ CGetParamLookup(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfParamDefs *paramDefs, c
       result = NsfParamDefsNonposLookup(interp, nameString, paramPtr, paramPtrPtr);
       if (unlikely(result == TCL_OK)) {
         /*
-         * Set the the flag value. Probably, we should prohibiting conversion
+         * Set the flag value. Probably, we should prohibiting conversion
          * on some types.
          */
         NsfFlagObjSet(interp, nameObj, paramDefs->paramsPtr, paramDefs->serial,
@@ -16736,7 +16736,7 @@ ConvertViaCmd(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr,
  *    the cmd-type. If it does not exit, the function using this pattern will
  *    fail. If the pattern contains meta characters, we prepend to the pattern
  *    "::" if necessary to avoid errors, if one specifies a pattern object
- *    without the prefix. In this case, the patternObj is is of plain type.
+ *    without the prefix. In this case, the patternObj is of plain type.
  *    The resulting patternObj has always the refCount incremented, which has
  *    to be decremented by the caller.x
  *
@@ -17281,7 +17281,7 @@ ParamOptionParse(Tcl_Interp *interp, const char *argString,
  *----------------------------------------------------------------------
  * ParamDefinitionParse --
  *
- *    Parse a a single parameter definition with a possible default provided in
+ *    Parse a single parameter definition with a possible default provided in
  *    the form of an Tcl_Obj.
  *
  * Results:
@@ -17899,7 +17899,7 @@ ParameterMethodDispatch(Tcl_Interp *interp, NsfObject *object,
    * The current call-frame of configure uses an obj-frame, such
    * that setvar etc.  are able to access variables like "a" as a
    * local variable.  However, in the init block, we do not like
-   * that behavior, since this should look like like a proc body.
+   * that behavior, since this should look like a proc body.
    * So we push yet another call-frame without providing the
    * var-frame.
    *
@@ -19137,7 +19137,7 @@ AliasCmdDeleteProc(ClientData clientData) {
  *----------------------------------------------------------------------
  * GetMatchObject --
  *
- *    Helper method used by nsfAPI.h and the info methods to check if the the
+ *    Helper method used by nsfAPI.h and the info methods to check if the
  *    Tcl_Obj patternObj was provided and can be looked up. If this is the
  *    case, wild card matching etc. does not have to be performed, but just
  *    the properties of the object have to be tested.
@@ -21258,7 +21258,7 @@ CleanupDestroyClass(Tcl_Interp *interp, NsfClass *class, bool softrecreate, bool
      * most general class ("baseClass"). The most general class of a
      * metaclass is the root meta class, the most general class of an
      * object is the root class. Instances of meta-classes can be only
-     * reset to the root meta class (and not to to the root base
+     * reset to the root meta class (and not to the root base
      * class).
      */
     baseClass = DefaultSuperClass(interp, class, class->object.cl,
@@ -21388,7 +21388,7 @@ CleanupInitClass(
   class->super = NULL;
 
   /*
-   * We can can the default superclass from the metaclass, if this exists.
+   * We can the default superclass from the metaclass, if this exists.
    */
   if (class->object.cl != NULL) {
     /* Look for a configured default superclass */
@@ -21938,7 +21938,7 @@ IsSubType(NsfClass *subClass, const NsfClass *class) {
  *----------------------------------------------------------------------
  * HasMixin --
  *
- *    Check, whether the specified object the the specified class as mixin.
+ *    Check, whether the specified object the specified class as mixin.
  *
  * Results:
  *    Boolean
@@ -22881,7 +22881,7 @@ NsfForwardMethod(ClientData clientData, Tcl_Interp *interp,
 
   } else if (tcd->args == NULL && *(ObjStr(tcd->cmdName)) != '%') {
     /*
-     * We have have no args, therefore we have only to replace the method name
+     * We have no args, therefore we have only to replace the method name
      * with the given cmd name.
      */
     ALLOC_ON_STACK(Tcl_Obj*, objc, ov);
@@ -26532,7 +26532,7 @@ AliasRefetch(Tcl_Interp *interp, NsfObject *object, const char *methodName, Alia
  *----------------------------------------------------------------------
  * AliasDereference --
  *
- *    Dereference a cmd in respect of the the alias structure. If necessary,
+ *    Dereference a cmd in respect of the alias structure. If necessary,
  *    this command refetches the aliased command.
  *
  * Results:
@@ -30411,7 +30411,7 @@ ParamFreeInternalRep(
  *----------------------------------------------------------------------
  * ParamSetFromAny2 --
  *
- *    Convert the second argument argument (e.g. "x:integer") into the
+ *    Convert the second argument (e.g. "x:integer") into the
  *    internal representation of a Tcl_Obj of the type parameter. The
  *    conversion is performed by the usual ParamDefinitionParse() function, used
  *    e.g. for the parameter passing for arguments.
@@ -30671,7 +30671,7 @@ GetObjectParameterDefinition(
   } else {
     /*
      * There is no parameter definition available, get a new one in
-     * the the string representation.
+     * the string representation.
      */
     result = ComputeParameterDefinition(interp, procNameObj,
                                         object, class,
@@ -34241,7 +34241,7 @@ FreeAllNsfObjectsAndClasses(
 
       /*
        * Final check. If there are no cyclical dependencies, we should have
-       * now just the the base classes left. If this is not the case, reclass
+       * now just the base classes left. If this is not the case, reclass
        * the remaining objects to their base classes, and set the superClasses
        * to the most general superclass.
        */
