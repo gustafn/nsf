@@ -198,7 +198,7 @@ nx::Class create Rule {
 	:Solve $hSudoku $x $y [$hSudoku validchoices $x $y]
     }
  
-    # Get all the allocated numbers for each square in the the row, column, and
+    # Get all the allocated numbers for each square in the row, column, and
     # region containing $x,$y. If there is only one unallocated number among all
     # three groups, it must be allocated at $x,$y
     :create ruleOnlyChoice {
