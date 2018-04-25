@@ -77,7 +77,7 @@ namespace eval ::nx {
       # (but for most).
       #
       # Current limitations: 
-      #   - cleanup for for nx::Objects, 
+      #   - cleanup for nx::Objects,
       #   - no method/mixin cleanup
       #   - no var cleanup
       #

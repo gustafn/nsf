@@ -1913,7 +1913,7 @@ namespace eval ::nx {
 
     #
     # For checking the default, we do not want substdefault to be
-    # passed to is, or is would have to to do the subst....
+    # passed to is, or is would have to do the subst....
     #
     set options [:getParameterOptions -withMultiplicity true -withSubstdefault false]
 
@@ -2075,7 +2075,7 @@ namespace eval ::nx {
     }
     #
     # For checking the default, we do not want substdefault to be
-    # passed to is, or is would have to to do the subst....
+    # passed to is, or is would have to do the subst....
     #
     set options [:getParameterOptions -withMultiplicity true -withSubstdefault false]
 

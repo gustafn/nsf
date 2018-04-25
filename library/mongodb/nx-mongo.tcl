@@ -338,7 +338,7 @@ namespace eval ::nx::mongo {
       # might be object itself or a variable slot managing the object.
       set s [:uplevel self]
       #puts stderr "XXXX check $name '$value' arg='$arg' s=$s // [:uplevel 1 self]"
-      # The calling objects have the the mongo::Object mixed in.
+      # The calling objects have the mongo::Object mixed in.
       if {![$s info has mixin ::nx::mongo::Object]} {
         # If this is not the case, we might be in a variable slot,
         # where we cannot trust the incoming name and we have to
