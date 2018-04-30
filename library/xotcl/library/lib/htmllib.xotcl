@@ -258,7 +258,7 @@ namespace eval ::xotcl::htmllib {
     ##              
     ## The methods for generating various HTML structures are either a pair of 
     ## start and end methods, such as startParagraph and endParagraph, or a single
-    ## method such as addListItem. Even if the the closing tag for <p>, for
+    ## method such as addListItem. Even if the closing tag for <p>, for
     ## example, is not required by the HTML specification, using the closing method
     ## is necessary to have the document properly indented.
 
