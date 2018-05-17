@@ -51,7 +51,7 @@ package req nx::test
 # When a property is defined as +incremental+, a public accessor and
 # multi-valued are assumed. By specifying +incremental+ the
 # sub-commands +add+ and +delete+ are provided to the accessor, which
-# allows to add or delete values to a multi-valued property
+# allows one to add or delete values to a multi-valued property
 # incrementally (see property +z+). The term incrementally means here
 # that one can e.g. add a value to the list without the need to +get+
 # the values of the list in a first step, to +lappend+ the value, and

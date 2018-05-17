@@ -219,7 +219,7 @@ namespace eval ::xotcl {
   # This bypassing feature comes handy when streaming an object into a
   # scripted form (e.g., by using the bundled Serializer). Upon
   # deserializing the object, using the {{{noinit}}} flag helps you to
-  # preserve the serialized object state (rather then having the
+  # preserve the serialized object state (rather than having the
   # object re-initialized).
 
   # @method ::xotcl::Object#requireNamespace

@@ -28,7 +28,7 @@ nx::Class create Singleton {
 # === A Singleton Meta-class
 #
 # Alternatively, we can follow a more generic approach and define a
-# metaclass which allows to define several application classes as
+# metaclass which allows one to define several application classes as
 # singletons. The metaclass has the most general metaclass +nx::Class+
 # as superclass. In contrary to the example obove, the +create+ method
 # is not defined as a class method, but it will be inherited to its

@@ -110,7 +110,7 @@ if {$::tcl_version >= 8.6} {
     </dd>
     
     <dt>::xotcl::configure filter ?on|off?<@/tt><dt> 
-    <dd>allows to 
+    <dd>allows one to
       turn on or off filters globally for the current interpreter.
       By default, the filter state is turned off.
       This function returns the old filter state. 
@@ -120,7 +120,7 @@ if {$::tcl_version >= 8.6} {
 
 
     <dt><@tt>::xotcl::configure softrecreate ?on|off?<@/tt></dt> 
-    <dd>allows to control
+    <dd>allows one to control
       what should happen, when an object / a class is recreated. Per
       default it is set off, which means that the object/class is destroyed
       and all relations (e.g. subclass/superclass) to other 
