@@ -43,7 +43,7 @@ nx::Object create make {
       }
     }
     #puts stderr "[pwd]: call so=<$so>"
-    set fls [concat $fls $so]
+    lappend fls {*}$so
     
     if {$fls ne ""} {
       if {[file exists pkgIndex.tcl]} {
