@@ -239,7 +239,7 @@ namespace eval ::nx::zip {
       # compression method
       :writeShort 8
     
-      # last mod. time and date
+      # last modification time and date
       :writeLong $(dosTime)
 
       :writeString $(crc)
@@ -254,7 +254,7 @@ namespace eval ::nx::zip {
     }
   
     #
-    # Convert the provided time stamp to dos time
+    # Convert the provided time stamp to DOS time.
     #
     :method toDosTime {time} {
       foreach {year month day hour minute second} \

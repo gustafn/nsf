@@ -2062,7 +2062,7 @@ namespace eval ::nx {
 
   ::nx::VariableSlot public method parameter {} {
     # This is a shortened "lightweight" version of "getParameterSpec"
-    # returning less (implicit) details. used e.g. by "info variable parameter"
+    # returning less (implicit) details. Used e.g. by "info variable parameter"
     set options [:getParameterOptions -withMultiplicity true]
     set spec [:namedParameterSpec -map-private "" ${:name} $options]
     if {[info exists :default]} {lappend spec ${:default}}

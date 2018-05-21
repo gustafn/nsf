@@ -48,7 +48,7 @@ nx::Class create Tokenizer {
     }
 }
 
-# Run some tests incl. the escape character:
+# Run some tests including the escape character:
 
 ? {Tokenizer tokenize -sep | -escape ^ ^|} {|}
 ? {Tokenizer tokenize -sep | -escape ^ ^|^|} {||}

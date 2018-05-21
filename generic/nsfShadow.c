@@ -285,7 +285,7 @@ Nsf_RenameObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, int objc, Tc
  * Nsf_InfoFrameObjCmd --
  *
  *    TclObjCmd for shadowing "::tcl::info::frame". First we call the
- *    shadowed method. If it returns OK we check, whether the frame is
+ *    shadowed method. If it returns OK we check whether the frame is
  *    an NSF frame. If so, we remove from the result the misleading
  *    "proc" and add "method", "class", "object" and "frametype".
  *
@@ -316,7 +316,7 @@ Nsf_InfoFrameObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, int objc,
      */
     Tcl_GetIntFromObj(interp, objv[1], &level);
 
-    /* todo: coroutine level messing is missing. needed? */
+    /* todo: coroutine level messing is missing. Needed? */
     topLevel = (framePtr == NULL) ? 0 :  framePtr->level;
 
     if (level > 0) {
@@ -463,8 +463,8 @@ NsfShadowTclCommands(Tcl_Interp *interp, NsfShadowOperations load) {
  *----------------------------------------------------------------------
  * NsfCallCommand --
  *
- *    Calls Tcl Commands as direct as possible. The commands have to
- *    be looked up previously via NsfShadowTclCommands(). objv[0] is
+ *    Calls Tcl Commands as direct as possible. The commands have to be looked
+ *    up previously via NsfShadowTclCommands(). The element objv[0] is
  *    replaced with the predefined command name.
  *
  * Results:

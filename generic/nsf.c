@@ -726,7 +726,7 @@ NsfDStringEval(
   if ((traceEvalFlags & NSF_EVAL_PREVENT_RECURSION) != 0u) {
     /*
      * We do not want to debug the debug statements, since this would cause an
-     * infinite recursion.  Check, if we allow execution of the eval call.
+     * infinite recursion.  Check whether we allow execution of the eval call.
      */
     if ((rst->preventRecursionFlags & traceEvalFlags) != 0) {
       /*
@@ -1128,9 +1128,10 @@ ParseContextRelease(ParseContext *pcPtr) {
  *
  * CallMethod --
  *
- *      Call a Next Scripting method. clientData has to contain the object, on
- *      which the method is to be dispatched, methodDobj denotes the method,
- *      objc ( which has to be >=2) and objv denotes the argument vector.
+ *      Call a Next Scripting method. The provided "clientData" has to contain
+ *      the object, on which the method is to be dispatched, "methodDobj"
+ *      denotes the method, "objc" (which has to be >=2) and "objv" denotes
+ *      the argument vector.
  *
  * Results:
  *      Tcl return code
@@ -1280,8 +1281,8 @@ VarHashTableCreate(void) {
  *    lead to a valid looking but invalid hPtr, when the next entry was
  *    already deleted. This seem to occur only, when there are more than 12
  *    hash entries in the table (multiple buckets).  Therefore, we use
- *    numEntries to check, if it is sensible to return a an hash entry. We can
- *    trigger refetch of the hSrchPtr, when the number of expected entries
+ *    numEntries to check whether it is sensible to return a an hash entry. We
+ *    can trigger refetch of the hSrchPtr, when the number of expected entries
  *    differs from the numbers of the actual entries.
  *
  * Results:
@@ -1341,13 +1342,13 @@ NsfCommandPreserve(Tcl_Command cmd) {
  *----------------------------------------------------------------------
  * NsfCommandRelease --
  *
- *    Decrement Tcl command refCount and free it if necessary
+ *    Decrement Tcl command refCount and free it if necessary.
  *
  * Results:
  *    void
  *
  * Side effects:
- *    Free pot. memory
+ *    Free potentially memory
  *
  *----------------------------------------------------------------------
  */
@@ -1702,7 +1703,7 @@ NSTail(const char *string) {
  *----------------------------------------------------------------------
  * IsClassNsName --
  *
- *    Check, if the provided string starts with the prefix of the
+ *    Check whether the provided string starts with the prefix of the
  *    classes namespace.
  *
  * Results:
@@ -1856,8 +1857,8 @@ NsfCleanupObject_(NsfObject *object) {
  *----------------------------------------------------------------------
  * TclObjIsNsfObject --
  *
- *    Check, if the provided Tcl_Obj is bound to a nsf object. If so, return
- *    the NsfObject in the third argument.
+ *    Check whether the provided Tcl_Obj is bound to a nsf object. If so,
+ *    return the NsfObject in the third argument.
  *
  * Results:
  *    Boolean
@@ -2201,9 +2202,9 @@ NsfGetClassFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr,
  *----------------------------------------------------------------------
  * IsObjectOfType --
  *
- *    Check, if the provided NsfObject is of a certain type. The arguments
- *    "what" and "objPtr" are just used for the error messages. objPtr is the
- *    value from which the object was converted from.
+ *    Check whether the provided NsfObject is of a certain type. The arguments
+ *    "what" and "objPtr" are just used for the error messages. "objPtr" is
+ *    the value from which the object was converted from.
  *
  * Results:
  *    Tcl result code.
@@ -2769,7 +2770,7 @@ MustBeBefore(const NsfClass *aClass, const NsfClass *bClass, const NsfClasses *s
   assert(bClass->order != NULL);
 
   /*
-   * Check, if a is in the precedence order of b. E.g.
+   * Check whether a is in the precedence order of b. E.g.
    *
    *   a c1 object
    *   b c2 a object
@@ -2954,7 +2955,7 @@ MergeInheritanceLists(NsfClasses *pl, NsfClass *class) {
 
       } else if (MustBeBefore(baseListCurrent->cl, mergeList->cl, superClasses)) {
         /*
-         * Check, if current element of mergeList must be before the current
+         * Check whether current element of mergeList must be before the current
          * element of baseList. If so, insert current mergelist element before
          * baseListCurrent,
          */
@@ -3182,10 +3183,10 @@ PrecedenceOrder(NsfClass *class) {
 
   /*
    * For multiple inheritance (more than one superclass), make sure that
-   * required precedence orders are precomputed. But first check, if we have
-   * to do this rather expensive operation now, or we can do it lazily. We
-   * can't do this in MergeInheritanceLists() within TopoSortSuper(), since
-   * there the class node coloring might be half done.
+   * required precedence orders are precomputed. But first check whether we
+   * have to do this rather expensive operation now, or we can do it
+   * lazily. We can't do this in MergeInheritanceLists() within
+   * TopoSortSuper(), since there the class node coloring might be half done.
    */
   haveMultipleInheritance = NSF_FALSE;
   for (sl = class->super; sl != NULL; sl = sl->cl->super) {
@@ -3935,7 +3936,7 @@ CmdIsNsfObject(Tcl_Command cmd) {
  *----------------------------------------------------------------------
  * GetTclProcFromCommand --
  *
- *    Check if cmd refers to a Tcl proc, and if so, return the proc
+ *    Check whether cmd refers to a Tcl proc, and if so, return the proc
  *    definition.
  *
  * Results:
@@ -4031,7 +4032,7 @@ FindProcMethod(const Tcl_Namespace *nsPtr, const char *methodName) {
  * SearchPLMethod, SearchPLMethod0 --
  *
  *    Search a method along a provided class list.  The methodName must be
- *    simple (must not contain space). While SearchPLMethod() allows to
+ *    simple (must not contain space). While SearchPLMethod() allows one to
  *    specify a flag for filtering the command, SearchPLMethod0() is a lightly
  *    optimized function without the filtering option.
  *
@@ -4924,7 +4925,7 @@ CompiledColonLocalsLookup(CallFrame *varFramePtr, const char *varName) {
   ctxPtr = ProcContextRequire(cmd);
 
   /*
-   * Check, if we have already a sorted cache (colonLocalVarCache). If not,
+   * Check whether we have already a sorted cache (colonLocalVarCache). If not,
    * build the cache and check in the same step for the wanted variable.
    */
   if (unlikely(ctxPtr->colonLocalVarCache == NULL)) {
@@ -5847,13 +5848,12 @@ InterpColonCmdResolver(Tcl_Interp *interp, const char *cmdName, Tcl_Namespace *U
 
 #if defined(NSF_WITH_OS_RESOLVER)
       /*
-       * Experimental Object-System specific resolver: If an
-       * un-prefixed method name is found in a body of a method, we try
-       * to perform a lookup for this method in the namespace of the
-       * object system for the current object. If this lookup is not
-       * successful the standard lookups are performed. The
-       * object-system specific resolver allows to use the "right"
-       * (un-prefixed) "self" or "next" calls without namespace
+       * Experimental Object-System specific resolver: If an un-prefixed
+       * method name is found in a body of a method, we try to perform a
+       * lookup for this method in the namespace of the object system for the
+       * current object. If this lookup is not successful the standard lookups
+       * are performed. The object-system specific resolver allows one to use
+       * the "right" (un-prefixed) "self" or "next" calls without namespace
        * imports.
        */
       NsfObject *object;
@@ -6026,7 +6026,7 @@ SlotContainerCmdResolver(Tcl_Interp *interp, const char *cmdName,
           nsPtr->clientData);*/
 
   /*
-   * Check, if this already a namespace handled by NSF
+   * Check whether this already a namespace handled by NSF
    */
   if (nsPtr->deleteProc == NSNamespaceDeleteProc && nsPtr->clientData) {
     NsfObject *parentObject = NSNamespaceClientDataObject(nsPtr->clientData);
@@ -6062,7 +6062,7 @@ SlotContainerCmdResolver(Tcl_Interp *interp, const char *cmdName,
  *    Tcl_Namespace
  *
  * Side effects:
- *    Allocate pot. a namespace
+ *    Allocate potentially a Tcl_Namespace
  *
  *----------------------------------------------------------------------
  */
@@ -6111,13 +6111,13 @@ NSNamespacePreserve(Tcl_Namespace *nsPtr) {
  *----------------------------------------------------------------------
  * NSNamespaceRelease --
  *
- *    Decrement namespace refCount and free namespace if necessary
+ *    Decrement namespace's "refCount" and free namespace if necessary.
  *
  * Results:
  *    void
  *
  * Side effects:
- *    Free pot. memory
+ *    Free potentially memory.
  *
  *----------------------------------------------------------------------
  */
@@ -6130,8 +6130,8 @@ NSNamespaceRelease(Tcl_Namespace *nsPtr) {
   Tcl_Namespace_refCount(nsPtr)--;
   if (unlikely(Tcl_Namespace_refCount(nsPtr) == 0 && (Tcl_Namespace_flags(nsPtr) & NS_DEAD))) {
     /*
-     * The namespace refCount has reached 0, we have to free
-     * it. unfortunately, NamespaceFree() is not exported
+     * The namespace "refCount" has reached 0, we have to free
+     * it. Unfortunately, NamespaceFree() is not exported.
      */
     /*fprintf(stderr, "HAVE TO FREE namespace %p\n", nsPtr); */
 
@@ -6747,10 +6747,10 @@ NSRequireParentObject(Tcl_Interp *interp, const char *parentName) {
  *----------------------------------------------------------------------
  * NSCheckNamespace --
  *
- *    Check if a namespace with the given name exists. If not, make
- *    sure that a potential parent object has already required a
- *    namespace. If there is no parent namespace yet, try to create a
- *    parent object via __unknown.
+ *    Check whether a namespace with the given name exists. If not, make sure
+ *    that a potential parent object has already required a namespace. If
+ *    there is no parent namespace yet, try to create a parent object via
+ *    __unknown.
  *
  *    If the provided parentNsPtr is not NULL, we know, that (a) the
  *    provided name was relative and simple (contains no ":"
@@ -6787,10 +6787,10 @@ NSCheckNamespace(
   /*fprintf(stderr, "NSCheckNamespace %s parentNsPtr %p\n", nameString, parentNsPtr);*/
 
   /*
-   * Check, if there is a already a namespace for the full name. The namespace
-   * will be only in rare cases, but we have to make this check in every
-   * case. If there is a full namespace, we can use it to determine the parent
-   * name.
+   * Check whether there is a already a namespace for the full name. The
+   * namespace will be only in rare cases, but we have to make this check in
+   * every case. If there is a full namespace, we can use it to determine the
+   * parent name.
    */
   TclGetNamespaceForQualName(interp, nameString, NULL,
                              TCL_GLOBAL_ONLY|TCL_FIND_ONLY_NS,
@@ -6870,8 +6870,8 @@ NSCheckNamespace(
  *----------------------------------------------------------------------
  * NSFindCommand --
  *
- *    Find the "real" command belonging eg. to an Next Scripting class or object.
- *    Do not return cmds produced by Tcl_Import, but the "real" cmd
+ *    Find the "real" command belonging e.g. to an Next Scripting class or
+ *    object.  Do not return cmds produced by Tcl_Import, but the "real" cmd
  *    to which they point.
  *
  * Results:
@@ -7202,14 +7202,18 @@ NsfAddObjectMethod(
   currentObject = (NsfObject *)object;
   ns = RequireObjNamespace(interp, currentObject);
 
-  /* Check, if we are allowed to redefine the method */
+  /* 
+   * Check whether we are allowed to redefine the method 
+   */
   result = CanRedefineCmd(interp, currentObject->nsPtr, currentObject, (char *)methodName, flags);
   if (unlikely(result != TCL_OK)) {
     return result;
   }
   NsfObjectMethodEpochIncr("NsfAddObjectMethod");
 
-  /* delete an alias definition, if it exists */
+  /* 
+   * Delete an alias definition, if it exists.
+   */
   AliasDelete(interp, currentObject->cmdName, methodName, NSF_TRUE);
 
   Tcl_DStringInit(dsPtr);
@@ -7264,7 +7268,9 @@ NsfAddClassMethod(
   c = (NsfClass *)class;
   assert(c->nsPtr != NULL);
 
-   /* Check, if we are allowed to redefine the method */
+   /* 
+    * Check whether we are allowed to redefine the method.
+    */
   result = CanRedefineCmd(interp, c->nsPtr, &c->object, (char *)methodName, flags);
   if (unlikely(result != TCL_OK)) {
     return result;
@@ -7534,8 +7540,8 @@ CallStackDestroyObject(Tcl_Interp *interp, NsfObject *object) {
  * CmdListAdd --
  *
  *    Add an entry to a cmdlist. Optionally, the function checks for
- *    duplicates (does not insert a duplicate) or it allows to add to the end
- *    of the list.
+ *    duplicates (does not insert a duplicate) or it allows one to add new
+ *    entries to the end of the list.
  *
  * Results:
  *    The newly inserted command list item or a found item (never null)
@@ -7569,7 +7575,7 @@ CmdListAdd(
   }
 
   /*
-   * check for duplicates, if necessary
+   * Check for duplicates, if necessary.
    */
   if (unlikely(noDuplicates)) {
     NsfCmdList *h = l, **end = NULL;
@@ -7582,15 +7588,18 @@ CmdListAdd(
       h = h->nextPtr;
     }
     if (end != NULL) {
-      /* no duplicates, no need to search below, we are at the end of the list */
+      /* 
+       * No duplicates, no need to search below, we are at the end of the
+       * list.
+       */
       cList = end;
       l = NULL;
     }
   }
 
   /*
-   * ok, we have no duplicates -> append "new"
-   * to the end of the list
+   * Ok, we have no duplicates -> append NsfCmdList "new" to the end of the
+   * list.
    */
   new = NEW(NsfCmdList);
   new->cmdPtr = cmd;
@@ -8341,7 +8350,7 @@ AssertionCheckList(Tcl_Interp *interp, NsfObject *object,
 
 #if 1
   /* TODO: the following check operations is XOTcl1 legacy and is not
-     generic. it should be replaced by another method-property.
+     generic. It should be replaced by another method-property.
      Most of the is*String()
      definition are then obsolete and should be deleted from
      nsfInt.h as well.
@@ -9331,7 +9340,7 @@ GetAllObjectMixinsOf(
   }
 
   /*
-   * check, if startCl has associated per-object mixins
+   * Check whether startCl has associated per-object mixins.
    */
   if (startClass->opt != NULL) {
     NsfCmdList *m;
@@ -9506,7 +9515,7 @@ GetAllClassMixinsOf(
   }
 
   /*
-   * Check, if startClass has a subclass which is a per-class mixin of some other
+   * Check whether "startClass" has a subclass which is a per-class mixin of some other
    * class(es)
    */
   {
@@ -9538,7 +9547,7 @@ GetAllClassMixinsOf(
   }
 
   /*
-   * Check, if startClass is a per-class mixin of some other classes
+   * Check whether "startClass" is a per-class mixin of some other classes.
    */
   if (startClass->opt != NULL && startClass->opt->isClassMixinOf) {
     done = AddClassListEntriesToMixinsOfSet(interp, destTablePtr, resultSet,
@@ -10713,8 +10722,8 @@ GuardAddInheritedGuards(Tcl_Interp *interp, NsfCmdList *dest,
  *----------------------------------------------------------------------
  * GuardList --
  *
- *    Set interp result to a named guard in the provided guardList. guardList
- *    might be NULL.
+ *    Set interp result to a named guard in the provided guardList. The
+ *    variable "guardList" might be NULL.
  *
  * Results:
  *    interp result
@@ -10734,10 +10743,14 @@ GuardList(Tcl_Interp *interp, NsfCmdList *guardList, const char *interceptorName
   nonnull_assert(interceptorName != NULL);
 
   if (guardList != NULL) {
-    /* try to find simple name first */
+    /* 
+     * Try to find simple name first.
+     */
     NsfCmdList *h = CmdListFindNameInList(interp, interceptorName, guardList);
     if (h == NULL) {
-      /* maybe it is a qualified name */
+      /* 
+       * Maybe it is a qualified name.
+       */
       Tcl_Command cmd = NSFindCommand(interp, interceptorName);
       if (cmd != NULL) {
         h = CmdListFindCmdInList(cmd, guardList);
@@ -11183,8 +11196,9 @@ FilterInfo(Tcl_Interp *interp, NsfCmdList *f, const char *pattern,
   nonnull_assert(interp != NULL);
 
   /*
-   * Guard lists should only have unqualified filter lists when withGuards is
-   * activated. withMethodHandles has no effect when withGuards is specified.
+   * Guard lists should only have unqualified filter lists when "withGuards"
+   * is activated. "withMethodHandles" has no effect when "withGuards" is
+   * specified.
    */
   if (withGuards) {
     withMethodHandles = NSF_FALSE;
@@ -11609,7 +11623,9 @@ FilterSearchProc(Tcl_Interp *interp, NsfObject *object,
         object->filterStack->currentCmdPtr = cmdList->cmdPtr;
         cmdList = SeekCurrent(object->filterStack->currentCmdPtr, object->filterOrder);
       } else {
-        /* ok. we found it */
+        /* 
+         * Ok, ee found it 
+         */
         if (cmdList->clorobj && !NsfObjectIsClass(&cmdList->clorobj->object)) {
           *classPtr = NULL;
         } else {
@@ -12486,7 +12502,7 @@ NsfParamDefsNonposLookup(
 
         /* fprintf(stderr, "... <%s> is an abbrev of <%s>\n", nameString, paramPtr->name); */
         /*
-         * Check, if the abbreviation is unique
+         * Check whether the abbreviation is unique.
          */
         for (pPtr = paramPtr + 1; likely(pPtr->name != NULL) && *pPtr->name == '-'; pPtr++) {
           if (unlikely((pPtr->flags & NSF_ARG_NOCONFIG) != 0u)) {
@@ -12518,7 +12534,7 @@ NsfParamDefsNonposLookup(
  *----------------------------------------------------------------------
  * CGetParamLookup --
  *
- *    Obtain the parameter definition for a Tcl_Obj starting with a "-".  it
+ *    Obtain the parameter definition for a Tcl_Obj starting with a "-".  It
  *    can return an error, when the specified parameter is ambiguous.
  *
  * Results:
@@ -14003,8 +14019,8 @@ ObjectCmdMethodDispatch(
   }
 
   /*
-   * Check, if the object cmd was called without a reference to a method. If
-   * so, perform the standard dispatch of default methods.
+   * Check whether the object cmd was called without a reference to a
+   * method. If so, perform the standard dispatch of default methods.
    */
   if (unlikely(objc < 2)) {
 
@@ -14018,7 +14034,7 @@ ObjectCmdMethodDispatch(
   }
 
   /*
-   * Check, if we want NSF_KEEP_CALLER_SELF. The setting of this flag
+   * Check whether we want NSF_KEEP_CALLER_SELF. The setting of this flag
    * determines the values of actualSelf and actualClass.
    */
   if ((invokedObject->flags & NSF_KEEP_CALLER_SELF) != 0u) {
@@ -15059,8 +15075,8 @@ static void CacheCmd(
  *
  *    This function performs the method lookup and call all kind of
  *    methods. It checks, whether a filter or mixin has to be
- *    applied. in these cases, the effective method lookup is
- *    performed by next.
+ *    applied. In these cases, the effective method lookup is
+ *    performed by "next".
  *
  * Results:
  *    Tcl result code.
@@ -15269,7 +15285,9 @@ ObjectDispatch(
           }
         }
         /* fprintf(stderr, "fully qualified lookup of %s returned %p\n", ObjStr(methodObj), cmd); */
-        /* ignore permissions for fully qualified method names */
+        /* 
+         * Ignore permissions for fully qualified method names.
+         */
         flags |= NSF_CM_IGNORE_PERMISSIONS;
       }
       /*fprintf(stderr, "ObjectDispatch fully qualified obj %s methodName %s => cl %p cmd %p \n",
@@ -15282,7 +15300,7 @@ ObjectDispatch(
     object, ObjectName(object), methodName, objflags & NSF_MIXIN_ORDER_DEFINED_AND_VALID,
     (objflags & NSF_MIXIN_ORDER_DEFINED_AND_VALID) == NSF_MIXIN_ORDER_DEFINED_AND_VALID);*/
   /*
-   * Check if a mixed in method has to be called. This is necessary, even when
+   * Check whether a mixed in method has to be called. This is necessary, even when
    * cmd is already determined.
    */
   if (unlikely((objflags & NSF_MIXIN_ORDER_DEFINED_AND_VALID) == NSF_MIXIN_ORDER_DEFINED_AND_VALID
@@ -15363,7 +15381,7 @@ ObjectDispatch(
 
     } else {
       /*
-       * Check if the call can be resolved against an object-specific method.
+       * Check whether the call can be resolved against an object-specific method.
        */
       if (unlikely((object->nsPtr != NULL)
                    && (flags & (NSF_CM_NO_OBJECT_METHOD|NSF_CM_SYSTEM_METHOD)) == 0u)) {
@@ -15402,7 +15420,7 @@ ObjectDispatch(
 
     if (likely(cmd == NULL)) {
       /*
-       * Check if the call can be resolved against an instance method.
+       * Check whether the call can be resolved against an instance method.
        */
       NsfClass           *currentClass = object->cl;
       NsfMethodContext   *mcPtr0 = methodObj->internalRep.twoPtrValue.ptr1;
@@ -16684,7 +16702,9 @@ ConvertViaCmd(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr,
   DECR_REF_COUNT(ov[1]);
   DECR_REF_COUNT(ov[2]);
 
-  /* per default, the input arg is the output arg */
+  /* 
+   * Per default, the input arg is the output arg.
+   */
   assert(*outObjPtr == objPtr);
 
   if (likely(result == TCL_OK)) {
@@ -16695,13 +16715,14 @@ ConvertViaCmd(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr,
       Tcl_Obj *resultObj;
       /*
        * If we want to convert, the resulting obj is the result of the
-       * converter. incr refCount is necessary e.g. for e.g.
+       * converter. The increment of the refCount is necessary e.g. for
        *
        *     return [expr {$value + 1}]
        *
        * The conversion is just needed, when resultObj differs from the actual
        * value in the output vector. Otherwise the conversion and the value
-       * increment happened already before (and is already recorded in the parse context).
+       * increment happened already before (and is already recorded in the
+       * parse context).
        */
       resultObj = Tcl_GetObjResult(interp);
 
@@ -16732,7 +16753,7 @@ ConvertViaCmd(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr,
  *
  *    This function obtains a Tcl_Obj *, which contains the pattern if an Next
  *    Scripting Object. When this pattern contains no meta characters, we
- *    check if the object exists. If it exists, the Tcl_Obj is converted to
+ *    check whether the object exists. If it exists, the Tcl_Obj is converted to
  *    the cmd-type. If it does not exit, the function using this pattern will
  *    fail. If the pattern contains meta characters, we prepend to the pattern
  *    "::" if necessary to avoid errors, if one specifies a pattern object
@@ -17215,7 +17236,7 @@ ParamOptionParse(Tcl_Interp *interp, const char *argString,
 
     if (Nsf_PointerTypeLookup(Tcl_DStringValue(dsPtr))) {
       /*
-       * Check, if the option refers to a pointer converter
+       * Check whether the option refers to a pointer converter.
        */
       ParamOptionSetConverter(interp, paramPtr,  Tcl_DStringValue(dsPtr), Nsf_ConvertToPointer);
       Tcl_DStringFree(dsPtr);
@@ -17587,10 +17608,9 @@ ParamDefinitionParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, uns
   }
 
   /*
-   * If the argument is not required and no default value is
-   * specified, we have to handle in the client code (eg. in the
-   * canonical arg handlers for scripted methods) the unknown value
-   * (e.g. don't set/unset a variable)
+   * If the argument is not required and no default value is specified, we
+   * have to handle in the client code (e.g. in the canonical arg handlers for
+   * scripted methods) the unknown value (e.g. don't set/unset a variable)
    */
   if ((paramPtr->flags & NSF_ARG_REQUIRED) == 0u && paramPtr->defaultValue == NULL) {
     (*possibleUnknowns)++;
@@ -18009,10 +18029,10 @@ ParameterMethodDispatch(Tcl_Interp *interp, NsfObject *object,
     }
 
     /*
-     * Check, if we have an object parameter alias for the constructor.
-     * Since we require the object system for the current object to
-     * determine its object system configuration, we can't do this at
-     * parameter compile time.
+     * Check whether we have an object parameter alias for the constructor.
+     * Since we require the object system for the current object to determine
+     * its object system configuration, we can't do this at parameter compile
+     * time.
      */
     if (*initString == *methodString && strcmp(initString, methodString) == 0) {
       result = DispatchInitMethod(interp, object, oc, &ov0, 0u);
@@ -18119,7 +18139,7 @@ MakeProc(Tcl_Namespace *nsPtr, NsfAssertionStore *aStore, Tcl_Interp *interp,
   }
 
   /*
-   * Check, if we are allowed to redefine the method
+   * Check whether we are allowed to redefine the method.
    */
   result = CanRedefineCmd(interp, nsPtr, defObject, methodName, 0u);
   if (likely(result == TCL_OK)) {
@@ -18167,8 +18187,8 @@ MakeProc(Tcl_Namespace *nsPtr, NsfAssertionStore *aStore, Tcl_Interp *interp,
   }
 
   /*
-   * Check, if the cmd exists already in the namespace. If so, delete it from
-   * there.
+   * Check whether the cmd exists already in the namespace. If so, delete it
+   * from there.
    */
   {
     Tcl_Command cmdPtr = FindMethod(nsPtr, methodName);
@@ -18608,7 +18628,7 @@ NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const 
   }
 
   /*
-   * Check if the argument parsing was ok.
+   * Check whether the argument parsing was ok.
    */
   if (likely(result == TCL_OK)) {
     Tcl_Command     cmd = tcd->wrapperCmd;
@@ -18971,9 +18991,9 @@ ProcessMethodArguments(ParseContext *pcPtr, Tcl_Interp *interp,
       pcPtr->objc--;
     } else if (elts > 1) {
       /*
-       * Multiple arguments were passed to "args".  pcPtr->objv is
-       * pointing to the first of the var args. We have to copy the
-       * remaining actual argument vector objv to the parse context.
+       * Multiple arguments were passed to "args". The array pcPtr->objv is
+       * pointing to the first of the var args. We have to copy the remaining
+       * actual argument vector objv to the parse context.
        */
 
       /*NsfPrintObjv("actual:  ", objc, objv);*/
@@ -19137,7 +19157,7 @@ AliasCmdDeleteProc(ClientData clientData) {
  *----------------------------------------------------------------------
  * GetMatchObject --
  *
- *    Helper method used by nsfAPI.h and the info methods to check if the
+ *    Helper method used by nsfAPI.h and the info methods to check whether the
  *    Tcl_Obj patternObj was provided and can be looked up. If this is the
  *    case, wild card matching etc. does not have to be performed, but just
  *    the properties of the object have to be tested.
@@ -19399,7 +19419,7 @@ AddSlotObjects(Tcl_Interp *interp, NsfObject *parent, const char *prefix,
       if (slotTablePtr != NULL) {
         int new;
         /*
-         * Check, if we have and entry with this key already processed. We
+         * Check whether we have and entry with this key already processed. We
          * never want to report shadowed entries.
          */
         Tcl_CreateHashEntry(slotTablePtr, key, &new);
@@ -19458,7 +19478,7 @@ AddSlotObjects(Tcl_Interp *interp, NsfObject *parent, const char *prefix,
       }
 
       /*
-       * Check, if the entry is from the right type
+       * Check whether the entry is from the right type.
        */
       if (typeClass != NULL && !IsSubType(childObject->cl, typeClass)) {
         continue;
@@ -19701,7 +19721,8 @@ NextSearchMethod(
     if (pl != NULL) {
       /*
        * Search for a further class method. When we are called from an active
-       * filter and the call had the -local flag set, then allow to call private methods.
+       * filter and the call had the "-local" flag set, then allow one to call
+       * private methods.
        */
       *classPtr = SearchPLMethod(pl, *methodNamePtr, cmdPtr,
                                  ((cscPtr->flags & NSF_CM_LOCAL_METHOD) != 0u &&
@@ -20138,7 +20159,7 @@ NextSearchAndInvoke(
  *
  *    nsf::xotclnext is for backwards compatibility to the next
  *    implementation in XOTcl.  It receives an argument vector which
- *    is used for the invocation. if no argument vector is provided,
+ *    is used for the invocation. If no argument vector is provided,
  *    the argument vector of the last invocation is used. If the
  *    argument vector starts with "--noArgs", then no arguments are
  *    passed to the shadowed method.
@@ -21527,7 +21548,7 @@ PrimitiveCInit(NsfClass *class, Tcl_Interp *interp, const char *name) {
  * PrimitiveCCreate --
  *
  *    Allocate memory for a class, initialize the class specific data
- *    structure (eg. class namespace) and call PrimitiveOCreate() for the
+ *    structure (e.g. class namespace) and call PrimitiveOCreate() for the
  *    object specific initialization.
  *
  * Results:
@@ -23284,7 +23305,7 @@ CallConfigureMethod(Tcl_Interp *interp, NsfObject *object, const char *initStrin
  *----------------------------------------------------------------------
  * IsRootNamespace --
  *
- *    Check, if the provided namespace is the namespace of the base
+ *    Check whether the provided namespace is the namespace of the base
  *    class of an object system.
  *
  * Results:
@@ -23652,7 +23673,7 @@ ArgumentDefaults(ParseContext *pcPtr, Tcl_Interp *interp,
       }
     } else {
       /*
-       * No valued was passed, check if a default is available.
+       * No valued was passed, check whether a default is available.
        */
 
       if (pPtr->defaultValue != NULL) {
@@ -23692,7 +23713,9 @@ ArgumentDefaults(ParseContext *pcPtr, Tcl_Interp *interp,
             return TCL_ERROR;
           }
 
-          /* The matching DECR is performed by ParseContextRelease() */
+          /* 
+           * The matching DECR is performed by ParseContextRelease().
+           */
           INCR_REF_COUNT2("valueObj", newValue);
           /*fprintf(stderr, "SUBST_DEFAULT increments %p refCount %d\n",
             newValue, newValue->refCount);*/
@@ -23937,8 +23960,8 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[],
 
     if (*currentParamPtr->name == '-') {
       /*
-       * We expect a nonpos arg. Check, if we a Tcl_Obj already converted to
-       * NsfFlagObjType.
+       * We expect a nonpos arg. Check whether we a Tcl_Obj already converted
+       * to NsfFlagObjType.
        */
       NsfFlag *flagPtr = argumentObj->internalRep.twoPtrValue.ptr1;
 
@@ -23986,7 +24009,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[],
          * these can't belong to a nonpos flag.  The argument might be e.g. a
          * pure Tcl bytearray, for which we do not want to add a string rep
          * via ObjStr() such it looses its purity (Tcl 8.6). For these
-         * argument types.  proceed in the parameter vector to the next block
+         * argument types.  Proceed in the parameter vector to the next block
          * (positional parameter)
          */
         SkipNonposParamDefs(currentParamPtr);
@@ -24002,7 +24025,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[],
          * the lookup from the Tcl_Obj has failed.  If this non-pos args are
          * optional, the current argument might contain also a value for a
          * positional argument maybe the argument is for a posarg
-         * later). First check, if the argument looks like a flag.
+         * later). First check whether the argument looks like a flag.
          */
         if (argumentString[0] != '-') {
           /*
@@ -24114,7 +24137,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[],
                 nonposArgError = 1;
               } else if ((nextParamPtr->flags & NSF_ARG_NODASHALNUM) != 0u) {
                 /*
-                 * Check if argument is numeric, since we want to allow it as
+                 * Check whether argument is numeric, since we want to allow it as
                  * value even when NSF_ARG_NODASHALNUM was specified.
                  */
                 nonposArgError = 1;
@@ -24155,10 +24178,10 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[],
 
     assert(pPtr != NULL);
     /*
-     * pPtr points to the actual parameter (part of the currentParamPtr block)
-     * or might point to a place past the last parameter, in which case an
-     * unexpected argument was provided. o is the index of the actual
-     * parameter, valueObj might be already provided for valueInArgument.
+     * "pPtr" points to the actual parameter (part of the currentParamPtr
+     * block) or might point to a place past the last parameter, in which case
+     * an unexpected argument was provided. "o" is the index of the actual
+     * parameter, "valueObj" might be already provided for valueInArgument.
      */
     if (unlikely(pPtr > lastParamPtr)) {
       int result;
@@ -27569,7 +27592,7 @@ NsfFinalizeCmd(Tcl_Interp *interp, int withKeepvars) {
 
 #if defined(NSF_PROFILE)
   /*
-   * Check, if profile trace is still running. If so, delete it here.
+   * Check whether profile trace is still running. If so, delete it here.
    * Interestingly, NsfLog() seems to be unavailable at this place.
    */
   if (RUNTIME_STATE(interp)->doTrace == 1) {
@@ -27854,7 +27877,7 @@ NsfMethodAliasCmd(
    *
    * 4. NsfSetterMethod: an Next Scripting setter
    *
-   * 5. arbitrary Tcl commands (e.g. set, ..., ::nsf::relation, ...)
+   * 5. Arbitrary Tcl commands (e.g. set, ..., ::nsf::relation, ...)
    *
    */
 
@@ -29351,9 +29374,9 @@ NsfParameterCacheClassInvalidateCmd(Tcl_Interp *interp, NsfClass *class) {
 
     /*
      * Clear the cached parsedParam of the class and all its subclasses (the
-     * result of DependentSubClasses() contains the starting class). Furthermore,
-     * make a quick check, if any of the subclasses is a class mixin of some
-     * other class.
+     * result of DependentSubClasses() contains the starting
+     * class). Furthermore, make a quick check whether any of the subclasses
+     * is a class mixin of some other class.
      */
 
     dependentSubClasses = DependentSubClasses(class);
@@ -29583,7 +29606,7 @@ NsfRelationGetCmd(Tcl_Interp *interp, NsfObject *object, RelationtypeIdx_t type)
  * NsfRelationClassMixinsSet --
  *
  *    Set class mixins; the main reason for the factored out semantics is that
- *    it can allow to undo/redo the operations in case of a failure.
+ *    it supports to undo/redo the operations in case of a failure.
  *
  * Results:
  *    Tcl result code.
@@ -29781,9 +29804,9 @@ NsfRelationSetCmd(Tcl_Interp *interp, NsfObject *object, RelationtypeIdx_t type,
 
     return TCL_OK;
 
-    /* todo:
-       need to remove these properties?
-       allow to delete a class system at runtime?
+    /* TODO:
+       Need to remove these properties?
+       Allow one to delete a class system at runtime?
     */
     }
 
@@ -30411,10 +30434,10 @@ ParamFreeInternalRep(
  *----------------------------------------------------------------------
  * ParamSetFromAny2 --
  *
- *    Convert the second argument (e.g. "x:integer") into the
- *    internal representation of a Tcl_Obj of the type parameter. The
- *    conversion is performed by the usual ParamDefinitionParse() function, used
- *    e.g. for the parameter passing for arguments.
+ *    Convert the second argument (e.g. "x:integer") into the internal
+ *    representation of a Tcl_Obj of the type parameter. The conversion is
+ *    performed by the usual ParamDefinitionParse() function, used e.g. for
+ *    the parameter passing for arguments.
  *
  * Results:
  *    Result code.
@@ -30620,7 +30643,7 @@ GetObjectParameterDefinition(
         ) {
       /*
        * We have object-specific parameters.  Do not use the per-class cache,
-       * and do not save the results in the per-class cache
+       * and do not save the results in the per-class cache.
        */
       /*fprintf(stderr, "per-object configure obj %s flags %.6x\n",
         ObjectName(object), object->flags);*/
@@ -30645,7 +30668,7 @@ GetObjectParameterDefinition(
    */
 
   /*
-   * Check, if there is already a parameter definition available for
+   * Check whether there is already a parameter definition available for
    * creating objects of this class.
    */
 
@@ -31126,11 +31149,11 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *co
 
         } else {
           /*
-           * We could consider to require a default
+           * We could consider to require a default.
            */
         }
         /*
-         * if we have a new actual value, proceed to setvars
+         * If we have a new actual value, proceed to setvars.
          */
         if ((pc.flags[i-1] & NSF_PC_IS_DEFAULT) == 0) {
           goto setvars;
@@ -32055,8 +32078,8 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *nameObj, int objc
 
   /*
    * Check whether we have to call recreate (i.e. when the object exists
-   * already). First check, if was have such a command, then check, if the
-   * command is an object.
+   * already). First check whether was have such a command, then check whether
+   * the command is an object.
    */
   {
     Tcl_Command cmd = NSFindCommand(interp, nameString);
@@ -32064,8 +32087,8 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *nameObj, int objc
       newObject = NsfGetObjectFromCmdPtr(cmd);
       if (newObject == NULL) {
         /*
-         * We have a cmd, but no object. Don't allow to overwrite an ordinary
-         * cmd by an nsf object.
+         * We have a cmd, but no object. Don't allow one to overwrite an
+         * ordinary cmd by an nsf object.
          */
         result = NsfPrintError(interp, "refuse to overwrite cmd %s; delete/rename it before overwriting", nameString);
         goto create_method_exit;
@@ -32089,7 +32112,7 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *nameObj, int objc
   }
 
   /*
-   * Don't allow to
+   * Don't allow one to
    *  - recreate an object as a class,
    *  - recreate a class as an object, and to
    *  - recreate an object in a different object system
@@ -32139,7 +32162,7 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *nameObj, int objc
 
   } else {
     /*
-     * newObject might exist here, but will be automatically destroyed by
+     * "newObject" might exist here, but will be automatically destroyed by
      * alloc.
      */
 
@@ -34676,7 +34699,7 @@ Nsf_Init(
 #endif
 
   /*
-   * Check, if the namespace exists, otherwise create it.
+   * Check whether the namespace exists, otherwise create it.
    */
   rst->NsfNS = Tcl_FindNamespace(interp, "::nsf", NULL, TCL_GLOBAL_ONLY);
   if (rst->NsfNS == NULL) {

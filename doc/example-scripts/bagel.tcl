@@ -167,8 +167,8 @@ nx::test configure -count 1
 
 # For multiple inheritance, the system determines a linear inheritance
 # ordering that respects all of the local superclass orderings. You
-# can examine this ordering with an info option. next follows this
-# ordering when it combines behavior.
+# can examine this ordering with an info option. This ordering
+# determines the the method resolition, when e.g. "next" is called.
 
 ? {SesameOnionBagel info heritage} {::Sesame ::Onion ::SpreadableBagel ::Bagel ::nx::Object}
 

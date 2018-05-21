@@ -48,7 +48,7 @@
  * sizeof(data pointer)), passing function pointers via data pointers
  * - which is what default Tcl hash types do - is potentially
  * dangerous. Therefore, and on top, it is not allowed under ISO
- * C. So, we define our own type that allows to hash on function
+ * C. So, we define our own type that allows one to hash on function
  * pointers safely.
  *
  */

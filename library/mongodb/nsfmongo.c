@@ -154,7 +154,7 @@ static int ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 }
 
 /***********************************************************************
- * Include the generated mongo db api.
+ * Include the generated mongo db API.
  ***********************************************************************/
 
 #include "mongoAPI.h"
@@ -550,7 +550,7 @@ BsonAppendObjv(Tcl_Interp *interp, bson_t *bPtr, int objc, Tcl_Obj **objv)
 
 
 /***********************************************************************
- * Define the api functions
+ * Define the API functions
  ***********************************************************************/
 /*
   cmd json::generate NsfMongoJsonGenerate {

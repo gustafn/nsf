@@ -341,7 +341,7 @@ proc gencall {methodName fn parameterDefinitions clientData
 proc genStub {stub intro obj idx cDefs pre call post cleanup} {
   # Tiny optimization for calls without parameters;
   # ParseContextExtendObjv() is just called for procs, so no need to
-  # free non-static objvs. Actually, the api for c-methods does
+  # free non-static objvs. Actually, the API for c-methods does
   # not allow one to generate structures which have to be freed.
   # we assert this in the code.
   if {$cDefs ne ""} {

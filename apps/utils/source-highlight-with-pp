@@ -1,4 +1,4 @@
-#!/usr/bin/env tclsh
+#!/usr/bin/env tclsh8.7
 
 package req nx::pp
 lappend argv [read stdin]

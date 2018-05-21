@@ -3,7 +3,7 @@
  *
  * 	This file provides the stubs needed for the AOLserver, to load NSF.
  *  	Please note that at least AOLserver 4.* or NaviServer 4.99.4 or newer
- *  	are required.  might have to have to apply a small patch to the
+ *  	are required.  Might have to have to apply a small patch to the
  *  	AOLserver as well (available from www.xotcl.org) in order to get it
  *  	working.
  *

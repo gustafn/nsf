@@ -431,7 +431,7 @@ namespace eval ::xotcl {
     }
   }
 
-  # "init" must exist on Object. per default it is empty.
+  # "init" must exist on Object. Per default it is empty.
   Object instproc init args {
     if {![::nsf::current isnextcall] && [llength $args] > 0 && [::nsf::configure debug] > 0} {
       ::nsf::log Warning "Arguments '$args' to constructor of object [self] are most likely not processed"

@@ -7,15 +7,13 @@ package require nx
 package require nsf::mongo
 package provide nx::mongo 2.1
 
-# todo: how to handle multiple connections; currently we have a single, global connection
-# todo: all references are currently auto-fetched. make this optional
-# todo: If "embeds" or "references" are used, the object must be of
-#       the specified classes, no subclasses allowed
-# todo: extend the query language syntax, e.g. regexp, ... (handled at least partly via "~" operator)
-# todo: handle remove for non-multivalued embedded objects
-# idea: handle names of nx objects (e.g. property like __name)
-# idea: combine incremental slot operations with e.g. add -> $push, remove -> $pull
-# todo: make "embedded", "reference" spec even nicer?
+# todo: How to handle multiple connections; currently we have a single, global connection,
+# todo: All references are currently auto-fetched. Make this optional.
+# todo: Extend the query language syntax, e.g. regexp, ... (handled at least partly via "~" operator)
+# todo: Handle remove for non-multivalued embedded objects
+# idea: Handle names of nx objects (e.g. property like __name)
+# idea: Combine incremental slot operations with e.g. add -> $push, remove -> $pull
+# todo: Make "embedded", "reference" spec even nicer?
 
 namespace eval ::nx::mongo {
 
@@ -413,7 +411,7 @@ namespace eval ::nx::mongo {
     #
     # Provide helper methods to access from an external specifier
     # (property name or operator name) internal representations
-    # (eg. mongo type, or mongo operator).
+    # (e.g. mongo type, or mongo operator).
     #
     :public method "get slot" {att} {
       set classes [list [self] {*}[:info mixins] {*}[:info heritage]]
