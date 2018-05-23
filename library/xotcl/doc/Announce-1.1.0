@@ -55,7 +55,7 @@ CHANGES relative to 1.0.2 are:
  
      * New build system:
         - per default no shells are built
-        - new configure switches eg. --with-xotclsh, -with-actiweb
+        - new configure switches e.g. --with-xotclsh, -with-actiweb
           --with-all
 
      * Fixes for https in connection with some versions of IE

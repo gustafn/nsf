@@ -69,7 +69,7 @@ You will probably have to adjust the paths.
 	       --enable-threads --enable-symbols
 
 In order to run the sample script,
-  * first start the mongodb (eg. mongod)
+  * first start the mongodb (e.g. mongod)
 
   * go to your NSF source directory
 

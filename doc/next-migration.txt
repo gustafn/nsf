@@ -374,7 +374,7 @@ XOTcl uses the prefix +inst+ to denote that methods are provided for
 instances, calling therefore scripted methods for instances
 +instproc+. This is certainly an unusual term. The approach with the
 name prefix has the disadvantage, that for every different kind of
-method, two names have to be provided (eg. +proc+ and +instproc+,
+method, two names have to be provided (e.g. +proc+ and +instproc+,
 +forward+ and +instforward+).
 
 NX on the contrary uses the same term for defining instance method or
