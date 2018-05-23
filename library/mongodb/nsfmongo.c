@@ -1411,7 +1411,7 @@ NsfMongoGridFileCreate(Tcl_Interp *interp,
 
   if (withSource == GridfilesourceFileIdx) {
     uint8_t buf[MONGOC_GRIDFS_READ_CHUNK];
-    struct iovec iov = { buf, 0 };
+    mongoc_iovec_t iov = { buf, 0 };
     int fd = open(value, O_RDONLY);
 
     if (fd < 1) {
@@ -1437,7 +1437,7 @@ NsfMongoGridFileCreate(Tcl_Interp *interp,
     }
     close(fd);
   } else {
-    struct iovec iov = { (char *)value, strlen(value) };
+    mongoc_iovec_t iov = { (char *)value, strlen(value) };
     mongoc_gridfs_file_writev(gridFile, &iov, 1, 0);
   }
   if (result == TCL_OK) {
@@ -1646,7 +1646,7 @@ NsfMongoGridFileRead(Tcl_Interp *interp, mongoc_gridfs_file_t *gridFilePtr, int 
 {
   ssize_t      readSize;
   Tcl_Obj     *resultObj = Tcl_NewByteArrayObj(NULL, size);
-  struct iovec iov = { NULL, (size_t)size };
+  mongoc_iovec_t iov = { NULL, (size_t)size };
 
   assert(size > 0);
 
