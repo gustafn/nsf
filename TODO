@@ -5934,6 +5934,8 @@ catch {={*}[list foo 1 2 3 4 5 6]} msg; puts msg=$msg
 ========================================================================
 TODO:
 
+- add value=isSet as a new VariableSlot method, to wrap around [info exists] and others.
+
 - DTrace: --with-dtrace vs. --enable-dtrace (as in Tcl)? generate
   header file only for distributions, auto-generated otherwise? -G
   option not supported anymore on Mac OS X (although man dtrace
