@@ -925,7 +925,7 @@ $(DESTDIR)$(mandir)/mann:
 end:
 	@echo "" 
 	@echo "***************************************************************"
-	@echo " Make completed. In order to test the next-scripting framework,"
+	@echo " Make completed. In order to test the Next Scripting Framework,"
 	@echo " invoke:"
 	@echo "   make test"
 	@echo ""
