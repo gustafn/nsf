@@ -1,0 +1,10 @@
+language: c
+sudo: false
+addons:
+  apt:
+    packages:
+      - tcl
+      - tcl-dev
+script:
+- configure
+- make test
