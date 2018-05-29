@@ -5,6 +5,3 @@ addons:
     packages:
       - tcl
       - tcl-dev
-script:
-- configure
-- make test
