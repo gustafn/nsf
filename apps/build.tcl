@@ -45,7 +45,8 @@ proc ::build {HOMEDIR TCLTAG args} {
   exec >@stdout 2>@stderr make test
 }
 
-::build {*}$argv
+puts ===$::argv
+::build {*}$::argv
 
 
 # Local variables:
