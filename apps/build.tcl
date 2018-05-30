@@ -3,8 +3,9 @@
 
 package require http
 package require tar
+package require platform
 
-proc ::build {HOMEDIR TCLTAG args} {
+proc ::build {HOMEDIR BUILDDIR TCLTAG args} {
   set tarball "tcl.tar.gz"
 
   cd $HOMEDIR
@@ -30,8 +31,14 @@ proc ::build {HOMEDIR TCLTAG args} {
   
   # exec tar -xzf tcl.tar.gz
   # https://stackoverflow.com/questions/22333745/how-does-tcl-exec-work-exactly
+
+  set dir [expr {[string match "win*" [platform::generic]]?"win":"unix"}]
   
-  set tclDir [file normalize [file join tcl unix]]
+  set tclDir [file normalize [file join tcl $dir]]
+
+  puts pwd([pwd])=[glob *]
+  puts tclDir($tclDir)=[glob $tclDir/*]
+  
   set buildDir [pwd]
   
   cd $tclDir
@@ -40,7 +47,7 @@ proc ::build {HOMEDIR TCLTAG args} {
   
   set tclSh [file join $tclDir tclsh]
   
-  cd $::env(TRAVIS_BUILD_DIR)
+  cd $BUILDDIR
   exec >@stdout 2>@stderr [file join [pwd] configure] --with-tcl=$tclDir
   exec >@stdout 2>@stderr make test
 }

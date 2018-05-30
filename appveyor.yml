@@ -20,5 +20,5 @@ install:
   - set Path=%CD%\%MINGW_DIR%\bin;%Path%
 
 build_script:
-  - tclkit.exe apps/build.tcl %CD% %TCLTAG%
+  - tclkit.exe apps/build.tcl %CD% %APPVEYOR_BUILD_FOLDER% %TCLTAG%
   

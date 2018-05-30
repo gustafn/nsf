@@ -19,4 +19,4 @@ install:
        wget http://kitcreator.rkeene.org/kits/6967b89da1f6af7b12cdc82819f3bdb13a661242/tclkit; fi
   - chmod +x tclkit
 script:
-  - ./tclkit apps/build.tcl $HOME $TCLTAG
+  - ./tclkit apps/build.tcl $HOME $TRAVIS_BUILD_DIR $TCLTAG
