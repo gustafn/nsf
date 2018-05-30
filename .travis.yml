@@ -1,7 +1,20 @@
 language: c
 sudo: false
-addons:
-  apt:
-    packages:
-      - tcl
-      - tcl-dev
+os:
+   - osx
+   - linux
+compiler:
+   - gcc
+   - clang
+env:
+   TCLTAG = core-8-6-branch
+   TCLTAG = core-8-6-8
+   TCLTAG = core-8-5-branch
+   TCLTAG = core-8-5-19
+   TCLTAG = core-8-7-a1	
+   TCLTAG = core-8-branch
+install:
+  - if [ $TRAVIS_OS_NAME = linux ]; then wget http://kitcreator.rkeene.org/kits/840dec4286102c869d85bae3b0dcd32565e7bf12/tclkit; else wget http://kitcreator.rkeene.org/kits/6967b89da1f6af7b12cdc82819f3bdb13a661242/tclkit; fi
+  - chmod +x tclkit
+script:
+  - ./tclkit apps/build.tcl $HOME $TCLTAG
