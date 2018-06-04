@@ -33,7 +33,7 @@
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
- * DEALINGS IN THE SOFTWARE. 
+ * DEALINGS IN THE SOFTWARE.
  *
  * The original work by Paul Duffin was licensed as:
  *
@@ -97,44 +97,47 @@ CONST86 NsfIntStubs *nsfIntStubsPtr = NULL;
 
 const char *
 Nsf_InitStubs(Tcl_Interp *interp, const char *version, int exact) {
-    const char *actualVersion;
-    const char *packageName = "nsf";
-    ClientData clientData = NULL;
+  const char *actualVersion, *packageName = "nsf";
+  ClientData  clientData = NULL;
 
-    actualVersion = Tcl_PkgRequireEx(interp, "nsf", version, exact,
-				     &clientData);
+  actualVersion = Tcl_PkgRequireEx(interp, "nsf", version, exact,
+                                   &clientData);
+  if (clientData == NULL) {
+    /*
+     * When the "package require" for NSF fails, we can't use
+     * any NSF calls, like e.g. NsfPrintError().
+     */
+    Tcl_ResetResult(interp);
+    Tcl_AppendResult(interp, "Error loading ", packageName, " package: "
+                     "package not present, incomplete or misconfigured. "
+                     "Maybe NSF was not compliled with COMPILE_NSF_STUBS enabled?",
+                     (char*) 0L);
+    actualVersion = NULL;
+  } else {
+    CONST86 NsfStubs *stubsPtr;
 
-    /*fprintf(stderr, "Nsf_InitStubs required nsf version %s exact %d -> %s %p\n",
-      version, exact, actualVersion, clientData);*/
+    if (actualVersion != NULL) {
 
-    if (clientData == NULL) {
-      NsfPrintError(interp, "Error loading package %s: "
-                    "package not present or incomplete", packageName);
-        return NULL;
-    } else {
-      CONST86 NsfStubs * const stubsPtr = clientData;
-      CONST86 NsfIntStubs * const intStubsPtr = (stubsPtr->hooks != NULL) ?
-        stubsPtr->hooks->nsfIntStubs : NULL;
-
-      if (actualVersion == NULL) {
-        return NULL;
-      }
-
-      if (intStubsPtr == NULL) {
+      stubsPtr = clientData;
+      if (stubsPtr->hooks == NULL) {
         static const char *errMsg = "missing stubInt table pointer";
 
-        Tcl_ResetResult(interp);
         NsfPrintError(interp, "Error loading package %s: "
                       "(requested version '%s', loaded version '%s'): %s",
                       packageName, version, actualVersion, errMsg);
-        return NULL;
+        actualVersion = NULL;
+      } else {
+        CONST86 NsfIntStubs *intStubsPtr;
+
+        intStubsPtr = stubsPtr->hooks->nsfIntStubs;
+
+        nsfStubsPtr = stubsPtr;
+        nsfIntStubsPtr = intStubsPtr;
       }
 
-      nsfStubsPtr = stubsPtr;
-      nsfIntStubsPtr = intStubsPtr;
-
-      return actualVersion;
     }
+  }
+  return actualVersion;
 }
 
 /*
