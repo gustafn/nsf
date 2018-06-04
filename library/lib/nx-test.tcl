@@ -1,10 +1,6 @@
 package provide nx::test 1.0
 package require nx
 
-if {![llength [info commands try]]} {
-  package req try
-}
-
 namespace eval ::nx {
 
   # @file Simple regression test support for XOTcl / NX
@@ -128,9 +124,9 @@ namespace eval ::nx {
       if {[info exists :pre]} {:call "pre" ${:pre}}
       if {![info exists :msg]} {set :msg ${:cmd}}
       #set gotError [catch {:call "run" ${:cmd}} r]
-      try {
-        :call run ${:cmd}
-      } on error {errorMsg opts} {
+      if {[catch {
+        set r [:call run ${:cmd}]
+      } errorMsg opts]} {
         set errorCode [dict get $opts -errorcode]
         if {$errorCode ne "NONE"} {
           set r $errorMsg
@@ -138,10 +134,29 @@ namespace eval ::nx {
           set r $errorMsg
         }
         set gotError 1
-      } on ok {r} {
+      } else {
         set gotError 0
         set errorCode "NONE"
       }
+
+      #
+      # When 8.5 support is dropped, use:
+      #
+      # try {
+      #   :call run ${:cmd}
+      # } on error {errorMsg opts} {
+      #   set errorCode [dict get $opts -errorcode]
+      #   if {$errorCode ne "NONE"} {
+      #     set r $errorMsg
+      #   } else {
+      #     set r $errorMsg
+      #   }
+      #   set gotError 1
+      # } on ok {r} {
+      #   set gotError 0
+      #   set errorCode "NONE"
+      # }
+      
       #puts stderr "gotError = $gotError // $r == ${:expected} // [info exists :setResult]"
       if {[info exists :setResult]} {set r [eval [set :setResult]]}
       if {$r eq ${:expected} || $errorCode eq ${:expected}} {
