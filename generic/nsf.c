@@ -26212,7 +26212,7 @@ ListSuperClasses(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *pattern, bool wit
 
   if (class->super != NULL) {
     NsfObject   *matchObject = NULL;
-    Tcl_Obj     *outObjPtr;
+    Tcl_Obj     *outObjPtr, *patternObj = NULL;
     const char  *patternString = NULL;
     ClientData   clientData;
     bool         found;
@@ -26220,8 +26220,8 @@ ListSuperClasses(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *pattern, bool wit
     if (pattern != NULL
         && ConvertToObjpattern(interp, pattern, NULL, &clientData, &outObjPtr) == TCL_OK
         ) {
-      Tcl_Obj *patternObj = (Tcl_Obj *)clientData;
-
+      patternObj = (Tcl_Obj *)clientData;
+    
       if (GetMatchObject(interp, patternObj, pattern, &matchObject, &patternString) == -1) {
         /*
          * The pattern has no meta chars and does not correspond to an existing
@@ -26232,12 +26232,8 @@ ListSuperClasses(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *pattern, bool wit
         }
         return TCL_OK;
       }
-
-      if (patternObj != NULL) {
-        DECR_REF_COUNT2("patternObj", patternObj);
-      }
     }
-
+        
     if (withClosure) {
       NsfClasses *pl = PrecedenceOrder(class);
 
@@ -26256,6 +26252,10 @@ ListSuperClasses(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *pattern, bool wit
       Tcl_SetObjResult(interp, found ? matchObject->cmdName : NsfGlobalObjs[NSF_EMPTY]);
     }
 
+    if (patternObj != NULL) {
+      DECR_REF_COUNT2("patternObj", patternObj);
+    }
+    
   }
   return TCL_OK;
 }
