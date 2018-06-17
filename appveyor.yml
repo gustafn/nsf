@@ -14,11 +14,11 @@ environment:
   - TCLTAG: core-8-6-branch
 
 install:
-  - set PATH=C:\msys64\usr\bin;%PATH%
   - if not exist "%MINGW_ARCHIVE%" appveyor DownloadFile "%MINGW_URL%" -FileName "%MINGW_ARCHIVE%"
   - 7z x -y "%MINGW_ARCHIVE%" > nul
   - appveyor DownloadFile "%TCLKIT_URL%" -FileName "%TCLKIT%"
   - set CHERE_INVOKING=1
+  - set PATH=%CD%\%MINGW_DIR%\bin;C:\msys64\usr\bin;%PATH%
   - bash -lc "echo \"export PATH=`pwd`/${MINGW_DIR}/bin:$PATH\" >> ~/.bash_profile"
   - pacman -S --noconfirm --needed mingw-w64-x86_64-gcc
 
