@@ -20,6 +20,7 @@ install:
   - appveyor DownloadFile "%TCLKIT_URL%" -FileName "%TCLKIT%"
   - set CHERE_INVOKING=1
   - bash -lc "echo \"export PATH=`pwd`/${MINGW_DIR}/bin:$PATH\" >> ~/.bash_profile"
+  - pacman -S --noconfirm --needed mingw-w64-x86_64-gcc
 
 build_script:
   - tclkit.exe apps/build.tcl %CD% %APPVEYOR_BUILD_FOLDER% %TCLTAG%
