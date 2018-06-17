@@ -42,14 +42,14 @@ proc ::build {HOMEDIR BUILDDIR TCLTAG args} {
   set buildDir [pwd]
   
   cd $tclDir
-  exec >@stdout 2>@stderr [file join [pwd] configure] --libdir=$tclDir
-  exec >@stdout 2>@stderr make
+  exec >@stdout 2>@stderr bash -lc "./configure --libdir=$tclDir --enable-64bit"
+  exec >@stdout 2>@stderr bash -lc "make"
   
   set tclSh [file join $tclDir tclsh]
   
   cd $BUILDDIR
-  exec >@stdout 2>@stderr [file join [pwd] configure] --with-tcl=$tclDir
-  exec >@stdout 2>@stderr make test
+  exec >@stdout 2>@stderr bash -lc "./configure --with-tcl=$tclDir"
+  exec >@stdout 2>@stderr bash -lc "make test"
 }
 
 puts ===$::argv
