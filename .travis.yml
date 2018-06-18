@@ -13,6 +13,13 @@ env:
    - TCLTAG=core-8-5-19
    - TCLTAG=core-8-7-a1	
    - TCLTAG=core-8-branch
+
+matrix:
+  allow_failures:
+    - env: TCLTAG=core-8-6-branch
+    - env: TCLTAG=core-8-5-branch
+    - env: TCLTAG=core-8-branch
+  fast_finish: true
    
 before_install:
 - if echo "$TRAVIS_COMMIT_MESSAGE" | grep -F -q "[skip travis]" ; then echo "[skip travis] has been found, exiting" && exit 0 ; else echo "[skip travis] has not been found, continuing" ; fi
