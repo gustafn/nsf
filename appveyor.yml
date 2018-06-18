@@ -9,12 +9,13 @@ environment:
   TCLKIT_URL: http://kitcreator.rkeene.org/kits/43b2a6f8b159514a79e4330cb4d2dbb3a47f7acc/tclkit.exe
   TCLKIT: tclkit.exe
   matrix:
-  - TCLTAG=core-8-6-branch
-  - TCLTAG=core-8-6-8
-  - TCLTAG=core-8-5-branch
-  - TCLTAG=core-8-5-19
-  - TCLTAG=core-8-7-a1	
-  - TCLTAG=core-8-branch
+  - TCLTAG: core-8-6-branch
+  - TCLTAG: core-8-6-8
+  - TCLTAG: core-8-5-branch
+  - TCLTAG: core-8-5-19
+  - TCLTAG: core-8-7-a1	
+  - TCLTAG: core-8-branch
+
 
 install:
   # - if not exist "%MINGW_ARCHIVE%" appveyor DownloadFile "%MINGW_URL%" -FileName "%MINGW_ARCHIVE%"
