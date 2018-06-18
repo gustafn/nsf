@@ -36,17 +36,19 @@ proc ::build {HOMEDIR BUILDDIR TCLTAG args} {
   
   set tclDir [file normalize [file join tcl $dir]]
 
-  puts pwd([pwd])=[glob *]
-  puts tclDir($tclDir)=[glob $tclDir/*]
+  # puts pwd([pwd])=[glob *]
+  # puts tclDir($tclDir)=[glob $tclDir/*]
   
   set buildDir [pwd]
   
   cd $tclDir
-  puts ENV=$::env(PATH)
-  puts ENV=$::env(HOME)
-  exec >@stdout 2>@stderr bash -lc "echo \$PATH"
-  exec >@stdout 2>@stderr bash -lc "cd && pwd"
-  exec >@stdout 2>@stderr bash -lc "cd && ls -la"
+
+  # puts ENV=$::env(PATH)
+  # puts ENV=$::env(HOME)
+  # exec >@stdout 2>@stderr bash -lc "echo \$PATH"
+  # exec >@stdout 2>@stderr bash -lc "cd && pwd"
+  # exec >@stdout 2>@stderr bash -lc "cd && ls -la"
+
   exec >@stdout 2>@stderr bash -lc "./configure --libdir=$tclDir --enable-64bit"
   exec >@stdout 2>@stderr bash -lc "make"
   
@@ -57,7 +59,7 @@ proc ::build {HOMEDIR BUILDDIR TCLTAG args} {
   exec >@stdout 2>@stderr bash -lc "make test"
 }
 
-puts ===$::argv
+# puts ===$::argv
 ::build {*}$::argv
 
 

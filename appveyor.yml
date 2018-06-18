@@ -2,9 +2,6 @@ platform: x64
 
 image: Visual Studio 2017
 
-cache:
-- x86_64-8.1.0-release-win32-seh-rt_v6-rev0.7z
-
 environment:
   MINGW_DIR: mingw64
   MINGW_URL: https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/8.1.0/threads-win32/seh/x86_64-8.1.0-release-win32-seh-rt_v6-rev0.7z
@@ -12,8 +9,12 @@ environment:
   TCLKIT_URL: http://kitcreator.rkeene.org/kits/43b2a6f8b159514a79e4330cb4d2dbb3a47f7acc/tclkit.exe
   TCLKIT: tclkit.exe
   matrix:
-  - TCLTAG: core-8-6-8
-  - TCLTAG: core-8-6-branch
+  - TCLTAG=core-8-6-branch
+  - TCLTAG=core-8-6-8
+  - TCLTAG=core-8-5-branch
+  - TCLTAG=core-8-5-19
+  - TCLTAG=core-8-7-a1	
+  - TCLTAG=core-8-branch
 
 install:
   # - if not exist "%MINGW_ARCHIVE%" appveyor DownloadFile "%MINGW_URL%" -FileName "%MINGW_ARCHIVE%"
@@ -22,16 +23,10 @@ install:
 
 build_script:
   - set CHERE_INVOKING=1
-  # - set PATH=%CD%\%MINGW_DIR%\bin;C:\msys64\usr\bin;%PATH%
   - set PATH=C:\msys64\mingw64\bin;C:\msys64\usr\bin;%PATH%
-  - set PATH
-  # - set MSYS2_PATH_TYPE=inherit
+  # Needed to align MSYS and Windows HOME dirs
   - set HOME=C:\Users\appveyor
   - bash -lc "cd && echo \"export PATH=/c/msys64/mingw64/bin:/c/msys64/usr/bin:\$PATH; export MSYSTEM=MINGW64; export MINGW_PREFIX=/c/msys64/mingw64; \" >> .profile"
-  - bash -lc "env"
-  - bash -lc "cd && pwd"	
-  - sh -lc "echo $PATH"
-  - bash -lc "/bin/sh -lc \"echo \$PATH\""
   - tclkit.exe apps/build.tcl %CD% %APPVEYOR_BUILD_FOLDER% %TCLTAG%
 
 on_failure:
