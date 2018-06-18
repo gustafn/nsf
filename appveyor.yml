@@ -22,8 +22,10 @@ install:
   - set CHERE_INVOKING=1
   # - set PATH=%CD%\%MINGW_DIR%\bin;C:\msys64\usr\bin;%PATH%
   - set PATH=C:\msys64\mingw64\bin;C:\msys64\usr\bin;%PATH%
-  - bash -lc "echo \"export PATH=/c/msys64/mingw64/bin:\$PATH\" >> ~/.bash_profile"
+  - bash -lc "echo \"export PATH=/c/msys64/mingw64/bin:\$PATH; export MSYSTEM=MINGW64;\" >> ~/.bash_profile"
 
 build_script:
   - tclkit.exe apps/build.tcl %CD% %APPVEYOR_BUILD_FOLDER% %TCLTAG%
-  
+
+on_failure:
+  - cat win\tcl\config.log
