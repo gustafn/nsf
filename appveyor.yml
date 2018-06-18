@@ -26,8 +26,9 @@ build_script:
   - set PATH=C:\msys64\mingw64\bin;C:\msys64\usr\bin;%PATH%
   - set PATH
   # - set MSYS2_PATH_TYPE=inherit
-  - bash -lc "echo \"export PATH=/c/msys64/mingw64/bin:/c/msys64/usr/bin:\$PATH; export MSYSTEM=MINGW64; export MINGW_PREFIX=/c/msys64/mingw64; \" >> ~/.profile"
-  - bash -lc "echo $PATH"
+  - bash -lc "cd && echo \"export PATH=/c/msys64/mingw64/bin:/c/msys64/usr/bin:\$PATH; export MSYSTEM=MINGW64; export MINGW_PREFIX=/c/msys64/mingw64; \" >> .profile"
+  - bash -lc "env"
+  - bash -lc "cd && pwd"	
   - sh -lc "echo $PATH"
   - bash -lc "/bin/sh -lc \"echo \$PATH\""
   - tclkit.exe apps/build.tcl %CD% %APPVEYOR_BUILD_FOLDER% %TCLTAG%
