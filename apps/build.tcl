@@ -43,7 +43,10 @@ proc ::build {HOMEDIR BUILDDIR TCLTAG args} {
   
   cd $tclDir
   puts ENV=$::env(PATH)
+  puts ENV=$::env(HOME)
   exec >@stdout 2>@stderr bash -lc "echo \$PATH"
+  exec >@stdout 2>@stderr bash -lc "cd && pwd"
+  exec >@stdout 2>@stderr bash -lc "cd && ls -la"
   exec >@stdout 2>@stderr bash -lc "./configure --libdir=$tclDir --enable-64bit"
   exec >@stdout 2>@stderr bash -lc "make"
   
