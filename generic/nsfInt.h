@@ -1363,5 +1363,7 @@ char *strnstr(const char *buffer, const char *needle, size_t buffer_len) pure;
 #define NsfHasTclSpace(str) \
   (strpbrk((str), " \t\n\r\v\f") != NULL)
 
+#define NsfMax(a,b) ((a) > (b) ? a : b)
+#define NsfMin(a,b) ((a) < (b) ? a : b)
 
 #endif /* _nsf_int_h_ */

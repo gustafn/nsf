@@ -16966,10 +16966,10 @@ ParamOptionParse(Tcl_Interp *interp, const char *argString,
   /*fprintf(stderr, "ParamOptionParse name %s, option '%s' (%ld) disallowed %.6x\n",
     paramPtr->name, option, start, disallowedOptions);*/
 
-  if (firstChar == 'r' && strncmp(option, "required", MAX(3, optionLength)) == 0) {
+  if (firstChar == 'r' && strncmp(option, "required", NsfMax(3, optionLength)) == 0) {
     paramPtr->flags |= NSF_ARG_REQUIRED;
 
-  } else if (firstChar == 'o' && strncmp(option, "optional",  MAX(3, optionLength)) == 0) {
+  } else if (firstChar == 'o' && strncmp(option, "optional",  NsfMax(3, optionLength)) == 0) {
     paramPtr->flags &= ~NSF_ARG_REQUIRED;
 
   } else if (firstChar == 's'
@@ -17124,7 +17124,7 @@ ParamOptionParse(Tcl_Interp *interp, const char *argString,
     paramPtr->defaultValue = Tcl_NewBooleanObj(0);
     INCR_REF_COUNT(paramPtr->defaultValue);
 
-  } else if (firstChar == 'i' && strncmp(option, "integer", MAX(3, optionLength)) == 0) {
+  } else if (firstChar == 'i' && strncmp(option, "integer", NsfMax(3, optionLength)) == 0) {
     result = ParamOptionSetConverter(interp, paramPtr, "integer", Nsf_ConvertToInteger);
 
   } else if (firstChar == 'i' && strncmp(option, "int32", 5) == 0) {
