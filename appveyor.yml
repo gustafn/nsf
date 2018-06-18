@@ -28,4 +28,4 @@ build_script:
   - tclkit.exe apps/build.tcl %CD% %APPVEYOR_BUILD_FOLDER% %TCLTAG%
 
 on_failure:
-  - cat win\tcl\config.log
+  - cat tcl\win\config.log
