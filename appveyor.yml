@@ -27,6 +27,7 @@ build_script:
   - set PATH
   # - set MSYS2_PATH_TYPE=inherit
   - bash -lc "cd && echo \"export PATH=/c/msys64/mingw64/bin:/c/msys64/usr/bin:\$PATH; export MSYSTEM=MINGW64; export MINGW_PREFIX=/c/msys64/mingw64; \" >> .profile"
+  - set HOME=C:\Users\appveyor
   - bash -lc "env"
   - bash -lc "cd && pwd"	
   - sh -lc "echo $PATH"
