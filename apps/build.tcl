@@ -69,6 +69,7 @@ proc ::build {HOMEDIR BUILDDIR TCLTAG {TOOLCHAIN autoconf-tea}} {
       throw [list BUILD UNSUPPORTED $TOOLCHAIN] \
           "Unsupported toolchain: '$TOOLCHAIN'."
     }
+  }
 }
 
 # puts ===$::argv
