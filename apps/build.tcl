@@ -61,7 +61,8 @@ proc ::build {HOMEDIR BUILDDIR TCLTAG {TOOLCHAIN autoconf-tea}} {
     nmake-tea {
       exec >@stdout 2>@stderr nmake -nologo -f makefile.vc TCLDIR=$tclDir release
       
-      cd $BUILDDIR
+      cd [file join $BUILDDIR win]
+      
       exec >@stdout 2>@stderr nmake -nologo -f makefile.vc TCLDIR=$tclDir release
       exec >@stdout 2>@stderr nmake -nologo -f makefile.vc TCLDIR=$tclDir test
     }
