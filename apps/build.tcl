@@ -5,7 +5,7 @@ package require http
 package require tar
 package require platform
 
-proc ::build {HOMEDIR BUILDDIR TCLTAG args} {
+proc ::build {HOMEDIR BUILDDIR TCLTAG {TOOLCHAIN autoconf-tea}} {
   set tarball "tcl.tar.gz"
 
   cd $HOMEDIR
@@ -49,14 +49,26 @@ proc ::build {HOMEDIR BUILDDIR TCLTAG args} {
   # exec >@stdout 2>@stderr bash -lc "cd && pwd"
   # exec >@stdout 2>@stderr bash -lc "cd && ls -la"
 
-  exec >@stdout 2>@stderr bash -lc "./configure --libdir=$tclDir --enable-64bit"
-  exec >@stdout 2>@stderr bash -lc "make"
-  
-  set tclSh [file join $tclDir tclsh]
-  
-  cd $BUILDDIR
-  exec >@stdout 2>@stderr bash -lc "./configure --with-tcl=$tclDir"
-  exec >@stdout 2>@stderr bash -lc "make test"
+  switch -exact -- $TOOLCHAIN {
+    autoconf-tea {
+      exec >@stdout 2>@stderr bash -lc "./configure --libdir=$tclDir --enable-64bit"
+      exec >@stdout 2>@stderr bash -lc "make"
+      
+      cd $BUILDDIR
+      exec >@stdout 2>@stderr bash -lc "./configure --with-tcl=$tclDir"
+      exec >@stdout 2>@stderr bash -lc "make test"
+    }
+    nmake-tea {
+      exec >@stdout 2>@stderr nmake -nologo -f makefile.vc TCLDIR=$tclDir release
+      
+      cd $BUILDDIR
+      exec >@stdout 2>@stderr nmake -nologo -f makefile.vc TCLDIR=$tclDir release
+      exec >@stdout 2>@stderr nmake -nologo -f makefile.vc TCLDIR=$tclDir test
+    }
+    default {
+      throw [list BUILD UNSUPPORTED $TOOLCHAIN] \
+          "Unsupported toolchain: '$TOOLCHAIN'."
+    }
 }
 
 # puts ===$::argv
