@@ -20,10 +20,14 @@ environment:
 
 matrix:
   exclude:
-  - TOOLCHAIN: nmake-tea TCLTAG: core-8-5-19
-  - TOOLCHAIN: nmake-tea TCLTAG: core-8-5-branch
-  - TOOLCHAIN: nmake-tea TCLTAG: core-8-7-a1
-  - TOOLCHAIN: nmake-tea TCLTAG: core-8-branch
+  - TOOLCHAIN: nmake-tea
+    TCLTAG: core-8-5-19
+  - TOOLCHAIN: nmake-tea
+    TCLTAG: core-8-5-branch
+  - TOOLCHAIN: nmake-tea
+    TCLTAG: core-8-7-a1
+  - TOOLCHAIN: nmake-tea
+    TCLTAG: core-8-branch
   allow_failures:
   - TCLTAG: core-8-6-branch
   - TCLTAG: core-8-5-branch
