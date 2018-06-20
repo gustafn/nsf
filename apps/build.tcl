@@ -34,7 +34,8 @@ proc ::build {HOMEDIR BUILDDIR TCLTAG {TOOLCHAIN autoconf-tea}} {
 
   set dir [expr {[string match "win*" [platform::generic]]?"win":"unix"}]
   
-  set tclDir [file normalize [file join tcl $dir]]
+  set tclRoot [file normalize tcl]
+  set tclDir [file join $tclRoot $dir]
 
   # puts pwd([pwd])=[glob *]
   # puts tclDir($tclDir)=[glob $tclDir/*]
@@ -59,12 +60,12 @@ proc ::build {HOMEDIR BUILDDIR TCLTAG {TOOLCHAIN autoconf-tea}} {
       exec >@stdout 2>@stderr bash -lc "make test"
     }
     nmake-tea {
-      exec >@stdout 2>@stderr nmake -nologo -f makefile.vc TCLDIR=$tclDir release
+      exec >@stdout 2>@stderr nmake -nologo -f makefile.vc TCLDIR=$tclRoot release
       
       cd [file join $BUILDDIR win]
       
-      exec >@stdout 2>@stderr nmake -nologo -f makefile.vc TCLDIR=$tclDir release
-      exec >@stdout 2>@stderr nmake -nologo -f makefile.vc TCLDIR=$tclDir test
+      exec >@stdout 2>@stderr nmake -nologo -f makefile.vc TCLDIR=$tclRoot all
+      exec >@stdout 2>@stderr nmake -nologo -f makefile.vc TCLDIR=$tclRoot test
     }
     default {
       throw [list BUILD UNSUPPORTED $TOOLCHAIN] \

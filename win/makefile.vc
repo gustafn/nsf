@@ -15,7 +15,7 @@
 # Copyright (c) 2001-2005 ActiveState Corporation.
 # Copyright (c) 2001-2004 David Gravereaux.
 # Copyright (c) 2003-2008 Pat Thoyts.
-# Copyright (c) 2013-2016 Stefan Sobernig
+# Copyright (c) 2013-2018 Stefan Sobernig
 #------------------------------------------------------------------------------
 
 # Check to see we are configured to build with MSVC (MSDEVDIR, MSVCDIR or
@@ -179,13 +179,14 @@ PROJECT = nsf
 
 # Uncomment the following line if this is a Tk extension.
 #PROJECT_REQUIRES_TK=1
-!include "rules.vc"
 
 !include "pkg.vc"
 
 DOTVERSION      = $(PACKAGE_VERSION:"=) #"
 VERSION         = $(PACKAGE_MAJOR)$(PACKAGE_MINOR)
 STUBPREFIX      = $(PROJECT)stub
+
+!include "rules.vc"
 
 PRJ_CFLAGS	= -DNSF_VERSION=\"$(DOTVERSION)\" -DNSF_PATCHLEVEL=\"$(PACKAGE_VERSION)\" -DNSF_COMMIT=\"$(NSF_COMMIT)\"
 
@@ -209,7 +210,6 @@ DLLOBJS = \
 EXTESTS = \
         $(ROOT)\doc\example-scripts\bagel.tcl \
         $(ROOT)\doc\example-scripts\container.tcl \
-        $(ROOT)\doc\example-scripts\per-object-mixins.tcl \
         $(ROOT)\doc\example-scripts\rosetta-abstract-type.tcl \
         $(ROOT)\doc\example-scripts\rosetta-classes.tcl \
         $(ROOT)\doc\example-scripts\rosetta-constraint-genericity.tcl \
@@ -272,7 +272,7 @@ PRJHEADERS =
 #-------------------------------------------------------------------------
 
 BINROOT		= .
-ROOT            = ..
+# ROOT            = ..
 
 PRJIMPLIB	= $(OUT_DIR)\$(PROJECT)$(VERSION)$(SUFX).lib
 PRJLIBNAME	= $(PROJECT)$(VERSION)$(SUFX).$(EXT)
@@ -371,18 +371,6 @@ lflags	= -nologo -machine:$(MACHINE) $(LINKERFLAGS) $(ldebug)
 lflags	= $(lflags) -profile
 !endif
 
-!if $(ALIGN98_HACK) && !$(STATIC_BUILD)
-### Align sections for PE size savings.
-lflags	= $(lflags) -opt:nowin98
-!else if !$(ALIGN98_HACK) && $(STATIC_BUILD)
-### Align sections for speed in loading by choosing the virtual page size.
-lflags	= $(lflags) -align:4096
-!endif
-
-!if $(LOIMPACT)
-lflags	= $(lflags) -ws:aggressive
-!endif
-
 dlllflags = $(lflags) -dll
 conlflags = $(lflags) -subsystem:console
 guilflags = $(lflags) -subsystem:windows
@@ -419,40 +407,42 @@ all:	    setup $(PROJECT)
 $(PROJECT): setup pkgIndex $(PRJLIB)
 install:    install-binaries install-libraries install-docs
 pkgIndex:   $(OUT_DIR)\pkgIndex.tcl
-
 test: setup $(PROJECT)
 	@set TCL_LIBRARY=$(TCL_LIBRARY:\=/)
-	@set TCLLIBPATH=$(OUT_DIR_PATH:\=/)
+	@set TCLLIBPATH=.
+
+	@$(CPY) $(ROOT)\library library /e
 !if $(TCLINSTALL)
 	@set PATH=$(_TCLDIR)\bin;$(PATH)
 !else
-	@set PATH=$(_TCLDIR)\win\$(BUILDDIRTOP);$(PATH)
+
+@set PATH=$(_TCLDIR)\win\$(BUILDDIRTOP);$(PATH)
 !endif
-	@echo lappend auto_path $(ROOT) .; puts $$auto_path; set argv [lassign $$argv __src]; source $$__src; > nsftest.tcl
 
 !if "$(OS)" == "Windows_NT"  || "$(MSVCDIR)" == "IDE"
+
 	for %i in ($(PRJTESTS)) do \
-		$(DEBUGGER) $(TCLSH) nsftest.tcl %i -testlog __test.log
-!else 
-        @echo Please wait while the tests are collected... 
+		$(DEBUGGER) $(TCLSH) %i -testlog __test.log
+!else
+        @echo Please wait while the tests are collected...
 	for %i in ($(PRJTESTS)) do \
-		$(DEBUGGER) $(TCLSH) nsftest.tcl %i -testlog __test.log >> tests.log 
+		$(DEBUGGER) $(TCLSH) %i -testlog __test.log >> tests.log
 	type tests.log | more
 !endif
-	@$(TCLSH) nsftest.tcl "$(ROOT)/tests/summary.tcl" -title NX+XOTcl -testlog __test.log 
-	@del nsftest.tcl
+	@$(TCLSH) "$(ROOT)/tests/summary.tcl" -title NX+XOTcl -testlog __test.log
+	@rd library /s /q
 	@del __test.log
 
 shell: setup $(PROJECT)
 	@set VLERQ_LIBRARY=$(LIBDIR:\=/)
 	@set TCL_LIBRARY=$(TCL_LIBRARY:\=/)
-	@set TCLLIBPATH=$(OUT_DIR_PATH:\=/)
+	@set TCLLIBPATH=.
 !if $(TCLINSTALL)
 	@set PATH=$(_TCLDIR)\bin;$(PATH)
 !else
 	@set PATH=$(_TCLDIR)\win\$(BUILDDIRTOP);$(PATH)
 !endif
-	@echo lappend auto_path $(ROOT) .; puts $$auto_path; package req nx::shell 1.1; exit [nx::shell run $$argc $$argv;] > nsfshell.tcl
+	@echo lappend auto_path $(ROOT:\=/) .; puts $$auto_path; package req nx::shell 1.1; exit [nx::shell run $$argc $$argv;] > nsfshell.tcl
 	$(DEBUGGER) $(TCLSH) nsfshell.tcl $(SCRIPT)
 	@del nsfshell.tcl
 
@@ -467,7 +457,7 @@ $(PRJLIB): $(DLLOBJS)
 $**
 <<
 !else
-	$(link32) $(dlllflags) -base:@$(COFFBASE),nsf -out:$@ $(baselibs) @<<
+	$(link32) $(dlllflags) -out:$@ $(baselibs) @<<
 $**
 <<
 	$(_VC_MANIFEST_EMBED_DLL)
@@ -532,7 +522,7 @@ $(OUT_DIR)\pkgIndex.tcl:
 
 	@for /d %d in ($(LIBDIR)\*) do \
 		@pushd %d &\
-		@$(TCLSH) $(MAKEDIR)\$(LIBDIR)\lib\mkIndex.tcl -dir $(MAKEDIR)\$(LIBDIR) &\
+		@$(TCLSH) $(LIBDIR)\lib\mkIndex.tcl -dir %d &\
 		@popd
 
 #---------------------------------------------------------------------
@@ -547,29 +537,29 @@ install-binaries:
 	@echo Installing binaries to '$(SCRIPT_INSTALL_DIR)'
 	@if not exist "$(SCRIPT_INSTALL_DIR)" mkdir "$(SCRIPT_INSTALL_DIR)"
 	@$(CPY) $(PRJLIB) "$(SCRIPT_INSTALL_DIR)" >NUL
-	@echo Installing header files to '$(INCLUDE_INSTALL_DIR)\'	
-	@$(CPY) "$(GENERICDIR)\nsf.h" "$(INCLUDE_INSTALL_DIR)\"
-	@$(CPY) "$(GENERICDIR)\nsfInt.h" "$(INCLUDE_INSTALL_DIR)\"
-	@$(CPY) "$(STUBSDIR)\nsfDecls.h" "$(INCLUDE_INSTALL_DIR)\"
-	@$(CPY) "$(STUBSDIR)\nsfIntDecls.h" "$(INCLUDE_INSTALL_DIR)\" 
+	@echo Installing header files to "$(INCLUDE_INSTALL_DIR)"
+	@$(CPY) "$(GENERICDIR)\nsf.h" "$(INCLUDE_INSTALL_DIR)"
+	@$(CPY) "$(GENERICDIR)\nsfInt.h" "$(INCLUDE_INSTALL_DIR)"
+	@$(CPY) "$(STUBSDIR)\nsfDecls.h" "$(INCLUDE_INSTALL_DIR)"
+	@$(CPY) "$(STUBSDIR)\nsfIntDecls.h" "$(INCLUDE_INSTALL_DIR)"
 	@echo Installing package index in '$(SCRIPT_INSTALL_DIR)'
 	@$(CPY) $(OUT_DIR)\pkgIndex.tcl "$(SCRIPT_INSTALL_DIR)"
 
 install-libraries:
 	@echo Installing libraries to '$(SCRIPT_INSTALL_DIR)'
 	@echo Installing NX
-	@if not exist "$(SCRIPT_INSTALL_DIR)"\nx mkdir "$(SCRIPT_INSTALL_DIR)"\nx 
+	@if not exist "$(SCRIPT_INSTALL_DIR)"\nx mkdir "$(SCRIPT_INSTALL_DIR)"\nx
 	@$(CPY) $(LIBDIR)\nx\*.tcl "$(SCRIPT_INSTALL_DIR)"\nx
 	@echo Installing serialize
-	@if not exist "$(SCRIPT_INSTALL_DIR)\serialize" mkdir "$(SCRIPT_INSTALL_DIR)\serialize" 
+	@if not exist "$(SCRIPT_INSTALL_DIR)\serialize" mkdir "$(SCRIPT_INSTALL_DIR)\serialize"
 	@$(CPY) $(LIBDIR)\serialize\*.tcl "$(SCRIPT_INSTALL_DIR)\serialize"
 	@echo Installing XOTcl2
-	@if not exist "$(SCRIPT_INSTALL_DIR)\xotcl" mkdir "$(SCRIPT_INSTALL_DIR)\xotcl" 
+	@if not exist "$(SCRIPT_INSTALL_DIR)\xotcl" mkdir "$(SCRIPT_INSTALL_DIR)\xotcl"
 	@$(CPY) $(LIBDIR)\xotcl\apps "$(SCRIPT_INSTALL_DIR)\xotcl\apps" /e
 	@$(CPY) $(LIBDIR)\xotcl\library "$(SCRIPT_INSTALL_DIR)\xotcl\library" /e
 # @$(CPY) $(LIBDIR)\xotcl\xo* "$(SCRIPT_INSTALL_DIR)\xotcl"
 	@echo Installing NX libs
-	@if not exist "$(SCRIPT_INSTALL_DIR)\lib" mkdir "$(SCRIPT_INSTALL_DIR)\lib" 
+	@if not exist "$(SCRIPT_INSTALL_DIR)\lib" mkdir "$(SCRIPT_INSTALL_DIR)\lib"
 	@$(CPY) $(LIBDIR)\lib\*.tcl "$(SCRIPT_INSTALL_DIR)\lib"
 
 	@type "$(LIBDIR)\pkgIndex.tcl" >> "$(SCRIPT_INSTALL_DIR)"\pkgIndex.tcl
