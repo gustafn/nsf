@@ -10,24 +10,23 @@ environment:
   TCLKIT: tclkit.exe
   matrix:
   - TCLTAG: core-8-6-branch
+    TOOLCHAIN: autoconf-tea
+  - TCLTAG: core-8-6-branch
+    TOOLCHAIN: nmake-tea
   - TCLTAG: core-8-6-8
+    TOOLCHAIN: autoconf-tea
+  - TCLTAG: core-8-6-8
+    TOOLCHAIN: nmake-tea
   - TCLTAG: core-8-5-branch
+    TOOLCHAIN: autoconf-tea
   - TCLTAG: core-8-5-19
-  - TCLTAG: core-8-7-a1	
+    TOOLCHAIN: autoconf-tea	
+  - TCLTAG: core-8-7-a1
+    TOOLCHAIN: autoconf-tea
   - TCLTAG: core-8-branch
-  - TOOLCHAIN: autoconf-tea
-  - TOOLCHAIN: nmake-tea
+    TOOLCHAIN: autoconf-tea
 
 matrix:
-  exclude:
-  - TOOLCHAIN: nmake-tea
-    TCLTAG: core-8-5-19
-  - TOOLCHAIN: nmake-tea
-    TCLTAG: core-8-5-branch
-  - TOOLCHAIN: nmake-tea
-    TCLTAG: core-8-7-a1
-  - TOOLCHAIN: nmake-tea
-    TCLTAG: core-8-branch
   allow_failures:
   - TCLTAG: core-8-6-branch
   - TCLTAG: core-8-5-branch
