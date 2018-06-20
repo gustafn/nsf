@@ -55,7 +55,7 @@ o1 sing
 # modify the behavior of a single object. In NX, an object
 # can have individual methods:
 
-o1 public method sing {} {
+o1 public object method sing {} {
   puts "Ok, here it goes: Lala Lala!"
 }
 o1 sing
@@ -85,7 +85,7 @@ nx::Class create M {
 
 # The behavior of M can be mixed into the behavior of o1 through
 # per object mixins ...
-o1 mixin M
+o1 object mixins set M
 
 # ... and we call the methods again:
 o1 sing
@@ -98,9 +98,10 @@ o1 read
 # ----
 #
 # We can remove the new behavior easily by unregistering the
-# mixin class ....
+# mixin class ...
 
-o1 mixin ""
+o1 object mixins set ""; # implicit: overwrite using empty string
+o1 object mixins clear; # explicit
 
 # ... and we call the methods again:
 o1 sing
@@ -115,7 +116,7 @@ o1 read
 # Mixin classes can be used to extend the behavior of classes
 # as well.
 
-BaseClass mixin M
+BaseClass mixins set M
 
 o1 sing
 o1 read
