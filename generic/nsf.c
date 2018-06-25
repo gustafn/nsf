@@ -26270,11 +26270,11 @@ ListSuperClasses(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *pattern, bool wit
  *
  * AliasIndex --
  *
- *      The alias index is an internal data structure to keep track how
- *      aliases are constructed. This function computes the key of the index.
+ *      The alias index is an internal data structure keeping track of
+ *      constructing aliases. This function computes the key of the index.
  *
  * Results:
- *      Returns a fresh Tcl_Obj
+ *      Returns a fresh Tcl_Obj. The caller is responsible for refcounting.
  *
  * Side effects:
  *      updating DString
@@ -26330,16 +26330,23 @@ static int AliasAdd(Tcl_Interp *interp, Tcl_Obj *cmdName, const char *methodName
 static int
 AliasAdd(Tcl_Interp *interp, Tcl_Obj *cmdName, const char *methodName, bool withPer_object,
          Tcl_Obj *cmdObj) {
+  Tcl_Obj    *indexObj;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(cmdName != NULL);
   nonnull_assert(methodName != NULL);
   nonnull_assert(cmdObj != NULL);
 
+  
+  
+  indexObj = AliasIndex(cmdName, methodName, withPer_object);
+  
+  INCR_REF_COUNT(indexObj);
   Tcl_ObjSetVar2(interp, NsfGlobalObjs[NSF_ARRAY_ALIAS],
-                AliasIndex(cmdName, methodName, withPer_object),
-                cmdObj,
-                TCL_GLOBAL_ONLY);
+                 indexObj,
+                 cmdObj,
+                 TCL_GLOBAL_ONLY);
+  DECR_REF_COUNT(indexObj);
 
   /*fprintf(stderr, "aliasAdd ::nsf::alias(%s) '%s' returned %p\n",
     AliasIndex(dsPtr, cmdName, methodName, withPer_object), cmd, NSF_TRUE);*/
@@ -26403,14 +26410,20 @@ AliasDelete(Tcl_Interp *interp, Tcl_Obj *cmdName, const char *methodName, bool w
 static Tcl_Obj *
 AliasGet(Tcl_Interp *interp, Tcl_Obj *cmdName, const char *methodName, bool withPer_object, bool leaveError) {
   Tcl_Obj *obj;
+  Tcl_Obj    *indexObj;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(cmdName != NULL);
   nonnull_assert(methodName != NULL);
 
-  obj = Tcl_ObjGetVar2(interp, NsfGlobalObjs[NSF_ARRAY_ALIAS],
-                      AliasIndex(cmdName, methodName, withPer_object),
-                      TCL_GLOBAL_ONLY);
+  indexObj = AliasIndex(cmdName, methodName, withPer_object);
+
+  INCR_REF_COUNT(indexObj);
+  obj = Tcl_ObjGetVar2(interp,
+                       NsfGlobalObjs[NSF_ARRAY_ALIAS],
+                       indexObj,
+                       TCL_GLOBAL_ONLY);
+  DECR_REF_COUNT(indexObj);
 
   /*fprintf(stderr, "aliasGet methodName '%s' returns %p\n", methodName, obj);*/
 
