@@ -22374,9 +22374,13 @@ NsfSetterMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *co
   object = cd->object;
 
   if (objc > 2) {
+    Tcl_Obj *pathObj = NsfMethodNamePath(interp,
+                                         CallStackGetTclFrame(interp, NULL, 1),
+                                         NsfMethodName(objv[0]));
+    INCR_REF_COUNT(pathObj);
     result = NsfObjWrongArgs(interp, "wrong # args", object->cmdName,
-                             NsfMethodNamePath(interp, CallStackGetTclFrame(interp, NULL, 1),
-                                               NsfMethodName(objv[0])), "?value?");
+                             pathObj, "?value?");
+    DECR_REF_COUNT(pathObj);
   } else if (object == NULL) {
     result = NsfDispatchClientDataError(interp, clientData, "object", ObjStr(objv[0]));
 
