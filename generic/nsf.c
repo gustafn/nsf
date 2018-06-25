@@ -24105,14 +24105,17 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[],
 
               if (nextParamPtr > lastParamPtr
                   || ((nextParamPtr->flags & NSF_ARG_NODASHALNUM) != 0u)) {
-                Tcl_Obj *methodPathObj;
-
-                methodPathObj = NsfMethodNamePath(interp, CallStackGetTclFrame(interp, NULL, 0),
-                                                  NsfMethodName(procNameObj));
-                return NsfUnexpectedNonposArgumentError(interp, argumentString,
-                                                        (Nsf_Object *)object,
-                                                        currentParamPtr, paramPtr,
-                                                        methodPathObj);
+                int result; 
+                Tcl_Obj *methodPathObj= NsfMethodNamePath(interp,
+                                                          CallStackGetTclFrame(interp, NULL, 0),
+                                                          NsfMethodName(procNameObj));
+                INCR_REF_COUNT(methodPathObj);
+                result = NsfUnexpectedNonposArgumentError(interp, argumentString,
+                                                          (Nsf_Object *)object,
+                                                          currentParamPtr, paramPtr,
+                                                          methodPathObj);
+                DECR_REF_COUNT(methodPathObj);
+                return result;
               }
               pPtr = currentParamPtr = nextParamPtr;
             }
