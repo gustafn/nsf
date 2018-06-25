@@ -5076,7 +5076,7 @@ NsfMethodName(Tcl_Obj *methodObj) {
  *
  * Results:
  *    Tcl_Obj of reference count 0, caller has to take care for
- *    refcounting
+ *    refcounting.
  *
  * Side effects:
  *    None.
@@ -20271,8 +20271,11 @@ static Tcl_Obj *FindNextMethod(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
                          &class, &lookupMethodName, &cmd, &isMixinEntry, &isFilterEntry,
                          &endOfFilterChain, &currentCmd) == TCL_OK
         && cmd != NULL) {
-      methodName = isEnsemble ? ObjStr(NsfMethodNamePath(interp, framePtr, methodName)) : lookupMethodName;
+      Tcl_Obj *pathObj = NsfMethodNamePath(interp, framePtr, methodName);
+
+      methodName = isEnsemble ? ObjStr(pathObj) : lookupMethodName;
       result = MethodHandleObj((class != NULL) ? (NsfObject *)class : object, (class == NULL), methodName);
+      DECR_REF_COUNT(pathObj);
     } else {
       result = NULL;
     }
