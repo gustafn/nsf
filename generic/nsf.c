@@ -14140,12 +14140,24 @@ ObjectCmdMethodDispatch(
               ObjectName(GetSelfObj(interp)), ObjectName(actualSelf), ObjectName(invokedObject), subMethodName); */
 
       if (actualSelf != lastSelf) {
-        const char *path = withinEnsemble ? ObjStr(NsfMethodNamePath(interp, framePtr0, methodName)) : methodName;
+        const char *path;
+        Tcl_Obj *pathObj;
 
+        if (withinEnsemble) {
+          pathObj = NsfMethodNamePath(interp, framePtr0, methodName);
+          path = ObjStr(pathObj);
+        } else {
+          path = methodName;
+        }
+        
         NsfLog(interp, NSF_LOG_WARN, "'%s %s %s' fails since method %s.%s %s is protected",
                ObjectName(actualSelf), path, subMethodName, (actualClass != NULL) ?
                ClassName(actualClass) : ObjectName(actualSelf), path, subMethodName);
+        
         subMethodCmd = NULL;
+        if (withinEnsemble) {
+          DECR_REF_COUNT(pathObj);
+        }
       }
     }
   }
