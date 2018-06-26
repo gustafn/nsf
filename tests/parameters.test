@@ -1350,6 +1350,14 @@ nx::test case setters {
   ? {::nsf::method::setter o -x} {invalid setter name "-x" (must not start with a dash or colon)}
 }
 
+nx::test case setters-wrongargs {
+  nx::Object create o
+  ::nsf::method::setter o z
+  ? {o z -10} -10
+  ? {o z} -10
+  ? {o z -1 0} {wrong # args should be "::o z ?value?"}
+}
+
 
 
 #######################################################
@@ -2707,6 +2715,13 @@ nx::test case object-info-slots-types {
 
   #? {o2 info properties} "{p0 200} {p1 201} {p3:noconfig 203}"
 
+}
+
+nx::test case noconfig-switch-interaction {
+  catch {nx::Object new { :object property x:switch,noconfig; :configure -x=1}} msg opts
+  ? [list string match "invalid non-positional argument '-x=1',*"  [dict get $opts -errorinfo]] 1
+  catch {nx::Class new { :property y:switch,noconfig; :new -y=1}} msg opts
+  ? [list string match "invalid non-positional argument '-y=1',*"  [dict get $opts -errorinfo]] 1
 }
 
 #
