@@ -12651,6 +12651,11 @@ NsfProcDeleteProc(
     DECR_REF_COUNT2("returnsObj", ctxPtr->returnsObj);
   }
 
+  if (ctxPtr->execNsPtr != NULL) {
+    /* Balances increment in ParamDefsStore */
+    NSNamespaceRelease(ctxPtr->execNsPtr);
+  }
+
   /*fprintf(stderr, "free %p\n", ctxPtr);*/
   FREE(NsfProcContext, ctxPtr);
 }
@@ -12774,11 +12779,15 @@ ParamDefsStore(
    * We assume, that this never called for overwriting paramDefs
    */
   assert(ctxPtr->paramDefs == NULL);
-
+  /* fprintf(stderr, "ParamDefsStore paramDefs %p called: NS %s\n", paramDefs, execNsPtr ? execNsPtr->fullName : "na");*/
   ctxPtr->paramDefs       = paramDefs;
   ctxPtr->checkAlwaysFlag = checkAlwaysFlag;
   ctxPtr->execNsPtr       = execNsPtr;
-  // xxxxx TODO: if the namespace can be lost, we have to incr namespace refcount and call TclNsDecrRefCount() on deallocation
+
+  if (ctxPtr->execNsPtr != NULL) {
+    /* Balanced by decrement in NsfProcDeleteProc */
+    NSNamespacePreserve(ctxPtr->execNsPtr);
+  }
 }
 
 /*
