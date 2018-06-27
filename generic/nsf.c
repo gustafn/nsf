@@ -96,7 +96,7 @@ typedef struct callFrameContext {
   bool           frameSaved;
 } callFrameContext;
 
-//#define COLON_CMD_STATS 1
+/* #define COLON_CMD_STATS 1 */
 
 typedef struct {
   void        *context;
@@ -120,8 +120,9 @@ typedef struct NsfProcContext {
   unsigned int        checkAlwaysFlag;
   Tcl_Namespace      *execNsPtr;
   Tcl_Obj            *returnsObj;
-  //NsfList           *freeListPtr;
-  //Tcl_Obj            *freeListObj;
+  /* NsfList           *freeListPtr;
+     Tcl_Obj            *freeListObj; 
+  */
 } NsfProcContext;
 
 /*
@@ -616,10 +617,10 @@ NsfDListAppend(NsfDList *dlPtr, void *element) {
   if (dlPtr->avail < 1) {
     size_t requiredSize = dlPtr->size * 2u;
     if (dlPtr->data != &dlPtr->static_data[0]) {
-      //fprintf(stderr, "#### NsfDListAppend realloc from %lu to %lu\n", dlPtr->size, requiredSize);
+      /* fprintf(stderr, "#### NsfDListAppend realloc from %lu to %lu\n", dlPtr->size, requiredSize); */
       dlPtr->data = (void **)ckrealloc((char *)dlPtr->data, sizeof(dlPtr->data[0]) * requiredSize);
     } else {
-      //fprintf(stderr, "#### NsfDListAppend alloc from %lu to %lu\n", dlPtr->size, requiredSize);
+      /* fprintf(stderr, "#### NsfDListAppend alloc from %lu to %lu\n", dlPtr->size, requiredSize); */
       dlPtr->data = (void **)ckalloc(sizeof(dlPtr->data[0]) * requiredSize);
       memcpy(dlPtr->data, &dlPtr->static_data[0], dlPtr->size * sizeof(dlPtr->data[0]));
     }
@@ -4721,8 +4722,9 @@ CompiledLocalsLookup(CallFrame *varFramePtr, const char *varName) {
   varNameObjPtr = &varFramePtr->localCachePtr->varName0;
   nameLength = (int)strlen(varName);
 
-  //fprintf(stderr, "=== compiled local search #local vars %d for <%s> flags %.8x\n",
-  //        localCt, varName, varFramePtr->isProcCallFrame);
+  /* fprintf(stderr, "=== compiled local search #local vars %d for <%s> flags %.8x\n",
+          localCt, varName, varFramePtr->isProcCallFrame);
+  */
 
   for (i = 0 ; i < localCt ; i++, varNameObjPtr++) {
     Tcl_Obj *varNameObj = *varNameObjPtr;
@@ -4731,8 +4733,9 @@ CompiledLocalsLookup(CallFrame *varFramePtr, const char *varName) {
     if (likely(varNameObj != NULL)) {
       const char *localName = TclGetStringFromObj(varNameObj, &len);
 
-      //fprintf(stderr, ".. [%d] varNameObj %p %p <%s>\n",
-      //        i, (void *)varNameObj, (void *)varNameObj->typePtr, localName);
+      /* fprintf(stderr, ".. [%d] varNameObj %p %p <%s>\n",
+         i, (void *)varNameObj, (void *)varNameObj->typePtr, localName);
+      */
 
       if (unlikely(varName[0] == localName[0]
                    && varName[1] == localName[1]
@@ -4839,7 +4842,7 @@ CompiledColonLocalsLookupBuildCache(CallFrame *varFramePtr, const char *varName,
           result = var;
         }
 
-        //fprintf(stderr, ".. insert %s (%d) on pos %d; check j %d entries \n", localName, i, j, j);
+        /* fprintf(stderr, ".. insert %s (%d) on pos %d; check j %d entries \n", localName, i, j, j); */
         for (k = 0; k < j; k++) {
           int         idx, cmp;
           const char *cachedName;
@@ -4848,8 +4851,9 @@ CompiledColonLocalsLookupBuildCache(CallFrame *varFramePtr, const char *varName,
           cachedName = TclGetStringFromObj(localNames[idx], &len);
           cmp = strcmp(localName, cachedName);
 
-          //fprintf(stderr, "... [%d] cmp newVarName <%s> (%d) with cachendName <%s> (%d) => %d\n",
-          //       k, localName, i, cachedName, idx, cmp);
+          /* fprintf(stderr, "... [%d] cmp newVarName <%s> (%d) with cachendName <%s> (%d) => %d\n",
+                k, localName, i, cachedName, idx, cmp);
+          */
           if (cmp < 0) {
             int ii;
 
@@ -4877,8 +4881,9 @@ CompiledColonLocalsLookupBuildCache(CallFrame *varFramePtr, const char *varName,
    */
   ctxPtr->colonLocalVarCache[j] = -1;
 
-  //fprintf(stderr, ".. search #local vars %d varName <%s> colonvars %d found %p\n",
-  //        localCt, varName, nrColonVars, (void*)result);
+  /* fprintf(stderr, ".. search #local vars %d varName <%s> colonvars %d found %p\n",
+     localCt, varName, nrColonVars, (void*)result);
+  */
 
   return result;
 }
@@ -5643,8 +5648,9 @@ InterpColonVarResolver(Tcl_Interp *interp, const char *varName, Tcl_Namespace *U
   frameFlags = (unsigned int)InterpGetFrameAndFlags(interp, &varFramePtr);
 
   if (likely((frameFlags & FRAME_IS_NSF_METHOD) != 0u)) {
-    //*varPtr = CompiledLocalsLookup(varFramePtr, varName);
-    //fprintf(stderr, "CompiledLocalsLookup for %p %s returned %p\n", varFramePtr, varName, *varPtr);
+    /* varPtr = CompiledLocalsLookup(varFramePtr, varName);
+       fprintf(stderr, "CompiledLocalsLookup for %p %s returned %p\n", varFramePtr, varName, *varPtr); 
+    */
     if ((*varPtr = CompiledColonLocalsLookup(varFramePtr, varName))) {
       /*
        * This section is reached under notable circumstances and represents a
@@ -12847,8 +12853,8 @@ static void ParamDefsFree(NsfParamDefs *paramDefs)
 
 static void
 ParamDefsFree(NsfParamDefs *paramDefs) {
-  /*fprintf(stderr, "ParamDefsFree %p slotObj %p returns %p\n",
-    paramDefs, paramDefs->slotObj, paramDefs->returns);*/
+  /* fprintf(stderr, "ParamDefsFree %p \n",
+     paramDefs, paramDefs);*/
 
   nonnull_assert(paramDefs != NULL);
 
@@ -15070,7 +15076,7 @@ static void CacheCmd(
        * Save the NsfColonCmdContext in the proc context for memory management
        * and as well for reuse in twoPtrValue.ptr2.
        */
-      //rst->freeListPtr = NsfListCons(ccCtxPtr,rst->freeListPtr);
+      /* rst->freeListPtr = NsfListCons(ccCtxPtr,rst->freeListPtr); */
       NsfDListAppend(&rst->freeDList, ccCtxPtr);
       methodObj->internalRep.twoPtrValue.ptr2 = ccCtxPtr;
 
@@ -17380,8 +17386,10 @@ ParamDefinitionParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, uns
 
   argString = ObjStr(npav[0]);
   length = strlen(argString);
-  //argString = TclGetStringFromObj(npav[0], &result);
-  //length    = (size_t) result;
+  /* 
+     argString = TclGetStringFromObj(npav[0], &result);
+     length    = (size_t) result;
+  */
 
   /*
    * Per default parameter have exactly one argument; types without arguments
@@ -18136,7 +18144,7 @@ MakeProc(Tcl_Namespace *nsPtr, NsfAssertionStore *aStore, Tcl_Interp *interp,
          Tcl_Obj *nameObj, Tcl_Obj *args, Tcl_Obj *body, Tcl_Obj *precondition,
          Tcl_Obj *postcondition, NsfObject *defObject, NsfObject *regObject,
          int withPer_object, int withInner_namespace, unsigned int checkAlwaysFlag) {
-  //Tcl_CallFrame   frame, *framePtr = &frame;
+  /* Tcl_CallFrame   frame, *framePtr = &frame; */
   const char     *methodName;
   NsfParsedParam  parsedParam;
   Tcl_Obj        *ov[4], *fullyQualifiedNameObj;
@@ -18184,8 +18192,8 @@ MakeProc(Tcl_Namespace *nsPtr, NsfAssertionStore *aStore, Tcl_Interp *interp,
     INCR_REF_COUNT2("fullyQualifiedName", fullyQualifiedNameObj);
   }
 
-  ov[0] = NULL; /*objv[0];*/
-  ov[1] = fullyQualifiedNameObj; //nameObj;
+  ov[0] = NULL;
+  ov[1] = fullyQualifiedNameObj;
 
   if (parsedParam.paramDefs != NULL) {
     Nsf_Param *pPtr;
@@ -18218,7 +18226,7 @@ MakeProc(Tcl_Namespace *nsPtr, NsfAssertionStore *aStore, Tcl_Interp *interp,
     }
   }
 
-  //Tcl_PushCallFrame(interp, (Tcl_CallFrame *)framePtr, nsPtr, 0);
+  /* Tcl_PushCallFrame(interp, (Tcl_CallFrame *)framePtr, nsPtr, 0); */
   /*
    * Create the method in the provided namespace.
    */
@@ -18275,7 +18283,7 @@ MakeProc(Tcl_Namespace *nsPtr, NsfAssertionStore *aStore, Tcl_Interp *interp,
       }
     }
   }
-  //Tcl_PopCallFrame(interp);
+  /* Tcl_PopCallFrame(interp); */
 
 #if defined(NSF_WITH_ASSERTIONS)
   if (result == TCL_OK && aStore != NULL /* (precondition || postcondition)*/) {
@@ -22643,8 +22651,6 @@ ForwardArg(
         *out = objv[0];
       }
       AddObjToTclList(interp, freeListObjPtr, *out);
-      //goto add_to_freelist;
-
     } else if (c == '1' && (c1 == '\0' || NsfHasTclSpace(&c1))) {
 
       if (c1 != '\0') {
@@ -22747,7 +22753,6 @@ ForwardArg(
           *outputincr = 1;
 
           AddObjToTclList(interp, freeListObjPtr, *out);
-          //goto add_to_freelist;
         } else {
           /*
            * No match, no insert of flag required, we skip the forwarder
@@ -22781,7 +22786,6 @@ ForwardArg(
       Tcl_Obj *newarg = Tcl_NewStringObj(ForwardArgString, -1);
 
       *out = newarg;
-      //goto add_to_freelist;
       AddObjToTclList(interp, freeListObjPtr, *out);
 
     } else {
@@ -24029,8 +24033,10 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[],
 
       } else if ((argumentObj->typePtr == Nsf_OT_byteArrayType)
                  || (argumentObj->typePtr == Nsf_OT_properByteArrayType)
-                 //|| (argumentObj->typePtr == Nsf_OT_intType)
-                 //|| (argumentObj->typePtr == Nsf_OT_doubleType)
+                 /* 
+                    || (argumentObj->typePtr == Nsf_OT_intType)
+                    || (argumentObj->typePtr == Nsf_OT_doubleType)
+                 */
                  ) {
         /*
          * The actual argument belongs to the types, for which we assume that
@@ -24507,8 +24513,10 @@ GetOriginalCommand(
      */
     if (Tcl_Command_deleteProc(cmd) == AliasCmdDeleteProc) {
       tcd = (AliasCmdClientData *)Tcl_Command_objClientData(cmd);
-      //fprintf(stderr, "... GetOriginalCommand finds alias %s -> %s\n",
-      //        Tcl_GetCommandName(NULL, cmd), Tcl_GetCommandName(NULL, tcd->aliasedCmd));
+      /*
+        fprintf(stderr, "... GetOriginalCommand finds alias %s -> %s\n",
+        Tcl_GetCommandName(NULL, cmd), Tcl_GetCommandName(NULL, tcd->aliasedCmd));
+      */
       cmd = tcd->aliasedCmd;
       continue;
     }
@@ -24523,11 +24531,13 @@ GetOriginalCommand(
       if (ctxPtr->oldDeleteProc == AliasCmdDeleteProc) {
         tcd = (AliasCmdClientData *)Tcl_Command_objClientData(cmd);
 
-        //fprintf(stderr, "... GetOriginalCommand finds alias via oldDeleteProc %s -> %s (%p -> %p)\n",
-        //        Tcl_GetCommandName(NULL, cmd), Tcl_GetCommandName(NULL, tcd->aliasedCmd),
-        //        (void*)cmd, (void*)tcd->aliasedCmd  );
-        //char *name =Tcl_GetCommandName(NULL, cmd);
-        //if (!strcmp("incr",name)) {char *p = NULL; *p=1;}
+        /* 
+           fprintf(stderr, "... GetOriginalCommand finds alias via oldDeleteProc %s -> %s (%p -> %p)\n",
+           Tcl_GetCommandName(NULL, cmd), Tcl_GetCommandName(NULL, tcd->aliasedCmd),
+           (void*)cmd, (void*)tcd->aliasedCmd  );
+           char *name =Tcl_GetCommandName(NULL, cmd);
+           if (!strcmp("incr",name)) {char *p = NULL; *p=1;}
+        */
 
         cmd = tcd->aliasedCmd;
         continue;
@@ -26379,10 +26389,6 @@ AliasAdd(Tcl_Interp *interp, Tcl_Obj *cmdName, const char *methodName, bool with
                  TCL_GLOBAL_ONLY);
   DECR_REF_COUNT(indexObj);
 
-  /*fprintf(stderr, "aliasAdd ::nsf::alias(%s) '%s' returned %p\n",
-    AliasIndex(dsPtr, cmdName, methodName, withPer_object), cmd, NSF_TRUE);*/
-                            //Tcl_DStringFree(dsPtr);
-
   return TCL_OK;
 }
 
@@ -27685,8 +27691,7 @@ NsfFinalizeCmd(Tcl_Interp *interp, int withKeepvars) {
       MEM_COUNT_FREE("TclNamespace",rst->NsfNS);
       Tcl_DeleteNamespace(rst->NsfNS);
     }
-    //NsfListFree(rst->freeListPtr, NULL/*NsfColonCmdContextFree*/);
-    //rst->freeListPtr = NULL;
+
     {
       NsfDList *dlPtr = &rst->freeDList;
       size_t    i;
@@ -27695,7 +27700,10 @@ NsfFinalizeCmd(Tcl_Interp *interp, int withKeepvars) {
       fprintf(stderr, "#### DList free size %lu avail %lu\n", dlPtr->size, dlPtr->avail);
 #endif
       for (i = 0u; i < dlPtr->size; i++) {
-        //fprintf(stderr, "#### DList free data[%lu] %p: %p\n", i, (void*)&(dlPtr->data[i]), (void*)dlPtr->data[i]);
+        /* 
+           fprintf(stderr, "#### DList free data[%lu] %p: %p\n", i, 
+           (void*)&(dlPtr->data[i]), (void*)dlPtr->data[i]); 
+        */
         NsfColonCmdContextFree(dlPtr->data[i]);
       }
       NsfDListFree(dlPtr);
@@ -34727,7 +34735,7 @@ Nsf_Init(
   rst->doFilters = 1;
   rst->doCheckResults = 1;
   rst->doCheckArguments = NSF_ARGPARSE_CHECK;
-  //rst->freeListPtr = NULL;
+  /* rst->freeListPtr = NULL; */
   NsfDListInit(&rst->freeDList);
 
 #if defined(NSF_STACKCHECK)
