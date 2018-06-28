@@ -22627,10 +22627,11 @@ ForwardArg(
   }
 
   if (c == '%') {
-    Tcl_Obj *listObj = NULL, **listElements;
-    int      nrArgs = objc-1, nrPosArgs = objc - firstPosArg, nrElements = 0;
-    char     c1, *firstActualArgument = nrArgs > 0 ? ObjStr(objv[1]) : NULL;
-
+    Tcl_Obj    *listObj = NULL, **listElements;
+    int        nrArgs = objc-1, nrPosArgs = objc - firstPosArg, nrElements = 0;
+    char       c1, *firstActualArgument = nrArgs > 0 ? ObjStr(objv[1]) : NULL;
+    const char *c1Ptr = &c1;
+    
     c = *++ForwardArgString;
     c1 = *(ForwardArgString+1);
 
@@ -22651,7 +22652,7 @@ ForwardArg(
         *out = objv[0];
       }
       AddObjToTclList(interp, freeListObjPtr, *out);
-    } else if (c == '1' && (c1 == '\0' || NsfHasTclSpace(&c1))) {
+    } else if (c == '1' && (c1 == '\0' || NsfHasTclSpace(c1Ptr))) {
 
       if (c1 != '\0') {
         if (unlikely(Tcl_ListObjIndex(interp, forwardArgObj, 1, &listObj) != TCL_OK)) {
