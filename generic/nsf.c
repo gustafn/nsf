@@ -13040,7 +13040,7 @@ ParamDefsFormat(
         memcpy(buffer, "substdefault", (size_t)len);
 
         if ((paramsPtr->flags & NSF_ARG_SUBST_DEFAULT_ALL) != 0u) {
-          memcpy(buffer + len + 1, "=0b", (size_t)len);
+          memcpy(buffer + len + 1, "=0b", 3);
           len += 4;
           buffer[len] = ((paramsPtr->flags & NSF_ARG_SUBST_DEFAULT_VARIABLES) != 0u) ? '1' : '0';
           len ++;
