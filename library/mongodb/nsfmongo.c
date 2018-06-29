@@ -206,7 +206,7 @@ BsonToList(Tcl_Interp *interp, const bson_t *data , int depth)
     case BSON_TYPE_DOUBLE:    tag = NSF_BSON_DOUBLE;    elemObj = Tcl_NewDoubleObj(bson_iter_double( &i )); break;
     case BSON_TYPE_BOOL:      tag = NSF_BSON_BOOL;      elemObj = Tcl_NewBooleanObj(bson_iter_bool( &i )); break;
     case BSON_TYPE_REGEX:  {
-      const char *options = NULL, *regex = NULL;
+      const char *options = NULL, *regex;
 
       tag = NSF_BSON_REGEX;
       regex = bson_iter_regex( &i, &options );
@@ -562,7 +562,6 @@ NsfMongoJsonGenerate(Tcl_Interp *interp, Tcl_Obj *listObj)
 {
   bson_t    list, *listPtr = &list;
   size_t    length;
-  char     *jsonString;
   int       result, objc;
   Tcl_Obj **objv;
 
@@ -573,6 +572,8 @@ NsfMongoJsonGenerate(Tcl_Interp *interp, Tcl_Obj *listObj)
 
   result = BsonAppendObjv(interp, listPtr, objc, objv);
   if (result == TCL_OK) {
+    char     *jsonString;
+
     jsonString = bson_as_json(listPtr, &length);
     if (jsonString != NULL) {
       Tcl_SetObjResult(interp, Tcl_NewStringObj(jsonString, (int)length));
@@ -618,21 +619,21 @@ NsfMongoJsonParse(Tcl_Interp *interp, Tcl_Obj *jsonObj)
   }
 */
 static int
-NsfMongoClose(Tcl_Interp *interp, mongoc_client_t *clientPtr, Tcl_Obj *clientObj)
+NsfMongoClose(Tcl_Interp *interp, mongoc_client_t *connPtr, Tcl_Obj *connObj)
 {
 #if defined(USE_CLIENT_POOL)
-  mongoc_client_pool_push(mongoClientPool, clientPtr);
+  mongoc_client_pool_push(mongoClientPool, connPtr);
 #else
-  mongoc_client_destroy(clientPtr);
+  mongoc_client_destroy(connPtr);
 #endif
-  Nsf_PointerDelete(ObjStr(clientObj), clientPtr, 0);
+  Nsf_PointerDelete(ObjStr(connObj), connPtr, 0);
 
   return TCL_OK;
 }
 
 /*
   cmd connect NsfMongoConnect {
-  {-argName "-uri" -required 1 -nrargs 1}
+  {-argName "-uri" -required 0 -nrargs 1}
   }
 */
 static int
