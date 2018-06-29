@@ -26815,8 +26815,7 @@ static int
 NsfDebugGetDict(Tcl_Interp *interp, Tcl_Obj *obj) {
   Tcl_Obj    *resultObj;
   const char *typeString;
-  #define BUFSIZE 24
-
+  
   nonnull_assert(interp != NULL);
   nonnull_assert(obj != NULL);
 
@@ -26832,15 +26831,17 @@ NsfDebugGetDict(Tcl_Interp *interp, Tcl_Obj *obj) {
   Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("hex", -1));
 
   if (obj->bytes != NULL) {
+#define CAPPEDSIZE  10u
+    const char trailerStr[] = "...";
+#define BUFSIZE (CAPPEDSIZE*2u + sizeof(trailerStr))
     int i;
     char buffer[BUFSIZE];
 
-    for (i = 0; i < 10 && i < obj->length; i++) {
-      snprintf(buffer + i*2, BUFSIZE, "%.2x", (unsigned)(*((obj->bytes)+i) & 0xff));
+    for (i = 0; i < CAPPEDSIZE && i < obj->length; i++) {
+      snprintf(buffer + i*2, BUFSIZE - (i+1)*2, "%.2x", (unsigned)(*((obj->bytes)+i) & 0xff));
     }
-    if (obj->length > 10) {
-      strncat(buffer, "...", 4u);
-      buffer[BUFSIZE-1] = '\0';
+    if (obj->length > CAPPEDSIZE) {
+      strncat(buffer, trailerStr, (BUFSIZE-CAPPEDSIZE*2u));
     }
     Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj(buffer, -1));
 
@@ -30082,15 +30083,21 @@ NsfCurrentCmd(Tcl_Interp *interp, CurrentoptionIdx_t option) {
       const char *procName = Tcl_GetCommandName(interp, cscPtr->cmdPtr);
       Tcl_SetObjResult(interp, Tcl_NewStringObj(procName, -1));
     } else {
-      return NsfPrintError(interp,  "can't find proc");
+      /* TODO: Is this, practically, reachable? */
+      return NsfPrintError(interp,  "can't find method");
     }
     break;
 
   case CurrentoptionMethodpathIdx:
     cscPtr = CallStackGetTopFrame0(interp);
-    Tcl_SetObjResult(interp, NsfMethodNamePath(interp,
-                                               CallStackGetTclFrame(interp, NULL, 1),
-                                               Tcl_GetCommandName(interp, cscPtr->cmdPtr)));
+    if (cscPtr != NULL) {
+      Tcl_SetObjResult(interp, NsfMethodNamePath(interp,
+                                                 CallStackGetTclFrame(interp, NULL, 1),
+                                                 Tcl_GetCommandName(interp, cscPtr->cmdPtr)));
+    } else {
+      /* TODO: Is this, practically, reachable? */
+      return NsfPrintError(interp,  "can't find method");
+    }
     break;
 
   case CurrentoptionClassIdx: /* class subcommand */
