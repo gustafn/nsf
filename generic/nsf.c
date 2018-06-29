@@ -26837,7 +26837,7 @@ NsfDebugGetDict(Tcl_Interp *interp, Tcl_Obj *obj) {
     char buffer[BUFSIZE];
 
     for (i = 0; i < CAPPEDSIZE && i < obj->length; i++) {
-      snprintf(buffer + i*2, BUFSIZE, "%.2x", (unsigned)(*((obj->bytes)+i) & 0xff));
+      snprintf(buffer + i*2, BUFSIZE - (i+1)*2, "%.2x", (unsigned)(*((obj->bytes)+i) & 0xff));
     }
     if (obj->length > CAPPEDSIZE) {
       strncat(buffer, trailerStr, (BUFSIZE-CAPPEDSIZE*2u));
