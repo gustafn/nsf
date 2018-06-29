@@ -110,7 +110,7 @@ Nsf_InitStubs(Tcl_Interp *interp, const char *version, int exact) {
     Tcl_ResetResult(interp);
     Tcl_AppendResult(interp, "Error loading ", packageName, " package: "
                      "package not present, incomplete or misconfigured. "
-                     "Maybe NSF was not compliled with COMPILE_NSF_STUBS enabled?",
+                     "Maybe NSF was not compiled with COMPILE_NSF_STUBS enabled?",
                      (char*) 0L);
     actualVersion = NULL;
   } else {
