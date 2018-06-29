@@ -14161,6 +14161,7 @@ ObjectCmdMethodDispatch(
 
         if (withinEnsemble) {
           pathObj = NsfMethodNamePath(interp, framePtr0, methodName);
+          INCR_REF_COUNT(pathObj);
           path = ObjStr(pathObj);
         } else {
           path = methodName;
@@ -20305,6 +20306,7 @@ static Tcl_Obj *FindNextMethod(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
                          &endOfFilterChain, &currentCmd) == TCL_OK
         && cmd != NULL) {
       Tcl_Obj *pathObj = NsfMethodNamePath(interp, framePtr, methodName);
+      INCR_REF_COUNT(pathObj);
 
       methodName = isEnsemble ? ObjStr(pathObj) : lookupMethodName;
       result = MethodHandleObj((class != NULL) ? (NsfObject *)class : object, (class == NULL), methodName);
