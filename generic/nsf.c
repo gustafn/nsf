@@ -12652,7 +12652,7 @@ NsfProcDeleteProc(
   }
   if (ctxPtr->colonLocalVarCache != NULL) {
     /*fprintf(stderr, "free colonLocalVarCache %p\n", (void*)ctxPtr->colonLocalVarCache);*/
-    FREE(Tcl_Var*, ctxPtr->colonLocalVarCache);
+    FREE(int*, ctxPtr->colonLocalVarCache);
   }
   if (ctxPtr->returnsObj != NULL) {
     DECR_REF_COUNT2("returnsObj", ctxPtr->returnsObj);
