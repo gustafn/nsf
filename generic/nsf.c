@@ -30082,15 +30082,21 @@ NsfCurrentCmd(Tcl_Interp *interp, CurrentoptionIdx_t option) {
       const char *procName = Tcl_GetCommandName(interp, cscPtr->cmdPtr);
       Tcl_SetObjResult(interp, Tcl_NewStringObj(procName, -1));
     } else {
-      return NsfPrintError(interp,  "can't find proc");
+      /* TODO: Is this, practically, reachable? */
+      return NsfPrintError(interp,  "can't find method");
     }
     break;
 
   case CurrentoptionMethodpathIdx:
     cscPtr = CallStackGetTopFrame0(interp);
-    Tcl_SetObjResult(interp, NsfMethodNamePath(interp,
-                                               CallStackGetTclFrame(interp, NULL, 1),
-                                               Tcl_GetCommandName(interp, cscPtr->cmdPtr)));
+    if (cscPtr != NULL) {
+      Tcl_SetObjResult(interp, NsfMethodNamePath(interp,
+                                                 CallStackGetTclFrame(interp, NULL, 1),
+                                                 Tcl_GetCommandName(interp, cscPtr->cmdPtr)));
+    } else {
+      /* TODO: Is this, practically, reachable? */
+      return NsfPrintError(interp,  "can't find method");
+    }
     break;
 
   case CurrentoptionClassIdx: /* class subcommand */
