@@ -14157,7 +14157,7 @@ ObjectCmdMethodDispatch(
 
       if (actualSelf != lastSelf) {
         const char *path;
-        Tcl_Obj *pathObj;
+        Tcl_Obj *pathObj = NULL;
 
         if (withinEnsemble) {
           pathObj = NsfMethodNamePath(interp, framePtr0, methodName);
@@ -14171,7 +14171,7 @@ ObjectCmdMethodDispatch(
                ClassName(actualClass) : ObjectName(actualSelf), path, subMethodName);
 
         subMethodCmd = NULL;
-        if (withinEnsemble) {
+        if (pathObj != NULL) {
           DECR_REF_COUNT(pathObj);
         }
       }
