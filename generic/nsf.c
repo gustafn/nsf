@@ -26809,8 +26809,7 @@ static int
 NsfDebugGetDict(Tcl_Interp *interp, Tcl_Obj *obj) {
   Tcl_Obj    *resultObj;
   const char *typeString;
-  #define BUFSIZE 24
-
+  
   nonnull_assert(interp != NULL);
   nonnull_assert(obj != NULL);
 
@@ -26826,15 +26825,17 @@ NsfDebugGetDict(Tcl_Interp *interp, Tcl_Obj *obj) {
   Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("hex", -1));
 
   if (obj->bytes != NULL) {
+#define CAPPEDSIZE  10u
+    const char trailerStr[] = "...";
+#define BUFSIZE (CAPPEDSIZE*2u + sizeof(trailerStr))
     int i;
     char buffer[BUFSIZE];
 
-    for (i = 0; i < 10 && i < obj->length; i++) {
+    for (i = 0; i < CAPPEDSIZE && i < obj->length; i++) {
       snprintf(buffer + i*2, BUFSIZE, "%.2x", (unsigned)(*((obj->bytes)+i) & 0xff));
     }
-    if (obj->length > 10) {
-      strncat(buffer, "...", 4u);
-      buffer[BUFSIZE-1] = '\0';
+    if (obj->length > CAPPEDSIZE) {
+      strncat(buffer, trailerStr, (BUFSIZE-CAPPEDSIZE*2u));
     }
     Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj(buffer, -1));
 
