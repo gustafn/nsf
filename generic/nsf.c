@@ -395,9 +395,14 @@ static NsfClass *DefaultSuperClass(
 /*
  * Prototypes for call stack specific calls
  */
-NSF_INLINE static void CscInit_(NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *class,
-                               Tcl_Command cmd, unsigned short frameType, unsigned int flags)
-  nonnull(1) nonnull(2);
+NSF_INLINE static void CscInit_(
+    NsfCallStackContent *cscPtr,
+    NsfObject *object,
+    NsfClass *class,
+    const Tcl_Command cmd,
+    unsigned short frameType,
+    unsigned int flags
+) nonnull(1) nonnull(2);
 
 NSF_INLINE static void CscFinish_(Tcl_Interp *interp, NsfCallStackContent *cscPtr)
   nonnull(1) nonnull(2);
@@ -449,7 +454,7 @@ NSF_INLINE static NsfParamDefs *ParamDefsGet(
 ) nonnull(1);
 
 NSF_INLINE static NsfProcContext *ProcContextGet(
-    Tcl_Command cmdPtr
+    const Tcl_Command cmdPtr
 ) nonnull(1);
 
 static NsfProcContext *ProcContextRequire(
