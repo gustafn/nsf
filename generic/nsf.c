@@ -7332,7 +7332,9 @@ AutonameIncr(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfObject *object,
   if (valueObj != NULL) {
     long autoname_counter;
 
-    /* should probably do an overflow check here */
+    /*
+     * The autoname counter can overflow, but this should cause no troubles.
+     */
     Tcl_GetLongFromObj(interp, valueObj, &autoname_counter);
     autoname_counter++;
     if (Tcl_IsShared(valueObj)) {
@@ -7345,7 +7347,7 @@ AutonameIncr(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfObject *object,
       return NULL;
     }
   } else {
-    return NULL;
+    resultObj = NsfGlobalObjs[NSF_EMPTY];
   }
 
   if (doResetOpt == 1) {
@@ -7384,11 +7386,12 @@ AutonameIncr(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfObject *object,
         fprintf(stderr, "*** copy %p %s = %p\n", name, ObjStr(name), resultObj);
       */
     }
-    /* if we find a % in the autoname -> We use Tcl_FormatObjCmd
-       to let the autoname string be formatted, like Tcl "format"
-       command, with the value. E.g.:
-       autoname a%06d --> a000000, a000001, a000002, ...
-    */
+
+    /*
+     * If there is a "%" in the autoname, use Tcl_FormatObjCmd to let the
+     * autoname string be formatted, like Tcl "format" command, with the
+     * value. E.g.: autoname a%06d --> a000000, a000001, a000002, ...
+     */
     for (c = ObjStr(resultObj); *c != '\0'; c++) {
       if (*c == '%') {
         if (*(c+1) != '%') {
@@ -7424,7 +7427,6 @@ AutonameIncr(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfObject *object,
       const char *valueString = Tcl_GetString(valueObj);
 
       Tcl_AppendLimitedToObj(resultObj, valueString, valueObj->length, INT_MAX, NULL);
-      /*fprintf(stderr, "+++ append to obj done\n");*/
     }
   }
 
