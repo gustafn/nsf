@@ -7344,6 +7344,8 @@ AutonameIncr(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfObject *object,
     if (unlikely(resultObj == NULL)) {
       return NULL;
     }
+  } else {
+    return NULL;
   }
 
   if (doResetOpt == 1) {
@@ -13260,7 +13262,7 @@ static const char * ParamGetDomain(Nsf_Param const *paramPtr)
 
 static const char *
 ParamGetDomain(Nsf_Param const *paramPtr) {
-  const char *result = "value";
+  const char *result;
 
   nonnull_assert(paramPtr != NULL);
 
@@ -22624,7 +22626,7 @@ ForwardArg(
                                   ObjStr(forwardArgObj));
     }
 
-    ForwardArgString = ++remainder;
+    ForwardArgString = remainder + 1;
     /*
      * In case we address from the end, we reduct further to distinguish from
      * -1 (void)
@@ -23402,7 +23404,7 @@ IsRootNamespace(const Tcl_Interp *interp, const Tcl_Namespace *nsPtr) {
 static Tcl_Namespace *
 CallingNameSpace(Tcl_Interp *interp) {
   Tcl_CallFrame *framePtr;
-  Tcl_Namespace *nsPtr;
+  Tcl_Namespace *nsPtr = NULL;
 
   nonnull_assert(interp != NULL);
 
@@ -29759,7 +29761,7 @@ cmd relation::set NsfRelationSetCmd {
 */
 static int
 NsfRelationSetCmd(Tcl_Interp *interp, NsfObject *object, RelationtypeIdx_t type, Tcl_Obj *valueObj) {
-  int            oc, i;
+  int            oc = 0, i;
   Tcl_Obj      **ov;
   NsfClass      *class = NULL;
   NsfObjectOpt  *objopt = NULL;
@@ -29785,7 +29787,7 @@ NsfRelationSetCmd(Tcl_Interp *interp, NsfObject *object, RelationtypeIdx_t type,
 
   /*
    * The first switch block is just responsible for obtaining objopt or clopt
-   * or handline other simple cases.
+   * or handling other simple cases.
    */
   switch (type) {
   case RelationtypeObject_filterIdx: /* fall through */
@@ -29815,7 +29817,6 @@ NsfRelationSetCmd(Tcl_Interp *interp, NsfObject *object, RelationtypeIdx_t type,
         return (clopt != NULL) ? FilterInfo(interp, clopt->classFilters, NULL, NSF_TRUE, NSF_FALSE) : TCL_OK;
       }
     }
-
     if (unlikely(Tcl_ListObjGetElements(interp, valueObj, &oc, &ov) != TCL_OK)) {
       return TCL_ERROR;
     }
@@ -31816,7 +31817,7 @@ objectMethod uplevel NsfOUplevelMethod {
 */
 static int
 NsfOUplevelMethod(Tcl_Interp *interp, NsfObject *UNUSED(object), int objc, Tcl_Obj *const objv[]) {
-  int i, result = TCL_ERROR;
+  int i, result;
   Tcl_CallFrame *framePtr = NULL, *savedVarFramePtr;
 
   nonnull_assert(interp != NULL);
@@ -32231,7 +32232,6 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *nameObj, int objc
     }
 
     Tcl_SetObjResult(interp, newObject->cmdName);
-    actualNameObj = newObject->cmdName;
     ObjTrace("RECREATE", newObject);
 
   } else {
