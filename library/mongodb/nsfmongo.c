@@ -444,19 +444,21 @@ BsonAppend(Tcl_Interp *interp, bson_t *bbPtr, CONST char *name, CONST char *tag,
     break;
   }
   case BSON_TYPE_TIMESTAMP: {
-    int       timestamp, increment, objc = 0;
+    int       timestamp = 0, increment = 0, objc = 0;
     Tcl_Obj **objv;
 
     result = Tcl_ListObjGetElements(interp, value, &objc, &objv);
     if (result != TCL_OK || objc != 2) {
       return NsfPrintError(interp, "invalid timestamp: %s", ObjStr(value));
+    } else {
+      result = Tcl_GetIntFromObj(interp, objv[0], &timestamp);
+      if (result == TCL_OK) {
+        result = Tcl_GetIntFromObj(interp, objv[1], &increment);
+      }
+      if (result == TCL_OK) {
+        bson_append_timestamp(bbPtr, name, keyLength, (uint32_t)timestamp, (uint32_t)increment);
+      }
     }
-    result = Tcl_GetIntFromObj(interp, objv[0], &timestamp);
-    if (result == TCL_OK) {
-      result = Tcl_GetIntFromObj(interp, objv[1], &increment);
-    }
-    if (result != TCL_OK) break;
-    bson_append_timestamp(bbPtr, name, keyLength, (uint32_t)timestamp, (uint32_t)increment);
     break;
   }
   case BSON_TYPE_DOCUMENT:
