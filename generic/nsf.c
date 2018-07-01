@@ -12657,7 +12657,7 @@ NsfProcDeleteProc(
   }
   if (ctxPtr->colonLocalVarCache != NULL) {
     /*fprintf(stderr, "free colonLocalVarCache %p\n", (void*)ctxPtr->colonLocalVarCache);*/
-    FREE(Tcl_Var*, ctxPtr->colonLocalVarCache);
+    FREE(int*, ctxPtr->colonLocalVarCache);
   }
   if (ctxPtr->returnsObj != NULL) {
     DECR_REF_COUNT2("returnsObj", ctxPtr->returnsObj);
@@ -14162,10 +14162,11 @@ ObjectCmdMethodDispatch(
 
       if (actualSelf != lastSelf) {
         const char *path;
-        Tcl_Obj *pathObj;
+        Tcl_Obj *pathObj = NULL;
 
         if (withinEnsemble) {
           pathObj = NsfMethodNamePath(interp, framePtr0, methodName);
+          INCR_REF_COUNT(pathObj);
           path = ObjStr(pathObj);
         } else {
           path = methodName;
@@ -14176,7 +14177,7 @@ ObjectCmdMethodDispatch(
                ClassName(actualClass) : ObjectName(actualSelf), path, subMethodName);
 
         subMethodCmd = NULL;
-        if (withinEnsemble) {
+        if (pathObj != NULL) {
           DECR_REF_COUNT(pathObj);
         }
       }
@@ -20310,6 +20311,7 @@ static Tcl_Obj *FindNextMethod(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
                          &endOfFilterChain, &currentCmd) == TCL_OK
         && cmd != NULL) {
       Tcl_Obj *pathObj = NsfMethodNamePath(interp, framePtr, methodName);
+      INCR_REF_COUNT(pathObj);
 
       methodName = isEnsemble ? ObjStr(pathObj) : lookupMethodName;
       result = MethodHandleObj((class != NULL) ? (NsfObject *)class : object, (class == NULL), methodName);
