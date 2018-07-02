@@ -644,7 +644,7 @@ namespace eval ::xotcl {
         argName [$o ::nsf::methods::${scope}::info::method args $method] \
         flag    [$o ::nsf::methods::${scope}::info::method parameter $method] {
           if {$argName eq $arg} {
-	    # we are in a proc, so using builtin "upvar" is safe
+	    # we are in a proc, so using built-in "upvar" is safe
 	    upvar $varName default
             if {[llength $flag] == 2} {
               set default [lindex $flag 1]
