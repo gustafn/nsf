@@ -27046,7 +27046,7 @@ cmd __db_get_obj NsfDebugGetDict {
   {-argName "obj"    -required 1 -type tclobj}
 }
 */
-
+#define NSF_DEBUG_SHOW_BYTES 10u
 static int NsfDebugGetDict(Tcl_Interp *interp, Tcl_Obj *obj)
   nonnull(1) nonnull(2);
 
@@ -27070,15 +27070,14 @@ NsfDebugGetDict(Tcl_Interp *interp, Tcl_Obj *obj) {
   Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("hex", -1));
 
   if (obj->bytes != NULL) {
-    const size_t nrBytes = 10;
     size_t       i, objLength = (size_t)obj->length;
     char         trailer[3] = "...";
-    char         buffer[nrBytes*2u + sizeof(trailer) + 1u];
+    char         buffer[NSF_DEBUG_SHOW_BYTES*2u + sizeof(trailer) + 1u];
 
-    for (i = 0; i < nrBytes && i < objLength; i++) {
+    for (i = 0; i < NSF_DEBUG_SHOW_BYTES && i < objLength; i++) {
       snprintf(buffer + i*2, sizeof(buffer) - (i+1)*2, "%.2x", (unsigned)(*((obj->bytes)+i) & 0xff));
     }
-    if (objLength > nrBytes) {
+    if (objLength > NSF_DEBUG_SHOW_BYTES) {
       strncat(buffer, trailer, sizeof(buffer) - strlen(buffer) - 1);
     }
     Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj(buffer, -1));
