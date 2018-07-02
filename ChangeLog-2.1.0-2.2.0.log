@@ -1299,177 +1299,115 @@
 
 2017-08-09  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	- submethods.test: Clean up ensembles on top-level objects. [2a10ca19]
-
-
-	- nx-test.tcl (nx::test case): As (ensemble) methods are currently not
+	* submethods.test: Clean up ensembles on top-level
+	objects. [2a10ca19]
+	* nx-test.tcl (nx::test case): As (ensemble) methods are currently not
 	covered by the auto-cleanup feature of "nx::test case", I took care
 	of not cleaning up the per-class ensemble slots while the alias is
-	still available. This led to dangling aliases in cases such as:
-	[464ec0a0]
-
-
-	-
-	  * nsf.c (GetNextArguments): Ensemble method names via the colon
+	still available. This led to dangling aliases. [464ec0a0]
+	* nsf.c (GetNextArguments): Ensemble method names via the colon
 	resolver were not cleansed for the colon, leading to a broken method
 	lookup chain. Fix for SF Ticket #1. Added basic tests. [404b5593]
 
 2017-08-07  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- fix: remove failing assertion, Tcl handles leading colons in proc
-	  names [71dcbd9c]
+	* nsf.c (MakeProc, NsfMethodCreateCmd): Remove failing assertion,
+	Tcl handles leading colons in proc names [71dcbd9c]
 
 2017-06-18  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	-
-	  * nsf.c, forward.test (ForwardArg): Extend to recognize alternative
-	  element separators in list string reps (NsfHasTclSpace). [bc7f267a]
-
-
-	-
-	  * nsf.c, nsf-cmd.test (ObjectFindMethod): Extend to recognize all
+	* nsf.c, forward.test (ForwardArg): Extend to recognize alternative
+	  element separators in list string reps
+	(NsfHasTclSpace). [bc7f267a]
+	* nsf.c, nsf-cmd.test (ObjectFindMethod): Extend to recognize all
 	  element separator chars (NsfHasTclSpace). [462bf8f1]
-
-
-	-
-	  * nsf.c, parameters.test (NsfMethodSetterCmd): Make list detection
+	* nsf.c, parameters.test (NsfMethodSetterCmd): Make list detection
 	  aware of all list separator chars (NsfHasTclSpace). [33d063a3]
-
-
-	-
-	  * nsf.c, parameters.test (NsfOResidualargsMethod): Extend XOTcl's
+	* nsf.c, parameters.test (NsfOResidualargsMethod): Extend XOTcl's
 	list-notation support to recognize all Tcl list separators
 	(NsfHasTclSpace). [5425e020]
 
 2017-06-14  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	-
-	  * nsf.c, nsfInt.h: Start housekeeping work on Tcl command/proc names
+	* nsf.c, nsfInt.h: Start housekeeping work on Tcl command/proc names
 	vs. NSF method names to avoid conflicts between ensemle methods and
 	e.g. whitespace-containing command names. Added helper macro
 	NsfHasTclSpace and some first tests. To be continued. [7e090d5c]
 
 2017-06-03  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- Reduce variable scope [9797190b]
+	* nsf.c (FilterAdd): Reduce variable scope [9797190b]
 
 2017-05-31  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	-
-	  * nsf.c (NsfMethodPropertyCmd,NsfForwardPropertyCmd): Remove extra
-	  whitespace from error message. [67401de3]
+	* nsf.c (NsfMethodPropertyCmd,NsfForwardPropertyCmd): Remove extra
+	whitespace from error message. [67401de3]
 
 2017-05-29  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	-
-	  * methods.test: Add basic tests on composite names under the default
+	* methods.test: Add basic tests on composite names under the default
 	  unknown handler. [224bb589]
-
-
-	-
-	  * nsf.c (DispatchUnknownMethod): Sanitize messages emitted by default
-	unknown handler. Unless in the context of an ensemble object
-	(NSF_KEEP_CALLER_SELF, NSF_PER_OBJECT_DISPATCH), make sure that the
-	entire method name, incl. multi-word names, are fully reported.
-	[09b9e7c9]
+	* nsf.c (DispatchUnknownMethod): Sanitize messages emitted by
+	default unknown handler. Unless in the context of an ensemble
+	object (NSF_KEEP_CALLER_SELF, NSF_PER_OBJECT_DISPATCH), make sure
+	that the entire method name, incl. multi-word names, are fully
+	reported. [09b9e7c9]
 
 2017-05-28  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- Simplify code [c1ac4a3f]
-
-
-	-
-	- Don't assume that CallStackGetTopFrame0() reurns != NULL
-	- reduce variable scopes
-	- reduce number of returns before function end [16324e94]
+	* nsf.c (FindCalledClass): Simplify code [c1ac4a3f]
+	* nsf.c (NsfCmdList, RemoveFromObjectMixins, FilterAdd)
+	(FindCalledClass, FindSelfNext, NsfRelationSetCmd), nsfObj.c
+	(NsfFilterregGet, FilterregSetFromAny), nsfStack.c
+	(CallStackGetTopFrame0): Don't assume that CallStackGetTopFrame0()
+	returns != NULL; reduce variable scopes; reduce number of returns
+	before function end
+	[16324e94]
 
 2017-04-29  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- Make sure, paramPtr is always initialized [be1aa824]
+	* nsf.c (NsfOCgetMethod): Make sure, paramPtr is always
+	initialized [be1aa824]
 
 2017-04-22  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
-	- Use more straightforward Tcl idiom to access first
-	  character of a string
-	- Standardize spelling of names of products (Tcl, AOLserver,
-	  PostgreSQL) [09b4bca7]
-
-
-	- Use uniform spelling of "Tcl" [bf42a9bc]
-
-
-	- Whitespace change: strip trailing spaces [6450e201]
-
-
-	-
-	- Use uniform spelling of "Tcl"
-	- Fix more spelling errors [6af35a88]
-
-
-	- Use uniform spelling of "Tcl" [0fd68504]
+	* xotcl2.tcl, library/*: Use more straightforward Tcl idiom
+	[string index] to access first character of a string; standardize
+	spelling of names of products (Tcl, AOLserver, PostgreSQL)
+	[09b4bca7]
+	* doc/*.man: Use uniform spelling of "Tcl" [bf42a9bc]
+	* nsfAssemble.c: Whitespace change [6450e201]
+	* generic/*.c, library/*/*.tcl: Use uniform spelling of "Tcl", fix
+	more spelling errors [6af35a88, 0fd68504]
 
 2017-04-21  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- Improve spelling [f934951d]
-
-
-	-
-	- provide means to debug invalid coding in Tcl_Objs [5561af6a]
+	* nsf.c (NsfDebugGetDict): Provide means to debug invalid coding
+	in Tcl_Objs [5561af6a]
 
 2017-03-03  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	- Fix wording in TODO [f5f15deb]
-
-
-	- Leave some TODOs to think about [c661d207]
-
-
-	-
-	  * nx.tcl (VariableSlot): Fix value=delete to actually accept and
+	* nx.tcl (VariableSlot): Fix value=delete to actually accept and
 	implement "-nocomplain". Added tests (missing so far entirely) and
 	updated the man pages accordingly. [8f64a468]
 
 2017-03-03  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- extend tutorial description [b6ec6249]
+	* tutorial-properties.tcl: Extend tutorial description [b6ec6249]
 
 2017-03-02  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	-
-	  * nx.tcl, parameters.test (defineIncrementalOperations): Make sure
+	* nx.tcl, parameters.test (defineIncrementalOperations): Make sure
 	value=add and value=delete actually run value checkers and, in case
 	of "convert", pick up the conversion result. Added basic test.
 	[470bd5f5]
 
 2017-03-01  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	-
-	  * nsf.c (ArgumentCheck): Set parentheses correctly. [0c9b20f1]
-
-
-	-
-	  * nx.tcl (makeIncrementalOperations, defineIncrementalOperations):
+	* nsf.c (ArgumentCheck): Set parentheses correctly. [0c9b20f1]
+	* nx.tcl (makeIncrementalOperations, defineIncrementalOperations):
 	  Avoid repeated slot= entries in options. Fix a typo. [d2ca2655]
-
-
-	-
-	  * nsf.c (ArgumentCheck): Avoid double dispatching to value checkers
+	* nsf.c (ArgumentCheck): Avoid double dispatching to value checkers
 	(built-in and type=*) for "slotset" parameters. Previously, configure
 	and then the value=set (value=add) method triggered one dispatch each.
 	Now, the configure pass skips the check and shifts sole responsibility

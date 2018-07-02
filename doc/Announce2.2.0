@@ -17,10 +17,15 @@ New Features
 
 - NSF:
 
+  * NsfHasTclSpace
+
 
 - NX:
 
-  * ...
+  * Improvements to incremental property methods: value=add and
+    value=delete
+
+  * Fix ensemble-method dispatch via colon dispatcher
 
   * Documentation (API and examples):
 
