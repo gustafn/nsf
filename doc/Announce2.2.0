@@ -38,10 +38,14 @@ New Features
 
 - MongoDB interface upgrade:
 
-  * Upgraded MongoDB and drivers to mongodb-c-driver 1.5.1, libbson
-    1.5.1 and MongoDB v3.4.0.
+  * Upgraded driver and utilities to mongodb-c-driver 1.9.3 and libbson 1.9.3.
 
-  ...
+  * Add regular expression queries to conditions in nx::mongo
+
+- Documentation:
+
+  * Added tutorials on NX properties: tutorial-properties.tcl
+  * Improved spelling: next-migration.txt, ...
   
 - Maintenance & bug fixes:
 
@@ -55,7 +59,10 @@ New Features
 
   * Misc (esp. NSF/C):
 
-    + ...
+    + Reduced memory consumption via better member aligning of
+    structs, esp. on 64-bit machines.
+    + Bug fix: Avoid preemptive frees on %proc subsitution for
+    forwarder methods.
 
   * New configure option: "--enable-development=test"
 
@@ -64,11 +71,8 @@ New Features
 
 - Packaging & distribution:
 
-  * Support for MSVC 1914 (VS 2017; win/makefile.vc)
-  * Debian package: https://packages.qa.debian.org/n/nsf.html
-  * MacPorts port: https://trac.macports.org/browser/trunk/dports/lang/nsf/Portfile
-  * Part of the KitCreator battery: https://kitcreator.rkeene.org/fossil/
-  * Part of the kbskit battery: https://sourceforge.net/projects/kbskit/
+  * Initial support for the new nmake system of TEA (TIP 477) and MSVC
+    1914 (VS 2017; win/makefile.vc); various fixes to install target.
 
 The detailed changelog is available at
 https://next-scripting.org/xowiki/download/file/ChangeLog-2.1.0-2.2.0.log

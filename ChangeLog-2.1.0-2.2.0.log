@@ -1478,90 +1478,64 @@
 
 2017-03-01  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- add properties tutorial to test set [f6538271]
-
-
-	- Add hands-on tutorial for properties [05569c23]
-
-
-	-
-	- extend test case (since people use this as example) [a6b73475]
+	* tutorial-properties.tcl: Added properties tutorial [f6538271,05569c23]
+	* nx-mongo.test: Extended test case (since people use this as an example; [a6b73475])
 
 2017-02-28  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- Fix potential bug in forwarder code (it was possible, that a
-	  subsituted %proc was freed to early) [980112e0]
+	* nsf.c (ForwardArgFix): Fix for potential bug in forwarder
+	code. It was possible that substituted %proc becomes freed too
+	early [980112e0]
 
 2017-02-20  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	- Regenerated migration and tutorial, to account for recently fixed
+	* Regenerated migration and tutorial, to account for recently fixed
 	  typos and fix markup generation [d303212e]
-
-
-	-
-	  * Makefile.in: Unify ASCIIDOC exec configuration. [41946a0c]
+	* Makefile.in: Unify ASCIIDOC exec configuration. [41946a0c]
 
 2017-02-20  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- adjust programming style [7fb9a460]
-
-
-	- Add test for regular expression matching [3b027ad1]
-
-
-	- Make sure to initialize nsf object fetched from mongo [ac40ee26]
+	* xotcl2.tcl: Modernize programming style (if-then-else ->
+	if-else) [7fb9a460]
+	* nsf-mongo.test: Add test for regular expression matching in
+	conditions [3b027ad1]
+	* nx-mongo.tcl: Make sure to initialize NSF object fetched from
+	mongo [ac40ee26]
 
 2017-02-14  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
-	- Use more modern returnstate handling based on options
-	- extend regression test [f5bba52e]
+	* nx.tcl, contains.test: Use more modern returnstate handling
+	based on options, added regression tests [f5bba52e]
 
 2017-02-14  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	-
-	  * next-migration.txt: Address some typos (thx to Guenter Ernst for
+	* next-migration.txt: Address some typos (thx to Guenter Ernst for
 	  reporting). [576c7576]
 
-
-	-
-	  * contains.test: Add two test cases to document the recent fix on error
-	  and errorcode propagation in contains. [1790b67d]
+	* contains.test: Add two test cases to document the recent fix
+	[6b570a0b] on error and errorcode propagation in
+	contains. [1790b67d]
 
 2017-02-14  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- fix bug in method "contains": Propergate errorCode on catch [6b570a0b]
+	* nx.tcl (Object->contains): Propergate errorCode on catch [6b570a0b]
 
 2017-01-18  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- mongodb interface
-	- add regular expression queries to conditions in NX [788f2f57]
+	* nx-mongo.tcl: Add regular expression queries to conditions in NX [788f2f57]
 
 2017-01-18  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	-
-	  * makefile.vc: Change another directory location to respect the
+	* makefile.vc: Change another directory location to respect the
 	  INSTALLDIR setting [93011b62]
 
 2017-01-18  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
-	- Copy changed structure [3d447c3c]
-
-
-	-
-	- Dont't use ConvertToNothing but NULL in the terminating record, since
-	  the former is not available for extensions [96479aa7]
+	* nsfmongo.c, mongoAPI.h: Copy changed structure ParseContext
+	[3d447c3c]
+	* gentclAPI.tcl, nsfAPI.h: Prefer NULL over ConvertToNothing in
+	the terminating record, since the former is not available for
+	extensions [96479aa7]
 
 2017-01-18  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
