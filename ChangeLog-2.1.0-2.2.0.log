@@ -1,0 +1,1616 @@
+2018-07-02  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* makefile.vc (CFLAGS): Also set -DHAVE_UINTPTR_T. [983e085e]
+	* makefile.vc (CFLAGS): Add -DHAVE_INTPTR_T explicitly. [7db39ce8]
+
+2018-07-02  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- MSVC seems to be bad on const expressions [fe7198d3]
+
+
+	- add starmethod design study [d6d259af]
+
+
+	- improve spelling [bada4fa1]
+
+
+	- fix typo [7f7d32cd]
+
+2018-07-01  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- Improve comments, unify comment formatting and whitespace cleanup
+	  [469e0c36]
+
+
+	- properly initialize resultObj in all cases [0f0e846e]
+
+
+	- remove dead assignments, initialize variables also on error paths
+	  [1725225a]
+
+
+	- make sure to initialize all variables also in error cases [88e3e5d4]
+
+
+	- Reduce number of implicit type conversions Avoid use of macros
+	  [8325cbad]
+
+
+	- mprove alignment of prototypes and function definitions [0ad07ea5]
+
+2018-06-29  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	-
+	  * nsf.c (ObjectCmdMethodDispatch, FindNextMethod): Balance book-keeping
+	in memcounts for Tcl_Objs (technically, an unmatched decrement would
+	suffice). [9131bba5]
+
+
+	-
+	  * nsf.c (NsfProcDeleteProc): Fix freeing of colonLocalVarCache and
+	  balance book-kepping on memcounts for colonLocalVarCache. [bbeae255]
+
+
+	-
+	  * nsf.c (ObjectCmdMethodDispatch): Silence static check of GCC 8.1
+	  (-Wmaybe-uninitialized). [skip ci] [4db189db]
+
+
+	-
+	  * nsf.c (NsfCurrentCmd): Avoid (possible, but unlikely) null
+	  dereferencing, if CSC was missing [CID 294166]. [27e5aa8b]
+
+
+	-
+	  * nsf.c (NsfDebugGetDict): Compute the remaining size to snprintf for
+	  each iteration [CID 294169]. [skip ci] [53a9c013]
+
+2018-06-29  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- address CID 294171 and change construct for strpbrk [72a0a428]
+
+2018-06-29  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- nsf.c (NsfDebugGetDict): Parametrize length computation; remove
+	  unneeded nul-termination. [skip ci] [22cdc00a]
+
+2018-06-29  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- minor cleanup [369069ef]
+
+
+	- reduce variable scope and minor cleanup [c2157faa]
+
+2018-06-28  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	-
+	  * nsf.c (NsfDebugGetDict): Make use of strncat more robust by setting
+	the destingation length to the remainder of the output buffer.
+	[ea63ea31]
+
+
+	-
+	  * nsf.c (ForwardArg): Provide a const'ed pointer to strpbrk, as
+	  required [CID 294162]. [500a581f]
+
+
+	-
+	  * nsf.c (ParamDefsFormat): Fix overrun in memcpy by correcting the
+	  destination-length argument [CID 294165]. [b3e820b4]
+
+
+	-
+	  * nsf.c: Fix all "-pedantic -ansi" errors. [bec5f06e]
+
+2018-06-27  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	-
+	  * nsf.c (ParamDefsStore, NsfProcDeleteProc): Provide for counting a
+	reference to the execNsPtr from the NsfProcContext structure. While I
+	could not devise a script-level path to pull out the rug (execNsPtr)
+	out from under NsfProcContext clients, I can only also not exclude the
+	latter (from future C-level paths?). Better act defensively. [1a486b9a]
+
+
+	-
+	  * nsfInt.h (STRING_NEW): Silence GCC 8.1 warnings on truncation risk
+	using strncpy; made me wonder whether STRING_NEW would not be more
+	robust against mis-computations of the destination-buffer length by
+	using snprintf (mainly because snprintf does not nul-pad the
+	destination buffer and always nul-terminates the destination buffer)?
+	[d96dedf3]
+
+2018-06-26  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	-
+	  * parameters.test: Adding two test cases to cover previously missed
+	  code branches leading to leaking NsfMethodNamePath uses. [bf61b8a8]
+
+2018-06-25  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	-
+	  * nsf.c (ArgumentParse): Handle NsfMethodNamePath result correctly.
+	  [6042ab05]
+
+
+	-
+	  * nsf.c (NsfSetterMethod): Handle NsfMethodNamePath result correctly.
+	  [76da4309]
+
+
+	-
+	  * nsf.c (ObjectCmdMethodDispatch): Close another Tcl_Obj leak incurred
+	  by not handling the result from NsfMethodNamePath. [424b6e1f]
+
+
+	-
+	  * nsf.c (FindNextMethod): Plumb another memleak (valgrind). The Tcl_Obj
+	  computed by NsfMethodNamePath must be refcount corrected. [87bc503b]
+
+
+	-
+	  * nsf.c (AliasGet): Plumbing a memleak found by valgrind. The computed
+	Tcl_Obj from AliasIndex must be refcount-managed explicitly,
+	otherwise the path via AliasGet leaks it. [31c114ee]
+
+2018-06-20  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- Fix makefile.vc syntax [skip travis] [611f73cb]
+
+
+	- Re-code env variable dimension of build matrix [f5ff0c4b]
+
+
+	- Fix appveyor.yml syntax [9eda6984]
+
+
+	- Necessary additions to build script and NMAKE/TEA artifacts [900390cf]
+
+
+	- appveyor.yml: Add TOOLCHAIN dimension to incorporate MSVC builds
+	  [d78609db]
+
+
+	- per-object-mixins.tcl: Fix an example script that got broken a long,
+	  long time ago. [skip ci] [49ae7bc3]
+
+2018-06-19  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- Fix build.tcl pt. 2 [skip ci] [f848dc5f]
+
+
+	- Fix build.tcl [skip ci] [ae03d540]
+
+
+	- Add nmake mode to build.tcl [skip ci] [457f8a80]
+
+2018-06-18  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- Add allowed failures to Travis setup [skip appveyor] [9e5f074e]
+
+
+	- Set allowed failures on Tcl development branches; report failure on
+	  first failing build [skip travis] [f718572e]
+
+
+	-
+	  * nsf.c (ParamOptionParse), nsfInt.h: Provide for own MAX and MIN
+	macros, the ones reused implicitly from Tcl's tommath have vanished
+	in 8.7 branches; and are not provided otherwise, at least in MinGW
+	settings. Fixes 8.7 builds for MinGW under Win. [8a1a43a3]
+
+
+	- Fix descriptor syntax. [95fa4f4b]
+
+
+	- Finally, got Windows builds (MinGW) working on Appveyor. Cleaning up
+	  build scripts. [89fc03bf]
+
+
+	- Trying to set HOME dir explicitly, 2nd try, sigh! [skip travis]
+	  [2ab16701]
+
+
+	- Trying to set HOME dir explicitly [skip travis] [a9454bc8]
+
+
+	- Triangulate HOME dir [skip travis] [a691997b]
+
+
+	- Add debugging in build scripts [skip travis] [71dd75a1]
+
+
+	- Add debugging in build scripts [skip travis] [25c6fca9]
+
+
+	- Relocate env setup into build_script block [skip travis] [03d5b57a]
+
+
+	- Fix path setting [skip travis] [1b07fc0e]
+
+
+	- Fix path setting [skip travis] [bd720946]
+
+
+	- Make sure that sh and bash are initialised the same. [skip travis]
+	  [59986a2a]
+
+
+	- Turn on MORE debugging [skip travis] [f207ce19]
+
+
+	- Turn on MORE debugging [skip travis] [00eb377b]
+
+
+	- Turn on MORE debugging [skip travis] [0c1811dc]
+
+
+	- Turn on debugging [skip travis] [2174fb70]
+
+
+	- Turn on debugging [skip travis] [b0457f28]
+
+
+	- Add skip marker; correct path settings [skip travis] [6c876e33]
+
+
+	- Try native MinGW pt. 4 [65c4d97a]
+
+
+	- Try native MinGW pt. 3 [d7e28d2e]
+
+
+	- Try native MinGW pt. 2 [8028ced6]
+
+
+	- Try native MinGW [a6a1736d]
+
+
+	- Avoid x-compilation [d41ea5ee]
+
+
+	- Another try to fix build paths [13e6e4c0]
+
+2018-06-17  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- Install gcc dependency on builders [2b4c8032]
+
+
+	- Fix mingw toolchain path [96b79f58]
+
+
+	- Update appveyor.yml [05d909f4]
+
+
+	- Prep build script to support MSYS2/MinGW builds under Windows
+	  [45f37041]
+
+2018-06-04  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	-
+	  * nsf.c (ListSuperClasses): Fix refcounting for 8.5 non-threaded only,
+	otherwise the patternString becomes unavailable once a preemptive
+	decrement has been performed, leading to unexpected info results.
+	[0e8f3a70]
+
+
+	-
+	  * nx-test.tcl (run): Avoid use of [try], to render the test suite
+	independent from the presence of 8.6 or tcllib's try. This may be
+	reverted, once 8.5 support is dropped. [9ba75adb]
+
+2018-06-01  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- add COMPILE_NSF_STUBS to compile flags under windows [554234e8]
+
+
+	- make stublib initialization more robust and provide meaningful error
+	  message in case of misconfigurations [fe5d4828]
+
+2018-05-30  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- Turn on some debugging [fffcee32]
+
+
+	- Add missing tclkit url [2e1926a7]
+
+
+	- First attempt at Appveyor integration (mingw64 only) [c216c592]
+
+
+	- Trying to get env variables right [f4ca149d]
+
+
+	- Make build script more verbose [79e5563d]
+
+
+	- Fix env variables in build descriptor [63295a8d]
+
+
+	- Provide first attempt at Travis build array and build script
+	  [21d83785]
+
+2018-05-29  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- Simplify descriptor, for the time being [e41cd6fd]
+
+
+	- Add an initial Travis CI descriptor [ea4ef787]
+
+
+	- Add a TODO [76fabbee]
+
+
+	- Makefile.in: Polishing [b3a3d83c]
+
+2018-05-23  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- improve spelling [5c0a0300]
+
+
+	- use mongoc_iovec_t instead of struct iovec iov to improve
+	  cross-platform compatibility [8eea27e0]
+
+2018-05-21  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- improve comments [ae081c0f]
+
+2018-05-17  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- improve wording [c8cfa996]
+
+
+	- improve tcl idioms [7a2dc79d]
+
+2018-04-30  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- remove duplicated word [657e8c12]
+
+2018-04-25  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- fix duplicated words in code documentation [0556efb3]
+
+
+	- fix double word in code documentation [f52f9988]
+
+
+	- fix double worlds in code documentation [c78a90d7]
+
+2018-04-15  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- add destroy_on_cleanup similar to OpenACS to ease lifetime management
+	  of volatile objects [1debd517]
+
+2018-04-14  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- fixiing cut&paste error [2ce11132]
+
+2018-04-12  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- white space changes [4131e4eb]
+
+
+	-
+	- added class names into serialization syntax (__class).
+	  This change allows us to make better use of polymorphism
+	  with (e.g. embedded) class structures. Previously, it was
+	  necessary, that the called had to know the class of the
+	  serialized object, now it is as well possible to use as
+	  well specializations.
+	- fix bug, where default value for properties lead to errors, when no
+	  propery options where given. [3fc67997]
+
+
+	- update version numbers of mongo's c-driver (older versions stopped
+	  working on MacOS High Sierra) [120d6714]
+
+
+	- fix typo [7831bb96]
+
+2018-04-05  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- fix typos [50bf7579]
+
+
+	- fix typo [eb6f33db]
+
+2018-03-28  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- regenerated documentation [367fd6fc]
+
+
+	- fix typos [8f15a5f3]
+
+2018-03-23  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- Remove unneeded ALLOC_ON_STACK [a8fbf793]
+
+2018-03-11  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	-
+	  * nsf.c (ListMethod): Provide a disassemble implementation based on
+	::tcl::unsupported::disassemble. [::nsf::cmf::info disassemble] is
+	generally available, the info ?object? method variants only in
+	development mode. Implementation covers proc methods and ::nsf::procs.
+	Along the way, prettify some code paths in ListMethod. [1919d17f]
+
+2018-03-08  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- add const declarations, whitespace changes [dcbf5b0c]
+
+2018-03-06  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	-
+	  * nsf.c (Nsf_Init): Mark the namespace "::nsf::classes" and its
+	children using "NS_SUPPRESS_COMPILATION". In 8.6+, this guards any
+	commands in these auxiliary namespaces to be picked up by the bytecode
+	compiler (if accessed in an unintended manner). [52340117]
+
+
+	-
+	  * nsf.c (ByteCompiled): Patch the proc command's namespace
+	  unconditionally, for 8.5 and 8.6. [4d5e72a9]
+
+2018-03-03  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- avoid potentially dangerous call strcat(); remove unneeded assignment
+	  [0948fdce]
+
+2018-03-02  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- whitespace changes [869a425b]
+
+
+	- break overlong lines [b489939c]
+
+
+	- polish and comment the execNs change for Tcl 8.5 [0f58115b]
+
+
+	- Quickfix fot Tcl 8.5 (needs still more investigation) [a9c0e0c4]
+
+2018-02-25  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- add const declarations, reduce variable scopes, break longish lines
+	  [efe655ee]
+
+2018-02-21  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- Fix call example [bf3b2a85]
+
+
+	- Leave some to-dos [7de62ff9]
+
+
+	-
+	  * dtrace/README: Updated instructions to cover SIP
+	  deactivation, minor corrections. Added one more D script
+	  (nsf_calltime.d).
+	  * nsfDTrace.h: Re-generated. [ee6699cd]
+
+
+	-
+	  * nsf.c (NsfConfigureCmd): Fix NSF_DTRACE=1 builds. [8a3defd6]
+
+
+	-
+	  * gentclAPI.tcl, nsfAPI.decls (createconverter): Support for "-global
+	1" flag that will cause the options array corresponding to an
+	  enumeration to become available as a global, properly Nsf_* prefixed
+	symbol. Used for NsfConfigureCmd and the corresponding DTrace probe,
+	for now. [40299a6f]
+
+2018-02-19  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- add const and pure declarations [56771aad]
+
+2018-02-19  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	-
+	  * source-doc-beautifier.tcl: Remove in-block range markers within test
+	  bodies to prettify the ADOC output. [d3fd0b4d]
+
+2018-02-19  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- adding const declarations, variable name cleanup [75e891c9]
+
+
+	- more code cleanup:
+	- reuduce number of returns before end of function
+	- ease live for static checker
+	- use more "const" declarations [b655363c]
+
+2018-02-18  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- add comment and improve linebreak [992c4419]
+
+
+	-
+	- prefer bool over int
+	- reduce number of gotos
+	- reduce number of returns before end of function
+	- reduce variable scopes
+	- add "const" declaration
+	- white-space changes [e9cd20a4]
+
+2018-02-17  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- align prototypes with function definitions [d78fa3ae]
+
+
+	- whitespace changes [bd06f04b]
+
+
+	- prefer bool over int, white space changes [25349aef]
+
+2018-02-16  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- More code cleanup [9d1dfb64]
+
+
+	- update genstub path to recent versions of Tcl releases [976a4004]
+
+2018-02-14  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- prefer boolean over int [d4863566]
+
+
+	- Reduce number of return statements beofre end of function [5e2800c9]
+
+
+	- cleanup: fix regression, prefer boolean over int, reduce number of
+	  returns befor end of function [61204e9c]
+
+
+	- ease life of colon cmd cachier [b35a18bd]
+
+
+	- Don't pass colon-prefixed method names from setter cmd to
+	  SetInstVar() to avoid potential shimmering. [e561596f]
+
+2018-02-11  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- add Tcl_Obj caching to cget argument
+	- redued usage of goto statements
+	- reduced size of largish function [343d881f]
+
+
+	- introduce macro ObjTypeStr for commonly used idiom [23843225]
+
+
+	- prefer boolean over int [b513759e]
+
+
+	- coloncmd reform (part 4): perform validation for per-object cases,
+	provide more detailed statistics (when compiled with COLON_CMD_STATS)
+	[050f0e85]
+
+2018-02-10  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- Reduce memory consumption for cache by caching just cmds in
+	non-volatile Tcl_Objs. Add optional statistics, when COLON_CMD_STATS
+	is defined. [fd53af3f]
+
+
+	- simplify expression [b7c03b14]
+
+
+	- remove unneeded variable [e75c61b1]
+
+
+	- add NsfDList functions similar to Tcl_DString, but operating on void*
+	  instead of char and use it for ColonCmdCache data [ac0c6dda]
+
+
+	- Simplify handling of "returns" object. no need to require paramdefs,
+	  when just returnsObj is needed [5d0e4380]
+
+
+	- coloncmd reform (part 3): keep a per-interp list of colon command
+	cache entries to avoid memory leaks in cases the objects are
+	converted [40317187]
+
+2018-02-09  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- coloncmd reform (part 2): generalize code and apply for object
+	  specific commands as well [68df0e0f]
+
+
+	- coloncmd reform (part 1): improve dispatch of [:method ...] by up to
+	  30% [4be7360a]
+
+2018-02-09  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	-
+	  * msgcat.test: Added a small collection of basic tests covering msgcat
+	usage from within NSF/NX objects and classes. Tested successfully
+	with mainline Tcl 8.6 and the TIP-490 branch "tip490-msgcat-oo-2".
+	[071b5e4d]
+
+2018-02-07  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- whitespace changes [5f1fe725]
+
+2018-02-06  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- pass execNsPtr to byte-compiler (which might be different to
+	  procPtr->cmd->nsPtr) [fb310a1d]
+
+2018-01-30  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	-
+	  * nsf.c (NextSearchAndInvoke): Relax the pre-conditions, objv can
+	actually be NULL (see test cases). Besides, the assertion was not
+	reflected by a corresponding nonnull constraints on the
+	NextSearchAndInvoke prototype. [42350dca]
+
+2018-01-27  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- More code cleanup: [e9949fac]
+
+
+	- More code cleanup: [558d6c0b]
+
+
+	- More code cleanup: [de1e5161]
+
+
+	- More code cleanup: [43188404]
+
+
+	- More code cleanup: [90239071]
+
+
+	- More code cleanup: [a7f471a9]
+
+
+	- More code cleanup: [4fd1ff60]
+
+
+	- More code cleanup: [d9746cd5]
+
+2018-01-26  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- remove unused arguments [625e5b42]
+
+
+	- Use Boolean type on more occasions Fix incorrect comments Fix mixture
+	  of Tcl result code and 0/1 integers [b2902b78]
+
+
+	- Use Boolean type on more occasions [e2dd2f44]
+
+
+	- Boolean type introduction [3f46f0b1]
+
+2018-01-25  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- improve type cleanness for clang 6.0 [c783c671]
+
+
+	- Align prototypes with function definitons and minor code cleanup
+	  [6e5500ed]
+
+
+	- write separate commands in different lines (esp. for control
+	  structures) [048913c4]
+
+
+	- align naming of variables in function prototypes and definitions
+	  [ed886327]
+
+
+	- mark unused arguments as UNUSED [23bf0a56]
+
+2018-01-24  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- make argument names more regular improve alignment of prototype names
+	  with function definitions [9ffb7a5c]
+
+
+	- fix typos [d45807d8]
+
+
+	- Improve alignment of prototypes with function definitions improve
+	  regularity of variable names [8552f707]
+
+
+	- prefer meaningful name in function prototypes align names in .decls
+	  file with prototypes in the .c and .h files [866971d8]
+
+2018-01-22  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- Remove unused arguments [88a4a36b]
+
+
+	- remove unused argument [9c4fabbf]
+
+
+	- Remove unused argument [9cae9f80]
+
+2018-01-20  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- minor cleanup (adjust comments, reduce variable scope) [1dad927c]
+
+2018-01-19  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- nx-test.tcl (exit): Fix the return trampoline for [exit] during test
+	  runs [bb203de8]
+
+2018-01-19  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- Fix overseen error in regression test [6280104b]
+
+2018-01-19  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- Fix another 86/85 glitch [2125f114]
+
+
+	- Make test suite working under 8.5, again. [1d2bdbea]
+
+2018-01-18  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- extend regression test [df76a8d9]
+
+
+	- execution namespace reform:
+	- add execution namespace to proc context instead of
+	  altering the namespace of the command
+	- this fixes strange behavior of "info commands ::o::p",
+	  which might have returned "::p"
+	- provide compatibility with Tcl 8.7a2
+	- extend regression test [3ccbf141]
+
+2018-01-16  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- get the "int" type from the Tcl_Obj directly, which will continue to
+	  work in Tcl 9.0 [2d77e6cc]
+
+
+	- Provide compatibility with TIP #484 [382055d5]
+
+
+	- deactivate solution to the tcl87a2 problem for now, since we need a
+	  different solution with this for recursive aliases [392fda7d]
+
+
+	- improve woring in comment [42f38005]
+
+
+	- remove shadowing variable [d8f6dd4d]
+
+
+	- reduce implicit conversions [fa4eedf5]
+
+
+	- transitional fix for tcl87a2 problem [63f7ad6c]
+
+2018-01-15  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- substdefault code cleanup [32791010]
+
+
+	- extend regression test, make assumptions explicit [52af84c2]
+
+2018-01-14  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- remove stripping of substdefault from properties [ed365a90]
+
+
+	-
+	- add handling of extended substdefault options to
+	  per-object variables
+	- improve default value checking for slot-less variables
+	- transfor associated array into a dict
+	- extend regression tests [babe6447]
+
+2018-01-13  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- delete pre-existing commands explicitly [918dad99]
+
+2018-01-12  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- provide fully qualified names to Tcl_ProcObjCmd() to avoid potential
+	  problems in newer Tcl versions [79bca8ba]
+
+2018-01-05  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- make it possible to use error code for cmd result
+	  comparison
+	- add some NSF specifc error code [5ab2ad98]
+
+
+	- provide error hint for "invalid value constraints" errors [dc94a1f1]
+
+
+	- add error message, when present [50d4fe25]
+
+
+	- Reduce number of strlen() operations [11f14cc1]
+
+
+	- whitespace changes [01ea26cd]
+
+
+	- Fold "substdefault" and "substdefaultoptions" into a single parameter
+	  option "substdefault" [b6fa8004]
+
+2018-01-04  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	-
+	  * nsf.c (ParamOptionParse): Fixed typo in error msg. [5bd8345b]
+
+
+	-
+	  * nsf.c (NSCheckNamespace): Simplify resource management of a DString.
+	  [b70b7fe7]
+
+
+	-
+	  * nsf.c (ParamSetFromAny2): Fix inline comment. [b62efa58]
+
+
+	-
+	  * nsf.c (ParamOptionParse, ParamDefinitionParse, ParamDefsParse),
+	parameters.test: Small "type=" converterArg reform. Provided
+	additional parameter in param-parser machinery, to communicate a
+	(namespace) qualifier into ParamOptionParse. This way, the unqualified
+	  type=* values are now expanded to qualified names (definition scope):
+	  method parameters, nsf::is, nsf::parseargs, setter methods. Type=* in
+	object parameters are currently expanded at the slot level, could also
+	be added. New tests were added, existing ones adjusted to reflect the
+	new behaviour. [f0d2956f]
+
+2018-01-03  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- new command "tnsf::definitionnamespace"
+	- experiment with command in regression test [7f58a3a3]
+
+
+	- fix typo in comment [3301d272]
+
+
+	-
+	- implement substdefaultoptions (for now, just providing
+	  the bitmask)
+	- add substdefault.test
+	- rename static function ParamParse() to
+	  ParamDefinitionParse()
+	- break overlong lines [25212e40]
+
+2018-01-02  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- Silence gcc8 [8591bd17]
+
+2018-01-01  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- Use snprintf() instead of sprintf() to protect better against
+	  potential buffer overflows [37c87756]
+
+
+	- Remove old-style CompiledColonLocalsLookup and use colonLocalVarCache
+	  variant instead. [b916a5a3]
+
+2017-12-31  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- Fix leftover from the time, when we could call accessor methods
+	  without "get" [6ef0a130]
+
+2017-12-31  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	-
+	  * nx.tcl, nx-mongo.tcl (parseParamSpec): Render target parameter
+	non-positional, so that MetaSlot.parseParamSpec() becomes backward
+	compatible. Adjusted callsites of parseParamSpec. [5ac8b093]
+
+2017-12-30  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- Add missing argument to parseParameterSpec [5d495b6d]
+
+
+	- Improve portability (restict length of literal strings <= 4095)
+	  [1c256d87]
+
+
+	- deactivate two problematic tests for the time being to allow
+	  regression test to run [868e7224]
+
+2017-12-29  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- fix typos, updaty copyright years according to commits [0de05aae]
+
+
+	- prefer boolean test, remove commented-out code [b84afe7e]
+
+2017-12-24  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- Fix typos [c4f449cb]
+
+2017-12-21  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	-
+	  * nsf.c (ParamParse): Fix crash when ParamParse is called with an
+	empty-string argument, e.g. nsf::parameter::info type "". Tests
+	provided. [2f921800]
+
+
+	- Add another to-do item [b368199d]
+
+2017-12-20  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- Add to-do items [03bb3de2]
+
+
+	-
+	  * nsf.c (NsfParseArgsCmd): Fix another edge case (empty spec and/or
+	  empty argv), added more tests. See also TODO. [9bd2c31a]
+
+
+	-
+	  * nsf.c (NsfParseArgsCmd): Fix nsf::parseargs for the case of Tcl-only
+	params, otherwise, it crashes due to an uninitialized params
+	structure. Added some tests. [54277a59]
+
+2017-12-19  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	-
+	  * nsf.c (ParamDefsParse): Fix small typo "allowedOptinons" ->
+	  "allowedOptions" [5a34df6e]
+
+2017-12-01  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	-
+	  * nx.tcl (Class.variable): Clean up a left-over. [03bde7ee]
+
+
+	-
+	  * nx.tcl (Class.variable()): Re-order the substdefault-handling block
+	  to render it more meaningful. [7e754788]
+
+
+	- Add to-do item [bdf624ec]
+
+
+	-
+	  * nx.tcl (substdefault): Unify and harden substdefault handling. Both,
+	per-class and per-object substdefault should now behave similarly in
+	absence of a pair of evaluation brackets. Also, an attempt is made to
+	capture ill-formed input to subst earlier ([info complete]). An actual
+	substdefault reform, however, must tackle the [subst] calls
+	(-novariables?) and make the calls more robust (at the script and C
+	level; [apply]-like?). Added some tests for documentation. [dc801eac]
+
+2017-11-30  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- parameters.test: Simplify test case slightly. [efd3c005]
+
+
+	-
+	  * nx.tcl (MetaSlot.parseParameterSpec): Refine handling of the type
+	converter to expand unqualified names to the "nearer" namespace
+	(i.e., namespace of the slot-owning object) rather than "". Along the
+	  way, intercept invalid type=* values earlier (empty string, "::").
+	Added some tests. [f177ffa3]
+
+
+	-
+	  * nsfDebug.c: Remove duplicate array entry. [e9dc4cee]
+
+
+	-
+	  * nsfDebug.c (NsfInitPkgConfig): Provide NSF configuration data via the
+	  TIP 59 interface (::nsf::pkgconfig). [0ca1bf1c]
+
+2017-11-18  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- silence static checker [c9f1c850]
+
+2017-11-16  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- Improve cleanness of compilation with Tcl 8.5 [f8b5f0a1]
+
+
+	- Remove unneeded function [165e176d]
+
+
+	- add const declaration [5fb947bc]
+
+2017-11-15  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- Don't allow bytearrays as name of non-pos args [8ac4f64a]
+
+2017-11-09  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- Adjust print format to recent changes [f2ba4d0c]
+
+2017-11-08  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- nsf.c, nsfInt.h, nsfObj.c: Make epoch counters unsigned ints, so
+	  doubling the number of possible epochs. [1aa07d20]
+
+
+	-
+	  * nsf.c: Unify cmd flags cast (unsigned long -> unsigned int) [a25c4bed]
+
+
+	-
+	  * nsf.c (ObjectCmdMethodDispatch): Simplify and cleanup condition
+	  expressions. [20c5ebb6]
+
+
+	- nsf.c (ObjectCmdMethodDispatch), submethods.test: Enable private
+	checking on ensembles, added test cases to capture the intented
+	behaviour behind -local and/or private for ensemble methods. [96e318fb]
+
+2017-10-24  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- move GetObj() after tests of non-null asserts [543954d5]
+
+2017-10-20  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- Fix collateral damage of protection changes [9429c5df]
+
+
+	- Move prototypes to begin of file [b2c4a961]
+
+
+	- Cleanup: Don't shadow variable names. [09a7e327]
+
+
+	- Minor cleanup: remove commented code, add missin nonnull-assert,
+	  shorten overlong lines [6b1b9272]
+
+2017-10-19  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	-
+	  * nsf.c (NsfMethodForwardCmd): Provide correct scoping condition when
+	requesting a method handle for a submethod forwarder. Added basic
+	tests. [8b19916c]
+
+2017-10-13  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	-
+	  * nsf.c, nsfStack.c: Bump copyright years. [bc16933e]
+
+
+	-
+	  * nsf.c (ObjectCmdMethodDispatch), protected.test: For
+	  ensemble (submethod) dispatches, since ever, call
+	  protection had not been enforced at all. This commit
+	  enables call protection (protected) for ensembles and
+	  adds basic tests.
+	  * nsfStack.c (GetSelfObj): To allow one to resolve the self reference
+	at arbitrary callstack levels, separate GetSelfObj into GetSelfObj
+	(macro) for the topmost self and GetSelfObj2. [4e48f104]
+
+2017-10-06  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- fix typo [6a0a8ba7]
+
+2017-10-02  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	-
+	  * nsf.c (NsfCCreateMethod): During a shutdown, in a filter setting,
+	objv is not necessarily populated. Prior to this fix, the following
+	crashes on exit for "ObjStr(objv[1])": [86becbe0]
+
+2017-09-19  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- Add likely/unlikely for NSF_DURING_DELETE checks [57d67eeb]
+
+
+	- Code cleanup [5df12821]
+
+2017-09-06  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- Add Valgrind/callgrind support [81788340]
+
+
+	- Improve performance of ObjectSystemsCheckSystemMethod() by over 20%
+	  [9612df65]
+
+2017-09-04  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- Optimization for aliases [0e77a312]
+
+
+	- minor cleanup and optimizations [5b6d88f8]
+
+
+	- Avoid call of strncmp() in common cases [3b1402ae]
+
+2017-08-31  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- Various Performance Improvements:
+	- Add cache for compiled locals starting with a colon to
+	  avoid repeated linear searches
+	- Reduce number of string comparisons in ParamOptionParse()
+	- Factor out ProcContextRequire()
+	- Extend regression test [9c0e4571]
+
+2017-08-21  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- Minor cleanup [fa5f1303]
+
+
+	- Remove first argument of MethodDispatch, which is apparently not
+	  needed [18c7294b]
+
+
+	- Avoid mixed declarations and code [a4b53da8]
+
+
+	- Added experimental definition of NSF_CONSTANT_COMPILED_LOCAL_LOOKUP
+	  [d9a45933]
+
+2017-08-20  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	-
+	  * nsf.c (FindNextMethod): Provide revised, streamlined implementation
+	of FindSelfNext as FindNextMethod. FindSelfNext is maintained, but
+	unused for the time being. [cc7500b2]
+
+2017-08-20  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- Cleanup and Optimization [fd0a160a]
+
+
+	- White space changes [f1549882]
+
+
+	- Reduce number of returns before end of function [b64700f0]
+
+
+	- Whitespace changes, typos [3f78bdd8]
+
+
+	- more macro definition after GNU definitions [394c8d71]
+
+
+	- Remove redundant definition [263d34ee]
+
+
+	- Remove dead assignment [76cc1aa8]
+
+
+	- Add more tidy and checking compiler flags [d81f1d01]
+
+2017-08-20  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	-
+	  * nsf.c (NsfCurrentCmd), nsfStack.c (CallStackNextFrameOfType): Render
+	[current isnextcall] aware of ensembles. Extended submethods.test to
+	cover [current isnextcall] within ensembles. [adedd712]
+
+2017-08-18  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- nsf.c (FindSelfNext): Render [current nextmethod] aware of ensembles.
+	  Added basic tests. [2c338821]
+
+2017-08-15  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- White-space changes [35936dfb]
+
+2017-08-09  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- submethods.test: Clean up ensembles on top-level objects. [2a10ca19]
+
+
+	- nx-test.tcl (nx::test case): As (ensemble) methods are currently not
+	covered by the auto-cleanup feature of "nx::test case", I took care
+	of not cleaning up the per-class ensemble slots while the alias is
+	still available. This led to dangling aliases in cases such as:
+	[464ec0a0]
+
+
+	-
+	  * nsf.c (GetNextArguments): Ensemble method names via the colon
+	resolver were not cleansed for the colon, leading to a broken method
+	lookup chain. Fix for SF Ticket #1. Added basic tests. [404b5593]
+
+2017-08-07  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- fix: remove failing assertion, Tcl handles leading colons in proc
+	  names [71dcbd9c]
+
+2017-06-18  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	-
+	  * nsf.c, forward.test (ForwardArg): Extend to recognize alternative
+	  element separators in list string reps (NsfHasTclSpace). [bc7f267a]
+
+
+	-
+	  * nsf.c, nsf-cmd.test (ObjectFindMethod): Extend to recognize all
+	  element separator chars (NsfHasTclSpace). [462bf8f1]
+
+
+	-
+	  * nsf.c, parameters.test (NsfMethodSetterCmd): Make list detection
+	  aware of all list separator chars (NsfHasTclSpace). [33d063a3]
+
+
+	-
+	  * nsf.c, parameters.test (NsfOResidualargsMethod): Extend XOTcl's
+	list-notation support to recognize all Tcl list separators
+	(NsfHasTclSpace). [5425e020]
+
+2017-06-14  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	-
+	  * nsf.c, nsfInt.h: Start housekeeping work on Tcl command/proc names
+	vs. NSF method names to avoid conflicts between ensemle methods and
+	e.g. whitespace-containing command names. Added helper macro
+	NsfHasTclSpace and some first tests. To be continued. [7e090d5c]
+
+2017-06-03  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- Reduce variable scope [9797190b]
+
+2017-05-31  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	-
+	  * nsf.c (NsfMethodPropertyCmd,NsfForwardPropertyCmd): Remove extra
+	  whitespace from error message. [67401de3]
+
+2017-05-29  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	-
+	  * methods.test: Add basic tests on composite names under the default
+	  unknown handler. [224bb589]
+
+
+	-
+	  * nsf.c (DispatchUnknownMethod): Sanitize messages emitted by default
+	unknown handler. Unless in the context of an ensemble object
+	(NSF_KEEP_CALLER_SELF, NSF_PER_OBJECT_DISPATCH), make sure that the
+	entire method name, incl. multi-word names, are fully reported.
+	[09b9e7c9]
+
+2017-05-28  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- Simplify code [c1ac4a3f]
+
+
+	-
+	- Don't assume that CallStackGetTopFrame0() reurns != NULL
+	- reduce variable scopes
+	- reduce number of returns before function end [16324e94]
+
+2017-04-29  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- Make sure, paramPtr is always initialized [be1aa824]
+
+2017-04-22  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- Use more straightforward Tcl idiom to access first
+	  character of a string
+	- Standardize spelling of names of products (Tcl, AOLserver,
+	  PostgreSQL) [09b4bca7]
+
+
+	- Use uniform spelling of "Tcl" [bf42a9bc]
+
+
+	- Whitespace change: strip trailing spaces [6450e201]
+
+
+	-
+	- Use uniform spelling of "Tcl"
+	- Fix more spelling errors [6af35a88]
+
+
+	- Use uniform spelling of "Tcl" [0fd68504]
+
+2017-04-21  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- Improve spelling [f934951d]
+
+
+	-
+	- provide means to debug invalid coding in Tcl_Objs [5561af6a]
+
+2017-03-03  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- Fix wording in TODO [f5f15deb]
+
+
+	- Leave some TODOs to think about [c661d207]
+
+
+	-
+	  * nx.tcl (VariableSlot): Fix value=delete to actually accept and
+	implement "-nocomplain". Added tests (missing so far entirely) and
+	updated the man pages accordingly. [8f64a468]
+
+2017-03-03  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- extend tutorial description [b6ec6249]
+
+2017-03-02  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	-
+	  * nx.tcl, parameters.test (defineIncrementalOperations): Make sure
+	value=add and value=delete actually run value checkers and, in case
+	of "convert", pick up the conversion result. Added basic test.
+	[470bd5f5]
+
+2017-03-01  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	-
+	  * nsf.c (ArgumentCheck): Set parentheses correctly. [0c9b20f1]
+
+
+	-
+	  * nx.tcl (makeIncrementalOperations, defineIncrementalOperations):
+	  Avoid repeated slot= entries in options. Fix a typo. [d2ca2655]
+
+
+	-
+	  * nsf.c (ArgumentCheck): Avoid double dispatching to value checkers
+	(built-in and type=*) for "slotset" parameters. Previously, configure
+	and then the value=set (value=add) method triggered one dispatch each.
+	Now, the configure pass skips the check and shifts sole responsibility
+	on the value=set/ value=add methods. Added basic test cases to
+	parameters.test to capture the intended call semantics. [daa771f5]
+
+2017-03-01  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- add properties tutorial to test set [f6538271]
+
+
+	- Add hands-on tutorial for properties [05569c23]
+
+
+	-
+	- extend test case (since people use this as example) [a6b73475]
+
+2017-02-28  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- Fix potential bug in forwarder code (it was possible, that a
+	  subsituted %proc was freed to early) [980112e0]
+
+2017-02-20  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- Regenerated migration and tutorial, to account for recently fixed
+	  typos and fix markup generation [d303212e]
+
+
+	-
+	  * Makefile.in: Unify ASCIIDOC exec configuration. [41946a0c]
+
+2017-02-20  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- adjust programming style [7fb9a460]
+
+
+	- Add test for regular expression matching [3b027ad1]
+
+
+	- Make sure to initialize nsf object fetched from mongo [ac40ee26]
+
+2017-02-14  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- Use more modern returnstate handling based on options
+	- extend regression test [f5bba52e]
+
+2017-02-14  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	-
+	  * next-migration.txt: Address some typos (thx to Guenter Ernst for
+	  reporting). [576c7576]
+
+
+	-
+	  * contains.test: Add two test cases to document the recent fix on error
+	  and errorcode propagation in contains. [1790b67d]
+
+2017-02-14  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- fix bug in method "contains": Propergate errorCode on catch [6b570a0b]
+
+2017-01-18  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- mongodb interface
+	- add regular expression queries to conditions in NX [788f2f57]
+
+2017-01-18  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	-
+	  * makefile.vc: Change another directory location to respect the
+	  INSTALLDIR setting [93011b62]
+
+2017-01-18  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- Copy changed structure [3d447c3c]
+
+
+	-
+	- Dont't use ConvertToNothing but NULL in the terminating record, since
+	  the former is not available for extensions [96479aa7]
+
+2017-01-18  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* makefile.vc: Add missing header files to install target and use
+	  STUBDIR to properly locate the generated API headers. [e3446f62]
+
+2017-01-14  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsf.c (AssertionCheck, ListParamDefs, NsfMethodAliasCmd, NsfMethodPropertyCmd): Include
+	all enum values in case statements [cd3c5e04]
+	* nsf.c: Use preprocessor variables more consistently [95656d26]
+	* nsf.c (VarHashCreateVar, AssertionAddProc, ParamDefsStore. NsfStringIncrFree): Remove
+	old-style function definitions [b49b73b7]
+	* nsf.c (NsfProcStub): Remove implicit conversion to 'unsigned int' from 'int' [d2e248fb]
+	* nsf.c (ObjectCmdMethodDispatch,FreeUnsetTraceVariable, NsfNextCmd, NsfCurrentCmd): ISO
+	C90 forbids mixed declarations and code [4511d320]
+	* nsf.c (Nsf_Init): Don't shadow local variable [54e49b08]
+	* nsf.c, nsfInt.h: Reduce memory consumption via better aligning
+	esp. on 64-bit machines [2076cebc]
+
+2017-01-13  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsf.c (GetObjectFromObj, ObjectCmdMethodDispatch)
+	(ObjectDispatch, ListCmdParams, ListMethod, NsfMethodSetterCmd)
+	(NsfObjectAllocCmd, NsfCurrentCmd, CscListRemove): Don't shadow
+	variables [22741a63]
+	* nsf.c (NsfMemCounter): Modify STRING_NEW such that it is able to
+	produce "const char *" such that it uses ckalloc [84a4722d]
+	* nsf.c: Provide for clean compile with "-Wwrite-strings", added
+	const declarations [878a74b6]
+	* nsf.c: Removed unneeded arguments; mark unused arguments as
+	UNUSED [b089be70]
+
+2017-01-13  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* nx-pp.tcl (State): Add "substdefault" to two property specs to
+	fix markup generation for various token types (variables
+	etc.). [ac12ae10]
+
+2017-01-11  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* source-doc-beautifier.tcl: Allow for omitting the built-in title
+	line, to allow for custom doc and title preambles in example
+	scripts ("-notile" flag). [66e3a960]
+
+2017-01-06  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* configure.ac, nsf.c: Added a new configure flag
+	"--enable-development=test" (in addition to "--enable-development"
+	or "--disable-development") for activating more expensive runtime
+	tests.  "--enable-development" alone activates just assertion
+	checking [fccf09e0]

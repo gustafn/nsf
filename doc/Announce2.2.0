@@ -1,0 +1,83 @@
+Dear Community,
+
+We are pleased to announce the availability of the Next Scripting
+Framework (NSF) 2.2.0.
+
+This is a maintenance release. Since the release of 2.1.0, ...
+
+Diff stats since 2.1.0:
+ ...
+
+
+Major changes relative to 2.1.0 are:
+
+- ...
+
+New Features
+
+- NSF:
+
+
+- NX:
+
+  * ...
+
+  * Documentation (API and examples):
+
+    + Added
+
+    ...
+    
+    + Updated
+
+    ...
+
+- XOTcl2:
+
+  ...
+
+- MongoDB interface upgrade:
+
+  * Upgraded MongoDB and drivers to mongodb-c-driver 1.5.1, libbson
+    1.5.1 and MongoDB v3.4.0.
+
+  ...
+  
+- Maintenance & bug fixes:
+
+  * 
+
+  * Tcl 8.7:
+
+    Preliminary support for a future Tcl 8.7 (as of Dec 2, 2016;
+    commit 71fa1f9c91). NSF compiles under 8.7a0 and its regression
+    tests execute successfully.
+
+  * Misc (esp. NSF/C):
+
+    + ...
+
+  * New configure option: "--enable-development=test"
+
+  * Extended regression test suite:
+    The test suite contains (for Tcl 8.6.8) now xxxx tests.
+
+- Packaging & distribution:
+
+  * Support for MSVC 1914 (VS 2017; win/makefile.vc)
+  * Debian package: https://packages.qa.debian.org/n/nsf.html
+  * MacPorts port: https://trac.macports.org/browser/trunk/dports/lang/nsf/Portfile
+  * Part of the KitCreator battery: https://kitcreator.rkeene.org/fossil/
+  * Part of the kbskit battery: https://sourceforge.net/projects/kbskit/
+
+The detailed changelog is available at
+https://next-scripting.org/xowiki/download/file/ChangeLog-2.1.0-2.2.0.log
+
+The Next Scripting Framework 2.2.0 (containing NX 2.2.0 and XOTcl
+2.2.0) can be obtained from https://next-scripting.org/. Please report
+issues and wishes by opening a ticket at
+https://sourceforge.net/p/next-scripting/tickets/.
+
+Best regards
+- Gustaf Neumann
+- Stefan Sobernig
