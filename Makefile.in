@@ -265,6 +265,7 @@ EXAMPLE_SCRIPTS = \
 	$(src_doc_dir)/example-scripts/rosetta-sudoku.html \
 	$(src_doc_dir)/example-scripts/rosetta-unknown-method.html \
 	$(src_doc_dir)/example-scripts/ruby-mixins.html \
+	$(src_doc_dir)/example-scripts/starmethod.html \
 	$(src_doc_dir)/example-scripts/tk-horse-race.html \
 	$(src_doc_dir)/example-scripts/tk-locomotive.html \
 	$(src_doc_dir)/example-scripts/tk-ludo.html \
