@@ -17,8 +17,17 @@ New Features
 
 - NSF:
 
-  * NsfHasTclSpace
-
+  * Robustness improvements:
+    + NsfHasTclSpace: ...
+    + substdefault for properties and variables: make behaviour of
+    per-object and per-class substdefaults consistent, early check for
+    complete substitution scripts, ...
+  * Performance improvements:
+    + The lookup for (bytecode-compiled) object variables is now
+    supported by a lookup cache to avoid repeated linear searches.
+    + The number of string comparisons (strcmp) was reduced
+    systematically, in method-parameter parsing and method-parameter
+    handling.
 
 - NX:
 
@@ -27,7 +36,8 @@ New Features
 
   * Improvements to ensemble methods:
     + Fix ensemble-method dispatch via colon dispatcher
-    + [current nextmethod] + [current isnextcall]
+    + [current nextmethod] + [current isnextcall] are now fully aware
+    of ensemble methods, when being used from within.
 
   * Documentation (API and examples):
 
@@ -51,6 +61,8 @@ New Features
 
 - Documentation:
 
+  * NSF now has support for TIP #59 introspection via
+    ::nsf::pkgconfig; see https://core.tcl.tk/tips/doc/trunk/tip/59.md
   * Added tutorials on NX properties: tutorial-properties.tcl
   * Improved spelling: next-migration.txt, ...
   
@@ -70,6 +82,7 @@ New Features
     structs, esp. on 64-bit machines.
     + Bug fix: Avoid preemptive frees on %proc subsitution for
     forwarder methods.
+    + Aliases: Avoid Tcl_obj re-creations
 
   * New configure option: "--enable-development=test"
 

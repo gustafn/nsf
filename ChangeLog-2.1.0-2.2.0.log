@@ -1007,55 +1007,29 @@
 
 2017-12-21  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	-
-	  * nsf.c (ParamParse): Fix crash when ParamParse is called with an
+	* nsf.c (ParamParse): Fix crash when ParamParse is called with an
 	empty-string argument, e.g. nsf::parameter::info type "". Tests
 	provided. [2f921800]
 
-
-	- Add another to-do item [b368199d]
-
 2017-12-20  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	- Add to-do items [03bb3de2]
-
-
-	-
-	  * nsf.c (NsfParseArgsCmd): Fix another edge case (empty spec and/or
+	* nsf.c (NsfParseArgsCmd): Fix another edge case (empty spec and/or
 	  empty argv), added more tests. See also TODO. [9bd2c31a]
-
-
-	-
-	  * nsf.c (NsfParseArgsCmd): Fix nsf::parseargs for the case of Tcl-only
+	* nsf.c (NsfParseArgsCmd): Fix nsf::parseargs for the case of Tcl-only
 	params, otherwise, it crashes due to an uninitialized params
 	structure. Added some tests. [54277a59]
 
 2017-12-19  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	-
-	  * nsf.c (ParamDefsParse): Fix small typo "allowedOptinons" ->
-	  "allowedOptions" [5a34df6e]
+	* nsf.c (ParamDefsParse): Fix small typo "allowedOptinons" ->
+	"allowedOptions" [5a34df6e]
 
 2017-12-01  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	-
-	  * nx.tcl (Class.variable): Clean up a left-over. [03bde7ee]
-
-
-	-
-	  * nx.tcl (Class.variable()): Re-order the substdefault-handling block
-	  to render it more meaningful. [7e754788]
-
-
-	- Add to-do item [bdf624ec]
-
-
-	-
-	  * nx.tcl (substdefault): Unify and harden substdefault handling. Both,
+	* nx.tcl (Class.variable): Clean up a left-over. [03bde7ee]
+	* nx.tcl (Class.variable()): Re-order the substdefault-handling block
+	to render it more meaningful. [7e754788]
+	* nx.tcl (substdefault): Unify and harden substdefault handling. Both,
 	per-class and per-object substdefault should now behave similarly in
 	absence of a pair of evaluation brackets. Also, an attempt is made to
 	capture ill-formed input to subst earlier ([info complete]). An actual
@@ -1065,184 +1039,125 @@
 
 2017-11-30  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	- parameters.test: Simplify test case slightly. [efd3c005]
-
-
-	-
-	  * nx.tcl (MetaSlot.parseParameterSpec): Refine handling of the type
-	converter to expand unqualified names to the "nearer" namespace
-	(i.e., namespace of the slot-owning object) rather than "". Along the
-	  way, intercept invalid type=* values earlier (empty string, "::").
-	Added some tests. [f177ffa3]
-
-
-	-
-	  * nsfDebug.c: Remove duplicate array entry. [e9dc4cee]
-
-
-	-
-	  * nsfDebug.c (NsfInitPkgConfig): Provide NSF configuration data via the
-	  TIP 59 interface (::nsf::pkgconfig). [0ca1bf1c]
+	* Parameters.test: Simplify test case slightly. [efd3c005]
+	* nx.tcl (MetaSlot.parseParameterSpec): Refine handling of the
+	type converter to expand unqualified names to the "nearer"
+	namespace, i.e., namespace of the slot-owning object) rather than
+	"". Along the way, intercept invalid type=* values earlier (empty
+	string, "::").  Added some tests. [f177ffa3]
+	* nsfDebug.c: Remove duplicate array entry. [e9dc4cee]
+	* nsfDebug.c (NsfInitPkgConfig): Provide NSF configuration data via the
+	TIP 59 interface (::nsf::pkgconfig). [0ca1bf1c]
 
 2017-11-18  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
-	- silence static checker [c9f1c850]
+	* nsfUtil.c: silence static checker [c9f1c850]
 
 2017-11-16  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- Improve cleanness of compilation with Tcl 8.5 [f8b5f0a1]
-
-
-	- Remove unneeded function [165e176d]
-
-
-	- add const declaration [5fb947bc]
+	* nsfInt.h: Improve cleanness of compilation with Tcl 8.5 [f8b5f0a1]
+	* nsf.c: unneeded function [165e176d]
+	* nsfDebug.c, nsfInt.h: Add const declarations [5fb947bc]
 
 2017-11-15  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- Don't allow bytearrays as name of non-pos args [8ac4f64a]
+	* nsf.c, method-parameter.test: Don't allow bytearrays as name of
+	non-pos args [8ac4f64a]
 
 2017-11-09  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- Adjust print format to recent changes [f2ba4d0c]
+	* nsf.c: Adjust print format to recent changes [f2ba4d0c]
 
 2017-11-08  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	- nsf.c, nsfInt.h, nsfObj.c: Make epoch counters unsigned ints, so
-	  doubling the number of possible epochs. [1aa07d20]
-
-
-	-
-	  * nsf.c: Unify cmd flags cast (unsigned long -> unsigned int) [a25c4bed]
-
-
-	-
-	  * nsf.c (ObjectCmdMethodDispatch): Simplify and cleanup condition
+	* nsf.c, nsfInt.h, nsfObj.c: Make epoch counters unsigned ints, so
+	doubling the number of possible epochs. [1aa07d20]
+	* nsf.c: Unify cmd flags cast (unsigned long -> unsigned int) [a25c4bed]
+	* nsf.c (ObjectCmdMethodDispatch): Simplify and cleanup condition
 	  expressions. [20c5ebb6]
-
-
-	- nsf.c (ObjectCmdMethodDispatch), submethods.test: Enable private
-	checking on ensembles, added test cases to capture the intented
+	* nsf.c (ObjectCmdMethodDispatch), submethods.test: Enable private
+	checking on ensembles, added test cases to capture the intended
 	behaviour behind -local and/or private for ensemble methods. [96e318fb]
 
 2017-10-24  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- move GetObj() after tests of non-null asserts [543954d5]
+	* nsf.c (NsfColonCmd, NsfSelfCmd): Move GetObj() after tests of
+	non-null asserts [543954d5]
 
 2017-10-20  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- Fix collateral damage of protection changes [9429c5df]
-
-
-	- Move prototypes to begin of file [b2c4a961]
-
-
-	- Cleanup: Don't shadow variable names. [09a7e327]
-
-
-	- Minor cleanup: remove commented code, add missin nonnull-assert,
+	* nx-mongo.tcl: Fix collateral damage of protection changes by
+	making methods public [9429c5df]
+	* nsfStack.c: Move prototypes to begin of file [b2c4a961]
+	* nsfStack.c: Don't shadow variable names. [09a7e327]
+        * nsfStack.c: Remove commented code, add missin nonnull-assert,
 	  shorten overlong lines [6b1b9272]
 
 2017-10-19  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	-
-	  * nsf.c (NsfMethodForwardCmd): Provide correct scoping condition when
+	* nsf.c (NsfMethodForwardCmd): Provide correct scoping condition when
 	requesting a method handle for a submethod forwarder. Added basic
 	tests. [8b19916c]
 
 2017-10-13  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	-
-	  * nsf.c, nsfStack.c: Bump copyright years. [bc16933e]
-
-
-	-
-	  * nsf.c (ObjectCmdMethodDispatch), protected.test: For
-	  ensemble (submethod) dispatches, since ever, call
-	  protection had not been enforced at all. This commit
-	  enables call protection (protected) for ensembles and
-	  adds basic tests.
-	  * nsfStack.c (GetSelfObj): To allow one to resolve the self reference
-	at arbitrary callstack levels, separate GetSelfObj into GetSelfObj
-	(macro) for the topmost self and GetSelfObj2. [4e48f104]
+	* nsf.c, nsfStack.c: Bump copyright years. [bc16933e]
+	* nsf.c (ObjectCmdMethodDispatch), protected.test: For ensemble or
+	submethod dispatches, since ever, call protection had not been
+	enforced at all. This commit enables call protection (protected)
+	for ensembles and adds basic tests.
+	* nsfStack.c (GetSelfObj): To allow one to resolve the self reference
+	at arbitrary callstack levels, separate GetSelfObj into a GetSelfObj
+	macro for the topmost self and GetSelfObj2. [4e48f104]
 
 2017-10-06  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- fix typo [6a0a8ba7]
+	* nsf.c (TclDeletesObject): Fix typo [6a0a8ba7]
 
 2017-10-02  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	-
-	  * nsf.c (NsfCCreateMethod): During a shutdown, in a filter setting,
+	* nsf.c (NsfCCreateMethod): During a shutdown, in a filter setting,
 	objv is not necessarily populated. Prior to this fix, the following
 	crashes on exit for "ObjStr(objv[1])": [86becbe0]
 
 2017-09-19  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- Add likely/unlikely for NSF_DURING_DELETE checks [57d67eeb]
-
-
-	- Code cleanup [5df12821]
+	* nsf.c (RemoveInstance, CallStackDoDestroy)
+	(MixinInvalidateObjOrders, TclDeletesObject, CleanupDestroyClass): Add
+	likely/unlikely for NSF_DURING_DELETE checks [57d67eeb]
+	* nsf.c, nsfError.c, nsfProfile.c: Code cleanup [5df12821]
 
 2017-09-06  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- Add Valgrind/callgrind support [81788340]
-
-
-	- Improve performance of ObjectSystemsCheckSystemMethod() by over 20%
+	* Add Valgrind/callgrind support [81788340]
+	* Improve performance of ObjectSystemsCheckSystemMethod() by over 20%
 	  [9612df65]
 
 2017-09-04  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- Optimization for aliases [0e77a312]
-
-
-	- minor cleanup and optimizations [5b6d88f8]
-
-
-	- Avoid call of strncmp() in common cases [3b1402ae]
+	* nsf.c (AliasAdd, AliasGet, AliasDelete): Optimization for
+	aliases, avoiding unboxing and re-boxing values as Tcl_Objs
+	[0e77a312]
+	* nsf.c: Minor cleanup and optimizations [5b6d88f8]
+	* nsfUtil.c (strnstr): Avoid call of strncmp() in common cases
+	[3b1402ae]
 
 2017-08-31  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- Various Performance Improvements:
-	- Add cache for compiled locals starting with a colon to
-	  avoid repeated linear searches
-	- Reduce number of string comparisons in ParamOptionParse()
-	- Factor out ProcContextRequire()
-	- Extend regression test [9c0e4571]
+	* nsf.c (CompiledLocalsLookup): Add cache for compiled locals
+	starting with a colon to avoid repeated linear searches.
+	* nsf.c (ParamOptionParse): Reduce number of string comparisons in ParamOptionParse()
+	* nsf.c (ParamOptionParse, NsfProcDeleteProc): Factor out ProcContextRequire()
+	* varresolution.test: Extend regression test [9c0e4571]
 
 2017-08-21  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- Minor cleanup [fa5f1303]
-
-
-	- Remove first argument of MethodDispatch, which is apparently not
-	  needed [18c7294b]
-
-
-	- Avoid mixed declarations and code [a4b53da8]
-
-
-	- Added experimental definition of NSF_CONSTANT_COMPILED_LOCAL_LOOKUP
-	  [d9a45933]
+	* nsf.c, nsfStack.c: Minor cleanup [fa5f1303]
+	* nsf.c (MethodDispatch): Remove first argument of MethodDispatch,
+	which is apparently not needed [18c7294b]
+	* nsf.c, nsfInt.h (CompiledLocalsLookup): Avoid mixed declarations
+	and code [a4b53da8]; added experimental definition of
+	NSF_CONSTANT_COMPILED_LOCAL_LOOKUP [d9a45933]
 
 2017-08-20  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
