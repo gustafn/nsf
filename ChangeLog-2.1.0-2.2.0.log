@@ -1246,56 +1246,36 @@
 
 2017-08-20  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	-
-	  * nsf.c (FindNextMethod): Provide revised, streamlined implementation
+	* nsf.c (FindNextMethod): Provide revised, streamlined implementation
 	of FindSelfNext as FindNextMethod. FindSelfNext is maintained, but
 	unused for the time being. [cc7500b2]
 
 2017-08-20  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- Cleanup and Optimization [fd0a160a]
-
-
-	- White space changes [f1549882]
-
-
-	- Reduce number of returns before end of function [b64700f0]
-
-
-	- Whitespace changes, typos [3f78bdd8]
-
-
-	- more macro definition after GNU definitions [394c8d71]
-
-
-	- Remove redundant definition [263d34ee]
-
-
-	- Remove dead assignment [76cc1aa8]
-
-
-	- Add more tidy and checking compiler flags [d81f1d01]
+	* nsf.c, nsfStack.c: Cleanup and optimization [fd0a160a]
+	* nsfStack.c: White space changes [f1549882]
+	* nsfStack.c: Reduce number of returns before end of function
+	[b64700f0]
+	* nsf.c, nsf.h, nsfInt.h: Whitespace changes, typos [3f78bdd8]
+	* nsfInt.h: More macro definition after GNU definitions [394c8d71]
+	* nsf.h: Remove redundant definition [263d34ee]
+	* nsf.c: Remove dead assignment [76cc1aa8]
+	* Makefile.in: Add more tidy and checking compiler flags [d81f1d01]
 
 2017-08-20  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	-
-	  * nsf.c (NsfCurrentCmd), nsfStack.c (CallStackNextFrameOfType): Render
+	* nsf.c (NsfCurrentCmd), nsfStack.c (CallStackNextFrameOfType): Render
 	[current isnextcall] aware of ensembles. Extended submethods.test to
 	cover [current isnextcall] within ensembles. [adedd712]
 
 2017-08-18  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	- nsf.c (FindSelfNext): Render [current nextmethod] aware of ensembles.
-	  Added basic tests. [2c338821]
+	* nsf.c (FindSelfNext): Render [current nextmethod] aware of
+	ensembles.  Added basic tests. [2c338821]
 
 2017-08-15  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- White-space changes [35936dfb]
+	* nsf.c: White-space changes [35936dfb]
 
 2017-08-09  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 

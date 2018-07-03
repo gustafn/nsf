@@ -25,7 +25,9 @@ New Features
   * Improvements to incremental property methods: value=add and
     value=delete
 
-  * Fix ensemble-method dispatch via colon dispatcher
+  * Improvements to ensemble methods:
+    + Fix ensemble-method dispatch via colon dispatcher
+    + [current nextmethod] + [current isnextcall]
 
   * Documentation (API and examples):
 
