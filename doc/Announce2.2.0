@@ -17,11 +17,9 @@ New Features
 
 - NSF:
 
+  * New command: nsf::definitionnamespace
   * Robustness improvements:
     + NsfHasTclSpace: ...
-    + substdefault for properties and variables: make behaviour of
-    per-object and per-class substdefaults consistent, early check for
-    complete substitution scripts, ...
   * Performance improvements:
     + The lookup for (bytecode-compiled) object variables is now
     supported by a lookup cache to avoid repeated linear searches.
@@ -34,6 +32,11 @@ New Features
   * Improvements to incremental property methods: value=add and
     value=delete
 
+  * Improvements to substdefault handling:
+      + substdefault for properties and variables: make behaviour of
+      per-object and per-class substdefaults consistent, early check for
+      complete substitution scripts, ...
+      + substdefault options
   * Improvements to ensemble methods:
     + Fix ensemble-method dispatch via colon dispatcher
     + [current nextmethod] + [current isnextcall] are now fully aware
@@ -68,7 +71,7 @@ New Features
   
 - Maintenance & bug fixes:
 
-  * 
+  * Migration to 'bool'
 
   * Tcl 8.7:
 

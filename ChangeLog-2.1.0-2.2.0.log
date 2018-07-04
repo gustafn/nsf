@@ -882,8 +882,6 @@
 
 2018-01-05  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
 	- make it possible to use error code for cmd result
 	  comparison
 	- add some NSF specifc error code [5ab2ad98]
@@ -906,22 +904,11 @@
 
 2018-01-04  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	-
-	  * nsf.c (ParamOptionParse): Fixed typo in error msg. [5bd8345b]
-
-
-	-
-	  * nsf.c (NSCheckNamespace): Simplify resource management of a DString.
+	* nsf.c (ParamOptionParse): Fixed typo in error msg. [5bd8345b]
+	* nsf.c (NSCheckNamespace): Simplify resource management of a DString.
 	  [b70b7fe7]
-
-
-	-
-	  * nsf.c (ParamSetFromAny2): Fix inline comment. [b62efa58]
-
-
-	-
-	  * nsf.c (ParamOptionParse, ParamDefinitionParse, ParamDefsParse),
+	* nsf.c (ParamSetFromAny2): Fix inline comment. [b62efa58]
+	* nsf.c (ParamOptionParse, ParamDefinitionParse, ParamDefsParse),
 	parameters.test: Small "type=" converterArg reform. Provided
 	additional parameter in param-parser machinery, to communicate a
 	(namespace) qualifier into ParamOptionParse. This way, the unqualified
@@ -933,77 +920,54 @@
 
 2018-01-03  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
-	- new command "tnsf::definitionnamespace"
-	- experiment with command in regression test [7f58a3a3]
-
-
-	- fix typo in comment [3301d272]
-
-
-	-
-	- implement substdefaultoptions (for now, just providing
-	  the bitmask)
-	- add substdefault.test
-	- rename static function ParamParse() to
-	  ParamDefinitionParse()
-	- break overlong lines [25212e40]
+	* nsf.c, nsfAPI.decls, substdefault.test: New command
+	"nsf::definitionnamespace" plus regression tests [7f58a3a3]
+	* nsf.c (ParamOptionParse): Fix typo in comment [3301d272]
+	* nsf.c (ParamParse, ArgumentDefaults): Implement
+	substdefaultoptions (for now, just providing the bitmask); added
+	substdefault.test; rename static function ParamParse() to
+	ParamDefinitionParse(); break overlong lines [25212e40]
 
 2018-01-02  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- Silence gcc8 [8591bd17]
+	- nsf.c: Silence gcc8 [8591bd17]
 
 2018-01-01  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- Use snprintf() instead of sprintf() to protect better against
-	  potential buffer overflows [37c87756]
-
-
-	- Remove old-style CompiledColonLocalsLookup and use colonLocalVarCache
-	  variant instead. [b916a5a3]
+	* nsf.c (NsfDebugGetDict): Use snprintf() instead of sprintf() to
+	protect better against potential buffer overflows [37c87756]
+	* nsf.c (CompiledColonLocalsLookup): Remove old-style
+	CompiledColonLocalsLookup and use colonLocalVarCache variant
+	instead. [b916a5a3]
 
 2017-12-31  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- Fix leftover from the time, when we could call accessor methods
-	  without "get" [6ef0a130]
+	* parameters.test: Fix leftover from the time, when we could call
+	accessor methods without "get" [6ef0a130]
 
 2017-12-31  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	-
-	  * nx.tcl, nx-mongo.tcl (parseParamSpec): Render target parameter
+	* nx.tcl, nx-mongo.tcl (parseParamSpec): Render target parameter
 	non-positional, so that MetaSlot.parseParamSpec() becomes backward
 	compatible. Adjusted callsites of parseParamSpec. [5ac8b093]
 
 2017-12-30  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- Add missing argument to parseParameterSpec [5d495b6d]
-
-
-	- Improve portability (restict length of literal strings <= 4095)
+	* nx-mongo.tcl (parseParameterSpec): Add missing argument to parseParameterSpec [5d495b6d]
+	* mk_predefined.tcl: Improve portability (restict length of literal strings <= 4095)
 	  [1c256d87]
-
-
-	- deactivate two problematic tests for the time being to allow
-	  regression test to run [868e7224]
+	* parameters.test: Deactivate two problematic tests for the time
+	being to allow regression test to run [868e7224]
 
 2017-12-29  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- fix typos, updaty copyright years according to commits [0de05aae]
-
-
-	- prefer boolean test, remove commented-out code [b84afe7e]
+	* generic/*.c, *.log, library/*: Fix typos, updaty copyright years
+	according to commits [0de05aae]
+	* nsf.c: Prefer boolean test, remove commented-out code [b84afe7e]
 
 2017-12-24  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- Fix typos [c4f449cb]
+	* doc/*.*, generic/*.c, library/*.*: Fix typos [c4f449cb]
 
 2017-12-21  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
