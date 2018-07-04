@@ -24,8 +24,11 @@ New Features
     + The lookup for (bytecode-compiled) object variables is now
     supported by a lookup cache to avoid repeated linear searches.
     + The number of string comparisons (strcmp) was reduced
-    systematically, in method-parameter parsing and method-parameter
+    systematically, in method-parameter parsing and argument
     handling.
+    + The number of strlen uses was reduced, especially in
+    method-parameter parsing and argument handling.
+    + ...
 
 - NX:
 
@@ -59,8 +62,13 @@ New Features
 - MongoDB interface upgrade:
 
   * Upgraded driver and utilities to mongodb-c-driver 1.9.3 and libbson 1.9.3.
-
   * Add regular expression queries to conditions in nx::mongo
+
+- nx::test
+
+  * Provide for expressing expected results in terms of error codes,
+    rather than error messages. This is to prepare an upcoming reform
+    on providing error codes from within NSF more extensively.
 
 - Documentation:
 
@@ -70,6 +78,14 @@ New Features
   * Improved spelling: next-migration.txt, ...
   
 - Maintenance & bug fixes:
+
+  * Execution namespace reform: NSF methods execute in their object's
+    definition namespace, and not in the the proc's origin
+    namespace. Rather than patching the proc commands namespace
+    unconditionally (leading to counter-intuitive results using
+    standard Tcl introspection on these commands), the execution
+    namespace is maintained in a context structure and patched for
+    executing the proc only.
 
   * Migration to 'bool'
 

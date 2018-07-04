@@ -801,106 +801,76 @@
 
 2018-01-19  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	- Fix another 86/85 glitch [2125f114]
-
-
-	- Make test suite working under 8.5, again. [1d2bdbea]
+	* contains.test: Fix another 86/85 glitch [2125f114]
+	* nx-test.tcl (try): Make test suite working under 8.5,
+	again. [1d2bdbea]
 
 2018-01-18  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- extend regression test [df76a8d9]
-
-
-	- execution namespace reform:
-	- add execution namespace to proc context instead of
-	  altering the namespace of the command
-	- this fixes strange behavior of "info commands ::o::p",
-	  which might have returned "::p"
-	- provide compatibility with Tcl 8.7a2
-	- extend regression test [3ccbf141]
+	* nsf.c (MakeProc, NsfProcContext): Execution namespace reform:
+	Add execution namespace to proc context instead of altering the
+	namespace of the command. This fixes strange behavior of "info
+	commands ::o::p", which might have returned "::p"; provide
+	compatibility with Tcl 8.7a2; extend regression test [3ccbf141]
+	* Makefile.in, alias.test, double-alias.test: Extended regression
+	test [df76a8d9]
 
 2018-01-16  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- get the "int" type from the Tcl_Obj directly, which will continue to
-	  work in Tcl 9.0 [2d77e6cc]
-
-
-	- Provide compatibility with TIP #484 [382055d5]
-
-
-	- deactivate solution to the tcl87a2 problem for now, since we need a
-	  different solution with this for recursive aliases [392fda7d]
-
-
-	- improve woring in comment [42f38005]
-
-
-	- remove shadowing variable [d8f6dd4d]
-
-
-	- reduce implicit conversions [fa4eedf5]
-
-
-	- transitional fix for tcl87a2 problem [63f7ad6c]
+	* nsf.c (Nsf_Init): Get the "int" type from the Tcl_Obj directly,
+	which will continue to work in Tcl 9.0. [2d77e6cc]
+	* nsf.c (Nsf_Init): Provide compatibility with TIP #484 on wideInt
+	[382055d5]
+	* nsf.c, alias.test: Deactivate solution to the tcl87a2 problem
+	for now, since we need a different solution with this for
+	recursive aliases [392fda7d]
+	* nsf.c (ObjectDispatch): Improve wording in comment [42f38005]
+	* nsf.c (ParamOptionParse): Remove shadowing variable [d8f6dd4d]
+	* nsf.c (ParamDefsFormat, ParamOptionParse): reduce implicit
+	conversions [fa4eedf5]
+	* nsf.c (NsfMethodAliasCmd): Transitional fix for tcl87a2 problem
+	[63f7ad6c]
 
 2018-01-15  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- substdefault code cleanup [32791010]
-
-
-	- extend regression test, make assumptions explicit [52af84c2]
+	* nx.tcl: Cleaning up substdefault code [32791010]
+	* alias.test: Extend regression test, make assumptions explicit [52af84c2]
 
 2018-01-14  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
-	- remove stripping of substdefault from properties [ed365a90]
-
-
-	-
-	- add handling of extended substdefault options to
-	  per-object variables
-	- improve default value checking for slot-less variables
-	- transfor associated array into a dict
-	- extend regression tests [babe6447]
+	* nx.tcl, parameters.test: Avoid stripping of substdefault from
+	properties [ed365a90]
+	* nx.tcl, parameters.test, substdefault.test: Add handling of
+	extended substdefault options to per-object variables; improve
+	default value checking for slot-less variables; transform
+	associated array into a dict; extended regression tests [babe6447]
 
 2018-01-13  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- delete pre-existing commands explicitly [918dad99]
+	* nsf.c (MakeProc): Delete pre-existing commands explicitly
+	[918dad99]
 
 2018-01-12  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
-	- provide fully qualified names to Tcl_ProcObjCmd() to avoid potential
-	  problems in newer Tcl versions [79bca8ba]
+	* nsf.c (MakeProc): Provide fully qualified names to
+	Tcl_ProcObjCmd() to avoid potential problems in newer Tcl versions
+	[79bca8ba]
 
 2018-01-05  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	- make it possible to use error code for cmd result
-	  comparison
-	- add some NSF specifc error code [5ab2ad98]
-
-
-	- provide error hint for "invalid value constraints" errors [dc94a1f1]
-
-
-	- add error message, when present [50d4fe25]
-
-
-	- Reduce number of strlen() operations [11f14cc1]
-
-
-	- whitespace changes [01ea26cd]
-
-
-	- Fold "substdefault" and "substdefaultoptions" into a single parameter
-	  option "substdefault" [b6fa8004]
+	* nsf.c, nx-test.tcl, destroy.test, forward.test: Make it possible
+	to use error code for cmd result comparison; add some NSF specifc
+	error code [5ab2ad98]
+	* nsf.c, disposition.test, parameters.test: Provide error hint for
+	"invalid value constraints" errors [dc94a1f1]
+	* nsf.c: Add error message, when present [50d4fe25]
+	* nsf.c (ParamDefsFormat, ParamDefsFormatOption)
+	(ParamDefsRefCountDecr): Reduce number of strlen() operations
+	[11f14cc1]
+	* nsf.c: whitespace changes [01ea26cd]
+	* nsf.c (ParamDefinitionParse, ParamDefsFormat), nx.tcl,
+	xotcl2.tcl: Fold "substdefault" and "substdefaultoptions" into a
+	single parameter option "substdefault" [b6fa8004]
 
 2018-01-04  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
@@ -930,7 +900,7 @@
 
 2018-01-02  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	- nsf.c: Silence gcc8 [8591bd17]
+	* nsf.c: Silence gcc8 [8591bd17]
 
 2018-01-01  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
