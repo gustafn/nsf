@@ -6,7 +6,7 @@ Framework (NSF) 2.1.0.
 This is a maintenance release. Since the release of 2.0.0, there have
 been more than 450 commits to our code repository. The Next Scripting
 Framework was tested in 192 build configurations with Tcl 8.5.19 and
-Tcl 8.6.6 on Linux and Mac OS X (both using recent gcc and
+Tcl 8.6.6 on Linux and macOS (both using recent gcc and
 clang). Common build configurations have been tested under Windows
 (Windows 2012 Server: VS15 & MSVC 19, MinGW).
 

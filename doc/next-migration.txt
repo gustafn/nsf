@@ -136,7 +136,7 @@ in the following respects:
 . *Value Checking:*
 
    .. The Next Scripting Language supports checking of the _input
-     parmeters_ and the _return values_ of scripted and C-implemented
+     parameters_ and the _return values_ of scripted and C-implemented
      methods and commands.
 
    .. NX provides a set of predefined checkers (like e.g. +integer+,
@@ -153,7 +153,7 @@ in the following respects:
 
 . *Scripted Init Blocks:* The Next Scripting Language provides
    _scripted init blocks_ for objects and classes (replacement for the
-   dangerous dash "-" mechanism in XOTcl that allows to set variables
+   dangerous dash "-" mechanism in XOTcl that allows one to set variables
    and invoke methods upon object creation).
 
 . *More Conventional Naming for Predefined Methods:* The naming of
@@ -1191,7 +1191,7 @@ f1 configure -b 100
 ----------------
 |======================
 
-In general, NX allows to create variables and properties with and
+In general, NX allows one to create variables and properties with and
 without accessor methods. The created accessor methods might be
 +public+, +protected+ or +public+. When the value +none+ is provided
 to +-accessor+, no accessor will be created. This is actually the
@@ -1331,7 +1331,7 @@ Class create Foo {
 In XOTcl all configure parameters were _optional_. Required parameters have
 to be passed to the constructor of the object.
 
-NX allows to define _optional_ and _required_ configure parameters (as
+NX allows one to define _optional_ and _required_ configure parameters (as
 well as method parameters). Therefore, configure parameters can be used
 as the single mechanism to parametrize objects. It is in NX not
 necessary (and per default not possible) to pass arguments to the
@@ -1475,7 +1475,7 @@ parameters, etc. in NX.
 
 |[source,tcl]
 ----------------
-# Define parameter with an an
+# Define parameter with an
 # attribute-specific type checker
 
 Class Person -slots {
@@ -1845,7 +1845,7 @@ scripted and C-implemented methods the same way, one can get the
 definition of all methods via +info method definition+ and one can get
 an manual-like interface description via +info method
 syntax+. In addition, NX provides means to query the type of
-a method, and NX allows to filter by the type of the method.
+a method, and NX allows one to filter by the type of the method.
 
 ==== List sub- and superclass relations
 
@@ -2931,7 +2931,7 @@ Bar b1
 
 ==== Changing classes and superclasses
 
-NX does not define the methods +class+ and +superclass+ (like XOTcl), but allows to
+NX does not define the methods +class+ and +superclass+ (like XOTcl), but allows one to
 alter all object/class relations (including
 class/superclass/object-mixin/...)
 +nsf::relation::set+. The class and superclass can be certainly queried
@@ -2950,7 +2950,7 @@ nsf::relation::set f1 class ::nx::Object
 ==== Overwriting procs/methods with objects and vice versa
 
 NSF is now more conservative on object/method creation. In contrary to
-XOTcl 1 NSF does not allow to redefined a pre-existing command
+XOTcl 1 NSF does not allow one to redefined a pre-existing command
 (e.g. "set") with an object and vice versa. Like in XOTcl 1,
 preexisting objects and classes con be redefined (necessary for
 reloading objects/classes in an running interpreter).

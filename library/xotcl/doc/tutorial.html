@@ -72,7 +72,7 @@ table {
   <LI><A href="#object-methods">Object specific methods</<>
   <li><A href="#refining-methods">Refining the behavior of objects and classes</<>
   <li><A href="#integer-stack">Stack of integers</a>
-  <li><A href="#class-specific-method">Class specifc methods</a>
+  <li><A href="#class-specific-method">Class specific methods</a>
 </ul>
                 <LI><A HREF="#soccerClub"> Introductory Overview Example: Soccer Club</A>
         </UL>
@@ -326,7 +326,6 @@ of the command is shown in the line below. Comments are lines starting with a ha
 % Stack <tt>create</tt> s1
 ::s1
 % s1 push a
-a
 % s1 push b
 b
 % s1 push c
@@ -404,7 +403,6 @@ object creation.
 % Stack <tt>create</tt> s2 <tt>-mixin</tt> Safety
 ::s2
 % s2 push a
-a
 % s2 pop
 a
 % s2 pop
@@ -452,7 +450,7 @@ s4 <tt>proc </tt> push {value} {
 }
 </pre>
 
-<H3><A NAME="class-specific-method"></A>&#160;<BR>Class specifc methods</h3>
+<H3><A NAME="class-specific-method"></A>&#160;<BR>Class specific methods</h3>
 
 <p>In extended object Tcl, classes are objects as well (objects with different properties). We will come to this later in more detail. However, we can define as well methods of classes, which are not inherited to the instances,
 by defining class-specific methods using <tt>proc</tt>. This happens exactly like defining objects specific methods as shown before. In the following example, we will define a class-specific method <tt>available_stacks</tt> that returns the number of the currently existing stack instances.
@@ -2958,7 +2956,7 @@ syntax:
   <em>className</em> <tt>info</tt> instmixin <em>?className2?</em>
 </pre>
 <P STYLE="margin-bottom: 0in">
-It returns the list of all instmixins of the the class, if <em>className2</em>
+It returns the list of all instmixins of the class, if <em>className2</em>
 is not specified, otherwise it returns <tt>1</tt>, if <em>className2</em>
 is a mixin of the object, or <tt>0</tt> if not. 
 </P>
@@ -3592,7 +3590,7 @@ we create an object structure of the following form:</p>
   Person <tt>slot</tt> projects
 </pre>
 
-<p> This object structure can be used to to query and modify the slot
+<p> This object structure can be used to query and modify the slot
 properties or to add additional methods to the slot objects. One
 application is for example to used slot-specific methods for checking
 slot values, as shown in the next section.
@@ -3674,8 +3672,7 @@ range between 1 and 99.</p>
 
 <p>For the most common simple cases with single valued attributes,
 where neither setter or getter are redefined, XOTcl optimizes the slot
-access function and replaces the delegation to the slot object by the
-the C-level implementation of <tt>instparametercmd</tt>.
+access function and replaces the delegation to the slot object by the C-level implementation of <tt>instparametercmd</tt>.
 
 <p>Note that it is possible to subclass <tt>Attribute</tt> (e.g. in
 order to store more properties for attributes, like when attributes
@@ -3830,7 +3827,7 @@ are initialized on demand.
 <p>The initcmd is executed only once, when the variable is read the first
 time. For later reads of the variable contents, the values are returned.
 
-<p>A value command (<tt>valuecmd</tt>) of a slot is similar to a a
+<p>A value command (<tt>valuecmd</tt>) of a slot is similar to a
 init command, except that it is executed whenever the value of the
 variable is read. A value command can be used e.g. to implement live
 updates for variables or for abstracting from sql sequences or the
@@ -4125,7 +4122,7 @@ as local varibales), <tt>-methodprefix</tt> means that the called
 method should be prefixed with the specified string (to avoid name
 clashes), <tt>-earlybinding</tt> means that the function pointer of
 the specified command (callee) is take at invocation time (should only
-be done for (builtin) commands inplemented in C), and
+be done for (built-in) commands inplemented in C), and
 <tt>-default</tt> provides a means for providing default methods when
 none are specified.</p>
 
@@ -4345,8 +4342,7 @@ are evaluated from left to right and should be used in ascending order.
 
 <p>The following examples show a few usages of the positional arguments
 in the forwarder. The forwarders f1 to f5 are created, followed by
-one or more usages. The first argument of the usage is the call to
-to forewarder, the second argument is the result.
+one or more usages. The first argument of the usage is the call to forewarder, the second argument is the result.
 </p>
 <pre CLASS="code">
   <it>###########################################</it>
@@ -4819,7 +4815,7 @@ often it works to import the XOTcl commands (like Object, Class) into
 the current namespace because there are no name-clashes with the
 commands defined by other extensions.</p>
 
-<p>Consider you want to perform a deeper integration of an other
+<p>Consider you want to perform a deeper integration of another
 extension and XOTcl because you want to benefit from XOTcl's object
 system. For instance, you might want to introduce composite TK widgets
 (sometimes called mega-widgets) as classes and inherit from these

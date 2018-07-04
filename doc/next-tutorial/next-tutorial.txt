@@ -618,7 +618,7 @@ from the class diagrams, so it was omitted here as well in the diagram.
 
 === Variables and Properties
 
-In general, NX does not need variable declarations. It allows to
+In general, NX does not need variable declarations. It allows one to
 create or modify variables on the fly by using for example the Tcl
 commands +set+ and +unset+. Depending on the variable name (or more
 precisely, depending on the variable name's prefix consisting of
@@ -1825,7 +1825,7 @@ o4 foo a
 
 Value constraints are specified as parameter options in the parameter
 specifications. The parameter specification +x:integer+ defines +x+ as
-a required positional parmeter which value is constraint to an
+a required positional parameter which value is constraint to an
 integer. The parameter specification +o:object,optional+ shows how to
 combine multiple parameter options. The parameter +o+ is an optional
 positional parameter, its value must be an object (see
@@ -2327,7 +2327,7 @@ The next scripting framework provides in addition to unknown method
 handlers also a means to dynamically create objects and classes, when
 these are referenced. This happens e.g. when superclasses, mixins, or
 parent objects are referenced. This mechanism can be used to implement
-e.g. lazy loading of these classes.  Nsf allows to register multiple
+e.g. lazy loading of these classes.  Nsf allows one to register multiple
 unknown handlers, each identified by a key (a unique name, different
 from the keys of other unknown handlers).
 
@@ -2360,7 +2360,7 @@ from the keys of other unknown handlers).
 }
 --------------------------------------------------
 
-The Next Scripting Framework allows to add, query, delete and list unknown handlers.
+The Next Scripting Framework allows one to add, query, delete and list unknown handlers.
 
 [[xmp-unknown-registration]]
 .Listing {counter:figure-number}: Unknown Handler registration

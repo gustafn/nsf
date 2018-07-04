@@ -11,7 +11,7 @@ multi-threaded web environment inside NaviServer. Most of the changes
 happened in NX and, therefore, on the NSF scripting level, without the
 need to modify the NSF C layer. The implementation of XOTcl 2 has
 changed very little. The Next Scripting Framework was tested with Tcl
-8.5.17 and Tcl 8.6.2 on Linux, Mac OS X, and in Windows environments
+8.5.17 and Tcl 8.6.2 on Linux, macOS, and in Windows environments
 (MinGW, VC12).
 
 Below are the most notable differences in NSF/NX 2.0 final relative to

@@ -196,7 +196,7 @@ Major changes relative to 1.4.0 are:
 
        + added new method for ::xotcl::Object named "contains":
            This method is essentially a value added back-port 
-           of the OpenACS version. It allows to create a nested
+           of the OpenACS version. It allows one to create a nested
            object structure with little syntactic overhead. See tutorial
            or language reference for more details.
 
