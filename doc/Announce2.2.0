@@ -28,7 +28,7 @@ New Features
     handling.
     + The number of strlen uses was reduced, especially in
     method-parameter parsing and argument handling.
-    + ...
+    + coloncmd reform: dispatch of [:method ...] by up to 30%
 
 - NX:
 

@@ -657,147 +657,95 @@
 
 2018-02-09  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- coloncmd reform (part 2): generalize code and apply for object
-	  specific commands as well [68df0e0f]
-
-
-	- coloncmd reform (part 1): improve dispatch of [:method ...] by up to
-	  30% [4be7360a]
+	* nsf.c (NsfFindClassMethod, ObjectDispatch), nsfInt.h, nsfObj.c:
+	coloncmd reform improves dispatch of [:method ...] by up to 30%;
+	generalized code and apply for object-specific commands as well
+	[68df0e0f, 4be7360a]
 
 2018-02-09  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	-
-	  * msgcat.test: Added a small collection of basic tests covering msgcat
+	* msgcat.test: Added a small collection of basic tests covering msgcat
 	usage from within NSF/NX objects and classes. Tested successfully
 	with mainline Tcl 8.6 and the TIP-490 branch "tip490-msgcat-oo-2".
 	[071b5e4d]
 
 2018-02-07  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- whitespace changes [5f1fe725]
+	* nsfObj.c: Whitespace changes [5f1fe725]
 
 2018-02-06  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- pass execNsPtr to byte-compiler (which might be different to
-	  procPtr->cmd->nsPtr) [fb310a1d]
+	* nsf.c (MakeProcError, PushProcCallFrame, InvokeShadowedProc): Pass
+	execNsPtr to byte-compiler (which might be different to
+	procPtr->cmd->nsPtr) [fb310a1d]
 
 2018-01-30  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	-
-	  * nsf.c (NextSearchAndInvoke): Relax the pre-conditions, objv can
+	* nsf.c (NextSearchAndInvoke): Relax the pre-conditions, objv can
 	actually be NULL (see test cases). Besides, the assertion was not
 	reflected by a corresponding nonnull constraints on the
 	NextSearchAndInvoke prototype. [42350dca]
 
 2018-01-27  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- More code cleanup: [e9949fac]
-
-
-	- More code cleanup: [558d6c0b]
-
-
-	- More code cleanup: [de1e5161]
-
-
-	- More code cleanup: [43188404]
-
-
-	- More code cleanup: [90239071]
-
-
-	- More code cleanup: [a7f471a9]
-
-
-	- More code cleanup: [4fd1ff60]
-
-
-	- More code cleanup: [d9746cd5]
+	* generic/*.*: Use Boolean type where appropriate. [e9949fac,
+	558d6c0b, de1e5161, de1e5161, 43188404, 90239071, a7f471a9,
+	4fd1ff60, d9746cd5]
 
 2018-01-26  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- remove unused arguments [625e5b42]
-
-
-	- Use Boolean type on more occasions Fix incorrect comments Fix mixture
-	  of Tcl result code and 0/1 integers [b2902b78]
-
-
-	- Use Boolean type on more occasions [e2dd2f44]
-
-
-	- Boolean type introduction [3f46f0b1]
+	* nsf.c, nsf.h, nsfEnumerationType.c, nsfPointer.c, nsfProfile.c: Remove
+	unused arguments [625e5b42]
+	* nsf.c: Use Boolean type on more occasions; fix incorrect
+	comments; fix mixture of Tcl result code and 0/1 integers
+	[b2902b78, e2dd2f44, 3f46f0b1]
 
 2018-01-25  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- improve type cleanness for clang 6.0 [c783c671]
-
-
-	- Align prototypes with function definitons and minor code cleanup
+	* nsf.c: Improve type cleanness for clang 6.0 [c783c671]
+	* nsf.c, gentclAPI.tcl, nsfAPI.h, nsfObj.c: Align prototypes with
+	function definitons and minor code cleanup
 	  [6e5500ed]
-
-
-	- write separate commands in different lines (esp. for control
+	* nsf.c: Write separate commands in different lines (esp. for control
 	  structures) [048913c4]
-
-
-	- align naming of variables in function prototypes and definitions
+	* nsf.c, nsfAPI.decls, nsfAPI.h, nsfInt.h, nsfProfile.c, nsfStack.c: Align
+	naming of variables in function prototypes and definitions
 	  [ed886327]
-
-
-	- mark unused arguments as UNUSED [23bf0a56]
+	* nsf.c, nsfStack.c: Mark unused arguments as UNUSED [23bf0a56]
 
 2018-01-24  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- make argument names more regular improve alignment of prototype names
-	  with function definitions [9ffb7a5c]
-
-
-	- fix typos [d45807d8]
-
-
-	- Improve alignment of prototypes with function definitions improve
-	  regularity of variable names [8552f707]
-
-
-	- prefer meaningful name in function prototypes align names in .decls
-	  file with prototypes in the .c and .h files [866971d8]
+	* gentclAPI.tcl, nsf.c, nsfAPI.decls, nsfAPI.h: Make argument
+	names more regular improve alignment of prototype names with
+	function definitions [9ffb7a5c]
+	* nsf.c: Fix typos [d45807d8]
+	* generic/*.h, generic/*.c: Improve alignment of prototypes with function definitions improve
+	regularity of variable names [8552f707]
+	* generic/*.h, generic/*.c: Prefer meaningful name in function
+	prototypes align names in .decls file with prototypes in the .c
+	and .h files [866971d8]
 
 2018-01-22  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- Remove unused arguments [88a4a36b]
-
-
-	- remove unused argument [9c4fabbf]
-
-
-	- Remove unused argument [9cae9f80]
+	* nsf.c (ExitHandler), nsfEnumerationType.c (Nsf_Init), nsfInt.h (Register): Remove
+	unused arguments [88a4a36b]
+	* nsf.c (ExitHandler), nsfCmdDefinitions.c
+	(Nsf_CmdDefinitionInit), nsfInt.h (Nsf_EnumerationTypeGetDomain):  Remove
+	unused argument [9c4fabbf, 9cae9f80]
 
 2018-01-20  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- minor cleanup (adjust comments, reduce variable scope) [1dad927c]
+	* nsf.c (MakeProc): Minor cleanup (adjust comments, reduce
+	variable scope) [1dad927c]
 
 2018-01-19  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	- nx-test.tcl (exit): Fix the return trampoline for [exit] during test
+	* nx-test.tcl (exit): Fix the return trampoline for [exit] during test
 	  runs [bb203de8]
 
 2018-01-19  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- Fix overseen error in regression test [6280104b]
+	* nx.tcl: Fix overseen error in regression test [6280104b]
 
 2018-01-19  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
