@@ -301,24 +301,18 @@
 2018-06-04  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
 
-	-
-	  * nsf.c (ListSuperClasses): Fix refcounting for 8.5 non-threaded only,
+	* nsf.c (ListSuperClasses): Fix refcounting for 8.5 non-threaded only,
 	otherwise the patternString becomes unavailable once a preemptive
 	decrement has been performed, leading to unexpected info results.
 	[0e8f3a70]
 
-
-	-
-	  * nx-test.tcl (run): Avoid use of [try], to render the test suite
+	* nx-test.tcl (run): Avoid use of [try], to render the test suite
 	independent from the presence of 8.6 or tcllib's try. This may be
 	reverted, once 8.5 support is dropped. [9ba75adb]
 
 2018-06-01  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	- add COMPILE_NSF_STUBS to compile flags under windows [554234e8]
-
-
 	- make stublib initialization more robust and provide meaningful error
 	  message in case of misconfigurations [fe5d4828]
 
@@ -362,96 +356,71 @@
 
 2018-05-23  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- improve spelling [5c0a0300]
-
-
-	- use mongoc_iovec_t instead of struct iovec iov to improve
-	  cross-platform compatibility [8eea27e0]
+	* next-migration.txt, README, Announce-1.1.0: Improve spelling [5c0a0300]
+	* nsfmongo.c: Use mongoc_iovec_t instead of struct iovec iov to
+	improve cross-platform compatibility [8eea27e0]
 
 2018-05-21  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- improve comments [ae081c0f]
+	* source-highlight-with-pp, bagel.tcl,
+	rosetta-multiple-distinct.tcl, rosetta-tokenizer.tcl, aolstub.c,
+	gentclAPI.tcl, nsf.c, nsfFunPtrHashTable.c, nsfShadow.c,
+	nx-zip.tcl, nsfmongo.c, nx-mongo.tcl, nx.tcl, xotcl2.tcl: Improve
+	comments [ae081c0f]
 
 2018-05-17  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- improve wording [c8cfa996]
-
-
-	- improve tcl idioms [7a2dc79d]
+	* gentclAPI.tcl, langRef.xotcl, xotcl2.tcl: Improve wording [c8cfa996]
+	* make.tcl: Improve Tcl idioms [7a2dc79d]
 
 2018-04-30  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- remove duplicated word [657e8c12]
+	* htmllib.xotcl: Remove duplicated word [657e8c12]
 
 2018-04-25  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- fix duplicated words in code documentation [0556efb3]
-
-
-	- fix double word in code documentation [f52f9988]
-
-
-	- fix double worlds in code documentation [c78a90d7]
+	* nx-test.tcl, nx-mongo.tcl, nx.tcl: Fix duplicated words in code
+	documentation [0556efb3]
+	* rosetta-sudoku.tcl: Fix double word in code documentation [f52f9988]
+	* nsf.c: Fix double worlds in code documentation [c78a90d7]
 
 2018-04-15  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- add destroy_on_cleanup similar to OpenACS to ease lifetime management
-	  of volatile objects [1debd517]
+	* nx-mongo.tcl: Add destroy_on_cleanup similar to OpenACS to ease
+	* nx-mongo.tcl: Lifetime management of volatile objects [1debd517]
 
 2018-04-14  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- fixiing cut&paste error [2ce11132]
+	* nx-mongo.tcl: Fixing cut&paste error [2ce11132]
 
 2018-04-12  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- white space changes [4131e4eb]
-
-
-	-
-	- added class names into serialization syntax (__class).
-	  This change allows us to make better use of polymorphism
-	  with (e.g. embedded) class structures. Previously, it was
-	  necessary, that the called had to know the class of the
-	  serialized object, now it is as well possible to use as
-	  well specializations.
-	- fix bug, where default value for properties lead to errors, when no
-	  propery options where given. [3fc67997]
-
-
-	- update version numbers of mongo's c-driver (older versions stopped
-	  working on MacOS High Sierra) [120d6714]
-
-
-	- fix typo [7831bb96]
+	* nx-mongo.tcl: Whitespace changes [4131e4eb]
+	* nx-mongo.test, nx-mongo.tcl: Added class names into
+	serialization syntax (__class).  This change allows us to make
+	better use of polymorphism with (e.g. embedded) class
+	structures. Previously, it was necessary, that the called object had to
+	know the class of the serialized object, now it is as well
+	possible to use as well specializations; fix bug, where default
+	value for properties lead to errors, when no propery options where
+	given. [3fc67997]
+	* mongodb/README: Update version numbers of mongo's c-driver older
+	versions stopped working on MacOS High Sierra. [120d6714]
+	* nsf.c (NextSearchAndInvoke): Fix typo [7831bb96]
 
 2018-04-05  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- fix typos [50bf7579]
-
-
-	- fix typo [eb6f33db]
+	* Access.xotcl, mixinStrategy.xotcl, ScriptCreator.xotcl: Fix typos [50bf7579]
+	* nx.tcl: Fix typo [eb6f33db]
 
 2018-03-28  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- regenerated documentation [367fd6fc]
-
-
-	- fix typos [8f15a5f3]
+	* next-migration.html, next-tutorial.html: Regenerated documentation [367fd6fc]
+	* next-tutorial.txt, nsf.c, xotcl2.tcl: Fix typos [8f15a5f3]
 
 2018-03-23  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- Remove unneeded ALLOC_ON_STACK [a8fbf793]
+	* nsf.c (AutonameIncr): Remove unneeded ALLOC_ON_STACK [a8fbf793]
 
 2018-03-11  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 

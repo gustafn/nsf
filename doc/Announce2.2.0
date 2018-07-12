@@ -64,6 +64,11 @@ New Features
 
   * Upgraded driver and utilities to mongodb-c-driver 1.9.3 and libbson 1.9.3.
   * Add regular expression queries to conditions in nx::mongo
+  * Improved portability between platforms/ OS
+  * Added auto-cleanup of resources (objects) for long-living
+    execution environments (destroy_on_cleanup).
+  * More robust serialisation of object graphs, by preserving birth
+    classes in serialization.
 
 - nx::test
 
