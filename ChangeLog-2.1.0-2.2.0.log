@@ -455,205 +455,132 @@
 
 2018-03-11  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	-
-	  * nsf.c (ListMethod): Provide a disassemble implementation based on
-	::tcl::unsupported::disassemble. [::nsf::cmf::info disassemble] is
-	generally available, the info ?object? method variants only in
-	development mode. Implementation covers proc methods and ::nsf::procs.
-	Along the way, prettify some code paths in ListMethod. [1919d17f]
+	* nsf.c (ListMethod): Provide a disassemble implementation based
+	on ::tcl::unsupported::disassemble. [::nsf::cmd::info disassemble]
+	is generally available, the info ?object? method variants only in
+	development mode. Implementation covers proc methods and
+	::nsf::procs.  Along the way, prettify some code paths in
+	ListMethod. [1919d17f]
 
 2018-03-08  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- add const declarations, whitespace changes [dcbf5b0c]
+	* nsf.c: Add const declarations, whitespace changes [dcbf5b0c]
 
 2018-03-06  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	-
-	  * nsf.c (Nsf_Init): Mark the namespace "::nsf::classes" and its
+	* nsf.c (Nsf_Init): Mark the namespace "::nsf::classes" and its
 	children using "NS_SUPPRESS_COMPILATION". In 8.6+, this guards any
 	commands in these auxiliary namespaces to be picked up by the bytecode
 	compiler (if accessed in an unintended manner). [52340117]
 
-
-	-
-	  * nsf.c (ByteCompiled): Patch the proc command's namespace
-	  unconditionally, for 8.5 and 8.6. [4d5e72a9]
+	* nsf.c (ByteCompiled): Patch the proc command's namespace
+	unconditionally, for 8.5 and 8.6. [4d5e72a9]
 
 2018-03-03  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- avoid potentially dangerous call strcat(); remove unneeded assignment
-	  [0948fdce]
+	* nsf.c (NsfDebugGetDict): Avoid potentially dangerous call
+	strcat(); remove unneeded assignment [0948fdce]
 
 2018-03-02  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- whitespace changes [869a425b]
-
-
-	- break overlong lines [b489939c]
-
-
-	- polish and comment the execNs change for Tcl 8.5 [0f58115b]
-
-
-	- Quickfix fot Tcl 8.5 (needs still more investigation) [a9c0e0c4]
+	* nsf.c: Whitespace changes [869a425b]
+	* nsfStack.c: break overlong lines [b489939c]
+	* nsf.c: Polish and comment the execNs change for Tcl 8.5 [0f58115b]
+	* nsf.c: Quickfix for Tcl 8.5 (needs still more investigation) [a9c0e0c4]
 
 2018-02-25  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- add const declarations, reduce variable scopes, break longish lines
-	  [efe655ee]
+	* nsf.c, nsfInt.h, nsfStack.c: Add const declarations, reduce
+	variable scopes, break longish lines [efe655ee]
 
 2018-02-21  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	- Fix call example [bf3b2a85]
-
-
-	- Leave some to-dos [7de62ff9]
-
-
-	-
-	  * dtrace/README: Updated instructions to cover SIP
-	  deactivation, minor corrections. Added one more D script
-	  (nsf_calltime.d).
-	  * nsfDTrace.h: Re-generated. [ee6699cd]
-
-
-	-
-	  * nsf.c (NsfConfigureCmd): Fix NSF_DTRACE=1 builds. [8a3defd6]
-
-
-	-
-	  * gentclAPI.tcl, nsfAPI.decls (createconverter): Support for "-global
+	* dtrace/README: Fix call example, updated instructions to cover
+	SIP deactivation, minor corrections. Added one more D script:
+	nsf_calltime.d. [bf3b2a85,ee6699cd]
+	* nsfDTrace.h: Re-generated. [ee6699cd]
+	* nsf.c (NsfConfigureCmd): Fix NSF_DTRACE=1 builds. [8a3defd6]
+	* gentclAPI.tcl, nsfAPI.decls (createconverter): Support for "-global
 	1" flag that will cause the options array corresponding to an
-	  enumeration to become available as a global, properly Nsf_* prefixed
+	enumeration to become available as a global, properly Nsf_* prefixed
 	symbol. Used for NsfConfigureCmd and the corresponding DTrace probe,
 	for now. [40299a6f]
 
 2018-02-19  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- add const and pure declarations [56771aad]
+	* nsf.c, nsfInt.h, nsfStack.c: Add const and pure declarations [56771aad]
 
 2018-02-19  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	-
-	  * source-doc-beautifier.tcl: Remove in-block range markers within test
+	* source-doc-beautifier.tcl: Remove in-block range markers within test
 	  bodies to prettify the ADOC output. [d3fd0b4d]
 
 2018-02-19  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- adding const declarations, variable name cleanup [75e891c9]
-
-
-	- more code cleanup:
-	- reuduce number of returns before end of function
-	- ease live for static checker
-	- use more "const" declarations [b655363c]
+	* nsf.c: Adding const declarations, variable name cleanup
+	[75e891c9]
+	* nsf.c, nsfCmdPtr.c: Reduce number of returns before end of
+	function, ease live for static checker, use more "const" declarations [b655363c]
 
 2018-02-18  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- add comment and improve linebreak [992c4419]
-
-
-	-
-	- prefer bool over int
-	- reduce number of gotos
-	- reduce number of returns before end of function
-	- reduce variable scopes
-	- add "const" declaration
-	- white-space changes [e9cd20a4]
+	* testx.xotcl: Comment and improve linebreak [992c4419]
+	* nsf.c: Prefer bool over int, reduce number of gotos, reduce
+	number of returns before end of function, reduce variable scopes,
+	add "const" declaration, white-space changes [e9cd20a4]
 
 2018-02-17  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- align prototypes with function definitions [d78fa3ae]
-
-
-	- whitespace changes [bd06f04b]
-
-
-	- prefer bool over int, white space changes [25349aef]
+	* nsf.decls: Align prototypes with function definitions [d78fa3ae]
+	* nsfError.c: Whitespace changes [bd06f04b]
+	* nsfError.c: Prefer bool over int, white space changes [25349aef]
 
 2018-02-16  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- More code cleanup [9d1dfb64]
-
-
-	- update genstub path to recent versions of Tcl releases [976a4004]
+	* generic/*.*: More code cleanup [9d1dfb64]
+	* Makefile.in: Update genstub path to recent versions of Tcl releases [976a4004]
 
 2018-02-14  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- prefer boolean over int [d4863566]
-
-
-	- Reduce number of return statements beofre end of function [5e2800c9]
-
-
-	- cleanup: fix regression, prefer boolean over int, reduce number of
+	* nsf.c: Prefer boolean over int [d4863566]
+	* nsf.c: Reduce number of return statements beofre end of function [5e2800c9]
+	* nsf.c: Fix regression, prefer boolean over int, reduce number of
 	  returns befor end of function [61204e9c]
-
-
-	- ease life of colon cmd cachier [b35a18bd]
-
-
-	- Don't pass colon-prefixed method names from setter cmd to
-	  SetInstVar() to avoid potential shimmering. [e561596f]
+	* serializer.tcl: Ease life of colon-cmd caching [b35a18bd]
+	* nsf.c (NsfSetterMethod): Don't pass colon-prefixed method names
+	  from setter cmd to SetInstVar() to avoid potential
+	  shimmering. [e561596f]
 
 2018-02-11  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
-	- add Tcl_Obj caching to cget argument
-	- redued usage of goto statements
-	- reduced size of largish function [343d881f]
-
-
-	- introduce macro ObjTypeStr for commonly used idiom [23843225]
-
-
-	- prefer boolean over int [b513759e]
-
-
-	- coloncmd reform (part 4): perform validation for per-object cases,
-	provide more detailed statistics (when compiled with COLON_CMD_STATS)
+	* nsf.c, cget.test (CGetParamLookup): Add Tcl_Obj caching to cget
+	argument; reduced usage of goto statements; reduced size of
+	largish function [343d881f]
+	* nsfInt.h (ObjTypeStr): Introduce macro ObjTypeStr for commonly used idiom [23843225]
+	* nsf.c: Prefer boolean over int [b513759e]
+	* nsf.c (ColonCmdCacheRequiredRefetch): coloncmd reform (part 4)
+	performs validation for per-object cases, provide more detailed
+	statistics (when compiled with COLON_CMD_STATS)
 	[050f0e85]
 
 2018-02-10  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- Reduce memory consumption for cache by caching just cmds in
-	non-volatile Tcl_Objs. Add optional statistics, when COLON_CMD_STATS
-	is defined. [fd53af3f]
-
-
-	- simplify expression [b7c03b14]
-
-
-	- remove unneeded variable [e75c61b1]
-
-
-	- add NsfDList functions similar to Tcl_DString, but operating on void*
-	  instead of char and use it for ColonCmdCache data [ac0c6dda]
-
-
-	- Simplify handling of "returns" object. no need to require paramdefs,
-	  when just returnsObj is needed [5d0e4380]
-
-
-	- coloncmd reform (part 3): keep a per-interp list of colon command
-	cache entries to avoid memory leaks in cases the objects are
-	converted [40317187]
+	* nsf.c (NsfParamDefsNonposLookup, ColonCmdCacheSet): Reduce
+	memory consumption by caching only cmds in non-volatile
+	Tcl_Objs. Add optional statistics, when COLON_CMD_STATS is
+	defined. [fd53af3f]
+	* nsf.c (NsfDListInit, NsfDListAppend, NsfDListFree): Add NsfDList
+	functions similar to Tcl_DString, but operating on void* instead
+	of char and use it for ColonCmdCache data [ac0c6dda]
+	* nsf.c (NsfDList): coloncmd reform (part 3): Leep a per-interp
+	list of colon command cache entries to avoid memory leaks in cases
+	the objects are converted [40317187]
+	* nsf.c (ParamDefsGetReturns): Simplify handling of "returns"
+	object. no need to require paramdefs, when just returnsObj is
+	needed [5d0e4380]
+	* nsf.c (TopoSortSub): Simplify expression [b7c03b14]
+	* nsf.c (NsfMethodPropertyCmd): Remove unneeded variable
+	  [e75c61b1]
 
 2018-02-09  Gustaf Neumann  <neumann@wu-wien.ac.at>
 

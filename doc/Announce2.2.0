@@ -17,7 +17,8 @@ New Features
 
 - NSF:
 
-  * New command: nsf::definitionnamespace
+  * New command: ::nsf::definitionnamespace
+  * New command: ::nsf::cmd::info disassemble
   * Robustness improvements:
     + NsfHasTclSpace: ...
   * Performance improvements:
@@ -53,7 +54,7 @@ New Features
     
     + Updated
 
-    ...
+    substdefault (to-do)
 
 - XOTcl2:
 
@@ -69,6 +70,10 @@ New Features
   * Provide for expressing expected results in terms of error codes,
     rather than error messages. This is to prepare an upcoming reform
     on providing error codes from within NSF more extensively.
+
+- DTrace support (Mac OS X): Adjusted NSF/DTrace integration for
+  changes on recent Mac OS X (incl. SIP). See dtrace/README for
+  instructions.
 
 - Documentation:
 
