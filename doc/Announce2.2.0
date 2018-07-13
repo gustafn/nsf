@@ -86,6 +86,18 @@ New Features
     ::nsf::pkgconfig; see https://core.tcl.tk/tips/doc/trunk/tip/59.md
   * Added tutorials on NX properties: tutorial-properties.tcl
   * Improved spelling: next-migration.txt, ...
+
+- Continued testing: NSF is now continuously built and tested under
+  Linux, Mac OS X, and Windows against different Tcl targets, using
+  different tool chains (gcc, clang, MinGW, MSVC). For this purpose,
+  there is now an official GitHub mirror at:
+
+  	    https://github.com/nm-wu/nsf
+
+  Build and test reports are available from:
+
+  	    https://travis-ci.com/nm-wu/nsf
+	    https://ci.appveyor.com/project/mrcalvin/nsf-2ylk0
   
 - Maintenance & bug fixes:
 
@@ -112,6 +124,13 @@ New Features
     + Bug fix: Avoid preemptive frees on %proc subsitution for
     forwarder methods.
     + Aliases: Avoid Tcl_obj re-creations
+    + Guarded against potential Tcl_Obj leaks, esp. when using
+      "NsfMethodNamePath", as indicated by valgrind.
+    + Silenced warnings emitted by GCC 8.1+ on strncat and strncpy.
+    + Addressed 5 code-quality issues as indicated by
+      Coverity Scan, incl. control-flow issues (risking NULL
+      dereferencing) and buffer overflows in string operations.
+    + Silence warnings under MSVC 1914
 
   * New configure option: "--enable-development=test"
 

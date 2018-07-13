@@ -1,3 +1,17 @@
+2018-07-10  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* serializer.tcl: Fix buggy case when blueprints are used to
+	update interpreters with preexisting objects and classes. There,
+	it was possible that objects are turned into baseclass objects,
+	when the application classes are deleted. [94421e32]
+
+2018-07-04  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* Announce2.0.0, Announce2.0b5, Announce2.1.0,
+	rosetta-singleton.html, rosetta-sudoku.html, next-migration.txt,
+	next-tutorial.txt, tutorial2.html, Announce-1.1.1, Announce-1.5.0,
+	tutorial.html: Improve spelling [37fe2bc4]
+
 2018-07-02  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
 	* makefile.vc (CFLAGS): Also set -DHAVE_UINTPTR_T. [983e085e]
@@ -5,122 +19,74 @@
 
 2018-07-02  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	- MSVC seems to be bad on const expressions [fe7198d3]
-
-
-	- add starmethod design study [d6d259af]
-
-
-	- improve spelling [bada4fa1]
-
-
-	- fix typo [7f7d32cd]
+	* nsf.c (NsfDebugGetDict): MSVC seems to be bad on const
+	expressions [fe7198d3]
+	* starmethod.tcl: Add starmethod design study [d6d259af]
+	* xotcl2.tcl: Improve spelling [bada4fa1]
+	* bagel.tcl: Fix typo [7f7d32cd]
 
 2018-07-01  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- Improve comments, unify comment formatting and whitespace cleanup
-	  [469e0c36]
-
-
-	- properly initialize resultObj in all cases [0f0e846e]
-
-
-	- remove dead assignments, initialize variables also on error paths
+	* nsf.c: Improve comments, unify comment formatting and whitespace
+	cleanup [469e0c36]
+	* nsf.c: Properly initialize resultObj in all cases [0f0e846e]
+	* nsf.c: Remove dead assignments, initialize variables also on error paths
 	  [1725225a]
-
-
-	- make sure to initialize all variables also in error cases [88e3e5d4]
-
-
-	- Reduce number of implicit type conversions Avoid use of macros
-	  [8325cbad]
-
-
-	- mprove alignment of prototypes and function definitions [0ad07ea5]
+	* nsfmongo.c: Make sure to initialize all variables also in error
+	cases [88e3e5d4]
+	* nsf.c: Reduce number of implicit type conversions; avoid use of
+	macros [8325cbad]
+	* nsf.c: Improve alignment of prototypes and function definitions
+	[0ad07ea5]
 
 2018-06-29  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	-
-	  * nsf.c (ObjectCmdMethodDispatch, FindNextMethod): Balance book-keeping
+	* nsf.c (ObjectCmdMethodDispatch, FindNextMethod): Balance book-keeping
 	in memcounts for Tcl_Objs (technically, an unmatched decrement would
 	suffice). [9131bba5]
-
-
-	-
-	  * nsf.c (NsfProcDeleteProc): Fix freeing of colonLocalVarCache and
+	* nsf.c (NsfProcDeleteProc): Fix freeing of colonLocalVarCache and
 	  balance book-kepping on memcounts for colonLocalVarCache. [bbeae255]
-
-
-	-
-	  * nsf.c (ObjectCmdMethodDispatch): Silence static check of GCC 8.1
+	* nsf.c (ObjectCmdMethodDispatch): Silence static check of GCC 8.1
 	  (-Wmaybe-uninitialized). [skip ci] [4db189db]
-
-
-	-
-	  * nsf.c (NsfCurrentCmd): Avoid (possible, but unlikely) null
+	* nsf.c (NsfCurrentCmd): Avoid (possible, but unlikely) null
 	  dereferencing, if CSC was missing [CID 294166]. [27e5aa8b]
-
-
-	-
-	  * nsf.c (NsfDebugGetDict): Compute the remaining size to snprintf for
+	* nsf.c (NsfDebugGetDict): Compute the remaining size to snprintf for
 	  each iteration [CID 294169]. [skip ci] [53a9c013]
 
 2018-06-29  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- address CID 294171 and change construct for strpbrk [72a0a428]
+	* nsf.c (ForwardArg): Address CID 294171 and change construct for
+	strpbrk [72a0a428]
 
 2018-06-29  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	- nsf.c (NsfDebugGetDict): Parametrize length computation; remove
+	* nsf.c (NsfDebugGetDict): Parametrize length computation; remove
 	  unneeded nul-termination. [skip ci] [22cdc00a]
 
 2018-06-29  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- minor cleanup [369069ef]
-
-
-	- reduce variable scope and minor cleanup [c2157faa]
+	* nsf.c, nsfStubLib.c: Minor cleanup [369069ef]
+	* nsfmongo.c: Reduce variable scope and minor cleanup [c2157faa]
 
 2018-06-28  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	-
-	  * nsf.c (NsfDebugGetDict): Make use of strncat more robust by setting
-	the destingation length to the remainder of the output buffer.
+	* nsf.c (NsfDebugGetDict): Make use of strncat more robust by setting
+	the destination length to the remainder of the output buffer.
 	[ea63ea31]
-
-
-	-
-	  * nsf.c (ForwardArg): Provide a const'ed pointer to strpbrk, as
+	* nsf.c (ForwardArg): Provide a const'ed pointer to strpbrk, as
 	  required [CID 294162]. [500a581f]
-
-
-	-
-	  * nsf.c (ParamDefsFormat): Fix overrun in memcpy by correcting the
+	* nsf.c (ParamDefsFormat): Fix overrun in memcpy by correcting the
 	  destination-length argument [CID 294165]. [b3e820b4]
-
-
-	-
-	  * nsf.c: Fix all "-pedantic -ansi" errors. [bec5f06e]
+	* nsf.c: Fix all "-pedantic -ansi" errors. [bec5f06e]
 
 2018-06-27  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	-
-	  * nsf.c (ParamDefsStore, NsfProcDeleteProc): Provide for counting a
+	* nsf.c (ParamDefsStore, NsfProcDeleteProc): Provide for counting a
 	reference to the execNsPtr from the NsfProcContext structure. While I
 	could not devise a script-level path to pull out the rug (execNsPtr)
 	out from under NsfProcContext clients, I can only also not exclude the
 	latter (from future C-level paths?). Better act defensively. [1a486b9a]
-
-
-	-
-	  * nsfInt.h (STRING_NEW): Silence GCC 8.1 warnings on truncation risk
+	* nsfInt.h (STRING_NEW): Silence GCC 8.1 warnings on truncation risk
 	using strncpy; made me wonder whether STRING_NEW would not be more
 	robust against mis-computations of the destination-buffer length by
 	using snprintf (mainly because snprintf does not nul-pad the
@@ -129,177 +95,56 @@
 
 2018-06-26  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	-
-	  * parameters.test: Adding two test cases to cover previously missed
-	  code branches leading to leaking NsfMethodNamePath uses. [bf61b8a8]
+	* parameters.test: Adding two test cases to cover previously missed
+	code branches leading to leaking NsfMethodNamePath uses. [bf61b8a8]
 
 2018-06-25  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	-
-	  * nsf.c (ArgumentParse): Handle NsfMethodNamePath result correctly.
-	  [6042ab05]
-
-
-	-
-	  * nsf.c (NsfSetterMethod): Handle NsfMethodNamePath result correctly.
-	  [76da4309]
-
-
-	-
-	  * nsf.c (ObjectCmdMethodDispatch): Close another Tcl_Obj leak incurred
-	  by not handling the result from NsfMethodNamePath. [424b6e1f]
-
-
-	-
-	  * nsf.c (FindNextMethod): Plumb another memleak (valgrind). The Tcl_Obj
+	* nsf.c (ArgumentParse): Handle NsfMethodNamePath result correctly.
+	[6042ab05]
+	* nsf.c (NsfSetterMethod): Handle NsfMethodNamePath result correctly.
+	[76da4309]
+	* nsf.c (ObjectCmdMethodDispatch): Close another Tcl_Obj leak incurred
+	by not handling the result from NsfMethodNamePath. [424b6e1f]
+	* nsf.c (FindNextMethod): Plumb another memleak (valgrind). The Tcl_Obj
 	  computed by NsfMethodNamePath must be refcount corrected. [87bc503b]
-
-
-	-
-	  * nsf.c (AliasGet): Plumbing a memleak found by valgrind. The computed
+	* nsf.c (AliasGet): Plumbing a memleak found by valgrind. The computed
 	Tcl_Obj from AliasIndex must be refcount-managed explicitly,
 	otherwise the path via AliasGet leaks it. [31c114ee]
 
 2018-06-20  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	- Fix makefile.vc syntax [skip travis] [611f73cb]
-
-
-	- Re-code env variable dimension of build matrix [f5ff0c4b]
-
-
-	- Fix appveyor.yml syntax [9eda6984]
-
-
-	- Necessary additions to build script and NMAKE/TEA artifacts [900390cf]
-
-
-	- appveyor.yml: Add TOOLCHAIN dimension to incorporate MSVC builds
-	  [d78609db]
-
-
-	- per-object-mixins.tcl: Fix an example script that got broken a long,
+	* appveyor.yml: Provide for MSVC builds (pt. 2) [611f73cb,
+	f5ff0c4b, 9eda6984, 900390cf, d78609db]
+	* per-object-mixins.tcl: Fix an example script that got broken a long,
 	  long time ago. [skip ci] [49ae7bc3]
 
 2018-06-19  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	- Fix build.tcl pt. 2 [skip ci] [f848dc5f]
-
-
-	- Fix build.tcl [skip ci] [ae03d540]
-
-
-	- Add nmake mode to build.tcl [skip ci] [457f8a80]
+	* appveyor.yml: Provide for MSVC builds (pt. 1) [f848dc5f,
+	ae03d540, 457f8a80]
 
 2018-06-18  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	- Add allowed failures to Travis setup [skip appveyor] [9e5f074e]
-
-
-	- Set allowed failures on Tcl development branches; report failure on
-	  first failing build [skip travis] [f718572e]
-
-
-	-
-	  * nsf.c (ParamOptionParse), nsfInt.h: Provide for own MAX and MIN
+	* .travis.yml: Add allowed failures to Travis setup [9e5f074e]
+	* appveyor.yml: Set allowed failures on Tcl development branches;
+	report failure on first failing build [f718572e]
+	* nsf.c (ParamOptionParse), nsfInt.h: Provide for own MAX and MIN
 	macros, the ones reused implicitly from Tcl's tommath have vanished
 	in 8.7 branches; and are not provided otherwise, at least in MinGW
 	settings. Fixes 8.7 builds for MinGW under Win. [8a1a43a3]
-
-
-	- Fix descriptor syntax. [95fa4f4b]
-
-
-	- Finally, got Windows builds (MinGW) working on Appveyor. Cleaning up
-	  build scripts. [89fc03bf]
-
-
-	- Trying to set HOME dir explicitly, 2nd try, sigh! [skip travis]
-	  [2ab16701]
-
-
-	- Trying to set HOME dir explicitly [skip travis] [a9454bc8]
-
-
-	- Triangulate HOME dir [skip travis] [a691997b]
-
-
-	- Add debugging in build scripts [skip travis] [71dd75a1]
-
-
-	- Add debugging in build scripts [skip travis] [25c6fca9]
-
-
-	- Relocate env setup into build_script block [skip travis] [03d5b57a]
-
-
-	- Fix path setting [skip travis] [1b07fc0e]
-
-
-	- Fix path setting [skip travis] [bd720946]
-
-
-	- Make sure that sh and bash are initialised the same. [skip travis]
-	  [59986a2a]
-
-
-	- Turn on MORE debugging [skip travis] [f207ce19]
-
-
-	- Turn on MORE debugging [skip travis] [00eb377b]
-
-
-	- Turn on MORE debugging [skip travis] [0c1811dc]
-
-
-	- Turn on debugging [skip travis] [2174fb70]
-
-
-	- Turn on debugging [skip travis] [b0457f28]
-
-
-	- Add skip marker; correct path settings [skip travis] [6c876e33]
-
-
-	- Try native MinGW pt. 4 [65c4d97a]
-
-
-	- Try native MinGW pt. 3 [d7e28d2e]
-
-
-	- Try native MinGW pt. 2 [8028ced6]
-
-
-	- Try native MinGW [a6a1736d]
-
-
-	- Avoid x-compilation [d41ea5ee]
-
-
-	- Another try to fix build paths [13e6e4c0]
+	* appveyor.yml: Provide for MSYS2/ MinGW builds (pt. 2) [95fa4f4b,
+	89fc03bf, 2ab16701, a9454bc8, a691997b, 71dd75a1, 25c6fca9,
+	03d5b57a, 1b07fc0e, bd720946, 59986a2a, f207ce19, 00eb377b,
+	0c1811dc, 2174fb70, b0457f28, 6c876e33, 65c4d97a, d7e28d2e,
+	8028ced6, a6a1736d, d41ea5ee, 13e6e4c0]
 
 2018-06-17  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	- Install gcc dependency on builders [2b4c8032]
-
-
-	- Fix mingw toolchain path [96b79f58]
-
-
-	- Update appveyor.yml [05d909f4]
-
-
-	- Prep build script to support MSYS2/MinGW builds under Windows
-	  [45f37041]
+	* appveyor.yml: Provide for MSYS2/ MinGW builds (pt. 1) [2b4c8032,
+	96b79f58, 05d909f4, 45f37041]
 
 2018-06-04  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
-
 
 	* nsf.c (ListSuperClasses): Fix refcounting for 8.5 non-threaded only,
 	otherwise the patternString becomes unavailable once a preemptive
@@ -312,47 +157,23 @@
 
 2018-06-01  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	- add COMPILE_NSF_STUBS to compile flags under windows [554234e8]
-	- make stublib initialization more robust and provide meaningful error
-	  message in case of misconfigurations [fe5d4828]
+	* configure.ac: Add COMPILE_NSF_STUBS to compile flags under
+	windows [554234e8]
+	* nsfStubLib.c: Make stublib initialization more robust and
+	provide meaningful error message in case of misconfigurations
+	[fe5d4828]
 
 2018-05-30  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	- Turn on some debugging [fffcee32]
-
-
-	- Add missing tclkit url [2e1926a7]
-
-
-	- First attempt at Appveyor integration (mingw64 only) [c216c592]
-
-
-	- Trying to get env variables right [f4ca149d]
-
-
-	- Make build script more verbose [79e5563d]
-
-
-	- Fix env variables in build descriptor [63295a8d]
-
-
-	- Provide first attempt at Travis build array and build script
-	  [21d83785]
+	* .travis.yml: Provide first attempt at Travis build array and
+	build script [fffcee32, 2e1926a7, c216c592, f4ca149d, 79e5563d,
+	63295a8d, 21d83785]
 
 2018-05-29  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	- Simplify descriptor, for the time being [e41cd6fd]
-
-
-	- Add an initial Travis CI descriptor [ea4ef787]
-
-
-	- Add a TODO [76fabbee]
-
-
-	- Makefile.in: Polishing [b3a3d83c]
+	* .travis.yml: Add an initial Travis CI descriptor; simplify
+	descriptor, for the time being [ea4ef787, e41cd6fd]
+	* Makefile.in: Polishing [b3a3d83c]	
 
 2018-05-23  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
