@@ -38,8 +38,8 @@
 # SOFTWARE.
 #
 
-package provide XOTcl 2.1.0
 package require nx
+package provide XOTcl 2.2.0
 
 #######################################################
 # Classical ::xotcl*

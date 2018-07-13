@@ -37,8 +37,10 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
-package require nsf
-package provide nx 2.1.0
+
+package req nsf
+
+package provide nx 2.2.0
 
 namespace eval ::nx {
 
