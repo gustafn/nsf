@@ -1,16 +1,13 @@
 /*
- * Experimental Interface to MongoDB based on nsf (Next Scripting
+ * Interface between MongoDB based on NSF (Next Scripting
  * Framework)
  *
- * The example shows how to use the source code generator from nsf to
- * generate a c interface.
-
- * This implementation provides a low level interface based on tagged
- * elements to force / preserve the datatypes of mongodb.
+ * This implementation provides a low level interface based on tagged elements
+ * to force / preserve the datatypes of MongoDB when converting into Tcl.
  *
- * This code serves as well as an example how to use the source code
- * generator of nsf to provide a C interface for optional nsf
- * packages.
+ * This code serves as well as an example how to use the source code generator
+ * of NSF.  The example shows how to use the source code generator from NSF to
+ * generate a C interface.
  *
  * -gustaf neumann    March 27, 2011
  *
