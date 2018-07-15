@@ -231,6 +231,14 @@ static Tcl_ObjCmdProc NsfProcAliasMethod;
 static Tcl_ObjCmdProc NsfAsmProc;
 Tcl_ObjCmdProc NsfProcStub;
 
+/*
+ * Prototypes for interpreter life-cyle
+ */
+EXTERN Tcl_PackageInitProc Nsf_SafeInit;
+EXTERN Tcl_PackageInitProc Nsf_Init;
+static Tcl_ExitProc Nsf_ExitProc;
+static Tcl_ExitProc Nsf_ThreadExitProc;
+static Tcl_ExitProc ExitHandler;
 
 /*
  * Prototypes for methods called directly when CallDirectly() returns NULL
@@ -34677,8 +34685,6 @@ FreeAllNsfObjectsAndClasses(
 /*
  *  Exit Handler
  */
-static void ExitHandler(ClientData clientData)
-  nonnull(1);
 
 static void
 ExitHandler(ClientData clientData) {
@@ -34826,12 +34832,9 @@ ExitHandler(ClientData clientData) {
 /*
  * Gets activated at thread-exit
  */
-static void Nsf_ThreadExitProc(ClientData clientData)
-  nonnull(1);
 
 static void
 Nsf_ThreadExitProc(ClientData clientData) {
-  void Nsf_ExitProc(ClientData clientData);
 
   nonnull_assert(clientData != NULL);
 
@@ -34846,10 +34849,8 @@ Nsf_ThreadExitProc(ClientData clientData) {
 /*
  * Gets activated at application-exit
  */
-void Nsf_ExitProc(ClientData clientData)
-  nonnull(1);
 
-void
+static void
 Nsf_ExitProc(ClientData clientData) {
 
   nonnull_assert(clientData != NULL);
@@ -34888,9 +34889,6 @@ RegisterExitHandlers(ClientData clientData) {
 #include <google/profiler.h>
 #endif
 
-int Nsf_Init(
-    Tcl_Interp *interp
-) nonnull(1);
 
 int
 Nsf_Init(
@@ -35237,11 +35235,6 @@ Nsf_Init(
 
   return TCL_OK;
 }
-
-
-EXTERN int Nsf_SafeInit(
-    Tcl_Interp *interp
-) nonnull(1);
 
 EXTERN int
 Nsf_SafeInit(Tcl_Interp *interp) {
