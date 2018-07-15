@@ -1,12 +1,13 @@
 
 # Interface between mongoDB and the Next Scripting Framework #
 
-## Ingredients:##
+## Ingredients: ##
 
-  https://github.com/mongodb/mongo
-  https://github.com/mongodb/mongo-c-driver
+  https://github.com/mongodb/mongo  
+  https://github.com/mongodb/mongo-c-driver  
 
-The current version is tested with
+The current version of the NSF mongo binding is 2.2 and was
+tested with
 - Tcl 8.5, 8.6 and 8.7
 - MongoDB v3.6.5 (released May 29, 2018)
 - mongodb-c-driver 1.11.0 (released June 23, 2018)
@@ -16,7 +17,7 @@ Follow the following steps to get MongoDB up and running
 and to compile the MongoDB driver for NX.
 
 
-## OBTAIN MONGODB and MONGO-C-DRIVER: ##
+## Obtain Mongodb and Mongo-C-Driver: ##
 
 - Compile or obtain mongodb (the database).
 
@@ -56,7 +57,7 @@ and to compile the MongoDB driver for NX.
   "--disable-automatic-init-and-cleanup" is missing.
 
 
-## COMPILING THE MONGO NSF INTERFACE: ##
+## Compiling the Mongo NSF Binding: ##
 
 Assume the following installation directories
 
