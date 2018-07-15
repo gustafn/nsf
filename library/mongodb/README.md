@@ -1,6 +1,19 @@
 
 # Interface between mongoDB and the Next Scripting Framework #
 
+This is an interface between MongoDB based on NSF (Next Scripting
+Framework)
+
+This implementation provides a low level interface based on tagged elements
+to force / preserve the datatypes of MongoDB when converting into Tcl.
+
+This code serves as well as an example how to use the source code generator
+of NSF.  The example shows how to use the source code generator from NSF to
+generate a C interface.
+
+-gustaf neumann    March 27, 2011
+
+
 ## Ingredients: ##
 
   https://github.com/mongodb/mongo  
