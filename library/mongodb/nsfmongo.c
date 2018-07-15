@@ -934,7 +934,7 @@ NsfMongoCollectionDelete(Tcl_Interp *interp,
 /*
  * The call "mongoc_collection_create_index" is deprecated and should be
  * replaced by "mongoc_database_write_command_with_opts". However, this call
- * requires "db", which is member of mongoc_collection_t, but not publically
+ * requires "db", which is member of mongoc_collection_t, but not public
  * accessible, and up to now, there is apparently no API to access this
  * member.
  */

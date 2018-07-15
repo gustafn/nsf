@@ -1,9 +1,8 @@
 
-Interface between mongoDB and the Next Scripting Framework
-==========================================================
+# Interface between mongoDB and the Next Scripting Framework #
 
-Ingredients:
-------------
+## Ingredients:##
+
   https://github.com/mongodb/mongo
   https://github.com/mongodb/mongo-c-driver
 
@@ -17,13 +16,13 @@ Follow the following steps to get MongoDB up and running
 and to compile the MongoDB driver for NX.
 
 
-OBTAIN MONGODB and MONGO-C-DRIVER:
-----------------------------------
+## OBTAIN MONGODB and MONGO-C-DRIVER: ##
 
 - Compile or obtain mongodb (the database).
 
 - Compile or obtain the mongo-c-driver (client interface)
 
+````
       cd /usr/local/src
       wget https://github.com/mongodb/mongo-c-driver/releases/download/1.11.0/mongo-c-driver-1.11.0.tar.gz
       tar zxvf  mongo-c-driver-1.11.0.tar.gz
@@ -33,15 +32,18 @@ OBTAIN MONGODB and MONGO-C-DRIVER:
       cmake .
       make
       sudo make install
+````
 
   Alternatively, one can get the newest version from git
 
+````
       cd /usr/local/src
       git clone https://github.com/mongodb/mongo-c-driver
       cd mongo-c-driver
       cmake .
       make
       sudo make install
+````
 
   If you experience errors during autogen on Debian, you might have to
       apt-get install libtool
@@ -54,8 +56,7 @@ OBTAIN MONGODB and MONGO-C-DRIVER:
   "--disable-automatic-init-and-cleanup" is missing.
 
 
-COMPILING THE MONGO NSF INTERFACE:
-----------------------------------
+## COMPILING THE MONGO NSF INTERFACE: ##
 
 Assume the following installation directories
 
@@ -66,10 +67,12 @@ configure the mongodb NSF interface via the following
 command in the directory nsf*/library/mongodb/
 You will probably have to adjust the paths.
 
+````
    ./configure --with-tcl=/usr/local/ns/lib/ --prefix=/usr/local/ns --with-nsf=../../ \
                --with-mongoc=/usr/local/include/libmongoc-1.0/,/usr/local/lib/ \
                --with-bson=/usr/local/include/libbson-1.0,/usr/local/lib/ \
 	       --enable-threads --enable-symbols
+````
 
 In order to run the sample script,
   * first start the mongodb (e.g. mongod)
@@ -79,11 +82,15 @@ In order to run the sample script,
   * make sure, the c-driver libraries are on the library path
     (assuming the c-driver was installed in /usr/local/lib)
 
+````
     export DYLD_LIBRARY_PATH=/usr/local/lib:`pwd`
+````
 
   * run
 
+````
     ./nxsh library/mongodb/tests/nsf-mongo.test
+````
 
     The script is using the low level interface (nsf::mongo) and has a
     few insert, query and delete statements, some of these are
@@ -91,7 +98,9 @@ In order to run the sample script,
 
  * run
 
+````
     ./nxsh library/mongodb/example-nx-mongo.tcl
+````
 
     This example script is using the higher-level object-oriented
     interface for NX (nx::mongo).
@@ -99,6 +108,7 @@ In order to run the sample script,
     After running this script, you should could
     check the content in MongoDB:
 
+````
     % mongo
     MongoDB shell version: v3.4.0
     connecting to: test
@@ -112,16 +122,16 @@ In order to run the sample script,
    { "_id" : ObjectId("530c6e4649686ad16e261f85"), "name" : "Franz", "info" : { "x" : 203, "y" : 102 }, "age" : 29, "projects" : "gtat" }
    { "_id" : ObjectId("530c6e4649686ad16e261f86"), "name" : "Selim", "ts" : Timestamp(1302945037, 1), "d" : ISODate("2011-04-16T09:53:39.279Z") }
    >
+````
 
+## Further sample-scripts: ##
 
-Further sample-scripts:
------------------------
-
+````
     ./nxsh library/mongodb/tests/nx-bi.test
     ./nxsh library/mongodb/tests/nx-reference-one.test
     ./nxsh library/mongodb/tests/nx-reference-many.test
     ./nxsh library/mongodb/tests/nx-rep.test
     ./nxsh library/mongodb/tests/nx-serialize.test
     ./nxsh library/mongodb/tests/nsf-gridfs.test
-
+````
 
