@@ -4,7 +4,7 @@ Next Scripting Framework README File
 
 Compilation of Source Distribution:
 
-On Unix-like environments (including Mac OS X), do
+On Unix-like environments (including macOS), do
 
    ./configure
    make

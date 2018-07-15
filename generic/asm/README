@@ -161,7 +161,7 @@ Tcl assembly in two implementation variants, one with Tcl_Objs, one
 with integers (in case the typing information is available or
 inferable from the Tcl source). 
 
-The timing results based on clang under Mac OS X:
+The timing results based on clang under macOS:
 
 Call Threading:
 asm/t.001:	6.64

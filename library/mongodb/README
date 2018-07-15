@@ -49,7 +49,7 @@ OBTAIN MONGODB and MONGO-C-DRIVER:
   If configure complains about not finding bson, you might have to do
       export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
 
-  Note: Version 1.5.1 of the c-driver leads on Mac OS X to a crash on
+  Note: Version 1.5.1 of the c-driver leads on macOS to a crash on
   exit, when configured SASL support (from mac ports) and the flag
   "--disable-automatic-init-and-cleanup" is missing.
 

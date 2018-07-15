@@ -6,11 +6,11 @@ without the DTrace support for Tcl. Therefore, NSF can be configured
 with --with-dtrace also in cases where Tcl was compiled without it.
 
 To enable DTrace, run configure with the flag --with-dtrace configure
-flag. The DTrace support for NSF was developed under Mac OS X, other
+flag. The DTrace support for NSF was developed under macOS, other
 platforms might require some fine tuning to get it running. Please
 report improvements back to the NSF developers.
 
-In Mac OS X version including System Integrity Protection (SIP), one
+In macOS version including System Integrity Protection (SIP), one
 must deactivate SIP for DTrace, first:
 
 1) Boot into Recovery OS
