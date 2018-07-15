@@ -11,6 +11,4 @@ On Unix-like environments (including macOS), do
 `````
 
 For more details, and build instructions, binary releases, community
-support etc. consult:
-
-    [http://next-scripting.org/]
+support etc. consult: [http://next-scripting.org/]
