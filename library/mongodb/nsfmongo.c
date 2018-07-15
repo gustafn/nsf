@@ -14,7 +14,7 @@
  *
  * -gustaf neumann    March 27, 2011
  *
- * Copyright (C) 2011-2016 Gustaf Neumann
+ * Copyright (C) 2011-2018 Gustaf Neumann
  */
 #include <stdlib.h>
 #include <stdio.h>
@@ -46,6 +46,7 @@ static mongoc_uri_t *mongoUri = NULL;
 
 typedef enum {
   NSF_BSON_ARRAY,
+  NSF_BSON_BINARY,
   NSF_BSON_BOOL,
   NSF_BSON_INT32,
   NSF_BSON_INT64,
@@ -63,9 +64,10 @@ typedef enum {
   NSF_BSON_UNKNOWN
 } nsfMongoTypes;
 
-static char *
+static const char *
 NsfMongoGlobalStrings[] = {
   "array",
+  "binary",
   "boolean",
   "int32",
   "int64",
@@ -84,6 +86,23 @@ NsfMongoGlobalStrings[] = {
   NULL
 };
 static Tcl_Obj **NsfMongoGlobalObjs = NULL;
+
+static Tcl_Obj *BsonToList(Tcl_Interp *interp, const bson_t *data , int depth);
+static bson_type_t BsonTagToType(Tcl_Interp *interp, const char *tag);
+
+extern Tcl_PackageInitProc Nsfmongo_SafeInit;
+extern Tcl_PackageInitProc Nsfmongo_Init;
+static Tcl_ExitProc Nsfmongo_Exit;
+static Tcl_ExitProc Nsfmongo_ThreadExit;
+
+Nsf_TypeConverter Nsf_ConvertTo_Boolean;
+Nsf_TypeConverter Nsf_ConvertTo_Class;
+Nsf_TypeConverter Nsf_ConvertTo_Int32;
+Nsf_TypeConverter Nsf_ConvertTo_Integer;
+Nsf_TypeConverter Nsf_ConvertTo_Object;
+Nsf_TypeConverter Nsf_ConvertTo_Pointer;
+Nsf_TypeConverter Nsf_ConvertTo_String;
+Nsf_TypeConverter Nsf_ConvertTo_Tclobj;
 
 /***********************************************************************
  * The following definitions should not be here, but they are included
@@ -144,9 +163,9 @@ typedef struct {
 #endif
 
 
-static int ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
+static int ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[],
                          NsfObject *obj, Tcl_Obj *procName,
-                         Nsf_Param CONST *paramPtr, int nrParameters, int serial,
+                         Nsf_Param const *paramPtr, int nrParameters, int serial,
                          unsigned int processFlags, ParseContext *pc) {
   return Nsf_ArgumentParse(interp, objc, objv, (Nsf_Object *)obj,
                            procName, paramPtr, nrParameters, serial,
@@ -275,6 +294,21 @@ BsonToList(Tcl_Interp *interp, const bson_t *data , int depth)
 
       break;
     }
+    case BSON_TYPE_BINARY: {
+      uint32_t       length;
+      const uint8_t *bytes;
+
+      tag = NSF_BSON_BINARY;
+      bson_iter_binary( &i, NULL /* subtype_t */, &length, &bytes);
+      elemObj = Tcl_NewByteArrayObj(bytes, (int)length);
+      break;
+    }
+    case BSON_TYPE_CODE:       /* fall through */
+    case BSON_TYPE_CODEWSCOPE: /* fall through */
+    case BSON_TYPE_DBPOINTER:  /* fall through */
+    case BSON_TYPE_EOD:        /* fall through */
+    case BSON_TYPE_SYMBOL:     /* fall through */
+    case BSON_TYPE_UNDEFINED:  /* fall through */
     default:
       tag = NSF_BSON_UNKNOWN;
       elemObj = Tcl_NewStringObj("", 0);
@@ -308,7 +342,7 @@ BsonToList(Tcl_Interp *interp, const bson_t *data , int depth)
  *----------------------------------------------------------------------
  */
 bson_type_t
-BsonTagToType(Tcl_Interp *interp, CONST char *tag)
+BsonTagToType(Tcl_Interp *interp, const char *tag)
 {
   char firstChar = *tag;
 
@@ -358,7 +392,7 @@ BsonTagToType(Tcl_Interp *interp, CONST char *tag)
  *----------------------------------------------------------------------
  */
 static int
-BsonAppend(Tcl_Interp *interp, bson_t *bbPtr, CONST char *name, CONST char *tag, Tcl_Obj *value)
+BsonAppend(Tcl_Interp *interp, bson_t *bbPtr, const char *name, const char *tag, Tcl_Obj *value)
 {
   int         result = TCL_OK;
   bson_type_t t = BsonTagToType(interp, tag);
@@ -498,7 +532,13 @@ BsonAppend(Tcl_Interp *interp, bson_t *bbPtr, CONST char *name, CONST char *tag,
     bson_append_decimal128(bbPtr, name, keyLength, &decimal128);
     break;
   }
-  case BSON_TYPE_BINARY:
+  case BSON_TYPE_BINARY: {
+    int            length;
+    const uint8_t *data = Tcl_GetByteArrayFromObj(value, &length);
+    bson_append_binary(bbPtr, name, keyLength, 0x00 /*bson_subtype_t*/,
+                       data, (uint32_t)length);
+    break;
+  }
   case BSON_TYPE_DBPOINTER:
   case BSON_TYPE_CODE:
   case BSON_TYPE_SYMBOL:
@@ -621,7 +661,7 @@ NsfMongoJsonParse(Tcl_Interp *interp, Tcl_Obj *jsonObj)
   }
 */
 static int
-NsfMongoClose(Tcl_Interp *interp, mongoc_client_t *connPtr, Tcl_Obj *connObj)
+NsfMongoClose(Tcl_Interp *UNUSED(interp), mongoc_client_t *connPtr, Tcl_Obj *connObj)
 {
 #if defined(USE_CLIENT_POOL)
   mongoc_client_pool_push(mongoClientPool, connPtr);
@@ -639,7 +679,7 @@ NsfMongoClose(Tcl_Interp *interp, mongoc_client_t *connPtr, Tcl_Obj *connObj)
   }
 */
 static int
-NsfMongoConnect(Tcl_Interp *interp, CONST char *uri)
+NsfMongoConnect(Tcl_Interp *interp, const char *uri)
 {
   char             channelName[80];
   mongoc_client_t *clientPtr;
@@ -691,7 +731,7 @@ NsfMongoConnect(Tcl_Interp *interp, CONST char *uri)
 */
 static int
 NsfMongoRunCmd(Tcl_Interp *interp, int withNocomplain, mongoc_client_t *clientPtr,
-               CONST char *db, Tcl_Obj *cmdObj)
+               const char *db, Tcl_Obj *cmdObj)
 {
   bson_t               cmd, *cmdPtr = &cmd, reply, *replyPtr = &reply;
   mongoc_read_prefs_t *readPrefsPtr = NULL; /* TODO: not used */
@@ -726,14 +766,20 @@ NsfMongoRunCmd(Tcl_Interp *interp, int withNocomplain, mongoc_client_t *clientPt
   }
 */
 static int
-NsfMongoStatus(Tcl_Interp *interp, mongoc_client_t *clientPtr, Tcl_Obj *clientObj)
+NsfMongoStatus(Tcl_Interp *interp, mongoc_client_t *clientPtr, Tcl_Obj *UNUSED(clientObj))
 {
   mongoc_read_prefs_t *readPrefs = NULL; /* TODO: not handled */
   bson_t               reply, *replyPtr = &reply;
   bson_error_t         bsonError;
   int                  result = TCL_OK;
+  bson_t               cmd = BSON_INITIALIZER;
+  bool                 ret = false;
 
-  if (likely(mongoc_client_get_server_status(clientPtr, readPrefs, replyPtr, &bsonError)) !=0) {
+  BSON_APPEND_INT32 (&cmd, "serverStatus", 1);
+  ret = mongoc_client_command_simple(clientPtr, "admin", &cmd, readPrefs, replyPtr, &bsonError);
+  bson_destroy (&cmd);
+
+  if (likely(ret != 0)) {
     Tcl_SetObjResult(interp, BsonToList(interp, replyPtr, 0));
   } else {
     result = NsfPrintError(interp, "mongo::status: error: %s", bsonError.message);
@@ -788,7 +834,7 @@ NsfCollectionOpen(Tcl_Interp *interp,
   }
 */
 static int
-NsfCollectionClose(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *clientObj)
+NsfCollectionClose(Tcl_Interp *UNUSED(interp), mongoc_collection_t *collectionPtr, Tcl_Obj *clientObj)
 {
   mongoc_collection_destroy(collectionPtr);
   Nsf_PointerDelete(ObjStr(clientObj), collectionPtr, 0);
@@ -812,6 +858,7 @@ NsfMongoCollectionCount(Tcl_Interp *interp,
   Tcl_Obj    **objv;
   bson_t       query, *queryPtr = &query;
   bson_error_t bsonError;
+  /*bson_t* opts = BCON_NEW ("skip", BCON_INT64(5));*/
 
   result = Tcl_ListObjGetElements(interp, queryObj, &objc, &objv);
   if (result != TCL_OK || ((objc % 3) != 0)) {
@@ -820,11 +867,12 @@ NsfMongoCollectionCount(Tcl_Interp *interp,
 
   BsonAppendObjv(interp, queryPtr, objc, objv);
 
-  count = mongoc_collection_count(collectionPtr,
-                                  0 /* query flags */, queryPtr,
-                                  0 /*skip */, 0 /*limit */,
-                                  NULL /* read preferences */,
-                                  &bsonError);
+  count = mongoc_collection_count_documents(collectionPtr,
+                                            queryPtr,
+                                            NULL /* opts */,
+                                            NULL /* read preferences */,
+                                            NULL /* replyPtr */,
+                                            &bsonError);
   if (count == -1) {
     bson_destroy( queryPtr );
     return NsfPrintError(interp, "mongo::collection::count: error: %s", bsonError.message);
@@ -883,11 +931,20 @@ NsfMongoCollectionDelete(Tcl_Interp *interp,
   }
 */
 
+/*
+ * The call "mongoc_collection_create_index" is deprecated and should be
+ * replaced by "mongoc_database_write_command_with_opts". However, this call
+ * requires "db", which is member of mongoc_collection_t, but not publically
+ * accessible, and up to now, there is apparently no API to access this
+ * member.
+ */
+#define NSF_MONGO_COLLECTION_INDEX 1
+
 static int
 NsfMongoCollectionIndex(Tcl_Interp *interp,
                         mongoc_collection_t *collectionPtr,
                         Tcl_Obj *attributesObj,
-                        CONST char *withName,
+                        const char *withName,
                         int withBackground,
                         int withDropdups,
                         int withSparse,
@@ -899,6 +956,11 @@ NsfMongoCollectionIndex(Tcl_Interp *interp,
   bson_t             keys, *keysPtr = &keys;
   bson_error_t       bsonError;
   mongoc_index_opt_t options;
+#if !defined(NSF_MONGO_COLLECTION_INDEX)
+  bson_t            *create_indexes;
+  char              *index_name;
+  const char        *collection_name;
+#endif
 
   result = Tcl_ListObjGetElements(interp, attributesObj, &objc, &objv);
   if (result != TCL_OK || ((objc % 3) != 0)) {
@@ -907,6 +969,22 @@ NsfMongoCollectionIndex(Tcl_Interp *interp,
 
   BsonAppendObjv(interp, keysPtr, objc, objv);
 
+#if !defined(NSF_MONGO_COLLECTION_INDEX)
+  index_name = mongoc_collection_keys_to_index_string(keysPtr);
+  collection_name = mongoc_collection_get_name(collectionPtr);
+
+  create_indexes = BCON_NEW("createIndexes",
+                            BCON_UTF8(collection_name),
+                            "indexes",
+                            "[",
+                            "{",
+                            "key",
+                            BCON_DOCUMENT(keysPtr),
+                            "name",
+                            BCON_UTF8(index_name),
+                            "}",
+                            "]");
+#endif
   mongoc_index_opt_init(&options);
 
   if (withBackground != 0) {options.background = 1;}
@@ -917,9 +995,19 @@ NsfMongoCollectionIndex(Tcl_Interp *interp,
   if (withName != 0)       {options.name = withName;}
   /* TODO: not handled: is_initialized, v, weights, default_language, language_override, padding */
 
-  success = mongoc_collection_create_index(collectionPtr, keysPtr, &options, &bsonError);
-
+#if !defined(NSF_MONGO_COLLECTION_INDEX)
+  success = mongoc_database_write_command_with_opts(
+                                                    collectionPtr->db,
+                                                    create_indexes,
+                                                    NULL /* opts */,
+                                                    NULL /*&reply*/,
+                                                    &bsonError);
   bson_destroy(keysPtr);
+  bson_free(index_name);
+  bson_destroy (create_indexes);
+#else
+  success = mongoc_collection_create_index(collectionPtr, keysPtr, &options, &bsonError);
+#endif
 
   Tcl_SetObjResult(interp, Tcl_NewBooleanObj(success));
   return TCL_OK;
@@ -960,8 +1048,8 @@ static int NsfMongoCollectionInsert(Tcl_Interp *interp,
   bson_append_oid(bsonPtr, "_id", 3, &oid);
 
   for (i = 0; i < objc; i += 3) {
-    CONST char *name  = ObjStr(objv[i]);
-    CONST char *tag   = ObjStr(objv[i+1]);
+    const char *name  = ObjStr(objv[i]);
+    const char *tag   = ObjStr(objv[i+1]);
     Tcl_Obj    *value = objv[i+2];
 
     /*fprintf(stderr, "adding pair '%s' (%s) '%s'\n", name, tag, ObjStr(value));*/
@@ -1051,14 +1139,16 @@ NsfMongoCollectionStats(Tcl_Interp *interp,
                         mongoc_collection_t *collectionPtr,
                         Tcl_Obj *optionsObj)
 {
-  int          objc = 0, success;
+  int          objc = 0, success, result;
   Tcl_Obj    **objv = NULL;
   bson_t       options, *optionsPtr = NULL;
   bson_t       stats, *statsPtr = &stats;
+  bson_t       cmd = BSON_INITIALIZER;
+  bson_iter_t  iter;
   bson_error_t bsonError;
 
   if (optionsObj != NULL) {
-    int result = Tcl_ListObjGetElements(interp, optionsObj, &objc, &objv);
+    result = Tcl_ListObjGetElements(interp, optionsObj, &objc, &objv);
 
     if (result != TCL_OK || ((objc % 3) != 0)) {
       return NsfPrintError(interp, "%s: must contain a multiple of 3 elements", ObjStr(optionsObj));
@@ -1067,7 +1157,27 @@ NsfMongoCollectionStats(Tcl_Interp *interp,
     BsonAppendObjv(interp, optionsPtr, objc, objv);
   }
 
-  success = mongoc_collection_stats(collectionPtr, optionsPtr, statsPtr, &bsonError);
+  if (optionsPtr != NULL && bson_iter_init_find(&iter, optionsPtr, "scale")
+      && !BSON_ITER_HOLDS_INT32 (&iter)) {
+    bson_set_error(&bsonError,
+                    MONGOC_ERROR_BSON,
+                    MONGOC_ERROR_BSON_INVALID,
+                    "'scale' must be an int32 value.");
+    success = 0;
+  } else {
+
+    BSON_APPEND_UTF8 (&cmd, "collStats", mongoc_collection_get_name(collectionPtr));
+
+    if (optionsPtr != NULL) {
+      bson_concat (&cmd, optionsPtr);
+    }
+    success = mongoc_collection_command_simple(collectionPtr,
+                                               &cmd,
+                                               mongoc_collection_get_read_prefs(collectionPtr),
+                                               statsPtr,
+                                               &bsonError);
+    bson_destroy (&cmd);
+  }
 
   if (optionsPtr != NULL) {
     bson_destroy (optionsPtr);
@@ -1076,10 +1186,11 @@ NsfMongoCollectionStats(Tcl_Interp *interp,
   if (success != 0) {
     Tcl_SetObjResult(interp, BsonToList(interp, statsPtr, 0));
     bson_destroy (statsPtr);
-    return TCL_OK;
+    result = TCL_OK;
   } else {
-    return NsfPrintError(interp, "mongo::collection::stats: error: %s", bsonError.message);
+    result = NsfPrintError(interp, "mongo::collection::stats: error: %s", bsonError.message);
   }
+  return result;
 }
 
 /*
@@ -1295,7 +1406,7 @@ NsfMongoCursorNext(Tcl_Interp *interp, mongoc_cursor_t *cursor)
   }
 */
 static int
-NsfMongoCursorClose(Tcl_Interp *interp, mongoc_cursor_t *cursor, Tcl_Obj *cursorObj)
+NsfMongoCursorClose(Tcl_Interp *UNUSED(interp), mongoc_cursor_t *cursor, Tcl_Obj *cursorObj)
 {
   mongoc_cursor_destroy( cursor );
   Nsf_PointerDelete(ObjStr(cursorObj), cursor, 0);
@@ -1315,7 +1426,7 @@ NsfMongoCursorClose(Tcl_Interp *interp, mongoc_cursor_t *cursor, Tcl_Obj *cursor
   }
 */
 static int
-NsfMongoGridFSClose(Tcl_Interp *interp, mongoc_gridfs_t *gridfsPtr, Tcl_Obj *gridfsObj)
+NsfMongoGridFSClose(Tcl_Interp *UNUSED(interp), mongoc_gridfs_t *gridfsPtr, Tcl_Obj *gridfsObj)
 {
   mongoc_gridfs_destroy(gridfsPtr);
   Nsf_PointerDelete(ObjStr(gridfsObj), gridfsPtr, 0);
@@ -1333,7 +1444,7 @@ NsfMongoGridFSClose(Tcl_Interp *interp, mongoc_gridfs_t *gridfsPtr, Tcl_Obj *gri
 
 static int
 NsfMongoGridFSOpen(Tcl_Interp *interp, mongoc_client_t *clientPtr,
-                   CONST char *dbname, CONST char *prefix)
+                   const char *dbname, const char *prefix)
 {
   char             buffer[80];
   int              result = TCL_OK;
@@ -1377,15 +1488,17 @@ static int
 NsfMongoGridFileCreate(Tcl_Interp *interp,
                        GridfilesourceIdx_t withSource,
                        mongoc_gridfs_t *gridfsPtr,
-                       CONST char *value, CONST char *name,
-                       CONST char *contenttype,
+                       const char *value, const char *name,
+                       const char *contenttype,
                        Tcl_Obj *withMetadata
                        )
 {
   int                      result = TCL_OK;
-  mongoc_gridfs_file_opt_t fileOpts = {NULL};
+  mongoc_gridfs_file_opt_t fileOpts ;
   mongoc_gridfs_file_t    *gridFile;
   bson_t                   bsonMetaData, *bsonMetaDataPtr = &bsonMetaData;
+
+  memset(&fileOpts, 0, sizeof(fileOpts));
 
   if (withSource == GridfilesourceNULL) {
     withSource = GridfilesourceFileIdx;
@@ -1583,7 +1696,7 @@ NsfMongoGridFileOpen(Tcl_Interp *interp,
   }
 */
 static int
-NsfMongoGridFileClose(Tcl_Interp *interp, mongoc_gridfs_file_t* gridFilePtr, Tcl_Obj *gridFileObj)
+NsfMongoGridFileClose(Tcl_Interp *UNUSED(interp), mongoc_gridfs_file_t* gridFilePtr, Tcl_Obj *gridFileObj)
 {
   mongoc_gridfs_file_destroy(gridFilePtr);
   Nsf_PointerDelete(ObjStr(gridFileObj), gridFilePtr, 0);
@@ -1672,11 +1785,13 @@ NsfMongoGridFileRead(Tcl_Interp *interp, mongoc_gridfs_file_t *gridFilePtr, int 
   }
 */
 static int
-NsfMongoGridFileSeek(Tcl_Interp *interp, mongoc_gridfs_file_t *gridFilePtr, int offset)
+NsfMongoGridFileSeek(Tcl_Interp *UNUSED(interp), mongoc_gridfs_file_t *gridFilePtr, int offset)
 {
   int result;
 
-  /* TODO: whence SEEK_SET, SEEK_CUR or SEEK_END; implementation of SEEK_END looks incorrect */
+  /*
+   * TODO: whence SEEK_SET, SEEK_CUR or SEEK_END; implementation of SEEK_END looks incorrect
+   */
   result = mongoc_gridfs_file_seek(gridFilePtr, offset, SEEK_SET);
 
   return result < 0 ? TCL_ERROR : TCL_OK;
@@ -1686,8 +1801,8 @@ NsfMongoGridFileSeek(Tcl_Interp *interp, mongoc_gridfs_file_t *gridFilePtr, int 
  * Finally, provide the necessary Tcl package interface.
  ***********************************************************************/
 
-void
-Nsfmongo_ThreadExit(ClientData clientData)
+static void
+Nsfmongo_ThreadExit(ClientData UNUSED(clientData))
 {
   /*
    * The exit might happen at a time, when Tcl is already shut down.
@@ -1712,7 +1827,7 @@ Nsfmongo_ThreadExit(ClientData clientData)
 #endif
 }
 
-void
+static void
 Nsfmongo_Exit(ClientData clientData)
 {
   /*
@@ -1735,7 +1850,6 @@ Nsfmongo_Exit(ClientData clientData)
    */
   mongoc_cleanup();
 }
-
 
 
 extern int
@@ -1828,9 +1942,7 @@ Nsfmongo_Init(Tcl_Interp * interp)
 }
 
 extern int
-Nsfmongo_SafeInit(interp)
-     Tcl_Interp *interp;
-{
+Nsfmongo_SafeInit( Tcl_Interp *interp) {
   return Nsfmongo_Init(interp);
 }
 

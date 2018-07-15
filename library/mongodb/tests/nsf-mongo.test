@@ -3,6 +3,8 @@
 # This is a sample test set using the low-level (pure tcl) interface
 # for inserting and querying tuples into MongoDB.
 #
+# No interface changes so far between mongodb interface between 2.1 and 2.2.
+#
 # Main differences in the query interface due to changes in the
 # upstream c-driver interface between the interface in nsf 2.0.0 (old)
 # and 2.1.0 (new):

@@ -1,34 +1,36 @@
 
-
 Interface between mongoDB and the Next Scripting Framework
+==========================================================
 
 Ingredients:
+------------
   https://github.com/mongodb/mongo
   https://github.com/mongodb/mongo-c-driver
 
 The current version is tested with
-- Tcl 8.5 and Tcl 8.6
-- MongoDB v3.4.0 (released Nov 26, 2016)
-- mongodb-c-driver 1.9.3 (released Feb 28, 2018)
-- libbson 1.9.3 (released Dec Feb 28, 2018)
+- Tcl 8.5, 8.6 and 8.7
+- MongoDB v3.6.5 (released May 29, 2018)
+- mongodb-c-driver 1.11.0 (released June 23, 2018)
+- libbson 1.11.0 (released June 23, 2018)
 
 Follow the following steps to get MongoDB up and running
 and to compile the MongoDB driver for NX.
 
 
 OBTAIN MONGODB and MONGO-C-DRIVER:
+----------------------------------
 
 - Compile or obtain mongodb (the database).
 
 - Compile or obtain the mongo-c-driver (client interface)
 
       cd /usr/local/src
-      wget https://github.com/mongodb/mongo-c-driver/releases/download/1.9.3/mongo-c-driver-1.9.3.tar.gz
-      tar zxvf mongo-c-driver-1.9.3.tar.gz
+      wget https://github.com/mongodb/mongo-c-driver/releases/download/1.11.0/mongo-c-driver-1.11.0.tar.gz
+      tar zxvf  mongo-c-driver-1.11.0.tar.gz
       rm -rf mongo-c-driver
-      ln -sf mongo-c-driver-1.9.3 mongo-c-driver
+      ln -sf mongo-c-driver-1.11.0 mongo-c-driver
       cd mongo-c-driver
-      ./configure --disable-automatic-init-and-cleanup
+      cmake .
       make
       sudo make install
 
@@ -37,7 +39,7 @@ OBTAIN MONGODB and MONGO-C-DRIVER:
       cd /usr/local/src
       git clone https://github.com/mongodb/mongo-c-driver
       cd mongo-c-driver
-      sh autogen.sh --disable-automatic-init-and-cleanup
+      cmake .
       make
       sudo make install
 
@@ -53,6 +55,7 @@ OBTAIN MONGODB and MONGO-C-DRIVER:
 
 
 COMPILING THE MONGO NSF INTERFACE:
+----------------------------------
 
 Assume the following installation directories
 
@@ -64,8 +67,8 @@ command in the directory nsf*/library/mongodb/
 You will probably have to adjust the paths.
 
    ./configure --with-tcl=/usr/local/ns/lib/ --prefix=/usr/local/ns --with-nsf=../../ \
-   	       --with-mongoc=/usr/local/src/mongo-c-driver/src/mongoc/,/usr/local/src/mongo-c-driver/.libs \
-	       --with-bson=/usr/local/src/mongo-c-driver/src/libbson/src/bson \
+               --with-mongoc=/usr/local/include/libmongoc-1.0/,/usr/local/lib/ \
+               --with-bson=/usr/local/include/libbson-1.0,/usr/local/lib/ \
 	       --enable-threads --enable-symbols
 
 In order to run the sample script,
@@ -111,7 +114,8 @@ In order to run the sample script,
    >
 
 
-* Further sample-scripts:
+Further sample-scripts:
+-----------------------
 
     ./nxsh library/mongodb/tests/nx-bi.test
     ./nxsh library/mongodb/tests/nx-reference-one.test
@@ -120,6 +124,4 @@ In order to run the sample script,
     ./nxsh library/mongodb/tests/nx-serialize.test
     ./nxsh library/mongodb/tests/nsf-gridfs.test
 
-
--gustaf neumann
 
