@@ -1,9 +1,10 @@
 Dear Community,
 
 We are pleased to announce the availability of the Next Scripting
-Framework (NSF) 2.2.0.
+Framework (NSF) 2.2.0. The changes are mostly performance and
+robustness improvements, providing better error messages etc.
+See below for the details.
 
-This is a maintenance release. Since the release of 2.1.0, ...
 
 Diff stats since 2.1.0:
  ...
@@ -11,50 +12,87 @@ Diff stats since 2.1.0:
 
 Major changes relative to 2.1.0 are:
 
-- ...
-
 New Features
 
 - NSF:
 
-  * New command: ::nsf::definitionnamespace
-  * New command: ::nsf::cmd::info disassemble
   * Robustness improvements:
-    + NsfHasTclSpace: ...
+
+    + Use exact the same six space delimiter characters in NSF as in
+      plain Tcl to avoid surprises (internal API: NsfHasTclSpace())
+
+    + Improved parameter parsing: Don't allow bytearrays as name of
+      non-pos arguments, to avoid, that bytearrays get unwanted string
+      representations (and loosing potentially the pure bytearray
+      property). This could lead to problems with newer Tcl versions
+      when passing binary data to NSF procs and methods.
+
+
   * Performance improvements:
-    + The lookup for (bytecode-compiled) object variables is now
-    supported by a lookup cache to avoid repeated linear searches.
-    + The number of string comparisons (strcmp) was reduced
-    systematically, in method-parameter parsing and argument
-    handling.
-    + The number of strlen uses was reduced, especially in
-    method-parameter parsing and argument handling.
+
     + coloncmd reform: dispatch of [:method ...] by up to 30%
+      by caching the result of the method lookup in a Tcl_Obj
+
+    + The lookup for (bytecode-compiled) object variables is now
+      performed via a sorted lookup cache to avoid repeated linear
+      searches for compiled-locals (especially an improvement for
+      unsuccessful searches)
+
+    + Reduced number of string comparisons (strcmp()) via first-char
+      comparison in method-parameter parsing and argument handling.
+
+    + Reduced number of strlen() operations, especially in
+      method-parameter parsing and argument handling.
+
+    + Reduced memory consumption via better member aligning of
+      structs, esp. on 64-bit machines.
+
+
+  * New low-level helper-command:
+
+      * "::nsf::definitionnamespace": determine the default namespace
+	for objects etc. as used internally in NSF
+
+	* "::nsf::cmd::info disassemble",
+	"/cls/ info method disassemble",
+	"/obj/ info method disassemble": pendant to ::tcl::unsupported::disassemble.
 
 - NX:
 
   * Improvements to incremental property methods: value=add and
     value=delete
 
-  * Improvements to substdefault handling:
-      + substdefault for properties and variables: make behaviour of
-      per-object and per-class substdefaults consistent, early check for
-      complete substitution scripts, ...
-      + substdefault options
+  * Improvements to handling of parameter option "substdefault",
+    which controls, what kind of substitution is expected at runtime
+    when a default value is used.
+
+      + improved parameter option "substdefault": make behaviour of
+	per-object and per-class substdefaults consistent, early check
+	for complete substitution scripts
+
+      + the "substdefault" options can control via a single argument whether
+	command/variable/backslash substitution is wanted. Examples:
+	  0x111  substitute all
+	  0x100  only command substitution
+	  0x010  only command substitution
+	  0x001  only backslash substitution
+	or any bit combination.
+
   * Improvements to ensemble methods:
-    + Fix ensemble-method dispatch via colon dispatcher
-    + [current nextmethod] + [current isnextcall] are now fully aware
-    of ensemble methods, when being used from within.
+    + Fixed bug when ensemble-method was dispatched via colon dispatcher
+      (problem with leading colon)
+    + [current nextmethod] + [current isnextcall] return now proper
+      ensemble methods when necessary
 
   * Documentation (API and examples):
 
     + Added
 
     ...
-    
+
     + Updated
 
-    substdefault (to-do)
+    substdefault (to-do ... ist oben beschrieben, wollen sie da Beispiele machen?)
 
 - XOTcl2:
 
@@ -62,22 +100,30 @@ New Features
 
 - MongoDB interface upgrade:
 
-  * Upgraded driver and utilities to mongodb-c-driver 1.9.3 and libbson 1.9.3.
+  * Upgraded driver and utilities to mongodb-c-driver 1.12.0 and libbson 1.12.0.
   * Add regular expression queries to conditions in nx::mongo
   * Improved portability between platforms/ OS
   * Added auto-cleanup of resources (objects) for long-living
     execution environments (destroy_on_cleanup).
-  * More robust serialisation of object graphs, by preserving birth
-    classes in serialization.
+  * More robust serialization of object graphs, by preserving original
+    classes in serialization/deserialization.
+  * Fixed default value handling under certain conditions
 
-- nx::test
+- nx::test:
 
-  * Provide for expressing expected results in terms of error codes,
-    rather than error messages. This is to prepare an upcoming reform
-    on providing error codes from within NSF more extensively.
+  * Provide support for expressing expected results in terms of error
+    codes, rather than error messages. This is to prepare an upcoming
+    reform on providing error codes from within NSF more extensively.
 
-- DTrace support (Mac OS X): Adjusted NSF/DTrace integration for
-  changes on recent Mac OS X (incl. SIP). See dtrace/README for
+- nx::serializer:
+
+   * Fix potential problem in NaviServer ns_eval with blueprint updates
+     on objects, which were not created by the blueprint. Such objects
+     could loose their classes when these classes are cleaned-up on
+     blueprint evaluation.
+
+- DTrace support (macOS): Adjusted NSF/DTrace integration for
+  changes on recent macOS (incl. SIP). See dtrace/README for
   instructions.
 
 - Documentation:
@@ -88,51 +134,50 @@ New Features
   * Improved spelling: next-migration.txt, ...
 
 - Continued testing: NSF is now continuously built and tested under
-  Linux, Mac OS X, and Windows against different Tcl targets, using
+  Linux, macOS, and Windows against different Tcl targets, using
   different tool chains (gcc, clang, MinGW, MSVC). For this purpose,
   there is now an official GitHub mirror at:
 
-  	    https://github.com/nm-wu/nsf
+	    https://github.com/nm-wu/nsf
 
   Build and test reports are available from:
 
-  	    https://travis-ci.com/nm-wu/nsf
+	    https://travis-ci.com/nm-wu/nsf
 	    https://ci.appveyor.com/project/mrcalvin/nsf-2ylk0
-  
+
 - Maintenance & bug fixes:
 
-  * Execution namespace reform: NSF methods execute in their object's
-    definition namespace, and not in the the proc's origin
-    namespace. Rather than patching the proc commands namespace
-    unconditionally (leading to counter-intuitive results using
-    standard Tcl introspection on these commands), the execution
-    namespace is maintained in a context structure and patched for
-    executing the proc only.
+  * Execution namespace reform: as in earlier releases NSF methods can
+    execute in different namespaces such as their object's definition
+    namespace.  Starting with NSF 2.2, the execution namespace is
+    maintained in a context structure and the namespace is just
+    changed while the proc is executing. This fixes some
+    counter-intuitive results using standard Tcl introspection on
+    these commands.
 
-  * Migration to 'bool'
+  * Migration to C type 'bool':
+    replace legacy 0/1 integer bools by proper types when possible.
 
   * Tcl 8.7:
 
-    Preliminary support for a future Tcl 8.7 (as of Dec 2, 2016;
+    Preliminary support for a future Tcl 8.7 (as of Dec 2, 2016;  *** is this really the newest released version of Tcl 8.7?***
     commit 71fa1f9c91). NSF compiles under 8.7a0 and its regression
     tests execute successfully.
 
   * Misc (esp. NSF/C):
 
-    + Reduced memory consumption via better member aligning of
-    structs, esp. on 64-bit machines.
-    + Bug fix: Avoid preemptive frees on %proc subsitution for
-    forwarder methods.
+    + Bug fix: Avoid preemptive frees on %proc substitution for
+      forwarder methods.
     + Aliases: Avoid Tcl_obj re-creations
     + Guarded against potential Tcl_Obj leaks, esp. when using
       "NsfMethodNamePath", as indicated by valgrind.
-    + Silenced warnings emitted by GCC 8.1+ on strncat and strncpy.
+    + Silenced warnings emitted by GCC 8.1+ on strncat() and strncpy().
     + Addressed 5 code-quality issues as indicated by
       Coverity Scan, incl. control-flow issues (risking NULL
       dereferencing) and buffer overflows in string operations.
     + Silence warnings under MSVC 1914
 
-  * New configure option: "--enable-development=test"
+  * New configure option: "--enable-development=test"  *** what does this do exactly??? ****
 
   * Extended regression test suite:
     The test suite contains (for Tcl 8.6.8) now xxxx tests.

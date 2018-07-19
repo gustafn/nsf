@@ -59,13 +59,13 @@ Steps for a beta release:
       * Summarize changes since the last release in doc/Announce-VERSION
         As source use e.g.
             git log --date-order --date=short|less
-	    ~/scripts/git-changelog2  -- 2.0.0..HEAD --no-merges > ChangeLog-2.0.0-HEAD
+	    ~/scripts/git-changelog2  -- 2.1.0..HEAD --no-merges > ChangeLog-2.1.0-HEAD
         Diffstats
-            git diff --stat  2.0.0..HEAD
+            git diff --stat  2.1.0..HEAD
       * Run spell checker over announcement + ChangeLog
       * git add announcement 
 
-   - rebild documentation
+   - rebuild documentation
        * make doc
        * make pdfdoc (currently, it is necessary to manually edit next-tutorial.html and next-migration.html
          and replace setInterval() + next 4 lines by reinstall())

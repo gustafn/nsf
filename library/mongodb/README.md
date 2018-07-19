@@ -22,9 +22,9 @@ generate a C interface.
 The current version of the NSF mongo binding is 2.2 and was
 tested with
 - Tcl 8.5, 8.6 and 8.7
-- MongoDB v3.6.5 (released May 29, 2018)
-- mongodb-c-driver 1.11.0 (released June 23, 2018)
-- libbson 1.11.0 (released June 23, 2018)
+- MongoDB 3.6.6 (released July 10, 2018)
+- mongodb-c-driver 1.12.0 (released July 18, 2018)
+- libbson 1.12.0 (released July 18, 2018)
 
 Follow the following steps to get MongoDB up and running
 and to compile the MongoDB driver for NX.
@@ -38,10 +38,10 @@ and to compile the MongoDB driver for NX.
 
 ````
       cd /usr/local/src
-      wget https://github.com/mongodb/mongo-c-driver/releases/download/1.11.0/mongo-c-driver-1.11.0.tar.gz
-      tar zxvf  mongo-c-driver-1.11.0.tar.gz
+      wget https://github.com/mongodb/mongo-c-driver/releases/download/1.12.0/mongo-c-driver-1.12.0.tar.gz
+      tar zxvf  mongo-c-driver-1.12.0.tar.gz
       rm -rf mongo-c-driver
-      ln -sf mongo-c-driver-1.11.0 mongo-c-driver
+      ln -sf mongo-c-driver-1.12.0 mongo-c-driver
       cd mongo-c-driver
       cmake .
       make

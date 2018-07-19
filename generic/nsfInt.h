@@ -1357,8 +1357,10 @@ char *strnstr(const char *buffer, const char *needle, size_t buffer_len) pure;
 #define vsnprintf _vsnprintf
 #endif
 
-/* There are six whitespace characters in Tcl, which serve as element
-   separators in string representations of Tcl lists. See tclUtil.c */
+/* 
+ * There are six whitespace characters in Tcl, which serve as element
+ * separators in string representations of Tcl lists. See tclUtil.c
+ */
 
 #define NsfHasTclSpace(str) \
   (strpbrk((str), " \t\n\r\v\f") != NULL)
