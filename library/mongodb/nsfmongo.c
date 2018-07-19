@@ -928,15 +928,6 @@ NsfMongoCollectionDelete(Tcl_Interp *interp,
   }
 */
 
-/*
- * The call "mongoc_collection_create_index" is deprecated and should be
- * replaced by "mongoc_database_write_command_with_opts". However, this call
- * requires "db", which is member of mongoc_collection_t, but not public
- * accessible, and up to now, there is apparently no API to access this
- * member.
- */
-#define NSF_MONGO_COLLECTION_INDEX 1
-
 static int
 NsfMongoCollectionIndex(Tcl_Interp *interp,
                         mongoc_collection_t *collectionPtr,
@@ -953,11 +944,9 @@ NsfMongoCollectionIndex(Tcl_Interp *interp,
   bson_t             keys, *keysPtr = &keys;
   bson_error_t       bsonError;
   mongoc_index_opt_t options;
-#if !defined(NSF_MONGO_COLLECTION_INDEX)
   bson_t            *create_indexes;
   char              *index_name;
   const char        *collection_name;
-#endif
 
   result = Tcl_ListObjGetElements(interp, attributesObj, &objc, &objv);
   if (result != TCL_OK || ((objc % 3) != 0)) {
@@ -966,7 +955,6 @@ NsfMongoCollectionIndex(Tcl_Interp *interp,
 
   BsonAppendObjv(interp, keysPtr, objc, objv);
 
-#if !defined(NSF_MONGO_COLLECTION_INDEX)
   index_name = mongoc_collection_keys_to_index_string(keysPtr);
   collection_name = mongoc_collection_get_name(collectionPtr);
 
@@ -981,7 +969,6 @@ NsfMongoCollectionIndex(Tcl_Interp *interp,
                             BCON_UTF8(index_name),
                             "}",
                             "]");
-#endif
   mongoc_index_opt_init(&options);
 
   if (withBackground != 0) {options.background = 1;}
@@ -992,9 +979,8 @@ NsfMongoCollectionIndex(Tcl_Interp *interp,
   if (withName != 0)       {options.name = withName;}
   /* TODO: not handled: is_initialized, v, weights, default_language, language_override, padding */
 
-#if !defined(NSF_MONGO_COLLECTION_INDEX)
-  success = mongoc_database_write_command_with_opts(
-                                                    collectionPtr->db,
+  success = mongoc_collection_write_command_with_opts(
+                                                    collectionPtr,
                                                     create_indexes,
                                                     NULL /* opts */,
                                                     NULL /*&reply*/,
@@ -1002,9 +988,6 @@ NsfMongoCollectionIndex(Tcl_Interp *interp,
   bson_destroy(keysPtr);
   bson_free(index_name);
   bson_destroy (create_indexes);
-#else
-  success = mongoc_collection_create_index(collectionPtr, keysPtr, &options, &bsonError);
-#endif
 
   Tcl_SetObjResult(interp, Tcl_NewBooleanObj(success));
   return TCL_OK;
