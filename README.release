@@ -113,6 +113,10 @@ Steps for a beta release:
          * library/nx/pkgIndex.tcl
 	 * library/xotcl/library/xotcl2.tcl
          * win/pkg.vc
+	 * library/serialize/serializer.tcl
+	 * library/mongodb/nx-mongo.tcl
+	 * library/mongodb/configure.ac
+       in SRCDIR and SRCDIR/library/mongodb/
        autoconf
        ./configure ....
 
