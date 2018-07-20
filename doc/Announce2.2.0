@@ -18,11 +18,11 @@ New Features
 
   * Robustness improvements:
 
-    + Use exact the same six space delimiter characters in NSF as in
+    + Use exact the same six whitespace-delimiter characters in NSF as in
       plain Tcl to avoid surprises (internal API: NsfHasTclSpace())
 
     + Improved parameter parsing: Don't allow bytearrays as name of
-      non-pos arguments, to avoid, that bytearrays get unwanted string
+      non-positional arguments, to avoid that bytearrays get unwanted string
       representations (and loosing potentially the pure bytearray
       property). This could lead to problems with newer Tcl versions
       when passing binary data to NSF procs and methods.
@@ -30,13 +30,14 @@ New Features
 
   * Performance improvements:
 
-    + coloncmd reform: dispatch of [:method ...] by up to 30%
-      by caching the result of the method lookup in a Tcl_Obj
+    + coloncmd reform: Dispatch timing of [:myMethod ...] was improved
+      by up to 30% by caching the result of the method lookup in a
+      Tcl_Obj
 
-    + The lookup for (bytecode-compiled) object variables is now
+    + Looking up (bytecode-compiled) object variables is now
       performed via a sorted lookup cache to avoid repeated linear
-      searches for compiled-locals (especially an improvement for
-      unsuccessful searches)
+      searches for compiled locals (especially an improvement for
+      unsuccessful searches).
 
     + Reduced number of string comparisons (strcmp()) via first-char
       comparison in method-parameter parsing and argument handling.
@@ -48,55 +49,49 @@ New Features
       structs, esp. on 64-bit machines.
 
 
-  * New low-level helper-command:
+  * New, low-level helper command:
 
-      * "::nsf::definitionnamespace": determine the default namespace
+      * "::nsf::definitionnamespace": Determines the default namespace
 	for objects etc. as used internally in NSF
 
-	* "::nsf::cmd::info disassemble",
-	"/cls/ info method disassemble",
-	"/obj/ info method disassemble": pendant to ::tcl::unsupported::disassemble.
+	* "::nsf::cmd::info disassemble  /methodName/",
+	  "/cls/ info method disassemble /methodName/",
+	  "/obj/ info method disassemble /methodName/": This is the
+	pendant to ::tcl::unsupported::disassemble adding support for
+	NSF methods and NSF procs (nsf::proc). See, e.g.,
+	https://wiki.tcl.tk/21445. The "info" methods are only
+	available when NSF has been built using --enable-development.
 
 - NX:
 
-  * Improvements to incremental property methods: value=add and
-    value=delete
+  * Improvements to incremental property methods: Adding ("value=add")
+    and deleting elements ("value=delete") now enforce any value
+    checkers defined on their properties and behave correctly when
+    conversion are used.
 
-  * Improvements to handling of parameter option "substdefault",
-    which controls, what kind of substitution is expected at runtime
-    when a default value is used.
+  * Improvements to handling of parameter option "substdefault".  NX
+    provides now controls to the developer to selected the kind of
+    substitution at runtime when a default value is used.
 
-      + improved parameter option "substdefault": make behaviour of
-	per-object and per-class substdefaults consistent, early check
-	for complete substitution scripts
-
-      + the "substdefault" options can control via a single argument whether
-	command/variable/backslash substitution is wanted. Examples:
+    + the "substdefault" options can control via a single argument whether
+      command/variable/backslash substitution is wanted. Examples:
 	  0x111  substitute all
 	  0x100  only command substitution
-	  0x010  only command substitution
+	  0x010  only variable substitution
 	  0x001  only backslash substitution
-	or any bit combination.
+      or any bit combination. Combinations can be used to define the
+      equivalents of the flag "-nocommands" (0x011), "-novariables"
+      (0x101), "-nobackslashes" (0x110), and their mixes,
+      respectively, available to [subst].
+
+     + make behaviour of per-object and per-class substdefaults
+       consistent, early check for complete substitution scripts.
 
   * Improvements to ensemble methods:
-    + Fixed bug when ensemble-method was dispatched via colon dispatcher
+    + Fixed bug when ensemble method was dispatched via colon dispatcher
       (problem with leading colon)
     + [current nextmethod] + [current isnextcall] return now proper
       ensemble methods when necessary
-
-  * Documentation (API and examples):
-
-    + Added
-
-    ...
-
-    + Updated
-
-    substdefault (to-do ... ist oben beschrieben, wollen sie da Beispiele machen?)
-
-- XOTcl2:
-
-  ...
 
 - MongoDB interface upgrade:
 
@@ -107,7 +102,7 @@ New Features
     execution environments (destroy_on_cleanup).
   * More robust serialization of object graphs, by preserving original
     classes in serialization/deserialization.
-  * Fixed default value handling under certain conditions
+  * Fixed default-value handling under certain conditions  
 
 - nx::test:
 
@@ -129,9 +124,9 @@ New Features
 - Documentation:
 
   * NSF now has support for TIP #59 introspection via
-    ::nsf::pkgconfig; see https://core.tcl.tk/tips/doc/trunk/tip/59.md
+     ::nsf::pkgconfig; see https://core.tcl.tk/tips/doc/trunk/tip/59.md
   * Added tutorials on NX properties: tutorial-properties.tcl
-  * Improved spelling: next-migration.txt, ...
+  * Improved spelling in documentation: next-migration.txt etc.
 
 - Continued testing: NSF is now continuously built and tested under
   Linux, macOS, and Windows against different Tcl targets, using
@@ -147,7 +142,7 @@ New Features
 
 - Maintenance & bug fixes:
 
-  * Execution namespace reform: as in earlier releases NSF methods can
+  * Execution namespace reform: As in earlier releases, NSF methods can
     execute in different namespaces such as their object's definition
     namespace.  Starting with NSF 2.2, the execution namespace is
     maintained in a context structure and the namespace is just
@@ -160,9 +155,9 @@ New Features
 
   * Tcl 8.7:
 
-    Preliminary support for a future Tcl 8.7 (as of Dec 2, 2016;  *** is this really the newest released version of Tcl 8.7?***
-    commit 71fa1f9c91). NSF compiles under 8.7a0 and its regression
-    tests execute successfully.
+    Support for Tcl 8.7a1 and the upcoming, unreleased Tcl 8.7a2
+    (core.tcl.tk branch "core-8-branch"). NSF compiles and its
+    regression tests execute successfully.
 
   * Misc (esp. NSF/C):
 
@@ -180,7 +175,8 @@ New Features
   * New configure option: "--enable-development=test"  *** what does this do exactly??? ****
 
   * Extended regression test suite:
-    The test suite contains (for Tcl 8.6.8) now xxxx tests.
+    The test suite contains now 6243 tests (for Tcl 8.6.8). This
+    compares with 5852 tests in NSF 2.1.0 (for Tcl 8.6.6).
 
 - Packaging & distribution:
 
