@@ -206,7 +206,7 @@ NsfPrintObjv(char *string, int objc, Tcl_Obj *CONST objv[]) {
  *    None.
  *
  * Side effects:
- *    Updateing Hash table
+ *    Updating Hash table
  *
  *----------------------------------------------------------------------
  */
@@ -238,7 +238,7 @@ NsfMemCountGetTable(int **initialized) {
  *    None.
  *
  * Side effects:
- *    Updateing Hash table
+ *    Updating Hash table
  *
  *----------------------------------------------------------------------
  */
@@ -287,7 +287,7 @@ NsfMemCountAlloc(const char *id, const void *p) {
  *    None.
  *
  * Side effects:
- *    Updateing Hash table
+ *    Updating Hash table
  *
  *----------------------------------------------------------------------
  */

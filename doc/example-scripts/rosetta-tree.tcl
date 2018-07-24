@@ -67,7 +67,7 @@ nx::Class create Tree {
 
 #
 # This is a factory method to build up the object tree recursively
-# from a nested Tcl list. Note that we create left and right childs by
+# from a nested Tcl list. Note that we create left and right children by
 # nesting them in their parent, this provides for a cascading cleanup
 # of an entire tree (there is no need for an explicit cascading of
 # +destroy+ methods down the composite).

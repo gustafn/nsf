@@ -1407,7 +1407,7 @@ namespace eval ::nx {
           ::nsf::method::delete ${:domain} ${:name}
         }
       } else {
-        nsf::log Warning "ignore inproper domain ${:domain} during destroy (maybe per-object not set?)"
+        nsf::log Warning "ignore improper domain ${:domain} during destroy (maybe per-object not set?)"
       }
     }
     ::nsf::next

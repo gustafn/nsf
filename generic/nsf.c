@@ -610,7 +610,7 @@ static void DeleteProcsAndVars(Tcl_Interp *interp, Tcl_Namespace *nsPtr, bool wi
  *      Functions similar to Tcl_DString, but working on (void*) elements
  *      instead of chars. The NsfDList operations work on static data as long
  *      the space is sufficient, and doubles in size afterwards. In the
- *      worst case, half of the data is unsued, but that is the same size of
+ *      worst case, half of the data is unused, but that is the same size of
  *      overhead like for a single linked list.
  *
  * Results:
@@ -14725,7 +14725,7 @@ MethodDispatchCsc(
              || ((cscPtr->flags & NSF_CSC_FORCE_FRAME) != 0u)) {
     /*
      * Technically, we would not need a frame to execute the cmd, but maybe,
-     * the user want's it (to be able to call next, or the keep proc-level
+     * the user wants it (to be able to call next, or the keep proc-level
      * variables. The clientData cp is in such cases typically NULL.
      */
     /*fprintf(stderr, "FORCE_FRAME\n");*/

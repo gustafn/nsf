@@ -603,7 +603,7 @@ namespace eval ::nx::serializer {
     :public method list_instances {} {
       #
       # Compute all instances, for which we are responsible, just
-      # igoring content matching the matchpatterns
+      # ignoring content matching the matchpatterns
       #
       set instances [list]
       foreach i [${:rootClass} info instances -closure] {

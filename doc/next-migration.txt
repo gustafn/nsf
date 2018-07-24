@@ -2983,7 +2983,7 @@ comment, while XOTcl 2 enforces it.
 
 === Exit Handlers
 
-The exit hander interface changed from a method of `::xotcl::Object`
+The exit handler interface changed from a method of `::xotcl::Object`
 into the Tcl command `::nsf::exithandler`:
 
 [source,tcl]

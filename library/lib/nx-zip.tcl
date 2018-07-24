@@ -90,7 +90,7 @@ namespace eval ::nx::zip {
       }
       #
       # we have no 
-      #  - archive descryption header
+      #  - archive description header
       #  - archive extra data record
       #
       # Add the central directory
