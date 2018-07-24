@@ -264,7 +264,7 @@ BsonToList(Tcl_Interp *interp, const bson_t *data , int depth)
       bson_t         b;
 
       tag = NSF_BSON_DOCUMENT;
-      bson_iter_document (&i, &doclen, &docbuf);
+      bson_iter_document(&i, &doclen, &docbuf);
       bson_init_static(&b, docbuf, doclen);
       elemObj = BsonToList(interp, &b , depth + 1 );
       break;
@@ -276,7 +276,7 @@ BsonToList(Tcl_Interp *interp, const bson_t *data , int depth)
 
       tag = NSF_BSON_ARRAY;
       bson_iter_array(&i, &doclen, &docbuf);
-      bson_init_static (&b, docbuf, doclen);
+      bson_init_static(&b, docbuf, doclen);
       elemObj = BsonToList(interp, &b , depth + 1 );
       break;
     }
@@ -285,8 +285,8 @@ BsonToList(Tcl_Interp *interp, const bson_t *data , int depth)
       char              string[BSON_DECIMAL128_STRING];
 
       tag = NSF_BSON_DECIMAL128;
-      bson_iter_decimal128( &i,  &decimal128);
-      bson_decimal128_to_string (&decimal128, string);
+      bson_iter_decimal128( &i, &decimal128);
+      bson_decimal128_to_string(&decimal128, string);
       elemObj = Tcl_NewStringObj(string, -1);
 
       break;
@@ -525,7 +525,7 @@ BsonAppend(Tcl_Interp *interp, bson_t *bbPtr, const char *name, const char *tag,
   case BSON_TYPE_DECIMAL128: {
     bson_decimal128_t decimal128;
 
-    bson_decimal128_from_string (ObjStr(value), &decimal128);
+    bson_decimal128_from_string(ObjStr(value), &decimal128);
     bson_append_decimal128(bbPtr, name, keyLength, &decimal128);
     break;
   }
@@ -770,11 +770,11 @@ NsfMongoStatus(Tcl_Interp *interp, mongoc_client_t *clientPtr, Tcl_Obj *UNUSED(c
   bson_error_t         bsonError;
   int                  result = TCL_OK;
   bson_t               cmd = BSON_INITIALIZER;
-  bool                 ret = false;
+  bool                 ret;
 
-  BSON_APPEND_INT32 (&cmd, "serverStatus", 1);
+  BSON_APPEND_INT32(&cmd, "serverStatus", 1);
   ret = mongoc_client_command_simple(clientPtr, "admin", &cmd, readPrefs, replyPtr, &bsonError);
-  bson_destroy (&cmd);
+  bson_destroy(&cmd);
 
   if (likely(ret != 0)) {
     Tcl_SetObjResult(interp, BsonToList(interp, replyPtr, 0));
@@ -855,7 +855,7 @@ NsfMongoCollectionCount(Tcl_Interp *interp,
   Tcl_Obj    **objv;
   bson_t       query, *queryPtr = &query;
   bson_error_t bsonError;
-  /*bson_t* opts = BCON_NEW ("skip", BCON_INT64(5));*/
+  /*bson_t* opts = BCON_NEW("skip", BCON_INT64(5));*/
 
   result = Tcl_ListObjGetElements(interp, queryObj, &objc, &objv);
   if (result != TCL_OK || ((objc % 3) != 0)) {
@@ -987,7 +987,7 @@ NsfMongoCollectionIndex(Tcl_Interp *interp,
                                                     &bsonError);
   bson_destroy(keysPtr);
   bson_free(index_name);
-  bson_destroy (create_indexes);
+  bson_destroy(create_indexes);
 
   Tcl_SetObjResult(interp, Tcl_NewBooleanObj(success));
   return TCL_OK;
@@ -1146,26 +1146,26 @@ NsfMongoCollectionStats(Tcl_Interp *interp,
     success = 0;
   } else {
 
-    BSON_APPEND_UTF8 (&cmd, "collStats", mongoc_collection_get_name(collectionPtr));
+    BSON_APPEND_UTF8(&cmd, "collStats", mongoc_collection_get_name(collectionPtr));
 
     if (optionsPtr != NULL) {
-      bson_concat (&cmd, optionsPtr);
+      bson_concat(&cmd, optionsPtr);
     }
     success = mongoc_collection_command_simple(collectionPtr,
                                                &cmd,
                                                mongoc_collection_get_read_prefs(collectionPtr),
                                                statsPtr,
                                                &bsonError);
-    bson_destroy (&cmd);
+    bson_destroy(&cmd);
   }
 
   if (optionsPtr != NULL) {
-    bson_destroy (optionsPtr);
+    bson_destroy(optionsPtr);
   }
 
   if (success != 0) {
     Tcl_SetObjResult(interp, BsonToList(interp, statsPtr, 0));
-    bson_destroy (statsPtr);
+    bson_destroy(statsPtr);
     result = TCL_OK;
   } else {
     result = NsfPrintError(interp, "mongo::collection::stats: error: %s", bsonError.message);
