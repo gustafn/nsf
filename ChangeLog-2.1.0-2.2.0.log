@@ -1,3 +1,22 @@
+2018-07-31  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* next-migration.txt, next-tutorial.txt: Minor corrections, adding
+	  section on substdefault to tutorial [69a2fff0]
+
+2018-07-24  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* rosetta-tree.tcl, next-migration.txt, nsf.c, nsfDebug.c,
+	nx-zip.tcl, nx.tcl, serializer.tcl: Improve spelling [ce99d2e5]
+	* library/mongodb/Makefile.in, library/mongodb/libmongo.c: Remove
+	dead assignment; add cppcheck target [6252b8e8]
+
+2018-07-20  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* configure.3, current.3, next.3, nxsh.1, nxwish.1, xotclsh.1,
+	xowish.1: Re-generated to reflect bumped version. [skip ci] [22abf92c]
+	* README.release: Add missing artifacts for version bump [skip ci]
+	[bbe37e8c]
+
 2018-07-19  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
 	* nsfmongo.c (mongoc_collection_create_index): Removed last
