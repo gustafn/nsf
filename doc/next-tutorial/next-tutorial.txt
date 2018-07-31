@@ -1,7 +1,7 @@
 Tutorial for the Next Scripting Language
 ==========================================
 Gustaf Neumann <neumann@wu-wien.ac.at>, Stefan Sobernig <stefan.sobernig@wu.ac.at>
-v2.1.0, December 2016:
+v2.2.0, July 2018:
 Written for the Initial Release of the Next Scripting Framework.
 :Author Initials: GN
 :toc:
@@ -366,7 +366,7 @@ nx::Class create Safety {
   }
 
   :public method pop {} {
-    if {${:count} == 0} then { error "Stack empty!" }
+    if {${:count} == 0} { error "Stack empty!" }
     incr :count -1
     next
   }
@@ -460,7 +460,7 @@ defining classes of safe stacks:
 # Create a safe stack class by using Stack and mixin
 # Safety
 #
-nx::Class create SafeStack -superclass Stack -mixin Safety
+nx::Class create SafeStack -superclasses Stack -mixins Safety
 
 SafeStack create s3
 --------------------------------------------------
@@ -648,7 +648,7 @@ instance variable, or a global variable.  The rules are:
 --------------------------------------------------
 nx::Class create Foo {
 
-  :method foo args {...}
+  :public method foo args {...}
     # "a" is a method scoped variable
     set a 1
     # "b" is an Instance variable
@@ -1351,7 +1351,7 @@ c1 foo
 c1 bar
 --------------------------------------------------
 
-In some other object oriented programming languages, class methods
+In some other object-oriented programming languages, class methods
 are called "static methods".
 
 === Ensemble Methods
@@ -1727,8 +1727,8 @@ invoke +bar+ without it, the system will raise an exception.
 
 ==== Default Values for Parameters
 
-Optional parameters might have a default value, which will be used,
-when not value is provided for this parameter.  Default values can be
+Optional parameters might have a default value. This default value is used,
+when no argument is provided for the corresponding parameter.  Default values can be
 specified for positional and non-positional parameters.
 
 [[xmp-default-value]]
@@ -2039,6 +2039,47 @@ single positional parameters. Certainly, multiplicity is fully
 orthogonal with the other parameter features and can be used as well
 for multiple parameters, non-positional parameter, default values,
 etc.
+
+==== Defaults substitution
+
+Optional object and method parameters can set a default value. Recall
+that default values can be specified for positional and non-positional
+parameters, alike. This default value is used to define a
+corresponding method-local and object variable, respectively, and to
+set it to the default value. Normally, the default value is taken
+literally. Default values can also be preprocessed into a final value
+using Tcl substitution in the sense of +[subst]+. For this, a parameter
+can be decorated with the parameter option +substdefault+ in addition
+to a default value.
+
+[[substdefault]]
+.Listing {counter:figure-number}: Default-value substitution using +substdefault+
+{set:substdefault:Listing {figure-number}}
+[source,tcl,numbers]
+--------------------------------------------------
+nx::Class create ::D
+nx::Class create ::C {
+   # default: all substitutions (command, variable, control
+   # characters) active!
+  :property {d:object,type=::D,substdefault {[::D new]}};
+  :create ::c; # final values are computed and set at instantiation time
+}
+
+::c cget -d;
+--------------------------------------------------
+
+The listing in <<substdefault, {substdefault}>> employs +substdefault+
+to establish a reference named +d+ between an instance of class ::C
+and an instance of ::D when an instance of ::C is created. By
+default, all substitution kinds are active: command, variable, and
+backslash substitution. Beyond this default, +substdefault+ can be
+parametrized to include or to exclude any combination of substitution types:
+
+- all active (default): +substdefault=0b111+
+- backslashes only (+-novariables+, +-nocommands+): +substdefault=0b100+
+- variables only (+-nobackslashes+, +-nocommands+): +substdefault=0b010+
+- commands only (+-nobackslashes+, +-novariables+): +substdefault=0b001+
+- none (+-nobackslashes+, +-nocommands+, +-novariables+): +substdefault=0b000+
 
 == Advanced Language Features
 

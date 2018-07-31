@@ -736,8 +736,8 @@ asciidoc.install(3);
 <h1>Migration Guide for the Next Scripting Language</h1>
 <span id="author">Gustaf Neumann</span><br />
 <span id="email"><code>&lt;<a href="mailto:neumann@wu-wien.ac.at">neumann@wu-wien.ac.at</a>&gt;</code></span><br />
-<span id="revnumber">version 2.1.0,</span>
-<span id="revdate">December 2016</span>
+<span id="revnumber">version 2.2.0,</span>
+<span id="revdate">July 2018</span>
 <br /><span id="revremark"></span>
 <div id="toc">
   <div id="toctitle">Table of Contents</div>
@@ -928,7 +928,7 @@ While XOTcl 1 supported only non-positional arguments at the
 <li>
 <p>
 The Next Scripting Language supports checking of the <em>input
-     parmeters</em> and the <em>return values</em> of scripted and C-implemented
+     parameters</em> and the <em>return values</em> of scripted and C-implemented
      methods and commands.
 </p>
 </li>
@@ -959,7 +959,7 @@ Value Checking can be turned on/off globally or on the
 <p>
 <strong>Scripted Init Blocks:</strong> The Next Scripting Language provides
    <em>scripted init blocks</em> for objects and classes (replacement for the
-   dangerous dash "-" mechanism in XOTcl that allows to set variables
+   dangerous dash "-" mechanism in XOTcl that allows one to set variables
    and invoke methods upon object creation).
 </p>
 </li>
@@ -1325,7 +1325,7 @@ term <code>method</code> for defining scripted methods.</p></div>
 instances, calling therefore scripted methods for instances
 <code>instproc</code>. This is certainly an unusual term. The approach with the
 name prefix has the disadvantage, that for every different kind of
-method, two names have to be provided (eg. <code>proc</code> and <code>instproc</code>,
+method, two names have to be provided (e.g. <code>proc</code> and <code>instproc</code>,
 <code>forward</code> and <code>instforward</code>).</p></div>
 <div class="paragraph"><p>NX on the contrary uses the same term for defining instance method or
 object-specific methods. When the term (e.g. <code>method</code>) is used on a
@@ -2719,7 +2719,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </tbody>
 </table>
 </div>
-<div class="paragraph"><p>In general, NX allows to create variables and properties with and
+<div class="paragraph"><p>In general, NX allows one to create variables and properties with and
 without accessor methods. The created accessor methods might be
 <code>public</code>, <code>protected</code> or <code>public</code>. When the value <code>none</code> is provided
 to <code>-accessor</code>, no accessor will be created. This is actually the
@@ -2951,7 +2951,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </div>
 <div class="paragraph"><p>In XOTcl all configure parameters were <em>optional</em>. Required parameters have
 to be passed to the constructor of the object.</p></div>
-<div class="paragraph"><p>NX allows to define <em>optional</em> and <em>required</em> configure parameters (as
+<div class="paragraph"><p>NX allows one to define <em>optional</em> and <em>required</em> configure parameters (as
 well as method parameters). Therefore, configure parameters can be used
 as the single mechanism to parametrize objects. It is in NX not
 necessary (and per default not possible) to pass arguments to the
@@ -3223,7 +3223,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-comment'># Define parameter with an an
+<pre class='nx'><span class='nx-comment'># Define parameter with an
 </span><span class='nx-comment'># attribute-specific type checker
 </span>
 <span class='nx-keyword'>Class</span> Person -slots {
@@ -3799,7 +3799,7 @@ scripted and C-implemented methods the same way, one can get the
 definition of all methods via <code>info method definition</code> and one can get
 an manual-like interface description via <code>info method
 syntax</code>. In addition, NX provides means to query the type of
-a method, and NX allows to filter by the type of the method.</p></div>
+a method, and NX allows one to filter by the type of the method.</p></div>
 <div class="sect3">
 <h4 id="_list_sub_and_superclass_relations">2.6.1. List sub- and superclass relations</h4>
 <div class="paragraph"><p>While XOTcl used singular words for introspecting sub- and superclass
@@ -6382,7 +6382,7 @@ Bar b1</pre></div></div>
 </div>
 <div class="sect3">
 <h4 id="_changing_classes_and_superclasses">3.2.3. Changing classes and superclasses</h4>
-<div class="paragraph"><p>NX does not define the methods <code>class</code> and <code>superclass</code> (like XOTcl), but allows to
+<div class="paragraph"><p>NX does not define the methods <code>class</code> and <code>superclass</code> (like XOTcl), but allows one to
 alter all object/class relations (including
 class/superclass/object-mixin/&#8230;)
 <code>nsf::relation::set</code>. The class and superclass can be certainly queried
@@ -6409,7 +6409,7 @@ Foo <span class='nx-keyword'>create</span> f1
 <div class="sect3">
 <h4 id="_overwriting_procs_methods_with_objects_and_vice_versa">3.2.4. Overwriting procs/methods with objects and vice versa</h4>
 <div class="paragraph"><p>NSF is now more conservative on object/method creation. In contrary to
-XOTcl 1 NSF does not allow to redefined a pre-existing command
+XOTcl 1 NSF does not allow one to redefined a pre-existing command
 (e.g. "set") with an object and vice versa. Like in XOTcl 1,
 preexisting objects and classes con be redefined (necessary for
 reloading objects/classes in an running interpreter).</p></div>
@@ -6443,7 +6443,7 @@ comment, while XOTcl 2 enforces it.</p></div>
 </div>
 <div class="sect2">
 <h3 id="_exit_handlers">3.6. Exit Handlers</h3>
-<div class="paragraph"><p>The exit hander interface changed from a method of <code>::xotcl::Object</code>
+<div class="paragraph"><p>The exit handler interface changed from a method of <code>::xotcl::Object</code>
 into the Tcl command <code>::nsf::exithandler</code>:</p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
@@ -6465,8 +6465,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Version 2.1.0<br />
-Last updated 2017-12-22 15:05:45 CET
+Version 2.2.0<br />
+Last updated 2018-07-31 11:45:02 CEST
 </div>
 </div>
 </body>
