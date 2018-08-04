@@ -1042,7 +1042,7 @@ instead of <tt>[<tt>self</tt>]</tt>:</p>
   }
 </pre><P>
 <P>Note, that there is a difference to the realization of these
-object informations to OTcl. XOTcl uses commands in order to make
+object information to OTcl. XOTcl uses commands in order to make
 XOTcl-methods compatible to Tcl-procedures and accessible via
 namespace-paths. OTcl uses the three variables <tt>self</tt>, <tt>class</tt>
 and <tt>proc</tt>, which are filled automatically with proper values
@@ -1336,7 +1336,7 @@ classes may be gained through the <tt>info</tt> instance method of the
 meta-class <tt>Class</tt>. Note that this instance method does not
 only support the class info options, but also the class-object info options,
 since the accessing command refers to the class-object, which itself
-is an object and, therefore, offers its informations.  The following
+is an object and, therefore, offers its information.  The following
 table summarizes the additional info options available on classes.
 </P>
 <CENTER>
@@ -1544,7 +1544,7 @@ delete the object nor leave it without class. In XOTcl a deleted class
 leaves it's instances with the class <tt>Object</tt>.
 </P>
 <P>So all empty class- and superclass-relationships are automatically
-reseted to <tt>Object</tt>. Note, that this are differences to OTcl,
+reset to <tt>Object</tt>. Note, that this are differences to OTcl,
 where the destruction of an class destroys all instances and an empty
 super-class list remains empty. 
 </P>
@@ -3259,7 +3259,7 @@ which cover more then their sole scope. The meaningful usage of the
 meta-programming abilities often requires to go further and to get
 information from the caller's and the callee's scope (e.g for
 delegation decisions). Therefore, we introduced rich call-stack
-informations for the interceptors. Note, that these are also available
+information for the interceptors. Note, that these are also available
 for ordinary methods, but the "called..." info options return empty
 strings.
 </P>
@@ -4097,7 +4097,7 @@ variables of the objects. XOTcl uses this functionality in various
 situations, such as for instance in the implementation of the
 <tt>set</tt>, <tt>unset</tt>, <tt>append</tt>, <tt>array</tt> methods among others.</p>
 
-<p>The fowarding functionality is suppored by XOTcl be the methods
+<p>The forwarding functionality is supported by XOTcl be the methods
 <tt>forward</tt> and <tt>instforward</tt> that address these requirements
 and provide an efficient implementation for these tasks.  </p>
 
@@ -4118,7 +4118,7 @@ where valid options are <tt>-objscope</tt>, <tt>-methodprefix</tt>,
 <tt>-earlybinding</tt> and <tt>-default</tt>. The option
 <tt>-objscope</tt> is used to specify that the command should be
 executed in the scope of the calling object (i.e. instance variables apprear
-as local varibales), <tt>-methodprefix</tt> means that the called
+as local variables), <tt>-methodprefix</tt> means that the called
 method should be prefixed with the specified string (to avoid name
 clashes), <tt>-earlybinding</tt> means that the function pointer of
 the specified command (callee) is take at invocation time (should only

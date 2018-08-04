@@ -1464,9 +1464,9 @@ namespace eval ::xotcl::comm::httpAccess {
 	}
     }
 
-    ParallelSink instproc requests {urls} {
+    ParallelSink instproc requests {URLs} {
 	my showTimeStart
-	foreach url $urls { my scheduleRequest GET $url }
+	foreach url $URLs { my scheduleRequest GET $url }
 	my wait
 	my showTimeEnd
     }

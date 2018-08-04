@@ -23,7 +23,7 @@ package req nx::test
 #
 # - method-parameter:
 #
-#   * It is currently possibe to refer to instance variables in the
+#   * It is currently possible to refer to instance variables in the
 #     default scope (without the nsf resolver, without namespace
 #     prefixes)
 

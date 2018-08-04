@@ -73,10 +73,10 @@ userPwd proc show {realm userVar pwVar} {
 #   assert "$r getContentLength" 163840
 # }
 
-proc parallelRequests {urls} {
-  JoinSink joinsink -requests [llength $urls]
+proc parallelRequests {URLs} {
+  JoinSink joinsink -requests [llength $URLs]
   set i 0
-  foreach url $urls {
+  foreach url $URLs {
     TimedMemorySink sink$i
     set t$i [Access [Access autoname a] -url $url \
 		 -informObject [list joinsink sink$i] \
@@ -84,7 +84,7 @@ proc parallelRequests {urls} {
     incr i
   }
   set i 0
-  foreach url $urls { sink$i reportTimes;incr i}
+  foreach url $URLs { sink$i reportTimes;incr i}
   joinsink destroy
 }
 

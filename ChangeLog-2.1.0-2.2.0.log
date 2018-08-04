@@ -21,7 +21,7 @@
 
 	* nsfmongo.c (mongoc_collection_create_index): Removed last
 	deprecated call of the mongo-c-driver [c5e8bf0a]
-	* doc/Announce2.2.0: Updates to annouce file, tested with
+	* doc/Announce2.2.0: Updates to announce file, tested with
 	mongo-c-driver 1.12.0 (released yesterday) [b9bcc40a]
 
 2018-07-19  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
@@ -284,7 +284,7 @@
 	  structures. Previously, it was necessary, that the called object had to
 	  know the class of the serialized object, now it is as well
 	  possible to use as well specializations; fix bug, where default
-	  value for properties lead to errors, when no propery options where
+	  value for properties lead to errors, when no property options where
 	  given. [3fc67997]
 	* mongodb/README: Update version numbers of mongo's c-driver older
 	  versions stopped working on macOS High Sierra. [120d6714]
@@ -348,7 +348,7 @@
 
 	* dtrace/README: Fix call example, updated instructions to cover
 	  SIP deactivation, minor corrections. Added one more D script:
-	  nsf_calltime.d. [bf3b2a85,ee6699cd]
+	  nsf_call-time.d. [bf3b2a85,ee6699cd]
 	* nsfDTrace.h: Re-generated. [ee6699cd]
 	* nsf.c (NsfConfigureCmd): Fix NSF_DTRACE=1 builds. [8a3defd6]
 	* gentclAPI.tcl, nsfAPI.decls (createconverter): Support for "-global
@@ -396,7 +396,7 @@
 	* nsf.c: Prefer boolean over int [d4863566]
 	* nsf.c: Reduce number of return statements beofre end of function [5e2800c9]
 	* nsf.c: Fix regression, prefer boolean over int, reduce number of
-	  returns befor end of function [61204e9c]
+	  returns before end of function [61204e9c]
 	* serializer.tcl: Ease life of colon-cmd caching [b35a18bd]
 	* nsf.c (NsfSetterMethod): Don't pass colon-prefixed method names
 	  from setter cmd to SetInstVar() to avoid potential

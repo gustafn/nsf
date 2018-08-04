@@ -533,7 +533,7 @@ nx::test case hidden-procs-as-aliases {
   $i hide FOO
   ? {$i hidden} FOO
   #
-  # For now, we do not allow to dispatch to hidden proc targets
+  # For now, we do not allow one to dispatch to hidden proc targets
   # through their method aliases as this would counteract the idea of
   # hiding cmds from a (safe) slave interp. As the NSF aliasing works
   # unrestrictedly in child (safe) interps (as opposed to [interp

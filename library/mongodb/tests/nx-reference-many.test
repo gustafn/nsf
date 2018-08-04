@@ -98,7 +98,7 @@ nx::mongo::db drop collection members
 }} ::Group
 
 #
-# Currently, the mongo c-driver does not allow to add DBRefs, since
+# Currently, the mongo c-driver does not allow one to add DBRefs, since
 # it refuses to accept field names with leading '$'. So we skip this
 # version for the time being.
 #

@@ -38,7 +38,7 @@ nx::mongo::db drop collection foos
 # pairs.
 #
 # Similarly we provide here a "dict" mapping, which transforms a dict
-# to a a form similar to a nested object. Just the first level of the
+# to a form similar to a nested object. Just the first level of the
 # dict is transformed.
 
 ######################################################################

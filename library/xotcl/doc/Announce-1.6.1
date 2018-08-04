@@ -22,7 +22,7 @@ Major changes relative to 1.6.0 are:
 
    * Generalized serializing package: when deserializing code, now
      consistently no constructors are called. In previous versions,
-     constuctors were called on slots; due to the point above, this is
+     constructors were called on slots; due to the point above, this is
      not needed; background: the previous solution had problems in
      aolserver ns_eval, when a slot-constructor called db-functions,
      since during ns_eval, the database handles are non-functional)

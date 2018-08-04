@@ -70,7 +70,7 @@
 	- bump version number to 2.0 (also in .man files)
 	- add Changelog for 2.0 release
 	- updated for mongo-c-driver 1.0.2 and MongoDB 2.6.5
-	- minor changes were necessary: MongogDB does not allow to delete a
+	- minor changes were necessary: MongogDB does not allow one to delete a
 	  capped collection, one has to use drop
 	- white-space changes
 	- move variable declaration to the front
@@ -86,7 +86,7 @@
 
 	- reduce number of unused symbols
 	- fix a possible double refcount increment for argument converter (e.g.
-	  for normalizing input values). This could lead to small memory leaks.
+	  for normalizing input values). This could lead too small memory leaks.
 
 2014-10-22  ssoberni  <stefan.sobernig@wu-wien.ac.at>
 
@@ -393,7 +393,7 @@
 	- extended regression test
 	- cleanup, reduce verbosity
 	- minor cleanup
-	- allow to configure verbosity in test sets
+	- allow one to configure verbosity in test sets
 
 	genttclAPI.tcl:
 	- added option "-flags", which can be used for every
@@ -789,7 +789,7 @@
 	- improve handling of space in object names
 
 	nsfObj.c:
-	- allow to omit "-guard" within arguments to flag
+	- allow one to omit "-guard" within arguments to flag
 	  definition of a filter/mixin guard
 	- extended regression test
 
@@ -956,7 +956,7 @@
 
 	nsf.c:
 	- allow parameter option "method=" for slotassign as well.
-	  rationale: this allows to use the parameter
+	  rationale: this allows one to use the parameter
 	  "forwardername" to specify a different forwarder target
 	  method (e.g. in case of object-mixins). The method is
 	  used both in "configure" and "cget".
@@ -1041,7 +1041,7 @@
 
 2014-05-09  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	- finishing checking of first 25% of of nonnull assertions in nsf.c
+	- finishing checking of first 25% of nonnull assertions in nsf.c
 	- added still more nonnull assertions
 
 2014-05-09  ssoberni  <stefan.sobernig@wu-wien.ac.at>
@@ -1351,13 +1351,13 @@
 	- represent BSON_TYPE_REGEX as pairs (regexp + options) in
 	  the Tcl representation to preserve regular expression
 	  options
-	- update to newest version of mongo-c-driver and libbson from Github
+	- update to newest version of mongo-c-driver and libbson from GitHub
 
 	nx-mongo:
 	- optional support for mongodb connection pools (compile
 	  time macro USE_CLIENT_POOL controls this, per default,
 	  this is on)
-	- allow to pass "-metadata" to gridfile::create to ease
+	- allow one to pass "-metadata" to gridfile::create to ease
 	  metadata attachment to grid-files
 	- some convenience improvements in nx-mongo.tcl (ability to
 	  ignore attributes in "bson encode", ability to unset
@@ -1400,7 +1400,7 @@
 
 	nx-monogo:
 	- Updated the mongo-c-driver and libbson to the actual tip
-	  version from Github (this is a significant change, since
+	  version from GitHub (this is a significant change, since
 	  10gen essentially changed the officially supported
 	  c-driver of MongoDB)
 	- mongo-c-driver was more or less new-implementation, since
@@ -1435,7 +1435,7 @@
 	- The gridfs interface allows now to store multiple
 	  revisions of a file
 	- The gridfs interface allows now upload files from a string
-	- The gridfs interface allows to refer to files by other
+	- The gridfs interface allows one to refer to files by other
 	  attributes than just the filename (e.g. the mongo id).
 	- Modified/new grid-file functions mongo::gridfile::create
 	  ?-source file|string? /gridfs/ /value/ /name/
@@ -1701,7 +1701,7 @@
 	- explore the usage of dict instead of anonymous array
 
 	nsf.c:
-	- dont't use the default of a invocation parameter in
+	- don't use the default of a invocation parameter in
 	  "configure" when the object is already initialized. The
 	  default is in general only used when the parameter is not
 	  specified. We do not want e.g. superclass to be reset to

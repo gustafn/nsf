@@ -23,7 +23,7 @@ New Features
 
     + Improved parameter parsing: Don't allow bytearrays as name of
       non-positional arguments, to avoid that bytearrays get unwanted string
-      representations (and loosing potentially the pure bytearray
+      representations (and losing potentially the pure bytearray
       property). This could lead to problems with newer Tcl versions
       when passing binary data to NSF procs and methods.
 

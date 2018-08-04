@@ -221,7 +221,7 @@ fi
 DTRACE_OBJ=
 if test "$with_dtrace" = yes; then
    AC_DEFINE([NSF_DTRACE], [1], [Are we building with DTrace support?])
-   # Under Mac OS X, we need no nsfDTrace.o
+   # Under macOS, we need no nsfDTrace.o
    if test "`uname -s`" != "Darwin" ; then
       DTRACE_OBJ=nsfDTrace.o
    fi

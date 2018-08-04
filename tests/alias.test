@@ -328,7 +328,7 @@ nx::test case alias-store
 #
 # Tests for the ::nsf::method::alias store, used for introspection for
 # aliases. The alias store (an associative variable) is mostly
-# necessary for for the direct aliases (e.g. aliases to C implemented
+# necessary for the direct aliases (e.g. aliases to C implemented
 # tcl commands), for which we have no stubs at the place where the
 # alias was registered.
 #
@@ -839,7 +839,7 @@ nx::test case proc-alias-target-namespace {
     ? {ns2::o foo} ::    "alias to a global Tcl proc"
     ? {ns2::o bar} ::ns1 "alias to a namespaced Tcl proc"
     ? {ns2::o baz} ::ns2 "a method defined locally in ns2::o"
-    ? {ns2::o FOO} ::ns3 "alias to to method defined in ::ns3"
+    ? {ns2::o FOO} ::ns3 "alias to method defined in ::ns3"
 }
 
 #

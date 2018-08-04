@@ -285,7 +285,7 @@ test::c1 foo
 #
 # controlled namespace delete: xotcl has its own namespace cleanup,
 # topological order should be always ok. however, the object o::c1 is
-# already deleted, while a method of it is excuted
+# already deleted, while a method of it is executed
 #
 set case "delete parent object (1)"
 nx::test case delete-parent-object
@@ -344,8 +344,8 @@ o::c1 foo
 
 
 #
-# create an other cmd with the current object's name. 
-# xotcl 1.6 crashed on this test
+# create another cmd with the current object's name.
+# XOTcl 1.6 crashed on this test.
 #
 set case "redefine current object as proc"
 nx::test case redefine-current-object-as-proc

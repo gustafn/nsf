@@ -333,7 +333,7 @@ if {$::tcl_version >= 8.6} {
     }
   }
 </pre>
-    The resulting object structure looks like in the folloing
+    The resulting object structure looks like in the following
     example (simplified).
 <pre CLASS="code">
    ::r0

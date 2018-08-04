@@ -246,13 +246,13 @@ userPwd proc show {realm userVar pwVar} {
 #   assert "$r getContentLength" 163840
 # }
 set total 0
-proc parallelRequests-1.0 {urls} {
-  ParallelSink psink -httpVersion 1.0 -init -requests $urls
+proc parallelRequests-1.0 {URLs} {
+  ParallelSink psink -httpVersion 1.0 -init -requests $URLs
   incr ::total [psink set totalbytes]
   psink destroy
 }
-proc parallelRequests-1.1 {urls} {
-  ParallelSink psink -init -requests $urls
+proc parallelRequests-1.1 {URLs} {
+  ParallelSink psink -init -requests $URLs
   incr ::total [psink set totalbytes]
   psink destroy
 }

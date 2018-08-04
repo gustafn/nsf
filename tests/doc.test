@@ -576,7 +576,7 @@ Test case scanning {
       set cbp [CommentBlockParser process -parsing_level 2 -partof_entity $entity $block]
       ? [list $cbp status ? STYLEVIOLATION] 1
       
-      # This fails because we do not allow uninitialised/non-existing
+      # This fails because we do not allow uninitialized/non-existing
       # entity objects (@object o) along the resolution path ...
       set block {
 	{@class.object.property {::C o attr1} We have an invalid specification}
@@ -687,7 +687,7 @@ Test case scanning {
 
 	  # @.class-object-method.parameter {bar p1}
 	  #
-	  # This extended form allows to describe a method parameter with all
+	  # This extended form allows one to describe a method parameter with all
 	  # its structural features!
 	  set barHandle [:public class method bar {p1} {
 	    return [current method]-$p1-[current]
@@ -894,7 +894,7 @@ Test case scanning {
       ? [list $entity as_text] ""
       # --testing-- @class-object-method.parameter {bar p1} (its non-existence) It
       # still cannot exist as a documented entity, as the class method
-      # has not been initialised before!
+      # has not been initialized before!
       set entity [@parameter id [@method id ::C class bar] "" p1]
       ? [list ::nsf::object::exists $entity] 0
       # --testing-- @child-class.property {foo p1} (its non-existence)

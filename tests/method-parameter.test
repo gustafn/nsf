@@ -384,7 +384,7 @@ nx::test case abbrevs1 {
 }
 
 #
-# leading dash and and numbers
+# leading dash and numbers
 #
 
 nx::test case abbrevs2 {

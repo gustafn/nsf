@@ -126,7 +126,7 @@
 
 	- changed multiplicity of mixin, object-mixin, filter,
 	  object-filter from 1..n to 0..n; rationale: when one has a
-	  list of eg. mixins, which should be passed, one has to test
+	  list of e.g. mixins, which should be passed, one has to test
 	  for the length before passing it, otherwise the empty list
 	  would generate an error. Allowing 0..n makes the usage
 	  simpler and the program shorter.
@@ -144,7 +144,7 @@
 	- replaced functionality of "/obj/ configure" by "/obj/ info
 	  configure" to re-enable semantics of the plain configure
 	  method, even when called without arguments. "/obj/ info
-	  configure" is actually a convenience method to allow to
+	  configure" is actually a convenience method to allow one to
 	  write o1 info configure instead of o1 info lookup configure
 	  syntax
 
@@ -184,7 +184,7 @@
 
 	- saving "keepcmds" in an associative array named
 	  "__cmd(/parameternName)" to allow saving of multiple
-	  parmeters with less name clash danger (when application
+	  parameters with less name clash danger (when application
 	  stays away from variables stating with double underscore)
 
 	nx.tcl:
@@ -883,7 +883,7 @@
 2012-09-15  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
 	nsf.c:
-	- fixed parmeter syntax for required nonpos args
+	- fixed parameter syntax for required nonpos args
 	- deactivate deletion of methods via nsf::object::delete during
 	  shutdown to avoid missing slot forwarders called from destructors
 
@@ -935,7 +935,7 @@
 	  the others are defined on demand
 
 	changes to allow efficient tk/incr tcl compatible configure/cget
-	- refactored code to allow to parameterize handling of required
+	- refactored code to allow one to parameterize handling of required
 	  flag for parameters
 	- don't flag an error when configure is called on an
 	  initialized object (logic: if the object is initialized,
@@ -954,7 +954,7 @@
 
 2012-08-10  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	- allow to change title of a scripted document
+	- allow one to change title of a scripted document
 	- make doc beautifier more robust for invalid lists
 	- use explicit return in tutorial example scripts
 

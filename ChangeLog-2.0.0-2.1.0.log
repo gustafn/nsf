@@ -2,8 +2,7 @@
 
 	* nsfmongo.c: Added explicit calls to mongoc_init() and
 	mongoc_cleanup(). Documented use of configure flag
-	"--disable-automatic-init-and-cleanup" to avoid crashes under Mac
-	OS X. [b7029a4]
+	"--disable-automatic-init-and-cleanup" to avoid crashes under macOS. [b7029a4]
 
 	* nxsh.man: Improved wording. [a7ce921]
 
@@ -450,7 +449,7 @@
 2016-09-29  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
 	* nsf.c, methods.test (DispatchUnknownMethod): Make sure that
-	arcane method names make it into proper unknown error mesages
+	arcane method names make it into proper unknown error messages
 	incl. names representing invalid Tcl lists; tests included;
 	checked by valgrind [4b78042]
 
@@ -632,7 +631,7 @@
 	adding const declarations, preferring boolean tests, avoid "for"
 	loops without a block, don't pass non-initialized value in an
 	array on index [0], reducing variable scope, preferring single
-	returns statements in functions, dont't use CONST unless defined
+	returns statements in functions, don't use CONST unless defined
 	by Tcl API. [8eecbe5]
 
 	* nsf.c: Limit effects of namespace-imported classes. [3b5f62d]
@@ -1398,7 +1397,7 @@
 	* Makefile.in: Make sure to rm .o files in stub directory.
 	[4f7f7c1]
 
-	* mktar.sh: Make sure to omit Mac OS X hidden file from tarballs.
+	* mktar.sh: Make sure to omit macOS hidden file from tarballs.
 	[9fe4a51]
 
 2014-12-04  Gustaf Neumann  <neumann@wu-wien.ac.at>

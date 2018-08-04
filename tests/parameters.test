@@ -1758,9 +1758,9 @@ nx::test case check-arguments {
 
 #
 # Check whether resetting via method "configure" changes values in the
-# initialzed object state.
+# initialized object state.
 #
-nx::test case dont-reset-to-defaults {
+nx::test case don't-reset-to-defaults {
   nx::Class create C {
     :property -accessor public {a 1}
     :create c1
@@ -2626,7 +2626,7 @@ nx::test case object-parameter-switch {
 
   # nx::Object case: variables of type "switch" are like variables of type
   # boolean, except that without the specified value argument
-  # (variable foo below), it sets the the variable to "false".
+  # (variable foo below), it sets the variable to "false".
   ? {::nx::Object create o1 {
     :object variable foo:switch
     :object variable bar:switch 1
