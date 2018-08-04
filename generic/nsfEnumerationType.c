@@ -114,10 +114,9 @@ Nsf_EnumerationTypeRelease(void) {
  *----------------------------------------------------------------------
  */
 int
-Nsf_EnumerationTypeRegister(Tcl_Interp *interp, Nsf_EnumeratorConverterEntry *typeRecords) {
+Nsf_EnumerationTypeRegister(Tcl_Interp *UNUSED(interp), Nsf_EnumeratorConverterEntry *typeRecords) {
   Nsf_EnumeratorConverterEntry *ePtr;
 
-  nonnull_assert(interp != NULL);
   nonnull_assert(typeRecords != NULL);
 
   for (ePtr = typeRecords; ePtr->converter; ePtr++) {
