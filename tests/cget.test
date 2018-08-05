@@ -125,7 +125,7 @@ nx::test case cget-via-slot {
 
 #
 # The third test set checks method binding to parameter:
-# All cmds are supposed to return resonable values.
+# All cmds are supposed to return reasonable values.
 #
 nx::test case cget-parameter-methods {
   nx::Class create C {

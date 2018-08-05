@@ -173,7 +173,7 @@ nx::test case subst-default-method-parameters {
   ? {d1 i} "c d e-vars-localVars vars"
 
   #
-  # Let us change the intance variables to make sure the resolving is
+  # Let us change the instance variables to make sure the resolving is
   # dynamic.
   #
   d1 configure -c 100 -d 200 -e 300

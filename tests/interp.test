@@ -138,7 +138,7 @@ nx::test case hidden-cmds {
   $i eval {nsf::finalize -keepvars}
 
   # The destructor of e.g. object o sets a global variable with the
-  # object name. The following test checks therfore, whether the
+  # object name. The following test checks therefore, whether the
   # destructor was executed.
   #
 
