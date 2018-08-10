@@ -4381,8 +4381,13 @@ ObjectSystemFree(Tcl_Interp *interp, NsfObjectSystem *osPtr) {
   nonnull_assert(osPtr != NULL);
 
   for (idx = 0; idx <= NSF_s_set_idx; idx++) {
-    if (osPtr->methods[idx]) { DECR_REF_COUNT(osPtr->methods[idx]); osPtr->methodNames[idx] = NULL; }
-    if (osPtr->handles[idx]) { DECR_REF_COUNT(osPtr->handles[idx]); }
+    if (osPtr->methods[idx]) {
+      DECR_REF_COUNT(osPtr->methods[idx]);
+      osPtr->methodNames[idx] = NULL;
+    }
+    if (osPtr->handles[idx]) {
+      DECR_REF_COUNT(osPtr->handles[idx]);
+    }
   }
 
   if (osPtr->rootMetaClass != NULL && osPtr->rootClass != NULL) {
@@ -7401,7 +7406,10 @@ AutonameIncr(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfObject *object,
   }
 
   if (doResetOpt == 1) {
-    if (valueObj != NULL) { /* we have an entry */
+    if (valueObj != NULL) {
+      /*
+       * We have such an variable. The reset operation has tun unset it.
+       */
       Tcl_UnsetVar2(interp, NsfGlobalStrings[NSF_AUTONAMES], ObjStr(nameObj), flogs);
     }
     resultObj = NsfGlobalObjs[NSF_EMPTY];
@@ -20519,9 +20527,15 @@ ComputeLevelObj(Tcl_Interp *interp, CallStackLevel level) {
   nonnull_assert(interp != NULL);
 
   switch (level) {
-  case CALLING_LEVEL: NsfCallStackFindLastInvocation(interp, 1, &framePtr); break;
-  case ACTIVE_LEVEL:  NsfCallStackFindActiveFrame(interp,    1, &framePtr); break;
-  default: framePtr = NULL; break; /* silence compiler */
+  case CALLING_LEVEL:
+    NsfCallStackFindLastInvocation(interp, 1, &framePtr);
+    break;
+  case ACTIVE_LEVEL:
+    NsfCallStackFindActiveFrame(interp,    1, &framePtr);
+    break;
+  default:
+    framePtr = NULL;
+    break; /* silence compiler */
   }
 
   if (framePtr != NULL) {
@@ -22866,7 +22880,10 @@ ForwardArg(
                                       "forward: %%1 contains invalid list '%s'",
                                       ObjStr(listObj));
         }
-      } else if (unlikely(tcd->subcommands != NULL)) { /* deprecated part */
+      } else if (unlikely(tcd->subcommands != NULL)) {
+        /*
+         * This is a deprecated part, kept for backwards compatibility.
+         */
         if (Tcl_ListObjGetElements(interp, tcd->subcommands, &nrElements, &listElements) != TCL_OK) {
           return NsfForwardPrintError(interp, tcd, objc, objv,
                                       "forward: %%1 contains invalid list '%s'",
@@ -22992,7 +23009,7 @@ ForwardArg(
 
     } else {
       /*
-       * Evaluate the given command
+       * Evaluate the given command.
        */
       /*fprintf(stderr, "evaluating '%s'\n", ForwardArgString);*/
       result = Tcl_EvalEx(interp, ForwardArgString, -1, 0);
