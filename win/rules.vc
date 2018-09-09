@@ -1281,7 +1281,7 @@ COMPILERFLAGS  = /D_ATL_XP_TARGETING
 # Tcl without /DUNICODE, while 8.6 builds with it defined. When building
 # an extension, it is advisable (but not mandated) to use the same Windows
 # API as the Tcl build. This is accordingly defaulted below. A particular
-# extension can override this by pre-definining USE_WIDECHAR_API.
+# extension can override this by pre-defining USE_WIDECHAR_API.
 !ifndef USE_WIDECHAR_API
 !if $(TCL_VERSION) > 85
 USE_WIDECHAR_API = 1
