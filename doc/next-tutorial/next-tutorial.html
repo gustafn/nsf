@@ -435,7 +435,7 @@ thead, p.table.header {
 p.table {
   margin-top: 0;
 }
-/* Because the table frame attribute is overridden by CSS in most browsers. */
+/* Because the table frame attribute is overriden by CSS in most browsers. */
 div.tableblock > table[frame="void"] {
   border-style: none;
 }
@@ -2908,11 +2908,11 @@ etc.</p></div>
 that default values can be specified for positional and non-positional
 parameters, alike. This default value is used to define a
 corresponding method-local and object variable, respectively, and to
-set it to the default value. Normally, the default value is taken
-literally. Default values can also be preprocessed into a final value
-using Tcl substitution in the sense of <code>[subst]</code>. For this, a parameter
-can be decorated with the parameter option <code>substdefault</code> in addition
-to a default value.</p></div>
+set it to the default value. By default, the default value is taken
+literally (without any substitutions). Default values can also be
+preprocessed into a final value using Tcl substitution as provided by
+the Tcl <code>[subst]</code> command. To control the kind of substitutions to be
+performed, the parameter option <code>substdefault</code> can be provided.</p></div>
 <div class="paragraph" id="substdefault"><div class="title">Listing 43: Default-value substitution using <code>substdefault</code></div><p></p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
@@ -2927,43 +2927,52 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </style>
 <pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> ::D
 <span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> ::C {
-   <span class='nx-comment'># default: all substitutions (command, variable, control
-</span>   <span class='nx-comment'># characters) active!
-</span>  <span class='nx-keyword'>:property</span> {d<span class='nx-keyword'>:object</span>,type=::D,substdefault {[::D <span class='nx-keyword'>new</span>]}};
-  <span class='nx-keyword'>:create</span> ::c; <span class='nx-comment'># final values are computed and set at instantiation time
-</span>}
+  <span class='nx-comment'>#
+</span>  <span class='nx-comment'># By default all substitutions (command, variable, control
+</span>  <span class='nx-comment'># characters) are active, when "substdefault" is used:
+</span>  <span class='nx-comment'>#
+</span>  <span class='nx-keyword'>:property</span> {d<span class='nx-keyword'>:object</span>,type=::D,substdefault {[::D <span class='nx-keyword'>new</span>]}}
 
-::c <span class='nx-keyword'>cget</span> -d;</pre></div></div>
-<div class="paragraph"><p>The listing in <a href="#substdefault">Listing 43</a> employs <code>substdefault</code>
-to establish a reference named <code>d</code> between an instance of class ::C
-and an instance of ::D when an instance of ::C is created. By
-default, all substitution kinds are active: command, variable, and
-backslash substitution. Beyond this default, <code>substdefault</code> can be
-parametrized to include or to exclude any combination of substitution types:</p></div>
+  <span class='nx-comment'>#
+</span>  <span class='nx-comment'># The actual property values are computed and
+</span>  <span class='nx-comment'># set at instantiation time.
+</span>  <span class='nx-comment'>#
+</span>  <span class='nx-keyword'>:create</span> ::c
+}
+
+::c <span class='nx-keyword'>cget</span> -d</pre></div></div>
+<div class="paragraph"><p><a href="#substdefault">Listing 43</a> uses <code>substdefault</code>
+to provide a default value for the property <code>d</code>. In this example, the
+default value is a fresh instance of
+class <code>::D</code>. When the parameter option <code>substdefault</code> is used
+default, all substitution kinds of Tcl are active: command, variable, and
+backslash substitution. <code>substdefault</code> can be
+parametrized to include or to exclude any combination of substitution
+kinds by providing a bitmask:</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
-all active (default): <code>substdefault=0b111</code>
+<code>substdefault=0b111</code>: all substitutions active (default)
 </p>
 </li>
 <li>
 <p>
-backslashes only (<code>-novariables</code>, <code>-nocommands</code>): <code>substdefault=0b100</code>
+<code>substdefault=0b100</code>: substitute backslashes only (like <code>subst -novariables -nocommands</code>)
 </p>
 </li>
 <li>
 <p>
-variables only (<code>-nobackslashes</code>, <code>-nocommands</code>): <code>substdefault=0b010</code>
+<code>substdefault=0b010</code>: substitute variables only (like <code>subst -nobackslashes -nocommands</code>)
 </p>
 </li>
 <li>
 <p>
-commands only (<code>-nobackslashes</code>, <code>-novariables</code>): <code>substdefault=0b001</code>
+<code>substdefault=0b001</code>: substitute commands only (like <code>subst -nobackslashes -novariables</code>)
 </p>
 </li>
 <li>
 <p>
-none (<code>-nobackslashes</code>, <code>-nocommands</code>, <code>-novariables</code>): <code>substdefault=0b000</code>
+<code>substdefault=0b000</code>: substitute nothing (like <code>subst -nobackslashes -nocommands -novariables</code>, noop)
 </p>
 </li>
 </ul></div>
@@ -3456,7 +3465,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <div id="footer">
 <div id="footer-text">
 Version 2.2.0<br />
-Last updated 2018-07-31 15:35:37 CEST
+Last updated 2018-09-09 20:22:49 CEST
 </div>
 </div>
 </body>

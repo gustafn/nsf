@@ -1147,7 +1147,7 @@ variables configurable, which means that
 # (short form); parameter
 # "a" has no default, "b" has default "1"
 
-Class Foo -parameter {a {b 1}}
+Class Foo -parameter {a {b 1} {c "[info tclversion]"}}
 
 # Create instance of the class Foo
 Foo f1 -a 0
@@ -1163,6 +1163,13 @@ puts [f1 b]
 # Use the setter to alter value of
 # instance variable "b"
 f1 b 100
+
+# Return the substituted value of
+# parameter "c", something like 8.7.
+# XOTcl substitutes always when it sees
+# square brackets or dollar signs.
+f1 c
+
 ----------------
 |[source,tcl]
 ----------------
@@ -1173,6 +1180,8 @@ f1 b 100
 Class create Foo {
   :property a
   :property {b 1}
+  :property {c "[info tclversion]"}
+  :property {d:substdefault "[info tclversion]"}
 }
 
 # Create instance of the class Foo
@@ -1188,6 +1197,13 @@ puts [f1 cget -b]
 # Use the method "configure" to alter the
 # value of instance variable "b"
 f1 configure -b 100
+
+# Return the (non substituted) value of
+# parameter "c", and the substituted value 
+# of parameter "d"
+f1 cget -c
+f1 cget -d
+
 ----------------
 |======================
 
@@ -1208,7 +1224,7 @@ default in NX. In order to change the default behavior in NX, one can use
 # methods, accessor methods are
 # always public, no "cget" is available.
 
-Class create Foo -parameter {a {b1}}
+Class create Foo -parameter {a {b 1}}
 
 # Use the accessor method to query
 # the value of a configuration parameter

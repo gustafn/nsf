@@ -435,7 +435,7 @@ thead, p.table.header {
 p.table {
   margin-top: 0;
 }
-/* Because the table frame attribute is overridden by CSS in most browsers. */
+/* Because the table frame attribute is overriden by CSS in most browsers. */
 div.tableblock > table[frame="void"] {
   border-style: none;
 }
@@ -2666,7 +2666,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span><span class='nx-comment'># (short form); parameter
 </span><span class='nx-comment'># "a" has no default, "b" has default "1"
 </span>
-<span class='nx-keyword'>Class</span> Foo -parameter {a {b 1}}
+<span class='nx-keyword'>Class</span> Foo -parameter {a {b 1} {c <span class='nx-string'>"[info tclversion]"</span>}}
 
 <span class='nx-comment'># Create instance of the class Foo
 </span>Foo f1 -a 0
@@ -2681,7 +2681,14 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 
 <span class='nx-comment'># Use the setter to alter value of
 </span><span class='nx-comment'># instance variable "b"
-</span>f1 b 100</pre></div></div></div></td>
+</span>f1 b 100
+
+<span class='nx-comment'># Return the substituted value of
+</span><span class='nx-comment'># parameter "c", something like 8.7.
+</span><span class='nx-comment'># XOTcl substitutes always when it sees
+</span><span class='nx-comment'># square brackets or dollar signs.
+</span>f1 c
+</pre></div></div></div></td>
 <td align="left" valign="middle"><div><div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -2700,6 +2707,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> Foo {
   <span class='nx-keyword'>:property</span> a
   <span class='nx-keyword'>:property</span> {b 1}
+  <span class='nx-keyword'>:property</span> {c <span class='nx-string'>"[info tclversion]"</span>}
+  <span class='nx-keyword'>:property</span> {d:substdefault <span class='nx-string'>"[info tclversion]"</span>}
 }
 
 <span class='nx-comment'># Create instance of the class Foo
@@ -2714,7 +2723,14 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 
 <span class='nx-comment'># Use the method "configure" to alter the
 </span><span class='nx-comment'># value of instance variable "b"
-</span>f1 <span class='nx-keyword'>configure</span> -b 100</pre></div></div></div></td>
+</span>f1 <span class='nx-keyword'>configure</span> -b 100
+
+<span class='nx-comment'># Return the (non substituted) value of
+</span><span class='nx-comment'># parameter "c", and the substituted value
+</span><span class='nx-comment'># of parameter "d"
+</span>f1 <span class='nx-keyword'>cget</span> -c
+f1 <span class='nx-keyword'>cget</span> -d
+</pre></div></div></div></td>
 </tr>
 </tbody>
 </table>
@@ -2755,7 +2771,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span><span class='nx-comment'># methods, accessor methods are
 </span><span class='nx-comment'># always public, no "cget" is available.
 </span>
-<span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> Foo -parameter {a {b1}}
+<span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> Foo -parameter {a {b 1}}
 
 <span class='nx-comment'># Use the accessor method to query
 </span><span class='nx-comment'># the value of a configuration parameter
@@ -6466,7 +6482,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <div id="footer">
 <div id="footer-text">
 Version 2.2.0<br />
-Last updated 2018-07-31 11:45:02 CEST
+Last updated 2018-09-09 20:47:52 CEST
 </div>
 </div>
 </body>

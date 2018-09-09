@@ -405,7 +405,6 @@ option +-mixin+ mixes the class +Safety+ into the new instance +s2+.
 % Stack create s2 -object-mixin Safety
 ::s2
 % s2 push a
-a
 % s2 pop
 a
 % s2 pop
@@ -2046,11 +2045,11 @@ Optional object and method parameters can set a default value. Recall
 that default values can be specified for positional and non-positional
 parameters, alike. This default value is used to define a
 corresponding method-local and object variable, respectively, and to
-set it to the default value. Normally, the default value is taken
-literally. Default values can also be preprocessed into a final value
-using Tcl substitution in the sense of +[subst]+. For this, a parameter
-can be decorated with the parameter option +substdefault+ in addition
-to a default value.
+set it to the default value. By default, the default value is taken
+literally (without any substitutions). Default values can also be
+preprocessed into a final value using Tcl substitution as provided by
+the Tcl +[subst]+ command. To control the kind of substitutions to be
+performed, the parameter option +substdefault+ can be provided.
 
 [[substdefault]]
 .Listing {counter:figure-number}: Default-value substitution using +substdefault+
@@ -2059,27 +2058,36 @@ to a default value.
 --------------------------------------------------
 nx::Class create ::D
 nx::Class create ::C {
-   # default: all substitutions (command, variable, control
-   # characters) active!
-  :property {d:object,type=::D,substdefault {[::D new]}};
-  :create ::c; # final values are computed and set at instantiation time
+  #
+  # By default all substitutions (command, variable, control
+  # characters) are active, when "substdefault" is used:
+  #
+  :property {d:object,type=::D,substdefault {[::D new]}}
+
+  #
+  # The actual property values are computed and
+  # set at instantiation time.
+  #
+  :create ::c   
 }
 
-::c cget -d;
+::c cget -d
 --------------------------------------------------
 
-The listing in <<substdefault, {substdefault}>> employs +substdefault+
-to establish a reference named +d+ between an instance of class ::C
-and an instance of ::D when an instance of ::C is created. By
-default, all substitution kinds are active: command, variable, and
-backslash substitution. Beyond this default, +substdefault+ can be
-parametrized to include or to exclude any combination of substitution types:
+<<substdefault, {substdefault}>> uses +substdefault+
+to provide a default value for the property +d+. In this example, the
+default value is a fresh instance of
+class +::D+. When the parameter option +substdefault+ is used
+default, all substitution kinds of Tcl are active: command, variable, and
+backslash substitution. +substdefault+ can be
+parametrized to include or to exclude any combination of substitution
+kinds by providing a bitmask:
 
-- all active (default): +substdefault=0b111+
-- backslashes only (+-novariables+, +-nocommands+): +substdefault=0b100+
-- variables only (+-nobackslashes+, +-nocommands+): +substdefault=0b010+
-- commands only (+-nobackslashes+, +-novariables+): +substdefault=0b001+
-- none (+-nobackslashes+, +-nocommands+, +-novariables+): +substdefault=0b000+
+- +substdefault=0b111+: all substitutions active (default)
+- +substdefault=0b100+: substitute backslashes only (like +subst -novariables -nocommands+)
+- +substdefault=0b010+: substitute variables only (like +subst -nobackslashes -nocommands+)
+- +substdefault=0b001+: substitute commands only (like +subst -nobackslashes -novariables+)
+- +substdefault=0b000+: substitute nothing (like +subst -nobackslashes -nocommands -novariables+, noop)
 
 == Advanced Language Features
 
