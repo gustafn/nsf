@@ -1,3 +1,27 @@
+2018-09-09  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* next-tutorial.txt, next-migration.txt: Improve documentation of
+	"substdefault" in tutorial, add it to migration guide [02934359]
+	* rules.vc: Fix typo [b9a6a8fb]
+
+2018-08-10  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsf.c (ComputeLevelObj, ObjectSystemFree, ForwardArg, AutonameIncr): Prefer
+	writing blocks in multiple lines [ad4244a2]
+
+2018-08-05  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* cget.test, interp.test, substdefault.test: Improve spelling
+	[d4706d18]
+
+2018-08-04  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* serializer.tcl, nx.tcl: Bump version numbers consistently to 2.2
+           [73f1e56a]
+	* Fix typos [2a955681]
+        * nsfEnumerationType.c: Remove unused variable from non-null
+	asserts [5cf5c26d]
+
 2018-07-31  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
 	* next-migration.txt, next-tutorial.txt: Minor corrections, adding
