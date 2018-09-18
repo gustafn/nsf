@@ -1,26 +1,26 @@
 2018-09-09  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
 	* next-tutorial.txt, next-migration.txt: Improve documentation of
-	"substdefault" in tutorial, add it to migration guide [02934359]
+	  "substdefault" in tutorial, add it to migration guide [02934359]
 	* rules.vc: Fix typo [b9a6a8fb]
 
 2018-08-10  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
 	* nsf.c (ComputeLevelObj, ObjectSystemFree, ForwardArg, AutonameIncr): Prefer
-	writing blocks in multiple lines [ad4244a2]
+	  writing blocks in multiple lines [ad4244a2]
 
 2018-08-05  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
 	* cget.test, interp.test, substdefault.test: Improve spelling
-	[d4706d18]
+	  [d4706d18]
 
 2018-08-04  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
 	* serializer.tcl, nx.tcl: Bump version numbers consistently to 2.2
-           [73f1e56a]
+          [73f1e56a]
 	* Fix typos [2a955681]
         * nsfEnumerationType.c: Remove unused variable from non-null
-	asserts [5cf5c26d]
+	  asserts [5cf5c26d]
 
 2018-07-31  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
@@ -30,28 +30,28 @@
 2018-07-24  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
 	* rosetta-tree.tcl, next-migration.txt, nsf.c, nsfDebug.c,
-	nx-zip.tcl, nx.tcl, serializer.tcl: Improve spelling [ce99d2e5]
+	  nx-zip.tcl, nx.tcl, serializer.tcl: Improve spelling [ce99d2e5]
 	* library/mongodb/Makefile.in, library/mongodb/libmongo.c: Remove
-	dead assignment; add cppcheck target [6252b8e8]
+	  dead assignment; add cppcheck target [6252b8e8]
 
 2018-07-20  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
 	* configure.3, current.3, next.3, nxsh.1, nxwish.1, xotclsh.1,
-	xowish.1: Re-generated to reflect bumped version. [skip ci] [22abf92c]
+	  xowish.1: Re-generated to reflect bumped version. [skip ci] [22abf92c]
 	* README.release: Add missing artifacts for version bump [skip ci]
-	[bbe37e8c]
+	  [bbe37e8c]
 
 2018-07-19  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
 	* nsfmongo.c (mongoc_collection_create_index): Removed last
-	deprecated call of the mongo-c-driver [c5e8bf0a]
+	  deprecated call of the mongo-c-driver [c5e8bf0a]
 	* doc/Announce2.2.0: Updates to announce file, tested with
-	mongo-c-driver 1.12.0 (released yesterday) [b9bcc40a]
+	  mongo-c-driver 1.12.0 (released yesterday) [b9bcc40a]
 
 2018-07-19  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
 	* apps/utils/source-highlight-with-pp: Generalise executable name in
-	shebang, seems like an unintended change in [ae081c0f1] [69559167]
+	  shebang, seems like an unintended change in [ae081c0f1] [69559167]
 
 2018-07-16  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
@@ -61,27 +61,27 @@
 
 	* serializer.tcl: Bump version number to 2.2 [f20d7966]
 	* README.md: Change README to markdown syntax, various updates
-	[63cca48b, 18f9c9f5, d25063bf, 7c8895c8, 9ee11c31, 82511c9f, 5e56bff3]
+	  [63cca48b, 18f9c9f5, d25063bf, 7c8895c8, 9ee11c31, 82511c9f, 5e56bff3]
 	* library/mongodb/COPYRIGHT: Update copyright information
-	[4b99da62]
+	  [4b99da62]
 	* README, dtrace/README, generic/asm/README, library/mongodb/README: Prefer
-	new spelling of macOS [5c2e3f48]
+	  new spelling of macOS [5c2e3f48]
 	* library/mongodb/*: Updating mongodb interface for 2.2: update to
-	mongodb-c-driver 1.11.0, reduce number of calls to deprecated
-	driver functions as far as possible, improve cleanness of
-	compilation (provide prototypes etc.)
+	  mongodb-c-driver 1.11.0, reduce number of calls to deprecated
+	  driver functions as far as possible, improve cleanness of
+	  compilation (provide prototypes etc.)
 	* library/mongodb/configure.ac, library/mongodb/nx-mongo.tcl: Bump
-	version number to 2.2 [75f11a9a]
+	  version number to 2.2 [75f11a9a]
 	* nsf.c (Nsf_SafeInit, Nsf_Init, Nsf_ExitProc)
-	(Nsf_ThreadExitProc, ExitHandler): Prefer Tcl defined types over
-	local prototypes [6d66926b]
+	  (Nsf_ThreadExitProc, ExitHandler): Prefer Tcl defined types over
+	  local prototypes [6d66926b]
 
 2018-07-13  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
 	* nsfDebug.c, nsfInt.h (STRING_NEW, MEM_COUNT_ALLOC, MEM_COUNT_FREE):
-	Fix compilation with --enable-memcount=yes. [b6f285f7]
+	  Fix compilation with --enable-memcount=yes. [b6f285f7]
 	* configure, configure.ac, nx.tcl, pkgIndex.tcl, xotcl2.tcl, pkg.vc:
-	Bump version to 2.2.0. [9b831c84]
+	  Bump version to 2.2.0. [9b831c84]
 
 2018-07-10 Gustaf Neumann <neumann@wu-wien.ac.at>
 
@@ -252,7 +252,7 @@
 
 	* .travis.yml: Provide first attempt at Travis build array and
 	  build script [fffcee32, 2e1926a7, c216c592, f4ca149d, 79e5563d,
-	63295a8d, 21d83785]
+	  63295a8d, 21d83785]
 
 2018-05-29  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
