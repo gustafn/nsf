@@ -3282,7 +3282,7 @@ PrecedenceOrder(NsfClass *class) {
    * Otherwise clear cl->order if necessary.
    */
   if (likely(success)) {
-    AssertOrderIsWhite(cl->order);
+    AssertOrderIsWhite(class->order);
     /*
      * TopoSortSuper succeeded, the cl-order is already set.
      */
