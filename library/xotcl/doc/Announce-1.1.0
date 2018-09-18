@@ -40,7 +40,7 @@ CHANGES relative to 1.0.2 are:
        This method is called, whenever XOTcl references a class, 
        which is not defined yet (e.g.: Class C -superclass UNKNOWNCLASS)
        This method is used for Zoran's wonderful ttrace package
-       (for aolserver and tcl-Threads)
+       (for AOLserver and tcl-Threads)
 
      * Improved documentation:
         - extended tutorial (Meta-Classes, Tk, ...)
