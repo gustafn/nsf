@@ -5630,7 +5630,7 @@ if test "$enable_development" = yes; then
 $as_echo "#define NSF_DEVELOPMENT 1" >>confdefs.h
 
 fi
-if test "$enable_development" = full; then
+if test "$enable_development" = test; then
 
 $as_echo "#define NSF_DEVELOPMENT_TEST 1" >>confdefs.h
 
@@ -5668,7 +5668,7 @@ if test "$with_dtrace" = yes; then
 
 $as_echo "#define NSF_DTRACE 1" >>confdefs.h
 
-   # Under Mac OS X, we need no nsfDTrace.o
+   # Under macOS, we need no nsfDTrace.o
    if test "`uname -s`" != "Darwin" ; then
       DTRACE_OBJ=nsfDTrace.o
    fi

@@ -197,7 +197,7 @@ fi
 if test "$enable_development" = yes; then
    AC_DEFINE([NSF_DEVELOPMENT], [1], [Are we building with development support?])
 fi
-if test "$enable_development" = full; then
+if test "$enable_development" = test; then
    AC_DEFINE([NSF_DEVELOPMENT_TEST], [1], [Are we building with development support and intesive testing?])
 fi
 
