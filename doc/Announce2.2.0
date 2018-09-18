@@ -172,7 +172,10 @@ New Features
       dereferencing) and buffer overflows in string operations.
     + Silence warnings under MSVC 1914
 
-  * New configure option: "--enable-development=test"  *** what does this do exactly??? ****
+  * New configure option: "--enable-development=test"
+    Enable computational intensive runtime tests, having
+    noticeable effects on runtime. A version of NSF configured with
+    "--enable-development" can be used also for production environments.
 
   * Extended regression test suite:
     The test suite contains now 6243 tests (for Tcl 8.6.8). This
