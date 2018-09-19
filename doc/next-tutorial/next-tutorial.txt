@@ -1,7 +1,7 @@
 Tutorial for the Next Scripting Language
 ==========================================
 Gustaf Neumann <neumann@wu-wien.ac.at>, Stefan Sobernig <stefan.sobernig@wu.ac.at>
-v2.2.0, July 2018:
+v2.2.0, September 2018:
 Written for the Initial Release of the Next Scripting Framework.
 :Author Initials: GN
 :toc:
