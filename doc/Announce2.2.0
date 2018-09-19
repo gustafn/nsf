@@ -70,7 +70,7 @@ New Features
     conversion are used.
 
   * Improvements to handling of parameter option "substdefault".  NX
-    provides now controls to the developer to selected the kind of
+    provides now controls to the developer to select the kind of
     substitution at runtime when a default value is used.
 
     + the "substdefault" options can control via a single argument whether
@@ -114,7 +114,7 @@ New Features
 
    * Fix potential problem in NaviServer ns_eval with blueprint updates
      on objects, which were not created by the blueprint. Such objects
-     could loose their classes when these classes are cleaned-up on
+     could lose their classes when these classes are cleaned up on
      blueprint evaluation.
 
 - DTrace support (macOS): Adjusted NSF/DTrace integration for
