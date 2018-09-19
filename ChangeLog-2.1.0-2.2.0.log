@@ -1,3 +1,25 @@
+2018-09-19  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* Announce2.2.0: Improve spelling [89a7fe07]
+
+2018-09-19  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* Announce2.2.0: Update diffstats [bf5e2d24]
+	* next-tutorial.txt: Align release date [061df695]
+	* next-migration.txt: Align release date [c6816ddd]
+	* Announce-1.0.1, Announce-1.1.0, Announce-1.3.3, Announce-1.3.4:
+	Improve spelling [ff459233]
+	* Announce2.2.0: Add paragraph for configure flag
+	   "-i-enable-development=test" [b8d2494c]
+	* configure, configure.ac: Align help text with
+	   implementation [9f15e921]
+	* ChangeLog-2.1.0-2.2.0.log: Fix indentation [c49479f1]
+	* nsf.c: Fix variable name [8f7cd2c3]
+
+2018-09-16  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* ChangeLog-2.1.0-2.2.0.log: Add recent commits [4e4106cd]
+
 2018-09-09  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
 	* next-tutorial.txt, next-migration.txt: Improve documentation of
