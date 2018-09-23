@@ -33538,8 +33538,7 @@ objectInfoMethod vars NsfObjInfoVarsMethod {
 */
 static int
 NsfObjInfoVarsMethod(Tcl_Interp *interp, NsfObject *object, const char *pattern) {
-  Tcl_Obj         *varList, *okList, *element;
-  int              i, length;
+  Tcl_Obj         *okList;
   TclVarHashTable *varTablePtr;
 
   nonnull_assert(interp != NULL);
@@ -33556,6 +33555,9 @@ NsfObjInfoVarsMethod(Tcl_Interp *interp, NsfObject *object, const char *pattern)
    * NULL.
    */
   if (likely(varTablePtr != NULL)) {
+    Tcl_Obj  *varList, *element;
+    int       i, length;
+
     ListVarKeys(interp, TclVarHashTablePtr(varTablePtr), pattern);
     varList = Tcl_GetObjResult(interp);
 
