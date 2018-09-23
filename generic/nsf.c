@@ -4764,36 +4764,40 @@ static Tcl_Var CompiledLocalsLookup(CallFrame *varFramePtr, const char *varName)
 
 static Tcl_Var
 CompiledLocalsLookup(CallFrame *varFramePtr, const char *varName) {
-  Tcl_Obj  **varNameObjPtr;
-  int        i, localCt, nameLength;
+  int localCt;
 
   nonnull_assert(varFramePtr != NULL);
   nonnull_assert(varName != NULL);
 
   localCt = varFramePtr->numCompiledLocals;
-  varNameObjPtr = &varFramePtr->localCachePtr->varName0;
-  nameLength = (int)strlen(varName);
+  if (localCt > 0) {
+    Tcl_Obj  **varNameObjPtr;
+    int        i, nameLength;
 
-  /* fprintf(stderr, "=== compiled local search #local vars %d for <%s> flags %.8x\n",
-          localCt, varName, varFramePtr->isProcCallFrame);
-  */
+    varNameObjPtr = &varFramePtr->localCachePtr->varName0;
+    nameLength = (int)strlen(varName);
 
-  for (i = 0 ; i < localCt ; i++, varNameObjPtr++) {
-    Tcl_Obj *varNameObj = *varNameObjPtr;
-    int      len;
+    /* fprintf(stderr, "=== compiled local search #local vars %d for <%s> flags %.8x\n",
+       localCt, varName, varFramePtr->isProcCallFrame);
+    */
 
-    if (likely(varNameObj != NULL)) {
-      const char *localName = TclGetStringFromObj(varNameObj, &len);
+    for (i = 0 ; i < localCt ; i++, varNameObjPtr++) {
+      Tcl_Obj *varNameObj = *varNameObjPtr;
+      int      len;
 
-      /* fprintf(stderr, ".. [%d] varNameObj %p %p <%s>\n",
-         i, (void *)varNameObj, (void *)varNameObj->typePtr, localName);
-      */
+      if (likely(varNameObj != NULL)) {
+        const char *localName = TclGetStringFromObj(varNameObj, &len);
 
-      if (unlikely(varName[0] == localName[0]
-                   && varName[1] == localName[1]
-                   && len == nameLength
-                   && strcmp(varName, localName) == 0)) {
-        return (Tcl_Var) &varFramePtr->compiledLocals[i];
+        /* fprintf(stderr, ".. [%d] varNameObj %p %p <%s>\n",
+           i, (void *)varNameObj, (void *)varNameObj->typePtr, localName);
+        */
+
+        if (unlikely(varName[0] == localName[0]
+                     && varName[1] == localName[1]
+                     && len == nameLength
+                     && strcmp(varName, localName) == 0)) {
+          return (Tcl_Var) &varFramePtr->compiledLocals[i];
+        }
       }
     }
   }
@@ -4839,6 +4843,7 @@ CompiledColonLocalsLookupBuildCache(CallFrame *varFramePtr, const char *varName,
   nonnull_assert(ctxPtr != NULL);
 
   assert(ctxPtr->colonLocalVarCache == NULL);
+  assert(varFramePtr->localCachePtr != NULL);
 
   localCt = varFramePtr->numCompiledLocals;
   varNameObjPtr = &varFramePtr->localCachePtr->varName0;
@@ -4962,87 +4967,92 @@ static Tcl_Var CompiledColonLocalsLookup(CallFrame *varFramePtr, const char *var
 
 static Tcl_Var
 CompiledColonLocalsLookup(CallFrame *varFramePtr, const char *varName) {
-  Tcl_Obj       **localNames;
-  int             nameLength;
-  Tcl_Command     cmd;
-  NsfProcContext *ctxPtr;
-  Tcl_Var         result;
+  Tcl_Var result;
 
   nonnull_assert(varFramePtr != NULL);
   nonnull_assert(varName != NULL);
 
-  /*
-   * Get the string table of the compiled locals and the length of the
-   * variable to search for faster access into local variables.
-   */
-  localNames = &varFramePtr->localCachePtr->varName0;
-  nameLength = (int)strlen(varName);
-
-  cmd = (Tcl_Command )varFramePtr->procPtr->cmdPtr;
-  ctxPtr = ProcContextRequire(cmd);
-
-  /*
-   * Check whether we have already a sorted cache (colonLocalVarCache). If not,
-   * build the cache and check in the same step for the wanted variable.
-   */
-  if (unlikely(ctxPtr->colonLocalVarCache == NULL)) {
-    result = CompiledColonLocalsLookupBuildCache(varFramePtr, varName, nameLength, localNames, ctxPtr);
-
+  if (varFramePtr->numCompiledLocals == 0) {
+    result = NULL;
   } else {
-    int i, j;
+    Tcl_Obj       **localNames;
+    int             nameLength;
+    Tcl_Command     cmd;
+    NsfProcContext *ctxPtr;
 
     /*
-     * We have a colonLocalVarCache.
-     *
-     * Search the colonVarCache, which is alphabetically sorted to allow e.g.
-     * termination after O(n/2) on failures.
+     * Get the string table of the compiled locals and the length of the
+     * variable to search for faster access into local variables.
      */
-    result = NULL;
-    for (i = 0, j = ctxPtr->colonLocalVarCache[0]; j > -1; ++i, j = ctxPtr->colonLocalVarCache[i]) {
-      int         len;
-      const char *localName;
+    localNames = &varFramePtr->localCachePtr->varName0;
+    nameLength = (int)strlen(varName);
 
-      localName = TclGetStringFromObj(localNames[j], &len);
+    cmd = (Tcl_Command )varFramePtr->procPtr->cmdPtr;
+    ctxPtr = ProcContextRequire(cmd);
 
-      /* fprintf(stderr, ".. [%d] varNameObj %p <%s> vs <%s>\n",
-         j, (void *)varNameObj, localName, varName); */
+    /*
+     * Check whether we have already a sorted cache (colonLocalVarCache). If not,
+     * build the cache and check in the same step for the wanted variable.
+     */
+    if (unlikely(ctxPtr->colonLocalVarCache == NULL)) {
+      result = CompiledColonLocalsLookupBuildCache(varFramePtr, varName, nameLength, localNames, ctxPtr);
+
+    } else {
+      int i, j;
 
       /*
-       * The first char of colon varName is always a colon, so we do not need to
-       * compare.
+       * We have a colonLocalVarCache.
+       *
+       * Search the colonVarCache, which is alphabetically sorted to allow e.g.
+       * termination after O(n/2) on failures.
        */
-      if (varName[1] < localName[1]) {
-        break;
+      result = NULL;
+      for (i = 0, j = ctxPtr->colonLocalVarCache[0]; j > -1; ++i, j = ctxPtr->colonLocalVarCache[i]) {
+        int         len;
+        const char *localName;
 
-      } else if (varName[1] == localName[1]) {
-        int cmp;
+        localName = TclGetStringFromObj(localNames[j], &len);
+
+        /* fprintf(stderr, ".. [%d] varNameObj %p <%s> vs <%s>\n",
+           j, (void *)varNameObj, localName, varName); */
+
         /*
-         * Even when the first character is identical, we call compare() only
-         * when the lengths are equal.
+         * The first char of colon varName is always a colon, so we do not need to
+         * compare.
          */
-        if (len != nameLength) {
-          continue;
-        }
-
-        cmp = strcmp(varName, localName);
-        if (cmp == 0) {
-          result = (Tcl_Var) &varFramePtr->compiledLocals[j];
+        if (varName[1] < localName[1]) {
           break;
 
-        } else if (cmp < 0) {
+        } else if (varName[1] == localName[1]) {
+          int cmp;
           /*
-           * We are past the place, where the variable should be, so give up.
+           * Even when the first character is identical, we call compare() only
+           * when the lengths are equal.
            */
-          break;
+          if (len != nameLength) {
+            continue;
+          }
+
+          cmp = strcmp(varName, localName);
+          if (cmp == 0) {
+            result = (Tcl_Var) &varFramePtr->compiledLocals[j];
+            break;
+
+          } else if (cmp < 0) {
+            /*
+             * We are past the place, where the variable should be, so give up.
+             */
+            break;
+          }
         }
       }
-    }
 
 #if 0
-    if (result != NULL) {
-      fprintf(stderr, "... <%s> found -> [%d] %p\n", varName, j, (void *)result);
-    }
+      if (result != NULL) {
+        fprintf(stderr, "... <%s> found -> [%d] %p\n", varName, j, (void *)result);
+      }
 #endif
+    }
   }
   return result;
 }
@@ -33535,24 +33545,32 @@ NsfObjInfoVarsMethod(Tcl_Interp *interp, NsfObject *object, const char *pattern)
   nonnull_assert(interp != NULL);
   nonnull_assert(object != NULL);
 
+  okList = Tcl_NewListObj(0, NULL);
+
   varTablePtr = (object->nsPtr != NULL) ?
     Tcl_Namespace_varTablePtr(object->nsPtr) :
     object->varTablePtr;
 
-  ListVarKeys(interp, TclVarHashTablePtr(varTablePtr), pattern);
-  varList = Tcl_GetObjResult(interp);
+  /*
+   * It is possible, that both, object->nsPtr and object->varTablePtr are
+   * NULL.
+   */
+  if (likely(varTablePtr != NULL)) {
+    ListVarKeys(interp, TclVarHashTablePtr(varTablePtr), pattern);
+    varList = Tcl_GetObjResult(interp);
 
-  Tcl_ListObjLength(interp, varList, &length);
-  okList = Tcl_NewListObj(0, NULL);
-  for (i = 0; i < length; i++) {
-    Tcl_ListObjIndex(interp, varList, i, &element);
-    if (VarExists(interp, object, ObjStr(element), NULL, NSF_VAR_REQUIRE_DEFINED)) {
-      Tcl_ListObjAppendElement(interp, okList, element);
-    } else {
-      /*fprintf(stderr, "must ignore '%s' %d\n", ObjStr(element), i);*/
-      /*Tcl_ListObjReplace(interp, varList, i, 1, 0, NULL);*/
+    Tcl_ListObjLength(interp, varList, &length);
+    for (i = 0; i < length; i++) {
+      Tcl_ListObjIndex(interp, varList, i, &element);
+      if (VarExists(interp, object, ObjStr(element), NULL, NSF_VAR_REQUIRE_DEFINED)) {
+        Tcl_ListObjAppendElement(interp, okList, element);
+      } else {
+        /*fprintf(stderr, "must ignore '%s' %d\n", ObjStr(element), i);*/
+        /*Tcl_ListObjReplace(interp, varList, i, 1, 0, NULL);*/
+      }
     }
   }
+
   Tcl_SetObjResult(interp, okList);
   return TCL_OK;
 }
