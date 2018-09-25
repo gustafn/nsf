@@ -18,7 +18,7 @@ New Features
 
   * Robustness improvements:
 
-    + Use exact the same six whitespace-delimiter characters in NSF as in
+    + Use exactly the same six whitespace-delimiter characters in NSF as in
       plain Tcl to avoid surprises (internal API: NsfHasTclSpace())
 
     + Improved parameter parsing: Don't allow bytearrays as name of
@@ -67,7 +67,7 @@ New Features
   * Improvements to incremental property methods: Adding ("value=add")
     and deleting elements ("value=delete") now enforce any value
     checkers defined on their properties and behave correctly when
-    conversion are used.
+    conversion is used.
 
   * Improvements to handling of parameter option "substdefault".  NX
     provides now controls to the developer to select the kind of
@@ -84,7 +84,7 @@ New Features
       (0x101), "-nobackslashes" (0x110), and their mixes,
       respectively, available to [subst].
 
-     + make behaviour of per-object and per-class substdefaults
+     + make behavior of per-object and per-class substdefaults
        consistent, early check for complete substitution scripts.
 
   * Improvements to ensemble methods:
@@ -173,7 +173,7 @@ New Features
     + Silence warnings under MSVC 1914
 
   * New configure option: "--enable-development=test"
-    Enable computational intensive runtime tests, having
+    Enable computationally intensive runtime tests, having
     noticeable effects on runtime. A version of NSF configured with
     "--enable-development" can be used also for production environments.
 
