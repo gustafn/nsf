@@ -814,7 +814,7 @@ clean: cleandoc
 	done; fi
 
 distclean: clean
-	-rm -rf $(CONFIG_CLEAN_FILES)
+	-rm -rf $(CONFIG_CLEAN_FILES) COMMIT
 	-rm -f config.cache config.log config.status
 	@if test ! "x$(subdirs)" = "x" ; then dirs="$(subdirs)" ; \
 	for dir in $$dirs ; do \
