@@ -664,7 +664,7 @@
 	  method parameters, nsf::is, nsf::parseargs, setter methods. Type=* in
 	  object parameters are currently expanded at the slot level, could also
 	  be added. New tests were added, existing ones adjusted to reflect the
-	  new behaviour. [f0d2956f]
+	  new behavior. [f0d2956f]
 
 2018-01-03  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
@@ -789,7 +789,7 @@
 	  expressions. [20c5ebb6]
 	* nsf.c (ObjectCmdMethodDispatch), submethods.test: Enable private
 	  checking on ensembles, added test cases to capture the intended
-	  behaviour behind -local and/or private for ensemble methods. [96e318fb]
+	  behavior behind -local and/or private for ensemble methods. [96e318fb]
 
 2017-10-24  Gustaf Neumann  <neumann@wu-wien.ac.at>
 

@@ -400,7 +400,7 @@ and corresponding default values.
 [enum] Finally, the initialization method [method init] is dispatched, if
 available for [arg instance]. [method "init"] can be defined by [arg cls] on
 behalf of its instance [arg instance], e.g. to lay out a
-class-specific initialisation behaviour.
+class-specific initialization behavior.
 
 [example_begin]
 % nx::Class create Foo {:property x}

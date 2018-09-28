@@ -82,7 +82,7 @@ CONST86 NsfIntStubs *nsfIntStubsPtr = NULL;
  *
  * Nsf_InitStubs --
  *
- *      Tries to initialise the stub table pointers and ensures that
+ *      Tries to initialize the stub table pointers and ensures that
  *      the correct version of nsf is loaded.
  *
  * Results:
