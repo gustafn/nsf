@@ -7,7 +7,7 @@ See below for the details.
 
 
 Diff stats since 2.1.0:
- 213 files changed, 54184 insertions(+), 44975 deletions(-)
+ 214 files changed, 54192 insertions(+), 44982 deletions(-)
 
 
 Major changes relative to 2.1.0 are:
@@ -30,11 +30,11 @@ New Features
 
   * Performance improvements:
 
-    + coloncmd reform: Dispatch timing of [:myMethod ...] was improved
-      by up to 30% by caching the result of the method lookup in a
-      Tcl_Obj
+    + coloncmd reform: Dispatch performance of [:myMethod ...] is
+      improved by up to 30% by caching the result of the method lookup
+      in a Tcl_Obj
 
-    + Looking up (bytecode-compiled) object variables is now
+    + Lookup of (bytecode-compiled) object variables is now
       performed via a sorted lookup cache to avoid repeated linear
       searches for compiled locals (especially an improvement for
       unsuccessful searches).
