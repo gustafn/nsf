@@ -13,7 +13,7 @@
 #--------------------------------------------------------------------
 AC_PREREQ([2.69])
 
-define(NsfVersion, 2.3d0)
+define(NsfVersion, 2.3a0)
 AC_INIT([nsf], [NsfVersion], [https://sourceforge.net/p/next-scripting/tickets/])
 
 AC_CONFIG_MACRO_DIR([m4])
