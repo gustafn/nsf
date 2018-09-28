@@ -94,7 +94,7 @@ Steps for a beta release:
       * cd doc/
       * dtplite -o /tmp/doc/ -style man.css -header header.html.inc html .
       * mv /tmp/doc/toc.html /tmp/doc/index.html
-      * scp -r /tmp/doc/* {gustafn|foxcruiser}@web.sourceforge.net:/home/project-web/next-scripting/htdocs/
+      * scp -r /tmp/doc/* {gneumann|foxcruiser}@web.sourceforge.net:/home/project-web/next-scripting/htdocs/
       * check https://next-scripting.sourceforge.io/
 
    - update archive at sourceforge
