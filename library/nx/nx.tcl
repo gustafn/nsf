@@ -5,8 +5,8 @@
 #      Implementation of the Next Scripting Language (NX) object
 #      system, based on the Next Scripting Framework (NSF).
 #
-# Copyright (C) 2010-2016 Gustaf Neumann
-# Copyright (C) 2010-2016 Stefan Sobernig
+# Copyright (C) 2010-2018 Gustaf Neumann
+# Copyright (C) 2010-2018 Stefan Sobernig
 #
 # Vienna University of Economics and Business
 # Institute of Information Systems and New Media
@@ -40,7 +40,7 @@
 
 package req nsf
 
-package provide nx 2.2.0
+package provide nx 2.3d0
 
 namespace eval ::nx {
 

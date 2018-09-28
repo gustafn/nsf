@@ -39,7 +39,7 @@
 #
 
 package require nx
-package provide XOTcl 2.2.0
+package provide XOTcl 2.3d0
 
 #######################################################
 # Classical ::xotcl*
@@ -1080,7 +1080,7 @@ namespace eval ::xotcl {
 
     #
     # As NX/XOTcl hybrids, all slot kinds would not inherit the
-    # unknown behaviour of ::xotcl::Class. Therefore, we provide it
+    # unknown behavior of ::xotcl::Class. Therefore, we provide it
     # explicitly to slots for backward compatibility ...
     #
     :public alias unknown ::nsf::classes::xotcl::Class::unknown
