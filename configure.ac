@@ -92,7 +92,7 @@ AC_SUBST([subdirs])
 #--------------------------------------------------------------------
 
 NSF_MAJOR_VERSION=2
-NSF_MINOR_VERSION=1
+NSF_MINOR_VERSION=3
 
 NSF_PATCH_LEVEL=$PACKAGE_VERSION
 
