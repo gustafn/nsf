@@ -1,7 +1,4 @@
 # -*- Tcl -*-
-package require nx
-
-::nsf::configure dtrace on
 
 #
 # Basic tests of the object system, should not require Class Test,
@@ -18,6 +15,14 @@ proc ? {cmd expected {msg ""}} {
      puts stderr "OK $msg"
    }
 }
+
+package req nsf
+
+? {string first [nsf::pkgconfig get version] [nsf::pkgconfig get patchLevel]} 0
+
+package require nx
+
+::nsf::configure dtrace on
 
 ? {::nsf::configure objectsystems} {{::nx::Object ::nx::Class {-class.alloc {__alloc ::nsf::methods::class::alloc 1} -class.create create -class.dealloc {__dealloc ::nsf::methods::class::dealloc 1} -class.configureparameter __class_configureparameter -class.recreate {__recreate ::nsf::methods::class::recreate 1} -object.configure __configure -object.configureparameter __object_configureparameter -object.defaultmethod {defaultmethod ::nsf::methods::object::defaultmethod} -object.destroy destroy -object.init {init ::nsf::methods::object::init} -object.move move -object.unknown unknown}}}
 
