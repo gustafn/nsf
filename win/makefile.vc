@@ -410,6 +410,7 @@ pkgIndex:   $(OUT_DIR)\pkgIndex.tcl
 test: setup $(PROJECT)
 	@set TCL_LIBRARY=$(TCL_LIBRARY:\=/)
 	@set TCLLIBPATH=.
+	@set TCL_PKG_PREFER_LATEST=1
 
 	@$(CPY) $(ROOT)\library library /e
 !if $(TCLINSTALL)
@@ -437,6 +438,7 @@ shell: setup $(PROJECT)
 	@set VLERQ_LIBRARY=$(LIBDIR:\=/)
 	@set TCL_LIBRARY=$(TCL_LIBRARY:\=/)
 	@set TCLLIBPATH=.
+	@set TCL_PKG_PREFER_LATEST=1
 !if $(TCLINSTALL)
 	@set PATH=$(_TCLDIR)\bin;$(PATH)
 !else
@@ -517,6 +519,7 @@ $<
 #-------------------------------------------------------------------------
 
 $(OUT_DIR)\pkgIndex.tcl:
+	@set TCL_PKG_PREFER_LATEST=1
 	@echo package ifneeded $(PROJECT) $(DOTVERSION) \
 	    [list load [file join $$dir $(PRJLIBNAME)] $(PROJECT)] > $@
 
