@@ -221,7 +221,8 @@ EXTRA_PATH	= $(top_builddir):$(TCL_BIN_DIR)
 TCLSH_ENV	= TCL_LIBRARY=`@CYGPATH@ $(TCL_SRC_DIR)/library` \
 		  @LD_LIBRARY_PATH_VAR@="$(EXTRA_PATH):$(@LD_LIBRARY_PATH_VAR@)" \
 		  PATH="$(EXTRA_PATH):$(PATH)" \
-		  TCLLIBPATH="$(top_builddir) ${srcdir} $(TCLLIBPATH)"
+		  TCLLIBPATH="$(top_builddir) ${srcdir} $(TCLLIBPATH)" \
+		  TCL_PKG_PREFER_LATEST=1
 TCLSH_PROG	= @TCLSH_PROG@
 TCLSH		= $(TCLSH_ENV) $(TCLSH_PROG)
 #TCLSH		= $(TCLSH_ENV) LD_PRELOAD="$(srcdir)/$(PKG_LIB_FILE)" valgrind --log-fd=9 --leak-check=full --track-origins=yes --show-possibly-lost=no $(TCLSH_PROG) 9>>valgrind.out
