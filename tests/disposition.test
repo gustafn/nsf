@@ -431,7 +431,7 @@ nx::test case dispo-returns {
   ? {[R new -foo t f] eval {info exists :bar}} "expected true but got \"f\" as return value"
 
   R setObjectParams [list -foo:alias,true bar:alias,false \
-			 [list baz:alias,wideinteger,substdefault {[expr {2 ** 63}]}]]
+			 [list baz:alias,wideinteger,substdefault {[expr {2 ** 63 - 1}]}]]
 
   ::nsf::method::property R $methods(bar) returns boolean
   set methods(baz) [R public method baz {z:wideinteger} -returns int32  {
@@ -439,8 +439,8 @@ nx::test case dispo-returns {
   }]
   
   ? {[R new -foo t f [expr {2 ** 31}]] eval {info exists :foo}} 1
-  ? {[R new -foo t f] eval {info exists :baz}} "expected int32 but got \"[expr {2 ** 63}]\" as return value"
-  ? {[R new -foo t f] eval {info exists :baz}} "expected int32 but got \"[expr {2 ** 63}]\" as return value"
+  ? {[R new -foo t f] eval {info exists :baz}} "expected int32 but got \"[expr {2 ** 63 - 1}]\" as return value"
+  ? {[R new -foo t f] eval {info exists :baz}} "expected int32 but got \"[expr {2 ** 63 - 1}]\" as return value"
 
   ::nsf::method::property R $methods(baz) returns wideinteger
   ? {string is wideinteger [[R new -foo t f] eval {set :baz}]} 1
