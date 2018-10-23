@@ -14,7 +14,7 @@ the corresponding reverse index}]
 [keywords "re-classification"]
 [keywords "submethod"]
 [keywords "method ensemble"]
-[keywords "linearisation"]
+[keywords "linearization"]
 
 [vset SCOPE "object"]
 [vset CMD "obj"]
@@ -475,8 +475,11 @@ an indirect instance of one of the superclasses of [arg className].
 [call [arg obj] [method "info lookup"] [arg submethod] [opt "[arg arg] ..."]]
 
 A collection of submethods to retrieve structural features (e.g.
-configuration options, [term "slot object"]s) and behavioral
-features (e.g. methods, [term "filter"]s) available for [arg obj] from the perspective of a client to [arg obj]. Features provided by [arg obj] itself and by the classes in its current linearisation list are considered.
+configuration options, [term "slot object"]s) and behavioral features
+(e.g. methods, [term "filter"]s) available for [arg obj] from the
+perspective of a client to [arg obj]. Features provided by [arg obj]
+itself and by the classes in its current linearization list are
+considered.
 
 [list_begin definitions]
 
@@ -508,7 +511,8 @@ to those whose names match [arg namePattern] (see [cmd "string match"]).
 [def "[arg obj] [method "info lookup mixins"] [opt [option -guards]] [opt [arg namePattern]]"]
 
 Returns the object names of all [term "mixin class"]es which are
-currently active on [arg obj]. By turning on the [term switch] [option -guards], the corresponding guard expressions, if any, are also reported as a
+currently active on [arg obj]. By turning on the [term switch]
+[option -guards], the corresponding guard expressions, if any, are also reported as a
 three-element list for each [term "mixin class"]: [arg className]
 -guard [arg guardExpr]. The returned [term "mixin class"]es can be
 limited to those whose names match [arg namePattern] (see [cmd "string match"]).
@@ -526,9 +530,14 @@ Returns the command names of all [term "slot object"]s responsible for
 managing properties, variables, and relations of [arg obj]. The
 returned [term "slot object"]s can be limited according to any or a
 combination of the following criteria: First, [term "slot object"]s
-can be filtered based on their command names matching [arg namePattern] (see
-[cmd "string match"]). Second, [option "-type"] allows one to select
-[term "slot object"]s which are instantiated from a subclass [arg className] of [cmd nx::Slot] (default: [cmd nx::Slot]) . Third, [option -source] restricts [term "slot object"]s returned according to their provenance in either the NX [emph system] classes or the [emph application] classes present in the linearisation list of [arg obj] (default: [emph all]). 
+can be filtered based on their command names matching [arg namePattern]
+(see [cmd "string match"]). Second, [option "-type"]
+allows one to select [term "slot object"]s which are instantiated from
+a subclass [arg className] of [cmd nx::Slot] (default: [cmd nx::Slot])
+. Third, [option -source] restricts [term "slot object"]s returned
+according to their provenance in either the NX [emph system] classes
+or the [emph application] classes present in the linearization list of
+[arg obj] (default: [emph all]).
 
 [para]
 
@@ -546,7 +555,8 @@ strings). The result can be limited to those parameters matching the
 [def "[arg obj] [method "info lookup variables"]"]
 
 Returns the command names of all [term "slot object"]s responsible for
-managing properties and variables of [arg obj], if provided by [arg obj] or the classes in the linearisation list of [arg obj].
+managing properties and variables of [arg obj], if provided by [arg obj]
+or the classes in the linearization list of [arg obj].
 
 [para]
 
@@ -577,7 +587,7 @@ namespace containing [arg obj] (e.g. "::") will be reported.
 
 Lists the classes from which [arg obj] inherits structural (e.g.
 properties) and behavioral features (e.g. methods) and methods, in
-order of the [term linearisation] scheme in [term NX]. By setting the
+order of the [term linearization] scheme in [term NX]. By setting the
 [term switch] [option -intrinsic], only classes which participate in
 superclass/subclass relationships (i.e., intrinsic classes) are
 returned. If a [arg pattern] is provided only classes whose
@@ -729,7 +739,7 @@ This method is called implicitly whenever an unknown method is invoked.
 
 [arg unknownMethodName] indicates the unresolvable method name,
 followed by the remainder of the original argument vector as a number
-of [arg arg] of the indirected method invocation.
+of [arg arg] of the calling method invocation.
 
 [list_end]
 
@@ -787,7 +797,7 @@ If the [term switch] [option -nocomplain] is on, this check is omitted (continui
 Objects are naturally recursive, with methods of an object [const ::obj]
 frequently invoking other methods in the same object [const ::obj] and
 accessing [const ::obj]'s object variables. To represent these
-self-references effectively in method bodies, and dependening on the
+self-references effectively in method bodies, and depending on the
 usage scenario, NX offers two alternative notations for self-references: one based on a
 special-purpose syntax token ("colon prefix"), the other based on the
 command [cmd nx::current].  

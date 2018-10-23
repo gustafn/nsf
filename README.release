@@ -74,12 +74,11 @@ Steps for a beta release:
    - build test-tar-file
        * make tar
        * check content of tar file
-         tar ztvf ../nsf2.1.0.tar.gz |sort -rn -k 5,6|less
+         tar ztvf ../nsf2.2.0.tar.gz |sort -rn -k 5,6|less
 
    - tag version in git and commit
        git tag -a 2.0b5 -m 2.0b5
        git push --tags
-       git push : 2.0.0
        # git push --follow-tags
        # git push commit
 
@@ -106,9 +105,9 @@ Steps for a beta release:
      * stefan, please add recommended steps here
 
    - prepare next release:
-       rename folder containing nsf to e.g. nsf2.0b4
+       rename folder containing nsf (e.g. to nsf2.2.0)
        update version number in 
-         * configure.ac
+         * configure.ac (NsfVersion, NSF_MAJOR_VERSION, NSF_MINOR_VERSION)
 	 * library/nx/nx.tcl
          * library/nx/pkgIndex.tcl
 	 * library/xotcl/library/xotcl2.tcl

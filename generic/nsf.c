@@ -14459,7 +14459,7 @@ ObjectCmdMethodDispatch(
          */
         stackCscPtr =
           (((unsigned int)Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) != 0u) ?
-          (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr) : NULL;
+          ((NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr)) : NULL;
         if (stackCscPtr == NULL || (stackCscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE) == 0u) {
           break;
         }
