@@ -797,7 +797,7 @@ If the [term switch] [option -nocomplain] is on, this check is omitted (continui
 Objects are naturally recursive, with methods of an object [const ::obj]
 frequently invoking other methods in the same object [const ::obj] and
 accessing [const ::obj]'s object variables. To represent these
-self-references effectively in method bodies, and dependening on the
+self-references effectively in method bodies, and depending on the
 usage scenario, NX offers two alternative notations for self-references: one based on a
 special-purpose syntax token ("colon prefix"), the other based on the
 command [cmd nx::current].  
