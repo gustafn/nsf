@@ -562,7 +562,7 @@ NsfMixinregGet(
  * NsfMixinregInvalidate --
  *
  *      MixinClasses keep a list of Tcl_Objs of type Mixinreg.
- *      When a class is deleted, this call makes sure, that
+ *      When a class is deleted, this call makes sure that
  *      non-of these have the chance to point to a stale entry.
  *
  * Results:

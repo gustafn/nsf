@@ -1071,7 +1071,7 @@ ParseContextRelease(ParseContext *pcPtr) {
      *     NSF_PC_IS_DEFAULT (sanity check)
      */
     /*
-     * (1) make sure, that the status correctly reflects MUST_DECR
+     * (1) make sure that the status correctly reflects MUST_DECR
      */
     int i;
     if (status == 0u || (status & NSF_PC_STATUS_MUST_DECR) == 0u) {
@@ -14330,7 +14330,7 @@ ObjectCmdMethodDispatch(
 
 
   /*
-   * Make sure, that the current call is marked as an ensemble call, both
+   * Make sure that the current call is marked as an ensemble call, both
    * for dispatching to the default-method and for dispatching the method
    * interface of the given object. Otherwise, current introspection
    * specific to sub-methods fails (e.g., a [current method-path] in the
@@ -15696,7 +15696,7 @@ ObjectDispatch(
 
   /*
    * If we have a command, check the permissions, unless
-   * NSF_CM_IGNORE_PERMISSIONS is set. Note, that NSF_CM_IGNORE_PERMISSIONS is
+   * NSF_CM_IGNORE_PERMISSIONS is set. Note that NSF_CM_IGNORE_PERMISSIONS is
    * set currently for fully qualified cmd names and in nsf::object::dispatch.
    */
 
