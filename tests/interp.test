@@ -563,12 +563,12 @@ nx::test case hidden-procs-as-aliases {
   # maintained during [interp hide|expose] operations. Using a
   # pointer-based (reverse) lookup based on tcd->aliasedCmd would be
   # possible (I did it testwise), but then we would have to revise the
-  # current behaviour of NsfProcAliasMethod() for target proc
+  # current behavior of NsfProcAliasMethod() for target proc
   # renamings also. A non-deleting [rename] currently also interrupts
   # an alias binding.  See the relevant tests on [rename ::foo ::foo2]
   # in tests/alias.test. To be consistent, and because [interp
   # hide|expose] is a two-step [rename], technically, we keep the
-  # current behaviour.
+  # current behavior.
   #
   $i expose FOO OOF
 
@@ -611,7 +611,7 @@ nx::test case hidden-objects-as-aliases {
   #
   # Objects as intermediary aliases are transparent when being
   # hidden|exposed; hiding and exposing them (under differing command
-  # names) do not affect the dispatch behaviour; this is due to the
+  # names) do not affect the dispatch behavior; this is due to the
   # ensemble dispatch strategy ...
   # 
 

@@ -371,7 +371,7 @@ Test case scanning {
 	package req nx
 	namespace import -force ::nx::Class
 	Class create ::Foo {
-	  # The class Foo defines the behaviour for all Foo objects
+	  # The class Foo defines the behavior for all Foo objects
 	  #
 	  # @author gustaf.neumann@wu-wien.ac.at
 	  # @author ssoberni@wu.ac.at
@@ -402,7 +402,7 @@ Test case scanning {
       set entity [@class id ::Foo]
       ? [list ::nsf::is object $entity] 1
       ? [list $entity info has type ::nx::doc::@class] 1
-      ? [list $entity as_text] "The class Foo defines the behaviour for all Foo objects";
+      ? [list $entity as_text] "The class Foo defines the behavior for all Foo objects";
       ? [list $entity @author] "gustaf.neumann@wu-wien.ac.at ssoberni@wu.ac.at"
       # TODO: Fix the [@param id] programming scheme to allow (a) for
       # entities to be passed and the (b) documented structures
@@ -439,7 +439,7 @@ Test case scanning {
 	namespace import -force ::nx::*
 	# @class ::Bar
 	# 
-	# The class Bar defines the behaviour for all Bar objects
+	# The class Bar defines the behavior for all Bar objects
 	#
 	# @author gustaf.neumann@wu-wien.ac.at
 	# @author ssoberni@wu.ac.at
@@ -504,7 +504,7 @@ Test case scanning {
       set entity [@class id ::Bar]
       ? [list ::nsf::is object $entity] 1
       ? [list $entity info has type ::nx::doc::@class] 1
-      ? [list $entity as_text] "The class Bar defines the behaviour for all Bar objects";
+      ? [list $entity as_text] "The class Bar defines the behavior for all Bar objects";
       ? [list $entity @author] "gustaf.neumann@wu-wien.ac.at ssoberni@wu.ac.at"
       
       # TODO: Fix the [@param id] programming scheme to allow (a) for
@@ -1027,7 +1027,7 @@ Test case scanning {
 	package req nx
 	namespace import ::nx::*
 	Class create Enil {
-	  # The class Enil defines the behaviour for all Enil objects,
+	  # The class Enil defines the behavior for all Enil objects,
 	  # however, it is deprecated and will be removed from the
 	  # provided doc entities in the next iteration ...
 	  #

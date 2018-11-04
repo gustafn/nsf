@@ -813,7 +813,7 @@ nx::test case tcl-variable-cmd {
 
 nx::test case interactions {
 
-  # SS: Adding an exemplary test destilled from the behaviour observed
+  # SS: Adding an exemplary test destilled from the behavior observed
   # for AOLserver vs. NaviServer when introspecting object variables
   # by means of the colon-resolver interface. It exemplifies the (by now
   # resolved for good) interactions between: (a) the compiling and
@@ -858,9 +858,9 @@ nx::test case interactions {
   # sensible to created vars (rather than defined/undefined var
   # states) in compiled scripts ([info vars] vs. [info locals]). This
   # resembles [upvar]-created local link vars, yet it does not
-  # intuitively compare with the [set]/[unset] behaviour on
+  # intuitively compare with the [set]/[unset] behavior on
   # non-prefixed, ordinary variables from the angle of
-  # introspection. Also, this constitutes an observable behavioural
+  # introspection. Also, this constitutes an observable behavioral
   # difference between compiled and non-compiled scripts ...
 
   set script {
@@ -1003,7 +1003,7 @@ nx::test case interactions {
     # referencing of :aaa is intercepted by InterpColonVarResolver()
     # and resolved to the obj var "aaa".  The effects of this
     # interaction are probably counter-intuitive to standard
-    # [variable] behaviour.
+    # [variable] behavior.
     #
     # 1. There will not be a 'variable ":aaa" already exists' to
     # signal a naming conflict in the local naming scope, because the
@@ -1092,7 +1092,7 @@ nx::test case interactions {
     # therefore completely blind when handling calls from [namespace
     # which].
     #
-    # This leads to the unexpected behaviour in the test below:
+    # This leads to the unexpected behavior in the test below:
     # [namespace which -variable :XXX] != [namespace which -variable
     # [namespace current]:::XXX]
 

@@ -11,7 +11,7 @@ package req nx::test
 # hierarchy. Note that export and unexport go beyond applying mere
 # visibility/accessibility modifiers; it is also about extending or
 # reducing the public method interface of an object along the
-# linearisation path (or of derived, intermediary classes in an
+# linearization path (or of derived, intermediary classes in an
 # inheritance hierarchy). This export|unexport can be realised by
 # assembling some NSF building blocks: method call protection,
 # selective next forwarding, ...
@@ -35,7 +35,7 @@ package req nx::test
 # unimplemented methods are treated as unknowns.
 #
 # Below is a prototype implementation of the export|unexport feature
-# for NSF/Nx. The realisation is complete as testable through the
+# for NSF/Nx. The realization is complete as testable through the
 # respective TclOO test cases in oo.test, test cases 4.1-4.6. The
 # export|unexport stub methods are fully reported by NSF/Nx method
 # introspection, as they are in TclOO.
