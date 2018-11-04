@@ -57,7 +57,7 @@ Major changes relative to 1.5.6 are:
      is a replacement for "<class> allinstances". The old commands 
      will be marked as deprecated in the near future.
 
-     Please note, that the behavior of the match pattern has
+     Please note that the behavior of the match pattern has
      changed and is therefor not completely compatible with 
      prior versions.
 

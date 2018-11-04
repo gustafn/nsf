@@ -1279,7 +1279,7 @@
 	nsf.c:
 	- fix case, where NsfDStringPrintf() failed (when print
 	  llength including \0 was 1 byte longer than print buffer)
-	- make sure, that the list kept for the cached parameter is just built
+	- make sure that the list kept for the cached parameter is just built
 	  from unshared objects; otherwise Tcl append will abort
 
 	nx.tcl:

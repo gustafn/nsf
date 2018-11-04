@@ -516,7 +516,7 @@ The program snippet in <<xmp-object-integer-stack,
 an integer stack. The method +pull+ is the same for the integer stack
 as for all other stacks, so it will be reused as usual from the class
 +Stack+. The object-specific method +push+ of +s4+ has a value
-constraint in its argument list (+thing:integer+) that makes sure,
+constraint in its argument list (+thing:integer+) that makes sure
 that only integers can be stacked. In case the argument is not an
 integer, an exception will be raised. Of course, one could perform the
 value constraint checking as well in the body of the method +proc+ by
@@ -755,7 +755,7 @@ and different superclasses might have different requirements in their
 constructors. The declarative approach in NX reduces the need for
 tailored constructor methods significantly.
 
-Note, that the property +matnr+ of class +Student+ is required. This
+Note that the property +matnr+ of class +Student+ is required. This
 means, that if we try to create an instance of +Student+, a runtime
 exception will be triggered. The property +oncamups+ is boolean and
 contains a default value. Providing a default value means that
@@ -1456,7 +1456,7 @@ can be still invoked, either via the primitive +next+ or via method
 handles (we used already method handles in the section about method
 aliases). In the example above, +next+ calls the shadowed method and
 add their results to the results of every method. So, the final result
-contains parts from +d1+, +D+ and +C+. Note, that the topmost +next+
+contains parts from +d1+, +D+ and +C+. Note that the topmost +next+
 in method +foo+ of class +C+ shadows no method +foo+ and simply
 returns empty (and not an error message).
 
