@@ -4,9 +4,9 @@
  *      Declarations of the internally used API Functions of the Next
  *      Scripting Framework.
  *
- *  Copyright (C) 1999-2017 Gustaf Neumann (a, b)
+ *  Copyright (C) 1999-2018 Gustaf Neumann (a, b)
  *  Copyright (C) 1999-2007 Uwe Zdun (a, b)
- *  Copyright (C) 2011-2017 Stefan Sobernig (b)
+ *  Copyright (C) 2011-2018 Stefan Sobernig (b)
  *
  * (a) University of Essen
  *     Specification of Software Systems
@@ -46,9 +46,21 @@
 #ifndef _nsf_int_h_
 #define _nsf_int_h_
 
-#if defined(HAVE_STDINT_H)
-# define HAVE_INTPTR_T
-# define HAVE_UINTPTR_T
+#if !defined(HAVE_STDINT_H)
+# if !defined(__PRIPTR_PREFIX)
+#  if defined(_LP64) || defined(_I32LPx) || defined(HAVE_64BIT) || defined(_WIN64) || defined(_WIN32)
+#   if defined(_WIN32)
+#    define __PRIPTR_PREFIX "ll"
+#   else
+#    define __PRIPTR_PREFIX "l"
+#   endif
+#  else
+#   define __PRIPTR_PREFIX
+#  endif
+# endif
+# ifndef PRIxPTR
+#  define PRIxPTR    __PRIPTR_PREFIX "x"
+# endif
 #endif
 
 /*
