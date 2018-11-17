@@ -46,7 +46,7 @@
 #ifndef _nsf_int_h_
 #define _nsf_int_h_
 
-#if !defined(HAVE_STDINT_H)
+#if !defined(HAVE_INTTYPES_H)
 # if !defined(__PRIPTR_PREFIX)
 #  if defined(_LP64) || defined(_I32LPx) || defined(HAVE_64BIT) || defined(_WIN64) || defined(_WIN32)
 #   if defined(_WIN32)
