@@ -14,7 +14,7 @@ Steps for a beta release:
        * get rid of non-ansi-c
          make "CFLAGS_DEFAULT=-ansi -pedantic"
          (warnings are ok, errors not)
-       * complile with clang
+       * compile with clang
          make "CC=clang"
          make "CC=clang" test
        * run static analysis:
