@@ -46,6 +46,29 @@
 #ifndef _nsf_int_h_
 #define _nsf_int_h_
 
+/*
+ * Well behaved compiler with C99 support should define __STDC_VERSION__
+ */
+#if defined(__STDC_VERSION__)
+# if __STDC_VERSION__ >= 199901L
+#  define NSF_HAVE_C99
+# endif
+#endif
+
+/*
+ * Starting with Visual Studio 2013, Microsoft provides C99 library support.
+ */
+#if (!defined(NSF_HAVE_C99)) && defined(_MSC_VER) && (_MSC_VER >= 1800)
+# define NSF_HAVE_C99
+#endif
+
+#if defined(_MSC_VER) && _MSC_VER < 1800
+# undef HAVE_INTTYPES_H
+#else
+# define HAVE_INTTYPES_H 1
+#include <inttypes.h>
+#endif
+
 #if !defined(HAVE_INTTYPES_H)
 # if !defined(__PRIPTR_PREFIX)
 #  if defined(_LP64) || defined(_I32LPx) || defined(HAVE_64BIT) || defined(_WIN64) || defined(_WIN32)
@@ -63,21 +86,6 @@
 # endif
 #endif
 
-/*
- * Well behaved compiler with C99 support should define __STDC_VERSION__
- */
-#if defined(__STDC_VERSION__)
-# if __STDC_VERSION__ >= 199901L
-#  define NSF_HAVE_C99
-# endif
-#endif
-
-/*
- * Starting with Visual Studio 2013, Microsoft provides C99 library support.
- */
-#if (!defined(NSF_HAVE_C99)) && defined(_MSC_VER) && (_MSC_VER >= 1800)
-# define NSF_HAVE_C99
-#endif
 
 /*
  * Boolean type "bool" and constants

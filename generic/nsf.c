@@ -6752,7 +6752,8 @@ NSGetFreshNamespace(Tcl_Interp *interp, NsfObject *object, const char *name) {
     if (nsPtr->deleteProc || nsPtr->clientData) {
       Tcl_Panic("Namespace '%s' exists already with delProc 0x%" PRIxPTR " and clientData %p; "
                 "Can only convert a plain Tcl namespace into an NSF namespace, my delete proc 0x%" PRIxPTR,
-                name, PTR2UINT(nsPtr->deleteProc), nsPtr->clientData, PTR2UINT(NSNamespaceDeleteProc));
+                name, (unsigned long)PTR2UINT(nsPtr->deleteProc),
+                nsPtr->clientData, (unsigned long)PTR2UINT(NSNamespaceDeleteProc));
     }
 
     {
