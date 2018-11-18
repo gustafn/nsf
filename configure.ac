@@ -122,6 +122,9 @@ AC_SUBST([NSF_COMMIT])
 # AC_DEFINE_UNQUOTED([NSF_COMMIT], "$nsf_commit", 
 #       	     [Commit ID at the time of the last configure run.])
 
+AC_CHECK_TYPES([intptr_t, uintptr_t])
+
+
 #--------------------------------------------------------------------
 # Load the tclConfig.sh file
 #--------------------------------------------------------------------
