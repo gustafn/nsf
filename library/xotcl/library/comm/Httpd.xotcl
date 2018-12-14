@@ -179,6 +179,13 @@ namespace eval ::xotcl::comm::httpd {
 	#puts stderr ---[encoding convertfrom utf-8 $fileName]----
 	set fileName [encoding convertfrom utf-8 $fileName]
 	#
+	# Avoid directory traversal attacks
+	#
+	set fileName [file normalize $fileName]
+        if {![string match $root/* $fileName]} {
+          set fileName $root
+        }
+	#
 	my decode-formData $query
 	my log Query $firstLine
 	if {[my exists forceVersion1.0]} {
