@@ -181,9 +181,9 @@ namespace eval ::xotcl::comm::httpd {
 	#
 	# Avoid directory traversal attacks
 	#
-	set fileName [file normalize $fileName]
+        set fileName [file normalize $fileName]
         if {![string match $root/* $fileName]} {
-          set fileName $root
+	    set fileName $root/
         }
 	#
 	my decode-formData $query
