@@ -3158,7 +3158,9 @@ TopoSortSuper(NsfClass *class, NsfClass *baseClass) {
 
     if (baseClass->order != NULL) {
       NsfClassListFree(baseClass->order);
-      baseClass->order = NULL;
+      /*
+       * baseClass->order is reset below.
+       */
     }
 
 
@@ -8477,7 +8479,7 @@ AssertionCheckList(Tcl_Interp *interp, NsfObject *object,
       Nsf_PushFrameObj(interp, object, framePtr);
 
       /*
-       * Don't check assertion during assertion check.
+       * Don't check assertions during the condition check.
        */
       savedCheckoptions = object->opt->checkoptions;
       object->opt->checkoptions = CHECK_NONE;
@@ -8485,7 +8487,7 @@ AssertionCheckList(Tcl_Interp *interp, NsfObject *object,
       /* fprintf(stderr, "Checking Assertion %s ", assStr); */
 
       /*
-       * now check the assertion in the pushed call-frame's scope
+       * Now check the condition in the pushed call-frame's scope.
        */
       acResult = CheckConditionInScope(interp, alist->content);
       if (acResult != TCL_OK) {
@@ -29236,10 +29238,10 @@ NsfObjectSystemCreateCmd(Tcl_Interp *interp, Tcl_Obj *rootClassObj, Tcl_Obj *roo
   }
 
   if (systemMethodsObj != NULL) {
-    int oc, idx, result;
+    int       oc, idx;
     Tcl_Obj **ov;
 
-    if ((result = Tcl_ListObjGetElements(interp, systemMethodsObj, &oc, &ov)) == TCL_OK) {
+    if ((Tcl_ListObjGetElements(interp, systemMethodsObj, &oc, &ov)) == TCL_OK) {
       int i;
 
       if (oc % 2) {
@@ -29248,7 +29250,7 @@ NsfObjectSystemCreateCmd(Tcl_Interp *interp, Tcl_Obj *rootClassObj, Tcl_Obj *roo
       }
       for (i = 0; i < oc; i += 2) {
         Tcl_Obj *arg, **arg_ov;
-        int arg_oc = -1;
+        int      arg_oc = -1, result;
 
         arg = ov[i+1];
         result = Tcl_GetIndexFromObj(interp, ov[i], Nsf_SystemMethodOpts, "system method", 0, &idx);
