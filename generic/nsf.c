@@ -24999,7 +24999,7 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd,  NsfObject *contextObject,
       Tcl_Obj     *list;
 
       localParamDefs.paramsPtr = cd->paramsPtr;
-      localParamDefs.nrParams = 1;
+      /*localParamDefs.nrParams = 1;*/
       list = ListParamDefs(interp, localParamDefs.paramsPtr, contextObject, pattern, printStyle);
       Tcl_SetObjResult(interp, list);
       DECR_REF_COUNT2("paramDefsObj", list);
