@@ -100,7 +100,7 @@ char *strnstr(const char *buffer, const char *needle, size_t buffer_len) {
  */
 char *
 Nsf_ltoa(char *buf, long i, int *lengthPtr) {
-  int nr_written, negative;
+  int  nr_written, negative;
   char tmp[LONG_AS_STRING], *pointer = &tmp[1], *string, *p;
 
   nonnull_assert(buf != NULL);
@@ -114,9 +114,13 @@ Nsf_ltoa(char *buf, long i, int *lengthPtr) {
   } else {
     nr_written = negative = 0;
   }
+  /*
+   * Convert the binary value to a digit string in reversed order to the tmp
+   * buffer since we do not know the length.
+   */
   do {
     nr_written++;
-    *pointer++ = (char)(i%10 + '0');
+    *pointer++ = (char)((i % 10) + '0');
     i /= 10;
   } while (i);
 
@@ -124,8 +128,11 @@ Nsf_ltoa(char *buf, long i, int *lengthPtr) {
   if (negative != 0) {
     *p++ = '-';
   }
+  /*
+   * Copy number (reversed) from tmp to buf.
+   */
   while ((*p++ = *--pointer)) {
-    ;   /* copy number (reversed) from tmp to buf */
+    ;
   }
   *lengthPtr = nr_written;
 
