@@ -511,6 +511,26 @@ nx::test case nsf-log-recursive {
 
 }
 
+nx::test case nsf-proc-rename {
+  namespace eval ::ns1 {}
+  
+  nsf::proc ns1::foo {
+    {-x:required}
+  } { return 1-$x }
+
+  ? {ns1::foo -x ok} 1-ok
+  
+  rename ns1::foo ns1::foo.orig
+
+  nsf::proc ns1::foo {
+    {-x:required}
+  } { return 2-$x }
+
+  ? {ns1::foo -x ok} 2-ok
+
+  namespace delete ::ns1
+}
+
 
 #
 # Local variables:
