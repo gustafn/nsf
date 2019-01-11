@@ -18637,8 +18637,8 @@ static void
 NsfProcStubDeleteProc(ClientData clientData) {
   NsfProcClientData *tcd = clientData;
 
-  fprintf(stderr, "NsfProcStubDeleteProc received %p\n", clientData);
-  /*fprintf(stderr, "... procName %s paramDefs %p\n", ObjStr(tcd->procName), tcd->paramDefs);*/
+  /* fprintf(stderr, "NsfProcStubDeleteProc received %p\n", clientData);
+  fprintf(stderr, "... procName %s paramDefs %p\n", ObjStr(tcd->procName), tcd->paramDefs);*/
   
   DECR_REF_COUNT2("procNameObj", tcd->procName);
   if (tcd->cmd != NULL) {
@@ -18693,7 +18693,7 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj,
 
   fullMethodName = ObjStr(procNameObj);
   CheckCStack(interp, "nsfProc", fullMethodName);
-  /*fprintf(stderr, "=== InvokeShadowedProc %s objc %d\n", fullMethodName, objc);*/
+  /* fprintf(stderr, "=== InvokeShadowedProc %s objc %d\n", fullMethodName, objc); */
 
   /*
    * The code below is derived from the scripted method dispatch and just
@@ -18738,8 +18738,8 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj,
   }
 
 #if defined(NRE)
-  /*fprintf(stderr, "CALL TclNRInterpProcCore proc '%s' %s nameObj %p %s\n",
-    ObjStr(objv[0]), fullMethodName, procNameObj, ObjStr(procNameObj));*/
+  /* fprintf(stderr, "CALL TclNRInterpProcCore proc '%s' %s nameObj %p %s\n", 
+     ObjStr(objv[0]), fullMethodName, procNameObj, ObjStr(procNameObj)); */
 
   Tcl_NRAddCallback(interp, ProcDispatchFinalize,
                     (ClientData)fullMethodName, pcPtr,
@@ -18864,13 +18864,19 @@ NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const 
       Tcl_Command newCmdPtr = Tcl_GetCommandFromObj(interp, tcd->procName);
       
       if (unlikely(newCmdPtr == NULL)) {
-        return NsfPrintError(interp, "cannot lookup command '%s'",
-                             ObjStr(tcd->procName));
+        result = NsfPrintError(interp, "cannot lookup command '%s'",
+                               ObjStr(tcd->procName));
+        ParseContextRelease(pcPtr);
+        NsfTclStackFree(interp, pcPtr, "release parse context");
+        return result;
       }
       
       if (unlikely(!CmdIsProc(newCmdPtr))) {
-        return NsfPrintError(interp, "command '%s' is not a proc",
-                             ObjStr(tcd->procName));
+        result = NsfPrintError(interp, "command '%s' is not a proc",
+                               ObjStr(tcd->procName));
+        ParseContextRelease(pcPtr);
+        NsfTclStackFree(interp, pcPtr, "release parse context");
+        return result;
       }
       
       /*
