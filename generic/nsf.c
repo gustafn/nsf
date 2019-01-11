@@ -18637,12 +18637,13 @@ static void
 NsfProcStubDeleteProc(ClientData clientData) {
   NsfProcClientData *tcd = clientData;
 
-  /*fprintf(stderr, "NsfProcStubDeleteProc received %p\n", clientData);
-    fprintf(stderr, "... procName %s paramDefs %p\n", ObjStr(tcd->procName), tcd->paramDefs);*/
-
+  fprintf(stderr, "NsfProcStubDeleteProc received %p\n", clientData);
+  /*fprintf(stderr, "... procName %s paramDefs %p\n", ObjStr(tcd->procName), tcd->paramDefs);*/
+  
   DECR_REF_COUNT2("procNameObj", tcd->procName);
   if (tcd->cmd != NULL) {
-    NsfCommandRelease(tcd->cmd);
+    /* NsfCommandRelease(tcd->cmd); */
+    Tcl_DeleteCommandFromToken(tcd->interp, tcd->cmd);
   }
   /* tcd->paramDefs is freed by NsfProcDeleteProc() */
   FREE(NsfProcClientData, tcd);
@@ -18991,7 +18992,8 @@ NsfProcAdd(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
   Tcl_DStringSetLength(dsPtr, 0);
   Tcl_DStringAppend(dsPtr, "::nsf::procs", -1);
   DStringAppendQualName(dsPtr, cmdNsPtr, Tcl_GetCommandName(interp, cmd));
-  procNameObj = Tcl_NewStringObj(Tcl_DStringValue(dsPtr), Tcl_DStringLength(dsPtr));
+  procNameObj = Tcl_NewStringObj(Tcl_DStringValue(dsPtr),
+                                 Tcl_DStringLength(dsPtr));
 
   INCR_REF_COUNT2("procNameObj", procNameObj); /* will be freed, when NsfProcStub is deleted */
 
@@ -19019,6 +19021,7 @@ NsfProcAdd(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
   tcd->flags = (checkAlwaysFlag != 0u ? NSF_PROC_FLAG_CHECK_ALWAYS : 0u) | (with_ad != 0 ? NSF_PROC_FLAG_AD : 0u);
   tcd->cmd = NULL;
   tcd->wrapperCmd = cmd;  /* TODO should we preserve? */
+  tcd->interp = interp; /* for deleting the shadowed proc */
 
   /*fprintf(stderr, "NsfProcAdd %s tcd %p paramdefs %p\n",
     ObjStr(procNameObj), tcd, tcd->paramDefs);*/

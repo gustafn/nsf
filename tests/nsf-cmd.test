@@ -513,8 +513,67 @@ nx::test case nsf-log-recursive {
 
 # to-dos:
 # - basic rename-delete
-# - rename chain
-# - interp hide/expose
+
+nx::test case nsf-proc-rename-delete {
+  namespace eval ::ns1 {}
+  ? {info commands ::ns1::foo} ""
+  ? {info commands ::nsf::procs::ns1::foo} ""
+  ? {info procs ::ns1::foo} ""
+  ? {info procs ::nsf::procs::ns1::foo} ""
+
+  ? {::ns1::foo -x ok} {invalid command name "::ns1::foo"}
+  
+  nsf::proc ::ns1::foo {
+    {-x:required}
+  } { return 1-$x }
+  ? {info commands ::ns1::foo} "::ns1::foo"
+  ? {info commands ::nsf::procs::ns1::foo} "::nsf::procs::ns1::foo"
+  ? {info procs ::ns1::foo} ""
+  ? {info procs ::nsf::procs::ns1::foo} "::nsf::procs::ns1::foo"
+
+  ? {::ns1::foo -x ok} "1-ok"
+
+  rename ::ns1::foo ""
+
+  ? {info commands ::ns1::foo} ""
+  ? {info commands ::nsf::procs::ns1::foo} ""
+  ? {info procs ::ns1::foo} ""
+  ? {info procs ::nsf::procs::ns1::foo} ""
+
+  ? {::ns1::foo -x ok} {invalid command name "::ns1::foo"}
+
+  namespace eval ::ns1 {}
+}
+
+nx::test case nsf-proc-ns-delete {
+  namespace eval ::ns1 {}
+  ? {info commands ::ns1::foo} ""
+  ? {info commands ::nsf::procs::ns1::foo} ""
+  ? {info procs ::ns1::foo} ""
+  ? {info procs ::nsf::procs::ns1::foo} ""
+  
+  ? {::ns1::foo -x ok} {invalid command name "::ns1::foo"}
+  
+  nsf::proc ::ns1::foo {
+    {-x:required}
+  } { return 1-$x }
+  ? {info commands ::ns1::foo} "::ns1::foo"
+  ? {info commands ::nsf::procs::ns1::foo} "::nsf::procs::ns1::foo"
+  ? {info procs ::ns1::foo} ""
+  ? {info procs ::nsf::procs::ns1::foo} "::nsf::procs::ns1::foo"
+  
+  ? {::ns1::foo -x ok} "1-ok"
+  
+  namespace delete ::ns1
+  
+  ? {info commands ::ns1::foo} ""
+  ? {info commands ::nsf::procs::ns1::foo} ""
+  ? {info procs ::ns1::foo} ""
+  ? {info procs ::nsf::procs::ns1::foo} ""
+  
+  ? {::ns1::foo -x ok} {invalid command name "::ns1::foo"}
+  
+}
 
 nx::test case nsf-proc-rename-redefine {
   namespace eval ::ns1 {}
@@ -553,11 +612,44 @@ nx::test case nsf-proc-rename-redefine-call {
 
   ? {ns1::foo -x ok} 2-ok
 
-  ? {ns1::foo.orig -x ok} 2-ok; # should be 1-ok!
+  ? {ns1::foo.orig -x ok} 1-ok;
 
   namespace delete ::ns1
 }
 
+nx::test case nsf-proc-rename-delete {
+  namespace eval ::ns1 {}
+  ? {info commands ::ns1::foo} ""
+  ? {info commands ::nsf::procs::ns1::foo} ""
+  ? {info procs ::ns1::foo} ""
+  ? {info procs ::nsf::procs::ns1::foo} ""
+
+  ? {::ns1::foo -x ok} {invalid command name "::ns1::foo"}
+  
+  nsf::proc ::ns1::foo {
+    {-x:required}
+  } { return 1-$x }
+  ? {info commands ::ns1::foo} "::ns1::foo"
+  ? {info commands ::nsf::procs::ns1::foo} "::nsf::procs::ns1::foo"
+  ? {info procs ::ns1::foo} ""
+  ? {info procs ::nsf::procs::ns1::foo} "::nsf::procs::ns1::foo"
+
+  ? {::ns1::foo -x ok} "1-ok"
+
+  rename [set x ::nsf::procs::ns1::foo] ""
+
+  ? {info commands ::ns1::foo} "::ns1::foo"
+  ? {info commands ::nsf::procs::ns1::foo} ""
+  ? {info procs ::ns1::foo} ""
+  ? {info procs ::nsf::procs::ns1::foo} ""
+
+  ? {::ns1::foo -x ok} {invalid command name "::ns1::foo"}
+
+  namespace eval ::ns1 {}
+}
+
+
+# - to-do interp hide/expose
 
 
 #

@@ -689,6 +689,7 @@ typedef struct NsfProcClientData {
   Tcl_Command    wrapperCmd;
   NsfParamDefs  *paramDefs;
   unsigned int   flags;
+  Tcl_Interp    *interp;
 } NsfProcClientData;
 
 typedef enum SystemMethodsIdx {
