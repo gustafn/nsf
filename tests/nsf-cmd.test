@@ -511,7 +511,12 @@ nx::test case nsf-log-recursive {
 
 }
 
-nx::test case nsf-proc-rename {
+# to-dos:
+# - basic rename-delete
+# - rename chain
+# - interp hide/expose
+
+nx::test case nsf-proc-rename-redefine {
   namespace eval ::ns1 {}
   
   nsf::proc ns1::foo {
@@ -530,6 +535,29 @@ nx::test case nsf-proc-rename {
 
   namespace delete ::ns1
 }
+
+nx::test case nsf-proc-rename-redefine-call {
+  namespace eval ::ns1 {}
+  
+  nsf::proc ns1::foo {
+    {-x:required}
+  } { return 1-$x }
+
+  ? {ns1::foo -x ok} 1-ok
+  
+  rename ns1::foo ns1::foo.orig
+
+  nsf::proc ns1::foo {
+    {-x:required}
+  } { return 2-$x }
+
+  ? {ns1::foo -x ok} 2-ok
+
+  ? {ns1::foo.orig -x ok} 2-ok; # should be 1-ok!
+
+  namespace delete ::ns1
+}
+
 
 
 #
