@@ -13,9 +13,9 @@ environment:
     TOOLCHAIN: autoconf-tea
   - TCLTAG: core-8-6-branch
     TOOLCHAIN: nmake-tea
-  - TCLTAG: core-8-6-8
+  - TCLTAG: core-8-6-9
     TOOLCHAIN: autoconf-tea
-  - TCLTAG: core-8-6-8
+  - TCLTAG: core-8-6-9
     TOOLCHAIN: nmake-tea
   - TCLTAG: core-8-5-branch
     TOOLCHAIN: autoconf-tea
