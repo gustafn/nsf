@@ -18855,8 +18855,8 @@ NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const 
     if ((((unsigned int)Tcl_Command_flags(tcd->cmd) & CMD_IS_DELETED) == 0u) ||
         Tcl_Command_cmdEpoch(tcd->cmd) != 0) {
       /*
-       * It seems, as the cached command was deleted (e.g., rename), or someone
-       * messed around with the shadowed proc.
+       * It seems as if the (cached) command was deleted (e.g., rename), or
+       * someone messed around with the shadowed proc.
        * 
        * We must refetch the command ...
        */
