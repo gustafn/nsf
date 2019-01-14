@@ -511,9 +511,6 @@ nx::test case nsf-log-recursive {
 
 }
 
-# to-dos:
-# - basic rename-delete
-
 nx::test case nsf-proc-rename-delete {
   namespace eval ::ns1 {}
   ? {info commands ::ns1::foo} ""
@@ -540,7 +537,8 @@ nx::test case nsf-proc-rename-delete {
   ? {info procs ::ns1::foo} ""
   ? {info procs ::nsf::procs::ns1::foo} ""
 
-  ? {::ns1::foo -x ok} {TCL LOOKUP COMMAND ::ns1::foo} {invalid command name "::ns1::foo"}
+  ? {::ns1::foo -x ok} {TCL LOOKUP COMMAND ::ns1::foo} \
+      {invalid command name "::ns1::foo"}
 
   namespace eval ::ns1 {}
 }
@@ -552,7 +550,8 @@ nx::test case nsf-proc-ns-delete {
   ? {info procs ::ns1::foo} ""
   ? {info procs ::nsf::procs::ns1::foo} ""
   
-  ? {::ns1::foo -x ok} {TCL LOOKUP COMMAND ::ns1::foo} {invalid command name "::ns1::foo"}
+  ? {::ns1::foo -x ok} {TCL LOOKUP COMMAND ::ns1::foo} \
+      {invalid command name "::ns1::foo"}
   
   nsf::proc ::ns1::foo {
     {-x:required}
@@ -571,7 +570,8 @@ nx::test case nsf-proc-ns-delete {
   ? {info procs ::ns1::foo} ""
   ? {info procs ::nsf::procs::ns1::foo} ""
   
-  ? {::ns1::foo -x ok} {TCL LOOKUP COMMAND ::ns1::foo} {invalid command name "::ns1::foo"}
+  ? {::ns1::foo -x ok} {TCL LOOKUP COMMAND ::ns1::foo} \
+      {invalid command name "::ns1::foo"}
   
 }
 
@@ -624,7 +624,8 @@ nx::test case nsf-proc-backstage-rename {
   ? {info procs ::ns1::foo} ""
   ? {info procs ::nsf::procs::ns1::foo} ""
 
-  ? {::ns1::foo -x ok}  {TCL LOOKUP COMMAND ::ns1::foo} {invalid command name "::ns1::foo"}
+  ? {::ns1::foo -x ok}  {TCL LOOKUP COMMAND ::ns1::foo} \
+      {invalid command name "::ns1::foo"}
   
   nsf::proc ::ns1::foo {
     {-x:required}
@@ -652,7 +653,8 @@ nx::test case nsf-proc-backstage-rename {
   ? {info procs ::ns1::foo} ""
   ? {info procs ::nsf::procs::ns1::foo} ""
 
-  ? {::ns1::foo -x ok}  {TCL LOOKUP COMMAND ::ns1::foo} {invalid command name "::ns1::foo"}
+  ? {::ns1::foo -x ok}  {TCL LOOKUP COMMAND ::ns1::foo} \
+      {invalid command name "::ns1::foo"}
   
   namespace eval ::ns1 {}
 }
@@ -664,7 +666,8 @@ nx::test case nsf-proc-backstage-rename-2 {
   ? {info procs ::ns1::foo} ""
   ? {info procs ::nsf::procs::ns1::foo} ""
 
-  ? {::ns1::foo -x ok} {TCL LOOKUP COMMAND ::ns1::foo} {invalid command name "::ns1::foo"}
+  ? {::ns1::foo -x ok} {TCL LOOKUP COMMAND ::ns1::foo} \
+      {invalid command name "::ns1::foo"}
   
   nsf::proc ::ns1::foo {
     {-x:required}
@@ -684,7 +687,8 @@ nx::test case nsf-proc-backstage-rename-2 {
   ? {info procs ::ns1::foo} ""
   ? {info procs ::nsf::procs::ns1::foo} ""
   
-  ? {::ns1::foo -x ok} {command '::nsf::procs::ns1::foo' is not a proc}
+  ? {::ns1::foo -x ok} \
+      {command '::nsf::procs::ns1::foo' is not a proc}
 
   rename ::ns1::foo ""
 
@@ -693,11 +697,54 @@ nx::test case nsf-proc-backstage-rename-2 {
   ? {info procs ::ns1::foo} ""
   ? {info procs ::nsf::procs::ns1::foo} ""
 
-  ? {::ns1::foo -x ok} {TCL LOOKUP COMMAND ::ns1::foo} {invalid command name "::ns1::foo"}
+  ? {::ns1::foo -x ok} {TCL LOOKUP COMMAND ::ns1::foo} \
+      {invalid command name "::ns1::foo"}
   
   namespace eval ::ns1 {}
   rename ::nsf::procs::ns1::foo ""
 }
+
+nx::test case nsf-proc-preexisting {
+  namespace eval ::ns1 {}
+  ? {info commands ::ns1::foo} ""
+  ? {info commands ::nsf::procs::ns1::foo} ""
+ 
+  proc ::nsf::procs::ns1::foo {x} { return 0-$x}
+
+  ? {info commands ::ns1::foo} ""
+  ? {info commands ::nsf::procs::ns1::foo} "::nsf::procs::ns1::foo"
+ 
+  ? {nsf::proc ::ns1::foo {
+    {-x:required}
+  } { return 1-$x }} ""
+
+  ? {::ns1::foo -x ok} "1-ok"
+
+  namespace delete ::ns1
+}
+
+nx::test case nsf-proc-preexisting-rename {
+  namespace eval ::ns1 {}
+  ? {info commands ::ns1::foo} ""
+  ? {info commands ::nsf::procs::ns1::foo} ""
+ 
+  proc ::nsf::procs::ns1::foo.orig {x} { return 0-$x}
+
+  ? {info commands ::ns1::foo.orig} ""
+  ? {info commands ::nsf::procs::ns1::foo.orig} "::nsf::procs::ns1::foo.orig"
+ 
+  ? {nsf::proc ::ns1::foo {
+    {-x:required}
+  } { return 1-$x }} ""
+
+  ? {::ns1::foo -x ok} "1-ok"
+
+  ? {rename ns1::foo ns1::foo.orig} {TCL OPERATION RENAME TARGET_EXISTS} {can't rename to "::nsf::procs::ns1::foo.orig": command already exists}
+
+  namespace delete ::ns1
+}
+
+
 
 # - TO-DO: interp hide/expose
 
