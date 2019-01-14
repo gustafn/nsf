@@ -1,5 +1,6 @@
 package require nx::test
 
+set ::tcl86 [package vsatisfies [package req Tcl] 8.6]
 
 nx::test case nsf-method-get-variants {
 
@@ -518,7 +519,11 @@ nx::test case nsf-proc-rename-delete {
   ? {info procs ::ns1::foo} ""
   ? {info procs ::nsf::procs::ns1::foo} ""
 
-  ? {::ns1::foo -x ok} {TCL LOOKUP COMMAND ::ns1::foo} {invalid command name "::ns1::foo"}
+  if {${::tcl86}} {
+    ? {::ns1::foo -x ok} {TCL LOOKUP COMMAND ::ns1::foo} {invalid command name "::ns1::foo"}
+  } else {
+    ? {::ns1::foo -x ok} {invalid command name "::ns1::foo"}
+  }
   
   nsf::proc ::ns1::foo {
     {-x:required}
@@ -537,9 +542,12 @@ nx::test case nsf-proc-rename-delete {
   ? {info procs ::ns1::foo} ""
   ? {info procs ::nsf::procs::ns1::foo} ""
 
-  ? {::ns1::foo -x ok} {TCL LOOKUP COMMAND ::ns1::foo} \
-      {invalid command name "::ns1::foo"}
-
+  if {${::tcl86}} {
+    ? {::ns1::foo -x ok} {TCL LOOKUP COMMAND ::ns1::foo} {invalid command name "::ns1::foo"}
+  } else {
+    ? {::ns1::foo -x ok} {invalid command name "::ns1::foo"}
+  }
+  
   namespace eval ::ns1 {}
 }
 
@@ -550,8 +558,11 @@ nx::test case nsf-proc-ns-delete {
   ? {info procs ::ns1::foo} ""
   ? {info procs ::nsf::procs::ns1::foo} ""
   
-  ? {::ns1::foo -x ok} {TCL LOOKUP COMMAND ::ns1::foo} \
-      {invalid command name "::ns1::foo"}
+  if {${::tcl86}} {
+    ? {::ns1::foo -x ok} {TCL LOOKUP COMMAND ::ns1::foo} {invalid command name "::ns1::foo"}
+  } else {
+    ? {::ns1::foo -x ok} {invalid command name "::ns1::foo"}
+  }
   
   nsf::proc ::ns1::foo {
     {-x:required}
@@ -570,8 +581,11 @@ nx::test case nsf-proc-ns-delete {
   ? {info procs ::ns1::foo} ""
   ? {info procs ::nsf::procs::ns1::foo} ""
   
-  ? {::ns1::foo -x ok} {TCL LOOKUP COMMAND ::ns1::foo} \
-      {invalid command name "::ns1::foo"}
+  if {${::tcl86}} {
+    ? {::ns1::foo -x ok} {TCL LOOKUP COMMAND ::ns1::foo} {invalid command name "::ns1::foo"}
+  } else {
+    ? {::ns1::foo -x ok} {invalid command name "::ns1::foo"}
+  }
   
 }
 
@@ -624,8 +638,11 @@ nx::test case nsf-proc-backstage-rename {
   ? {info procs ::ns1::foo} ""
   ? {info procs ::nsf::procs::ns1::foo} ""
 
-  ? {::ns1::foo -x ok}  {TCL LOOKUP COMMAND ::ns1::foo} \
-      {invalid command name "::ns1::foo"}
+  if {${::tcl86}} {
+    ? {::ns1::foo -x ok} {TCL LOOKUP COMMAND ::ns1::foo} {invalid command name "::ns1::foo"}
+  } else {
+    ? {::ns1::foo -x ok} {invalid command name "::ns1::foo"}
+  }
   
   nsf::proc ::ns1::foo {
     {-x:required}
@@ -653,8 +670,11 @@ nx::test case nsf-proc-backstage-rename {
   ? {info procs ::ns1::foo} ""
   ? {info procs ::nsf::procs::ns1::foo} ""
 
-  ? {::ns1::foo -x ok}  {TCL LOOKUP COMMAND ::ns1::foo} \
-      {invalid command name "::ns1::foo"}
+  if {${::tcl86}} {
+    ? {::ns1::foo -x ok} {TCL LOOKUP COMMAND ::ns1::foo} {invalid command name "::ns1::foo"}
+  } else {
+    ? {::ns1::foo -x ok} {invalid command name "::ns1::foo"}
+  }
   
   namespace eval ::ns1 {}
 }
@@ -666,8 +686,11 @@ nx::test case nsf-proc-backstage-rename-2 {
   ? {info procs ::ns1::foo} ""
   ? {info procs ::nsf::procs::ns1::foo} ""
 
-  ? {::ns1::foo -x ok} {TCL LOOKUP COMMAND ::ns1::foo} \
-      {invalid command name "::ns1::foo"}
+  if {${::tcl86}} {
+    ? {::ns1::foo -x ok} {TCL LOOKUP COMMAND ::ns1::foo} {invalid command name "::ns1::foo"}
+  } else {
+    ? {::ns1::foo -x ok} {invalid command name "::ns1::foo"}
+  }
   
   nsf::proc ::ns1::foo {
     {-x:required}
@@ -697,8 +720,12 @@ nx::test case nsf-proc-backstage-rename-2 {
   ? {info procs ::ns1::foo} ""
   ? {info procs ::nsf::procs::ns1::foo} ""
 
-  ? {::ns1::foo -x ok} {TCL LOOKUP COMMAND ::ns1::foo} \
-      {invalid command name "::ns1::foo"}
+
+  if {${::tcl86}} {
+    ? {::ns1::foo -x ok} {TCL LOOKUP COMMAND ::ns1::foo} {invalid command name "::ns1::foo"}
+  } else {
+    ? {::ns1::foo -x ok} {invalid command name "::ns1::foo"}
+  }
   
   namespace eval ::ns1 {}
   rename ::nsf::procs::ns1::foo ""
@@ -739,7 +766,12 @@ nx::test case nsf-proc-preexisting-rename {
 
   ? {::ns1::foo -x ok} "1-ok"
 
-  ? {rename ns1::foo ns1::foo.orig} {TCL OPERATION RENAME TARGET_EXISTS} {can't rename to "::nsf::procs::ns1::foo.orig": command already exists}
+    if {${::tcl86}} {
+      ? {rename ns1::foo ns1::foo.orig} {TCL OPERATION RENAME TARGET_EXISTS} {can't rename to "::nsf::procs::ns1::foo.orig": command already exists}
+  } else {
+    ? {rename ns1::foo ns1::foo.orig} {can't rename to "::nsf::procs::ns1::foo.orig": command already exists}
+  }
+  
 
   namespace delete ::ns1
 }
