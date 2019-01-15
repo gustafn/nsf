@@ -18822,7 +18822,7 @@ NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const 
     NsfCommandPreserve(tcd->cmd);
   }
   
-  nonnull_assert(tcd->cmd != NULL);
+  assert(tcd->cmd != NULL);
 
   pcPtr = (ParseContext *) NsfTclStackAlloc(interp, sizeof(ParseContext),
                                             "parse context");
