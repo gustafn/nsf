@@ -8,7 +8,7 @@ compiler:
    - clang
 env:
    - TCLTAG=core-8-6-branch
-   - TCLTAG=core-8-6-8
+   - TCLTAG=core-8-6-9
    - TCLTAG=core-8-5-branch
    - TCLTAG=core-8-5-19
    - TCLTAG=core-8-7-a1	

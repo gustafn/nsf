@@ -18637,19 +18637,13 @@ static void
 NsfProcStubDeleteProc(ClientData clientData) {
   NsfProcClientData *tcd = clientData;
 
-  /*fprintf(stderr, "NsfProcStubDeleteProc received %p\n", clientData);
-    fprintf(stderr, "... procName %s paramDefs %p\n", ObjStr(tcd->procName), tcd->paramDefs);*/
-
+  /* fprintf(stderr, "NsfProcStubDeleteProc received %p\n", clientData);
+  fprintf(stderr, "... procName %s paramDefs %p\n", ObjStr(tcd->procName), tcd->paramDefs);*/
+  
   DECR_REF_COUNT2("procNameObj", tcd->procName);
   if (tcd->cmd != NULL) {
-    /*
-     * Re-wire the original namespace into the shadowed cmd, to prevent
-     * namespace references from becoming dangling and to keep the involved
-     * namespaces' refcount books balanced.
-     */
-    ((Command *)tcd->cmd)->nsPtr = (Namespace *)tcd->origNsPtr;
-    NSNamespaceRelease(tcd->origNsPtr);
-    NsfCommandRelease(tcd->cmd);
+    /* NsfCommandRelease(tcd->cmd); */
+    Tcl_DeleteCommandFromToken(tcd->interp, tcd->cmd);
   }
   /* tcd->paramDefs is freed by NsfProcDeleteProc() */
   FREE(NsfProcClientData, tcd);
@@ -18670,13 +18664,17 @@ NsfProcStubDeleteProc(ClientData clientData) {
  *
  *----------------------------------------------------------------------
  */
-static int InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, ParseContext *pcPtr,
-                              struct Tcl_Time *trtPtr, unsigned int cmdFlags)
-  nonnull(1) nonnull(2) nonnull(4) nonnull(3) nonnull(4);
+static int InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj,
+                              Tcl_Command cmd, ParseContext *pcPtr,
+                              struct Tcl_Time *trtPtr, unsigned int cmdFlags,
+                              Tcl_Namespace *execNsPtr)
+  nonnull(1) nonnull(2) nonnull(4) nonnull(3) nonnull(4) nonnull(5);
 
 static int
-InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, ParseContext *pcPtr,
-                   struct Tcl_Time  *trtPtr, unsigned int cmdFlags) {
+InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj,
+                   Tcl_Command cmd, ParseContext *pcPtr,
+                   struct Tcl_Time  *trtPtr, unsigned int cmdFlags,
+                   Tcl_Namespace *execNsPtr) {
   Tcl_Obj       *const *objv;
   int            objc, result, includeTiming;
   const char    *fullMethodName;
@@ -18695,48 +18693,22 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, Pa
 
   fullMethodName = ObjStr(procNameObj);
   CheckCStack(interp, "nsfProc", fullMethodName);
-  /*fprintf(stderr, "=== InvokeShadowedProc %s objc %d\n", fullMethodName, objc);*/
+  /* fprintf(stderr, "=== InvokeShadowedProc %s objc %d\n", fullMethodName, objc); */
 
   /*
    * The code below is derived from the scripted method dispatch and just
    * slightly adapted to remove object dependencies.
    */
 
-  if (Tcl_Command_cmdEpoch(cmd) != 0) {
-#if 1
-    /*
-     * It seems, as someone messed around with the shadowed proc. For now, we
-     * give up.
-     */
-    return NsfPrintError(interp, "command '%s' is epoched", fullMethodName);
-#else
-    /*
-     * We must refetch the command ...
-     */
-    cmd = Tcl_GetCommandFromObj(interp, procNameObj);
-    if (unlikely(cmd == NULL)) {
-      return NsfPrintError(interp, "cannot lookup command '%s'", fullMethodName);
-    }
-    if (unlikely(!CmdIsProc(cmd))) {
-      return NsfPrintError(interp, "command '%s' is not a proc", fullMethodName);
-    }
-    /*
-     * ... and update the refCounts and cmd in ClientData
-     */
-    NsfCommandRelease(tcd->cmd);
-    tcd->cmd = cmd;
-    NsfCommandPreserve(tcd->cmd);
-#endif
-  }
-
   procPtr = (Proc *)Tcl_Command_objClientData(cmd);
   result = TclPushStackFrame(interp, &framePtr,
-                             (Tcl_Namespace *) procPtr->cmdPtr->nsPtr,
+                             execNsPtr /* procPtr->cmdPtr->nsPtr */,
                              (FRAME_IS_PROC));
 
   if (likely(result == TCL_OK)) {
     unsigned int dummy = 0;
-    result = ByteCompiled(interp, &dummy, procPtr,  procPtr->cmdPtr->nsPtr, fullMethodName);
+    result = ByteCompiled(interp, &dummy, procPtr,  (Namespace *)execNsPtr,
+                          fullMethodName);
   }
   if (unlikely(result != TCL_OK)) {
     /* todo: really? error msg? */
@@ -18766,8 +18738,8 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, Pa
   }
 
 #if defined(NRE)
-  /*fprintf(stderr, "CALL TclNRInterpProcCore proc '%s' %s nameObj %p %s\n",
-    ObjStr(objv[0]), fullMethodName, procNameObj, ObjStr(procNameObj));*/
+  /* fprintf(stderr, "CALL TclNRInterpProcCore proc '%s' %s nameObj %p %s\n", 
+     ObjStr(objv[0]), fullMethodName, procNameObj, ObjStr(procNameObj)); */
 
   Tcl_NRAddCallback(interp, ProcDispatchFinalize,
                     (ClientData)fullMethodName, pcPtr,
@@ -18818,9 +18790,42 @@ NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const 
   nonnull_assert(objv != NULL);
 
   tcd = clientData;
+  
   /*fprintf(stderr, "NsfProcStub %s is called, tcd %p, paramDefs %p\n", ObjStr(objv[0]), tcd, tcd ? tcd->paramDefs : NULL);*/
 
-  pcPtr = (ParseContext *) NsfTclStackAlloc(interp, sizeof(ParseContext), "parse context");
+  if ((((unsigned int)Tcl_Command_flags(tcd->cmd) & CMD_IS_DELETED) == 0u) ||
+      Tcl_Command_cmdEpoch(tcd->cmd) != 0) {
+    /*
+     * It seems as if the (cached) command was deleted (e.g., rename), or
+     * someone messed around with the shadowed proc.
+     * 
+     * We must refetch the command ...
+     */
+    
+    Tcl_Command newCmdPtr = Tcl_GetCommandFromObj(interp, tcd->procName);
+      
+    if (unlikely(newCmdPtr == NULL)) {
+      return NsfPrintError(interp, "cannot lookup command '%s'",
+                             ObjStr(tcd->procName));
+    }
+    
+    if (unlikely(!CmdIsProc(newCmdPtr))) {
+      return NsfPrintError(interp, "command '%s' is not a proc",
+                             ObjStr(tcd->procName));
+    }
+    
+    /*
+     * ... and update the refCounts and cmd in ClientData
+     */
+    NsfCommandRelease(tcd->cmd);
+    tcd->cmd = newCmdPtr;
+    NsfCommandPreserve(tcd->cmd);
+  }
+  
+  nonnull_assert(tcd->cmd != NULL);
+
+  pcPtr = (ParseContext *) NsfTclStackAlloc(interp, sizeof(ParseContext),
+                                            "parse context");
 
   if (likely(tcd->paramDefs != NULL && tcd->paramDefs->paramsPtr)) {
     /*
@@ -18828,7 +18833,8 @@ NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const 
      * parameter definition.
      */
     result = ProcessMethodArguments(pcPtr, interp, NULL,
-                                    (((tcd->flags & NSF_PROC_FLAG_CHECK_ALWAYS) != 0u) ? NSF_ARGPARSE_CHECK : 0u)
+                                    (((tcd->flags & NSF_PROC_FLAG_CHECK_ALWAYS) != 0u) ?
+                                     NSF_ARGPARSE_CHECK : 0u)
                                     |NSF_ARGPARSE_FORCE_REQUIRED,
                                     tcd->paramDefs, objv[0],
                                     objc, objv);
@@ -18874,12 +18880,13 @@ NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const 
       trt.usec = 0;
     }
 #endif
-
+    
     if ((cmdFlags & NSF_CMD_DEPRECATED_METHOD) != 0u) {
       NsfDeprecatedCmd(interp, "proc", ObjStr(objv[0]), "");
     }
-
-    result = InvokeShadowedProc(interp, tcd->procName, tcd->cmd, pcPtr, &trt, cmdFlags);
+    
+    result = InvokeShadowedProc(interp, tcd->procName, tcd->cmd, pcPtr, &trt,
+                                cmdFlags, Tcl_Command_nsPtr(cmd));
 
   } else {
     /*
@@ -18989,7 +18996,8 @@ NsfProcAdd(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
   Tcl_DStringSetLength(dsPtr, 0);
   Tcl_DStringAppend(dsPtr, "::nsf::procs", -1);
   DStringAppendQualName(dsPtr, cmdNsPtr, Tcl_GetCommandName(interp, cmd));
-  procNameObj = Tcl_NewStringObj(Tcl_DStringValue(dsPtr), Tcl_DStringLength(dsPtr));
+  procNameObj = Tcl_NewStringObj(Tcl_DStringValue(dsPtr),
+                                 Tcl_DStringLength(dsPtr));
 
   INCR_REF_COUNT2("procNameObj", procNameObj); /* will be freed, when NsfProcStub is deleted */
 
@@ -19017,6 +19025,7 @@ NsfProcAdd(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
   tcd->flags = (checkAlwaysFlag != 0u ? NSF_PROC_FLAG_CHECK_ALWAYS : 0u) | (with_ad != 0 ? NSF_PROC_FLAG_AD : 0u);
   tcd->cmd = NULL;
   tcd->wrapperCmd = cmd;  /* TODO should we preserve? */
+  tcd->interp = interp; /* for deleting the shadowed proc */
 
   /*fprintf(stderr, "NsfProcAdd %s tcd %p paramdefs %p\n",
     ObjStr(procNameObj), tcd, tcd->paramDefs);*/
@@ -19078,13 +19087,7 @@ NsfProcAdd(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
     Tcl_Command procCmd = Tcl_GetCommandFromObj(interp, procNameObj);
 
     assert(procCmd != NULL);
-    /*
-     * Preserve the shadowed cmd's original namespace (::nsf::procs::*) for
-     * later re-wiring in NsfProcStubDeleteProc()
-     */
-    tcd->origNsPtr = Tcl_Command_nsPtr(procCmd);
-    NSNamespacePreserve(tcd->origNsPtr);
-    ((Command *)procCmd)->nsPtr = (Namespace *)cmdNsPtr;
+    
     tcd->cmd = procCmd;
     NsfCommandPreserve(tcd->cmd);
 

@@ -260,17 +260,51 @@ Nsf_RenameObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, int objc, Tc
   /* if an obj/cl should be renamed => call the Nsf move method */
   cmd = Tcl_FindCommand(interp, ObjStr(objv[1]), (Tcl_Namespace *)NULL, 0);
   if (cmd != NULL) {
+    Tcl_ObjCmdProc *proc =  Tcl_Command_objProc(cmd);
+    ClientData clientData = Tcl_Command_objClientData(cmd);
     NsfObject *object = NsfGetObjectFromCmdPtr(cmd);
-    Tcl_Obj *methodObj = (object != NULL) ? NsfMethodObj(object, NSF_o_move_idx) : NULL;
     Tcl_Command parentCmd;
+    char *newName = ObjStr(objv[2]);
+          
+    
+    if (proc == NsfProcStub && clientData != NULL &&
+        *newName != '\0') {
+      Tcl_DString fqNewName;
+      int result;
+      NsfProcClientData *tcd = clientData;
 
-    if (object && methodObj) {
-      return NsfCallMethodWithArgs(interp, (Nsf_Object *)object,
-				   methodObj, objv[2], 1, 0, NSF_CSC_IMMEDIATE);
+      Tcl_DStringInit(&fqNewName);
+      Tcl_DStringAppend(&fqNewName, "::nsf::procs::", 14);
+      Tcl_DStringAppend(&fqNewName, newName, -1);
+      
+      /* fprintf(stderr, "oldName %s newName %s\n", ObjStr(tcd->procName), Tcl_DStringValue(&fqNewName));*/
+      result = TclRenameCommand(interp, ObjStr(tcd->procName), Tcl_DStringValue(&fqNewName));
+      
+      if (result == TCL_OK) {
+        DECR_REF_COUNT2("procNameObj", tcd->procName);
+        tcd->procName = Tcl_NewStringObj(Tcl_DStringValue(&fqNewName),
+                                         Tcl_DStringLength(&fqNewName));
+        INCR_REF_COUNT2("procNameObj", tcd->procName);
+      }
+
+      Tcl_DStringFree(&fqNewName);
+
+      if (result != TCL_OK) {
+        return TCL_ERROR;
+      }
+      
+    } else if (object != NULL) {
+      Tcl_Obj *methodObj = NsfMethodObj(object, NSF_o_move_idx);
+      
+      if (methodObj) {
+        return NsfCallMethodWithArgs(interp, (Nsf_Object *)object,
+                                     methodObj, objv[2], 1, 0,
+                                     NSF_CSC_IMMEDIATE);
+      }
     }
 
     parentCmd = Tcl_FindCommand(interp,  Tcl_Command_nsPtr(cmd)->fullName,
-			     (Tcl_Namespace *)NULL, 0);
+                                (Tcl_Namespace *)NULL, 0);
     if (parentCmd != NULL) {
       NsfObjectMethodEpochIncr("::rename");
     }
