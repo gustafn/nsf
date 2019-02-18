@@ -407,14 +407,18 @@ namespace eval ::xotcl::comm::httpd {
     #my respond-CGI
   }
 
+  Httpd::Wrk instproc quotehtml {msg} {
+    string map {< "&lt;" > "&gt;" & "&amp;" "'" "&#39;" "\"" "&#34;" } $msg
+  }
+
   Httpd::Wrk instproc replyErrorMsg {{msg ""} args} {
     my instvar replyCode
     [self class] instvar codes
     foreach {tag value} $args {[self]::connection puts "$tag: $value"}
     my sendText "\n<HTML><title>Status Code: $replyCode</title>\n\
-      <BODY>$msg<p>\n\
+      <BODY>[my quotehtml $msg]<p>\n\
       Status Code $replyCode: <b>$codes($replyCode)</b><br>\n\
-      Resource Name: [my set resourceName]</BODY></HTML>\n"
+      Resource Name: [my quotehtml [my set resourceName]]</BODY></HTML>\n"
     my close  ;# close must be last call
   }
   Httpd::Wrk instproc replyCode {code args} {
