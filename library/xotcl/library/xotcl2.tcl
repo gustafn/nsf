@@ -127,7 +127,7 @@ namespace eval ::xotcl {
 # ::nsf::method::alias Object unknown       ::nsf::methods::object::unknown
   ::nsf::method::alias Object uplevel       ::nsf::methods::object::uplevel
   ::nsf::method::alias Object upvar         ::nsf::methods::object::upvar
-  ::nsf::method::alias Object volatile      ::nsf::methods::object::volatile
+  ::nsf::method::alias Object volatile      ::nsf::methods::object::volatile1
 
   #
   # object methods

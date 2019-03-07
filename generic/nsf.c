@@ -15039,6 +15039,8 @@ CmdObjProcName(
     result = "configure";
   } else if (proc == NsfOVolatileMethodStub) {
     result = "volatile";
+  } else if (proc == NsfOVolatile1MethodStub) {
+    result = "volatile";
   } else if (proc == NsfOAutonameMethodStub) {
     result = "autoname";
   } else if (proc == NsfOUplevelMethodStub) {
@@ -16330,6 +16332,47 @@ ConvertToNothing(Tcl_Interp *UNUSED(interp), Tcl_Obj *objPtr,  const Nsf_Param *
   return TCL_OK;
 }
 
+#ifdef NSF_WITH_TCL_OBJ_TYPES_AS_CONVERTER
+int Nsf_ConvertToTclObjType(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr,
+                        ClientData *clientData, Tcl_Obj **UNUSED(outObjPtr))
+  nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(5);
+
+int
+Nsf_ConvertToTclObjType(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr,
+                    ClientData *clientData, Tcl_Obj **outObjPtr) {
+  int result = TCL_OK;
+
+  nonnull_assert(interp != NULL);
+  nonnull_assert(objPtr != NULL);
+  nonnull_assert(pPtr != NULL);
+  nonnull_assert(clientData != NULL);
+
+  fprintf(stderr, "Nsf_ConvertToTclObjType: converterArg %p\n", (void*)pPtr->converterArg);
+  if (unlikely(pPtr->converterArg != NULL)) {
+    const Tcl_ObjType *tclObjType = pPtr->converterArg->internalRep.twoPtrValue.ptr1;
+
+    if (tclObjType != NULL) {
+      result = Tcl_ConvertToType(interp, objPtr, tclObjType);
+      fprintf(stderr, "Nsf_ConvertToTclObjType:type  %p -> %d\n", (void*)tclObjType, result);
+
+      if (result != TCL_OK) {
+        Tcl_ResetResult(interp);
+        result = NsfObjErrType(interp, NULL, objPtr, tclObjType->name, (Nsf_Param *)pPtr);
+      }
+    }
+  }
+  *outObjPtr = objPtr;
+  /*
+    nsf::proc foo {a:ns:mem_unit} {return $a}
+    nsf::proc bar {a:ns:mem_unit} {return [expr {$a + 1}]}
+    foo 1kB
+    foo xxx
+    bar 1kB
+   */
+  return result;
+}
+#endif
+
 /*
  *----------------------------------------------------------------------
  * Nsf_ConvertToTclobj --
@@ -17414,6 +17457,9 @@ ParamOptionParse(Tcl_Interp *interp, const char *argString,
     result = ParamOptionSetConverter(interp, paramPtr, option, ConvertToNothing);
   } else {
     Tcl_DString ds, *dsPtr = &ds;
+#ifdef  NSF_WITH_TCL_OBJ_TYPES_AS_CONVERTER
+    const Tcl_ObjType *tclObjType;
+#endif
 
     if (option[0] == '\0') {
       NsfLog(interp, NSF_LOG_WARN, "empty parameter option ignored");
@@ -17430,6 +17476,8 @@ ParamOptionParse(Tcl_Interp *interp, const char *argString,
       return TCL_ERROR;
     }
 
+    /*fprintf(stderr, "HAV TYPE converter for <%s> ?\n", option);*/
+
     if (Nsf_PointerTypeLookup(Tcl_DStringValue(dsPtr))) {
       /*
        * Check whether the option refers to a pointer converter.
@@ -17437,6 +17485,18 @@ ParamOptionParse(Tcl_Interp *interp, const char *argString,
       ParamOptionSetConverter(interp, paramPtr,  Tcl_DStringValue(dsPtr), Nsf_ConvertToPointer);
       Tcl_DStringFree(dsPtr);
 
+#ifdef NSF_WITH_TCL_OBJ_TYPES_AS_CONVERTER
+    } else if ((tclObjType = Tcl_GetObjType(option)) != NULL) {
+      // xxxxxx
+      fprintf(stderr, "SET TYPE converter for <%s>\n", option);
+      result = ParamOptionSetConverter(interp, paramPtr,  Tcl_DStringValue(dsPtr), Nsf_ConvertToTclObjType);
+      if (paramPtr->converterArg != NULL) {
+          DECR_REF_COUNT(paramPtr->converterArg);
+        }
+        paramPtr->converterArg = Tcl_NewObj();
+        paramPtr->converterArg->internalRep.twoPtrValue.ptr1 = (void *)tclObjType;
+        INCR_REF_COUNT(paramPtr->converterArg);
+#endif
     } else {
       int i, found = -1;
 
@@ -18639,7 +18699,7 @@ NsfProcStubDeleteProc(ClientData clientData) {
 
   /* fprintf(stderr, "NsfProcStubDeleteProc received %p\n", clientData);
   fprintf(stderr, "... procName %s paramDefs %p\n", ObjStr(tcd->procName), tcd->paramDefs);*/
-  
+
   DECR_REF_COUNT2("procNameObj", tcd->procName);
   if (tcd->cmd != NULL) {
     /* NsfCommandRelease(tcd->cmd); */
@@ -18738,7 +18798,7 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj,
   }
 
 #if defined(NRE)
-  /* fprintf(stderr, "CALL TclNRInterpProcCore proc '%s' %s nameObj %p %s\n", 
+  /* fprintf(stderr, "CALL TclNRInterpProcCore proc '%s' %s nameObj %p %s\n",
      ObjStr(objv[0]), fullMethodName, procNameObj, ObjStr(procNameObj)); */
 
   Tcl_NRAddCallback(interp, ProcDispatchFinalize,
@@ -18790,7 +18850,7 @@ NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const 
   nonnull_assert(objv != NULL);
 
   tcd = clientData;
-  
+
   /*fprintf(stderr, "NsfProcStub %s is called, tcd %p, paramDefs %p\n", ObjStr(objv[0]), tcd, tcd ? tcd->paramDefs : NULL);*/
 
   if ((((unsigned int)Tcl_Command_flags(tcd->cmd) & CMD_IS_DELETED) == 0u) ||
@@ -18798,22 +18858,22 @@ NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const 
     /*
      * It seems as if the (cached) command was deleted (e.g., rename), or
      * someone messed around with the shadowed proc.
-     * 
+     *
      * We must refetch the command ...
      */
-    
+
     Tcl_Command newCmdPtr = Tcl_GetCommandFromObj(interp, tcd->procName);
-      
+
     if (unlikely(newCmdPtr == NULL)) {
       return NsfPrintError(interp, "cannot lookup command '%s'",
                              ObjStr(tcd->procName));
     }
-    
+
     if (unlikely(!CmdIsProc(newCmdPtr))) {
       return NsfPrintError(interp, "command '%s' is not a proc",
                              ObjStr(tcd->procName));
     }
-    
+
     /*
      * ... and update the refCounts and cmd in ClientData
      */
@@ -18821,7 +18881,7 @@ NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const 
     tcd->cmd = newCmdPtr;
     NsfCommandPreserve(tcd->cmd);
   }
-  
+
   assert(tcd->cmd != NULL);
 
   pcPtr = (ParseContext *) NsfTclStackAlloc(interp, sizeof(ParseContext),
@@ -18880,11 +18940,11 @@ NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const 
       trt.usec = 0;
     }
 #endif
-    
+
     if ((cmdFlags & NSF_CMD_DEPRECATED_METHOD) != 0u) {
       NsfDeprecatedCmd(interp, "proc", ObjStr(objv[0]), "");
     }
-    
+
     result = InvokeShadowedProc(interp, tcd->procName, tcd->cmd, pcPtr, &trt,
                                 cmdFlags, Tcl_Command_nsPtr(cmd));
 
@@ -19087,7 +19147,7 @@ NsfProcAdd(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
     Tcl_Command procCmd = Tcl_GetCommandFromObj(interp, procNameObj);
 
     assert(procCmd != NULL);
-    
+
     tcd->cmd = procCmd;
     NsfCommandPreserve(tcd->cmd);
 
@@ -32246,13 +32306,15 @@ NsfOUpvarMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *const 
 /*
 objectMethod volatile NsfOVolatileMethod {
 }
+objectMethod volatile1 NsfOVolatile1Method {
+}
 */
 static int
-NsfOVolatileMethod(Tcl_Interp *interp, NsfObject *object) {
-  int result = TCL_ERROR;
-  Tcl_Obj *objPtr;
-  const char *fullName, *vn;
-  callFrameContext ctx = {NULL, NULL, 0};
+VolatileMethod(Tcl_Interp *interp, NsfObject *object, bool shallow) {
+  int               result = TCL_ERROR;
+  Tcl_Obj          *objPtr;
+  const char       *fullName, *vn;
+  callFrameContext  ctx = {NULL, NULL, 0};
 
   nonnull_assert(interp != NULL);
   nonnull_assert(object != NULL);
@@ -32261,7 +32323,69 @@ NsfOVolatileMethod(Tcl_Interp *interp, NsfObject *object) {
     return NsfPrintError(interp, "can't make objects volatile during shutdown");
   }
 
-  CallStackUseActiveFrame(interp, &ctx);
+  if (shallow) {
+    CallStackUseActiveFrame(interp, &ctx);
+
+  } else {
+    NsfObjectSystem *osPtr = GetObjectSystem(object);
+    Tcl_CallFrame   *invocationFrame;
+
+    /*
+     * XOTcl1 style
+     */
+    /*NsfShowStack(interp);*/
+
+    CallStackUseActiveFrame(interp, &ctx);
+
+    /*fprintf(stderr, "active varframe %p\n", (void*)Tcl_Interp_varFramePtr(interp));*/
+    invocationFrame = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
+
+    while (1) {
+
+      if (((unsigned int)Tcl_CallFrame_isProcCallFrame(invocationFrame) & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) != 0u) {
+        NsfCallStackContent *cscPtr;
+
+        cscPtr = ((NsfCallStackContent *)Tcl_CallFrame_clientData(invocationFrame));
+        /*
+         * We were not called from a NSF frame.
+         */
+        if (cscPtr == NULL) {
+          break;
+        }
+
+
+        /*
+         * Walk up the stack of this objects invocations. This skips
+         * e.g. overloaded internally called methods like "configure".
+         */
+        /*fprintf(stderr, "compare object %p == %p\n", (void*)object, (void*)cscPtr->self);*/
+        if (cscPtr->self == object) {
+          invocationFrame =  Tcl_CallFrame_callerPtr(invocationFrame);
+          /*fprintf(stderr, "same object, continue with %p\n", (void*)invocationFrame);*/
+          continue;
+        }
+
+        /*
+         * Final special case to achieve better XOTcl1 compliance: In case, we
+         * were called from an "unknown" method, skip this frame as well.
+         */
+        /*fprintf(stderr, "cmd %s\n", Tcl_GetCommandName(interp, cscPtr->cmdPtr));*/
+        if (strcmp(osPtr->methodNames[NSF_o_unknown_idx], Tcl_GetCommandName(interp, cscPtr->cmdPtr)) == 0) {
+          invocationFrame =  Tcl_CallFrame_callerPtr(invocationFrame);
+          /*fprintf(stderr, "have unknown, continue with %p\n", (void*)invocationFrame);*/
+          continue;
+
+        }
+      }
+      break;
+    }
+    /*
+     * Finally, set the invocation frame. The original frame context was saved
+     * already by CallStackUseActiveFrame() and will be properly restored.
+     */
+    Tcl_Interp_varFramePtr(interp) = (CallFrame *)invocationFrame;
+
+  }
 
   objPtr = object->cmdName;
   fullName = ObjStr(objPtr);
@@ -32284,6 +32408,18 @@ NsfOVolatileMethod(Tcl_Interp *interp, NsfObject *object) {
     INCR_REF_COUNT(objPtr);
   }
   return result;
+}
+
+static int
+NsfOVolatileMethod(Tcl_Interp *interp, NsfObject *object) {
+
+  return VolatileMethod(interp, object, NSF_TRUE);
+}
+
+static int
+NsfOVolatile1Method(Tcl_Interp *interp, NsfObject *object) {
+
+  return VolatileMethod(interp, object, NSF_FALSE);
 }
 
 /***********************************************************************

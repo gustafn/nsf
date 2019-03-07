@@ -126,6 +126,7 @@
 
 /* Experimental language feature
 #define NSF_WITH_INHERIT_NAMESPACES 1
+#define NSF_WITH_TCL_OBJ_TYPES_AS_CONVERTER 1
 */
 
 #define NSF_WITH_OS_RESOLVER 1

@@ -419,6 +419,9 @@ objectMethod upvar NsfOUpvarMethod {
 objectMethod volatile NsfOVolatileMethod {
 }
 
+objectMethod volatile1 NsfOVolatile1Method {
+}
+
 #
 # class methods
 #
