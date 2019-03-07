@@ -49,7 +49,7 @@ namespace eval ::nx {
   namespace eval ::nsf::parameter {} ;# make pkg-indexer happy
 
   namespace eval ::nx::internal {}   ;# make pkg-indexer happy
-  namespace eval ::nx::trait {}     ;# make pkg-indexer happy
+  namespace eval ::nx::trait {}      ;# make pkg-indexer happy
 
   #
   # By setting the variable bootstrap, we can check later, whether we
