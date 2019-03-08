@@ -547,6 +547,7 @@ typedef struct NsfStringIncrStruct {
 #define NSF_KEEP_CALLER_SELF               0x0400u
 #define NSF_PER_OBJECT_DISPATCH            0x0800u
 #define NSF_HAS_PER_OBJECT_SLOTS           0x1000u
+#define NSF_IS_AUTONAMED                   0x2000u
 /* deletion states */
 #define NSF_DESTROY_CALLED_SUCCESS       0x010000u /* requires flags to be int, not short */
 #define NSF_DURING_DELETE                0x020000u

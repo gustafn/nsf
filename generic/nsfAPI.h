@@ -220,12 +220,12 @@ static int ConvertToMethodproperty(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Para
   return result;
 }
   
-typedef enum {ObjectpropertyNULL, ObjectpropertyInitializedIdx, ObjectpropertyClassIdx, ObjectpropertyRootmetaclassIdx, ObjectpropertyRootclassIdx, ObjectpropertyVolatileIdx, ObjectpropertySlotcontainerIdx, ObjectpropertyHasperobjectslotsIdx, ObjectpropertyKeepcallerselfIdx, ObjectpropertyPerobjectdispatchIdx} ObjectpropertyIdx_t;
+typedef enum {ObjectpropertyNULL, ObjectpropertyInitializedIdx, ObjectpropertyClassIdx, ObjectpropertyRootmetaclassIdx, ObjectpropertyRootclassIdx, ObjectpropertyVolatileIdx, ObjectpropertyAutonamedIdx, ObjectpropertySlotcontainerIdx, ObjectpropertyHasperobjectslotsIdx, ObjectpropertyKeepcallerselfIdx, ObjectpropertyPerobjectdispatchIdx} ObjectpropertyIdx_t;
 
 static int ConvertToObjectproperty(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
-  static const char *opts[] = {"initialized", "class", "rootmetaclass", "rootclass", "volatile", "slotcontainer", "hasperobjectslots", "keepcallerself", "perobjectdispatch", NULL};
+  static const char *opts[] = {"initialized", "class", "rootmetaclass", "rootclass", "volatile", "autonamed", "slotcontainer", "hasperobjectslots", "keepcallerself", "perobjectdispatch", NULL};
   (void)pPtr;
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "objectProperty", 0, &index);
   *clientData = (ClientData) INT2PTR(index + 1);
@@ -271,7 +271,7 @@ static int ConvertToRelationtype(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param 
   {ConvertToDefinitionsource, "all|application|system"},
   {ConvertToForwardproperty, "prefix|target|verbose"},
   {ConvertToConfigureoption, "debug|dtrace|filter|softrecreate|objectsystems|keepcmds|checkresults|checkarguments"},
-  {ConvertToObjectproperty, "initialized|class|rootmetaclass|rootclass|volatile|slotcontainer|hasperobjectslots|keepcallerself|perobjectdispatch"},
+  {ConvertToObjectproperty, "initialized|class|rootmetaclass|rootclass|volatile|autonamed|slotcontainer|hasperobjectslots|keepcallerself|perobjectdispatch"},
   {ConvertToAssertionsubcmd, "check|object-invar|class-invar"},
   {ConvertToParametersubcmd, "default|list|name|syntax|type"},
   {ConvertToMixinscope, "all|class|object"},

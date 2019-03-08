@@ -17747,7 +17747,7 @@ ParamDefinitionParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, uns
   if (npac == 2) {
 
     if ((disallowedFlags & NSF_ARG_HAS_DEFAULT) != 0u) {
-      NsfPrintError(interp, "parameter \"%s\" is not allowed to have default \"%s\"",
+      NsfPrintError(interp, "parameter specification for \"%s\" is not allowed to have default \"%s\"",
                     argString, ObjStr(npav[1]));
       goto param_error;
     }
@@ -19843,8 +19843,8 @@ FindCalledClass(Tcl_Interp *interp, NsfObject *object) {
  * NextSearchMethod --
  *
  *    Determine the method to be called via "next". The function returns on
- *    success the found cmd and information like method name, was it from a mixin, filter,
- *    or was the end of the filter chain reached.
+ *    success the found cmd and information like method name, was it from a
+ *    mixin, filter, or was the end of the filter chain reached.
  *
  * Results:
  *    Tcl result code
@@ -20024,11 +20024,10 @@ NextSearchMethod(
  *----------------------------------------------------------------------
  * NextGetArguments --
  *
- *    Obtain arguments for a method invoked via next either from the
- *    argument vector or from the stack (call stack content or Tcl
- *    stack). In case of ensemble calls the stack entries of the
- *    ensemble invocation are used. The function returns the arguments
- *    4 to 8.
+ *    Obtain arguments for a method invoked via next either from the argument
+ *    vector or from the stack (call stack content or Tcl stack). In case of
+ *    ensemble calls the stack entries of the ensemble invocation are
+ *    used. The function returns the arguments 4 to 8.
  *
  * Results:
  *    Tcl return code
@@ -29160,7 +29159,7 @@ NsfObjectExistsCmd(Tcl_Interp *interp, Tcl_Obj *valueObj) {
 /*
 cmd "object::property" NsfObjectPropertyCmd {
   {-argName "object" -required 1 -type object}
-  {-argName "objectproperty" -type "initialized|class|rootmetaclass|rootclass|volatile|slotcontainer|hasperobjectslots|keepcallerself|perobjectdispatch" -required 1}
+  {-argName "objectproperty" -type "initialized|class|rootmetaclass|rootclass|volatile|autonamed|slotcontainer|hasperobjectslots|keepcallerself|perobjectdispatch" -required 1}
   {-argName "value" -required 0 -type tclobj}
 }
 */
@@ -29173,6 +29172,7 @@ NsfObjectPropertyCmd(Tcl_Interp *interp, NsfObject *object, ObjectpropertyIdx_t 
   nonnull_assert(object != NULL);
 
   switch (objectProperty) {
+  case ObjectpropertyAutonamedIdx: flags = NSF_IS_AUTONAMED; allowSet = 1; break;
   case ObjectpropertyInitializedIdx: flags = NSF_INIT_CALLED; allowSet = 1; break;
   case ObjectpropertyClassIdx: flags = NSF_IS_CLASS; break;
   case ObjectpropertyRootmetaclassIdx: flags = NSF_IS_ROOT_META_CLASS; break;
@@ -32355,7 +32355,7 @@ VolatileMethod(Tcl_Interp *interp, NsfObject *object, bool shallow) {
 
 
         /*
-         * Walk up the stack of this objects invocations. This skips
+         * Walk up the stack of invocations of the current object. This skips
          * e.g. overloaded internally called methods like "configure".
          */
         /*fprintf(stderr, "compare object %p == %p\n", (void*)object, (void*)cscPtr->self);*/
@@ -32366,16 +32366,25 @@ VolatileMethod(Tcl_Interp *interp, NsfObject *object, bool shallow) {
         }
 
         /*
-         * Final special case to achieve better XOTcl1 compliance: In case, we
-         * were called from an "unknown" method, skip this frame as well.
+         * If this was a "next" call, continue to walk up.
+         */
+        if ((cscPtr->flags & NSF_CSC_CALL_IS_NEXT) != 0u) {
+          invocationFrame =  Tcl_CallFrame_callerPtr(invocationFrame);
+          /*fprintf(stderr, "next call with %p\n", (void*)invocationFrame);*/
+          continue;
+        }
+
+        /*
+         * Final special case for XOTcl1 compliance: In case, we were called
+         * from an "unknown" method, skip this frame as well.
          */
         /*fprintf(stderr, "cmd %s\n", Tcl_GetCommandName(interp, cscPtr->cmdPtr));*/
         if (strcmp(osPtr->methodNames[NSF_o_unknown_idx], Tcl_GetCommandName(interp, cscPtr->cmdPtr)) == 0) {
           invocationFrame =  Tcl_CallFrame_callerPtr(invocationFrame);
           /*fprintf(stderr, "have unknown, continue with %p\n", (void*)invocationFrame);*/
           continue;
-
         }
+
       }
       break;
     }
@@ -32921,7 +32930,7 @@ NsfCNewMethod(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *childofObj,
 
   {
     Tcl_Obj *methodObj;
-    int callDirectly;
+    int      callDirectly;
 
     callDirectly = CallDirectly(interp, &class->object, NSF_c_create_idx, &methodObj);
 
@@ -32941,6 +32950,16 @@ NsfCNewMethod(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *childofObj,
       }
       result = ObjectDispatch(class, interp, trailingObjc+3, ov, NSF_CSC_IMMEDIATE);
       FREE_ON_STACK(Tcl_Obj *, ov);
+    }
+  }
+
+  {
+    Tcl_Obj    *resultObj;
+    NsfObject  *object;
+
+    resultObj = Tcl_GetObjResult(interp);
+    if (GetObjectFromObj(interp, resultObj, &object) == TCL_OK) {
+      object->flags |= NSF_IS_AUTONAMED;
     }
   }
 

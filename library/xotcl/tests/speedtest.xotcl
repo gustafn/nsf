@@ -561,6 +561,31 @@ nx::test new -msg {return -code break} \
     -cmd {catch {a1 br}} -expected 3 -count 2 \
     -post {A destroy; a1 destroy}
 
+#
+# volatile tests
+#
+nx::test new -msg {volatile + new overloaded } \
+    -pre {Class A; A proc new args {next}} \
+    -cmd {set a [A new -volatile]; $a info class} -expected ::A -count 2 \
+    -post {A destroy}
+
+nx::test new -msg {volatile + next overloaded + proc } \
+    -pre {Class A; A proc new args {next}; proc foo {} {set a [A new -volatile]; $a info class}} \
+    -cmd {foo; ::A info instances} -expected {} -count 2 \
+    -post {A destroy; rename foo ""}
+
+
+
+nx::test new -msg {volatile + configure overloaded} \
+    -pre {Class A; A instproc configure args {next}} \
+    -cmd {A create a1 -volatile; A a2 -volatile; lsort [A info instances]} -expected "::a1 ::a2" -count 2 \
+    -post {A destroy}
+
+nx::test new -msg {volatile + configure overloaded + proc} \
+    -pre {Class A; A instproc configure args {next}; proc foo {} {A create a1 -volatile; A a2 -volatile}} \
+    -cmd {foo; ::A info instances} -expected {} -count 2 \
+    -post {A destroy; rename foo ""}
+
 
 nx::test run
 
