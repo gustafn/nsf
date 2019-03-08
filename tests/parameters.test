@@ -1345,8 +1345,8 @@ nx::test case setters {
   ? {o ints {10 100 1000}} {10 100 1000}
   ? {o ints hugo} {invalid value in "hugo": expected integer but got "hugo" for parameter "ints"}
   ? {o o o} o
-  ? {::nsf::method::setter o {d default}} {parameter "d" is not allowed to have default "default"}
-  ? {::nsf::method::setter o "d\ndefault"} {parameter "d" is not allowed to have default "default"}
+  ? {::nsf::method::setter o {d default}} {parameter specification for "d" is not allowed to have default "default"}
+  ? {::nsf::method::setter o "d\ndefault"} {parameter specification for "d" is not allowed to have default "default"}
   ? {::nsf::method::setter o -x} {invalid setter name "-x" (must not start with a dash or colon)}
 }
 
