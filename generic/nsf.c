@@ -23988,6 +23988,8 @@ ArgumentDefaults(ParseContext *pcPtr, Tcl_Interp *interp,
       if (unlikely((pcPtr->flags[i] & NSF_PC_INVERT_DEFAULT) != 0u)) {
         int boolVal;
 
+        assert(pPtr->defaultValue != NULL);
+
         Tcl_GetBooleanFromObj(interp, pPtr->defaultValue, &boolVal);
         pcPtr->objv[i] = Tcl_NewBooleanObj(boolVal == 0);
         /*
@@ -24652,6 +24654,7 @@ ArgumentParse(
       if (unlikely(pPtr->converter == Nsf_ConvertToSwitch)) {
         /*fprintf(stderr,"... set INVERT_DEFAULT for '%s' flags %.6x\n",
           pPtr->name, pPtr->flags);*/
+        assert(pPtr->defaultValue != NULL);
         pcPtr->flags[j] |= NSF_PC_INVERT_DEFAULT;
       }
     }
