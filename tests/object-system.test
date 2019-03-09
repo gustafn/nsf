@@ -5,7 +5,7 @@
 # since even class Test might not work at that time.
 #
 proc ? {cmd expected {msg ""}} {
-   #puts "??? $cmd"                 
+   #puts "??? $cmd"
    set r [uplevel $cmd]
    if {$msg eq ""} {set msg $cmd}
    if {$r ne $expected} {
@@ -174,7 +174,7 @@ C destroy
 
 #
 # tests for dispatching methods
-# 
+#
 nx::Object create o
 o public object method foo {} {return foo}
 o public object method bar1 {} {return bar1-[:foo]}
@@ -198,7 +198,7 @@ o destroy
 # basic attributes tests
 
 nx::Class create C {
-  :property {x 1} 
+  :property {x 1}
   :property {y 2}
 }
 ? {::nsf::object::exists C} 1
@@ -218,7 +218,9 @@ nx::Class create C {
 ? {::nsf::object::exists X::slot} 1
 
 ? {set c1 [C new]} "::nsf::__#1"
-? {c1 copy c2} "::c2"
+? {nsf::object::property $c1 autonamed} 1
+? {$c1 copy c2} "::c2"
+? {nsf::object::property c2 autonamed} 0
 
 # copy without new name
 ? {c2 copy} ::nsf::__#4
@@ -239,7 +241,7 @@ nx::Class create C {
 ? {C create c2 {:object method foo {} {;}}} ::c2
 
 #
-# check low level method creation on classes, and check C-level 
+# check low level method creation on classes, and check C-level
 # "-flag=value" handling
 #
 nsf::method::create ::C m1 {} {;}
@@ -251,7 +253,7 @@ nsf::method::create ::C -per-object=true m3 {} {;}
 
 #
 # tests for the dispatch command
-# 
+#
 nx::Object create o
 o object method foo {} {return goo}
 o object method bar {x} {return goo-$x}
@@ -395,19 +397,19 @@ proc foo {} {;}
 rename foo ""
 nx::Object create foo {
   :object method bar {} {;}
-  # 
+  #
   # Don't allow subobject to overwrite object specific method
   #
   ? {catch {nx::Object create [self]::bar}} 1
 }
 nx::Object create foo {
   nx::Object create [self]::bar
-  # 
+  #
   # Don't allow child-object to be overwritten by object specific cmd
   #
   ? {catch {:object forward bar somethingelse}} 1
   ? {nsf::object::exists [self]::bar} 1
-  # 
+  #
   # Don't allow child-object to be overwritten by object specific
   # scripted method
   #
@@ -421,7 +423,7 @@ foo destroy
 
 
 #
-# Test instances of diamond class structure. 
+# Test instances of diamond class structure.
 #
 # Leave class structure around until exit to test handling of
 # potentially duplicated entries during final cleanup
