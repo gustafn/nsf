@@ -413,7 +413,7 @@ class-specific initialization behavior.
 102
 [example_end]
 
-Alternatively, the object [arg instance] may define an per-object
+Alternatively, the object [arg instance] may define a per-object
 [method init] on its own. A per-object [method init] can be chained to
 a class-level [method init] using [cmd nx::next], just like a regular
 method.

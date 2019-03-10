@@ -504,7 +504,7 @@ to variables (called +parametercmd+ and +instparametercmd+).  The
 accessor functions are used normally internally when object-specific
 parameters are defined (see Section 3.4).
 
-In NX forwarders are called +forward+. NX does not provide an public
+In NX forwarders are called +forward+. NX does not provide a public
 available method to define variable accessors like +parametercmd+ in
 XOTcl, but use internally the Next Scripting Framework primitive
 +nsf::method::setter+ when appropriate.
@@ -1087,7 +1087,7 @@ While XOTcl follows a procedural way to initialize variables via the
 constructor +init+, NX follows a more declarative approach. Often,
 classes have superclasses, which often want to provide their own
 instance variables and default values. The declarative approach from
-NX solves this via inheritance, while an procedural approach via
+NX solves this via inheritance, while a procedural approach via
 assign statements in the constructor requires explicit constructor
 calls, which are often error-prone. Certainly, when a user prefers to
 assign initial values to instance variables via explicit assign
@@ -1426,7 +1426,7 @@ objects, which are an extension to the +-slots+ already available in
 XOTcl. While very for every +property+ in NX, a slot object is created,
 for performance reasons, not every +variable+ has a slot associated.
 
-When an property is created, NX does actually three things:
+When a property is created, NX does actually three things:
 
 . Create a slot object, which can be specified in more detail
   using the init-block of the slot object
@@ -2969,7 +2969,7 @@ NSF is now more conservative on object/method creation. In contrary to
 XOTcl 1 NSF does not allow one to redefined a pre-existing command
 (e.g. "set") with an object and vice versa. Like in XOTcl 1,
 preexisting objects and classes con be redefined (necessary for
-reloading objects/classes in an running interpreter).
+reloading objects/classes in a running interpreter).
 
 ==== Info heritage
 
