@@ -540,6 +540,7 @@ install-binaries:
 	@echo Installing binaries to '$(SCRIPT_INSTALL_DIR)'
 	@if not exist "$(SCRIPT_INSTALL_DIR)" mkdir "$(SCRIPT_INSTALL_DIR)"
 	@$(CPY) $(PRJLIB) "$(SCRIPT_INSTALL_DIR)" >NUL
+	@if not exist "$(INCLUDE_INSTALL_DIR)" mkdir "$(INCLUDE_INSTALL_DIR)"
 	@echo Installing header files to "$(INCLUDE_INSTALL_DIR)"
 	@$(CPY) "$(GENERICDIR)\nsf.h" "$(INCLUDE_INSTALL_DIR)"
 	@$(CPY) "$(GENERICDIR)\nsfInt.h" "$(INCLUDE_INSTALL_DIR)"
