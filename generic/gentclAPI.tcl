@@ -2,7 +2,7 @@
 # -*- Tcl -*-
 #
 # C-Code generator to generate stubs to handle all objv-parsing from
-# an simple interface definition language. This guarantees consistent
+# a simple interface definition language. This guarantees consistent
 # handling of input argument types, consistent error messages in case
 # of failures and eases documentation.
 #

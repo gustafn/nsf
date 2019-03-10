@@ -63,7 +63,7 @@ namespace eval ::nx::serializer {
       in addition to provide pairs of old-string and new-string
       (like in the Tcl command <@tt>string map</@tt>). This option
       can be used to regenerate the serialized object under a different
-      object or under an different name, or to translate relative
+      object or under a different name, or to translate relative
       object names in the serialized code.<p>
 
       Examples:

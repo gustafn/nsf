@@ -25,7 +25,7 @@ nx::test configure -count 1
 
 # Of course, bagels don't do much yet. They should remember whether
 # they've been toasted. We can create and access an instance variable
-# by defining an property for the class. All instance variables are
+# by defining a property for the class. All instance variables are
 # per default public in the sense of C++.
 ? {Bagel property {toasted 0}} ""
 
