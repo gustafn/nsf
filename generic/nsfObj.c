@@ -43,7 +43,7 @@
  *
  *  NsfMethodObjType Tcl_Obj type --
  *
- *      The NsfMethodObjType is an Tcl_Obj type carrying the result of
+ *      The NsfMethodObjType is a Tcl_Obj type carrying the result of
  *      a method lookup. We define two types (NsfInstanceMethodObjType
  *      and NsfObjectMethodObjType) sharing their implementation. The
  *      type setting function NsfMethodObjSet() receives the intended
@@ -190,7 +190,7 @@ NsfMethodObjSet(
  *
  *  NsfFlagObjType --
  *
- *      The NsfFlagObjType is an Tcl_Obj type carrying the result of a
+ *      The NsfFlagObjType is a Tcl_Obj type carrying the result of a
  *      flag lookup.
  *
  *----------------------------------------------------------------------
