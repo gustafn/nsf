@@ -19,7 +19,7 @@ nx::mongo::db drop collection posts
 
 
 ######################################################################
-# The first approach to implement references simply as an property.
+# The first approach to implement references simply as a property.
 # This is just feasible in cases, where the user has just a name and
 # not more attributes.
 #
