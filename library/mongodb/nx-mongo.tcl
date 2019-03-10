@@ -710,6 +710,7 @@ namespace eval ::nx::mongo {
       {-orderby ""}
       {-limit:integer}
       {-skip:integer}
+      {-asJSON:boolean 0}
     } {
       set result [list]
       set opts [list]
@@ -719,10 +720,31 @@ namespace eval ::nx::mongo {
                        [:bson cond $cond] \
                        -opts [:bson opts -orderby $orderby -atts $atts {*}$opts] ]
 
-      foreach tuple $fetched {
-        lappend result [:bson create $tuple]
+      if {$asJSON} {
+        #
+        # Return fetched tuples form mongoDB in form of a JSON array
+        # (between square brackets).
+        #
+        # The last 5 lines of this proc could be written as the following line,
+        # but we keep it traditional...
+        #
+        # return [subst { \[ [join [lmap tuple $fetched {mongo::json::generate $tuple}] ,\n] \] }]
+        #
+        set tuples [list]
+        foreach tuple $fetched {
+          lappend tuples [mongo::json::generate $tuple]
+        }
+        return [subst { \[ [join $tuples ",\n"] \] }]
+
+      } else {
+        #
+        # Create from the fetched tuples form mongoDB objects.
+        #
+        foreach tuple $fetched {
+          lappend result [:bson create $tuple]
+        }
+        return $result
       }
-      return $result
     }
 
     :public method show {
