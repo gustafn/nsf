@@ -586,6 +586,16 @@ nx::test new -msg {volatile + configure overloaded + proc} \
     -cmd {foo; ::A info instances} -expected {} -count 2 \
     -post {A destroy; rename foo ""}
 
+nx::test new -msg {volatile + new overloaded + mixin + proc} \
+    -pre {
+      Class MC -superclass Class;MC instproc new args {next}
+      Class M; M instproc new args {puts M; next}
+      MC A; A instmixin M
+      MC B -superclass A; B proc new args {next}
+      proc foo {} {B create b1 -volatile; b1 info class}
+    } \
+    -cmd {foo; ::B info instances} -expected {} -count 2 \
+    -post {B destroy; A destroy; M destroy; MC destroy; rename foo ""}
 
 nx::test run
 
