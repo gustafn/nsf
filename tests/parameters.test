@@ -2402,7 +2402,7 @@ nx::test case reconfigure-perobj-default {
 # Strengths of object-level parameters:
 # - same interface as class-level attributes
 # - can use same meta-data mechanisms as for class-level attributes
-#   (e.g database types, property name in the database, persistence
+#   (e.g. database types, property name in the database, persistence
 #   information, ...)
   # - can use same setters/checkers as for class-level attributes
 # - can use as well incremental as for class-level attributes
@@ -2663,7 +2663,7 @@ nx::test case delete-object-level-variable-and-property {
 
 nx::test case object-parameter-switch {
 
-  # Create a class with an property of type switch and an instance of
+  # Create a class with a property of type switch and an instance of
   # the class
   ? {::nx::Class create C {
     :property -accessor public foo:switch
@@ -2854,7 +2854,7 @@ nx::test case properties {
 # The following test case sets a value of an instance variable via a
 # side-effect of an aliased parameter. Side-effects from aliased
 # parameters are discouraged, since the order of the evaluation should
-# not matter of an declarative evaluation of the argument vector.
+# not matter of a declarative evaluation of the argument vector.
 #
 # Note that the order, in which is the arguments are provided is not
 # significant for the evaluation order.

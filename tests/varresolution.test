@@ -45,7 +45,7 @@ nx::test case scopes
 nx::Object create o
 nx::Object create o2 {set :i 1}
 o objeval {
-  # require an namespace within an objscoped frame; it is necessary to replace
+  # require a namespace within an objscoped frame; it is necessary to replace
   # vartables on the stack
   :require namespace
   global g
@@ -826,14 +826,14 @@ nx::test case interactions {
       set type 1
       # 2. at compile time: create a proc-local, compiled link-var ":type"
       info exists :type
-      # 3. at (unoptimised) interpretation time: bypasses compiled link-var
+      # 3. at (unoptimized) interpretation time: bypasses compiled link-var
       # ":type" (invokeStr instruction; a simple eval), does a var
       # lookup with ":type", handled by InterpColonVarResolver();
       # CompiledLocalsLookup() receives the var name (i.e., ":type")
       # and finds the proc-local compiled var ":type" (actually a link
       # variable to the actual/real object variable).
       eval {info exists :type};
-      # Note! A [info exists :type] would have been optimised on the
+      # Note! A [info exists :type] would have been optimized on the
       # bytecode fastpath (i.e., existsScalar instruction) and would
       # use the compiled-local link-var ":type" directly (without
       # visiting InterpColonVarResolver()!)

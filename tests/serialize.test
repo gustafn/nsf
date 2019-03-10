@@ -22,7 +22,7 @@ nx::test case serialize-target {
 
   #puts [xxx serialize -target XXX]
   #
-  # Create an serialized object, which has the target mapped to
+  # Create a serialized object, which has the target mapped to
   # XXX. The target name has intentionally no leading colons, such
   # that the object can be instantiated in a different namespace. This
   # is for example useful when importing objects in OpenACS from a

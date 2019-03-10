@@ -56,7 +56,7 @@ nx::test case set+array {
   ? {nsf::var::exists o1 x} 0
   ? {nsf::var::exists -array o1 x} 0
 
-  # unset on an non-existing variable
+  # unset on a non-existing variable
   ? {nsf::var::unset o1 x} {can't unset "x": no such variable}
   ? {nsf::var::unset -nocomplain o1 x} ""
 }

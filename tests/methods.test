@@ -769,7 +769,7 @@ nx::test case delete-per-object {
   ? {o1 info children} "::o1::info ::o1::per-object-slot"
 
   ? {o1 delete object method bar} "::o1: object specific method 'bar' does not exist"
-  # For a1, we have a method and an property. We can delete the
+  # For a1, we have a method and a property. We can delete the
   # method without the slot.
   ? {o1 delete object method a1} ""
   # After the deletion of the accessor, the slot exists still
