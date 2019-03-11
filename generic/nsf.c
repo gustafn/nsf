@@ -301,6 +301,9 @@ static void PrimitiveODestroy(ClientData clientData)
 static void PrimitiveDestroy(ClientData clientData)
   nonnull(1);
 
+static int VolatileMethod(Tcl_Interp *interp, NsfObject *object, bool shallow)
+  nonnull(1) nonnull(2);
+
 /*
  * Prototypes for object and command lookup
  */
@@ -20743,7 +20746,7 @@ FreeUnsetTraceVariable(Tcl_Interp *interp, const NsfObject *object) {
   nonnull_assert(interp != NULL);
   nonnull_assert(object != NULL);
 
-  if (object->opt != NULL && object->opt->volatileVarName) {
+  if (object->opt != NULL && (object->opt->volatileVarName != NULL)) {
     int result = Tcl_UnsetVar2(interp, object->opt->volatileVarName, NULL, 0);
 
     /*
@@ -20828,7 +20831,7 @@ NsfUnsetTrace(
       if (DispatchDestroyMethod(interp, object, 0u) != TCL_OK) {
         resultMsg = "Destroy for volatile object failed";
       } else {
-        resultMsg = "No nsf Object passed";
+        resultMsg = "No NSF Object passed";
       }
 
       Tcl_SetObjResult(interp, savedResultObj);  /* restore the result */
@@ -29185,7 +29188,10 @@ NsfObjectPropertyCmd(Tcl_Interp *interp, NsfObject *object, ObjectpropertyIdx_t 
       Tcl_SetObjResult(interp,
                        NsfGlobalObjs[object->opt != NULL && object->opt->volatileVarName ? NSF_ONE : NSF_ZERO]);
       return TCL_OK;
-    };
+    }
+    allowSet = 1;
+    break;
+
     /*
      * If a value is provided, return the error below.
      */
@@ -29229,6 +29235,33 @@ NsfObjectPropertyCmd(Tcl_Interp *interp, NsfObject *object, ObjectpropertyIdx_t 
                                     (Tcl_ResolveCmdProc *)NULL,
                                     NsColonVarResolver,
                                     (Tcl_ResolveCompiledVarProc *)NULL);
+        }
+      } else if (objectProperty == ObjectpropertyVolatileIdx) {
+        bool objectIsVolatile = (object->opt != NULL && object->opt->volatileVarName != NULL);
+
+        /*fprintf(stderr, "change volatile flag to %s currentValue %d flagValue %d\n",
+          ObjStr(valueObj), objectIsVolatile, flagValue);*/
+        if (flagValue == 1 && !objectIsVolatile) {
+          /*NsfObjectSystem *osPtr = GetObjectSystem(object);*/
+          /*
+           * Make volatile.
+           */
+          /*fprintf(stderr, "change volatile ... make volatile %s\n",
+            ObjectName(&osPtr->rootClass->object));*/
+
+          result = VolatileMethod(interp, object, NSF_TRUE);
+
+        } else if (flagValue == 0 && objectIsVolatile) {
+          /*
+           * Remove volatile.
+           */
+          /*fprintf(stderr, "change volatile ... remove volatile\n");*/
+          UnsetTracedVars(interp, object);
+          object->opt->volatileVarName = NULL;
+        } else {
+          /*
+           * Nothing to do.
+           */
         }
       }
 
