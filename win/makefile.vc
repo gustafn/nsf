@@ -361,7 +361,7 @@ ldebug	= -debug -debugtype:cv
 ldebug = $(ldebug) -nodefaultlib:msvcrt
 !endif
 !else
-ldebug	= -release -opt:ref -opt:icf,3
+ldebug	= -release -opt:ref -opt:noicf
 !endif
 
 ### Declarations common to all linker options
