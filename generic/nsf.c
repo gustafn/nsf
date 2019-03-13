@@ -10642,7 +10642,7 @@ GuardCheck(Tcl_Interp *interp, Tcl_Obj *guardObj) {
 /*
   static void
   GuardPrint(Tcl_Interp *interp, ClientData clientData) {
-  Tcl_Obj *guardObj = (TclObj *) clientData;
+  Tcl_Obj *guardObj = (Tcl_Obj *) clientData;
   fprintf(stderr, " +++ <GUARDS> \n");
   if (guardObj != NULL) {
   fprintf(stderr, "   *     %s \n", ObjStr(guardObj));
@@ -15164,7 +15164,7 @@ NsfColonCmdContextFree(void *clientData) {
  *----------------------------------------------------------------------
  * CacheCmd --
  *
- *     Cache a Tcl_Command element in a Tcl_Obj, using either the NSF sepcific
+ *     Cache a Tcl_Command element in a Tcl_Obj, using either the NSF specific
  *     object types, or the colon cmd cache for Tcl cmd types.
  *
  * Results:
@@ -16553,7 +16553,7 @@ Nsf_ConvertToInt32(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr,
  * Nsf_ConvertToInteger --
  *
  *    Nsf_TypeConverter setting the client data (passed to C functions) to the
- *    TclObj containing the bignum value. This converter checks the passed
+ *    Tcl_Obj containing the bignum value. This converter checks the passed
  *    value via Tcl_GetBignumFromObj().
  *
  * Results:
@@ -17174,8 +17174,8 @@ Unescape(Tcl_Obj *objPtr) {
  *
  *    Parse a single parameter option of a parameter. The parameter option
  *    string is passed in as second argument, the sizes start and remainder
- *    flag the offsets in the string. As a result, the fields of the parameter
- *    structure are updated.
+ *    flag the offsets in the string follow. As a result, the fields of the
+ *    parameter structure are updated.
  *
  * Results:
  *    Tcl result code, updated fields in the Nsf_Param structure.
@@ -17188,15 +17188,15 @@ Unescape(Tcl_Obj *objPtr) {
 
 static int ParamOptionParse(Tcl_Interp *interp, const char *argString,
                             size_t start, size_t optionLength,
-                            unsigned int disallowedOptions, Nsf_Param *paramPtr, bool unescape,
-                            const char *qualifier)
+                            unsigned int disallowedOptions, Nsf_Param *paramPtr,
+                            bool unescape, const char *qualifier)
   nonnull(1) nonnull(2) nonnull(6);
 
 static int
 ParamOptionParse(Tcl_Interp *interp, const char *argString,
                  size_t start, size_t optionLength,
-                 unsigned int disallowedOptions, Nsf_Param *paramPtr, bool unescape,
-                 const char *qualifier) {
+                 unsigned int disallowedOptions, Nsf_Param *paramPtr,
+                 bool unescape, const char *qualifier) {
   const char *dotdot, *option = argString + start;
   char        firstChar = *option;
   int         result = TCL_OK;
@@ -27944,7 +27944,7 @@ NsfDispatchCmd(Tcl_Interp *interp, NsfObject *object,
   nonnull_assert(commandObj != NULL);
 
   /*
-   * We use the construct tclObj + args in the spec to enforce that at least a
+   * We use the construct "tclobj" + "args" in the spec to enforce that at least a
    * commandName is specified (this way we allow empty "args", and can provide
    * a nice error message, if cmdName is not specified). Since the we know
    * that the commandObj has to be right before "args" in the objv, we can
