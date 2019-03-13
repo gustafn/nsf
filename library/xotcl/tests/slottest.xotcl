@@ -731,6 +731,52 @@ nx::test case nx-returns+serialize {
   ? {c default_form_loader ""} {expected integer but got "" as return value}
 }
 
+
+nx::test case nx-serialize-param-overload {
+
+  #
+  # Create slot via "parameter"
+  #
+  ::xotcl::Class create C -parameter p
+  #
+  # Create a method overloading slot accessor for "p".
+  #
+  C instproc p args {return 1}
+  C create c1
+
+  ? {c1 p} 1
+
+  set ::stringC [C serialize]
+  ? {expr {[string length $::stringC] > 100}} 1
+
+  c1 destroy
+  C destroy
+  ? {catch {eval $::stringC}} 0
+
+  C create c1
+  ? {c1 p} 1
+
+  #
+  # Create slot directly via ::xotcl::Attribute and not via
+  # "parameter" and overload its accessor with an instproc.
+  #
+  ::xotcl::Class create Person -slots {
+    ::xotcl::Attribute salary -default 0
+  }
+  Person instproc salary args {return 100}
+  Person create p1
+
+  ? {p1 salary} 100
+
+  set ::stringP [Person serialize]
+  p1 destroy
+  Person destroy
+
+  ? {catch {eval $::stringP}} 0
+  Person create p1
+
+  ? {p1 salary} 100
+}
 #
 # Local variables:
 #    mode: tcl
