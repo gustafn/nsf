@@ -19,7 +19,7 @@ nx::test new -msg {test multiple dashed args o2} \
 nx::test new -msg {test multiple dashed args o3} \
     -cmd {Object create o3 -proc foo args {return 1} {-set -a -t1} {-set b "-b 1 -y 2"}} \
     -expected ::o3 \
-    -post {o3 destroy}     
+    -post {o3 destroy}
 
 nx::test configure -count 1000
 
@@ -42,8 +42,8 @@ C instproc init args {
   my instvar n v
   #for {set i 1} {$i<1000} {incr i} {set n($i) 1}
   #for {set i 1} {$i<1000} {incr i} {Object [self]::$i}
-  for {set i 0} {$i<$::ccount} {incr i} {set n($i) 1}  
-  for {set i 0} {$i<$::ccount} {incr i} {Object [self]::$i}  
+  for {set i 0} {$i<$::ccount} {incr i} {set n($i) 1}
+  for {set i 0} {$i<$::ccount} {incr i} {Object [self]::$i}
   set v 1
 }
 
@@ -58,23 +58,23 @@ C instproc ma m {
 }
 
 C instproc existsViaInstvar {} {
-  my instvar v 
+  my instvar v
   info exists v
 }
 C instproc existsViaMyInstvar {} {
-  my instvar v 
+  my instvar v
   info exists v
 }
-C instproc existsViaExistsMethod {}  { 
+C instproc existsViaExistsMethod {}  {
   [self] exists v
 }
-C instproc existsViaMyExistsMethod {}  { 
+C instproc existsViaMyExistsMethod {}  {
   my exists v
 }
-C instproc existsViaDotExistsMethod {}  { 
+C instproc existsViaDotExistsMethod {}  {
   :exists v
 }
-C instproc existsViaResolver {}  { 
+C instproc existsViaResolver {}  {
   info exists :v
 }
 C instproc notExistsViaInstvar {} {
@@ -85,12 +85,12 @@ C instproc notExistsViaExistsMethod {}  {
   my exists xxx
 }
 
-C instproc existsAndReturnValue1 {} { 
+C instproc existsAndReturnValue1 {} {
   if {[my exists v]} {
     my set v
   }
 }
-C instproc existsAndReturnValue3 {} { 
+C instproc existsAndReturnValue3 {} {
   if {[my exists v]} {
     set x [my set v]
   }
@@ -273,13 +273,13 @@ nx::test new -cmd {c createVolatileRc} -expected 2
 nx::test new -count 1 -cmd {llength [Object info instances]} -expected $ocount
 
 nx::test new -cmd {Object new -volatile} -expected ::nsf::__\#F9 -count 2000 \
-    -post {foreach o [Object info instances ::nsf::__*] {$o destroy}} 
+    -post {foreach o [Object info instances ::nsf::__*] {$o destroy}}
 
 # should be still the same number as above
 nx::test new -count 1 -cmd {llength [Object info instances]} -expected $ocount
 
 nx::test new -cmd {Object new} -expected ::nsf::__\#lQ  -count 2000 \
-    -post {foreach o [Object info instances ::nsf::__*] {$o destroy}} 
+    -post {foreach o [Object info instances ::nsf::__*] {$o destroy}}
 
 # should be still the same number as above
 nx::test new -count 1 -cmd {llength [Object info instances]} -expected $ocount
@@ -530,28 +530,28 @@ nx::test new -msg {call obj with namespace via instforward} \
     -cmd {o x self} -expected ::n::x -count $cnt \
     -post {o destroy}
 nx::test new -msg {call obj with namespace via instforward and mixinclass} \
-    -pre {Object n; Object n::x; Class M -instforward ::n::x; 
+    -pre {Object n; Object n::x; Class M -instforward ::n::x;
       Class C -instmixin M; C create o } \
     -cmd {o x self} -expected ::n::x -count $cnt \
     -post {o destroy}
 nx::test new -msg {call obj with namespace via instforward and next from proc} \
     -pre {
-      Object n; Object n::x; 
-      Class C -instforward ::n::x; 
+      Object n; Object n::x;
+      Class C -instforward ::n::x;
       C create o -proc x args {next} } \
     -cmd {o x self} -expected ::n::x -count $cnt \
     -post {o destroy}
 nx::test new -msg {call obj with namespace via instforward and next from instproc} \
     -pre {
-      Object n; Object n::x; 
-      Class C -instforward ::n::x; 
+      Object n; Object n::x;
+      Class C -instforward ::n::x;
       Class D -superclass C -instproc x args {next};
       D create o } \
     -cmd {o x self} -expected ::n::x -count $cnt \
     -post {o destroy}
 nx::test new -msg {call obj with namespace via mixin and instforward and next} \
-    -pre {Object n; Object n::x; 
-      Class M -instforward ::n::x; 
+    -pre {Object n; Object n::x;
+      Class M -instforward ::n::x;
       Class N -superclass M -instproc x args {next};
       Class C -instmixin N; C create o} \
     -cmd {o x self} -expected ::n::x -count $cnt \
@@ -596,6 +596,27 @@ nx::test new -msg {volatile + new overloaded + mixin + proc} \
     } \
     -cmd {foo; ::B info instances} -expected {} -count 2 \
     -post {B destroy; A destroy; M destroy; MC destroy; rename foo ""}
+
+#
+# Check whether the setting of the autoname object property is already
+# visible immediately after the object creation (e.g. in an overloaded
+# "create" method. This is e.g. important for ttrace, catching object
+# creates via instmixin.
+#
+nx::test new -msg {autonamed property + overloaded create} \
+    -pre {
+      set ::_ {}
+      ::xotcl::Class create ::xotcl::_creator -instproc create {args} {
+        set r [next]
+        lappend ::_ [nsf::object::property $r autonamed]
+        return $r
+      }
+      ::xotcl::Class instmixin ::xotcl::_creator
+    } \
+    -cmd {::xotcl::Object new; ::xotcl::Object a; ::xotcl::Object create a; ::xotcl::Object new; set ::_} \
+    -expected {1 0 0 1} -count 1 \
+    -post {::xotcl::Class instmixin ""; ::xotcl::_creator destroy; a destroy}
+
 
 nx::test run
 

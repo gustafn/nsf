@@ -203,6 +203,9 @@ typedef struct {
 
 static Nsf_TypeConverter ConvertToNothing, ConvertViaCmd, ConvertToObjpattern;
 
+static const char * autonamePrefix = "::nsf::__#";
+static const int    autonamePrefixLength = 10;
+
 /*
  * Tcl_Obj Types for Next Scripting Objects
  */
@@ -29103,7 +29106,7 @@ NsfObjectAllocCmd(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *nameObj, Tcl_Obj
     Tcl_DString ds, *dsPtr = &ds;
 
     Tcl_DStringInit(dsPtr);
-    Tcl_DStringAppend(dsPtr, "::nsf::__#", 10);
+    Tcl_DStringAppend(dsPtr, autonamePrefix, autonamePrefixLength);
 
     NewTclCommand(interp, dsPtr);
 
@@ -32591,6 +32594,7 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *nameObj, int objc
   NsfObject     *newObject = NULL;
   Tcl_Obj       *actualNameObj, *methodObj, *tmpObj = NULL;
   int            result, nameLength;
+  bool           autoNameCreate;
   const char    *nameString;
   Tcl_Namespace *parentNsPtr;
 
@@ -32619,6 +32623,7 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *nameObj, int objc
    */
   if (unlikely(NSValidObjectName(nameString, (size_t)nameLength) == 0)) {
     result = NsfPrintError(interp, "cannot allocate object - illegal name '%s'", nameString);
+    autoNameCreate = NSF_FALSE;
     goto create_method_exit;
   }
 
@@ -32640,11 +32645,18 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *nameObj, int objc
     /* fprintf(stderr, " **** fixed name is '%s'\n", nameString); */
     INCR_REF_COUNT(tmpObj);
     actualNameObj = tmpObj;
+    autoNameCreate = NSF_FALSE;
 
   } else {
     parentNsPtr = NULL;
     actualNameObj = nameObj;
     /* fprintf(stderr, " **** used specified name is '%s'\n", nameString); */
+
+    /*
+     * Check for autname prefix string. This string is always an absolute path
+     * name, so it is sufficient to test here.
+     */
+    autoNameCreate = (strncmp(autonamePrefix, nameString, autonamePrefixLength) == 0);
   }
 
   /*
@@ -32769,6 +32781,10 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *nameObj, int objc
     DECR_REF_COUNT(actualNameObj);
   }
  create_method_exit:
+
+  if (autoNameCreate && result == TCL_OK) {
+    newObject->flags |= NSF_IS_AUTONAMED;
+  }
 
   if (tmpObj != NULL) {
     DECR_REF_COUNT(tmpObj);
@@ -32957,7 +32973,7 @@ NsfCNewMethod(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *childofObj,
     }
     Tcl_DStringAppend(dsPtr, "::__#", 5);
   } else {
-    Tcl_DStringAppend(dsPtr, "::nsf::__#", 10);
+    Tcl_DStringAppend(dsPtr, autonamePrefix, autonamePrefixLength);
   }
 
   NewTclCommand(interp, dsPtr);
@@ -32987,16 +33003,6 @@ NsfCNewMethod(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *childofObj,
       }
       result = ObjectDispatch(class, interp, trailingObjc+3, ov, NSF_CSC_IMMEDIATE);
       FREE_ON_STACK(Tcl_Obj *, ov);
-    }
-  }
-
-  {
-    Tcl_Obj    *resultObj;
-    NsfObject  *object;
-
-    resultObj = Tcl_GetObjResult(interp);
-    if (GetObjectFromObj(interp, resultObj, &object) == TCL_OK) {
-      object->flags |= NSF_IS_AUTONAMED;
     }
   }
 
