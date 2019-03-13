@@ -25,7 +25,7 @@ nx::test configure -count 1000
 
 @ @File {description {
   Regression and speed test for various ways to achieve a similar
-  behaviour.
+  behavior.
   }
 }
 

@@ -1032,8 +1032,7 @@ an accessor is a method with the same name as the variable. In XOTcl,
 every +parameter+ defined as well automatically a same-named accessor
 method, leading to potential name conflicts with other method names.
 
-In the examples below we show the definition of configurable an
-non-configurable instance variables using +variable+ and +property+
+In the examples below we show the definition of configurable a non-configurable instance variables using +variable+ and +property+
 respectively.
 
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]

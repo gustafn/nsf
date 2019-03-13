@@ -464,7 +464,7 @@ nx::Class create SafeStack -superclasses Stack -mixins Safety
 SafeStack create s3
 --------------------------------------------------
 
-The difference of a per-class mixin and an per-object mixin is that
+The difference of a per-class mixin and a per-object mixin is that
 the per-class mixin is applicable to all instances of the
 class. Therefore, we call these mixins also sometimes instance mixins.
 In our example in <<xmp-class-safestack,{xmp-class-safestack}>>,
