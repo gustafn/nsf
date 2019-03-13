@@ -21,7 +21,7 @@ proc ! string {
     <p>
     <li>Secondly, it starts a second webserver with basic access control
     (it accepts test/test as user/password) on port 9096 (or on the
-    port specified via -protected-port). If it receives an request
+    port specified via -protected-port). If it receives a request
     for an resource named "exit", it terminates. For all other requests
     it returns actual information about the user and the issued request.
     </ul>

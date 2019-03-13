@@ -494,7 +494,7 @@ namespace eval ::xotcl::metadataAnalyzer {
 	puts stderr "Unknown @ metadata: '$args'"
     }
     @ AnalyzerCmd @ {
-	description {Recreate @ with metadata analyis funtionality.}
+	description {Recreate @ with metadata analyis functionality.}
     }
     AnalyzerCmd create ::xotcl::@
 

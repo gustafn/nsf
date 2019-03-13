@@ -10,7 +10,7 @@ nx::test configure -count 1000
 #   - generalization of slots to have different kind of domains and managers
 #   - slots for objects and classes (slot parameter 'per-object' true|false,
 #     when to used on a class object)
-#   - works for mixins/filters/class/superclass (e.g ... superclass add ::M)
+#   - works for mixins/filters/class/superclass (e.g. ... superclass add ::M)
 #   - defaultcmd and valuecmd
 #     defaultcmd: is executed when the instance variable is read the first time
 #     valuecmd: is executed whenever the instance variable is read

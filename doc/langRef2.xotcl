@@ -10,12 +10,12 @@ namespace eval ::xodoc-tools {
       [:cmd ${:name}] returns the name of the object, which is currently executed.
       If it is called from outside of an XOTcl method, it returns an error.
     }
-    
+
     :variant "self class" {
       [:cmd ${:name}] returns the name of the class, which
-      holds the currently executing method. Note, that this may be
+      holds the currently executing method. Note that this may be
       different to the class of the current object. If it is called from
-      an object specific method it returns an empty string.  
+      an object specific method it returns an empty string.
     }
 
     :variant "self method" {
@@ -24,7 +24,7 @@ namespace eval ::xodoc-tools {
 
     :variant "self callingclass" {
       [:cmd ${:name}] returns the name of the class that has
-      called the executing method.  
+      called the executing method.
     }
 
     :variant "self callingobject" {
@@ -38,18 +38,18 @@ namespace eval ::xodoc-tools {
     }
 
     :variant "self calledclass" {
-      [:cmd ${:name}] returns the class name of the 
+      [:cmd ${:name}] returns the class name of the
       class that holds the target method (in mixins and filters).
     }
-    
+
     :variant "self calledmethod" {
-      [:cmd ${:name}] returns the name of the target called 
-      method (only applicable in a filter). 
+      [:cmd ${:name}] returns the name of the target called
+      method (only applicable in a filter).
     }
 
     :variant "self isnextcall" {
       [:cmd ${:name}] returns 1 if this method
-      was invoked via next, otherwise 0. 
+      was invoked via next, otherwise 0.
     }
 
     :variant "self next" {
@@ -58,18 +58,18 @@ namespace eval ::xodoc-tools {
 
     :variant "self filterreg" {
       [:cmd ${:name}] returns the name
-      of the object/class on which the filter is registered. 
+      of the object/class on which the filter is registered.
     }
 
     :variant "self callinglevel" {
-      [:cmd ${:name}] returns the calling level, from where 
+      [:cmd ${:name}] returns the calling level, from where
       the actual method was called from. Intermediary next calls are ignored
       in this computation. The level is returned in a form
       that can be used as first argument in  [:cmd uplevel] or  [:cmd upvar].
     }
 
     :variant "self activelevel" {
-      [:cmd ${:name}] returns the level, from where 
+      [:cmd ${:name}] returns the level, from where
       the actual method was invoked from. This might be the calling level or a next
       call, whatever is higher in the stack. The level is returned in a form
       that can be used as first argument in  [:cmd uplevel] or  [:cmd upvar].
@@ -80,15 +80,15 @@ namespace eval ::xodoc-tools {
   @ xotclCmd ::xotcl::alias -arguments {
     object -per-object:switch methodName -nonleaf:switch -objscope:switch cmd
   } {
-    The command [:cmd ${:name}] is used to register a Tcl command as method for 
+    The command [:cmd ${:name}] is used to register a Tcl command as method for
     an object or class.
   } {
-    :param object {is the object or class, on which the command 
+    :param object {is the object or class, on which the command
       is registered as a method}
-    :param -per-object {if provided, the method is an per-object 
+    :param -per-object {if provided, the method is a per-object
       method (not inheritable)}
     :param methodName {the name for the method to be added}
-    :param -nonleaf:switch {if provided, the method will have a call 
+    :param -nonleaf:switch {if provided, the method will have a call
       stack entry such it can call [:cmd next]}
     :param -objscope:switch {if provided, the variables created during
       the execution of the method will be instance variables}
@@ -108,7 +108,7 @@ namespace eval ::xodoc-tools {
   @ xotclMethod alias -partof ::xotcl2::Object \
       -arguments {-nonleaf:switch -objscope:switch methodName cmd} \
       {
-	This method is used to register an existing  Tcl command as 
+	This method is used to register an existing  Tcl command as
 	a method for a class or object.
       } {
 	:param "-nonleaf:switch" {} -use ::xotcl::alias
@@ -127,7 +127,7 @@ namespace eval ::xodoc-tools {
       }
 
   @ xotclClass ::xotcl2::Class {
-  } 
+  }
 }
 
 

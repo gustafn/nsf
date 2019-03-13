@@ -213,7 +213,7 @@ namespace eval ::xotcl::xodoc {
 
     @ XODoc proc documentFileAsHTML {
 				     file "filename of the xotcl file to be documented"
-				     docdir "directory to which the html file is written"
+				     docdir "directory to which the HTML file is written"
 				 } {
 	description "Uses the xoDoc package to produce an HTML documentation of
                a specified file ***.xotcl. The file is written to ***.html
@@ -354,7 +354,7 @@ namespace eval ::xotcl::xodoc {
     }
 
     @ XODoc instproc printHTML {
-	name "name of the html document"
+	name "name of the HTML document"
     } {
 	description "Create HTML documentation object from metadata token"
     }
@@ -391,7 +391,7 @@ namespace eval ::xotcl::xodoc {
     }
 
     @ XODoc instproc writeFile {
-	filename "file name destination" name "name of the html document"
+	filename "file name destination" name "name of the HTML document"
     } {
 	description "Create HTML docuemntation from metadata token and write to file <filename>"
     }
