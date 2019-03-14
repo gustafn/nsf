@@ -205,7 +205,8 @@ static Nsf_TypeConverter ConvertToNothing, ConvertViaCmd, ConvertToObjpattern;
 
 static const char * autonamePrefix = "::nsf::__#";
 static const int    autonamePrefixLength = 10;
-
+static const char * nsfClassesPrefix = "::nsf::classes";
+static const int    nsfClassesPrefixLength = 14;
 /*
  * Tcl_Obj Types for Next Scripting Objects
  */
@@ -1746,9 +1747,9 @@ IsClassNsName(const char *string, const char **cont) {
 
   nonnull_assert(string != NULL);
 
-  if (*string == ':' && strncmp((string), "::nsf::classes", 14) == 0) {
+  if (*string == ':' && strncmp(string, nsfClassesPrefix, nsfClassesPrefixLength) == 0) {
     if (cont != NULL) {
-      *cont = string + 14;
+      *cont = string + nsfClassesPrefixLength;
     }
     return NSF_TRUE;
   }
@@ -11297,7 +11298,11 @@ MethodHandleObj(NsfObject *object, int withPer_object, const char *methodName) {
   nonnull_assert(methodName != NULL);
   assert(*methodName != ':');
 
-  resultObj = Tcl_NewStringObj((withPer_object == 1) ? "" : "::nsf::classes", -1);
+  if (withPer_object == 1) {
+    resultObj = Tcl_NewStringObj("", 0);
+  } else {
+    resultObj = Tcl_NewStringObj(nsfClassesPrefix, nsfClassesPrefixLength);
+  }
   Tcl_AppendObjToObj(resultObj, object->cmdName);
   Tcl_AppendStringsToObj(resultObj, "::", methodName, (char *) NULL);
 
@@ -29242,23 +29247,20 @@ NsfObjectPropertyCmd(Tcl_Interp *interp, NsfObject *object, ObjectpropertyIdx_t 
       } else if (objectProperty == ObjectpropertyVolatileIdx) {
         bool objectIsVolatile = (object->opt != NULL && object->opt->volatileVarName != NULL);
 
-        /*fprintf(stderr, "change volatile flag to %s currentValue %d flagValue %d\n",
-          ObjStr(valueObj), objectIsVolatile, flagValue);*/
-        if (flagValue == 1 && !objectIsVolatile) {
-          /*NsfObjectSystem *osPtr = GetObjectSystem(object);*/
+        if (flagValue != 0 && !objectIsVolatile) {
           /*
-           * Make volatile.
+           * Set volatile property.
            */
+
+          /*NsfObjectSystem *osPtr = GetObjectSystem(object);*/
           /*fprintf(stderr, "change volatile ... make volatile %s\n",
             ObjectName(&osPtr->rootClass->object));*/
-
           result = VolatileMethod(interp, object, NSF_TRUE);
 
         } else if (flagValue == 0 && objectIsVolatile) {
           /*
-           * Remove volatile.
+           * Remove volatile property.
            */
-          /*fprintf(stderr, "change volatile ... remove volatile\n");*/
           UnsetTracedVars(interp, object);
           object->opt->volatileVarName = NULL;
         } else {
@@ -29266,8 +29268,11 @@ NsfObjectPropertyCmd(Tcl_Interp *interp, NsfObject *object, ObjectpropertyIdx_t 
            * Nothing to do.
            */
         }
-      }
 
+        if (unlikely(result != TCL_OK)) {
+          return result;
+        }
+      }
     } else {
       return NsfPrintError(interp, "object property is read only");
     }
@@ -29599,14 +29604,15 @@ NsfNSCopyVarsCmd(Tcl_Interp *interp, Tcl_Obj *fromNsObj, Tcl_Obj *toNsObj) {
     if (GetObjectFromObj(interp, fromNsObj, &object) != TCL_OK) {
       return NsfPrintError(interp, "CopyVars: Origin object/namespace %s does not exist",
                            ObjStr(fromNsObj));
-    }
-    if (GetObjectFromObj(interp, toNsObj, &newObject) != TCL_OK) {
+
+    } else if (GetObjectFromObj(interp, toNsObj, &newObject) != TCL_OK) {
       return NsfPrintError(interp, "CopyVars: Destination object/namespace %s does not exist",
                            ObjStr(toNsObj));
+    } else {
+      varTablePtr = object->varTablePtr;
+      destFullNameObj = newObject->cmdName;
+      destFullName = ObjStr(destFullNameObj);
     }
-    varTablePtr = object->varTablePtr;
-    destFullNameObj = newObject->cmdName;
-    destFullName = ObjStr(destFullNameObj);
   }
 
   destObject = GetObjectFromString(interp, destFullName);
@@ -35321,7 +35327,7 @@ Nsf_Init(
    * NsfClasses in separate Namespace / Objects
    */
   rst->NsfClassesNS =
-    Tcl_CreateNamespace(interp, "::nsf::classes", NULL,
+    Tcl_CreateNamespace(interp, nsfClassesPrefix, NULL,
                         (Tcl_NamespaceDeleteProc *)NULL);
 
 #if !defined(PRE86)
