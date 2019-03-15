@@ -97,12 +97,12 @@ namespace eval ::xotcl {
 
   proc ::xotcl::self {{arg ""}} {
       switch $arg {
-	"" {uplevel ::nsf::self}
+	"" {::uplevel ::nsf::self}
 	next {
-	  set handle [uplevel ::nsf::current nextmethod]
+	  set handle [::uplevel ::nsf::current nextmethod]
 	  method_handle_to_xotcl $handle
 	}
-	default {uplevel ::nsf::current $arg}
+	default {::uplevel ::nsf::current $arg}
       }
   }
 
@@ -422,7 +422,7 @@ namespace eval ::xotcl {
     if {[::nsf::current isnextcall]} {
       set lvl [::nsf::current callinglevel]
     }
-    uplevel $lvl [list [self] create {*}$args]
+    ::uplevel $lvl [list [self] create {*}$args]
   }
 
   Object instproc unknown {m args} {
@@ -645,7 +645,7 @@ namespace eval ::xotcl {
         flag    [$o ::nsf::methods::${scope}::info::method parameter $method] {
           if {$argName eq $arg} {
 	    # we are in a proc, so using built-in "upvar" is safe
-	    upvar $varName default
+	    ::upvar $varName default
             if {[llength $flag] == 2} {
               set default [lindex $flag 1]
               #puts "--- get $scope default for $o $method $arg => setting default to '$default'"
@@ -925,7 +925,7 @@ namespace eval ::xotcl {
   # definition of "xotcl::Class slots", based on contains
   ::xotcl::Class instproc slots {cmd} {
     set slotContainer [::nx::slotObj [self]]
-    uplevel [list [self] contains -object $slotContainer $cmd]
+    ::uplevel [list [self] contains -object $slotContainer $cmd]
   }
 
   #
@@ -1062,8 +1062,8 @@ namespace eval ::xotcl {
   ::nsf::method::create ::xotcl::Class -per-object __unknown {name} {}
   ::nsf::object::unknown::add xotcl {::xotcl::Class __unknown}
 
-  proc myproc {args} {linsert $args 0 [uplevel ::nsf::self]}
-  proc myvar  {var}  {[uplevel ::nsf::self] requireNamespace; return [uplevel ::nsf::self]::$var}
+  proc myproc {args} {linsert $args 0 [::uplevel ::nsf::self]}
+  proc myvar  {var}  {[::uplevel ::nsf::self] requireNamespace; return [::uplevel ::nsf::self]::$var}
 
   #
   # create ::xotcl::MetaSlot for better compatibility with XOTcl 1
@@ -1297,7 +1297,7 @@ namespace eval ::xotcl {
   #
   Object instproc extractConfigureArg {al name {cutTheArg 0}} {
     set value ""
-    upvar $al argList
+    ::upvar $al argList
     set largs [llength $argList]
     for {set i 0} {$i < $largs} {incr i} {
       if {[lindex $argList $i] == $name && $i + 1 < $largs} {
@@ -1429,7 +1429,7 @@ namespace eval ::xotcl {
         }
         set :component $pkg
         lappend :uses($prevComponent) ${:component}
-        set v [uplevel \#1 [set :packagecmd] require $args]
+        set v [::uplevel \#1 [set :packagecmd] require $args]
         if {$v ne "" && ${:verbose}} {
         set path [lindex [::package ifneeded $pkg $v] 1]
           puts "... $pkg $v loaded from '$path'"
