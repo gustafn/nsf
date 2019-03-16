@@ -125,7 +125,7 @@ if {$::tcl_version >= 8.6} {
       default it is set off, which means that the object/class is destroyed
       and all relations (e.g. subclass/superclass) to other
       objects/classes are destroyed as well. If <@tt>softrecreate</@tt> is
-      set, the object is reseted, but not destroyed, the relations
+      set, the object is reset, but not destroyed, the relations
       are kept. This is important, when e.g. reloading a file
       with class definitions (e.g. when used in OpenACS with file watching and
       reloading). With  <@tt>softrecreate</@tt> set,

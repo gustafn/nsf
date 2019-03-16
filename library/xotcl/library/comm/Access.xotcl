@@ -970,7 +970,7 @@ namespace eval ::xotcl::comm::httpAccess {
 		my finish
 		set block ""
 	    } else {
-		### To avoid CRLF problmes we set the translation for 
+		### To avoid CRLF problems we set the translation for 
 		### the body entity  to binary
 		$S translation binary
 		my set state 4
