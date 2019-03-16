@@ -114,31 +114,31 @@ nx::test case redefined-protected {
   ? {::nsf::method::property C foo redefine-protected true} 1
   
   ? {C method SET {a b c} {...}} \
-      {refuse to overwrite protected method 'SET'; derive e.g. a sub-class!} \
+      {refuse to overwrite protected method 'SET'; derive e.g. a subclass!} \
       "redefine method SET"
   
   ? {C method foo {a b c} {...}} \
-      {refuse to overwrite protected method 'foo'; derive e.g. a sub-class!} \
+      {refuse to overwrite protected method 'foo'; derive e.g. a subclass!} \
       "redefine method foo"
   
   # check a predefined protection
   ? {::nx::Class method create {a b c} {...}} \
-      {refuse to overwrite protected method 'create'; derive e.g. a sub-class!} \
+      {refuse to overwrite protected method 'create'; derive e.g. a subclass!} \
       "redefine method create"
   
   # try to redefine predefined protected method via alias
   ? {::nsf::method::alias nx::Class create ::set} \
-      {refuse to overwrite protected method 'create'; derive e.g. a sub-class!} \
+      {refuse to overwrite protected method 'create'; derive e.g. a subclass!} \
       "redefine alias create"
   
   # try to redefine via forward
   ? {C forward SET ::set} \
-      {refuse to overwrite protected method 'SET'; derive e.g. a sub-class!} \
+      {refuse to overwrite protected method 'SET'; derive e.g. a subclass!} \
       "redefine forward SET"
 
   # try to redefine via setter
   ? {C property -accessor public SET} \
-      {refuse to overwrite protected method 'SET'; derive e.g. a sub-class!} \
+      {refuse to overwrite protected method 'SET'; derive e.g. a subclass!} \
       "redefine property SET"
   
   # redefine-protect object specific method
@@ -146,7 +146,7 @@ nx::test case redefined-protected {
   o object method foo {} {return 13}
   ::nsf::method::property o foo redefine-protected true
   ? {o object method foo {} {return 14}} \
-      {refuse to overwrite protected method 'foo'; derive e.g. a sub-class!}
+      {refuse to overwrite protected method 'foo'; derive e.g. a subclass!}
 }
 
 
