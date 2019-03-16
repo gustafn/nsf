@@ -20636,10 +20636,14 @@ ComputeLevelObj(Tcl_Interp *interp, CallStackLevel level) {
     Nsf_ltoa(buffer+1, (long)Tcl_CallFrame_level(framePtr), &l);
     resultObj = Tcl_NewStringObj(buffer, l+1);
   } else {
-    /*
-     * If not called from an nsf frame, return 1 as default.
-     */
-    resultObj = Tcl_NewIntObj(1);
+    if (level == CALLING_LEVEL) {
+      resultObj = Tcl_NewStringObj("#0", 2);
+    } else {
+      /*
+       * If not called from an nsf frame, return 1 as default.
+       */
+      resultObj = Tcl_NewIntObj(1);
+    }
   }
 
   return resultObj;
