@@ -1589,7 +1589,7 @@ determined and/or the rules are too complicated to be understood on
 the first glance. The programmer often can only determine by trial
 which method is found firstly. Than an explicit naming of the class is
 necessary, which means storage of non-local information in
-sub-classes. Often different compilers of one language behave
+subclasses. Often different compilers of one language behave
 differently. All these issues make code reuse difficult. Moreover
 understandability and portability are reduced.
 </P>
@@ -1633,8 +1633,8 @@ receive no argument, the flag <tt>--noArgs</tt> must be used.
 </H3>
 <P>Classes are destroyed by the destruction of the class-object using
 the <tt>destroy</tt> method of the <tt>Object</tt> class. The
-destruction of super-classes does not destroy the sub-classes. The
-super-class is simply removed from the sub-classes' super-class
+destruction of super-classes does not destroy the subclasses. The
+super-class is simply removed from the subclasses' super-class
 lists. All classes have the super-class <tt>Object</tt>, if no
 super-class is specified. Therefore, if all super-classes are
 destroyed or removed, the new super-class is <tt>Object</tt>, not: no
@@ -2559,7 +2559,7 @@ rooms.
 </pre><P>
 Filters are invoked in registration order. The order may be changed
 by removing them and adding them in new order. Filters are inherited
-by sub-classes. E.g. in the preceding example for the next path, an
+by subclasses. E.g. in the preceding example for the next path, an
 <tt>OvalOffice</tt> was derived from the <tt>Room</tt> class. Without
 a change to the program each <tt>OvalOffice</tt> object automatically
 produces the same filter output as rooms. 
@@ -2742,7 +2742,7 @@ bodies.
   Trace add Room
 </pre><P>
 messages to all rooms, including all instances of <tt>Room</tt>&acute;s
-sub-classes, are surrounded with a CALL and an EXIT output. With 
+subclasses, are surrounded with a CALL and an EXIT output. With
 </P>
 <pre CLASS="code">
   Trace add Object
@@ -2823,7 +2823,7 @@ matters) artificially constructed helper-classes are needed to
 provide all combinations of additional mix-in functionality.
 Furthermore it is possible that the number of additions is unlimited,
 since the additions may produce other additions as side-effects. This
-demonstrates clearly that the sub-class mechanism provides only a
+demonstrates clearly that the subclass mechanism provides only a
 poor mechanism for mix-in of orthogonal functionality. Therefore we
 provide an extension in the form of class-object mixin classes, which are
 added in front of the search precedence of classes. 
@@ -4003,7 +4003,7 @@ description of a oval carpet and a desk can nest inside of the
   <tt>Class</tt> OvalOffice::Carpet <tt>-superclass</tt> ::Carpet
 </pre><P>
 Nested classes can be used exactly like ordinary classes, a user can
-sub-class it, derive instances, etc. The information about the
+subclass it, derive instances, etc. The information about the
 nesting structure of classes is available through the <tt>info</tt>
 instance method: 
 </P>
@@ -4785,7 +4785,7 @@ provides an abstract interface for access to different storage forms:
 </pre><P>
 All kinds of storage have to implement every method from the
 interface. E.g. a GNU Database Access, a relational database access,
-and several other storage forms may be derived by sub-classing
+and several other storage forms may be derived by subclassing
 (therefore, all conform to the same storage access interface). 
 </P>
 
