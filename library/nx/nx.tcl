@@ -507,10 +507,10 @@ namespace eval ::nx {
     }
 
     :protected method defaultmethod {} {
-      if {[catch {set obj [uplevel ::nsf::current]}]} {
+      if {[catch {set obj [::uplevel ::nsf::current]}]} {
 	error "ensemble dispatch called outside of method context"
       }
-      set path [uplevel {::nsf::current methodpath}]
+      set path [::uplevel {::nsf::current methodpath}]
       set l [string length $path]
       set submethods [$obj ::nsf::methods::object::info::lookupmethods -path "$path *"]
       foreach sm $submethods {set results([lindex [string range $sm $l+1 end] 0]) 1}
@@ -1719,11 +1719,11 @@ namespace eval ::nx {
     #
     # Use uplevel to avoid namespace surprises
     #
-    uplevel [list ::nsf::relation::set $obj $prop [linsert $oldSetting $pos $value]]
+    ::uplevel [list ::nsf::relation::set $obj $prop [linsert $oldSetting $pos $value]]
   }
 
   RelationSlot public method value=delete {-nocomplain:switch obj prop value} {
-    uplevel [list ::nsf::relation::set $obj $prop \
+    ::uplevel [list ::nsf::relation::set $obj $prop \
 		 [:delete_value $obj $prop [::nsf::relation::get $obj $prop] $value]]
   }
 
@@ -2586,7 +2586,7 @@ namespace eval ::nx {
 	# Obtain the namespace from plain uplevel to honor the
 	# namespace provided by apply
 	#
-	set childof [uplevel {namespace current}]
+	set childof [::uplevel {namespace current}]
       }
       #
       # Use the uplevel method to assure that e.g. "... new -volatile ..."
@@ -3039,9 +3039,9 @@ namespace eval ::nx {
 if {[info command ::lmap] eq ""} {
   # provide a simple forward compatible version of Tcl 8.6's lmap
   proc lmap {_var list body} {
-    upvar 1 $_var var
+    ::upvar 1 $_var var
     set res {}
-    foreach var $list {lappend res [uplevel 1 $body]}
+    foreach var $list {lappend res [::uplevel 1 $body]}
     return $res
   }
 }
