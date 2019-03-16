@@ -1226,7 +1226,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> SafeStack -superclasses Stack -mixins Safety
 
 SafeStack <span class='nx-keyword'>create</span> s3</pre></div></div>
-<div class="paragraph"><p>The difference of a per-class mixin and an per-object mixin is that
+<div class="paragraph"><p>The difference of a per-class mixin and a per-object mixin is that
 the per-class mixin is applicable to all instances of the
 class. Therefore, we call these mixins also sometimes instance mixins.
 In our example in <a href="#xmp-class-safestack">Listing 10</a>,
@@ -1283,7 +1283,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 an integer stack. The method <code>pull</code> is the same for the integer stack
 as for all other stacks, so it will be reused as usual from the class
 <code>Stack</code>. The object-specific method <code>push</code> of <code>s4</code> has a value
-constraint in its argument list (<code>thing:integer</code>) that makes sure,
+constraint in its argument list (<code>thing:integer</code>) that makes sure
 that only integers can be stacked. In case the argument is not an
 integer, an exception will be raised. Of course, one could perform the
 value constraint checking as well in the body of the method <code>proc</code> by
@@ -1548,7 +1548,7 @@ languages, the relationships between classes can be easily changed,
 and different superclasses might have different requirements in their
 constructors. The declarative approach in NX reduces the need for
 tailored constructor methods significantly.</p></div>
-<div class="paragraph"><p>Note, that the property <code>matnr</code> of class <code>Student</code> is required. This
+<div class="paragraph"><p>Note that the property <code>matnr</code> of class <code>Student</code> is required. This
 means, that if we try to create an instance of <code>Student</code>, a runtime
 exception will be triggered. The property <code>oncamups</code> is boolean and
 contains a default value. Providing a default value means that
@@ -2280,7 +2280,7 @@ can be still invoked, either via the primitive <code>next</code> or via method
 handles (we used already method handles in the section about method
 aliases). In the example above, <code>next</code> calls the shadowed method and
 add their results to the results of every method. So, the final result
-contains parts from <code>d1</code>, <code>D</code> and <code>C</code>. Note, that the topmost <code>next</code>
+contains parts from <code>d1</code>, <code>D</code> and <code>C</code>. Note that the topmost <code>next</code>
 in method <code>foo</code> of class <code>C</code> shadows no method <code>foo</code> and simply
 returns empty (and not an error message).</p></div>
 <div class="paragraph"><p>The introspection method <code>info precedence</code> provides information about

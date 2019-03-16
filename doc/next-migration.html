@@ -1539,7 +1539,7 @@ forwarder (called <code>forward</code> and <code>instforward</code>) and accesso
 to variables (called <code>parametercmd</code> and <code>instparametercmd</code>).  The
 accessor functions are used normally internally when object-specific
 parameters are defined (see Section 3.4).</p></div>
-<div class="paragraph"><p>In NX forwarders are called <code>forward</code>. NX does not provide an public
+<div class="paragraph"><p>In NX forwarders are called <code>forward</code>. NX does not provide a public
 available method to define variable accessors like <code>parametercmd</code> in
 XOTcl, but use internally the Next Scripting Framework primitive
 <code>nsf::method::setter</code> when appropriate.</p></div>
@@ -2465,8 +2465,7 @@ uses the method <code>property</code>, for non-configurable variables, the metho
 an accessor is a method with the same name as the variable. In XOTcl,
 every <code>parameter</code> defined as well automatically a same-named accessor
 method, leading to potential name conflicts with other method names.</p></div>
-<div class="paragraph"><p>In the examples below we show the definition of configurable an
-non-configurable instance variables using <code>variable</code> and <code>property</code>
+<div class="paragraph"><p>In the examples below we show the definition of configurable a non-configurable instance variables using <code>variable</code> and <code>property</code>
 respectively.</p></div>
 <div class="tableblock">
 <table rules="all"
@@ -2548,7 +2547,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 constructor <code>init</code>, NX follows a more declarative approach. Often,
 classes have superclasses, which often want to provide their own
 instance variables and default values. The declarative approach from
-NX solves this via inheritance, while an procedural approach via
+NX solves this via inheritance, while a procedural approach via
 assign statements in the constructor requires explicit constructor
 calls, which are often error-prone. Certainly, when a user prefers to
 assign initial values to instance variables via explicit assign
@@ -3116,7 +3115,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 objects, which are an extension to the <code>-slots</code> already available in
 XOTcl. While very for every <code>property</code> in NX, a slot object is created,
 for performance reasons, not every <code>variable</code> has a slot associated.</p></div>
-<div class="paragraph"><p>When an property is created, NX does actually three things:</p></div>
+<div class="paragraph"><p>When a property is created, NX does actually three things:</p></div>
 <div class="olist arabic"><ol class="arabic">
 <li>
 <p>
@@ -6428,7 +6427,7 @@ Foo <span class='nx-keyword'>create</span> f1
 XOTcl 1 NSF does not allow one to redefined a pre-existing command
 (e.g. "set") with an object and vice versa. Like in XOTcl 1,
 preexisting objects and classes con be redefined (necessary for
-reloading objects/classes in an running interpreter).</p></div>
+reloading objects/classes in a running interpreter).</p></div>
 </div>
 <div class="sect3">
 <h4 id="_info_heritage">3.2.5. Info heritage</h4>
