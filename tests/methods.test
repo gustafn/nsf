@@ -1538,6 +1538,75 @@ nx::test case eval-next {
 }
 
 #
+# Testing the behavior of :upvar (and implicitly of [current
+# callinglevel]) in different setups
+#
+#   Setup 1: plain calls
+#   Setup 2: when filters are used
+#   Setup 3: when filters + guards are used
+#
+# Forall setups, we test on the tclsh toplevel and from a proc.
+#
+
+nx::test configure -count 1
+nx::test case callinglevel-toplevel-setup1
+
+nx::Class create AbstractFile {
+  :public method filterCall {args} {
+    next
+  }
+}
+
+nx::Class create FsFile -superclass AbstractFile {
+  :public method lstat {path var} {
+    #puts stderr lstat-level=[info level]-calling-level-[current callinglevel]
+    :upvar $var arrayVar
+    file lstat $path arrayVar
+  }
+}
+
+#
+# Setup 1 (without filter)
+#
+
+FsFile create f1
+f1 lstat / a1
+? {array size a1} 13
+array unset a1
+
+proc foo {} {
+  FsFile create f2
+  f2 lstat / a2
+  array get a2
+}
+? {dict size [foo]} 13
+
+#
+# Setup 2 (with filter)
+#
+nx::test case callinglevel-toplevel-setup2
+
+AbstractFile filters add filterCall
+
+f1 lstat / a1
+? {array size a1} 13
+array unset a1
+? {dict size [foo]} 13
+
+#
+# Setup 3 (with filter and guard)
+#
+nx::test case callinglevel-toplevel-setup3
+
+AbstractFile filters guard filterCall { [current calledproc] eq "lstat" }
+
+f1 lstat / a1
+? {array size a1} 13
+array unset a1
+? {dict size [foo]} 13
+
+AbstractFile filters delete filterCall
+
 # Local variables:
 #    mode: tcl
 #    tcl-indent-level: 2
