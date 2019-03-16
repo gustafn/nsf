@@ -3195,8 +3195,8 @@ TopoSortSuper(NsfClass *class, NsfClass *baseClass) {
  *----------------------------------------------------------------------
  * PrecedenceOrder --
  *
- *    Return a class list containing the transitive list of super classes
- *    starting with (and containing) the provided class. The super class list
+ *    Return a class list containing the transitive list of superclasses
+ *    starting with (and containing) the provided class. The superclass list
  *    is cached in cl->order and has to be invalidated by FlushPrecedences()
  *    in case the order changes. The caller does not have to free the returned
  *    class list (like for TransitiveSubClasses);
@@ -4369,13 +4369,13 @@ GetObjectSystem(const NsfObject *object) {
  *----------------------------------------------------------------------
  * ObjectSystemFree --
  *
- *    Free a single object system structure including its root classes.
+ *    Free a single object system structure including its root-classes.
  *
  * Results:
  *    None.
  *
  * Side effects:
- *    Free memory of structure, free the root classes.
+ *    Free memory of structure, free the root-classes.
  *
  *----------------------------------------------------------------------
  */
@@ -4529,7 +4529,7 @@ ObjectSystemsCleanup(Tcl_Interp *interp, bool withKeepvars) {
 #endif
   (void)withKeepvars; /* make sure, the variable is not reported as unused */
   /*
-   * Free all objects systems with their root classes.
+   * Free all objects systems with their root-classes.
    */
   for (osPtr = RUNTIME_STATE(interp)->objectSystems; osPtr != NULL; osPtr = nPtr) {
     nPtr = osPtr->nextPtr;
@@ -7235,7 +7235,7 @@ CanRedefineCmd(
 
     if (bootstrapObj == NULL) {
       result = NsfPrintError(interp, "refuse to overwrite protected method '%s'; "
-                             "derive e.g. a sub-class!", methodName, ObjectName_(object));
+                             "derive e.g. a subclass!", methodName, ObjectName_(object));
     } else {
       result = TCL_OK;
     }
@@ -8736,7 +8736,7 @@ MixinStackPop(NsfObject *object) {
 
 /*
  * Appends NsfClasses (containing the mixin-classes and their
- * super-classes) to 'mixinClasses' list from a given mixinList.
+ * superclasses) to 'mixinClasses' list from a given mixinList.
  */
 static void MixinComputeOrderFullList(
     Tcl_Interp *interp, NsfCmdList **mixinList,
@@ -10106,7 +10106,7 @@ MixinComputeDefined(Tcl_Interp *interp, NsfObject *object) {
  * ComputePrecedenceList --
  *
  *    Returns the precedence list for the provided object.  The precedence
- *    list can optionally include the mixins and the root class. If pattern is
+ *    list can optionally include the mixins and the root-class. If pattern is
  *    provided, this is used as well for filtering. The caller has to free the
  *    resulting list via NsfClassListFree();
  *
@@ -10504,7 +10504,7 @@ MixinSearchMethodByName(NsfCmdList *mixinList, const char *name, NsfClass **clas
  * class filter: first a given name is interpreted as fully qualified
  * method name. If no method is found, a proc is searched with fully
  * name. Otherwise the simple name is searched on the heritage order:
- * object (only for per-object filters), class, meta-class
+ * object (only for per-object filters), class, metaclass
  */
 
 static Tcl_Command FilterSearch(const char *name, NsfObject *startingObject,
@@ -10569,7 +10569,7 @@ FilterSearch(const char *name, NsfObject *startingObject,
     *classPtr = SearchCMethod(startingClass, name, &cmd);
     if (*classPtr == NULL) {
       /*
-       * If no filter is found yet -> search the meta-class
+       * If no filter is found yet -> search the metaclass
        */
       *classPtr = SearchCMethod(startingClass->object.cl, name, &cmd);
     }
@@ -12590,7 +12590,7 @@ ParamDefsGetReturns(const Tcl_Command cmdPtr) {
 /*----------------------------------------------------------------------
  * NsfParamDefsNonposLookup --
  *
- *    Process a list of ParamDefs look for a nonpos args. If there is no exact
+ *    Process a list of ParamDefs look for a non-pos args. If there is no exact
  *    match, look for an abbreviated match having at least
  *    NSF_ABBREV_MIN_CHARS leading chars which are identical.
  *
@@ -12622,7 +12622,7 @@ NsfParamDefsNonposLookup(
   nonnull_assert(paramPtrPtr != NULL);
 
   /*
-   * The provided paramsPtr must point to a block starting with a nonpos arg.
+   * The provided paramsPtr must point to a block starting with a non-pos arg.
    */
   assert(paramsPtr->name != NULL);
   assert(*paramsPtr->name == '-');
@@ -12743,7 +12743,7 @@ CGetParamLookup(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfParamDefs *paramDefs, c
       Nsf_Param  *paramPtr;
 
       /*
-       * Skip leading parameters from the definition, which are no nonpos args
+       * Skip leading parameters from the definition, which are no non-pos args
        * (very unlikely).
        */
       for (paramPtr = paramDefs->paramsPtr;
@@ -17519,8 +17519,8 @@ ParamOptionParse(Tcl_Interp *interp, const char *argString,
 
       for (i = 0; stringTypeOpts[i]; i++) {
         /*
-         * Do not allow abbreviations, so the additional strlen checks
-         * for a full match
+         * Do not allow abbreviations, so the additional strlen() checks
+         * for a full match.
          */
         if (strncmp(option, stringTypeOpts[i], optionLength) == 0
             && strlen(stringTypeOpts[i]) == optionLength) {
@@ -20175,7 +20175,7 @@ NextGetArguments(
  * NextInvokeFinalize --
  *
  *    This finalize function is either called via NRE callback or
- *    directly (from NextSearchAndInvoke). It resets after a successul
+ *    directly (from NextSearchAndInvoke). It resets after a successful
  *    lookup and invocation the continuation context (filter flags etc)
  *    and cleans up optionally the argument vector (inverse operation
  *    of NextGetArguments).
@@ -20278,7 +20278,8 @@ NextSearchAndInvoke(
                             &isMixinEntry, &isFilterEntry, &endOfFilterChain, &currentCmd);
 
   /*fprintf(stderr, "NEXT search on %s.%s cl %p cmd %p endOfFilterChain %d result %d IS OK %d\n",
-    ObjectName(object), methodName, class, cmd, endOfFilterChain, result, (result == TCL_OK));*/
+          ObjectName(object), methodName, (void*)class, (void*)cmd, endOfFilterChain,
+          result, (result == TCL_OK));*/
 
   if (unlikely(result != TCL_OK)) {
     goto next_search_and_invoke_cleanup;
@@ -20348,7 +20349,7 @@ NextSearchAndInvoke(
         /*
          * The call is NRE-enabled. We register the callback and return
          * here immediately.  All other forms of this function have
-         * to call NextInvokeFinalize manually on return.
+         * to call NextInvokeFinalize() manually on return.
          */
         Tcl_NRAddCallback(interp, NextInvokeFinalize,
                           freeArgumentVector ? (ClientData)objv : NULL,
@@ -20591,7 +20592,7 @@ static Tcl_Obj *FindNextMethod(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
  *----------------------------------------------------------------------
  * ComputeLevelObj --
  *
- *    This function comptes a fresh Tcl_Obj referring to the interp level. The
+ *    This function computes a fresh Tcl_Obj referring to the interp level. The
  *    caller has to care about freeing the returned Tcl_Obj.
  *
  * Results:
@@ -20762,10 +20763,10 @@ FreeUnsetTraceVariable(Tcl_Interp *interp, const NsfObject *object) {
     int result = Tcl_UnsetVar2(interp, object->opt->volatileVarName, NULL, 0);
 
     /*
-     * Somebody destroys a volatile object manually while the vartrace is
+     * Somebody destroys a volatile object manually while the var-trace is
      * still active. Destroying the object will be a problem in case the
      * variable is deleted later and fires the trace. So, we unset the
-     * variable here which will cause a destroy via var trace, which in turn
+     * variable here which will cause a destroy via var-trace, which in turn
      * clears the volatileVarName flag.
      */
     /* fprintf(stderr, "### FreeUnsetTraceVariable %s\n", object->opt->volatileVarName);*/
@@ -20796,13 +20797,13 @@ FreeUnsetTraceVariable(Tcl_Interp *interp, const NsfObject *object) {
  * NsfUnsetTrace --
  *
  *    Function to be triggered whenever the trigger variable is
- *    deleted. Typically this function deletes the associated object.
+ *    deleted. Typically, this function deletes the associated object.
  *
  * Results:
- *    Result msg or null
+ *    Result msg or null.
  *
  * Side effects:
- *    Might delete associated object
+ *    Might delete associated object.
  *
  *----------------------------------------------------------------------
  */
@@ -21292,11 +21293,11 @@ PrimitiveOInit(NsfObject *object, Tcl_Interp *interp, const char *name,
   MarkUndestroyed(object);
 
   /*
-   * There might be already a namespace with name name; if this is the
-   * case, use this namespace as object namespace. The preexisting
-   * namespace might contain Next Scripting objects. If we would not use the
-   * namespace as child namespace, we would not recognize the objects
-   * as child objects, deletions of the object might lead to a crash.
+   * There might be already a namespace with the provided name; if this is the
+   * case, use this namespace as object namespace. The preexisting namespace
+   * might contain Next Scripting objects. If we would not use the namespace
+   * as child namespace, we would not recognize the objects as child objects,
+   * deletions of the object might lead to a crash.
    *
    * We can use here the provided nsPtr, except in cases, where this
    * namespaces is being destroyed (e.g. recreate a new object from a
@@ -21409,7 +21410,7 @@ PrimitiveOCreate(Tcl_Interp *interp, Tcl_Obj *nameObj, Tcl_Namespace *parentNsPt
  * DefaultSuperClass --
  *
  *    Determine the default superclass of the class (specified as
- *    second argument) and meta class (third argument). The function
+ *    second argument) and metaclass (third argument). The function
  *    searches for the variable NSF_DEFAULTMETACLASS or
  *    NSF_DEFAULTSUPERCLASS and uses it if present.
  *
@@ -21474,7 +21475,7 @@ DefaultSuperClass(Tcl_Interp *interp, const NsfClass *class, const NsfClass *met
         }
       } else {
         if (IsRootClass(sc->cl)) {
-          /* fprintf(stderr, "found root class %p %s\n", sc->cl, ClassName(sc->cl)); */
+          /* fprintf(stderr, "found root-class %p %s\n", sc->cl, ClassName(sc->cl)); */
           return sc->cl;
         }
       }
@@ -21604,15 +21605,15 @@ CleanupDestroyClass(Tcl_Interp *interp, NsfClass *class, bool softrecreate, bool
     /*
      * Reclass all instances of the current class to the appropriate
      * most general class ("baseClass"). The most general class of a
-     * metaclass is the root meta class, the most general class of an
-     * object is the root class. Instances of meta-classes can be only
-     * reset to the root meta class (and not to the root base
+     * metaclass is the root metaclass, the most general class of an
+     * object is the root-class. Instances of metaclasses can be only
+     * reset to the root metaclass (and not to the root base
      * class).
      */
     baseClass = DefaultSuperClass(interp, class, class->object.cl,
                                   IsMetaClass(interp, class, NSF_TRUE));
     /*
-     * We do not have to reclassing in case, cl is a root class
+     * We do not have to reclassing in case, cl is a root-class
      */
     if (!IsRootClass(class)) {
       Tcl_HashTable       *instanceTablePtr = &class->instances;
@@ -21668,7 +21669,7 @@ CleanupDestroyClass(Tcl_Interp *interp, NsfClass *class, bool softrecreate, bool
 
       (void)RemoveSuper(subClass, class);
       /*
-       * If there are no more super classes add the Object
+       * If there are no more superclasses add the Object
        * class as superClasses
        * -> don't do that for Object itself!
        */
@@ -21688,7 +21689,7 @@ CleanupDestroyClass(Tcl_Interp *interp, NsfClass *class, bool softrecreate, bool
  * CleanupInitClass --
  *
  *    Basic initialization of a class, setting namespace, super- and
- *    sub-classes, and setup optionally instances table.
+ *    subclasses, and setup optionally instances table.
  *
  * Results:
  *    None.
@@ -21918,7 +21919,7 @@ PrimitiveCCreate(
   MEM_COUNT_ALLOC("NsfObject/NsfClass", class);
 
   /*
-   * Pass object system from meta class.
+   * Pass object system from metaclass.
    */
   if (metaClass != NULL) {
     class->osPtr = metaClass->osPtr;
@@ -21962,7 +21963,7 @@ PrimitiveCCreate(
  *
  *    Change class of a Next Scripting object. This function takes
  *    care that one tries not to change an object into a class or vice
- *    versa. Changing meta-class to meta-class, or class to class, or
+ *    versa. Changing metaclass to metaclass, or class to class, or
  *    object to object is fine, but upgrading/downgrading is not
  *    allowed
  *
@@ -21993,7 +21994,7 @@ ChangeClass(Tcl_Interp *interp, NsfObject *object, NsfClass *class) {
   if (class != object->cl) {
     if (IsMetaClass(interp, class, NSF_TRUE)) {
       /*
-       * Do not allow upgrading from a class to a meta-class (in other words,
+       * Do not allow upgrading from a class to a metaclass (in other words,
        * don't make an object to a class). To allow this, it would be
        * necessary to reallocate the base structures.
        */
@@ -22002,9 +22003,9 @@ ChangeClass(Tcl_Interp *interp, NsfObject *object, NsfClass *class) {
       }
     } else {
       /*
-       * The target class is not a meta class.
+       * The target class is not a metaclass.
        */
-      /*fprintf(stderr, "target class %s not a meta class, am i a class %d\n",
+      /*fprintf(stderr, "target class %s not a metaclass, am i a class %d\n",
         ClassName(class), NsfObjectIsClass(object) );*/
 
       if (NsfObjectIsClass(object)) {
@@ -22135,7 +22136,7 @@ DoObjInitialization(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *co
  *----------------------------------------------------------------------
  * IsRootMetaClass --
  *
- *    Check, of the class has the Root meta class flag set.
+ *    Check, of the class has the root metaclass flag set.
  *
  * Results:
  *    Boolean
@@ -22179,7 +22180,7 @@ IsBaseClass(const NsfObject *object) {
  *----------------------------------------------------------------------
  * IsRootClass --
  *
- *    Check, whether the object is a root class.
+ *    Check, whether the object is a root-class.
  *
  * Results:
  *    Boolean
@@ -22202,7 +22203,7 @@ IsRootClass(const NsfClass *class) {
  *----------------------------------------------------------------------
  * IsMetaClass --
  *
- *    Check, whether the object is a meta class. Optionally, mixins are
+ *    Check, whether the object is a metaclass. Optionally, mixins are
  *    checked as well.
  *
  * Results:
@@ -22222,14 +22223,14 @@ IsMetaClass(Tcl_Interp *interp, NsfClass *class, bool withMixins) {
   nonnull_assert(class != NULL);
 
   /*
-   * Is the class the most general meta-class?
+   * Is the class the most general metaclass?
    */
   if (IsRootMetaClass(class)) {
     return NSF_TRUE;
   }
 
   /*
-   * Is the class a subclass of a meta-class?
+   * Is the class a subclass of a metaclass?
    */
   for (pl = PrecedenceOrder(class); pl != NULL; pl = pl->nextPtr) {
     if (IsRootMetaClass(pl->cl)) {
@@ -22604,13 +22605,13 @@ SetInstArray(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *arrayNameObj, Tcl_O
   INCR_REF_COUNT(arrayNameObj);
   if (valueObj == NULL) {
     /*
-     * Perform an array get
+     * Perform an "array get"
      */
     ov[1] = NsfGlobalObjs[NSF_GET];
     result = Tcl_EvalObjv(interp, 3, ov, 0);
   } else {
     /*
-     * Perform an array get
+     * Perform an "array set"
      */
     ov[1] = NsfGlobalObjs[NSF_SET];
     ov[3] = valueObj;
@@ -22759,7 +22760,7 @@ NsfSetterMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *co
  *    tcd->onerror. Background: ForwardArg() is called at runtime to
  *    substitute the argument list. Catching such errors is not conveniently
  *    doable via catch, since it would be necessary to wrap every possible
- *    usage of a forwarder in a catch. Therefore the callback function can be
+ *    usage of a forwarder in a catch. Therefore, the callback function can be
  *    used to give a sensible error message appropriate for each context.
  *
  * Results:
@@ -22920,7 +22921,7 @@ ForwardArg(
 
     ForwardArgString = remainder + 1;
     /*
-     * In case we address from the end, we reduct further to distinguish from
+     * In case we address from the end, we reduce further to distinguish from
      * -1 (void)
      */
     if (pos < 0) {
@@ -23285,7 +23286,8 @@ NsfForwardMethod(ClientData clientData, Tcl_Interp *interp,
       outputArg += outputincr;
 
       /*
-       * If we have nonpos args, determine the first pos arg position for %1
+       * If we have non-pos args, determine the first positional arg position
+       * for %1
        */
       if (tcd->hasNonposArgs) {
         firstPosArg = objc;
@@ -23387,7 +23389,7 @@ NsfForwardMethod(ClientData clientData, Tcl_Interp *interp,
         allows for avoiding name clashes if the 2nd argument denotes a
         subcommand, for example.
 
-        Make sure that the prefix is only prepended, if a second arg is
+        Make sure that the prefix is only prepended, if a second argument is
         actually available! Otherwise, the requested prefix has no effect.
       */
       if (tcd->prefix && objc > 1) {
@@ -23466,7 +23468,7 @@ NsfProcAliasMethod(ClientData clientData,
  *----------------------------------------------------------------------
  * NsfObjscopedMethod --
  *
- *    This Tcl_ObjCmdProc is called, when an objscoped alias is invoked.
+ *    This Tcl_ObjCmdProc is called, when an obj-scoped alias is invoked.
  *
  * Results:
  *    Tcl result code.
@@ -23521,7 +23523,7 @@ NsfObjscopedMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
  *----------------------------------------------------------------------
  */
 
-typedef enum {NO_DASH, SKALAR_DASH, LIST_DASH} dashArgType;
+typedef enum {NO_DASH, SCALAR_DASH, LIST_DASH} dashArgType;
 
 static dashArgType IsDashArg(Tcl_Interp *interp, Tcl_Obj *obj, int isFirstArg, const char **methodName,
                              int *objcPtr, Tcl_Obj **objvPtr[])
@@ -23571,7 +23573,7 @@ IsDashArg(Tcl_Interp *interp, Tcl_Obj *obj, int isFirstArg, const char **methodN
     }
     *methodName = flag+1;
     *objcPtr = 1;
-    return SKALAR_DASH;
+    return SCALAR_DASH;
   }
   return NO_DASH;
 }
@@ -24095,19 +24097,19 @@ ArgumentDefaults(ParseContext *pcPtr, Tcl_Interp *interp,
 
           if (unlikely(pcPtr->objv[i] != newValue)) {
             /*
-             * The output Tcl_Obj differs from the input, so the
-             * Tcl_Obj was converted; in case we have set previously
-             * must_decr on newValue, we decr the refCount on newValue
-             * here and clear the flag.
+             * The output Tcl_Obj differs from the input, so the Tcl_Obj was
+             * converted; in case we have set previously the flag
+             * NSF_PC_MUST_DECR on newValue, we decrement the refCount on
+             * newValue here and clear the flag.
              */
             if (mustDecrNewValue == 1) {
               DECR_REF_COUNT2("valueObj", newValue);
               pcPtr->flags[i] &= ~NSF_PC_MUST_DECR;
             }
             /*
-             * The new output value itself might require a decr, so
-             * set the flag here if required; this is just necessary
-             * for multivalued converted output.
+             * The new output value itself might require a decrement, so set
+             * the flag here if required; this is just necessary for
+             * multivalued converted output.
              */
             if (mustDecrList == 1) {
               pcPtr->flags[i] |= NSF_PC_MUST_DECR;
@@ -24217,7 +24219,7 @@ NextParam(Nsf_Param const *paramPtr, const Nsf_Param *lastParamPtr) {
  *----------------------------------------------------------------------
  * ArgumentParse --
  *
- *    Parse the provided ist of argument against the given definition. The
+ *    Parse the provided list of argument against the given definition. The
  *    result is returned in the parse context structure.
  *
  * Results:
@@ -24307,13 +24309,13 @@ ArgumentParse(
 
     if (*currentParamPtr->name == '-') {
       /*
-       * We expect a nonpos arg. Check whether we a Tcl_Obj already converted
+       * We expect a non-pos arg. Check whether we a Tcl_Obj already converted
        * to NsfFlagObjType.
        */
       NsfFlag *flagPtr = argumentObj->internalRep.twoPtrValue.ptr1;
 
 #if defined(PARSE_TRACE_FULL)
-      fprintf(stderr, "... arg %p %s expect nonpos arg in block %s isFlag %d sig %d serial %d (%d => %d)\n",
+      fprintf(stderr, "... arg %p %s expect non-pos arg in block %s isFlag %d sig %d serial %d (%d => %d)\n",
               argumentObj, ObjStr(argumentObj), currentParamPtr->name,
               argumentObj->typePtr == &NsfFlagObjType,
               argumentObj->typePtr == &NsfFlagObjType ? flagPtr->signature == paramPtr : 0,
@@ -24331,7 +24333,7 @@ ArgumentParse(
          */
         if ((flagPtr->flags & NSF_FLAG_DASHDAH) != 0u) {
           /*
-           * We got a dashDash, skip nonpos param definitions and continue with next
+           * We got a dashDash, skip non-pos param definitions and continue with next
            * element from objv.
            */
           SkipNonposParamDefs(currentParamPtr);
@@ -24355,9 +24357,9 @@ ArgumentParse(
                  ) {
         /*
          * The actual argument belongs to the types, for which we assume that
-         * these can't belong to a nonpos flag.  The argument might be e.g. a
+         * these can't belong to a non-pos flag.  The argument might be e.g. a
          * pure Tcl bytearray, for which we do not want to add a string rep
-         * via ObjStr() such it looses its purity (Tcl 8.6). For these
+         * via ObjStr() such it loses its purity (Tcl 8.6). For these
          * argument types.  Proceed in the parameter vector to the next block
          * (positional parameter)
          */
@@ -24391,7 +24393,7 @@ ArgumentParse(
         } else {
           /*
            * The actual argument starts with a dash, so search for the flag in
-           * the current block of nonpos parameter definitions
+           * the current block of non-pos parameter definitions
            */
           char ch1 = *(argumentString+1);
 
@@ -24455,7 +24457,7 @@ ArgumentParse(
             }
           } else {
             /*
-             * Must be a classical nonpos arg; check for a matching parameter
+             * Must be a classical non-pos arg; check for a matching parameter
              * definition.
              */
             bool found = NSF_FALSE;
@@ -24566,11 +24568,11 @@ ArgumentParse(
 #endif
     if (*pPtr->name == '-') {
       /*
-       * Process the nonpos arg.
+       * Process the non-pos arg.
        */
       if (pPtr->nrArgs == 1) {
         /*
-         * The nonpos arg expects an argument.
+         * The non-pos arg expects an argument.
          */
         o++;
         if (unlikely(o >= objc)) {
@@ -24584,7 +24586,7 @@ ArgumentParse(
         valueObj = objv[o];
       } else {
         /*
-         * The nonpos arg expects no argument.
+         * The non-pos arg expects no argument.
          */
         if (valueObj == NULL) {
           valueObj = NsfGlobalObjs[NSF_ONE];
@@ -25129,12 +25131,12 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd,  NsfObject *contextObject,
      */
   } else if (Tcl_Command_objProc(cmd) == NsfProcStub) {
     /*
-     * Reached for C-implemented Tcl command procs
+     * Reached for C-implemented Tcl command procs.
      */
 
   } else {
     /*
-     * Reached for other C-implemented command procs
+     * Reached for other C-implemented command procs.
      */
     result = NsfPrintError(interp, "could not obtain parameter definition for method '%s'", methodName);
   }
@@ -26071,7 +26073,7 @@ MethodTypeMatches(Tcl_Interp *interp, MethodtypeIdx_t methodType, Tcl_Command cm
 
   /*
    * Return always state isObject, since the cmd might be an ensemble,
-   * where we have to search further
+   * where we have to search further.
    */
   *isObject = CmdIsNsfObject(importedCmd);
 
@@ -26263,7 +26265,7 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
     int prefixLength = (prefix != NULL) ? Tcl_DStringLength(prefix) : 0;
 
     /*
-     * We have to iterate over the elements
+     * We have to iterate over the elements.
      */
 
     for (hPtr = Tcl_FirstHashEntry(tablePtr, &hSrch);
@@ -26799,10 +26801,10 @@ AliasDelete(Tcl_Interp *interp, Tcl_Obj *cmdName, const char *methodName, bool w
  *
  * AliasGet --
  *
- *      Get an entry from the alias index
+ *      Get an entry from the alias index.
  *
  * Results:
- *      Tcl obj
+ *      Alias in form of a Tcl_Obj* (or NULL).
  *
  * Side effects:
  *      delete an entry from the hidden associative array
@@ -26811,8 +26813,7 @@ AliasDelete(Tcl_Interp *interp, Tcl_Obj *cmdName, const char *methodName, bool w
  */
 static Tcl_Obj *
 AliasGet(Tcl_Interp *interp, Tcl_Obj *cmdName, const char *methodName, bool withPer_object, bool leaveError) {
-  Tcl_Obj *obj;
-  Tcl_Obj    *indexObj;
+  Tcl_Obj *obj, *indexObj;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(cmdName != NULL);
@@ -27642,7 +27643,7 @@ NsfConfigureCmd(Tcl_Interp *interp, ConfigureoptionIdx_t option, Tcl_Obj *valueO
   case ConfigureoptionDebugIdx: /* fall through */
   case ConfigureoptionObjectsystemsIdx:
     /*
-     * Nandled above.
+     * Handled above.
      */
     break;
 
@@ -28930,7 +28931,7 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
       NsfProcContext *pCtx = ProcContextGet(cmd);
 
       /*fprintf(stderr, "MethodProperty, ParamDefsGet cmd %p paramDefs %p returns %p\n",
-        cmd, paramDefs, (paramDefs != NULL) ?paramDefs->returns:NULL);*/
+        cmd, paramDefs, (paramDefs != NULL) ? paramDefs->returns:NULL);*/
 
       if (valueObj == NULL) {
         /*
@@ -29401,7 +29402,7 @@ NsfObjectSystemCreateCmd(Tcl_Interp *interp, Tcl_Obj *rootClassObj, Tcl_Obj *roo
     }
   }
   /*
-   * Create a basic object system with the basic root class Object and the
+   * Create a basic object system with the basic root-class Object and the
    * basic metaclass Class, and store them in the RUNTIME STATE if successful.
    */
   theobj = PrimitiveCCreate(interp, object, NULL, NULL);
@@ -30087,7 +30088,7 @@ NsfRelationGetCmd(Tcl_Interp *interp, NsfObject *object, RelationtypeIdx_t type)
  *----------------------------------------------------------------------
  * NsfRelationClassMixinsSet --
  *
- *    Set class mixins; the main reason for the factored out semantics is that
+ *    Set class mixins; the main reason for the factored-out semantics is that
  *    it supports to undo/redo the operations in case of a failure.
  *
  * Results:
@@ -31199,7 +31200,7 @@ GetObjectParameterDefinition(
  *
  *    Check the provided valueObj against the parameter specification provided
  *    in the second argument (paramObjPtr), when doCheckArguments is true. This
- *    function is used e.g. by nsf::is, where only the right hand side of a
+ *    function is used e.g. by nsf::is, where only the right-hand side of a
  *    parameter specification (after the colon) is specified. The argument
  *    Name (before the colon in a parameter spec) is provided via
  *    argNamePrefix. The converted parameter structure is returned optionally
@@ -31455,7 +31456,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *co
     : NULL;
 
   /*
-   * Push frame to allow for [self] and make instance variables of obj
+   * Push frame to allow for [self] and make instance variables of the object
    * accessible as locals.
    */
   Nsf_PushFrameObj(interp, object, framePtr);
@@ -31692,7 +31693,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *co
               ObjectName(object), ObjStr(paramPtr->nameObj), ObjStr(newValue), paramPtr->slotObj);
 #endif
       /*
-       * Actually set instance variable with the provided value or default
+       * Actually, set instance variable with the provided value or default
        * value. In case, explicit invocation of the setter is needed, we call the method, which
        * is typically a forwarder to the slot object.
        */
@@ -31790,7 +31791,7 @@ NsfOCgetMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj) {
   /*
    * We do not stack a plain stack from NSF_CSC_TYPE_PLAIN here, as we do in
    * NsfOConfigureMethod (but maybe we have to for full compatibility TODO:
-   * check and compare with configure stack setup). Therefore we pass NULL as
+   * check and compare with configure stack setup). Therefore, we pass NULL as
    * cscPtr to ParameterMethodForwardDispatch).
    */
 
@@ -31805,7 +31806,7 @@ NsfOCgetMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj) {
 
   /*
    * Push frame to allow invocations of [self] and make instance variables of
-   * obj accessible as locals.
+   * the object accessible as locals.
    */
   Nsf_PushFrameObj(interp, object, framePtr);
   ParamDefsRefCountIncr(parsedParam.paramDefs);
@@ -31821,7 +31822,7 @@ NsfOCgetMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj) {
   } else {
 
     /*
-     * Check for slot invocation
+     * Check for slot invocation.
      */
     if (paramPtr->slotObj != NULL) {
       NsfObject *slotObject = GetSlotObject(interp, paramPtr->slotObj);
@@ -31873,14 +31874,14 @@ NsfOCgetMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj) {
         }
       } else {
       /*
-       * Must be a parameter associated with a variable
+       * Must be a parameter associated with a variable.
        */
         unsigned int flags = (object->nsPtr != NULL) ? (TCL_LEAVE_ERR_MSG|TCL_NAMESPACE_ONLY) : TCL_LEAVE_ERR_MSG;
         Tcl_Obj *resultObj = Tcl_ObjGetVar2(interp, paramPtr->nameObj, NULL, (int)flags);
 
         if (resultObj != NULL) {
           /*
-           * The value exists
+           * The value exists.
            */
           Tcl_SetObjResult(interp, resultObj);
         }
@@ -32169,7 +32170,7 @@ NsfOResidualargsMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj 
     Tcl_ResetResult(interp);
 
     switch (isdasharg) {
-    case SKALAR_DASH:    /* Argument is a skalar with a leading dash */
+    case SCALAR_DASH:    /* Argument is a scalar with a leading dash */
       { int j;
 
         nextMethodName = NULL;
@@ -32405,7 +32406,7 @@ VolatileMethod(Tcl_Interp *interp, NsfObject *object, bool shallow) {
 
 
         /*
-         * Walk up the stack of invocations of the current object. This skips
+         * Walk up the stack of invocations of the current object to skip
          * e.g. overloaded internally called methods like "configure".
          */
         /*fprintf(stderr, "compare object %p == %p\n", (void*)object, (void*)cscPtr->self);*/
@@ -32514,7 +32515,7 @@ NsfCAllocMethod_(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *nameObj, Tcl_Name
 
   } else {
     /*
-     * If the base class is a meta-class, we create a class.
+     * If the base class is a metaclass, we create a class.
      */
     newObj = (NsfObject *)PrimitiveCCreate(interp, nameObj, parentNsPtr, class);
   }
@@ -32671,7 +32672,7 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *nameObj, int objc
 
   /*
    * Check whether we have to call recreate (i.e. when the object exists
-   * already). First check whether was have such a command, then check whether
+   * already). First check whether we have such a command, then check whether
    * the command is an object.
    */
   {
@@ -32681,7 +32682,7 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *nameObj, int objc
       if (newObject == NULL) {
         /*
          * We have a cmd, but no object. Don't allow one to overwrite an
-         * ordinary cmd by an nsf object.
+         * ordinary cmd by an NSF object.
          */
         result = NsfPrintError(interp, "refuse to overwrite cmd %s; delete/rename it before overwriting", nameString);
         goto create_method_exit;
@@ -32710,7 +32711,7 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *nameObj, int objc
    *  - recreate a class as an object, and to
    *  - recreate an object in a different object system
    *
-   * In these clases, we use destroy followed by create instead of recreate.
+   * In these cases, we use destroy followed by create instead of recreate.
    */
 
   if ((newObject != NULL)
@@ -32783,8 +32784,8 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *nameObj, int objc
     ObjTrace("CREATE", newObject);
 
     /*
-     * In case, the object is destroyed during initialization, we incr
-     * refCount.
+     * In case, the object is destroyed during initialization, we increment
+     * the refCount.
      */
     INCR_REF_COUNT(actualNameObj);
     result = DoObjInitialization(interp, newObject, objc, objv);
@@ -32960,7 +32961,7 @@ NsfCNewMethod(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *childofObj,
     const char *parentName = ObjStr(childofObj);
 
     /*
-     * If parentName is fully qualified, use it as prefix, else prepend the
+     * If "parentName" is fully qualified, use it as prefix, else prepend the
      * CallingNameSpace() to be compatible with the object name completion.
      */
     if (*parentName == ':' && *(parentName + 1) == ':') {
@@ -34440,9 +34441,9 @@ DeleteProcsAndVars(
  *
  * FinalObjectDeletion --
  *
- *      The method is to be called, when an object is finally deleted,
- *      typically during the final cleanup. It tests as well the activation
- *      count of the object.
+ *      The method is to be called, when an object is finally deleted, which
+ *      happens typically during the final cleanup. It tests as well the
+ *      activation count of the object.
  *
  * Results:
  *      None.
@@ -34738,7 +34739,7 @@ FreeAllNsfObjectsAndClasses(
 
     /*
      * Delete class methods; these methods might have aliases (dependencies) to
-     * objects, which will resolved this way.
+     * objects, which will be resolved this way.
      */
     if (object != NULL && NsfObjectIsClass(object)) {
       const Tcl_HashEntry *hPtr;
@@ -34763,7 +34764,7 @@ FreeAllNsfObjectsAndClasses(
   /*
    * Finally delete the object/class tree in a bottom up manner,
    * deleting all objects without dependencies first. Finally, only
-   * the root classes of the object system will remain, which are
+   * the root-classes of the object system will remain, which are
    * deleted separately.
    */
 
