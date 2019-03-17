@@ -88,6 +88,7 @@ MODULE_SCOPE const NsfStubs nsfStubs;
 /*
  * Call Stack specific definitions
  */
+
 typedef enum { CALLING_LEVEL, ACTIVE_LEVEL } CallStackLevel;
 
 typedef struct callFrameContext {
@@ -1179,7 +1180,7 @@ static int
 CallMethod(ClientData clientData, Tcl_Interp *interp, Tcl_Obj *methodObj,
            int objc, Tcl_Obj *const objv[], unsigned int flags) {
   NsfObject *object;
-  int result;
+  int        result;
   ALLOC_ON_STACK(Tcl_Obj*, objc, tov);
 
   nonnull_assert(clientData != NULL);
@@ -1203,6 +1204,7 @@ CallMethod(ClientData clientData, Tcl_Interp *interp, Tcl_Obj *methodObj,
   result = ObjectDispatch(clientData, interp, objc, tov, flags);
 
   FREE_ON_STACK(Tcl_Obj*, tov);
+
   return result;
 }
 
@@ -1232,8 +1234,8 @@ int NsfCallMethodWithArgs(Tcl_Interp *interp, Nsf_Object *object, Tcl_Obj *metho
 int
 NsfCallMethodWithArgs(Tcl_Interp *interp, Nsf_Object *object, Tcl_Obj *methodObj,
                       Tcl_Obj *arg1, int givenObjc, Tcl_Obj *const objv[], unsigned int flags) {
-  int objc = givenObjc + 2;
-  int result;
+  int       objc = givenObjc + 2;
+  int       result;
   ALLOC_ON_STACK(Tcl_Obj*, objc, tov);
 
   nonnull_assert(interp != NULL);
@@ -1256,6 +1258,7 @@ NsfCallMethodWithArgs(Tcl_Interp *interp, Nsf_Object *object, Tcl_Obj *methodObj
   result = ObjectDispatch(object, interp, objc, tov, flags);
 
   FREE_ON_STACK(Tcl_Obj*, tov);
+
   return result;
 }
 
@@ -1535,7 +1538,7 @@ NsfCreate(Tcl_Interp *interp, Nsf_Class *class, Tcl_Obj *nameObj,
           int objc, Tcl_Obj *const objv[]) {
   NsfClass *cl = (NsfClass *) class;
   int result;
-  ALLOC_ON_STACK(Tcl_Obj *, objc+2, ov);
+  ALLOC_ON_STACK(Tcl_Obj*, objc, tov);
 
   nonnull_assert(interp != NULL);
   nonnull_assert(class != NULL);
@@ -1544,14 +1547,14 @@ NsfCreate(Tcl_Interp *interp, Nsf_Class *class, Tcl_Obj *nameObj,
 
   INCR_REF_COUNT2("nameObj", nameObj);
 
-  ov[0] = NULL;
-  ov[1] = nameObj;
+  tov[0] = NULL;
+  tov[1] = nameObj;
   if (objc > 0) {
-    memcpy(ov+2, objv, sizeof(Tcl_Obj *) * (size_t)objc);
+    memcpy(tov+2, objv, sizeof(Tcl_Obj *) * (size_t)objc);
   }
-  result = NsfCCreateMethod(interp, cl, nameObj, objc+2, ov);
+  result = NsfCCreateMethod(interp, cl, nameObj, objc+2, tov);
 
-  FREE_ON_STACK(Tcl_Obj*, ov);
+  FREE_ON_STACK(Tcl_Obj*, tov);
   DECR_REF_COUNT2("nameObj", nameObj);
 
   return result;

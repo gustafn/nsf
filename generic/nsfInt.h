@@ -311,7 +311,14 @@ typedef struct NsfMemCounter {
 #  define USE_MALLOC
 #endif
 
-#if defined(__GNUC__) && !defined(USE_ALLOCA) && !defined(USE_MALLOC)
+#if 1
+# define NSF_STACK_ALLOCATED_OBJV 32
+# define ALLOC_ON_STACK(type,n,var) \
+  type *(var); type stack_allocated_##var[NSF_STACK_ALLOCATED_OBJV];	\
+  if (likely((n) < NSF_STACK_ALLOCATED_OBJV)) { (var) = &stack_allocated_##var[0]; } else { (var) = NEW_ARRAY(type, (n)); }
+# define FREE_ON_STACK(type, var) \
+  if ((var) != &stack_allocated_##var[0]) { FREE(type *, var);}
+#elif defined(__GNUC__) && !defined(USE_ALLOCA) && !defined(USE_MALLOC)
 # if !defined(NDEBUG)
 #  define ALLOC_ON_STACK(type,n,var) \
   int __##var##_count = (n); type __##var[(n)+2];			\
