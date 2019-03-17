@@ -368,7 +368,8 @@ nx::test case positioning-arg-extended {
       ? {obj foo 1 2 3} "TCL LIMIT STACK" "stack overflow"
     }
   } else {
-    ? {obj foo 1 2 3} {too many nested evaluations (infinite loop?)} "stack overflow"
+    #? {obj foo 1 2 3} {too many nested evaluations (infinite loop?)} "stack overflow"
+    ? {obj foo 1 2 3} {out of stack space (infinite loop?)} "stack overflow"
   }
 
   obj public object forward foo list {%apply {{x} {return $x}} A}
