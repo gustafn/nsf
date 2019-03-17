@@ -204,10 +204,10 @@ typedef struct {
 
 static Nsf_TypeConverter ConvertToNothing, ConvertViaCmd, ConvertToObjpattern;
 
-static const char * autonamePrefix = "::nsf::__#";
-static const int    autonamePrefixLength = 10;
+static const char  *autonamePrefix = "::nsf::__#";
+static const size_t autonamePrefixLength = 10u;
 static const char * nsfClassesPrefix = "::nsf::classes";
-static const int    nsfClassesPrefixLength = 14;
+static const size_t nsfClassesPrefixLength = 14u;
 /*
  * Tcl_Obj Types for Next Scripting Objects
  */
@@ -11304,7 +11304,7 @@ MethodHandleObj(NsfObject *object, int withPer_object, const char *methodName) {
   if (withPer_object == 1) {
     resultObj = Tcl_NewStringObj("", 0);
   } else {
-    resultObj = Tcl_NewStringObj(nsfClassesPrefix, nsfClassesPrefixLength);
+    resultObj = Tcl_NewStringObj(nsfClassesPrefix, (int)nsfClassesPrefixLength);
   }
   Tcl_AppendObjToObj(resultObj, object->cmdName);
   Tcl_AppendStringsToObj(resultObj, "::", methodName, (char *) NULL);
@@ -29115,7 +29115,7 @@ NsfObjectAllocCmd(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *nameObj, Tcl_Obj
     Tcl_DString ds, *dsPtr = &ds;
 
     Tcl_DStringInit(dsPtr);
-    Tcl_DStringAppend(dsPtr, autonamePrefix, autonamePrefixLength);
+    Tcl_DStringAppend(dsPtr, autonamePrefix, (int)autonamePrefixLength);
 
     NewTclCommand(interp, dsPtr);
 
@@ -32983,7 +32983,7 @@ NsfCNewMethod(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *childofObj,
     }
     Tcl_DStringAppend(dsPtr, "::__#", 5);
   } else {
-    Tcl_DStringAppend(dsPtr, autonamePrefix, autonamePrefixLength);
+    Tcl_DStringAppend(dsPtr, autonamePrefix, (int)autonamePrefixLength);
   }
 
   NewTclCommand(interp, dsPtr);
