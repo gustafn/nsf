@@ -362,7 +362,7 @@ nx::test case positioning-arg-extended {
   obj public object forward foo list {%obj foo}
   if {$::tcl86} {
     #
-    # deactivate under windows for the time being
+    # Deactivate under windows for the time being.
     #
     if {$::tcl_platform(platform) ne "windows" } {
       ? {obj foo 1 2 3} "TCL LIMIT STACK" "stack overflow"
