@@ -4808,7 +4808,7 @@ CompiledLocalsLookup(CallFrame *varFramePtr, const char *varName) {
         if (unlikely(varName[0] == localName[0]
                      && varName[1] == localName[1]
                      && len == nameLength
-                     && strcmp(varName, localName) == 0)) {
+                     && memcmp(varName, localName, (size_t)len) == 0)) {
           return (Tcl_Var) &varFramePtr->compiledLocals[i];
         }
       }
@@ -4908,7 +4908,7 @@ CompiledColonLocalsLookupBuildCache(CallFrame *varFramePtr, const char *varName,
 
         if (varName[1] == localName[1]
             && len == nameLength
-            && strcmp(varName, localName) == 0) {
+            && memcmp(varName, localName, (size_t)len) == 0) {
           result = var;
         }
 
