@@ -51,4 +51,4 @@ on_failure:
   - if "%TOOLCHAIN%" == "autoconf-tea" cat tcl\win\config.log
 
 cache:
-  - "%TCLKIT%" -> appveyor.yml
+  - tclkit.exe -> appveyor.yml
