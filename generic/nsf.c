@@ -14425,15 +14425,15 @@ ObjectCmdMethodDispatch(
      * colon-prefixed. In these cases, we have to skip the single colon with
      * the MethodName() function.
      */
-    cscPtr1-> flags |= NSF_CM_ENSEMBLE_UNKNOWN;
-    /* fprintf(stderr, "==> trying to find <%s> in ensemble <%s> via next\n",
-       subMethodName, MethodName(cscPtr1->objv[0]));*/
+    cscPtr1->flags |= NSF_CM_ENSEMBLE_UNKNOWN;
+    /*fprintf(stderr, "==> trying to find <%s> in ensemble <%s> via next\n",
+      subMethodName, MethodName(cscPtr1->objv[0]));*/
     result = NextSearchAndInvoke(interp, MethodName(cscPtr1->objv[0]),
                                  cscPtr1->objc, cscPtr1->objv, cscPtr1, NSF_FALSE);
 
     /*fprintf(stderr, "==> next %s.%s subMethodName %s (obj %s) cscPtr %p (flags %.8x)) cscPtr1 %p (flags %.8x) result %d unknown %d\n",
             ObjectName(callerSelf), methodName, subMethodName, ObjectName(invokedObject),
-            cscPtr, cscPtr->flags, cscPtr1, (cscPtr1 != NULL) ? cscPtr1->flags : 0,
+            (void*)cscPtr, cscPtr->flags, (void*)cscPtr1, (cscPtr1 != NULL) ? cscPtr1->flags : 0,
             result, RUNTIME_STATE(interp)->unknown);*/
 
     if (RUNTIME_STATE(interp)->unknown) {
@@ -15795,13 +15795,13 @@ ObjectDispatch(
 
     /* fprintf(stderr, "MethodDispatchCsc %s.%s %p flags %.6x cscPtr %p method-obj-type %s\n",
             ObjectName(object), methodName, (void*)object->mixinStack, cscPtr->flags,
-            (void*)cscPtr, methodObj->typePtr ? methodObj->typePtr-> name : "NONE");*/
+            (void*)cscPtr, methodObj->typePtr ? methodObj->typePtr->name : "NONE");*/
 
     result = MethodDispatchCsc(clientData, interp, objc-shift, objv+shift,
                                resolvedCmd, cscPtr, methodName, &isValidCsc);
     /* fprintf(stderr, "MethodDispatchCsc %s.%s %p flags %.6x cscPtr %p method-obj-type %s DONE\n",
             ObjectName(object), methodName, (void*)object->mixinStack, cscPtr->flags,
-            (void*)cscPtr, methodObj->typePtr ? methodObj->typePtr-> name : "NONE"); */
+            (void*)cscPtr, methodObj->typePtr ? methodObj->typePtr->name : "NONE"); */
 
     if (unlikely(result == TCL_ERROR)) {
       /*fprintf(stderr, "Call ErrInProc cl = %p, cmd %p, methodName %s flags %.6x\n",
@@ -20372,8 +20372,8 @@ NextSearchAndInvoke(
 #endif
   } else if (likely(result == TCL_OK)) {
     NsfCallStackContent *topCscPtr;
-    Tcl_CallFrame *varFramePtr = NULL;
-    int isLeafNext;
+    Tcl_CallFrame       *varFramePtr = NULL;
+    int                  isLeafNext;
 
     /*
      * We could not find a cmd, yet the dispatch attempt did not result
@@ -20435,11 +20435,79 @@ NextSearchAndInvoke(
       && (topCscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) != 0u
       && (topCscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE) == 0u;
 
-    rst->unknown = /* case 1 */ endOfFilterChain ||
+    /*fprintf(stderr, "******** isleavenext %d based on %d && %d && %d <%s>\n",
+            isLeafNext,
+            (cscPtr != topCscPtr),
+            (topCscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) != 0u,
+            (topCscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE) == 0u);*/
+
+    /*
+     * If we are in an ENSEMBLE_UNKNOWN we have to identify a special variant
+     * of case 2: When "next" is called from an ensemble method (e.g. from a
+     * method "i s") the call of "next" has to start over from "i" to search
+     * for the next method (the next "i s") of the shadowed methods. If there
+     * is none, we reach the ENSEMBLE_UNKNOWN state. But we reach the state
+     * not immediately after the "next" call, the other checks for handling
+     * this case fails, and we would run into the unknown handler, although
+     * being called from "next".
+     *
+     * Therefore, we check in the call-stack whether we are were called inside
+     * an ensemble setup on a path leading to an invocation of "next".
+     *
+     * Such a situation is e.g. (simplified stack view, then with flag names)
+     *
+     *        varFrame  flags lvl csc          frameType flags
+     *  0x7ffeeb7b1698 040001  5  0x7ffeeb7b1870    0000 8000104 (::b.0x7fa756821490 i)
+     *  0x7fa75480eda0 020001  4  0x7fa75480ed40    0020 002100 (::b.0x7fa756821e10 s)
+     *  0x7ffeeb7b2028 040001  3  0x7ffeeb7b2370    0000 000005 (::b.0x7fa756821c10 i)
+     *
+     * topcsc 0x7ffeeb7b1870
+     * 0x7ffeeb7b1698   flags NSF_CSC_CALL_IS_ENSEMBLE|NSF_CSC_IMMEDIATE|NSF_CM_ENSEMBLE_UNKNOWN
+     * 0x7fa75480eda0   flags NSF_CSC_IMMEDIATE|NSF_CSC_CALL_IS_NRE frametype NSF_CSC_TYPE_ENSEMBLE
+     * 0x7ffeeb7b2028   flags NSF_CSC_CALL_IS_NEXT|NSF_CSC_CALL_IS_ENSEMBLE
+     *
+     */
+    if (!isLeafNext && (topCscPtr->flags & NSF_CM_ENSEMBLE_UNKNOWN) != 0u) {
+
+      for (;;) {
+        varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr);
+        if (((unsigned int)Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) == 0) {
+          /*
+           * Parent frame is not an NSF frame.
+           */
+          /*fprintf(stderr, "******** parent frame ptr is not an NSF frame %p\n", (void*)varFramePtr);*/
+          break;
+        }
+        topCscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
+        if ((topCscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) == 0u) {
+          /*
+           * Call stack content not of type ensemble.
+           */
+          /*fprintf(stderr, "******** topCscPtr not type ensemble %p\n", (void*)topCscPtr);*/
+          break;
+        }
+      }
+
+      if (topCscPtr != NULL) {
+        isLeafNext = (
+          (topCscPtr->flags & (NSF_CSC_CALL_IS_NEXT|NSF_CSC_CALL_IS_ENSEMBLE)) == (NSF_CSC_CALL_IS_NEXT|NSF_CSC_CALL_IS_ENSEMBLE) &&
+          (topCscPtr->flags & NSF_CM_ENSEMBLE_UNKNOWN) == 0u
+        );
+        /*fprintf(stderr, "******** alternate isleavenext %d based on topcscptr %p flags %.6x\n",
+              isLeafNext,
+              (void*)topCscPtr,
+              (topCscPtr != NULL ? topCscPtr->flags : 0));*/
+      }
+    }
+
+    rst->unknown =
+      /* case 1 */ endOfFilterChain ||
       /* case 3 */ (!isLeafNext && ((cscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE) != 0u));
 
+    /*NsfShowStack(interp);*/
+
     /*fprintf(stderr, "******** setting unknown to %d isLeafNext %d topCscPtr %p endOfFilterChain %d\n",
-      rst->unknown, isLeafNext, topCscPtr, endOfFilterChain);*/
+      rst->unknown, isLeafNext, (void *)topCscPtr, endOfFilterChain);*/
   }
 
  next_search_and_invoke_cleanup:
@@ -20450,6 +20518,7 @@ NextSearchAndInvoke(
       freeArgumentVector ? (ClientData)objv : NULL,
       cscPtr
     };
+
     return NextInvokeFinalize(data, interp, result);
   }
 }

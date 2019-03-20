@@ -16,9 +16,9 @@ nx::test case info-errors {
 nx::test configure -count 10
 nx::test case submethods {
   #Object method unknown {} {}
-  Object create o1   
+  Object create o1
   ? {o1 foo} "::o1: unable to dispatch method 'foo'"
-  
+
   #
   # test subcmd "tricky" names
   # - names called on ensemble objects from C (defaultmethod, unknown)
@@ -42,7 +42,7 @@ nx::test case submethods {
     :method "baz a m2" {x:integer -y:boolean} {;}
     :method "baz b" {} {;}
   }
-  
+
   ? {o string length 1} length
   ? {o string tolower 2} tolower
   ? {o string toupper 2} \
@@ -58,21 +58,22 @@ nx::test case submethods {
   ? {o info object method type string} object
   # the following is a problem, when string has subcmd "info"
   #? {o::string info class} ::nx::EnsembleObject
-  
+
   ? {o string length aaa} "length"
   ? {o string info class} "info"
   ? {o string hugo} \
       {unable to dispatch sub-method "hugo" of ::o string; valid are: string info, string length, string tolower}
-  
+
   Foo create f1
   ? {f1 baz a m1 10} m1
   ? {f1 baz a m3 10} \
       {unable to dispatch sub-method "m3" of ::f1 baz a; valid are: baz a m1, baz a m2}
 
-#unable to dispatch method <obj> baz a m3; valid subcommands of a: m1 m2}
-#
+  #unable to dispatch method <obj> baz a m3; valid subcommands of a: m1 m2
+  #
+}
 
-nx::test configure -count 1 
+nx::test configure -count 1
 nx::test case defaultmethod {
   Object create o {
     :object method "string length"  x {return [current method]}
@@ -96,7 +97,7 @@ nx::test case defaultmethod {
 
   ? {o string} "valid submethods of ::o string: info length tolower"
   ? {o foo} "valid submethods of ::o foo: a b"
-  
+
   ? {f1 bar} "valid submethods of ::f1 bar: m1 m2"
   ? {f1 baz} "valid submethods of ::f1 baz: a b"
   ? {f1 baz a} "valid submethods of ::f1 baz a: m1 m2"
@@ -169,10 +170,10 @@ nx::test case ensemble-next {
       nx::next
     }
   }
-  
+
   FOO mixins set {M1 M0}
   FOO create f1
-  
+
   #
   # The last list element shows handling of less deep ensembles
   # (longer arg list is passed)
@@ -266,7 +267,7 @@ nx::test case ensemble-upvar {
     }
     :create f1
   }
- 
+
   ? {f1 baz0} 0
   ? {f1 baz1} 1
 }
@@ -311,22 +312,22 @@ nx::test configure -count 1
 nx::test case ensemble-next-with-colon-prefix
 namespace eval ::ns1 {
   nx::Object create obj {
-    :public object method foo {} { return [:info class] } 
-    :public object method ifoo {} { [current] ::nsf::methods::object::info::lookupmethod info} 
+    :public object method foo {} { return [:info class] }
+    :public object method ifoo {} { [current] ::nsf::methods::object::info::lookupmethod info}
   }
-  
+
   ? {obj info class} ::nx::Object
   ? {obj info lookup method info} ::nsf::classes::nx::Object::info
   ? {obj ifoo} ::nsf::classes::nx::Object::info
-  
+
   ? {obj foo} ::nx::Object
-  
+
   set infolookup ::nsf::methods::object::info::lookupmethod
   set infomethod  ::nsf::methods::object::info::method
-  
+
   ? [list obj $infolookup info] ::nsf::classes::nx::Object::info
   ? [list obj $infomethod type ::nsf::classes::nx::Object::info] alias
-  
+
   obj object method info {} {;}
   ? [list obj $infolookup info] ::ns1::obj::info
   ? [list obj $infomethod type ::ns1::obj::info] scripted
@@ -340,10 +341,10 @@ namespace eval ::ns1 {
   ? {nx::Object create obj::info} ::ns1::obj::info
   ? [list obj $infolookup info] ::ns1::obj::info
   ? [list obj $infomethod type ::ns1::obj::info] object
-  
+
   ? {obj ifoo} ::ns1::obj::info
   # To some surprise, we can can still call info class!
-  # This works, since we do here an "ensemble-next" 
+  # This works, since we do here an "ensemble-next"
   #? {obj info class} ::nx::Object
   ? {obj info class} {::ns1::obj::info: unable to dispatch method 'class'}
   # The ensemble-next has in case of foo the leading colon on the
@@ -360,11 +361,11 @@ namespace eval ::ns1 {
 nx::test case leaf-next-in-submethods {
   nx::Object create container {
     set :x 0
-    :public object method "FOO bar" {} { 
-      incr :x; next; # a "leaf next" 
+    :public object method "FOO bar" {} {
+      incr :x; next; # a "leaf next"
     }
-    :public object method intercept args { 
-      incr :x; next; # a "filter next" 
+    :public object method intercept args {
+      incr :x; next; # a "filter next"
     }
     :object filters set intercept
     :FOO bar
@@ -419,7 +420,7 @@ nx::test case unknown-in-info {
 
   #C info object x y z
   catch {C info object x y z} err
-  ? [list string match {unable to dispatch sub-method "x" of ::C info object; valid are:*} $err] 1; 
+  ? [list string match {unable to dispatch sub-method "x" of ::C info object; valid are:*} $err] 1;
   ## --> unable to dispatch sub-method "object" of ::C info; valid are:
 }
 
@@ -442,7 +443,7 @@ nx::test case submethods-current-introspection {
     return "-[current]-[current class]-"
   }
   ? {o FOO foo} -::o--
-  
+
   Class create C
   C public method "FOO foo" {} {
     return "-[current]-[current class]-"
@@ -457,7 +458,7 @@ nx::test case submethods-current-introspection {
   }]
 
   ? {c FOO foo} -::c-::M1-::c-::C-
-  
+
   o object mixins set ::M1
   ? {o FOO foo} -::o-::M1-::o--
 
@@ -486,7 +487,7 @@ nx::test case submethods-current-introspection {
     set calleeBody {return "[current callingclass]-[current callingobject]-[current callingmethod]"}
     :public object method bar {} $calleeBody
   }
-  
+
   ? {o FOO foo} 1 "instance method ensemble 1"
   ? {o BAR BUU boo} 1 "instance method ensemble 2"
   ? {o baz} 1 "instance method"
@@ -517,7 +518,7 @@ nx::test case submethods-current-introspection {
   ? {o FOO foo} 1 "class level object method ensemble 1"
   ? {o BAR BUU boo} 1 "class level object method ensemble 2"
   ? {o baz} 1 "class level object method"
-  
+
   #
   # Make sure that [current callingclass] works for submethods, as
   # expected
@@ -559,13 +560,13 @@ nx::test case submethods-current-introspection {
     :object property msg
     :method intercept args {
       [current class] eval [list set :msg [list [lrange [current methodpath] 1 end-1] \
-					       [current calledmethod] \
-					       [current calledclass] \
-					       [current nextmethod]]]
+                                               [current calledmethod] \
+                                               [current calledclass] \
+                                               [current nextmethod]]]
       next
     }
   }
-  
+
   set c [Z new]
 
   Z filters set intercept
@@ -616,7 +617,7 @@ nx::test case per-object-dispatch {
 
   ? {c1 foo} "foo-::c1"
   ? {c1 bar} "bar-::c1"
-  
+
   C create c1::1 {
     :public object method bar {} {return bar-[self]}
     :public object method baz {} {return baz-[self]}
@@ -635,7 +636,7 @@ nx::test case per-object-dispatch {
   ? {c1 1 foo} "foo-::c1::1"
   ? {c1 1 bar} "bar-::c1::1"
   ? {c1 baz} "baz-::c1::1"
-  
+
   # just make setting explicit
   ::nsf::object::property ::c1::1 keepcallerself off
   ::nsf::object::property ::c1::1 perobjectdispatch off
@@ -703,7 +704,7 @@ nx::test case child-obj-delegation {
 
   ::nsf::object::property obj::child keepcallerself false
   ::nsf::object::property obj::child perobjectdispatch false
-  
+
   ? {obj link1 foo} {::obj::child}
   #? {obj link2 foo} {::obj: unable to dispatch method 'child'}
   ? {obj link2 foo} {::obj::child}
@@ -806,7 +807,7 @@ nx::test case keepcallerself {
     :public object method bar {} {return d1-[self]}
     :public object alias c1 ::c1
   }
-  
+
   # The normal dispatch ignores the keepcallerself completely
   ? {c1 bar} c1-::c1
   ? {c1 foo} C-::c1
@@ -897,7 +898,7 @@ nx::test case ensemble-next-vs-colon-dispatch {
       return [current class]
     }
   }
-  
+
   nx::Class create B  -superclasses A {
     :public method "x s" args {
       return [list [current class] {*}[next]]
@@ -915,17 +916,17 @@ nx::test case ensemble-callstack-introspection {
   set ::body {
     return [list [current nextmethod] [current isnextcall] {*}[next]]
   }
-  
+
   nx::Class create A {
     set ::handle [:method "i s" args $::body]
     :create a
   }
-  
+
   nx::Class create B  -superclasses A {
     :public method "i s" args $::body
     :create b
   }
-  
+
   ? {b eval { :i s }} {{::nsf::classes::A::i s} 0 {} 1}
   ? {::nsf::cmd::info args [lindex [b eval { :i s }] 0]} "args"
   ? {::nsf::cmd::info definitionhandle [lindex [b eval { :i s }] 0]} $::handle
@@ -936,7 +937,7 @@ nx::test case ensemble-callstack-introspection {
   ? {::nsf::cmd::info body [lindex [b i s] 0]} $::body
   ? {a eval { :i s }} {{} 0}
   ? {a i s} {{} 0}
-  
+
   unset -nocomplain ::handle
   unset -nocomplain ::body
 }
@@ -962,7 +963,7 @@ nx::test case ensemble-forwards {
     set handle [:private object forward "foo 8" join %method ""]
     ? [list info commands $handle] $handle
   }]
-  
+
   ? [list $C foo 6] "6"
   ? [list $C foo 5] "unable to dispatch sub-method \"5\" of $C foo; valid are: foo 6"
   ? [list $C eval {:foo 5}] "5"
@@ -971,9 +972,9 @@ nx::test case ensemble-forwards {
   ? [list $C foo 8] "unable to dispatch sub-method \"8\" of $C foo; valid are: foo 6"
   ? [list $C eval {:foo 8}] "unable to dispatch sub-method \"8\" of $C foo; valid are: foo 6";
   ? [list $C eval {: -local foo 8}] "8";
-  
+
   set c [$C new]
-  
+
   ? [list $c foo 2] "2"
   ? [list $c foo 1] "unable to dispatch sub-method \"1\" of $c foo; valid are: foo 2"
   ? [list $c eval {:foo 1}] "1"
@@ -1048,7 +1049,7 @@ nx::test case ensemble-private-local-checks {
       :private object method "baz 1" {} {return "c1.baz.1"}
     }
   }
- 
+
   ? {b1 faa} "::b1: unable to dispatch method 'noop'"
   ? {b1 foo} "b1.baz.1"
   ? {b1 fee1} "B.bar.2"
@@ -1056,7 +1057,7 @@ nx::test case ensemble-private-local-checks {
   ? {b1 FOO1} "B.bar.1"
   ? {b1 FOO2} "B.bar.1"
   ? {b1 FOO3 FAR FIM} "B.bar.1"
-  
+
   ? {c1 faa} "::c1: unable to dispatch method 'noop'"
   ? {c1 foo} "c1.baz.1"
   ? {c1 fee1} "B.bar.2"
@@ -1066,6 +1067,27 @@ nx::test case ensemble-private-local-checks {
   ? {c1 FOO3 FAR FIM} "B.bar.1"
 
 }
+
+nx::test case ensemble-next-sackgasse {
+  nx::Class create ::A {
+    :public method "i o a" {} {return a}
+    :public method "i o b" {} {return b}
+  }
+
+  nx::Class create B -superclasses A {
+    :public method "i s" args {
+      next    ;# Should not trigger unknown!
+      return [current class]
+    }
+    :create b
+  }
+
+  ? {b i o a} a
+  ? {b i o b} b
+
+  ? {b i s} "::B"
+}
+
 
 #
 # Local variables:
