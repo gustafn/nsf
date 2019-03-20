@@ -36,7 +36,7 @@ matrix:
 install:
   # - if not exist "%MINGW_ARCHIVE%" appveyor DownloadFile "%MINGW_URL%" -FileName "%MINGW_ARCHIVE%"
   # - 7z x -y "%MINGW_ARCHIVE%" > nul
-  - appveyor DownloadFile "%TCLKIT_URL%" -FileName "%TCLKIT%"
+  - if not exist "%TCLKIT%" appveyor DownloadFile "%TCLKIT_URL%" -FileName "%TCLKIT%"
 
 build_script:
   - if "%TOOLCHAIN%" == "autoconf-tea" set CHERE_INVOKING=1
@@ -49,3 +49,6 @@ build_script:
 
 on_failure:
   - if "%TOOLCHAIN%" == "autoconf-tea" cat tcl\win\config.log
+
+cache:
+  - "%TCLKIT%" -> appveyor.yml
