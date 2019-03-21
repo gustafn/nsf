@@ -152,8 +152,11 @@ puts "\nCreate user with default for password:"
     :property {password ""}
   }
 } ::User
+
 #nsf::__profile_trace -enable false
 
+::User create u1 -name GN -groups {admin teacher}
+? {u1 bson asJSON} {{ "__class" : "::User", "groups" : [ "admin", "teacher" ], "name" : "GN", "password" : "" }}
 
 # check autoclosing
 nx::mongo::db close

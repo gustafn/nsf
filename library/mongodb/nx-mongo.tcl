@@ -224,7 +224,8 @@ namespace eval ::nx::mongo {
 
     #
     # The methods "bson encode|decode" perform the low level type
-    # mapping. For now, this handles just the array notation.
+    # mapping between NX objects and the bson serialization. For now,
+    # this handles just the array notation.
     #
     :public method "bson decode" {bsontype value} {
       #puts stderr "bson decode of ${:name} /$bsontype/ '$value'"
@@ -919,6 +920,14 @@ namespace eval ::nx::mongo {
       }
       return $bson
     }
+
+    :public method "bson asJSON" {} {
+      #
+      # Return the current object in JSON syntax.
+      #
+      return [mongo::json::generate [:bson encode]]
+    }
+
 
     #
     # destroy a mapped object from memory
