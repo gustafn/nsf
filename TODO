@@ -5934,6 +5934,21 @@ catch {={*}[list foo 1 2 3 4 5 6]} msg; puts msg=$msg
 ========================================================================
 TODO:
 
+- /obj/ uplevel + upvar should behave different when being provided a
+  relative level specifier, to provide filter/ mixin transparency at
+  all times, and then move upwards as requested:
+
+  /obj/ uplevel 1 set x 1
+  
+  should be equal to
+
+  /obj/ uplevel {uplevel 1 set x 1}
+
+  It is rather pointless to provide for TclObjGetFrame resolution in
+  uplevel/upvar methods, because then this use is just unnecessary
+  sugar for using uplevel/ upvar commands directly. However, this
+  would be a change that potentially breaks exisiting client code.
+
 - add value=isSet as a new VariableSlot method, to wrap around [info exists] and others.
 
 - DTrace: --with-dtrace vs. --enable-dtrace (as in Tcl)? generate

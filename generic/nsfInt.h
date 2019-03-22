@@ -1396,4 +1396,7 @@ char *strnstr(const char *buffer, const char *needle, size_t buffer_len) pure;
 #define NsfMax(a,b) ((a) > (b) ? a : b)
 #define NsfMin(a,b) ((a) < (b) ? a : b)
 
+#define NsfCallStackFindLastInvocation(interp, offset, framePtrPtr) \
+  NsfCallStackFindCallingContext((interp), (offset), (framePtrPtr), NULL)
+
 #endif /* _nsf_int_h_ */

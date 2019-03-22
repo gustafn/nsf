@@ -2,7 +2,7 @@
 '\" Generated from file 'Class\&.man' by tcllib/doctools with format 'nroff'
 '\" Copyright (c) 2014-2016 Stefan Sobernig <stefan\&.sobernig@wu\&.ac\&.at>, Gustaf Neumann <gustaf\&.neumann@wu\&.ac\&.at>; available under the Creative Commons Attribution 3\&.0 Austria license (CC BY 3\&.0 AT)\&.
 '\"
-.TH "nx::Class" 3 2\&.1\&.0 Class "NX API"
+.TH "nx::Class" 3 2\&.3a0 Class "NX API"
 .\" The -*- nroff -*- definitions below are for supplemental macros used
 .\" in Tcl/Tk manual entries.
 .\"
@@ -1188,7 +1188,7 @@ and corresponding default values\&.
 Finally, the initialization method \fBinit\fR is dispatched, if
 available for \fIinstance\fR\&. \fBinit\fR can be defined by \fIcls\fR on
 behalf of its instance \fIinstance\fR, e\&.g\&. to lay out a
-class-specific initialisation behaviour\&.
+class-specific initialization behavior\&.
 .CS
 
 
@@ -1203,7 +1203,7 @@ class-specific initialisation behaviour\&.
 
 .CE
 .IP
-Alternatively, the object \fIinstance\fR may define an per-object
+Alternatively, the object \fIinstance\fR may define a per-object
 \fBinit\fR on its own\&. A per-object \fBinit\fR can be chained to
 a class-level \fBinit\fR using \fBnx::next\fR, just like a regular
 method\&.

@@ -77,11 +77,13 @@ static NsfCallStackContent* CallStackGetTopFrame(
 NSF_INLINE static NsfCallStackContent* CallStackGetTopFrame0(const Tcl_Interp *interp)
   nonnull(1) pure;
 
-static NsfCallStackContent* NsfCallStackFindLastInvocation(
+static NsfCallStackContent* NsfCallStackFindCallingContext(
     const Tcl_Interp *interp,
     int offset,
-    Tcl_CallFrame **framePtrPtr
+    Tcl_CallFrame **callingProcFramePtrPtr,
+    Tcl_CallFrame **callingFramePtrPtr
 ) nonnull(1);
+
 
 static NsfCallStackContent* NsfCallStackFindActiveFrame(
     const Tcl_Interp *interp,
@@ -613,13 +615,15 @@ NsfCallStackGetTopFrame(const Tcl_Interp *interp, Tcl_CallFrame **framePtrPtr) {
 
 /*
  *----------------------------------------------------------------------
+ * NsfCallStackFindCallingContext --
  * NsfCallStackFindLastInvocation --
  *
- *    Find last invocation of a (scripted or non-leaf) method with a
- *    specified offset.
+ *    Find the calling context (frame) with a specified offset. Find the
+ *    frame corresponding to the calling proc or (scripted or non-leaf)
+ *    method.
  *
  * Results:
- *    Call stack content or NULL.
+ *    Call stack content (for NSF methods) or NULL.
  *
  * Side effects:
  *    None.
@@ -627,51 +631,54 @@ NsfCallStackGetTopFrame(const Tcl_Interp *interp, Tcl_CallFrame **framePtrPtr) {
  *----------------------------------------------------------------------
  */
 static NsfCallStackContent *
-NsfCallStackFindLastInvocation(const Tcl_Interp *interp, int offset, Tcl_CallFrame **framePtrPtr) {
+NsfCallStackFindCallingContext(const Tcl_Interp *interp,
+                               int offset,
+                               Tcl_CallFrame **callingProcFramePtrPtr,
+                               Tcl_CallFrame **callingFramePtrPtr) {
   register Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
   int lvl = Tcl_CallFrame_level(varFramePtr);
-
+  
   nonnull_assert(interp != NULL);
 
   for (; likely(varFramePtr != NULL); varFramePtr = Tcl_CallFrame_callerVarPtr(varFramePtr)) {
-
-    if (((unsigned int)Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) != 0u) {
-      NsfCallStackContent *cscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
-
+    register unsigned int flags = (unsigned int)Tcl_CallFrame_isProcCallFrame(varFramePtr);
+    
+    if (flags != 0u) {
       /*
-       * A NSF method frame.
+       * A proc frame
        */
-      if ((cscPtr->flags & (NSF_CSC_CALL_IS_NEXT|NSF_CSC_CALL_IS_ENSEMBLE))
-          || (cscPtr->frameType & NSF_CSC_TYPE_INACTIVE)) {
-        continue;
+      NsfCallStackContent *cscPtr =
+        (flags & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) ?
+        ((NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr)) : NULL;
+      
+      if (cscPtr != NULL) {
+        /*
+         * An NSF method frame.
+         */
+        if ((cscPtr->flags & (NSF_CSC_CALL_IS_NEXT|NSF_CSC_CALL_IS_ENSEMBLE))
+            || (cscPtr->frameType & NSF_CSC_TYPE_INACTIVE)) {
+          continue;
+        }
       }
-
+      
       if (offset != 0) {
         offset--;
       } else if (Tcl_CallFrame_level(varFramePtr) < lvl) {
-        if (framePtrPtr != NULL) {
-          *framePtrPtr = varFramePtr;
+        if (callingProcFramePtrPtr != NULL) {
+          *callingProcFramePtrPtr = varFramePtr;
         }
         return cscPtr;
       }
-    } else if (Tcl_CallFrame_isProcCallFrame(varFramePtr)) {
-
-      /*
-       * A Tcl proc frame.
-       */
-      if (offset != 0) {
-        offset--;
-      } else if (Tcl_CallFrame_level(varFramePtr) < lvl) {
-        if (framePtrPtr != NULL) {
-          *framePtrPtr = varFramePtr;
-        }
-        return NULL;
-      }
+      
+    } else if (callingFramePtrPtr != NULL &&
+               *callingFramePtrPtr == NULL &&
+               Tcl_CallFrame_level(varFramePtr) < lvl) {
+      *callingFramePtrPtr = varFramePtr;
     }
   }
 
-  if (framePtrPtr != NULL) {
-    *framePtrPtr = NULL;
+  if (callingProcFramePtrPtr != NULL) {
+    *callingProcFramePtrPtr = NULL;
   }
   return NULL;
 }

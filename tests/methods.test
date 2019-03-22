@@ -1607,6 +1607,352 @@ array unset a1
 
 AbstractFile filters delete filterCall
 
+nx::test case callinglevels {
+
+  nx::Object create objekt
+  objekt public object method foo {} {
+    current callinglevel
+  }
+  
+  ? {uplevel #0 {objekt foo}} "#0"
+  ? {uplevel #0 {
+    namespace eval ::ns1 {
+      namespace eval ns2 {
+        objekt foo
+      }
+    }
+  }} "#2"
+  namespace delete ::ns1
+
+  ? {uplevel #0 {apply {{} {objekt foo}}}} "#1"
+  ? {uplevel #0 { apply {{} {
+    namespace eval ::ns1 {
+      namespace eval ns2 {
+        objekt foo
+      }
+    }
+  }}}} "#1"
+  namespace delete ::ns1
+
+  objekt public object method intercept args {
+    list [current method] {*}[next]
+  }
+  objekt object filters set intercept
+
+  ? {uplevel #0 {objekt foo}} "intercept #0"
+  ? {uplevel #0 {
+    namespace eval ::ns1 {
+      namespace eval ns2 {
+        objekt foo
+      }
+    }
+  }} "intercept #2"
+  namespace delete ::ns1
+
+  ? {uplevel #0 {apply {{} {objekt foo}}}} "intercept #1"
+  ? {uplevel #0 { apply {{} {
+    namespace eval ::ns1 {
+      namespace eval ns2 {
+        objekt foo
+      }
+    }
+  }}}} "intercept #1"
+  namespace delete ::ns1
+
+  objekt object mixins add [nx::Class new {
+    :public method foo {args} {
+      list [current method] {*}[next]
+    }
+  }]
+
+  ? {uplevel #0 {objekt foo}} "intercept foo #0"
+  ? {uplevel #0 {
+    namespace eval ::ns1 {
+      namespace eval ns2 {
+        objekt foo
+      }
+    }
+  }} "intercept foo #2"
+  namespace delete ::ns1
+
+  ? {uplevel #0 {apply {{} {objekt foo}}}} "intercept foo #1"
+  ? {uplevel #0 { apply {{} {
+    namespace eval ::ns1 {
+      namespace eval ns2 {
+        objekt foo
+      }
+    }
+  }}}} "intercept foo #1"
+  namespace delete ::ns1
+
+}
+
+nx::test case uplevel {
+  nx::Object create objekt
+  objekt public object method foo {} {
+    :uplevel {return -level 0 #[info level]}
+  }
+  ? {uplevel #0 {objekt foo}} "#0"
+
+  ? {uplevel #0 {
+    namespace eval ::ns1 {
+      namespace eval ns2 {
+        objekt foo
+      }
+    }
+  }} "#2"
+  namespace delete ::ns1
+
+  ? {uplevel #0 {apply {{} {objekt foo}}}} "#1"
+  ? {uplevel #0 { apply {{} {
+    namespace eval ::ns1 {
+      namespace eval ns2 {
+        objekt foo
+      }
+    }
+  }}}} "#1"
+  namespace delete ::ns1
+
+  objekt public object method intercept args {
+    if {[current calledmethod] eq "foo"} {
+      list [current method] {*}[next]
+    } else {
+      next
+    }
+  }
+  objekt object filters set intercept
+
+  ? {uplevel #0 {objekt foo}} "intercept #0"
+  ? {uplevel #0 {
+    namespace eval ::ns1 {
+      namespace eval ns2 {
+        objekt foo
+      }
+    }
+  }} "intercept #2"
+  namespace delete ::ns1
+
+  ? {uplevel #0 {apply {{} {objekt foo}}}} "intercept #1"
+  ? {uplevel #0 { apply {{} {
+    namespace eval ::ns1 {
+      namespace eval ns2 {
+        objekt foo
+      }
+    }
+  }}}} "intercept #1"
+  namespace delete ::ns1
+  
+  objekt object mixins add [nx::Class new {
+    :public method foo {args} {
+      list [current method] {*}[next]
+    }
+  }]
+
+  ? {uplevel #0 {objekt foo}} "intercept foo #0"
+  ? {uplevel #0 {
+    namespace eval ::ns1 {
+      namespace eval ns2 {
+        objekt foo
+      }
+    }
+  }} "intercept foo #2"
+  namespace delete ::ns1
+
+  ? {uplevel #0 {apply {{} {objekt foo}}}} "intercept foo #1"
+  ? {uplevel #0 { apply {{} {
+    namespace eval ::ns1 {
+      namespace eval ns2 {
+        objekt foo
+      }
+    }
+  }}}} "intercept foo #1"
+  namespace delete ::ns1
+  
+  set filters [objekt object filters clear]
+  set mixins [objekt object mixins clear]
+  unset -nocomplain ::_
+
+  objekt public object method foo {} {
+    :uplevel {set FOO 1}
+  }
+  
+  ? {uplevel #0 {
+    lappend _ [info exists FOO];
+    objekt foo;
+    lappend _ [info exists FOO][unset FOO]}
+  } "0 1"
+
+  unset -nocomplain ::_
+
+  ? {uplevel #0 {
+    namespace eval ::ns1 {
+      namespace eval ns2 {
+        lappend _ [info exists FOO];
+        objekt foo;
+        lappend _ [info exists FOO][unset FOO];
+      }
+    }
+  }} "0 1"
+  namespace delete ::ns1
+
+  ? {uplevel #0 {
+    namespace eval ::ns1 {
+      apply {{} {
+        lappend _ [info exists FOO];
+        namespace eval ns2 {
+          objekt foo;
+        }
+        lappend _ [info exists FOO][unset FOO];
+      }}
+    }
+  }} "0 1"
+  namespace delete ::ns1
+
+  objekt object filters set $filters
+  objekt object mixins set $mixins
+
+    ? {uplevel #0 {
+    lappend _ [info exists FOO];
+    objekt foo;
+    lappend _ [info exists FOO][unset FOO]}
+  } "0 1"
+
+  unset -nocomplain ::_
+
+  ? {uplevel #0 {
+    namespace eval ::ns1 {
+      namespace eval ns2 {
+        lappend _ [info exists FOO];
+        objekt foo;
+        lappend _ [info exists FOO][unset FOO];
+      }
+    }
+  }} "0 1"
+  namespace delete ::ns1
+
+  ? {uplevel #0 {
+    namespace eval ::ns1 {
+      apply {{} {
+        lappend _ [info exists FOO];
+        namespace eval ns2 {
+          objekt foo;
+        }
+        lappend _ [info exists FOO][unset FOO];
+      }}
+    }
+  }} "0 1"
+  namespace delete ::ns1
+  
+}
+
+nx::test case uplevel-method-signature {
+
+  nx::Object create objekt
+  objekt public object method foo {} {
+    concat \
+        [:uplevel return -level 0 "#\[info level\]"] \
+        [uplevel [current callinglevel] return -level 0 "#\[info level\]"]
+  }
+
+  ? {uplevel #0 { apply {{} {
+    namespace eval ::ns1 {
+      namespace eval ns2 {
+        objekt foo
+      }
+    }
+  }}}} "#1 #1"
+
+  objekt public object method foo {} {
+    :uplevel
+  }
+
+  ? {uplevel #0 {objekt foo}} {wrong # args: should be "::objekt uplevel ?level? command ?arg ...?"}
+
+  objekt public object method foo {} {
+    :uplevel 1
+  }
+
+  ? {uplevel #0 {objekt foo}} {wrong # args: should be "::objekt uplevel ?level? command ?arg ...?"}
+
+  objekt public object method foo {} {
+    :uplevel #1
+  }
+
+  ? {uplevel #0 {objekt foo}} {wrong # args: should be "::objekt uplevel ?level? command ?arg ...?"}
+
+  objekt public object method foo {} {
+    :uplevel 1 {return -level 0 #[info level]}
+  }
+
+  ? {uplevel #0 {objekt foo}} "#0"
+
+  objekt public object method foo {} {
+    :uplevel 1 return -level 0 "#\[info level\]"
+  }
+
+  ? {uplevel #0 {objekt foo}} "#0"
+
+  objekt public object method foo {} {
+    :uplevel #0 {return -level 0 #[info level]}
+  }
+  
+  ? {uplevel #0 {objekt foo}} "#0"
+  
+  objekt public object method foo {} {
+    :uplevel #0 return -level 0 "#\[info level\]"
+  }
+  
+  ? {uplevel #0 {objekt foo}} "#0"
+}
+
+nx::test case upvar-method-signature {
+
+  Object create objekt
+  objekt public object method foo {} {
+    :upvar #1;
+  }
+
+  ? {uplevel #0 {objekt foo}} \
+      {wrong # args: should be "::objekt upvar ?level? otherVar localVar ?otherVar localVar ...?"}
+
+  objekt public object method foo {} {
+    :upvar 1;
+  }
+
+  ? {uplevel #0 {objekt foo}} \
+      {wrong # args: should be "::objekt upvar ?level? otherVar localVar ?otherVar localVar ...?"}
+
+  objekt public object method foo {} {
+    :upvar;
+  }
+
+  ? {uplevel #0 {objekt foo}} \
+      {wrong # args: should be "::objekt upvar ?level? otherVar localVar ?otherVar localVar ...?"}
+
+  objekt public object method foo {} {
+    :upvar x z;
+    set z 5
+  }
+
+  ? {uplevel #0 {objekt foo; set x}} 5
+
+  objekt public object method foo {} {
+    :upvar #5 x z;
+  }
+
+  ? {uplevel #0 {objekt foo}} \
+      {bad level "#5"}
+
+  objekt public object method foo {} {
+    :upvar #5 x z y;
+    set x 1
+  }
+
+  ? {uplevel #0 {apply {{} {objekt foo; info exists "#5"}}}} 1
+}
+
+
+
 # Local variables:
 #    mode: tcl
 #    tcl-indent-level: 2

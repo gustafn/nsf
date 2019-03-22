@@ -20693,9 +20693,14 @@ ComputeLevelObj(Tcl_Interp *interp, CallStackLevel level) {
   nonnull_assert(interp != NULL);
 
   switch (level) {
-  case CALLING_LEVEL:
-    NsfCallStackFindLastInvocation(interp, 1, &framePtr);
+  case CALLING_LEVEL: {
+    Tcl_CallFrame *callingFramePtr = NULL;
+    NsfCallStackFindCallingContext(interp, 1, &framePtr, &callingFramePtr);
+    if (framePtr == NULL) {
+      framePtr = callingFramePtr;
+    }
     break;
+  }
   case ACTIVE_LEVEL:
     NsfCallStackFindActiveFrame(interp,    1, &framePtr);
     break;
@@ -20706,7 +20711,7 @@ ComputeLevelObj(Tcl_Interp *interp, CallStackLevel level) {
 
   if (framePtr != NULL) {
     /*
-     * The call was from an nsf frame, return absolute frame number.
+     * The call was from an NSF frame, return absolute frame number.
      */
     char buffer[LONG_AS_STRING];
     int  l;
@@ -20716,7 +20721,12 @@ ComputeLevelObj(Tcl_Interp *interp, CallStackLevel level) {
     resultObj = Tcl_NewStringObj(buffer, l+1);
   } else {
     /*
-     * If not called from an nsf frame, return #0 as default.
+     * If not called from an NSF frame, return #0 as default.
+     * 
+     * TODO: With NsfCallStackFindCallingContext in place, this cannot (should
+     * not) be reachable. Need to check NsfCallStackFindActiveFrame. When in
+     * the "clear", provide for a warning here?
+     *
      */
     resultObj = Tcl_NewStringObj("#0", 2);
   }
@@ -32330,44 +32340,47 @@ objectMethod uplevel NsfOUplevelMethod {
 }
 */
 static int
-NsfOUplevelMethod(Tcl_Interp *interp, NsfObject *UNUSED(object), int objc, Tcl_Obj *const objv[]) {
-  int            i, result;
-  Tcl_CallFrame *framePtr, *savedVarFramePtr;
+NsfOUplevelMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *const objv[]) {
+  int result;
+  CallFrame *requestedFramePtr;
+  Tcl_CallFrame *framePtr = NULL, *savedVarFramePtr;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(objv != NULL);
 
-  /*
-   * Find the level to use for executing the command.
-   */
-  if (objc > 2) {
-    CallFrame *cf;
-    const char *frameInfo = ObjStr(objv[1]);
-
-    result = TclGetFrame(interp, frameInfo, &cf);
-    if (unlikely(result == -1)) {
-      return TCL_ERROR;
-    }
-    framePtr = (Tcl_CallFrame *)cf;
-    i = result+1;
-  } else {
-    framePtr = NULL;
-    i = 1;
+  if (objc < 2) {
+    wrongArgs:
+    return NsfPrintError(interp,
+                         "wrong # args: should be \"%s %s ?level? command ?arg ...?\"",
+                         ObjectName(object),
+                         NsfMethodName(objv[0]));
   }
 
-  objc -= i;
-  objv += i;
+  result = TclObjGetFrame(interp, objv[1], &requestedFramePtr);
+  if (unlikely(result == -1)) {
+    return TCL_ERROR;
+  }
+  objc -= result + 1;
+  if (objc == 0) {
+    goto wrongArgs;
+  }
+  objv += result + 1;
 
-  if (framePtr == NULL) {
-    NsfCallStackFindLastInvocation(interp, 1, &framePtr);
+  if (result == 0) {
+    /* 0 is returned from TclObjGetFrame when no (or, an invalid) level specifier was provided */
+    Tcl_CallFrame *callingFramePtr = NULL;
+    NsfCallStackFindCallingContext(interp, 1, &framePtr, &callingFramePtr);
     if (framePtr == NULL) {
-      framePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp)->callerVarPtr;
-      if (framePtr == NULL) {
-        framePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
-      }
+      /* no proc frame was found, default to parent frame */
+      framePtr = callingFramePtr;
     }
+  } else {
+    /* use the requested frame corresponding to the (valid) level specifier */
+    framePtr = (Tcl_CallFrame *)requestedFramePtr;
   }
 
+  assert(framePtr != NULL);
+    
   savedVarFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
   Tcl_Interp_varFramePtr(interp) = (CallFrame *)framePtr;
 
@@ -32386,10 +32399,11 @@ NsfOUplevelMethod(Tcl_Interp *interp, NsfObject *UNUSED(object), int objc, Tcl_O
     Tcl_Obj *objPtr = Tcl_ConcatObj(objc, objv);
     result = Tcl_EvalObjEx(interp, objPtr, TCL_EVAL_DIRECT);
   }
+
   if (unlikely(result == TCL_ERROR)) {
     Tcl_AppendObjToErrorInfo(interp,
-       Tcl_ObjPrintf("\n    (\"uplevel\" body line %d)",
-                     Tcl_GetErrorLine(interp)));
+                             Tcl_ObjPrintf("\n    (\"uplevel\" body line %d)",
+                                           Tcl_GetErrorLine(interp)));
   }
 
   /*
@@ -32415,11 +32429,25 @@ NsfOUpvarMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *const 
   nonnull_assert(interp != NULL);
   nonnull_assert(object != NULL);
 
+  if (objc < 3) {
+    return NsfPrintError(interp,
+                         "wrong # args: should be \"%s %s "
+                         "?level? otherVar localVar ?otherVar localVar ...?\"",
+                         ObjectName(object),
+                         NsfMethodName(objv[0]));
+  }
+  
   if (objc % 2 == 0) {
+    /* even number of arguments (incl. method) 
+     * -> level specifier considered present 
+     */
     frameInfoObj = NULL;
     frameInfo = ObjStr(objv[1]);
     i = 2;
   } else {
+    /* odd number of arguments (incl. method) 
+     * -> level specififer considered absent, compute jump level 
+     */
     frameInfoObj = ComputeLevelObj(interp, CALLING_LEVEL);
     INCR_REF_COUNT(frameInfoObj);
     frameInfo = ObjStr(frameInfoObj);
@@ -32429,7 +32457,7 @@ NsfOUpvarMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *const 
   if ((object->filterStack != NULL) || (object->mixinStack != NULL)) {
     CallStackUseActiveFrame(interp, &ctx);
   }
-
+  
   for ( ;  i < objc;  i += 2) {
     result = Tcl_UpVar2(interp, frameInfo, ObjStr(objv[i]), NULL,
                         ObjStr(objv[i+1]), 0 /*flags*/);
@@ -32443,6 +32471,7 @@ NsfOUpvarMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *const 
   }
   CallStackRestoreSavedFrames(interp, &ctx);
   return result;
+  
 }
 
 /*

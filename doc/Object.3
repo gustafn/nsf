@@ -1,8 +1,8 @@
 '\"
 '\" Generated from file 'Object\&.man' by tcllib/doctools with format 'nroff'
-'\" Copyright (c) 2014-16 Stefan Sobernig <stefan\&.sobernig@wu\&.ac\&.at>, Gustaf Neumann <gustaf\&.neumann@wu\&.ac\&.at>; available under the Creative Commons Attribution 3\&.0 Austria license (CC BY 3\&.0 AT)\&.
+'\" Copyright (c) 2014-19 Stefan Sobernig <stefan\&.sobernig@wu\&.ac\&.at>, Gustaf Neumann <gustaf\&.neumann@wu\&.ac\&.at>; available under the Creative Commons Attribution 3\&.0 Austria license (CC BY 3\&.0 AT)\&.
 '\"
-.TH "nx::Object" 3 2\&.1\&.0 Object "NX API"
+.TH "nx::Object" 3 2\&.3a0 Object "NX API"
 .\" The -*- nroff -*- definitions below are for supplemental macros used
 .\" in Tcl/Tk manual entries.
 .\"
@@ -345,6 +345,10 @@ nx::Object \- API reference of the base class in the NX object system
 \fIobj\fR \fBrequire\fR ?\fBpublic\fR | \fBprotected\fR | \fBprivate\fR? \fBobject method\fR \fImethodName\fR
 .sp
 \fIobj\fR \fBunknown\fR \fIunknownMethodName\fR ?\fIarg\fR \&.\&.\&.?
+.sp
+\fIobj\fR \fBuplevel\fR ?\fIlevel\fR? \fIarg1\fR ?\fIarg2\fR \&.\&.\&.?
+.sp
+\fIobj\fR \fBupvar\fR ?\fIlevel\fR? \fIotherVar1\fR \fIlocalVar1\fR ?\fIotherVar2\fR \fIlocalVar2\fR \&.\&.\&.?
 .sp
 \fIobj\fR \fBobject variable\fR ?\fB-accessor\fR \fBpublic\fR | \fBprotected\fR | \fBprivate\fR? ?\fB-incremental\fR? ?\fB-class\fR \fIclassName\fR? ?\fB-configurable\fR \fItrueFalse\fR? ?\fB-initblock\fR \fIscript\fR? ?\fB-trace\fR \fBset\fR | \fBget\fR | \fBdefault\fR? ?\fB-nocomplain\fR? \fIspec\fR ?\fIdefaultValue\fR?
 .sp
@@ -912,8 +916,11 @@ an indirect instance of one of the superclasses of \fIclassName\fR\&.
 .TP
 \fIobj\fR \fBinfo lookup\fR \fIsubmethod\fR ?\fIarg\fR \&.\&.\&.?
 A collection of submethods to retrieve structural features (e\&.g\&.
-configuration options, slot objects) and behavioral
-features (e\&.g\&. methods, filters) available for \fIobj\fR from the perspective of a client to \fIobj\fR\&. Features provided by \fIobj\fR itself and by the classes in its current linearisation list are considered\&.
+configuration options, slot objects) and behavioral features
+(e\&.g\&. methods, filters) available for \fIobj\fR from the
+perspective of a client to \fIobj\fR\&. Features provided by \fIobj\fR
+itself and by the classes in its current linearization list are
+considered\&.
 .RS
 .TP
 \fIobj\fR \fBinfo lookup filter\fR \fIname\fR
@@ -939,7 +946,8 @@ to those whose names match \fInamePattern\fR (see \fBstring match\fR)\&.
 .TP
 \fIobj\fR \fBinfo lookup mixins\fR ?\fB-guards\fR? ?\fInamePattern\fR?
 Returns the object names of all mixin classes which are
-currently active on \fIobj\fR\&. By turning on the switch \fB-guards\fR, the corresponding guard expressions, if any, are also reported as a
+currently active on \fIobj\fR\&. By turning on the switch
+\fB-guards\fR, the corresponding guard expressions, if any, are also reported as a
 three-element list for each mixin class: \fIclassName\fR
 -guard \fIguardExpr\fR\&. The returned mixin classes can be
 limited to those whose names match \fInamePattern\fR (see \fBstring match\fR)\&.
@@ -955,9 +963,14 @@ Returns the command names of all slot objects responsible for
 managing properties, variables, and relations of \fIobj\fR\&. The
 returned slot objects can be limited according to any or a
 combination of the following criteria: First, slot objects
-can be filtered based on their command names matching \fInamePattern\fR (see
-\fBstring match\fR)\&. Second, \fB-type\fR allows one to select
-slot objects which are instantiated from a subclass \fIclassName\fR of \fBnx::Slot\fR (default: \fBnx::Slot\fR) \&. Third, \fB-source\fR restricts slot objects returned according to their provenance in either the NX \fIsystem\fR classes or the \fIapplication\fR classes present in the linearisation list of \fIobj\fR (default: \fIall\fR)\&.
+can be filtered based on their command names matching \fInamePattern\fR
+(see \fBstring match\fR)\&. Second, \fB-type\fR
+allows one to select slot objects which are instantiated from
+a subclass \fIclassName\fR of \fBnx::Slot\fR (default: \fBnx::Slot\fR)
+\&. Third, \fB-source\fR restricts slot objects returned
+according to their provenance in either the NX \fIsystem\fR classes
+or the \fIapplication\fR classes present in the linearization list of
+\fIobj\fR (default: \fIall\fR)\&.
 .sp
 To extract details of each slot object, use the \fBinfo\fR
 submethods available for each slot object\&.
@@ -971,7 +984,8 @@ strings)\&. The result can be limited to those parameters matching the
 .TP
 \fIobj\fR \fBinfo lookup variables\fR
 Returns the command names of all slot objects responsible for
-managing properties and variables of \fIobj\fR, if provided by \fIobj\fR or the classes in the linearisation list of \fIobj\fR\&.
+managing properties and variables of \fIobj\fR, if provided by \fIobj\fR
+or the classes in the linearization list of \fIobj\fR\&.
 .sp
 This is equivalent to calling: \fIobj\fR \fBinfo lookup slots\fR -type ::nx::VariableSlot -source all ?\fInamePattern\fR?\&.
 .sp
@@ -1101,7 +1115,7 @@ namespace containing \fIobj\fR (e\&.g\&. "::") will be reported\&.
 \fIobj\fR \fBinfo precedence\fR ?\fB-intrinsic\fR? ?\fIpattern\fR?
 Lists the classes from which \fIobj\fR inherits structural (e\&.g\&.
 properties) and behavioral features (e\&.g\&. methods) and methods, in
-order of the linearisation scheme in NX\&. By setting the
+order of the linearization scheme in NX\&. By setting the
 switch \fB-intrinsic\fR, only classes which participate in
 superclass/subclass relationships (i\&.e\&., intrinsic classes) are
 returned\&. If a \fIpattern\fR is provided only classes whose
@@ -1384,8 +1398,104 @@ not set explicitly\&.
 This method is called implicitly whenever an unknown method is invoked\&.
 \fIunknownMethodName\fR indicates the unresolvable method name,
 followed by the remainder of the original argument vector as a number
-of \fIarg\fR of the indirected method invocation\&.
+of \fIarg\fR of the calling method invocation\&.
 .RE
+.TP
+\fBuplevel\fR
+.RS
+.TP
+\fIobj\fR \fBuplevel\fR ?\fIlevel\fR? \fIarg1\fR ?\fIarg2\fR \&.\&.\&.?
+Evaluate a script or a command at a different stack-frame
+level\&. Behaves like Tcl's \fBuplevel\fR, with the following
+important exceptions\&.
+.RS
+.IP \(bu
+If the \fIlevel\fR specifier is omitted, \fBuplevel\fR
+will skip any auxiliary frames added to the stack by active filters and mixins\&. The
+resulting stack-frame level corresponds to the callinglevel
+as indicated by \fBnx::current\fR\&.
+.IP \(bu
+If the \fIlevel\fR specifier is omitted, \fBuplevel\fR gives
+preference to the innermost enclosing procedure call, i\&.e\&., a frame
+corresponding to a proc, method, or apply call\&. Any frames inbetween,
+incl\&. those of filters and mixins (see above), will be skipped\&.
+.IP \(bu
+If the \fIlevel\fR specifier is provided (relative, or
+absolute), \fBuplevel\fR will move execution into the requested
+stack-frame level (incl\&. those introduced by active active filters and
+mixins), if valid\&.
+.RE
+.CS
+
+
+  % nx::Object create ::obj
+  ::obj
+  % ::obj public object method foo {varName} {
+      :uplevel set $varName 1; return
+  }
+  ::obj::foo
+  % namespace eval ::ns1 {
+       ::obj foo BAR
+  }
+  % namespace eval ::ns1 {
+      info exists BAR
+  }
+  1
+
+.CE
+.RE
+.IP
+Note, in the example above, \fBuplevel\fR is guaranteed to
+resolve to the calling context of \fBfoo\fR (ns1) despite
+mixins and filters being (potentially) registered on \fBobj\fR\&.
+.TP
+\fBupvar\fR
+.RS
+.TP
+\fIobj\fR \fBupvar\fR ?\fIlevel\fR? \fIotherVar1\fR \fIlocalVar1\fR ?\fIotherVar2\fR \fIlocalVar2\fR \&.\&.\&.?
+Links one or more local variables to variables defined for other
+scopes (namespaces, objects, call frames)\&. Behaves like Tcl's \fBupvar\fR,
+with the following important exceptions\&.
+.RS
+.IP \(bu
+If the \fIlevel\fR specifier is omitted, \fBupvar\fR
+will skip any auxiliary frames added to the stack by active filters and mixins\&. The
+resulting stack-frame level corresponds to the callinglevel
+as indicated by \fBnx::current\fR\&.
+.IP \(bu
+If the \fIlevel\fR specifier is omitted, \fBupvar\fR gives
+preference to the innermost enclosing procedure call, i\&.e\&., a frame
+corresponding to a proc, method, or apply call\&. Any frames inbetween,
+incl\&. those of filters and mixins (see above), will be skipped\&.
+.IP \(bu
+If the \fIlevel\fR specifier is provided (relative, or
+absolute), \fBupvar\fR will link into the requested
+stack-frame level (incl\&. those introduced by active active filters and
+mixins), if valid\&.
+.RE
+.CS
+
+
+  % nx::Object create ::obj
+  ::obj
+  % ::obj public object method foo {varName} {
+      :upvar $varName x; set x 1; return
+  }
+  ::obj::foo
+  % namespace eval ::ns1 {
+       ::obj foo BAR
+  }
+  % namespace eval ::ns1 {
+      info exists BAR
+  }
+  1
+
+.CE
+.RE
+.IP
+Note, in the example above, \fBupvar\fR is guaranteed to
+resolve to the calling context of \fBfoo\fR (ns1) despite
+mixins and filters being (potentially) registered on \fBobj\fR\&.
 .TP
 \fBvariable\fR
 .RS
@@ -1510,7 +1620,7 @@ If the switch \fB-nocomplain\fR is on, this check is omitted (continuing the abo
 Objects are naturally recursive, with methods of an object \fB::obj\fR
 frequently invoking other methods in the same object \fB::obj\fR and
 accessing \fB::obj\fR's object variables\&. To represent these
-self-references effectively in method bodies, and dependening on the
+self-references effectively in method bodies, and depending on the
 usage scenario, NX offers two alternative notations for self-references: one based on a
 special-purpose syntax token ("colon prefix"), the other based on the
 command \fBnx::current\fR\&.
@@ -1569,6 +1679,6 @@ See the following listing for some examples corresponding to use cases 1--3:
 .CE
 .SH COPYRIGHT
 .nf
-Copyright (c) 2014-16 Stefan Sobernig <stefan\&.sobernig@wu\&.ac\&.at>, Gustaf Neumann <gustaf\&.neumann@wu\&.ac\&.at>; available under the Creative Commons Attribution 3\&.0 Austria license (CC BY 3\&.0 AT)\&.
+Copyright (c) 2014-19 Stefan Sobernig <stefan\&.sobernig@wu\&.ac\&.at>, Gustaf Neumann <gustaf\&.neumann@wu\&.ac\&.at>; available under the Creative Commons Attribution 3\&.0 Austria license (CC BY 3\&.0 AT)\&.
 
 .fi
