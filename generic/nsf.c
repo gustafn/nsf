@@ -32352,7 +32352,7 @@ NsfOUplevelMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *cons
     wrongArgs:
     return NsfPrintError(interp,
                          "wrong # args: should be \"%s %s ?level? command ?arg ...?\"",
-                         ObjectName(object),
+                         ObjectName_(object),
                          NsfMethodName(objv[0]));
   }
 
@@ -32433,7 +32433,7 @@ NsfOUpvarMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *const 
     return NsfPrintError(interp,
                          "wrong # args: should be \"%s %s "
                          "?level? otherVar localVar ?otherVar localVar ...?\"",
-                         ObjectName(object),
+                         ObjectName_(object),
                          NsfMethodName(objv[0]));
   }
   
