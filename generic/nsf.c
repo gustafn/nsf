@@ -32614,7 +32614,7 @@ classMethod alloc NsfCAllocMethod {
 static int
 NsfCAllocMethod(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *nameObj) {
   const char *nameString;
-  int         result, nameLength;
+  int         result, nameLength = 0;
 
   /*
    * Create a new object from scratch.
@@ -32672,7 +32672,7 @@ static int
 NsfCCreateMethod(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *nameObj, int objc, Tcl_Obj *const objv[]) {
   NsfObject     *newObject = NULL;
   Tcl_Obj       *actualNameObj, *methodObj, *tmpObj = NULL;
-  int            result, nameLength;
+  int            result, nameLength = 0;
   bool           autoNameCreate;
   const char    *nameString;
   Tcl_Namespace *parentNsPtr;

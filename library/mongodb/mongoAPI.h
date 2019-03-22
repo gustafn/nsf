@@ -68,11 +68,11 @@ typedef enum {GridfilesourceNULL, GridfilesourceFileIdx, GridfilesourceStringIdx
 
 static int ConvertToGridfilesource(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
-  int index, result;
+  int pos, result;
   static const char *opts[] = {"file", "string", NULL};
   (void)pPtr;
-  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "gridfilesource", 0, &index);
-  *clientData = (ClientData) INT2PTR(index + 1);
+  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "gridfilesource", 0, &pos);
+  *clientData = (ClientData) INT2PTR(pos + 1);
   *outObjPtr = objPtr;
   return result;
 }

@@ -68,11 +68,11 @@ typedef enum {InfomethodsubcmdNULL, InfomethodsubcmdArgsIdx, InfomethodsubcmdBod
 
 static int ConvertToInfomethodsubcmd(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
-  int index, result;
+  int pos, result;
   static const char *opts[] = {"args", "body", "definition", "exists", "registrationhandle", "definitionhandle", "origin", "parameter", "syntax", "type", "precondition", "postcondition", "submethods", "returns", "disassemble", NULL};
   (void)pPtr;
-  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "infomethodsubcmd", 0, &index);
-  *clientData = (ClientData) INT2PTR(index + 1);
+  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "infomethodsubcmd", 0, &pos);
+  *clientData = (ClientData) INT2PTR(pos + 1);
   *outObjPtr = objPtr;
   return result;
 }
@@ -81,11 +81,11 @@ typedef enum {CallprotectionNULL, CallprotectionAllIdx, CallprotectionPublicIdx,
 
 static int ConvertToCallprotection(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
-  int index, result;
+  int pos, result;
   static const char *opts[] = {"all", "public", "protected", "private", NULL};
   (void)pPtr;
-  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "callprotection", 0, &index);
-  *clientData = (ClientData) INT2PTR(index + 1);
+  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "callprotection", 0, &pos);
+  *clientData = (ClientData) INT2PTR(pos + 1);
   *outObjPtr = objPtr;
   return result;
 }
@@ -94,11 +94,11 @@ typedef enum {MethodtypeNULL, MethodtypeAllIdx, MethodtypeScriptedIdx, Methodtyp
 
 static int ConvertToMethodtype(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
-  int index, result;
+  int pos, result;
   static const char *opts[] = {"all", "scripted", "builtin", "alias", "forwarder", "object", "setter", "nsfproc", NULL};
   (void)pPtr;
-  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "methodtype", 0, &index);
-  *clientData = (ClientData) INT2PTR(index + 1);
+  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "methodtype", 0, &pos);
+  *clientData = (ClientData) INT2PTR(pos + 1);
   *outObjPtr = objPtr;
   return result;
 }
@@ -107,11 +107,11 @@ typedef enum {DefinitionsourceNULL, DefinitionsourceAllIdx, DefinitionsourceAppl
 
 static int ConvertToDefinitionsource(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
-  int index, result;
+  int pos, result;
   static const char *opts[] = {"all", "application", "system", NULL};
   (void)pPtr;
-  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "definitionsource", 0, &index);
-  *clientData = (ClientData) INT2PTR(index + 1);
+  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "definitionsource", 0, &pos);
+  *clientData = (ClientData) INT2PTR(pos + 1);
   *outObjPtr = objPtr;
   return result;
 }
@@ -120,11 +120,11 @@ typedef enum {MixinscopeNULL, MixinscopeAllIdx, MixinscopeClassIdx, MixinscopeOb
 
 static int ConvertToMixinscope(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
-  int index, result;
+  int pos, result;
   static const char *opts[] = {"all", "class", "object", NULL};
   (void)pPtr;
-  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "mixinscope", 0, &index);
-  *clientData = (ClientData) INT2PTR(index + 1);
+  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "mixinscope", 0, &pos);
+  *clientData = (ClientData) INT2PTR(pos + 1);
   *outObjPtr = objPtr;
   return result;
 }
@@ -133,11 +133,11 @@ typedef enum {ConfigureoptionNULL, ConfigureoptionDebugIdx, ConfigureoptionDtrac
 const char *Nsf_Configureoption[] = {"debug", "dtrace", "filter", "softrecreate", "objectsystems", "keepcmds", "checkresults", "checkarguments", NULL};
 static int ConvertToConfigureoption(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
-  int index, result;
+  int pos, result;
   
   (void)pPtr;
-  result = Tcl_GetIndexFromObj(interp, objPtr, Nsf_Configureoption, "configureoption", 0, &index);
-  *clientData = (ClientData) INT2PTR(index + 1);
+  result = Tcl_GetIndexFromObj(interp, objPtr, Nsf_Configureoption, "configureoption", 0, &pos);
+  *clientData = (ClientData) INT2PTR(pos + 1);
   *outObjPtr = objPtr;
   return result;
 }
@@ -146,11 +146,11 @@ typedef enum {CurrentoptionNULL, CurrentoptionActivelevelIdx, CurrentoptionActiv
 
 static int ConvertToCurrentoption(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
-  int index, result;
+  int pos, result;
   static const char *opts[] = {"activelevel", "activemixin", "args", "calledclass", "calledmethod", "calledproc", "callingclass", "callinglevel", "callingmethod", "callingobject", "callingproc", "class", "filterreg", "isnextcall", "level", "methodpath", "method", "nextmethod", "object", "proc", NULL};
   (void)pPtr;
-  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "currentoption", 0, &index);
-  *clientData = (ClientData) INT2PTR(index + 1);
+  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "currentoption", 0, &pos);
+  *clientData = (ClientData) INT2PTR(pos + 1);
   *outObjPtr = objPtr;
   return result;
 }
@@ -159,11 +159,11 @@ typedef enum {FrameNULL, FrameMethodIdx, FrameObjectIdx, FrameDefaultIdx} FrameI
 
 static int ConvertToFrame(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
-  int index, result;
+  int pos, result;
   static const char *opts[] = {"method", "object", "default", NULL};
   (void)pPtr;
-  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "frame", 0, &index);
-  *clientData = (ClientData) INT2PTR(index + 1);
+  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "frame", 0, &pos);
+  *clientData = (ClientData) INT2PTR(pos + 1);
   *outObjPtr = objPtr;
   return result;
 }
@@ -172,11 +172,11 @@ typedef enum {ForwardpropertyNULL, ForwardpropertyPrefixIdx, ForwardpropertyTarg
 
 static int ConvertToForwardproperty(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
-  int index, result;
+  int pos, result;
   static const char *opts[] = {"prefix", "target", "verbose", NULL};
   (void)pPtr;
-  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "forwardProperty", 0, &index);
-  *clientData = (ClientData) INT2PTR(index + 1);
+  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "forwardProperty", 0, &pos);
+  *clientData = (ClientData) INT2PTR(pos + 1);
   *outObjPtr = objPtr;
   return result;
 }
@@ -185,11 +185,11 @@ typedef enum {ProtectionNULL, ProtectionCall_protectedIdx, ProtectionRedefine_pr
 
 static int ConvertToProtection(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
-  int index, result;
+  int pos, result;
   static const char *opts[] = {"call-protected", "redefine-protected", "none", NULL};
   (void)pPtr;
-  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "protection", 0, &index);
-  *clientData = (ClientData) INT2PTR(index + 1);
+  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "protection", 0, &pos);
+  *clientData = (ClientData) INT2PTR(pos + 1);
   *outObjPtr = objPtr;
   return result;
 }
@@ -198,11 +198,11 @@ typedef enum {AssertionsubcmdNULL, AssertionsubcmdCheckIdx, AssertionsubcmdObjec
 
 static int ConvertToAssertionsubcmd(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
-  int index, result;
+  int pos, result;
   static const char *opts[] = {"check", "object-invar", "class-invar", NULL};
   (void)pPtr;
-  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "assertionsubcmd", 0, &index);
-  *clientData = (ClientData) INT2PTR(index + 1);
+  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "assertionsubcmd", 0, &pos);
+  *clientData = (ClientData) INT2PTR(pos + 1);
   *outObjPtr = objPtr;
   return result;
 }
@@ -211,11 +211,11 @@ typedef enum {MethodpropertyNULL, MethodpropertyClass_onlyIdx, MethodpropertyCal
 
 static int ConvertToMethodproperty(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
-  int index, result;
+  int pos, result;
   static const char *opts[] = {"class-only", "call-private", "call-protected", "debug", "deprecated", "exists", "redefine-protected", "returns", NULL};
   (void)pPtr;
-  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "methodProperty", 0, &index);
-  *clientData = (ClientData) INT2PTR(index + 1);
+  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "methodProperty", 0, &pos);
+  *clientData = (ClientData) INT2PTR(pos + 1);
   *outObjPtr = objPtr;
   return result;
 }
@@ -224,11 +224,11 @@ typedef enum {ObjectpropertyNULL, ObjectpropertyInitializedIdx, ObjectpropertyCl
 
 static int ConvertToObjectproperty(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
-  int index, result;
+  int pos, result;
   static const char *opts[] = {"initialized", "class", "rootmetaclass", "rootclass", "volatile", "autonamed", "slotcontainer", "hasperobjectslots", "keepcallerself", "perobjectdispatch", NULL};
   (void)pPtr;
-  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "objectProperty", 0, &index);
-  *clientData = (ClientData) INT2PTR(index + 1);
+  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "objectProperty", 0, &pos);
+  *clientData = (ClientData) INT2PTR(pos + 1);
   *outObjPtr = objPtr;
   return result;
 }
@@ -237,11 +237,11 @@ typedef enum {ParametersubcmdNULL, ParametersubcmdDefaultIdx, ParametersubcmdLis
 
 static int ConvertToParametersubcmd(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
-  int index, result;
+  int pos, result;
   static const char *opts[] = {"default", "list", "name", "syntax", "type", NULL};
   (void)pPtr;
-  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "parametersubcmd", 0, &index);
-  *clientData = (ClientData) INT2PTR(index + 1);
+  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "parametersubcmd", 0, &pos);
+  *clientData = (ClientData) INT2PTR(pos + 1);
   *outObjPtr = objPtr;
   return result;
 }
@@ -250,11 +250,11 @@ typedef enum {RelationtypeNULL, RelationtypeObject_mixinIdx, RelationtypeClass_m
 
 static int ConvertToRelationtype(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
-  int index, result;
+  int pos, result;
   static const char *opts[] = {"object-mixin", "class-mixin", "object-filter", "class-filter", "class", "superclass", "rootclass", NULL};
   (void)pPtr;
-  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "relationtype", 0, &index);
-  *clientData = (ClientData) INT2PTR(index + 1);
+  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "relationtype", 0, &pos);
+  *clientData = (ClientData) INT2PTR(pos + 1);
   *outObjPtr = objPtr;
   return result;
 }

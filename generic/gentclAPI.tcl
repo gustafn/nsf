@@ -75,11 +75,11 @@ typedef enum {@enums@} @name@Idx_t;
 @globalOpts@
 static int ConvertTo@name@(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
-  int index, result;
+  int pos, result;
   @localOpts@
   (void)pPtr;
-  result = Tcl_GetIndexFromObj(interp, objPtr, @optsName@, "@typeName@", 0, &index);
-  *clientData = (ClientData) INT2PTR(index + 1);
+  result = Tcl_GetIndexFromObj(interp, objPtr, @optsName@, "@typeName@", 0, &pos);
+  *clientData = (ClientData) INT2PTR(pos + 1);
   *outObjPtr = objPtr;
   return result;
 }
