@@ -228,8 +228,12 @@ if test "$with_dtrace" = yes; then
    if test "`uname -s`" != "Darwin" ; then
       DTRACE_OBJ=nsfDTrace.o
    fi
+   DTRACE_HDR='$(src_generic_dir)/nsfDTrace.h'
+   DTRACE_SRC='$(src_generic_dir)/nsfDTrace.d'
 fi
 AC_SUBST([DTRACE_OBJ])
+AC_SUBST([DTRACE_HDR])
+AC_SUBST([DTRACE_SRC])
 
 #-----------------------------------------------------------------------
 # __CHANGE__

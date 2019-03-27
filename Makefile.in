@@ -82,8 +82,8 @@ mkinstalldirs= mkdir -p
 #========================================================================
 
 DTRACE_OBJ = @DTRACE_OBJ@
-DTRACE_HDR = $(src_generic_dir)/nsfDTrace.h
-DTRACE_SRC = $(src_generic_dir)/nsfDTrace.d
+DTRACE_HDR = @DTRACE_HDR@
+DTRACE_SRC = @DTRACE_SRC@
 
 #========================================================================
 # The names of the source files is defined in the configure script.
