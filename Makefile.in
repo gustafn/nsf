@@ -785,12 +785,10 @@ checkstubs:
 
 # DTrace support
 
-$(PKG_OBJECTS): $(DTRACE_HDR)
-
 $(DTRACE_HDR): $(DTRACE_SRC)
 	$(DTRACE) -h $(DTRACE_SWITCHES) -o $@ -s $(DTRACE_SRC)
 
-$(DTRACE_OBJ): $(DTRACE_SRC) $(TCL_OBJS)
+$(DTRACE_OBJ): $(DTRACE_SRC) $(TCL_OBJS) $(DTRACE_HDR)
 	$(DTRACE) -G $(DTRACE_SWITCHES) -o $@ -s $(DTRACE_SRC) $(TCL_OBJS)
 
 
