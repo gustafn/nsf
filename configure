@@ -683,6 +683,8 @@ TCL_TOP_DIR_NATIVE
 TCL_INCLUDES
 PKG_OBJECTS
 PKG_SOURCES
+DTRACE_SRC
+DTRACE_HDR
 DTRACE_OBJ
 aol_prefix
 MATH_LIBS
@@ -5884,7 +5886,11 @@ $as_echo "#define NSF_DTRACE 1" >>confdefs.h
    if test "`uname -s`" != "Darwin" ; then
       DTRACE_OBJ=nsfDTrace.o
    fi
+   DTRACE_HDR='$(src_generic_dir)/nsfDTrace.h'
+   DTRACE_SRC='$(src_generic_dir)/nsfDTrace.d'
 fi
+
+
 
 
 #-----------------------------------------------------------------------
