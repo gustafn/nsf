@@ -23017,7 +23017,7 @@ ForwardArg(
   }
 
   if (c == '%') {
-    Tcl_Obj    *listObj = NULL, **listElements;
+    Tcl_Obj    *listObj = NULL, **listElements = NULL;
     int         nrArgs = objc-1, nrPosArgs = objc - firstPosArg, nrElements = 0;
     char        c1, *firstActualArgument = nrArgs > 0 ? ObjStr(objv[1]) : NULL;
     const char *c1Ptr;
@@ -23071,6 +23071,7 @@ ForwardArg(
       /*fprintf(stderr, "nrElements=%d, nra=%d firstPos %d objc %d\n",
         nrElements, nrArgs, firstPosArg, objc);*/
 
+      assert(listElements != NULL);
       if (nrElements > nrPosArgs) {
         /*
          * Insert default subcommand depending on number of arguments.
@@ -31863,7 +31864,7 @@ static int
 NsfOCgetMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj) {
   int              result;
   NsfParsedParam   parsedParam;
-  const Nsf_Param *paramPtr;
+  const Nsf_Param *paramPtr = NULL;
   CallFrame        frame, *framePtr = &frame, *uplevelVarFramePtr;
 
   nonnull_assert(interp != NULL);
@@ -32916,7 +32917,7 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *nameObj, int objc
   }
  create_method_exit:
 
-  if (autoNameCreate && result == TCL_OK) {
+  if (autoNameCreate && result == TCL_OK && newObject != NULL) {
     newObject->flags |= NSF_IS_AUTONAMED;
   }
 
