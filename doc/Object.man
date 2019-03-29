@@ -750,25 +750,26 @@ of [arg arg] of the calling method invocation.
 [call [arg obj] [method uplevel] [opt [arg level]] [arg arg1] [opt "[arg arg2] ..."]]
 
 Evaluate a script or a command at a different stack-frame
-level. Behaves like Tcl's [cmd uplevel], with the following
-important exceptions.
+level. The command behaves in essence like Tcl's [cmd uplevel], but can
+be used to achieve identical results when filters or mixins are
+registered.
 
 [list_begin itemized]
 
-[item] If the [arg level] specifier is omitted, [method "uplevel"]
-will skip any auxiliary frames added to the stack by active [term "filter"]s and [term "mixin"]s. The
-resulting stack-frame level corresponds to the [term "callinglevel"]
-as indicated by [cmd nx::current].
-
-[item] If the [arg level] specifier is omitted, [method uplevel] gives
-preference to the innermost enclosing procedure call, i.e., a frame
-corresponding to a proc, method, or apply call. Any frames inbetween,
-incl. those of filters and mixins (see above), will be skipped.
+[item] If the [arg level] specifier is omitted, [method uplevel]
+will skip any auxiliary frames added to the stack by active
+[term "filter"]s and [term mixin]s. The resulting stack-frame level
+corresponds to the [term callinglevel] as indicated by [cmd
+nx::current]. In this case method [method uplevel] can be used to
+evaluate the command in the next enclosing procedure call, i.e., a
+frame corresponding to a proc, method, or apply call, while skipping
+frames of filters and mixins.
 
 [item] If the [arg level] specifier is provided (relative, or
-absolute), [method "uplevel"] will move execution into the requested
-stack-frame level (incl. those introduced by active active [term "filter"]s and
-[term "mixin"]s), if valid.
+absolute), [method "uplevel"] will execute the command in the
+stack-frame level. In such cases, method [method uplevel]
+behaves like Tcl's [method uplevel] command.
+
 
 [list_end]
 
@@ -800,26 +801,26 @@ mixins and filters being (potentially) registered on [cmd "obj"].
 
 [call [arg obj] [method upvar] [opt [arg level]] [arg otherVar1] [arg localVar1] [opt "[arg otherVar2] [arg localVar2] ..."]]
 
-Links one or more local variables to variables defined for other
-scopes (namespaces, objects, call frames). Behaves like Tcl's [cmd "upvar"],
-with the following important exceptions.
+Links one or more local variables to variables defined in other
+scopes (namespaces, objects, call frames).
+The command behaves in essence like Tcl's [cmd upvar], but can
+be used to achieve identical results when filters or mixins are
+registered.
 
 [list_begin itemized]
 
-[item] If the [arg level] specifier is omitted, [method "upvar"]
+[item] If the [arg level] specifier is omitted, [method upvar]
 will skip any auxiliary frames added to the stack by active [term "filter"]s and [term "mixin"]s. The
 resulting stack-frame level corresponds to the [term "callinglevel"]
-as indicated by [cmd nx::current].
-
-[item] If the [arg level] specifier is omitted, [method upvar] gives
-preference to the innermost enclosing procedure call, i.e., a frame
-corresponding to a proc, method, or apply call. Any frames inbetween,
-incl. those of filters and mixins (see above), will be skipped.
+as indicated by [cmd nx::current]. Therefore, method [method upvar] gives
+access to the next enclosing procedure call, i.e., a frame
+corresponding to a proc, method, or apply call, while skipping
+frames of filters and mixins.
 
 [item] If the [arg level] specifier is provided (relative, or
 absolute), [method "upvar"] will link into the requested
-stack-frame level (incl. those introduced by active active [term "filter"]s and
-[term "mixin"]s), if valid.
+stack-frame level. In theses cases, method [method upvar]
+behaves like Tcl's  [method upvar] command.
 
 [list_end]
 
