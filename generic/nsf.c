@@ -23071,11 +23071,11 @@ ForwardArg(
       /*fprintf(stderr, "nrElements=%d, nra=%d firstPos %d objc %d\n",
         nrElements, nrArgs, firstPosArg, objc);*/
 
-      assert(listElements != NULL);
       if (nrElements > nrPosArgs) {
         /*
          * Insert default subcommand depending on number of arguments.
          */
+        assert(listElements != NULL);
         /*fprintf(stderr, "inserting listElements[%d] '%s'\n", nrPosArgs,
           ObjStr(listElements[nrPosArgs]));*/
         *out = listElements[nrPosArgs];
