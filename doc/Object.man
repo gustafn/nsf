@@ -819,7 +819,7 @@ frames of filters and mixins.
 
 [item] If the [arg level] specifier is provided (relative, or
 absolute), [method "upvar"] will link into the requested
-stack-frame level. In theses cases, method [method upvar]
+stack-frame level. In these cases, method [method upvar]
 behaves like Tcl's  [method upvar] command.
 
 [list_end]

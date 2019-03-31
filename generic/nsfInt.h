@@ -1366,7 +1366,7 @@ char *strnstr(const char *buffer, const char *needle, size_t buffer_len) pure;
    falls back to the prefixed version, if available, and provides a
    more general fallback to a simple assignment; this is primarily for
    MSVC; admittedly, this simplification is not generally portable to
-   platform/compiler combos other then x86, but the best I can think of right
+   platform/compiler combos other than x86, but the best I can think of right
    now. One might constrain the assignment-fallback to a platform and
    leave va_copy undefined in uncaught platform cases (?).
 */

@@ -2276,7 +2276,7 @@ namespace eval ::nx {
   ::nx::VariableSlot public method value=add {obj prop value {pos 0}} {
     if {![:isMultivalued]} {
       #puts stderr "... vars [[self] info vars] // [[self] eval {set :multiplicity}]"
-      return -code error "property $prop of [set :domain] ist not multivalued"
+      return -code error "property $prop of [set :domain] is not multivalued"
     }
     if {[::nsf::var::exists $obj $prop]} {
       ::nsf::var::set $obj $prop [linsert [::nsf::var::set $obj $prop] $pos $value]
