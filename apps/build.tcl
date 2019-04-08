@@ -53,8 +53,8 @@ proc ::build {HOMEDIR BUILDDIR TCLTAG {TOOLCHAIN autoconf-tea}} {
   
   switch -exact -- $TOOLCHAIN {
     autoconf-tea {
-      exec bash -lc "./configure --libdir=$tclDir --enable-64bit"
-      exec bash -lc "make"
+      exec -ignorestderr bash -lc "./configure --libdir=$tclDir --enable-64bit"
+      exec -ignorestderr bash -lc "make"
       
       cd $BUILDDIR
       puts BUILDDIR=$BUILDDIR,PWD=[pwd],INSTALLDIR=$INSTALLDIR
