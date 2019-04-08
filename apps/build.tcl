@@ -50,13 +50,14 @@ proc ::build {HOMEDIR BUILDDIR TCLTAG {TOOLCHAIN autoconf-tea}} {
   # exec >@stdout 2>@stderr bash -lc "echo \$PATH"
   # exec >@stdout 2>@stderr bash -lc "cd && pwd"
   # exec >@stdout 2>@stderr bash -lc "cd && ls -la"
-
+  
   switch -exact -- $TOOLCHAIN {
     autoconf-tea {
       exec >@stdout 2>@stderr bash -lc "./configure --libdir=$tclDir --enable-64bit"
       exec >@stdout 2>@stderr bash -lc "make"
       
       cd $BUILDDIR
+      puts BUILDDIR=$BUILDDIR,PWD=[pwd],INSTALLDIR=$INSTALLDIR
       exec >@stdout 2>@stderr bash -lc "./configure --prefix=$INSTALLDIR --exec-prefix=$INSTALLDIR --with-tcl=$tclDir && make test && make install"
       # exec >@stdout 2>@stderr bash -lc "make test"
       # exec >@stdout 2>@stderr bash -lc "make install"
