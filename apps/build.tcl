@@ -58,14 +58,20 @@ proc ::build {HOMEDIR BUILDDIR TCLTAG {TOOLCHAIN autoconf-tea}} {
       
       cd $BUILDDIR
       # puts BUILDDIR=$BUILDDIR,PWD=[pwd],INSTALLDIR=$INSTALLDIR
-      exec >@stdout 2>@stderr bash -lc "./configure --with-tcl=$tclDir"
-      # exec >@stdout 2>@stderr bash -lc "./configure --prefix=$INSTALLDIR --exec-prefix=$INSTALLDIR --with-tcl=$tclDir"
+      # exec >@stdout 2>@stderr bash -lc "./configure --with-tcl=$tclDir"
+      exec >@stdout 2>@stderr bash -lc "./configure --prefix=$INSTALLDIR --exec-prefix=$INSTALLDIR --with-tcl=$tclDir"
       try {
         exec >@stdout 2>@stderr bash -lc "make test"
       } trap CHILDSTATUS {- opts} {
-        puts ERRORCODE=[dict get $opts -errorcode]
+        puts TEST=$opts
       }
-      # exec >@stdout 2>@stderr bash -lc "make install"
+
+      try {
+        exec >@stdout 2>@stderr bash -lc "make install"
+      } trap CHILDSTATUS {- opts} {
+        puts INSTALL=$opts
+      }
+      
     }
     nmake-tea {
       exec >@stdout 2>@stderr nmake -nologo -f makefile.vc TCLDIR=$tclRoot release
