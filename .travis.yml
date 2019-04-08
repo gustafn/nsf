@@ -40,3 +40,8 @@ install:
   $URL && chmod +x ${KITS}/tclkit.$TRAVIS_OS_NAME; fi
 script:
 - "$KITS/tclkit.$TRAVIS_OS_NAME apps/build.tcl $HOME $TRAVIS_BUILD_DIR $TCLTAG"
+
+after_success:
+- TARBALL="nsf-${TRAVIS_OS_NAME}-${TRAVIS_BRANCH}-${TRAVIS_COMMIT}-$(date "+%Y%m%d").${TRAVIS_BUILD_NUMBER}.tgz"
+- tar -czf $TARBALL $HOME/build
+- scp -i ./deploy.key $TARBALL sobernig@alice.wu.ac.at:/home/sobernig/builds
