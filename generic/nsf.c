@@ -6468,7 +6468,7 @@ NSDeleteChildren(Tcl_Interp *interp, const Tcl_Namespace *nsPtr) {
  *   to a mix of navigating the variable table and calling high-level unset
  *   operations (UnsetInstVar).
  *
- *   With the fix to ticket http://core.tcl.tk/tcl/info/4dbdd9af144dbdd9af14,
+ *   With the fix to ticket http://core.tcl-lang.org/tcl/info/4dbdd9af144dbdd9af14,
  *   Tcl itself provides for two deletion passes for namespace variables (see
  *   TclDeleteNamespaceVars).
  *

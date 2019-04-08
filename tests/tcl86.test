@@ -260,7 +260,7 @@ set tcl87 [package vsatisfies [package req Tcl] 8.7]
 
 nx::test case bug-3418547 {
   #
-  # See http://core.tcl.tk/tcl/tktview?name=3418547fff
+  # See http://core.tcl-lang.org/tcl/tktview?name=3418547fff
   # 
 
   ? {info commands "::@"} ""

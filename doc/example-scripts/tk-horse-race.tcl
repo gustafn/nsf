@@ -1,5 +1,5 @@
 # A small Horse Race game, originally developed by Richard Suchenwirth
-# in plain Tcl (see http://wiki.tcl.tk/3467). The game was rewritten
+# in plain Tcl (see http://wiki.tcl-lang.org/3467). The game was rewritten
 # as a design study in NX by Gustaf Neumann in May 2011.
 #
 # image::tk-horse-race.png[]

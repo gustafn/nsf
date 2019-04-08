@@ -5,7 +5,7 @@
 # in a human-readable format.  For detailed description of this
 # example, see http://rosettacode.org/wiki/Sudoku_Solver
 #
-# This implementation is based on http://wiki.tcl.tk/19934 
+# This implementation is based on http://wiki.tcl-lang.org/19934 
 
 package require nx
 

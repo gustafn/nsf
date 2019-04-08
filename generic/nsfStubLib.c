@@ -40,7 +40,7 @@
  * "See the file "tcl-license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES."
  *
- * See also http://www.tcl.tk/software/tcltk/license.html.
+ * See also http://www.tcl-lang.org/software/tcltk/license.html.
  *
  */
 

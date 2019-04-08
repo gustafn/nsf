@@ -2203,7 +2203,7 @@ nx::test case bignums {
   if {![string is integer [expr {2 ** 32}]]} {
     #
     # pre TIP 514 (< 8.7a2)
-    # see https://core.tcl.tk/tips/doc/trunk/tip/514.md
+    # see https://core.tcl-lang.org/tips/doc/trunk/tip/514.md
     #
 
     #
@@ -2279,7 +2279,7 @@ nx::test case bignums {
 
     #
     # post TIP 514 (>= 8.7a2)
-    # see https://core.tcl.tk/tips/doc/trunk/tip/514.md
+    # see https://core.tcl-lang.org/tips/doc/trunk/tip/514.md
     #
     # [string is integer] is now equivalent to [string is entier], and
     # does not perform any representational range checks anymore.

@@ -13,7 +13,7 @@ proc ::build {HOMEDIR BUILDDIR TCLTAG {TOOLCHAIN autoconf-tea}} {
   set fh [open $tarball wb+]
   try {
 
-    ::http::geturl http://core.tcl.tk/tcl/tarball/$tarball?uuid=$TCLTAG \
+    ::http::geturl http://core.tcl-lang.org/tcl/tarball/$tarball?uuid=$TCLTAG \
         -binary true \
         -channel $fh
 

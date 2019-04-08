@@ -1,6 +1,6 @@
 # A small Ludo/Mensch ärgere Dich nicht/Pachisie game, originally
 # developed by Richard Suchenwirth in plain Tcl (see
-# http://wiki.tcl.tk/956). The game was rewritten as a design study in
+# http://wiki.tcl-lang.org/956). The game was rewritten as a design study in
 # NX by Gustaf Neumann in July 2013. 
 #
 # Major changes:

@@ -64,7 +64,7 @@ static Tcl_Config const cfg[] = {
  * NsfInitPkgConfig --
  *
  *    Registers NSF's build configuration according to TIP 59:
- *    https://core.tcl.tk/tips/doc/trunk/tip/59.md. This way, the build
+ *    https://core.tcl-lang.org/tips/doc/trunk/tip/59.md. This way, the build
  *    configuration is preserved in a non-destructible manner (from the script
  *    level, at least) and can be queried via a common interface:
  *    
