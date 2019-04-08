@@ -7,7 +7,7 @@ package require platform
 
 proc ::build {HOMEDIR BUILDDIR TCLTAG {TOOLCHAIN autoconf-tea}} {
   set tarball "tcl.tar.gz"
-  set INSTALLDIR [file join $HOMEDIR build]
+  set INSTALLDIR [file join $HOMEDIR install]
 
   cd $HOMEDIR
   
@@ -58,9 +58,9 @@ proc ::build {HOMEDIR BUILDDIR TCLTAG {TOOLCHAIN autoconf-tea}} {
       
       cd $BUILDDIR
       puts BUILDDIR=$BUILDDIR,PWD=[pwd],INSTALLDIR=$INSTALLDIR
-      exec >@stdout 2>@stderr bash -lc "./configure --prefix=$INSTALLDIR --exec-prefix=$INSTALLDIR --with-tcl=$tclDir && make test && make install"
-      # exec >@stdout 2>@stderr bash -lc "make test"
-      # exec >@stdout 2>@stderr bash -lc "make install"
+      exec >@stdout 2>@stderr bash -lc "./configure --prefix=$INSTALLDIR --exec-prefix=$INSTALLDIR --with-tcl=$tclDir"
+      exec >@stdout 2>@stderr bash -lc "make test"
+      exec >@stdout 2>@stderr bash -lc "make install"
     }
     nmake-tea {
       exec >@stdout 2>@stderr nmake -nologo -f makefile.vc TCLDIR=$tclRoot release

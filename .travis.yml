@@ -32,7 +32,6 @@ before_install:
   found, continuing" ; fi
 install:
 - mkdir -p $KITS
-- mkdir -p ${HOME}/build
 - if [ $TRAVIS_OS_NAME = linux ]; then URL=http://kitcreator.rkeene.org/kits/840dec4286102c869d85bae3b0dcd32565e7bf12/tclkit;
   else URL=http://kitcreator.rkeene.org/kits/6967b89da1f6af7b12cdc82819f3bdb13a661242/tclkit;
   fi
