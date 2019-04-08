@@ -53,14 +53,15 @@ proc ::build {HOMEDIR BUILDDIR TCLTAG {TOOLCHAIN autoconf-tea}} {
   
   switch -exact -- $TOOLCHAIN {
     autoconf-tea {
-      exec -ignorestderr bash -lc "./configure --libdir=$tclDir --enable-64bit"
-      exec -ignorestderr bash -lc "make"
+      exec >@stdout 2>@stderr bash -lc "./configure --libdir=$tclDir --enable-64bit"
+      exec >@stdout 2>@stderr bash -lc "make"
       
       cd $BUILDDIR
-      puts BUILDDIR=$BUILDDIR,PWD=[pwd],INSTALLDIR=$INSTALLDIR
-      exec >@stdout 2>@stderr bash -lc "./configure --prefix=$INSTALLDIR --exec-prefix=$INSTALLDIR --with-tcl=$tclDir"
+      # puts BUILDDIR=$BUILDDIR,PWD=[pwd],INSTALLDIR=$INSTALLDIR
+      exec >@stdout 2>@stderr bash -lc "./configure --with-tcl=$tclDir"
+      # exec >@stdout 2>@stderr bash -lc "./configure --prefix=$INSTALLDIR --exec-prefix=$INSTALLDIR --with-tcl=$tclDir"
       exec >@stdout 2>@stderr bash -lc "make test"
-      exec >@stdout 2>@stderr bash -lc "make install"
+      # exec >@stdout 2>@stderr bash -lc "make install"
     }
     nmake-tea {
       exec >@stdout 2>@stderr nmake -nologo -f makefile.vc TCLDIR=$tclRoot release
