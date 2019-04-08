@@ -1,41 +1,42 @@
 language: c
 sudo: false
 os:
-   - osx
-   - linux
+- osx
+- linux
 compiler:
-   - gcc
-   - clang
+- gcc
+- clang
 env:
-   matrix:
-   - TCLTAG=core-8-6-branch
-   - TCLTAG=core-8-6-9
-   - TCLTAG=core-8-5-branch
-   - TCLTAG=core-8-5-19
-   - TCLTAG=core-8-7-a1	
-   - TCLTAG=core-8-branch
-   global:
-   - KITS=$HOME/kits
-
+  matrix:
+  - TCLTAG=core-8-6-branch
+  - TCLTAG=core-8-6-9
+  - TCLTAG=core-8-5-branch
+  - TCLTAG=core-8-5-19
+  - TCLTAG=core-8-7-a1
+  - TCLTAG=core-8-branch
+  global:
+  - KITS=$HOME/kits
 matrix:
   allow_failures:
-    - env: TCLTAG=core-8-6-branch
-    - env: TCLTAG=core-8-5-branch
-    - env: TCLTAG=core-8-branch
+  - env: TCLTAG=core-8-6-branch
+  - env: TCLTAG=core-8-5-branch
+  - env: TCLTAG=core-8-branch
   fast_finish: true
-
 cache:
   directories:
-  - $KITS
-
+  - "$KITS"
 before_install:
-- if echo "$TRAVIS_COMMIT_MESSAGE" | grep -F -q "[skip travis]" ; then echo "[skip travis] has been found, exiting" && exit 0 ; else echo "[skip travis] has not been found, continuing" ; fi
-
+- openssl aes-256-cbc -K $encrypted_8d1065ce6623_key -iv $encrypted_8d1065ce6623_iv
+  -in deploy_key.enc -out ./deploy_key -d
+- if echo "$TRAVIS_COMMIT_MESSAGE" | grep -F -q "[skip travis]" ; then echo "[skip
+  travis] has been found, exiting" && exit 0 ; else echo "[skip travis] has not been
+  found, continuing" ; fi
 install:
-  - mkdir -p $KITS
-  - if [ $TRAVIS_OS_NAME = linux ]; then
-       URL=http://kitcreator.rkeene.org/kits/840dec4286102c869d85bae3b0dcd32565e7bf12/tclkit; else
-       URL=http://kitcreator.rkeene.org/kits/6967b89da1f6af7b12cdc82819f3bdb13a661242/tclkit; fi
-  - if [ ! -f ${KITS}/tclkit.$TRAVIS_OS_NAME ]; then wget -O ${KITS}/tclkit.$TRAVIS_OS_NAME $URL && chmod +x ${KITS}/tclkit.$TRAVIS_OS_NAME; fi
+- mkdir -p $KITS
+- if [ $TRAVIS_OS_NAME = linux ]; then URL=http://kitcreator.rkeene.org/kits/840dec4286102c869d85bae3b0dcd32565e7bf12/tclkit;
+  else URL=http://kitcreator.rkeene.org/kits/6967b89da1f6af7b12cdc82819f3bdb13a661242/tclkit;
+  fi
+- if [ ! -f ${KITS}/tclkit.$TRAVIS_OS_NAME ]; then wget -O ${KITS}/tclkit.$TRAVIS_OS_NAME
+  $URL && chmod +x ${KITS}/tclkit.$TRAVIS_OS_NAME; fi
 script:
-  - $KITS/tclkit.$TRAVIS_OS_NAME apps/build.tcl $HOME $TRAVIS_BUILD_DIR $TCLTAG
+- "$KITS/tclkit.$TRAVIS_OS_NAME apps/build.tcl $HOME $TRAVIS_BUILD_DIR $TCLTAG"
