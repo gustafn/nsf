@@ -44,5 +44,5 @@ script:
 - $KITS/tclkit.$TRAVIS_OS_NAME apps/build.tcl $HOME $TRAVIS_BUILD_DIR $TCLTAG
 
 after_success:
-- TARBALL="nsf-${TRAVIS_OS_NAME}-${TRAVIS_BRANCH}-${TRAVIS_COMMIT}-$(date "+%Y%m%d").${TRAVIS_BUILD_NUMBER}.tgz"
+- TARBALL="nsf_${TRAVIS_BRANCH}_${TCLTAG}_${TRAVIS_OS_NAME}_${CC}_$(date "+%Y%m%d")_${TRAVIS_BUILD_NUMBER}.tgz"
 - if [ -d  $HOME/install ]; then tar -czf $TARBALL $HOME/install && scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ./deploy_key $TARBALL sobernig@alice.wu.ac.at:/home/sobernig/builds; fi
