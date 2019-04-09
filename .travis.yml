@@ -1,11 +1,11 @@
 language: c
 sudo: false
-os:
-- osx
-- linux
-compiler:
-- gcc
-- clang
+# os:
+# - osx
+# - linux
+# compiler:
+# - gcc
+# - clang
 env:
   matrix:
   - TCLTAG=core-8-6-branch
@@ -17,6 +17,25 @@ env:
   global:
   - KITS=$HOME/kits
 matrix:
+  matrix:
+    include:
+    - os: linux
+      dist: xenial
+      compiler: clang-7.0
+    - os: linux
+      dist: xenial
+      compiler: gcc-7
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-7
+    - os: osx
+      osx_image: xcode10.2
+      compiler: clang
+    - os: osx
+      compiler: gcc-4.9
   allow_failures:
   - env: TCLTAG=core-8-6-branch
   - env: TCLTAG=core-8-5-branch
