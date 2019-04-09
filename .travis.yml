@@ -43,4 +43,4 @@ script:
 
 after_success:
 - TARBALL="nsf-${TRAVIS_OS_NAME}-${TRAVIS_BRANCH}-${TRAVIS_COMMIT}-$(date "+%Y%m%d").${TRAVIS_BUILD_NUMBER}.tgz"
-- if [ -d  $HOME/install ]; then tar -czf $TARBALL $HOME/install && scp -i ./deploy_key $TARBALL sobernig@alice.wu.ac.at:/home/sobernig/builds; fi
+- if [ -d  $HOME/install ]; then tar -czf $TARBALL $HOME/install && scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ./deploy_key $TARBALL sobernig@alice.wu.ac.at:/home/sobernig/builds; fi
