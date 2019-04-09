@@ -1,6 +1,6 @@
 
 # == Rosetta Example: Classes
-# For details see http://rosettacode.org/wiki/Classes
+# For details see https://rosettacode.org/wiki/Classes
 #
 package req nx
 package req nx::test

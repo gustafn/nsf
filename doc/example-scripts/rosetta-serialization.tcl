@@ -1,6 +1,6 @@
 
 # == Rosetta Example: Object serialization
-# For details see http://rosettacode.org/wiki/Object_serialization
+# For details see https://rosettacode.org/wiki/Object_serialization
 #
 package req nx
 package req nx::test

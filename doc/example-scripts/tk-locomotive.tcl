@@ -1,6 +1,6 @@
 #
 # Example by <Richard Suchenwirth> 
-# http://wiki.tcl-lang.org/1329
+# https://wiki.tcl-lang.org/1329
 #
 # - translated from Tcl to XOTcl by gustaf neumann in 2001
 # - translated from XOTcl to NX by gustaf neumann in 2010

@@ -1,6 +1,6 @@
 #
 # == Rosetta Example: Singleton 
-# For details see http://rosettacode.org/wiki/Singleton
+# For details see https://rosettacode.org/wiki/Singleton
 #
 # === A Singleton Class
 package req nx

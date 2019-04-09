@@ -1,6 +1,6 @@
 #
 # This example is a straight translation of the OTcl Tutorial
-# http://www.isi.edu/nsnam/otcl/doc/tutorial.html to NX. It serves as
+# https://www.isi.edu/nsnam/otcl/doc/tutorial.html to NX. It serves as
 # a very short intro to the basic elements of scripting with NX and
 # provides a comparison study to OTcl.
 #

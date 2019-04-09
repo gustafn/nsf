@@ -18,7 +18,7 @@
  *     A-1090, Augasse 2-6
  *     Vienna, Austria
  *
- * This work is licensed under the MIT License http://www.opensource.org/licenses/MIT
+ * This work is licensed under the MIT License https://www.opensource.org/licenses/MIT
  *
  * Copyright:
  *

@@ -8,7 +8,7 @@
 # 2006)
 # 
 # see
-# http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-367.pdf
+# https://www.ecma-international.org/publications/files/ECMA-ST/ECMA-367.pdf
 #
 
 package require nx::test

@@ -1,5 +1,5 @@
 # A small Spreadsheet implementation, originally developed by Richard
-# Suchenwirth in plain Tcl (see http://wiki.tcl-lang.org/1287). The
+# Suchenwirth in plain Tcl (see https://wiki.tcl-lang.org/1287). The
 # spreadsheet was rewritten in an object oriented manner as a design
 # study in NX by Gustaf Neumann in May 2011.
 #

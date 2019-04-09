@@ -3,7 +3,7 @@
 #
 # Define a class without instances and without implemented methods.
 # For detailed description of this example 
-# see http://rosettacode.org/wiki/Abstract_type
+# see https://rosettacode.org/wiki/Abstract_type
 #
 package req nx
 package req nx::test

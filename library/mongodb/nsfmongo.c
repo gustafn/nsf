@@ -1264,7 +1264,7 @@ NsfMongoCursorAggregate(Tcl_Interp *interp,
 
   /*
    *  The last field of mongo_find is options, semantics are described here
-   *  http://www.mongodb.org/display/DOCS/Mongo+Wire+Protocol#MongoWireProtocol-OPQUERY
+   *  https://www.mongodb.org/display/DOCS/Mongo+Wire+Protocol#MongoWireProtocol-OPQUERY
    */
   if (withTailable != 0) {
     queryFlags |= MONGOC_QUERY_TAILABLE_CURSOR;

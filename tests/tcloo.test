@@ -251,7 +251,7 @@ nx::test case unexport {
   ? {[testClass2 new] foo} ok
 
   #
-  # http://rosettacode.org/wiki/Abstract_type
+  # https://rosettacode.org/wiki/Abstract_type
   #
   nx::Class create AbstractQueue {
     :method enqueue item {

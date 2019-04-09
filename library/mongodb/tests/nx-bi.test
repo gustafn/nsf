@@ -6,7 +6,7 @@
 #      "Business Insider" Data Model 
 #
 # (see e.g.
-# http://www.slideshare.net/mongodb/nosql-the-shift-to-a-nonrelational-world).
+# https://www.slideshare.net/mongodb/nosql-the-shift-to-a-nonrelational-world).
 #
 # { title: 'Too Big to Fail', 
 #   author: 'John S.',

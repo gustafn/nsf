@@ -81,7 +81,7 @@ nx::test case boat {
   #
   # Boat example DHHM 94; 
   # R. Ducournau, M. Habib, M. Huchard, and M.L. Mugnier. Proposal for a Monotonic Multiple Inheritance Linearization.
-  # see: http://www2.lirmm.fr/~ducour/Publis/DHHM-oopsla94.pdf
+  # see: https://www2.lirmm.fr/~ducour/Publis/DHHM-oopsla94.pdf
   #
 
   nx::Class create boat ;# 8
