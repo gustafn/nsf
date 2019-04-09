@@ -17,8 +17,7 @@ env:
   global:
   - KITS=$HOME/kits
 matrix:
-  matrix:
-    include:
+  include:
     - os: linux
       dist: xenial
       compiler: clang-7.0
