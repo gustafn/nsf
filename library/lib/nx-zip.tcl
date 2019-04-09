@@ -2,10 +2,10 @@
 # Zip file generator - Create a Zip-file from a list of input file names
 #
 # This implementation is based on the zip file builder of Artur
-# Trzewik (http://wiki.tcl-lang.org/15158), but was simplified, refactored,
+# Trzewik (https://wiki.tcl-lang.org/15158), but was simplified, refactored,
 # commented and extended, based on Trf and translated to NX; for
 # details about the format, see
-# http://www.pkware.com/documents/casestudies/APPNOTE.TXT
+# https://www.pkware.com/documents/casestudies/APPNOTE.TXT
 #
 # by Gustaf Neumann (June 2011)
 #

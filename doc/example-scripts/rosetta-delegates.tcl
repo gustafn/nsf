@@ -1,6 +1,6 @@
 #
 # == Rosetta Example: Delegates
-# For details see http://rosettacode.org/wiki/Delegates
+# For details see https://rosettacode.org/wiki/Delegates
 #
 package req nx
 package req nx::test

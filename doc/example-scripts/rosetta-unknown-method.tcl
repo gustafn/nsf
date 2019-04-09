@@ -1,6 +1,6 @@
 #
 # == Rosetta Example: Respond to an unknown method call 
-# For details see http://rosettacode.org/wiki/Respond_to_an_unknown_method_call
+# For details see https://rosettacode.org/wiki/Respond_to_an_unknown_method_call
 #
 package req nx
 package req nx::test

@@ -17,7 +17,7 @@
  *     A-1020, Welthandelsplatz 1
  *     Vienna, Austria
  *
- * This work is licensed under the MIT License http://www.opensource.org/licenses/MIT
+ * This work is licensed under the MIT License https://www.opensource.org/licenses/MIT
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),

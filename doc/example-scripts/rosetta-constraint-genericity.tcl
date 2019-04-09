@@ -1,6 +1,6 @@
 #
 # == Rosetta Example: Constrained genericity 
-# For details see http://rosettacode.org/wiki/Constrained_genericity
+# For details see https://rosettacode.org/wiki/Constrained_genericity
 #
 package req nx
 package req nx::test

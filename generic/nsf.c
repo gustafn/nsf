@@ -3,7 +3,7 @@
  *
  *      Basic Machinery of the Next Scripting Framework, a Tcl-based framework
  *      for supporting language-oriented programming.  For details, see
- *      http://next-scripting.org/.
+ *      https://next-scripting.org/.
  *
  * Copyright (C) 1999-2019 Gustaf Neumann (a) (b)
  * Copyright (C) 1999-2007 Uwe Zdun (a) (b)
@@ -22,7 +22,7 @@
  *     Vienna, Austria
  *
  * This work is licensed under the MIT License
- * http://www.opensource.org/licenses/MIT
+ * https://www.opensource.org/licenses/MIT
  *
  * Copyright:
  *
@@ -6468,7 +6468,7 @@ NSDeleteChildren(Tcl_Interp *interp, const Tcl_Namespace *nsPtr) {
  *   to a mix of navigating the variable table and calling high-level unset
  *   operations (UnsetInstVar).
  *
- *   With the fix to ticket http://core.tcl-lang.org/tcl/info/4dbdd9af144dbdd9af14,
+ *   With the fix to ticket https://core.tcl-lang.org/tcl/info/4dbdd9af144dbdd9af14,
  *   Tcl itself provides for two deletion passes for namespace variables (see
  *   TclDeleteNamespaceVars).
  *

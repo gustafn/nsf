@@ -19,7 +19,7 @@
  *     Vienna, Austria
  *
  * This work is licensed under the MIT License
- * http://www.opensource.org/licenses/MIT
+ * https://www.opensource.org/licenses/MIT
  *
  * Copyright:
  *
@@ -126,7 +126,7 @@ typedef int bool;
  *
  * Note: It is sufficient to test for __MINGW32__ to trap all MinGW
  * tool chains, including 64bit versions. See
- * http://sourceforge.net/p/predef/wiki/Compilers/#mingw-and-mingw-w64
+ * https://sourceforge.net/p/predef/wiki/Compilers/#mingw-and-mingw-w64
  */
 
 #if defined(__MINGW32__) && !defined(__USE_MINGW_ANSI_STDIO)

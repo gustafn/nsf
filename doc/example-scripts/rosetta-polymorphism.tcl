@@ -1,6 +1,6 @@
 
 # == Rosetta Example: Polymorphism
-# For details see http://rosettacode.org/wiki/Polymorphism
+# For details see https://rosettacode.org/wiki/Polymorphism
 #
 package req nx
 package req nx::test

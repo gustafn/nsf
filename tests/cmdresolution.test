@@ -8,7 +8,7 @@ package require nx::test
 
 #
 # Tests leading to bug-report concerning shared cmd literals in the
-# global literal pool: http://core.tcl-lang.org/tcl/tktview?name=d4e7780ca1
+# global literal pool: https://core.tcl-lang.org/tcl/tktview?name=d4e7780ca1
 #
 ::nx::test case cmd-resolver-1 {
 

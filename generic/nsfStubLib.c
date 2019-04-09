@@ -13,7 +13,7 @@
  * A-1020, Welthandelsplatz 1
  * Vienna, Austria
  *
- * This work is licensed under the MIT License http://www.opensource.org/licenses/MIT
+ * This work is licensed under the MIT License https://www.opensource.org/licenses/MIT
  *
  * Copyright:
  *
@@ -40,7 +40,7 @@
  * "See the file "tcl-license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES."
  *
- * See also http://www.tcl-lang.org/software/tcltk/license.html.
+ * See also https://www.tcl-lang.org/software/tcltk/license.html.
  *
  */
 

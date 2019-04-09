@@ -3,9 +3,9 @@
 #
 # Solve a partially filled-in 9x9 Sudoku grid and display the result
 # in a human-readable format.  For detailed description of this
-# example, see http://rosettacode.org/wiki/Sudoku_Solver
+# example, see https://rosettacode.org/wiki/Sudoku_Solver
 #
-# This implementation is based on http://wiki.tcl-lang.org/19934 
+# This implementation is based on https://wiki.tcl-lang.org/19934 
 
 package require nx
 
