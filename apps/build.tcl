@@ -63,15 +63,16 @@ proc ::build {HOMEDIR BUILDDIR TCLTAG {TOOLCHAIN autoconf-tea}} {
       try {
         exec >@stdout 2>@stderr bash -lc "make test"
       } trap CHILDSTATUS {- opts} {
-        puts TEST=$opts
+        lassign [dict get $opts -errorcode] -> pid code
+        # when make encountered a build error, we expect to see an
+        # error code of 2. Any other, non-make error code will be
+        # ignored for the time being; assuming the test suite
+        # completed.
+        if {$code == 2} {exit 1}
+        puts stderr "WARNING: make failed with unexpected error code: $opts"
       }
 
-      try {
-        exec >@stdout 2>@stderr bash -lc "make install"
-      } trap CHILDSTATUS {- opts} {
-        puts INSTALL=$opts
-      }
-      
+      exec >@stdout 2>@stderr bash -lc "make install"
     }
     nmake-tea {
       exec >@stdout 2>@stderr nmake -nologo -f makefile.vc TCLDIR=$tclRoot release
