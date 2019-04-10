@@ -109,7 +109,7 @@ echo "Configuring NSF Version $PACKAGE_VERSION"
 AC_CHECK_PROG(git_installed,git,"yes", "no")
 
 if test "$git_installed" = "yes" -a -d ".git" ; then
-   nsf_commit=`git describe --dirty`
+   nsf_commit=`git describe --always --dirty`
 elif test -f "COMMIT" ; then
    nsf_commit=`cat COMMIT`
 else
