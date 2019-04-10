@@ -27207,10 +27207,10 @@ NsfDebugShowObj(Tcl_Interp *interp, Tcl_Obj *obj) {
       RUNTIME_STATE(interp)->instanceMethodEpoch;
     Tcl_Command cmd = mcPtr->cmd;
 
-    fprintf(stderr, "   method epoch %u max %u cmd %p objProc 0x%x flags %.6x",
+    fprintf(stderr, "   method epoch %u max %u cmd %p objProc %p flags %.6x",
             mcPtr->methodEpoch, currentMethodEpoch,
             (void *)cmd,
-            (cmd != NULL) ? PTR2UINT(((Command *)cmd)->objProc) : 0u,
+            (cmd != NULL) ? ((Command *)cmd)->objProc : NULL,
             mcPtr->flags);
     if (cmd != NULL) {
       fprintf(stderr, "... cmd %p flags %.6x\n", (void *)cmd, Tcl_Command_flags(cmd));
