@@ -36,7 +36,7 @@ matrix:
   fast_finish: true
 
 install:
-  - appveyor-tools\secure-file -decrypt deploy_key.appveyor.enc -out deploy_key -secret %my_secret%
+  - cmd: appveyor-tools\secure-file -decrypt deploy_key.appveyor.enc -out deploy_key -secret %my_secret%
   # - if not exist "%MINGW_ARCHIVE%" appveyor DownloadFile "%MINGW_URL%" -FileName "%MINGW_ARCHIVE%"
   # - 7z x -y "%MINGW_ARCHIVE%" > nul
   - if not exist "%TCLKIT%" appveyor DownloadFile "%TCLKIT_URL%" -FileName "%TCLKIT%"
