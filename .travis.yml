@@ -1,29 +1,22 @@
 language: c
 sudo: false
-# os:
-# - osx
-# - linux
-# compiler:
-# - gcc
-# - clang
+
 env:
-#  matrix:
-#  - TCLTAG=core-8-6-branch
-#  - TCLTAG=core-8-6-9
-#  - TCLTAG=core-8-5-branch
-#  - TCLTAG=core-8-5-19
-#  - TCLTAG=core-8-7-a1
-#  - TCLTAG=core-8-branch
   global:
   - KITS=$HOME/kits
+
+branches:
+  only:
+  - master
+  - 2.2.0
+
 matrix:
   include:
    # ----------------------------
     - os: linux
       dist: xenial
       compiler: clang
-      env:
-        - TCLTAG=core-8-branch
+      env: TCLTAG=core-8-branch
     - os: linux
       dist: xenial
       compiler: gcc-7
@@ -33,24 +26,20 @@ matrix:
             - ubuntu-toolchain-r-test
           packages:
             - g++-7
-      env:
-        - TCLTAG=core-8-branch
+      env: TCLTAG=core-8-branch
     - os: osx
       osx_image: xcode10.2
       compiler: clang
-      env:
-        - TCLTAG=core-8-branch
+      env: TCLTAG=core-8-branch
     - os: osx
       osx_image: xcode10.2	
       compiler: gcc-8
-      env:
-       - TCLTAG=core-8-branch
+      env: TCLTAG=core-8-branch
      # ----------------------------
     - os: linux
       dist: xenial
       compiler: clang
-      env:
-        - TCLTAG=core-8-7-a1
+      env: TCLTAG=core-8-7-a1
     - os: linux
       dist: xenial
       compiler: gcc-7
@@ -60,24 +49,20 @@ matrix:
             - ubuntu-toolchain-r-test
           packages:
             - g++-7
-      env:
-        - TCLTAG=core-8-7-a1
+      env: TCLTAG=core-8-7-a1
     - os: osx
       osx_image: xcode10.2
       compiler: clang
-      env:
-        - TCLTAG=core-8-7-a1
+      env: TCLTAG=core-8-7-a1
     - os: osx
       osx_image: xcode10.2	
       compiler: gcc-8
-      env:
-       - TCLTAG=core-8-7-a1
+      env: TCLTAG=core-8-7-a1
     # ----------------------------
     - os: linux
       dist: xenial
       compiler: clang
-      env:
-        - TCLTAG=core-8-5-19
+      env: TCLTAG=core-8-5-19
     - os: linux
       dist: xenial
       compiler: gcc-7
@@ -87,13 +72,11 @@ matrix:
             - ubuntu-toolchain-r-test
           packages:
             - g++-7
-      env:
-        - TCLTAG=core-8-5-19
+      env: TCLTAG=core-8-5-19
     - os: osx
       osx_image: xcode10.2
       compiler: clang
-      env:
-        - TCLTAG=core-8-5-19
+      env: TCLTAG=core-8-5-19
     - os: osx
       osx_image: xcode10.2	
       compiler: gcc-8
@@ -103,8 +86,7 @@ matrix:
     - os: linux
       dist: xenial
       compiler: clang
-      env:
-        - TCLTAG=core-8-5-branch
+      env: TCLTAG=core-8-5-branch
     - os: linux
       dist: xenial
       compiler: gcc-7
@@ -114,13 +96,11 @@ matrix:
             - ubuntu-toolchain-r-test
           packages:
             - g++-7
-      env:
-        - TCLTAG=core-8-5-branch
+      env: TCLTAG=core-8-5-branch
     - os: osx
       osx_image: xcode10.2
       compiler: clang
-      env:
-        - TCLTAG=core-8-5-branch
+      env: TCLTAG=core-8-5-branch
     - os: osx
       osx_image: xcode10.2	
       compiler: gcc-8
@@ -130,8 +110,7 @@ matrix:
     - os: linux
       dist: xenial
       compiler: clang
-      env:
-        - TCLTAG=core-8-6-9
+      env: TCLTAG=core-8-6-9
     - os: linux
       dist: xenial
       compiler: gcc-7
@@ -141,13 +120,11 @@ matrix:
             - ubuntu-toolchain-r-test
           packages:
             - g++-7
-      env:
-        - TCLTAG=core-8-6-9
+      env: TCLTAG=core-8-6-9
     - os: osx
       osx_image: xcode10.2
       compiler: clang
-      env:
-        - TCLTAG=core-8-6-9
+      env: TCLTAG=core-8-6-9
     - os: osx
       osx_image: xcode10.2	
       compiler: gcc-8
@@ -157,8 +134,7 @@ matrix:
     - os: linux
       dist: xenial
       compiler: clang
-      env:
-        - TCLTAG=core-8-6-branch
+      env: TCLTAG=core-8-6-branch
     - os: linux
       dist: xenial
       compiler: gcc-7
@@ -168,18 +144,15 @@ matrix:
             - ubuntu-toolchain-r-test
           packages:
             - g++-7
-      env:
-        - TCLTAG=core-8-6-branch
+      env: TCLTAG=core-8-6-branch
     - os: osx
       osx_image: xcode10.2
       compiler: clang
-      env:
-        - TCLTAG=core-8-6-branch
+      env: TCLTAG=core-8-6-branch
     - os: osx
       osx_image: xcode10.2	
       compiler: gcc-8
-      env:
-        - TCLTAG=core-8-6-branch
+      env: TCLTAG=core-8-6-branch
   allow_failures:
   - env: TCLTAG=core-8-6-branch
   - env: TCLTAG=core-8-5-branch
