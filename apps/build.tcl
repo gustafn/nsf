@@ -81,6 +81,7 @@ proc ::build {HOMEDIR BUILDDIR TCLTAG {TOOLCHAIN autoconf-tea}} {
       
       exec >@stdout 2>@stderr nmake -nologo -f makefile.vc TCLDIR=$tclRoot all
       exec >@stdout 2>@stderr nmake -nologo -f makefile.vc TCLDIR=$tclRoot test
+      exec >@stdout 2>@stderr nmake -nologo -f makefile.vc TCLDIR=$tclRoot install INSTALLDIR=$INSTALLDIR
     }
     default {
       throw [list BUILD UNSUPPORTED $TOOLCHAIN] \
