@@ -1,0 +1,630 @@
+2019-04-12  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsf.c: Muniro formatting changes [5e7610d4]
+
+2019-04-12  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	- Provide 2.2 builds on Appveyor [955967fa]
+
+
+	- Use maintenance branch for 2.2, to fulfil presence requirements of
+	  build descriptor [034ea94d]
+
+
+	- Provide for 2.2.0 builds, and fix allowed failures [25d6f9a3]
+
+
+	- Deploy mode for Appveyor builds [fb2a31e7]
+
+2019-04-11  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- Add missing install instruction [skip travis] [b2825a79]
+
+
+	- Fix yaml [skip travis] [ebaa3d49]
+
+
+	- Fix yaml [skip travis] [f9090473]
+
+
+	- Fix yaml [skip travis] [f7f11897]
+
+
+	- Add deploy key to AppVeyor [skip travis] [1d6dbca6]
+
+2019-04-10  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- Remove context noise (directory tree) from the tarballs [585904b1]
+
+
+	-
+	  * configure, configure.ac: Make sure 'git describe' uses --always, to
+	not fail on truncated checkouts without tags in reach (as on Travis)
+	[168c4584]
+
+
+	- Provide some harness around 'make test', to avoid swallowing failing
+	  test suites in light of the write-error condition [e97d7fb1]
+
+
+	-
+	  * nsf.c (NsfDebugShowObj): For consistency, stick with %x using PRIxPTR
+	  [eb1d421a]
+
+
+	- *nsf.c (NsfDebugShowObj): Simplify from using %x to %p, to avoid
+	PTR2UINT (which, starting with 8.7, will return u long, not u int)
+	[e270ccdb]
+
+2019-04-09  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- Completed rewrite, ufff [31aa3666]
+
+
+	- Another try [66f716d0]
+
+
+	- Fix gcc version for macos [e6ecd0ce]
+
+
+	- Rewrite build matrix (testing) [3b557e75]
+
+
+	- Refine build matrix [f7b03ccc]
+
+
+	- Refine build matrix [73e3884a]
+
+
+	- Make tarball names more explanatory [7dcde484]
+
+
+	- linux image requires more generic fix, Python module variant not
+	  available [aed8ea31]
+
+
+	- Change script block [7f3d59b9]
+
+
+	- Test NONBLOCK fix for write error [bf3b3810]
+
+
+	- Change http:// occurrences to https://, if applicable (URLs tested)
+	  [a963e889]
+
+
+	- Fix permissions [aef46edc]
+
+
+	- Avoid ssh-add [368429d7]
+
+
+	- Avoid host check [260b0eab]
+
+
+	- Fix ssh/scp calls [76e8cc2b]
+
+
+	- Re-enable install target [ae50ec69]
+
+
+	- Add a debugging statement around make test [0da374a0]
+
+2019-04-08  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- Stepping back, continued [2cf4592b]
+
+
+	- Stepping back, sigh [a16d90cc]
+
+
+	- Attempt at write-error fix [6803f779]
+
+
+	- Leave it be, for the moment [7ecd981f]
+
+
+	- Don't stop on stderr print-outs [fccfdc03]
+
+
+	- Make calls less verbose, are we hitting a limit? [caf2b43e]
+
+
+	- Avoid colliding paths [91e76546]
+
+
+	- Activate some introspection [16f15e09]
+
+
+	- Fold separate bash calls into one [049a0557]
+
+
+	- Fix configure path [90e3ef3c]
+
+
+	- Now with com [60dcfe05]
+
+
+	- Rebuild key, once again [f0ed06ec]
+
+
+	- Adding new key [94cd1b31]
+
+
+	- Add build script with install target [a3c52384]
+
+
+	- Fix glitch in openssl call [0e7be046]
+
+
+	- Test for auto-deployment of builds [56752f08]
+
+
+	- Prepare for automated deploymnent of build artifacts [skip travis]
+	  [1eacec29]
+
+
+	-
+	  * apps/build.tcl: Revert URL change for build script, archive is
+	  retrieved broken otherwise? [09dab29b]
+
+
+	- Rewrite URLs containing tcl.tk as authority to tcl-lang.org [1711d246]
+
+2019-03-31  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- improve spelling [a8c1439e]
+
+2019-03-29  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- move new assertion to the right place [713b8852]
+
+
+	- improve wording [cfb3421c]
+
+
+	- ease human tracing of uninitialized/NULL values [e8349924]
+
+2019-03-29  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- Fix test [a7a09d79]
+
+2019-03-28  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- Complete caching by testing for kits [24caeb31]
+
+
+	- fix descriptor [14b0a59b]
+
+
+	- Add caching support to travis descriptor [b28a01de]
+
+2019-03-27  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- add generated configure file for change
+	  e3968e8c972a8ac13bfaba27fcf2ae9e36689211 [e9f818e5]
+
+
+	- address dtrace triggers from Makefile, although not configured
+	  [e3968e8c]
+
+
+	- try to simplify Makefile dependencies for DTRACE [d13e45f7]
+
+2019-03-22  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	-
+	  * nsf.c (NsfOUplevelMethod, NsfOUpvarMethod): Silence compiler warnings
+	  on nonnull/NULL compares. [32cc7bc9]
+
+
+	-
+	  * nsf.c (NsfOUplevelMethod, NsfOUpvarMethod,
+	  NsfCallstackFindCallingContext): Reform of uplevel and
+	  upvar methods, based on the recent feedback by Zoran.
+	  First, uplevel and upvar methods, as well as [current
+	  callinglevel] now behave consistently (re frame skipping
+	  for mixin and filter transparency). If there is no
+	  innermost enclosing proc frame, the innermost non-proc
+	  (e.g., namespace) frame is selected (rather than a "#0"
+	  as default). Second, argument handling for both uplevel
+	  (i.e., level sniffing in multi-arg case) and upvar (e.g.,
+	  made silent TCL_ERROR for invalid argument arities
+	  explicit) have been fixed.
+	  * Object.man, methods.test: Added documentation for both methods
+	  (Object.man) and tests. [baee0c34]
+
+2019-03-22  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- reduce dead assignments improve indentation of variables [4f234291]
+
+
+	- avoid variable name "index" in generated code since "index" shadows
+	  an outer function [8a19ff2e]
+
+2019-03-21  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- mongodb: add "bson asJSON" convenience method [6cff9d9b]
+
+2019-03-20  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	- Fix YAML syntax [0dac3440]
+
+
+	- appveyor.yml: Provide for caching the tclkit running the build
+	  script, to improve robustness and availability [0a587021]
+
+2019-03-20  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- handle ticket #3 on sourceforge: explicit "next" call in ensemble
+	  leads to unwanted "unknown" handler call [156a37fe]
+
+2019-03-18  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- since we know length, we can replace strcmp by memcmp [c3085d62]
+
+2019-03-17  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- trigger new travis build [61b88669]
+
+
+	- error message on stack overflow differs on windows and unix for tcl
+	  8.5 [8b333a99]
+
+
+	- we see now a different error message in tcl8.5 for a recursive loop
+	  (drop test?) [c0221269]
+
+
+	- improve type cleanness [b86d0335]
+
+
+	-
+	- deactivate under windows for the time being [3abc6a6f]
+
+
+	- make test more robust ("file lstat" returns less data under windows)
+	  [a65f2c7d]
+
+
+	- added an additional variant of ALLOC_ON_STACK [459516f9]
+
+2019-03-16  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- improve spelling [93875ccd]
+
+
+	- improve spelling [3d145fa5]
+
+
+	- unify spelling of "subclass" [f52d344b]
+
+
+	- improve spelling [38ea9f94]
+
+
+	- align names (use "subclass" instead of "sub-class") [0697a2e3]
+
+
+	- align behavior of "current activelevel" with "... callinglevel" in
+	  case no NSF frame is found [d5f0e46c]
+
+
+	- fix typos and make spelling more uniform [c465bb71]
+
+
+	- add regression test for testing the behavior of :upvar from toplevel
+	  tclsh with and without filters [85eec46a]
+
+
+	- conservative fix for "current callinglevel"; probably more to come
+	  [587c2fab]
+
+2019-03-15  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	-
+	  * nx.tcl, xotcl2.tcl: Fully qualify uses of Tcl's upvar and uplevel, to
+	avoid confusion when introducing equally named procs/ cmds in the OS
+	namespaces. [bb1a4116]
+
+2019-03-14  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- minor cleanup: factor out common strings [3b608d8c]
+
+2019-03-13  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- improve spelling and formatting [0f30ab62]
+
+
+	- improve spelling [67639f37]
+
+
+	- improve spelling [b9fcdec2]
+
+
+	-
+	- improved handling of object property autonamed [c86c0775]
+
+
+	- xotcl1 compatibility: preserve overwritte slot accessor methods via
+	  instprocs [542f9ead]
+
+2019-03-12  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	-
+	  * win/makefile.vc: COMDAT folding can lead to unusable, pointless
+	function-pointer comparisons (Nsf_ConvertToSwitch vs.
+	Nsf_ConvertToBoolean). Reported for /opt:icf under Visual Studio 2017
+	under x86. Kudos to Ashok P. Nadkarni. [cb565d85]
+
+2019-03-11  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- object property volatile: provide support for tuning volatile on/off
+	  via object property. [3ebbf610]
+
+2019-03-10  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- improve spelling [9ef8ab28]
+
+
+	- improve spelling [e5a313d7]
+
+
+	- improve spelling [2321487a]
+
+
+	- improve spelling [83a7bb90]
+
+
+	- windows: make sure, the install directory exists before copying data
+	  to it [c822857c]
+
+
+	- momgoDB interface: add option "-asJSON" to "find all" to ease
+	  interaction e.g. with single page applications. [9cdb38c7]
+
+
+	- improve spelling [38aa0536]
+
+
+	- xotcl regression test: Added a more complex test for testing "new" +
+	  volatile [e5df6994]
+
+2019-03-09  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- add minimal regression test for object property "autonamed" [206792ca]
+
+
+	- make code assumptions clear by adding asserts. [e3d180a2]
+
+2019-03-08  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- Adjust regression test to more specific error message [0a73b191]
+
+
+	-
+	- improved error message "not allowed to have default":
+	  make clear, this is from a parameter specification
+	- added object property "autonamed" (set automatically for
+	  objects created via "new")
+	- xotcl2 volatile: improved backward compatibility with
+	  XOTcl 1
+	- extended regression test [1279a7ec]
+
+2019-03-07  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	-
+	- added new variant of "volatile" trying to mimick the
+	  XOTcl1 volatile behavior.
+	- added experimental feature NSF_WITH_TCL_OBJ_TYPES_AS_CONVERTER, which
+	uses registered TclObjTypes as value checkers (currently deactivated)
+	[b6046263]
+
+
+	- whitespace change [6a97bd03]
+
+2019-02-18  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- protect legacy HTTPd against XSS on error messages [6b093438]
+
+2019-02-06  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- base package nx::zip on Tcl 8.6 builtins instead of relying on the
+	  Trf package [c1579421]
+
+2019-01-15  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- use "nonnull_assert" only in combination with "nonnull" declaration
+	  [af4c4944]
+
+2019-01-14  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	-
+	  * .travis.yml, appveyor.yml: Update build array to 8.6.9 [90c8d70e]
+
+
+	-
+	  * nsf-cmd.test: Make new tests 8.5-savy [167e2369]
+
+
+	-
+	  * nsf.c (NsfProcStub): Re-order logic, so that the availability of a
+	shadow proc cmd is tested first (re-fetch) and the parameter passing
+	comes second, conditional on an available dispatch target. [884a7145]
+
+
+	-
+	  * nsf-cmd.test: Add test rename (target) conflicts for the shadowed
+	  procs; improve test formatting [6e91b118]
+
+
+	- nsf.c (NsfStubProc): Improve comment formatting [a85b80f5]
+
+2019-01-11  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+
+	-
+	  * nsf-cmd.test: Modernize tests to work on error codes. [f93d46e6]
+
+
+	-
+	  * nsf.c, nsf-cmd.test: Fixed nsf::procs for (unintended) deletes of the
+	  shadowed proc, plus test cases. [d01fb5ad]
+
+
+	-
+	  * nsf.c, nsfShadow.c (NsfProcStubDeleteProc, Nsf_RenameObjCmd): Provide
+	for coupled renaming of the nsf::proc pairs; and coupled deletion.
+	[2a2f1043]
+
+
+	-
+	  * nsf.c (NsfProcStub, InvokeShadowedProc): Provide for
+	    re-fetching (e.g., deleted) ::nsf::procs::* commands, to
+	  allow for renamed nsf::procs to run.
+	  * nsf-cmd.test: Added test to cover re-fetch [ed5cc784]
+
+
+	-
+	  * nsf.c, nsfInt.h (NsfProcStub, NsfProcClientData): Apply
+	  namespace reform to nsf::procs, to prevent proc
+	  redefinition after a proc rename to fail.
+	  * nsf-cmd.test: Add test case to document/ to cover failing rename +
+	  redefine. [47f388cd]
+
+2018-12-22  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- improve code documentation [b3541927]
+
+
+	- remove unneeded assignment [5a153b21]
+
+2018-12-15  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- reduce dead assignments and variable scopes [405ace78]
+
+
+	- make sure, the restted path ends with a slash [b49c37ce]
+
+2018-12-14  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- security fix: avoid directory traversal attack in old XOTcl HTTP
+	  class [d074fd50]
+
+2018-11-18  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- regenerated configure script [ebae8e0f]
+
+
+	- improve handling of HAVE_INTTYPES_H under windows [d7bc5d63]
+
+
+	- make sure, macros HAVE_INTPTR_T and HAVE_UINTPTR_T are set (should
+	  probably upgrade to newer TEA version) [d4cb464a]
+
+
+	- fix typo [e8b9e471]
+
+2018-11-17  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- guard definition of PRIxPTR by HAVE_INTTYPES_H and not by
+	  HAVE_STDINT_H [dea74ea7]
+
+
+	- improve type cleanness [6ebbaeee]
+
+
+	- fix typo [af212472]
+
+2018-11-04  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* ChangeLog-2.0b5-2.0.0.log, next-tutorial.txt, Announce-1.6.0: Remove
+	comma before "that" [b5c493af]
+	* doc.test, interp.test, tcloo.test, varresolution.test: Use
+	consistently US spelling variation [357028ca]
+
+2018-11-03  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsf.c, nsfObj.c: Remove comma before that [f92df553]
+
+2018-10-24  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* disposition.test, parameters.test: Adjust tests to reflect the
+	changed representational behaviour for numerics (int, wide) according
+	to TIP 514 (now in Tcl 8.7a2+). [fca63858]
+
+2018-10-23  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* Object.man: Improve spelling [bee99fc8]
+	* nsf.c: Help static analyzer to parse statements [8d65f0a7]
+
+2018-10-12  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* Class.man, Object.man: Use consistently US spelling variants
+	[f8df1c79]
+
+2018-10-11  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* Makefile.in, win/makefile.vc: Add TCL_PKG_PREFER_LATEST to avoid
+	version hickups (stable beating latest) somewhere from TCLLIBPATH
+	etc. [b820ed69]
+
+2018-10-02  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* README.release: Update to make sure, all version numbers in
+	configure.ac are updated properly [3754aac2]
+
+2018-09-30  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* configure: Make sure configure is stashed with repo, as autotools are
+	  not automatically re-generated (e.g., in build array) [a46a3361]
+
+	* object-system.test: Add a simple test to catch incomplete version
+	bumps earlier [7fa23e7c]
+
+2018-09-29  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* configure.ac: bump also NSF_MINOR_VERSION after release [b439657b]
+
+2018-09-28  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* follow the Tcl, not the OpenACS numbering scheme [f7b560fc]
+	* prefer US american spelling variants [9aa53ef6]
+	* change version number to first version number after the 2.2.0 release
+	  (2.3d0) [dd3cfbfd]
+	* fix usernames at sourceforge [f92b5538]
