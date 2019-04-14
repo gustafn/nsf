@@ -18723,8 +18723,8 @@ NsfProcStubDeleteProc(ClientData clientData) {
 
   DECR_REF_COUNT2("procNameObj", tcd->procName);
   if (tcd->cmd != NULL) {
-    /* NsfCommandRelease(tcd->cmd); */
     Tcl_DeleteCommandFromToken(tcd->interp, tcd->cmd);
+    NsfCommandRelease(tcd->cmd);
   }
   /* tcd->paramDefs is freed by NsfProcDeleteProc() */
   FREE(NsfProcClientData, tcd);
