@@ -32907,6 +32907,10 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *nameObj, int objc
 
     ObjTrace("CREATE", newObject);
 
+    if (autoNameCreate) {
+      newObject->flags |= NSF_IS_AUTONAMED;
+    }
+
     /*
      * In case, the object is destroyed during initialization, we increment
      * the refCount.
@@ -32916,10 +32920,6 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *nameObj, int objc
     DECR_REF_COUNT(actualNameObj);
   }
  create_method_exit:
-
-  if (autoNameCreate && result == TCL_OK && newObject != NULL) {
-    newObject->flags |= NSF_IS_AUTONAMED;
-  }
 
   if (tmpObj != NULL) {
     DECR_REF_COUNT(tmpObj);
