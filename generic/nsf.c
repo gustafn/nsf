@@ -1886,7 +1886,7 @@ NsfCleanupObject_(NsfObject *object) {
  *----------------------------------------------------------------------
  * TclObjIsNsfObject --
  *
- *    Check whether the provided Tcl_Obj is bound to a nsf object. If so,
+ *    Check whether the provided Tcl_Obj is bound to an NSF object. If so,
  *    return the NsfObject in the third argument.
  *
  * Results:
@@ -5927,7 +5927,7 @@ InterpColonCmdResolver(Tcl_Interp *interp, const char *cmdName, Tcl_Namespace *U
       fprintf(stderr, "    ... call colonCmd for %s\n", cmdName);
 #endif
       /*
-       * We have a cmd starting with ':', we are in an nsf frame, so
+       * We have a cmd starting with ':', we are in an NSF frame, so
        * forward to the colonCmd.
        */
       *cmdPtr = RUNTIME_STATE(interp)->colonCmd;
@@ -7123,7 +7123,7 @@ GetHiddenObjectFromCmd(
  *
  *    Lookup an object from a given string. The function performs a
  *    command lookup (every object is a command) and checks, if the
- *    command is bound to an nsf object.
+ *    command is bound to an NSF object.
  *
  * Results:
  *    NsfObject* or NULL
@@ -30551,7 +30551,7 @@ NsfCurrentCmd(Tcl_Interp *interp, CurrentoptionIdx_t option) {
   object = GetSelfObj(interp);
 
   /*
-   * The first two clauses can succeed even it we are outside an nsf context
+   * The first two clauses can succeed even it we are outside an NSF context
    * (no object known). The commands are "nsf::current", "nsf::current
    * object", "nsf::current level", and "nsf::current activelevel"
    */
@@ -30569,7 +30569,7 @@ NsfCurrentCmd(Tcl_Interp *interp, CurrentoptionIdx_t option) {
       Tcl_SetIntObj(Tcl_GetObjResult(interp), 1);
     } else if (option == CurrentoptionLevelIdx) {
       /*
-       * Return empty, if we are not on a nsf level.
+       * Return empty, if we are not on an NSF level.
        */
       Tcl_ResetResult(interp);
     } else {
@@ -30728,7 +30728,7 @@ NsfCurrentCmd(Tcl_Interp *interp, CurrentoptionIdx_t option) {
 
   case CurrentoptionLevelIdx:
     /*
-     * We have an "object", therefore we are on a nsf-frame/level. In this
+     * We have an "object", therefore we are on an NSF-frame/level. In this
      * case, "nsf level" behaves like "info level" (without arguments).
      */
     Tcl_SetObjResult(interp, Tcl_NewIntObj(Tcl_CallFrame_level(Tcl_Interp_varFramePtr(interp))));
@@ -35558,9 +35558,9 @@ Nsf_Init(
   {
     /*
      * The file "predefined.h" contains some methods and library procs
-     * implemented in Tcl - they could go in a nsf.tcl file, but
-     * they're embedded here with Tcl_Eval to avoid the need to
-     * carry around a separate file at runtime.
+     * implemented in Tcl - they could go in .tcl file, but they are embedded
+     * here with Tcl_Eval to avoid the need to carry around a separate file at
+     * runtime.
      */
 
 #include "predefined.h"
