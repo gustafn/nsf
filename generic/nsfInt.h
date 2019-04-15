@@ -382,17 +382,17 @@ typedef struct NsfMemCounter {
 #define ObjTypeStr(obj) (((obj)->typePtr != NULL) ? ((obj)->typePtr->name) : "NONE")
 #define ClassName(cl) (((cl) != NULL) ? ObjStr((cl)->object.cmdName) : "NULL")
 #define ClassName_(cl) (ObjStr((cl)->object.cmdName))
-#define ObjectName(obj) (((obj) != NULL) ? ObjStr((obj)->cmdName) : "NULL")
-#define ObjectName_(obj) (ObjStr((obj)->cmdName))
+#define ObjectName(object) (((object) != NULL) ? ObjStr((object)->cmdName) : "NULL")
+#define ObjectName_(object) (ObjStr((object)->cmdName))
 
 #ifdef OBJDELETION_TRACE
-# define PRINTOBJ(ctx,obj) \
+# define PRINTOBJ(ctx,object) \
   fprintf(stderr, "  %s %p %s oid=%p teardown=%p destroyCalled=%d\n", \
-	  (ctx),(obj),(obj)->teardown?ObjStr((obj)->cmdName):"(deleted)", \
-	  (obj)->id, (obj)->teardown,                                 \
-	  ((obj)->flags & NSF_DESTROY_CALLED))
+	  (ctx),(object),(object)->teardown?ObjStr((object)->cmdName):"(deleted)", \
+	  (object)->id, (object)->teardown,                                 \
+	  ((object)->flags & NSF_DESTROY_CALLED))
 #else
-# define PRINTOBJ(ctx,obj)
+# define PRINTOBJ(ctx,object)
 #endif
 
 /*
@@ -596,14 +596,14 @@ typedef struct NsfStringIncrStruct {
 #define NSF_METHODTYPE_ALL       NSF_METHODTYPE_SCRIPTED|NSF_METHODTYPE_BUILTIN|NSF_METHODTYPE_OBJECT
 
 
-#define NsfObjectSetClass(obj) \
-	(obj)->flags |= NSF_IS_CLASS
-#define NsfObjectClearClass(obj) \
-	(obj)->flags &= ~NSF_IS_CLASS
-#define NsfObjectIsClass(obj) \
-	((obj)->flags & NSF_IS_CLASS)
-#define NsfObjectToClass(obj) \
-	(NsfClass *)((((NsfObject *)obj)->flags & NSF_IS_CLASS) ? obj : NULL)
+#define NsfObjectSetClass(object) \
+	(object)->flags |= NSF_IS_CLASS
+#define NsfObjectClearClass(object) \
+	(object)->flags &= ~NSF_IS_CLASS
+#define NsfObjectIsClass(object) \
+	((object)->flags & NSF_IS_CLASS)
+#define NsfObjectToClass(object) \
+	(NsfClass *)((((NsfObject *)object)->flags & NSF_IS_CLASS) ? object : NULL)
 
 
 /*
@@ -783,7 +783,7 @@ typedef enum {
   /* Partly redefined Tcl commands; leave them together at the end */
   NSF_EXPR, NSF_FORMAT, NSF_INFO_BODY, NSF_INFO_FRAME, NSF_INTERP,
   NSF_STRING_IS, NSF_EVAL, NSF_DISASSEMBLE,
-  NSF_RENAME 
+  NSF_RENAME
 } NsfGlobalNames;
 #if !defined(NSF_C)
 EXTERN const char *NsfGlobalStrings[];
@@ -816,8 +816,8 @@ const char *NsfGlobalStrings[] = {
 
 #define NsfGlobalObjs RUNTIME_STATE(interp)->methodObjNames
 
-/* 
- * Interface for Tcl_Obj types 
+/*
+ * Interface for Tcl_Obj types
  */
 EXTERN Tcl_ObjType NsfMixinregObjType;
 EXTERN int NsfMixinregGet(Tcl_Interp *interp, Tcl_Obj *obj, NsfClass **classPtr, Tcl_Obj **guardObj)
@@ -833,8 +833,8 @@ EXTERN NsfClassOpt *NsfRequireClassOpt(NsfClass *class)
   nonnull(1) returns_nonnull;
 
 
-/* 
- * Next Scripting ShadowTclCommands 
+/*
+ * Next Scripting ShadowTclCommands
  */
 typedef struct NsfShadowTclCommandInfo {
   TclObjCmdProcType proc;
@@ -1086,22 +1086,22 @@ EXTERN Tcl_ObjCmdProc NsfObjDispatch;
 EXTERN void NsfCleanupObject_(NsfObject *object) nonnull(1);
 
 #if defined(NSFOBJ_TRACE)
-# define NsfObjectRefCountIncr(obj)					\
-  ((NsfObject *)obj)->refCount++;					\
-  fprintf(stderr, "RefCountIncr %p count=%d %s\n", obj, ((NsfObject *)obj)->refCount, \
-	((NsfObject *)obj)->cmdName?ObjStr(((NsfObject *)obj)->cmdName):"no name"); \
-  MEM_COUNT_ALLOC("NsfObject.refCount", obj)
-# define NsfObjectRefCountDecr(obj)					\
-  (obj)->refCount--;							\
-  fprintf(stderr, "RefCountDecr %p count=%d\n", obj, obj->refCount);	\
-  MEM_COUNT_FREE("NsfObject.refCount", obj)
+# define NsfObjectRefCountIncr(object)		\
+  ((NsfObject *)(object))->refCount++;		\
+  fprintf(stderr, "RefCountIncr %p count=%d %s\n", (object), ((NsfObject *)(object))->refCount, \
+	  ((NsfObject *)object)->cmdName?ObjStr(((NsfObject *)(object))->cmdName):"no name");   \
+  MEM_COUNT_ALLOC("NsfObject.refCount", (object))
+# define NsfObjectRefCountDecr(object)					\
+  (object)->refCount--;							\
+  fprintf(stderr, "RefCountDecr %p count=%d\n", (object), (object)->refCount); \
+  MEM_COUNT_FREE("NsfObject.refCount", (object))
 #else
-# define NsfObjectRefCountIncr(obj)           \
-  (obj)->refCount++;                            \
-  MEM_COUNT_ALLOC("NsfObject.refCount", obj)
-# define NsfObjectRefCountDecr(obj)           \
-  (obj)->refCount--;                            \
-  MEM_COUNT_FREE("NsfObject.refCount", obj)
+# define NsfObjectRefCountIncr(object)          \
+  (object)->refCount++;                         \
+  MEM_COUNT_ALLOC("NsfObject.refCount", (object))
+# define NsfObjectRefCountDecr(object)		\
+  (object)->refCount--;				\
+  MEM_COUNT_FREE("NsfObject.refCount", (object))
 #endif
 
 /*
@@ -1385,7 +1385,7 @@ char *strnstr(const char *buffer, const char *needle, size_t buffer_len) pure;
 #define vsnprintf _vsnprintf
 #endif
 
-/* 
+/*
  * There are six whitespace characters in Tcl, which serve as element
  * separators in string representations of Tcl lists. See tclUtil.c
  */
