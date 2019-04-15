@@ -18,6 +18,10 @@ proc ? {cmd expected {msg ""}} {
 
 package req nsf
 
+if {![string first [nsf::pkgconfig get version] [nsf::pkgconfig get patchLevel]]} {
+  puts stderr "loaded :nsf::version $:nsf::version, ::nsf::patchLevel $::nsf::patchLevel"
+  puts stderr "available versions of nsf: [package versions nsf]"
+}
 ? {string first [nsf::pkgconfig get version] [nsf::pkgconfig get patchLevel]} 0
 
 package require nx
