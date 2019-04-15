@@ -1384,7 +1384,7 @@ Class create Foo {
 NX supports in contrary to XOTcl to define the _multiplicity_ of values
 per parameter. In NX, one can specify that a parameter can accept the
 value "" (empty) in addition to e.g. an integer, or one can specify that the
-value is an empty or non-empty ist of values via the multiplicity. For
+value is an empty or non-empty list of values via the multiplicity. For
 every specified value, the value checkers are applied.
 
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
