@@ -20722,7 +20722,7 @@ ComputeLevelObj(Tcl_Interp *interp, CallStackLevel level) {
   } else {
     /*
      * If not called from an NSF frame, return #0 as default.
-     * 
+     *
      * TODO: With NsfCallStackFindCallingContext in place, this cannot (should
      * not) be reachable. Need to check NsfCallStackFindActiveFrame. When in
      * the "clear", provide for a warning here?
@@ -32381,7 +32381,7 @@ NsfOUplevelMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *cons
   }
 
   assert(framePtr != NULL);
-    
+
   savedVarFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
   Tcl_Interp_varFramePtr(interp) = (CallFrame *)framePtr;
 
@@ -32437,17 +32437,19 @@ NsfOUpvarMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *const 
                          ObjectName_(object),
                          NsfMethodName(objv[0]));
   }
-  
+
   if (objc % 2 == 0) {
-    /* even number of arguments (incl. method) 
-     * -> level specifier considered present 
+    /*
+     * Even number of arguments (including method), therefore the level
+     * specifier is considered to be the first argument.
      */
     frameInfoObj = NULL;
     frameInfo = ObjStr(objv[1]);
     i = 2;
   } else {
-    /* odd number of arguments (incl. method) 
-     * -> level specififer considered absent, compute jump level 
+    /*
+     * Odd number of arguments (including method), therefore the level
+     * specifier considered absent and the level has to be computed.
      */
     frameInfoObj = ComputeLevelObj(interp, CALLING_LEVEL);
     INCR_REF_COUNT(frameInfoObj);
@@ -32458,7 +32460,7 @@ NsfOUpvarMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *const 
   if ((object->filterStack != NULL) || (object->mixinStack != NULL)) {
     CallStackUseActiveFrame(interp, &ctx);
   }
-  
+
   for ( ;  i < objc;  i += 2) {
     result = Tcl_UpVar2(interp, frameInfo, ObjStr(objv[i]), NULL,
                         ObjStr(objv[i+1]), 0 /*flags*/);
@@ -32472,7 +32474,7 @@ NsfOUpvarMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *const 
   }
   CallStackRestoreSavedFrames(interp, &ctx);
   return result;
-  
+
 }
 
 /*
@@ -32908,7 +32910,7 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *nameObj, int objc
     ObjTrace("CREATE", newObject);
 
     if (autoNameCreate) {
-      newObject->flags |= NSF_IS_AUTONAMED;
+      NsfObjectRefCountIncr(newObject);
     }
 
     /*
@@ -32920,6 +32922,13 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *nameObj, int objc
     DECR_REF_COUNT(actualNameObj);
   }
  create_method_exit:
+
+  if (newObject != NULL && autoNameCreate) {
+    if (result == TCL_OK) {
+      newObject->flags |= NSF_IS_AUTONAMED;
+    }
+    NsfObjectRefCountDecr(newObject);
+  }
 
   if (tmpObj != NULL) {
     DECR_REF_COUNT(tmpObj);
