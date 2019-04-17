@@ -20494,16 +20494,14 @@ NextSearchAndInvoke(
         }
       }
 
-      if (topCscPtr != NULL) {
-        isLeafNext = (
+      isLeafNext = (
           (topCscPtr->flags & (NSF_CSC_CALL_IS_NEXT|NSF_CSC_CALL_IS_ENSEMBLE)) == (NSF_CSC_CALL_IS_NEXT|NSF_CSC_CALL_IS_ENSEMBLE) &&
           (topCscPtr->flags & NSF_CM_ENSEMBLE_UNKNOWN) == 0u
-        );
-        /*fprintf(stderr, "******** alternate isleavenext %d based on topcscptr %p flags %.6x\n",
-              isLeafNext,
-              (void*)topCscPtr,
-              (topCscPtr != NULL ? topCscPtr->flags : 0));*/
-      }
+      );
+      /*fprintf(stderr, "******** alternate isleavenext %d based on topcscptr %p flags %.6x\n",
+        isLeafNext,
+        (void*)topCscPtr,
+        (topCscPtr != NULL ? topCscPtr->flags : 0));*/
     }
 
     rst->unknown =
