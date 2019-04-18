@@ -13,39 +13,56 @@ New Features
 
 - NSF:
 
-  ...
+  * Rename reform for nsf::procs: NSF procedures can now be safely renamed
+    (or deleted) using the [rename] command. This was only partially
+    supported before, and could also lead to crashes (when redefining
+    a renamed nsf::proc).
+
+   * New object property "autonamed": NSF objects having been created
+     using "new", rather than using "create", can now be tested for this
+     condition using the object property "autonamed":
+
+     % package req nx
+     % nsf::object::property [nx::Object new] autonamed
+     1
+     % nsf::object::property [nx::Object create o] autonamed
+     0
+
+     This is to avoid having to rely on pattern sniffing of the
+     command names. In addition, the propery is now set early enough,
+     right after allocating the NSF object, to test for the autonaming
+     condition from within the creation procedure (ttrace).
+     
+   * Extended object property "volatile": By setting or unsetting the
+     object property "volatile", a given NSF object can now be
+     rendered volatile or not (in addition to using the volatile
+     method on the object).
 
 - NX:
 
-  ...
+  * nx::zip rewrite: nx::zip now uses the built-in Tcl 8.6 encode and
+    decode facilties, if available, rather than requiring the Trf
+    package to be present.
 
-- MongoDB interface upgrade:
+- XOTcl:
 
-  ...
-
-- nx::test:
-
-  ...
+  * Improved compatibility of XOTcl2 with XOTcl1 behaviour
+    for volatile objects: ...
 
 - nx::serializer:
 
-  ...
+  * Improved backward compatibility: Preserve overriding accessor/
+    mutators methods (instprocs) for slots.
+
+- MongoDB:
+
+  * Added JSON serializer: The "find all" method now accepts the
+  -asJSON flag to return a JSON formatted string. This is to
+  facilitate implementing single-page JavaScript applications.
 
 - Documentation:
 
   * Added documentation of uplevel and upvar methods.
-
-- Continued testing: NSF is now continuously built and tested under
-  Linux, macOS, and Windows against different Tcl targets, using
-  different tool chains (gcc, clang, MinGW, MSVC). For this purpose,
-  there is now an official GitHub mirror at:
-
-	    https://github.com/nm-wu/nsf
-
-  Build and test reports are available from:
-
-	    https://travis-ci.com/nm-wu/nsf
-	    https://ci.appveyor.com/project/mrcalvin/nsf-2ylk0
 
 - Maintenance & bug fixes:
 
@@ -56,6 +73,15 @@ New Features
     regression tests execute successfully.
 
   * Misc (esp. NSF/C):
+
+- Build environments:
+
+  * Turned off COMDAT folding (/opt:icf) under nmake builds which can
+    lead to unusable, pointless function-pointer comparisons
+    (Nsf_ConvertToSwitch vs.  Nsf_ConvertToBoolean).
+
+  * Improved robustness of Windows (nmake) installation routines by
+    testing for the existence of the install directory.
 
 The detailed changelog is available at
 https://next-scripting.org/xowiki/download/file/ChangeLog-2.2.0-2.3.0.log

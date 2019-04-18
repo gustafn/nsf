@@ -339,9 +339,7 @@
 
 2019-03-15  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	-
-	  * nx.tcl, xotcl2.tcl: Fully qualify uses of Tcl's upvar and uplevel, to
+	* nx.tcl, xotcl2.tcl: Fully qualify uses of Tcl's upvar and uplevel, to
 	avoid confusion when introducing equally named procs/ cmds in the OS
 	namespaces. [bb1a4116]
 
@@ -363,213 +361,137 @@
 
 
 	-
-	- improved handling of object property autonamed [c86c0775]
-
-
-	- xotcl1 compatibility: preserve overwritte slot accessor methods via
-	  instprocs [542f9ead]
+	* nsf.c, speedtest.xotcl: Improved handling of object property
+	autonamed [c86c0775]
+	* serializer.tcl: Preserve overwritte slot accessor methods via
+	XOTcl instprocs [542f9ead]
 
 2019-03-12  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	-
-	  * win/makefile.vc: COMDAT folding can lead to unusable, pointless
+	* win/makefile.vc: COMDAT folding can lead to unusable, pointless
 	function-pointer comparisons (Nsf_ConvertToSwitch vs.
 	Nsf_ConvertToBoolean). Reported for /opt:icf under Visual Studio 2017
 	under x86. Kudos to Ashok P. Nadkarni. [cb565d85]
 
 2019-03-11  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- object property volatile: provide support for tuning volatile on/off
-	  via object property. [3ebbf610]
+	* nsf.c (VolatileMethod): Allow to render an object "volatile" or
+	non-volatile via the object property volatile. [3ebbf610]
 
 2019-03-10  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- improve spelling [9ef8ab28]
-
-
-	- improve spelling [e5a313d7]
-
-
-	- improve spelling [2321487a]
-
-
-	- improve spelling [83a7bb90]
-
-
-	- windows: make sure, the install directory exists before copying data
-	  to it [c822857c]
-
-
-	- momgoDB interface: add option "-asJSON" to "find all" to ease
+	* nx-reference-one.test, tests/*, bagel.tcl, gentclAPI.tcl,
+	serializer.tcl: Improve spelling [9ef8ab28, e5a313d7, 2321487a,
+	83a7bb90]
+	* makefile.vc: Make sure, the install directory exists before
+	copying data to it [c822857c]
+	* nx-mongo.tcl: MongoDB interface: add option "-asJSON" to "find all" to ease
 	  interaction e.g. with single page applications. [9cdb38c7]
-
-
-	- improve spelling [38aa0536]
-
-
-	- xotcl regression test: Added a more complex test for testing "new" +
-	  volatile [e5df6994]
+	* nsf.c, nsfObj.c: Improve spelling [38aa0536]
+	* speedtest.xotcl: Added a more complex test for testing "new" +
+	volatile [e5df6994]
 
 2019-03-09  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- add minimal regression test for object property "autonamed" [206792ca]
-
-
-	- make code assumptions clear by adding asserts. [e3d180a2]
+	* object-system.test: Add minimal regression test for object
+	property "autonamed" [206792ca]
+	* nsf.c (ArgumentDefaults): make code assumptions clear by adding
+	asserts. [e3d180a2]
 
 2019-03-08  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- Adjust regression test to more specific error message [0a73b191]
-
-
-	-
-	- improved error message "not allowed to have default":
-	  make clear, this is from a parameter specification
-	- added object property "autonamed" (set automatically for
-	  objects created via "new")
-	- xotcl2 volatile: improved backward compatibility with
-	  XOTcl 1
-	- extended regression test [1279a7ec]
+	* Adjust regression test to more specific error message [0a73b191]
+	* improved error message "not allowed to have default": make
+	clear, this is stems from a parameter specification
+	* nsfAPI.decls, nsf.c:  Added object property "autonamed" (set automatically for
+	  objects created via "new") [1279a7ec]
+	* nsf.c: Improved backward compatibility of XOTcl2 volatile method
+	with XOTcl1 [1279a7ec]
+	* speedtest.xotcl: Extended regression test [1279a7ec]
 
 2019-03-07  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	-
-	- added new variant of "volatile" trying to mimick the
-	  XOTcl1 volatile behavior.
-	- added experimental feature NSF_WITH_TCL_OBJ_TYPES_AS_CONVERTER, which
-	uses registered TclObjTypes as value checkers (currently deactivated)
+	* xotcl2.tcl: Added new variant of "volatile" trying to mimick the
+	  XOTcl1 volatile behavior. [b6046263]
+	* nsf.c:  added experimental feature
+	NSF_WITH_TCL_OBJ_TYPES_AS_CONVERTER, which uses registered
+	TclObjTypes as value checkers (currently deactivated)
 	[b6046263]
-
-
-	- whitespace change [6a97bd03]
+	* nx.tcl: whitespace change [6a97bd03]
 
 2019-02-18  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- protect legacy HTTPd against XSS on error messages [6b093438]
+	* Httpd.xotcl: Protect legacy HTTPd against XSS on error messages [6b093438]
 
 2019-02-06  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- base package nx::zip on Tcl 8.6 builtins instead of relying on the
+	* nx-zip.tcl:  base package nx::zip on Tcl 8.6 builtins instead of relying on the
 	  Trf package [c1579421]
 
 2019-01-15  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- use "nonnull_assert" only in combination with "nonnull" declaration
+	* nsf.c: Use "nonnull_assert" only in combination with "nonnull" declaration
 	  [af4c4944]
 
 2019-01-14  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	-
-	  * .travis.yml, appveyor.yml: Update build array to 8.6.9 [90c8d70e]
-
-
-	-
-	  * nsf-cmd.test: Make new tests 8.5-savy [167e2369]
-
-
-	-
-	  * nsf.c (NsfProcStub): Re-order logic, so that the availability of a
+	* .travis.yml, appveyor.yml: Update build array to 8.6.9 [90c8d70e]
+	* nsf-cmd.test: Make new tests 8.5-savy [167e2369]
+	* nsf.c (NsfProcStub): Re-order logic, so that the availability of a
 	shadow proc cmd is tested first (re-fetch) and the parameter passing
 	comes second, conditional on an available dispatch target. [884a7145]
-
-
-	-
-	  * nsf-cmd.test: Add test rename (target) conflicts for the shadowed
-	  procs; improve test formatting [6e91b118]
-
-
-	- nsf.c (NsfStubProc): Improve comment formatting [a85b80f5]
+	* nsf-cmd.test: Add test rename (target) conflicts for the shadowed
+	procs; improve test formatting [6e91b118]
+	* nsf.c (NsfStubProc): Improve comment formatting [a85b80f5]
 
 2019-01-11  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	-
-	  * nsf-cmd.test: Modernize tests to work on error codes. [f93d46e6]
-
-
-	-
-	  * nsf.c, nsf-cmd.test: Fixed nsf::procs for (unintended) deletes of the
-	  shadowed proc, plus test cases. [d01fb5ad]
-
-
-	-
-	  * nsf.c, nsfShadow.c (NsfProcStubDeleteProc, Nsf_RenameObjCmd): Provide
+	* nsf-cmd.test: Modernize tests to work on error codes. [f93d46e6]
+	* nsf.c, nsf-cmd.test: Fixed nsf::procs for (unintended) deletes of the
+	shadowed proc, plus test cases. [d01fb5ad]
+	* nsf.c, nsfShadow.c (NsfProcStubDeleteProc, Nsf_RenameObjCmd): Provide
 	for coupled renaming of the nsf::proc pairs; and coupled deletion.
 	[2a2f1043]
-
-
-	-
-	  * nsf.c (NsfProcStub, InvokeShadowedProc): Provide for
-	    re-fetching (e.g., deleted) ::nsf::procs::* commands, to
-	  allow for renamed nsf::procs to run.
-	  * nsf-cmd.test: Added test to cover re-fetch [ed5cc784]
-
-
-	-
-	  * nsf.c, nsfInt.h (NsfProcStub, NsfProcClientData): Apply
-	  namespace reform to nsf::procs, to prevent proc
-	  redefinition after a proc rename to fail.
-	  * nsf-cmd.test: Add test case to document/ to cover failing rename +
+	* nsf.c (NsfProcStub, InvokeShadowedProc): Provide for
+	re-fetching (e.g., deleted) ::nsf::procs::* commands, to
+	allow for renamed nsf::procs to run.
+	* nsf-cmd.test: Added test to cover re-fetch [ed5cc784]
+	* nsf.c, nsfInt.h (NsfProcStub, NsfProcClientData): Apply
+	namespace reform to nsf::procs, to prevent proc
+	redefinition after a proc rename to fail.
+	* nsf-cmd.test: Add test case to document/ to cover failing rename +
 	  redefine. [47f388cd]
 
 2018-12-22  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- improve code documentation [b3541927]
-
-
-	- remove unneeded assignment [5a153b21]
+	* nsfUtil.c: Improve code documentation [b3541927]
+	* nsf.c: Remove unneeded assignment [5a153b21]
 
 2018-12-15  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- reduce dead assignments and variable scopes [405ace78]
-
-
-	- make sure, the restted path ends with a slash [b49c37ce]
+	* nsf.c: Reduce dead assignments and variable scopes [405ace78]
+	* Httpd.xotcl: Make sure the restted path ends with a slash [b49c37ce]
 
 2018-12-14  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- security fix: avoid directory traversal attack in old XOTcl HTTP
-	  class [d074fd50]
+	* Httpd.xotcl: Security fix: avoid directory traversal attack in
+	old XOTcl HTTP class [d074fd50]
 
 2018-11-18  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- regenerated configure script [ebae8e0f]
-
-
-	- improve handling of HAVE_INTTYPES_H under windows [d7bc5d63]
-
-
-	- make sure, macros HAVE_INTPTR_T and HAVE_UINTPTR_T are set (should
-	  probably upgrade to newer TEA version) [d4cb464a]
-
-
-	- fix typo [e8b9e471]
+	* configure: Regenerated configure script [ebae8e0f]
+	* nsfInt.h: Improve handling of HAVE_INTTYPES_H under windows
+	[d7bc5d63]
+	* nsfInt.h: make sure, macros HAVE_INTPTR_T and HAVE_UINTPTR_T are
+	set (should probably upgrade to newer TEA version) [d4cb464a]
+	* Makefile.in: fix typo [e8b9e471]
 
 2018-11-17  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- guard definition of PRIxPTR by HAVE_INTTYPES_H and not by
-	  HAVE_STDINT_H [dea74ea7]
-
-
-	- improve type cleanness [6ebbaeee]
-
-
-	- fix typo [af212472]
+	* nsfInt.h: Guard definition of PRIxPTR by HAVE_INTTYPES_H and not
+	by HAVE_STDINT_H [dea74ea7]
+	* nsf.c, nsfInt.h: improve type cleanness [6ebbaeee]
+	* README.release: fix typo [af212472]
 
 2018-11-04  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
