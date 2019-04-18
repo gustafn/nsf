@@ -32908,7 +32908,7 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *nameObj, int objc
     ObjTrace("CREATE", newObject);
 
     if (autoNameCreate) {
-      NsfObjectRefCountIncr(newObject);
+      newObject->flags |= NSF_IS_AUTONAMED;
     }
 
     /*
@@ -32920,13 +32920,6 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *nameObj, int objc
     DECR_REF_COUNT(actualNameObj);
   }
  create_method_exit:
-
-  if (newObject != NULL && autoNameCreate) {
-    if (result == TCL_OK) {
-      newObject->flags |= NSF_IS_AUTONAMED;
-    }
-    NsfObjectRefCountDecr(newObject);
-  }
 
   if (tmpObj != NULL) {
     DECR_REF_COUNT(tmpObj);
