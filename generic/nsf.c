@@ -22964,6 +22964,8 @@ ForwardArg(
   nonnull_assert(mapvalue != NULL);
   nonnull_assert(outputincr != NULL);
 
+  assert(objc >= 1);
+
   totalargs = objc + tcd->nr_args - 1;
   /*
    * Per default every ForwardArgString from the processed list corresponds to
@@ -23019,6 +23021,9 @@ ForwardArg(
     int         nrArgs = objc-1, nrPosArgs = objc - firstPosArg, nrElements = 0;
     char        c1, *firstActualArgument = nrArgs > 0 ? ObjStr(objv[1]) : NULL;
     const char *c1Ptr;
+
+    assert(nrPosArgs >= 0);
+    assert(nrArgs >= 0);
 
     c = *++ForwardArgString;
     c1Ptr = ForwardArgString + 1;
