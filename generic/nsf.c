@@ -8155,7 +8155,7 @@ TclObjListNewElement(NsfTclObjList **list, Tcl_Obj *obj, Tcl_Obj *valueObj) {
  *----------------------------------------------------------------------
  * TclObjListAdd --
  *
- *    Add a NsfTclObjList element to the obj list indexed by a key into a
+ *    Add an NsfTclObjList element to the obj list indexed by a key into a
  *    sorted list of elements. Duplicates are appended to the payload
  *    elements.
  *
@@ -12832,7 +12832,7 @@ NsfProcDeleteProc(
  *----------------------------------------------------------------------
  * ProcContextRequire --
  *
- *    Obtain a NsfProcContext for the given cmd. Create a new one, if it does
+ *    Obtain an NsfProcContext for the given cmd. Create a new one, if it does
  *    not exist, or return the existing one.
  *
  * Results:
@@ -12880,7 +12880,7 @@ ProcContextRequire(
  *----------------------------------------------------------------------
  * ProcContextGet --
  *
- *    Obtain a NsfProcContext for the given cmd when it is defined.
+ *    Obtain an NsfProcContext for the given cmd when it is defined.
  *
  * Results:
  *    NsfProcContext * or NULL
@@ -15245,7 +15245,7 @@ static void CacheCmd(
               methodObj->refCount, (void*)ccCtxPtr, flags, ObjectName((NsfObject*)context));*/
 
       /*
-       * Create a NsfColonCmdContext and supply it with data (primarily the
+       * Create an NsfColonCmdContext and supply it with data (primarily the
        * cmd, the other data is for validation).
        */
       ccCtxPtr = NEW(NsfColonCmdContext);
@@ -17508,8 +17508,7 @@ ParamOptionParse(Tcl_Interp *interp, const char *argString,
 
 #ifdef NSF_WITH_TCL_OBJ_TYPES_AS_CONVERTER
     } else if ((tclObjType = Tcl_GetObjType(option)) != NULL) {
-      // xxxxxx
-      fprintf(stderr, "SET TYPE converter for <%s>\n", option);
+      /*fprintf(stderr, "SET TYPE converter for <%s>\n", option);*/
       result = ParamOptionSetConverter(interp, paramPtr,  Tcl_DStringValue(dsPtr), Nsf_ConvertToTclObjType);
       if (paramPtr->converterArg != NULL) {
           DECR_REF_COUNT(paramPtr->converterArg);
@@ -21743,7 +21742,7 @@ CleanupDestroyClass(Tcl_Interp *interp, NsfClass *class, bool softrecreate, bool
 
   if (!softrecreate) {
     /*
-     * flush all caches, unlink superClasses
+     * Flush all caches, unlink superClasses.
      */
 
     while (class->sub != NULL) {
@@ -21761,7 +21760,6 @@ CleanupDestroyClass(Tcl_Interp *interp, NsfClass *class, bool softrecreate, bool
         AddSuper(subClass, baseClass);
       }
     }
-    /*(void)RemoveSuper(class, class->super->cl);*/
   }
 
 }
@@ -21812,7 +21810,7 @@ CleanupInitClass(
     /*
      * Subclasses are preserved during recreate, superClasses not (since the
      * creation statement defined the superclass, might be different the
-     * second time)
+     * second time).
      */
     class->sub = NULL;
   }
@@ -21851,7 +21849,7 @@ CleanupInitClass(
  * PrimitiveCDestroy --
  *
  *    Delete a class with its namespace and associated data structures. The
- *    physical deallocation is handled by PrimitiveODestroy()
+ *    physical deallocation is handled by PrimitiveODestroy().
  *
  * Results:
  *    None.
@@ -22047,13 +22045,13 @@ PrimitiveCCreate(
  *    care that one tries not to change an object into a class or vice
  *    versa. Changing metaclass to metaclass, or class to class, or
  *    object to object is fine, but upgrading/downgrading is not
- *    allowed
+ *    allowed.
  *
  * Results:
  *    Tcl return code
  *
  * Side effects:
- *    changes class of object if possible and updates instance relation.
+ *    Changes class of object if possible and updates instance relation.
  *
  *----------------------------------------------------------------------
  */
@@ -22984,7 +22982,6 @@ ForwardArg(
 
     ForwardArgString += 2;
     pos = strtol(ForwardArgString, &remainder, 0);
-    /*fprintf(stderr, "strtol('%s) returned %ld '%s'\n", ForwardArgString, pos, remainder);*/
     if (ForwardArgString == remainder && *ForwardArgString == 'e'
         && !strncmp(ForwardArgString, "end", 3)) {
       pos = -1;
@@ -27541,7 +27538,7 @@ cmd __unset_unknown_args NsfUnsetUnknownArgsCmd {}
 static int
 NsfUnsetUnknownArgsCmd(Tcl_Interp *interp) {
   CallFrame *varFramePtr = Tcl_Interp_varFramePtr(interp);
-  Proc *proc = Tcl_CallFrame_procPtr(varFramePtr);
+  Proc      *proc = Tcl_CallFrame_procPtr(varFramePtr);
 
   nonnull_assert(interp != NULL);
 
@@ -27666,12 +27663,12 @@ NsfConfigureCmd(Tcl_Interp *interp, ConfigureoptionIdx_t option, Tcl_Obj *valueO
 
   if (option == ConfigureoptionObjectsystemsIdx) {
     NsfObjectSystem *osPtr;
-    Tcl_Obj *list = Tcl_NewListObj(0, NULL);
+    Tcl_Obj         *list = Tcl_NewListObj(0, NULL);
 
     for (osPtr = RUNTIME_STATE(interp)->objectSystems; osPtr != NULL; osPtr = osPtr->nextPtr) {
       Tcl_Obj *osObj = Tcl_NewListObj(0, NULL);
       Tcl_Obj *systemMethods = Tcl_NewListObj(0, NULL);
-      int idx;
+      int      idx;
 
       Tcl_ListObjAppendElement(interp, osObj, osPtr->rootClass->object.cmdName);
       Tcl_ListObjAppendElement(interp, osObj, osPtr->rootMetaClass->object.cmdName);
@@ -27685,6 +27682,7 @@ NsfConfigureCmd(Tcl_Interp *interp, ConfigureoptionIdx_t option, Tcl_Obj *valueO
         Tcl_ListObjAppendElement(interp, systemMethods, Tcl_NewStringObj(Nsf_SystemMethodOpts[idx], -1));
         if (osPtr->handles[idx] || osPtr->protected[idx]) {
           Tcl_Obj *listObj = Tcl_NewListObj(0, NULL);
+
           Tcl_ListObjAppendElement(interp, listObj, osPtr->methods[idx]);
           Tcl_ListObjAppendElement(interp, listObj, osPtr->handles[idx]);
           if (osPtr->protected[idx]) {
@@ -28141,6 +28139,7 @@ NsfFinalizeCmd(Tcl_Interp *interp, int withKeepvars) {
 #ifdef DO_CLEANUP
   {
     NsfRuntimeState *rst = RUNTIME_STATE(interp);
+
 # if defined(CHECK_ACTIVATION_COUNTS)
     assert(rst->cscList == NULL);
 # endif
@@ -28205,7 +28204,7 @@ NsfInterpObjCmd(Tcl_Interp *interp, const char *name, int objc, Tcl_Obj *const o
    */
 
   if (isCreateString(name)) {
-    Tcl_Obj *slaveCmdObj;
+    Tcl_Obj    *slaveCmdObj;
     Tcl_Interp *slavePtr;
 
     /*
@@ -28243,7 +28242,7 @@ NsfIsCmd(Tcl_Interp *interp,
          Tcl_Obj *constraintObj,
          Tcl_Obj *valueObj) {
   Nsf_Param *paramPtr = NULL;
-  int result;
+  int        result;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(constraintObj != NULL);
@@ -28417,7 +28416,7 @@ NsfMethodAliasCmd(
      * However, using Tcl_DeleteCommandFromToken() leads to a crash also with
      * earlier solutions when defining recursive aliases.
      */
-    NsfObject  *oldTargetObject;
+    NsfObject *oldTargetObject;
 
     /*fprintf(stderr, "... DELETE preexisting cmd %s in ns %s\n", methodName, nsPtr->fullName);*/
 
@@ -28465,7 +28464,7 @@ NsfMethodAliasCmd(
       /*
        * We have an alias to a Tcl proc;
        */
-      Proc *procPtr = (Proc *)Tcl_Command_objClientData(cmd);
+      Proc    *procPtr = (Proc *)Tcl_Command_objClientData(cmd);
       Tcl_Obj *bodyObj = (procPtr != NULL) ? procPtr->bodyPtr : NULL;
 
       if (bodyObj && bodyObj->typePtr == Nsf_OT_byteCodeType) {
@@ -28545,6 +28544,7 @@ NsfMethodAliasCmd(
      * obtain automatic deletes when the original command is deleted.
      */
     ImportRef *refPtr = (ImportRef *) ckalloc((int)sizeof(ImportRef));
+
     refPtr->importedCmdPtr = (Command *) newCmd;
     refPtr->nextPtr = ((Command *) tcd->aliasedCmd)->importRefPtr;
     ((Command *) tcd->aliasedCmd)->importRefPtr = refPtr;
@@ -28605,6 +28605,7 @@ NsfMethodAssertionCmd(Tcl_Interp *interp, NsfObject *object, AssertionsubcmdIdx_
   case AssertionsubcmdObject_invarIdx:
     if (argObj != NULL) {
       NsfObjectOpt *opt = NsfRequireObjectOpt(object);
+
       AssertionSetInvariants(interp, &opt->assertions, argObj);
     } else {
       if (object->opt != NULL && object->opt->assertions != NULL) {
@@ -28622,6 +28623,7 @@ NsfMethodAssertionCmd(Tcl_Interp *interp, NsfObject *object, AssertionsubcmdIdx_
     class = (NsfClass *)object;
     if (argObj != NULL) {
       NsfClassOpt *opt = NsfRequireClassOpt(class);
+
       AssertionSetInvariants(interp, &opt->assertions, argObj);
     } else {
       if (class->opt != NULL && class->opt->assertions != NULL) {
@@ -28828,7 +28830,7 @@ NsfForwardPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
   Tcl_ObjCmdProc       *procPtr;
   Tcl_Command           cmd;
   NsfObject            *defObject;
-  const NsfClass             *class;
+  const NsfClass       *class;
   bool                  fromClassNS;
 
   nonnull_assert(interp != NULL);
@@ -29193,7 +29195,7 @@ cmd "object::alloc" NsfObjectAllocCmd {
 static int
 NsfObjectAllocCmd(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *nameObj, Tcl_Obj *initcmdObj) {
   Tcl_Obj *newNameObj = NULL;
-  int result;
+  int      result;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(class != NULL);
@@ -29409,10 +29411,9 @@ cmd "objectsystem::create" NsfObjectSystemCreateCmd {
 */
 static int
 NsfObjectSystemCreateCmd(Tcl_Interp *interp, Tcl_Obj *rootClassObj, Tcl_Obj *rootMetaClassObj, Tcl_Obj *systemMethodsObj) {
-  NsfClass *theobj = NULL, *thecls = NULL;
-  Tcl_Obj *object, *class;
-  const char *objectName;
-  const char *className;
+  NsfClass        *theobj = NULL, *thecls = NULL;
+  Tcl_Obj         *object, *class;
+  const char      *objectName, *className;
   NsfObjectSystem *osPtr;
 
   nonnull_assert(interp != NULL);
@@ -32524,7 +32525,7 @@ VolatileMethod(Tcl_Interp *interp, NsfObject *object, bool shallow) {
 
         cscPtr = ((NsfCallStackContent *)Tcl_CallFrame_clientData(invocationFrame));
         /*
-         * We were not called from a NSF frame.
+         * We were not called from an NSF frame.
          */
         if (cscPtr == NULL) {
           break;

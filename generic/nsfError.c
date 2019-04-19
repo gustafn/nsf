@@ -326,7 +326,7 @@ NsfErrInProc(
  *
  * NsfObjWrongArgs --
  *
- *      Produce a general error message when a NSF method is called with
+ *      Produce a general error message when an NSF method is called with
  *      an invalid argument list (wrong number of arguments).
  *
  * Results:
@@ -569,7 +569,7 @@ NsfNoCurrentObjectError(Tcl_Interp *interp, const char *methodName) {
  *
  * NsfObjErrType --
  *
- *      Produce a general error message when a NSF method is called with
+ *      Produce a general error message when an NSF method is called with
  *      an invalid value for some argument.
  *
  * Results:
