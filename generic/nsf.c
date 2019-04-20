@@ -15917,77 +15917,92 @@ DispatchDefaultMethod(Tcl_Interp *interp, NsfObject *object,
 
 static int
 DispatchDestroyMethod(Tcl_Interp *interp, NsfObject *object, unsigned int flags) {
-  int result;
-  Tcl_Obj *methodObj;
+  int              result;
   NsfRuntimeState *rst;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(object != NULL);
 
   rst = RUNTIME_STATE(interp);
-  /*
-   * If for some strange reason the runtime state is already deleted, don't
-   * crash.
-   */
   if (unlikely(rst == NULL)) {
 
+    /*
+     * There is no runtime state in this interpreter.
+     */
     if ((Tcl_Interp_flags(interp) & DELETED)) {
-      return TCL_OK;
+
+      /*
+       * The interpreter is already deleted, just ignore this this call.
+       */
+      result = TCL_OK;
+    } else {
+      /*
+       * In all other cases we expect a runtime state. If this is violated,
+       * something substantial must be wrong, so panic.
+       */
+
+      Tcl_Panic("Runtime state is lost");
+      result = TCL_OK;
     }
-  }
-  /*
-   * In all other cases (aside of the DELETED interp), we expect a runtime
-   * state. If this is violated, flag this via exception in development mode.
-   */
-  assert(rst != NULL);
-
-  /*
-   * Don't call destroy after exit handler started physical
-   * destruction, or when it was called already before
-   */
-  if (rst->exitHandlerDestroyRound == NSF_EXITHANDLER_ON_PHYSICAL_DESTROY
-      || (object->flags & NSF_DESTROY_CALLED) != 0u
-      ) {
-    return TCL_OK;
-  }
-
-  /*fprintf(stderr, "    DispatchDestroyMethod obj %p flags %.6x active %d\n",
-    object, object->flags,  object->activationCount); */
-
-  PRINTOBJ("DispatchDestroyMethod", object);
-
-  /*
-   * Flag that destroy was called and invoke the method.
-   */
-  object->flags |= NSF_DESTROY_CALLED;
-
-  if (CallDirectly(interp, object, NSF_o_destroy_idx, &methodObj)) {
-    NSF_PROFILE_TIME_DATA;
-    NSF_PROFILE_CALL(interp, object, Nsf_SystemMethodOpts[NSF_o_destroy_idx]);
-    result = NsfODestroyMethod(interp, object);
-    NSF_PROFILE_EXIT(interp, object, Nsf_SystemMethodOpts[NSF_o_destroy_idx]);
 
   } else {
-    result = CallMethod(object, interp, methodObj, 2, NULL,
-                        NSF_CM_IGNORE_PERMISSIONS|NSF_CSC_IMMEDIATE|flags);
-  }
-  if (unlikely(result != TCL_OK)) {
-    /*
-     * The object might be already gone here, since we have no stack frame.
-     * Therefore, we can't even use nsf::current object safely.
-     */
-    NsfErrorContext(interp, "method destroy");
 
-    if (++rst->errorCount > 20) {
-      Tcl_Panic("too many destroy errors occurred. Endless loop?");
-    }
-  } else if (rst->errorCount > 0) {
-    rst->errorCount--;
-  }
+    /*
+     * Don't call destroy after exit handler started physical
+     * destruction, or when it was called already before
+     */
+    if (rst->exitHandlerDestroyRound == NSF_EXITHANDLER_ON_PHYSICAL_DESTROY
+        || (object->flags & NSF_DESTROY_CALLED) != 0u
+       ) {
+      result = TCL_OK;
+
+    } else {
+      Tcl_Obj *methodObj;
+
+      /*
+       * We can call destroy.
+       */
+
+      /*fprintf(stderr, "    DispatchDestroyMethod obj %p flags %.6x active %d\n",
+        object, object->flags,  object->activationCount); */
+
+      PRINTOBJ("DispatchDestroyMethod", object);
+
+      /*
+       * Flag that destroy was called and invoke the method.
+       */
+      object->flags |= NSF_DESTROY_CALLED;
+
+      if (CallDirectly(interp, object, NSF_o_destroy_idx, &methodObj)) {
+        NSF_PROFILE_TIME_DATA;
+        NSF_PROFILE_CALL(interp, object, Nsf_SystemMethodOpts[NSF_o_destroy_idx]);
+        result = NsfODestroyMethod(interp, object);
+        NSF_PROFILE_EXIT(interp, object, Nsf_SystemMethodOpts[NSF_o_destroy_idx]);
+
+      } else {
+        result = CallMethod(object, interp, methodObj, 2, NULL,
+                            NSF_CM_IGNORE_PERMISSIONS|NSF_CSC_IMMEDIATE|flags);
+      }
+      if (unlikely(result != TCL_OK)) {
+        /*
+         * The object might be already gone here, since we have no stack frame.
+         * Therefore, we can't even use nsf::current object safely.
+         */
+        NsfErrorContext(interp, "method destroy");
+
+        if (++rst->errorCount > 20) {
+          Tcl_Panic("too many destroy errors occurred. Endless loop?");
+        }
+      } else if (rst->errorCount > 0) {
+        rst->errorCount--;
+      }
 
 #ifdef OBJDELETION_TRACE
-  fprintf(stderr, "DispatchDestroyMethod for %p exit\n", object);
+      fprintf(stderr, "DispatchDestroyMethod for %p exit\n", object);
 #endif
+    }
+  }
+
   return result;
 }
 
