@@ -29315,7 +29315,6 @@ NsfObjectPropertyCmd(Tcl_Interp *interp, NsfObject *object, ObjectpropertyIdx_t 
     /*
      * If a value is provided, return the error below.
      */
-    break;
   case ObjectpropertyRootclassIdx: flags = NSF_IS_ROOT_CLASS; break;
   case ObjectpropertySlotcontainerIdx: flags = NSF_IS_SLOT_CONTAINER; allowSet = 1; break;
   case ObjectpropertyKeepcallerselfIdx: flags = NSF_KEEP_CALLER_SELF; allowSet = 1; break;
@@ -32779,7 +32778,6 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *nameObj, int objc
    */
   if (unlikely(NSValidObjectName(nameString, (size_t)nameLength) == 0)) {
     result = NsfPrintError(interp, "cannot allocate object - illegal name '%s'", nameString);
-    autoNameCreate = NSF_FALSE;
     goto create_method_exit;
   }
 
@@ -34968,7 +34966,7 @@ FreeAllNsfObjectsAndClasses(
      */
     for (entry = *instances, lastEntry = NULL;
          entry != NULL;
-         lastEntry = entry, entry = entry->nextPtr) {
+         lastEntry = entry, entry = ((entry != NULL) ? entry->nextPtr : NULL)) {
       NsfClass *class = entry->clorobj;
 
       assert(class != NULL);
