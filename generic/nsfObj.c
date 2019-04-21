@@ -290,21 +290,25 @@ NsfFlagObjSet(
   if (objPtr->typePtr != &NsfFlagObjType) {
     TclFreeIntRep(objPtr);
     flagPtr = NEW(NsfFlag);
+    assert(flagPtr != NULL);
     /*fprintf(stderr, "NsfFlagObjSet allocated NsfFlag %p for %s\n", flagPtr, ObjStr(objPtr));*/
 
     objPtr->internalRep.twoPtrValue.ptr1 = (void *)flagPtr;
     objPtr->internalRep.twoPtrValue.ptr2 = NULL;
     objPtr->typePtr = &NsfFlagObjType;
+
   } else {
     flagPtr = (NsfFlag *)objPtr->internalRep.twoPtrValue.ptr1;
+
+    assert(flagPtr != NULL);
 
     /*fprintf(stderr, "NsfFlagObjSet %p reuses internal rep, serial (%d/%d)\n",
       objPtr, flagPtr->serial, serial);*/
 
-    if (flagPtr->payload != NULL) {DECR_REF_COUNT2("flagPtr->payload", flagPtr->payload);}
+      if (flagPtr->payload != NULL) {
+      DECR_REF_COUNT2("flagPtr->payload", flagPtr->payload);
+    }
   }
-
-  assert(flagPtr != NULL);
 
   /*
    * add values to the structure

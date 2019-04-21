@@ -1815,11 +1815,13 @@ static char *DStringAppendQualName(Tcl_DString *dsPtr, const Tcl_Namespace *nsPt
 
 static char *
 DStringAppendQualName(Tcl_DString *dsPtr, const Tcl_Namespace *nsPtr, const char *name) {
-  int oldLength = Tcl_DStringLength(dsPtr);
+  int oldLength;
 
   nonnull_assert(dsPtr != NULL);
   nonnull_assert(nsPtr != NULL);
   nonnull_assert(name != NULL);
+
+  oldLength = Tcl_DStringLength(dsPtr);
 
   Tcl_DStringAppend(dsPtr, nsPtr->fullName, -1);
   if (Tcl_DStringLength(dsPtr) > (oldLength + 2)) {
@@ -8448,13 +8450,13 @@ AssertionCheckList(Tcl_Interp *interp, NsfObject *object,
   nonnull_assert(object != NULL);
   nonnull_assert(methodName != NULL);
 
-  savedResultObj = Tcl_GetObjResult(interp);
   /*
    * No obj->opt -> checkoption == CHECK_NONE
    */
   if (object->opt == NULL) {
     return TCL_OK;
   }
+
   /*
    * Do not check assertion modifying methods, otherwise we cannot react in
    * catch on a runtime assertion check failure
@@ -8473,6 +8475,7 @@ AssertionCheckList(Tcl_Interp *interp, NsfObject *object,
   }
 #endif
 
+  savedResultObj = Tcl_GetObjResult(interp);
   INCR_REF_COUNT(savedResultObj);
 
   Tcl_ResetResult(interp);
@@ -8536,6 +8539,7 @@ AssertionCheckList(Tcl_Interp *interp, NsfObject *object,
 
   Tcl_SetObjResult(interp, savedResultObj);
   DECR_REF_COUNT(savedResultObj);
+
   return TCL_OK;
 }
 
@@ -10610,7 +10614,7 @@ static int GuardCheck(Tcl_Interp *interp, Tcl_Obj *guardObj)
 
 static int
 GuardCheck(Tcl_Interp *interp, Tcl_Obj *guardObj) {
-  NsfRuntimeState *rst = RUNTIME_STATE(interp);
+  NsfRuntimeState *rst;
   int              result;
 
   nonnull_assert(interp != NULL);
@@ -10623,7 +10627,7 @@ GuardCheck(Tcl_Interp *interp, Tcl_Obj *guardObj) {
    */
 
   /*fprintf(stderr, "checking guard **%s**\n", ObjStr(guardObj));*/
-
+  rst = RUNTIME_STATE(interp);
   rst->guardCount++;
   result = CheckConditionInScope(interp, guardObj);
   rst->guardCount--;
@@ -10930,14 +10934,13 @@ static void FilterAddActive(Tcl_Interp *interp, const char *methodName)
 
 static void
 FilterAddActive(Tcl_Interp *interp, const char *methodName) {
-  NsfRuntimeState *rst = RUNTIME_STATE(interp);
   Tcl_HashEntry *hPtr;
-  int newItem;
+  int            newItem;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(methodName != NULL);
 
-  hPtr = Tcl_CreateHashEntry(&rst->activeFilterTablePtr, methodName, &newItem);
+  hPtr = Tcl_CreateHashEntry(&RUNTIME_STATE(interp)->activeFilterTablePtr, methodName, &newItem);
   if (newItem != 0) {
     Tcl_SetHashValue(hPtr, INT2PTR(1));
   } else {
@@ -10966,13 +10969,12 @@ static bool FilterIsActive(Tcl_Interp *interp, const char *methodName)
 
 static bool
 FilterIsActive(Tcl_Interp *interp, const char *methodName) {
-  NsfRuntimeState     *rst = RUNTIME_STATE(interp);
   const Tcl_HashEntry *hPtr;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(methodName != NULL);
 
-  hPtr = Tcl_CreateHashEntry(&rst->activeFilterTablePtr, methodName, NULL);
+  hPtr = Tcl_CreateHashEntry(&RUNTIME_STATE(interp)->activeFilterTablePtr, methodName, NULL);
   return (hPtr != NULL);
 }
 
@@ -10995,11 +10997,10 @@ static int FiltersDefined(Tcl_Interp *interp)
 
 static int
 FiltersDefined(Tcl_Interp *interp) {
-  NsfRuntimeState *rst = RUNTIME_STATE(interp);
 
   nonnull_assert(interp != NULL);
 
-  return Tcl_HashSize(&rst->activeFilterTablePtr);
+  return Tcl_HashSize(&RUNTIME_STATE(interp)->activeFilterTablePtr);
 }
 
 
@@ -13745,7 +13746,7 @@ static int ProcMethodDispatchFinalize(ClientData data[], Tcl_Interp *interp, int
 
 static int
 ProcMethodDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
-  ParseContext *pcPtr = data[0];
+  ParseContext *pcPtr;
   /*const char *methodName = data[2];*/
 #if defined(NSF_WITH_ASSERTIONS) || defined(NRE)
   NsfCallStackContent *cscPtr = data[1];
@@ -13758,6 +13759,7 @@ ProcMethodDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
   nonnull_assert(data != NULL);
   nonnull_assert(interp != NULL);
 
+  pcPtr = data[0];
   /*fprintf(stderr, "ProcMethodDispatchFinalize %s %s flags %.6x isNRE %d pcPtr %p result %d\n",
           ObjectName(object), methodName,
           cscPtr->flags, (cscPtr->flags & NSF_CSC_CALL_IS_NRE), pcPtr, result);*/
@@ -13811,14 +13813,17 @@ static int ProcDispatchFinalize(ClientData data[], Tcl_Interp *interp, int resul
 
 static int
 ProcDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
-  ParseContext *pcPtr = data[1];
-  Tcl_Time     *ttPtr = data[2];
+  ParseContext *pcPtr;
+  Tcl_Time     *ttPtr;
+
+  nonnull_assert(data != NULL);
+  nonnull_assert(interp != NULL);
 
   /*const char *methodName = data[0];
     fprintf(stderr, "ProcDispatchFinalize of method %s\n", methodName);*/
 
-  nonnull_assert(data != NULL);
-  nonnull_assert(interp != NULL);
+  pcPtr = data[1];
+  ttPtr = data[2];
 
   if (ttPtr != NULL) {
     const char      *methodName = data[0];
@@ -15795,15 +15800,15 @@ ObjectDispatch(
        * Setting cscPtr->objc and cscPtr->objv is needed for invoking UNKNOWN
        * from ProcMethodDispatchFinalize()
        */
-      cscPtr->objc = objc-shift;
-      cscPtr->objv = objv+shift;
+      cscPtr->objc = objc - shift;
+      cscPtr->objv = objv + shift;
     }
 
     /* fprintf(stderr, "MethodDispatchCsc %s.%s %p flags %.6x cscPtr %p method-obj-type %s\n",
             ObjectName(object), methodName, (void*)object->mixinStack, cscPtr->flags,
             (void*)cscPtr, methodObj->typePtr ? methodObj->typePtr->name : "NONE");*/
 
-    result = MethodDispatchCsc(clientData, interp, objc-shift, objv+shift,
+    result = MethodDispatchCsc(clientData, interp, objc - shift, objv + shift,
                                resolvedCmd, cscPtr, methodName, &isValidCsc);
     /* fprintf(stderr, "MethodDispatchCsc %s.%s %p flags %.6x cscPtr %p method-obj-type %s DONE\n",
             ObjectName(object), methodName, (void*)object->mixinStack, cscPtr->flags,
@@ -15827,8 +15832,8 @@ ObjectDispatch(
     if ((flags & NSF_CM_NO_UNKNOWN) != 0u) {
       cscPtr->flags |= NSF_CSC_CALL_NO_UNKNOWN;
     }
-    cscPtr->objc = objc-shift;
-    cscPtr->objv = objv+shift;
+    cscPtr->objc = objc - shift;
+    cscPtr->objv = objv + shift;
   }
 
  exit_object_dispatch:
@@ -18184,25 +18189,28 @@ ParameterMethodForwardDispatch(Tcl_Interp *interp, NsfObject *object,
  *
  *----------------------------------------------------------------------
  */
-static int ParameterMethodDispatch(Tcl_Interp *interp, NsfObject *object,
-                                   Nsf_Param *paramPtr, Tcl_Obj *newValue,
-                                   CallFrame *uplevelVarFramePtr,
-                                   const char *initString,
-                                   Tcl_Obj **nextObjPtr,
-                                   int nrRemainingArgs)
-  nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(6) nonnull(7);
+static int ParameterMethodDispatch(
+    Tcl_Interp *interp, NsfObject *object,
+    Nsf_Param *paramPtr, Tcl_Obj *newValue,
+    CallFrame *uplevelVarFramePtr,
+    const char *initString,
+    Tcl_Obj **nextObjPtr,
+    int nrRemainingArgs
+) nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(6) nonnull(7);
 
 static int
-ParameterMethodDispatch(Tcl_Interp *interp, NsfObject *object,
-                        Nsf_Param *paramPtr, Tcl_Obj *newValue,
-                        CallFrame *uplevelVarFramePtr,
-                        const char *initString,
-                        Tcl_Obj **nextObjPtr,
-                        int nrRemainingArgs) {
-  CallFrame *varFramePtr = Tcl_Interp_varFramePtr(interp);
-  NsfCallStackContent csc, *cscPtr = &csc;
-  CallFrame frame2, *framePtr2 = &frame2;
-  int result = TCL_OK;
+ParameterMethodDispatch(
+    Tcl_Interp *interp, NsfObject *object,
+    Nsf_Param *paramPtr, Tcl_Obj *newValue,
+    CallFrame *uplevelVarFramePtr,
+    const char *initString,
+    Tcl_Obj **nextObjPtr,
+    int nrRemainingArgs
+) {
+  CallFrame           *varFramePtr;
+  NsfCallStackContent  csc, *cscPtr = &csc;
+  CallFrame            frame2, *framePtr2 = &frame2;
+  int                  result = TCL_OK;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(object != NULL);
@@ -18232,8 +18240,9 @@ ParameterMethodDispatch(Tcl_Interp *interp, NsfObject *object,
    * the current obj-frame. Nsf_PushFrameCsc() will establish a
    * CMETHOD frame.
    */
-
+  varFramePtr = Tcl_Interp_varFramePtr(interp);
   Tcl_Interp_varFramePtr(interp) = varFramePtr->callerVarPtr;
+
   cscPtr->flags = 0;
   CscInit(cscPtr, object, object->cl /*cl*/, NULL /*cmd*/,
           NSF_CSC_TYPE_PLAIN, 0, NsfGlobalStrings[NSF_CONFIGURE]);
@@ -20216,11 +20225,14 @@ NSF_INLINE static int NextInvokeFinalize(ClientData data[], Tcl_Interp *interp, 
 
 NSF_INLINE static int
 NextInvokeFinalize(ClientData data[], Tcl_Interp *interp, int result) {
-  Tcl_Obj             **nobjv = data[0];
-  NsfCallStackContent  *cscPtr = data[1];
+  Tcl_Obj             **nobjv;
+  NsfCallStackContent  *cscPtr;
 
   nonnull_assert(data != NULL);
   nonnull_assert(interp != NULL);
+
+  nobjv = data[0];
+  cscPtr = data[1];
 
   /*fprintf(stderr, "***** NextInvokeFinalize cscPtr %p flags %.6x is next %d result %d unk %d\n",
           cscPtr, cscPtr->flags, cscPtr->flags & NSF_CSC_CALL_IS_NEXT, result,
@@ -20284,7 +20296,7 @@ NextSearchAndInvoke(
   bool             endOfFilterChain = NSF_FALSE,
                    isMixinEntry = NSF_FALSE,
                    isFilterEntry = NSF_FALSE;
-  NsfRuntimeState *rst = RUNTIME_STATE(interp);
+  NsfRuntimeState *rst;
   NsfObject       *object;
   NsfClass        *class;
 
@@ -20292,6 +20304,7 @@ NextSearchAndInvoke(
   nonnull_assert(methodName != NULL);
   nonnull_assert(cscPtr != NULL);
 
+  rst = RUNTIME_STATE(interp);
   /*
    * Search the next method & compute its method data
    */
@@ -24646,7 +24659,7 @@ ArgumentParse(
      * parameter, "valueObj" might be already provided for valueInArgument.
      */
     if (unlikely(pPtr > lastParamPtr)) {
-      int result;
+      int      result;
       Tcl_Obj *methodPathObj;
 
       methodPathObj = NsfMethodNamePath(interp, CallStackGetTclFrame(interp, NULL, 0),
@@ -27552,10 +27565,13 @@ cmd __unset_unknown_args NsfUnsetUnknownArgsCmd {}
 
 static int
 NsfUnsetUnknownArgsCmd(Tcl_Interp *interp) {
-  CallFrame *varFramePtr = Tcl_Interp_varFramePtr(interp);
-  Proc      *proc = Tcl_CallFrame_procPtr(varFramePtr);
+  CallFrame *varFramePtr;
+  Proc      *proc;
 
   nonnull_assert(interp != NULL);
+
+  varFramePtr = Tcl_Interp_varFramePtr(interp);
+  proc = Tcl_CallFrame_procPtr(varFramePtr);
 
   if (likely(proc != NULL)) {
     const CompiledLocal *ap;
@@ -28708,8 +28724,8 @@ NsfMethodDeleteCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
                    Tcl_Obj *methodNameObj) {
   NsfObject      *regObject, *defObject;
   const char     *methodName1 = NULL;
-  const NsfClass *class = withPer_object == 0 && NsfObjectIsClass(object) ? (NsfClass *)object : NULL;
-  bool            fromClassNS = (class != NULL);
+  const NsfClass *class;
+  bool            fromClassNS;
   int             result;
   Tcl_DString     ds, *dsPtr = &ds;
   Tcl_Command     cmd;
@@ -28717,6 +28733,9 @@ NsfMethodDeleteCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
   nonnull_assert(interp != NULL);
   nonnull_assert(object != NULL);
   nonnull_assert(methodNameObj != NULL);
+
+  class = withPer_object == 0 && NsfObjectIsClass(object) ? (NsfClass *)object : NULL;
+  fromClassNS = (class != NULL);
 
   Tcl_DStringInit(dsPtr);
 
@@ -34966,7 +34985,7 @@ FreeAllNsfObjectsAndClasses(
      */
     for (entry = *instances, lastEntry = NULL;
          entry != NULL;
-         lastEntry = entry, entry = ((entry != NULL) ? entry->nextPtr : NULL)) {
+         (entry != NULL ? (lastEntry = entry, entry = entry->nextPtr) : NULL)) {
       NsfClass *class = entry->clorobj;
 
       assert(class != NULL);
@@ -35083,12 +35102,13 @@ FreeAllNsfObjectsAndClasses(
 
 static void
 ExitHandler(ClientData clientData) {
-  Tcl_Interp *interp = (Tcl_Interp *)clientData;
-  int flags;
-  NsfRuntimeState *rst = RUNTIME_STATE(interp);
+  Tcl_Interp      *interp = (Tcl_Interp *)clientData;
+  int              flags;
+  NsfRuntimeState *rst;
 
   nonnull_assert(clientData != NULL);
 
+  rst = RUNTIME_STATE(interp);
   /*fprintf(stderr, "+++ (%lx) ExitHandler interp %p deleted %d exitHandlerDestroyRound %d\n",
           (long)(void*)pthread_self(), interp, (Tcl_Interp_flags(interp) & DELETED),
           rst->exitHandlerDestroyRound);*/

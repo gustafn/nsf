@@ -448,11 +448,13 @@ Nsf_InfoFrameObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, int objc,
 
 int
 NsfShadowTclCommands(Tcl_Interp *interp, NsfShadowOperations load) {
-  int rc = TCL_OK;
-  NsfRuntimeState *rst = RUNTIME_STATE(interp);
+  int              rc = TCL_OK;
+  NsfRuntimeState *rst;
 
   nonnull_assert(interp != NULL);
 
+  rst = RUNTIME_STATE(interp);
+ 
   if (load == SHADOW_LOAD) {
 
     assert(rst->tclCommands == NULL);

@@ -213,11 +213,12 @@ CscListAdd(const Tcl_Interp *interp, const NsfCallStackContent *cscPtr) {
  */
 static int
 CscListRemove(const Tcl_Interp *interp, const NsfCallStackContent *cscPtr, NsfClasses **cscListPtr) {
-  NsfClasses *entryPtr, **cscList = &RUNTIME_STATE(interp)->cscList;
+  NsfClasses *entryPtr, **cscList;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(cscPtr != NULL);
 
+  cscList = &RUNTIME_STATE(interp)->cscList;
   entryPtr = NsfClassListUnlink(cscList, cscPtr);
   if (entryPtr != NULL) {
     FREE(NsfClasses, entryPtr);
@@ -369,12 +370,13 @@ static void Nsf_PopFrameObj(Tcl_Interp *interp, CallFrame *framePtr) {
 
 NSF_INLINE static void
 Nsf_PushFrameCsc(Tcl_Interp *interp, const NsfCallStackContent *cscPtr, CallFrame *framePtr) {
-  CallFrame *varFramePtr = Tcl_Interp_varFramePtr(interp);
+  CallFrame *varFramePtr;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(cscPtr != NULL);
   nonnull_assert(framePtr != NULL);
 
+  varFramePtr = Tcl_Interp_varFramePtr(interp);
   /*fprintf(stderr,"PUSH CMETHOD_FRAME (Nsf_PushFrameCsc) frame %p cscPtr %p methodName %s\n",
     framePtr, cscPtr, Tcl_GetCommandName(interp, cscPtr->cmdPtr));*/
 
@@ -637,12 +639,12 @@ NsfCallStackFindCallingContext(const Tcl_Interp *interp,
                                Tcl_CallFrame **callingFramePtrPtr) {
   register Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
   int lvl = Tcl_CallFrame_level(varFramePtr);
-  
+
   nonnull_assert(interp != NULL);
 
   for (; likely(varFramePtr != NULL); varFramePtr = Tcl_CallFrame_callerVarPtr(varFramePtr)) {
     register unsigned int flags = (unsigned int)Tcl_CallFrame_isProcCallFrame(varFramePtr);
-    
+
     if (flags != 0u) {
       /*
        * A proc frame
@@ -650,7 +652,7 @@ NsfCallStackFindCallingContext(const Tcl_Interp *interp,
       NsfCallStackContent *cscPtr =
         (flags & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) ?
         ((NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr)) : NULL;
-      
+
       if (cscPtr != NULL) {
         /*
          * An NSF method frame.
@@ -660,7 +662,7 @@ NsfCallStackFindCallingContext(const Tcl_Interp *interp,
           continue;
         }
       }
-      
+
       if (offset != 0) {
         offset--;
       } else if (Tcl_CallFrame_level(varFramePtr) < lvl) {
@@ -669,7 +671,7 @@ NsfCallStackFindCallingContext(const Tcl_Interp *interp,
         }
         return cscPtr;
       }
-      
+
     } else if (callingFramePtrPtr != NULL &&
                *callingFramePtrPtr == NULL &&
                Tcl_CallFrame_level(varFramePtr) < lvl) {
@@ -815,10 +817,11 @@ CallStackRestoreSavedFrames(Tcl_Interp *interp, const callFrameContext *ctx) {
  */
 static NsfCallStackContent *
 CallStackFindActiveFilter(const Tcl_Interp *interp) {
-  register const Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
+  register const Tcl_CallFrame *varFramePtr;
 
   nonnull_assert(interp != NULL);
 
+  varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
   for (; varFramePtr != NULL; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
     if (((unsigned int)Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) != 0u) {
       NsfCallStackContent *cscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
@@ -1049,11 +1052,12 @@ FilterActiveOnObj(
     const NsfObject *object,
     const Tcl_Command cmd
 ) {
-  register const Tcl_CallFrame *varFramePtr = (const Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
+  register const Tcl_CallFrame *varFramePtr;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(object != NULL);
 
+  varFramePtr = (const Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
   for (; varFramePtr != NULL; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
     if (((unsigned int)Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) != 0u) {
       NsfCallStackContent *cscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
@@ -1321,7 +1325,6 @@ CscInit_(
  */
 NSF_INLINE static void
 CscFinish_(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
-  NsfObject *object;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(cscPtr != NULL);
@@ -1333,10 +1336,8 @@ CscFinish_(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
   }
 #endif
 
-  object = cscPtr->self;
-
   /*fprintf(stderr, "CscFinish %p object %p %s flags %.6x cmdPtr %p\n", cscPtr,
-    object, ObjectName(object), cscPtr->flags, cscPtr->cmdPtr); */
+    cscPtr->self, ObjectName(cscPtr->self), cscPtr->flags, cscPtr->cmdPtr); */
 
   /*
    *  In the cases, where an cmd was provided, we tracked in init the
@@ -1347,6 +1348,7 @@ CscFinish_(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
   if (likely(cscPtr->cmdPtr != NULL)) {
     int allowDestroy = RUNTIME_STATE(interp)->exitHandlerDestroyRound ==
       NSF_EXITHANDLER_OFF;
+    NsfObject *object = cscPtr->self;
 
     if ((Tcl_Command_flags(cscPtr->cmdPtr) & NSF_CMD_DEBUG_METHOD) != 0) {
 #if defined(NSF_PROFILE) || defined(NSF_DTRACE)
@@ -1436,10 +1438,12 @@ static Tcl_CallFrame * BeginOfCallChain(const Tcl_Interp *interp, NsfObject *obj
 
 static Tcl_CallFrame *
 BeginOfCallChain(const Tcl_Interp *interp, NsfObject *object) {
-  Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp),
-    *prevFramePtr = varFramePtr;
+  Tcl_CallFrame *varFramePtr, *prevFramePtr;
 
   nonnull_assert(interp != NULL);
+
+  varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
+  prevFramePtr = varFramePtr;
 
   if (object != NULL) {
     fprintf(stderr, "BeginOfCallChain obj %s\n", ObjectName(object));
