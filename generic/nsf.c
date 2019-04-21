@@ -471,7 +471,7 @@ NSF_INLINE static NsfParamDefs *ParamDefsGet(
 
 NSF_INLINE static NsfProcContext *ProcContextGet(
     const Tcl_Command cmdPtr
-) nonnull(1);
+) nonnull(1) pure;
 
 static NsfProcContext *ProcContextRequire(
     Tcl_Command cmd
@@ -1710,7 +1710,7 @@ ObjTrace(const char *string, NsfObject *object) {
  *----------------------------------------------------------------------
  */
 static const char * NSTail(const char *string)
-  nonnull(1);
+  nonnull(1) pure;
 
 static const char *
 NSTail(const char *string) {
@@ -3951,7 +3951,7 @@ ResolveMethodName(
  *----------------------------------------------------------------------
  */
 NSF_INLINE static bool CmdIsProc(const Tcl_Command cmd)
-  nonnull(1);
+  nonnull(1) pure;
 
 NSF_INLINE static bool
 CmdIsProc(const Tcl_Command cmd) {
@@ -3978,7 +3978,7 @@ CmdIsProc(const Tcl_Command cmd) {
  *----------------------------------------------------------------------
  */
 NSF_INLINE static bool CmdIsNsfObject(Tcl_Command cmd)
-  nonnull(1);
+  nonnull(1) pure;
 
 NSF_INLINE static bool
 CmdIsNsfObject(Tcl_Command cmd) {
@@ -4002,7 +4002,7 @@ CmdIsNsfObject(Tcl_Command cmd) {
  *----------------------------------------------------------------------
  */
 static Proc *GetTclProcFromCommand(const Tcl_Command cmd)
-  nonnull(1);
+  nonnull(1) pure;
 
 static Proc *
 GetTclProcFromCommand(const Tcl_Command cmd) {
@@ -10996,7 +10996,7 @@ FilterIsActive(Tcl_Interp *interp, const char *methodName) {
  *----------------------------------------------------------------------
  */
 static int FiltersDefined(Tcl_Interp *interp)
-  nonnull(1);
+  nonnull(1) pure;
 
 static int
 FiltersDefined(Tcl_Interp *interp) {
@@ -12581,7 +12581,7 @@ ParamDefsGet(
  */
 NSF_INLINE static Tcl_Obj *ParamDefsGetReturns(
     const Tcl_Command cmdPtr
-) nonnull(1);
+) nonnull(1) pure;
 
 NSF_INLINE static Tcl_Obj *
 ParamDefsGetReturns(const Tcl_Command cmdPtr) {
@@ -15051,7 +15051,7 @@ NsfFindClassMethod(Tcl_Interp *interp, NsfClass *class, const char *methodName) 
  */
 static const char *CmdObjProcName(
     Tcl_Command cmd
-) nonnull(1);
+) nonnull(1) pure;
 
 static const char *
 CmdObjProcName(
@@ -15953,7 +15953,7 @@ DispatchDestroyMethod(Tcl_Interp *interp, NsfObject *object, unsigned int flags)
     if ((Tcl_Interp_flags(interp) & DELETED)) {
 
       /*
-       * The interpreter is already deleted, just ignore this this call.
+       * The interpreter is already deleted, just ignore this call.
        */
       result = TCL_OK;
     } else {
@@ -16125,15 +16125,18 @@ DispatchUnknownMethod(Tcl_Interp *interp, NsfObject *object,
     unknownObj, methodObj, ObjStr(methodObj), callInfoObj, (callInfoObj != NULL) ?objv[1]:NULL, (callInfoObj != NULL) ?ObjStr(objv[1]) : NULL,
     methodName);*/
 
-  if ((unknownObj != NULL) && (methodObj != unknownObj) && (flags & NSF_CSC_CALL_NO_UNKNOWN) == 0u) {
+  if ((unknownObj != NULL)
+      && (methodObj != unknownObj)
+      && (flags & NSF_CSC_CALL_NO_UNKNOWN) == 0u
+     ) {
     /*
-     * back off and try unknown;
+     * Back off and try unknown.
      */
     bool mustCopy = (*(ObjStr(methodObj)) == ':');
     ALLOC_ON_STACK(Tcl_Obj*, objc+3, tov);
 
     if (callInfoObj == NULL) {
-      callInfoObj = mustCopy ? Tcl_NewStringObj(methodName, -1) : methodObj;
+      callInfoObj = (mustCopy ? Tcl_NewStringObj(methodName, -1) : methodObj);
     }
     INCR_REF_COUNT(callInfoObj);
 
@@ -16159,8 +16162,13 @@ DispatchUnknownMethod(Tcl_Interp *interp, NsfObject *object,
     DECR_REF_COUNT(callInfoObj);
     FREE_ON_STACK(Tcl_Obj*, tov);
 
-  } else { /* no unknown called, this is the built-in unknown handler */
+  } else {
     Tcl_Obj *tailMethodObj = NULL;
+
+    /*
+     * No unknown called. This is the built-in unknown handler.
+     */
+
     if (objc > 1 && ((*methodName) == '-' || (unknownObj && objv[0] == unknownObj))) {
       int length;
 
@@ -16174,7 +16182,8 @@ DispatchUnknownMethod(Tcl_Interp *interp, NsfObject *object,
       }
     }
     result = NsfPrintError(interp, "%s: unable to dispatch method '%s'",
-                           ObjectName_(object), (tailMethodObj != NULL) ? MethodName(tailMethodObj) : methodName);
+                           ObjectName_(object),
+                           (tailMethodObj != NULL) ? MethodName(tailMethodObj) : methodName);
   }
 
   /*
@@ -16492,9 +16501,11 @@ Nsf_ConvertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr,
     }
   } else {
     result = TCL_OK;
+
 #if defined(NSF_WITH_VALUE_WARNINGS)
     if (RUNTIME_STATE(interp)->logSeverity == NSF_LOG_DEBUG) {
       const char *value = ObjStr(objPtr);
+
       if (unlikely(*value == '-'
                    && (pPtr->flags & NSF_ARG_CHECK_NONPOS) != 0u
                    && isalpha(*(value+1))
@@ -16636,12 +16647,12 @@ Nsf_ConvertToInteger(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr
    */
   if (objPtr->typePtr == Nsf_OT_intType) {
     /*
-     * We know already, that the value is an int
+     * We know already that the value is an int
      */
     result = TCL_OK;
   } else if (objPtr->typePtr == Nsf_OT_doubleType) {
     /*
-     * We know already, that the value is not an int
+     * We know already that the value is not an int
      */
     result = TCL_ERROR;
   } else {
@@ -17005,6 +17016,7 @@ ConvertViaCmd(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr,
             pPtr->flags & NSF_ARG_IS_CONVERTER);*/
     if ((pPtr->flags & NSF_ARG_IS_CONVERTER) != 0u) {
       Tcl_Obj *resultObj;
+
       /*
        * If we want to convert, the resulting obj is the result of the
        * converter. The increment of the refCount is necessary e.g. for
@@ -17083,6 +17095,7 @@ ConvertToObjpattern(Tcl_Interp *interp, Tcl_Obj *objPtr, const Nsf_Param *UNUSED
      * We have no meta characters, we try to check for an existing object
      */
     NsfObject *object = NULL;
+
     if (GetObjectFromObj(interp, objPtr, &object) == TCL_OK && object != NULL) {
       patternObj = object->cmdName;
     }
@@ -17161,6 +17174,7 @@ static int ParamOptionSetConverter(Tcl_Interp *interp, Nsf_Param *paramPtr,
 static int
 ParamOptionSetConverter(Tcl_Interp *interp, Nsf_Param *paramPtr,
                         const char *typeName, Nsf_TypeConverter *converter) {
+  int result;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(paramPtr != NULL);
@@ -17168,13 +17182,15 @@ ParamOptionSetConverter(Tcl_Interp *interp, Nsf_Param *paramPtr,
   nonnull_assert(converter != NULL);
 
   if (paramPtr->converter != NULL) {
-    return NsfPrintError(interp, "refuse to redefine parameter type of '%s' from type '%s' to type '%s'",
-                         paramPtr->name, paramPtr->type, typeName);
+    result = NsfPrintError(interp, "refuse to redefine parameter type of '%s' from type '%s' to type '%s'",
+                           paramPtr->name, paramPtr->type, typeName);
+  } else {
+    paramPtr->converter = converter;
+    paramPtr->nrArgs = 1;
+    paramPtr->type = typeName;
+    result = TCL_OK;
   }
-  paramPtr->converter = converter;
-  paramPtr->nrArgs = 1;
-  paramPtr->type = typeName;
-  return TCL_OK;
+  return result;
 }
 
 
@@ -19690,7 +19706,7 @@ ForwardProcessOptions(Tcl_Interp *interp, Tcl_Obj *nameObj,
  */
 
 static const char * StripBodyPrefix(const char *body)
-  nonnull(1);
+  nonnull(1) pure;
 
 static const char *
 StripBodyPrefix(const char *body) {
@@ -24335,7 +24351,7 @@ Nsf_ArgumentParse(
  */
 
 static const Nsf_Param * NextParam(Nsf_Param const *paramPtr, const Nsf_Param *lastParamPtr)
-  nonnull(1) nonnull(2) returns_nonnull;
+  nonnull(1) nonnull(2) returns_nonnull pure;
 
 static const Nsf_Param *
 NextParam(Nsf_Param const *paramPtr, const Nsf_Param *lastParamPtr) {
@@ -26274,7 +26290,7 @@ MethodTypeMatches(Tcl_Interp *interp, MethodtypeIdx_t methodType, Tcl_Command cm
  *----------------------------------------------------------------------
  */
 static bool ProtectionMatches(CallprotectionIdx_t withCallprotection, Tcl_Command cmd)
-  nonnull(2);
+  nonnull(2) pure;
 
 static bool
 ProtectionMatches(CallprotectionIdx_t withCallprotection, Tcl_Command cmd) {
