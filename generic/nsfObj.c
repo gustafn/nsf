@@ -519,9 +519,9 @@ MixinregSetFromAny(
 int
 NsfMixinregGet(
     Tcl_Interp *interp,
-    Tcl_Obj *obj,
-    NsfClass **classPtr,
-    Tcl_Obj **guardObj
+    Tcl_Obj    *obj,
+    NsfClass  **classPtr,
+    Tcl_Obj   **guardObj
 ) {
 
   nonnull_assert(interp != NULL);

@@ -756,13 +756,16 @@ NsfProfileRecordMethodData(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
  */
 void
 NsfProfileRecordProcData(Tcl_Interp *interp, const char *methodName, long startSec, long startUsec) {
-  NsfRuntimeState *rst = RUNTIME_STATE(interp);
-  NsfProfile *profilePtr = &rst->profile;
-  double totalMicroSec;
-  struct Tcl_Time trt;
+  NsfRuntimeState *rst;
+  NsfProfile      *profilePtr;
+  double           totalMicroSec;
+  struct Tcl_Time  trt;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(methodName != NULL);
+
+  rst = RUNTIME_STATE(interp);
+  profilePtr = &rst->profile;
 
   Tcl_GetTime(&trt);
 
@@ -827,11 +830,12 @@ NsfProfileClearTable(Tcl_HashTable *table) {
 
 void
 NsfProfileClearData(Tcl_Interp *interp) {
-  NsfProfile *profilePtr = &RUNTIME_STATE(interp)->profile;
-  struct Tcl_Time trt;
+  NsfProfile      *profilePtr;
+  struct Tcl_Time  trt;
 
   nonnull_assert(interp != NULL);
 
+  profilePtr = &RUNTIME_STATE(interp)->profile;
   NsfProfileClearTable(&profilePtr->objectData);
   NsfProfileClearTable(&profilePtr->methodData);
   NsfProfileClearTable(&profilePtr->procData);
@@ -906,12 +910,13 @@ NsfProfileGetTable(Tcl_Interp *interp, Tcl_HashTable *table) {
 void
 NsfProfileGetData(Tcl_Interp *interp) {
   Tcl_Obj        *list = Tcl_NewListObj(0, NULL);
-  NsfProfile     *profilePtr = &RUNTIME_STATE(interp)->profile;
+  NsfProfile     *profilePtr;
   long            totalMicroSec;
   struct Tcl_Time trt;
 
   nonnull_assert(interp != NULL);
 
+  profilePtr = &RUNTIME_STATE(interp)->profile;
   Tcl_GetTime(&trt);
   totalMicroSec = (trt.sec - profilePtr->startSec) * 1000000 + (trt.usec - profilePtr->startUSec);
 
@@ -943,11 +948,12 @@ NsfProfileGetData(Tcl_Interp *interp) {
  */
 void
 NsfProfileInit(Tcl_Interp *interp) {
-  NsfProfile     *profilePtr = &RUNTIME_STATE(interp)->profile;
+  NsfProfile     *profilePtr;
   struct Tcl_Time trt;
 
   nonnull_assert(interp != NULL);
 
+  profilePtr = &RUNTIME_STATE(interp)->profile;
   Tcl_InitHashTable(&profilePtr->objectData, TCL_STRING_KEYS);
   Tcl_InitHashTable(&profilePtr->methodData, TCL_STRING_KEYS);
   Tcl_InitHashTable(&profilePtr->procData, TCL_STRING_KEYS);
@@ -977,10 +983,11 @@ NsfProfileInit(Tcl_Interp *interp) {
  */
 void
 NsfProfileFree(Tcl_Interp *interp) {
-  NsfProfile *profilePtr = &RUNTIME_STATE(interp)->profile;
+  NsfProfile *profilePtr;
 
   nonnull_assert(interp != NULL);
 
+  profilePtr = &RUNTIME_STATE(interp)->profile;
   NsfProfileClearData(interp);
   Tcl_DeleteHashTable(&profilePtr->objectData);
   Tcl_DeleteHashTable(&profilePtr->methodData);

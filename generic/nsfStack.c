@@ -637,10 +637,13 @@ NsfCallStackFindCallingContext(const Tcl_Interp *interp,
                                int offset,
                                Tcl_CallFrame **callingProcFramePtrPtr,
                                Tcl_CallFrame **callingFramePtrPtr) {
-  register Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
-  int lvl = Tcl_CallFrame_level(varFramePtr);
+  register Tcl_CallFrame *varFramePtr;
+  int                     lvl;
 
   nonnull_assert(interp != NULL);
+
+  varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
+  lvl = Tcl_CallFrame_level(varFramePtr);
 
   for (; likely(varFramePtr != NULL); varFramePtr = Tcl_CallFrame_callerVarPtr(varFramePtr)) {
     register unsigned int flags = (unsigned int)Tcl_CallFrame_isProcCallFrame(varFramePtr);
@@ -865,7 +868,7 @@ CallStackFindEnsembleCsc(const Tcl_CallFrame *framePtr, Tcl_CallFrame **framePtr
     cscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
     assert(cscPtr != NULL);
 
-    /*fprintf(stderr,"	--- frame %p cmdPtr %p NSF_CSC_TYPE_ENSEMBLE %d NSF_CSC_CALL_IS_ENSEMBLE %d \
+    /*fprintf(stderr,"--- frame %p cmdPtr %p NSF_CSC_TYPE_ENSEMBLE %d NSF_CSC_CALL_IS_ENSEMBLE %d \
                          NSF_CSC_TYPE_INACTIVE %d\n",
             varFramePtr,
             cscPtr->cmdPtr,
@@ -963,7 +966,7 @@ CallStackMethodPath(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
 
     assert(cscPtr != NULL);
 
-    /*fprintf(stderr,	"--- frame %p cmdPtr %p cmd %s NSF_CSC_TYPE_ENSEMBLE %d \
+    /*fprintf(stderr, "--- frame %p cmdPtr %p cmd %s NSF_CSC_TYPE_ENSEMBLE %d \
                         NSF_CSC_CALL_IS_ENSEMBLE %d NSF_CSC_TYPE_INACTIVE %d\n",
             framePtr,
             cscPtr->cmdPtr,
