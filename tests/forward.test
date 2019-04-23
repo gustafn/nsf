@@ -361,13 +361,13 @@ nx::test case positioning-arg-extended {
 
   obj public object forward foo list {%obj foo}
   if {$::tcl86} {
+    ? {obj foo 1 2 3} "TCL LIMIT STACK" "stack overflow"
+  } else {
     #
     # Deactivate under windows for the time being.
     #
-    if {$::tcl_platform(platform) ne "windows" } {
-      ? {obj foo 1 2 3} "TCL LIMIT STACK" "stack overflow"
-    }
-  } else {
+    # see CheckCStack in Tcl 8.5:
+    # https://core.tcl-lang.org/tcl/artifact?name=97fd3164833e9ef3&ln=3576
     if {$::tcl_platform(platform) ne "windows" } {
       ? {obj foo 1 2 3} {too many nested evaluations (infinite loop?)} "stack overflow"
     } else {
