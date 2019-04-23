@@ -66,6 +66,12 @@ New Features
 
 - Maintenance & bug fixes:
 
+  * VLA reform: Avoid the use of variable-length arrays (VLA) when
+    building argument vectors of Tcl_Objs internally to NSF. Use
+    fixed-sized ones (stack-allocated for a size known at compile time
+    or dynamically allocated above) to prevent from potential
+    overflows and to produce more time-efficient instructions.
+
   * Tcl 8.7:
 
     Support for Tcl 8.7a1 and the upcoming, unreleased Tcl 8.7a2
@@ -73,6 +79,10 @@ New Features
     regression tests execute successfully.
 
   * Misc (esp. NSF/C):
+
+  * Test suite: Fix recursion tests on 8.5 (windows-only,
+    forward.test) for platform-specific error messages (CheckCStack),
+    obsolete for 8.6 with NRE.
 
 - Build environments:
 

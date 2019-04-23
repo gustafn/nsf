@@ -269,73 +269,43 @@
 
 2019-03-20  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	- handle ticket #3 on sourceforge: explicit "next" call in ensemble
 	  leads to unwanted "unknown" handler call [156a37fe]
 
 2019-03-18  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- since we know length, we can replace strcmp by memcmp [c3085d62]
+	* nsf.c (CompiledLocalsLookup, CompiledColonLocalsLookupBuildCache): Since
+	we know length, we can replace strcmp by memcmp [c3085d62]
 
 2019-03-17  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- trigger new travis build [61b88669]
-
-
-	- error message on stack overflow differs on windows and unix for tcl
-	  8.5 [8b333a99]
-
-
-	- we see now a different error message in tcl8.5 for a recursive loop
+	* forward.test: Trigger new travis build [61b88669]
+	* forward.test: Error message on stack overflow differs on windows
+	and unix for Tcl 8.5, see CheckCStack. [8b333a99]
+	* forward.test: We see now a different error message in tcl8.5 for a recursive loop
 	  (drop test?) [c0221269]
-
-
-	- improve type cleanness [b86d0335]
-
-
-	-
-	- deactivate under windows for the time being [3abc6a6f]
-
-
-	- make test more robust ("file lstat" returns less data under windows)
+	* nsf.c (MethodHandleObj): Improve type cleanness [b86d0335]
+	* forward.test: Deactivate under windows for the time being [3abc6a6f]
+	* forward.test (methods.test): Make test more robust ("file lstat"
+	returns less data under windows)
 	  [a65f2c7d]
-
-
-	- added an additional variant of ALLOC_ON_STACK [459516f9]
+	* nsf.c, nsfInt.h (ALLOC_ON_STACK): Added an alternative variant
+	of ALLOC_ON_STACK [459516f9]
 
 2019-03-16  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- improve spelling [93875ccd]
-
-
-	- improve spelling [3d145fa5]
-
-
-	- unify spelling of "subclass" [f52d344b]
-
-
-	- improve spelling [38ea9f94]
-
-
-	- align names (use "subclass" instead of "sub-class") [0697a2e3]
-
-
-	- align behavior of "current activelevel" with "... callinglevel" in
-	  case no NSF frame is found [d5f0e46c]
-
-
-	- fix typos and make spelling more uniform [c465bb71]
-
-
-	- add regression test for testing the behavior of :upvar from toplevel
-	  tclsh with and without filters [85eec46a]
-
-
-	- conservative fix for "current callinglevel"; probably more to come
-	  [587c2fab]
+	* tutorial.html, tutorial2.html, next-migration.html,
+	next-tutorial.html: Improve spelling [93875ccd, 3d145fa5,
+	38ea9f94]
+	* protected.test, Object.man: Align names (use "subclass" instead of
+	"sub-class") [0697a2e3, f52d344b]
+	* nsf.c (ComputeLevelObj): Align behavior of "current activelevel"
+	with "... callinglevel" in case no NSF frame is found [d5f0e46c]
+	* nsf.c: Fix typos and make spelling more uniform. [c465bb71]
+	* methods.test: Add regression test for testing the behavior of
+	:upvar from toplevel tclsh with and without filters [85eec46a]
+	* nsf.c (ComputeLevelObj): Conservative fix for "current
+	callinglevel"; probably more to come [587c2fab]
 
 2019-03-15  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
@@ -345,26 +315,18 @@
 
 2019-03-14  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- minor cleanup: factor out common strings [3b608d8c]
+	* nsf.c: Minor cleanup, factor out common strings (e.g.,
+	"::nsf::classes") [3b608d8c]
 
 2019-03-13  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- improve spelling and formatting [0f30ab62]
-
-
-	- improve spelling [67639f37]
-
-
-	- improve spelling [b9fcdec2]
-
-
-	-
+	* nsf.c, next-migration.txt, , next-tutorial.txt,
+	/metadataAnalyzer.xotcl, speedtest.xotcl, langRef2.xotcl: Improve
+	spelling and formatting [0f30ab62, 67639f37, b9fcdec2]
 	* nsf.c, speedtest.xotcl: Improved handling of object property
 	autonamed [c86c0775]
-	* serializer.tcl: Preserve overwritte slot accessor methods via
-	XOTcl instprocs [542f9ead]
+	* serializer.tcl: Preserve overriding slot accessor methods
+	defined via XOTcl instprocs during serialisation. [542f9ead]
 
 2019-03-12  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
