@@ -361,11 +361,13 @@ nx::test case positioning-arg-extended {
 
   obj public object forward foo list {%obj foo}
   if {$::tcl86} {
+    # Avoid crashes when system stack size is limited (with forwards
+    # being more stack-hungry than, e.g., ordinary scripted methods).
+    set limit [interp recursionlimit {}]
+    interp recursionlimit {} 100
     ? {obj foo 1 2 3} "TCL LIMIT STACK" "stack overflow"
+    interp recursionlimit {} $limit
   } else {
-    #
-    # Deactivate under windows for the time being.
-    #
     # see CheckCStack in Tcl 8.5:
     # https://core.tcl-lang.org/tcl/artifact?name=97fd3164833e9ef3&ln=3576
     if {$::tcl_platform(platform) ne "windows" } {
