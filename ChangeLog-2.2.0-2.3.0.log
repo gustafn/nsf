@@ -48,7 +48,7 @@
 
 2019-04-17  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	* nsf.c (NextSearchAndInvoke): Addressing coverty defect 337829
+	* nsf.c (NextSearchAndInvoke): Addressing Coverity defect 337829
 	(dereference before null check)
 	  [f5000938]
 
@@ -68,7 +68,7 @@
 2019-04-15  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
 	* nsf.c (NsfCCreateMethod): Fix access of potentially freed object to
-	set the autonamed property (indicated by valdgrind). When destroyed
+	set the autonamed property (indicated by valgrind). When destroyed
 	and cleaned during DoObjInitialization, "newObject" will remain as a
 	dangling pointer. Besides, setting the property before
 	DoObjInitialization will make the object property available from within
@@ -301,7 +301,7 @@
 
 2019-03-07  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	* xotcl2.tcl: Added new variant of "volatile" trying to mimick the
+	* xotcl2.tcl: Added new variant of "volatile" trying to mimic the
 	  XOTcl1 volatile behavior. [b6046263]
 	* nsf.c:  added experimental feature
 	NSF_WITH_TCL_OBJ_TYPES_AS_CONVERTER, which uses registered
@@ -360,7 +360,7 @@
 2018-12-15  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
 	* nsf.c: Reduce dead assignments and variable scopes [405ace78]
-	* Httpd.xotcl: Make sure the restted path ends with a slash [b49c37ce]
+	* Httpd.xotcl: Make sure the path ends with a slash [b49c37ce]
 
 2018-12-14  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
@@ -403,7 +403,7 @@
 2018-10-23  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
 	* Object.man: Improve spelling [bee99fc8]
-	* nsf.c: Help static analyzer to parse statements [8d65f0a7]
+	* nsf.c: Help static analyser to parse statements [8d65f0a7]
 
 2018-10-12  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
@@ -413,7 +413,7 @@
 2018-10-11  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
 	* Makefile.in, win/makefile.vc: Add TCL_PKG_PREFER_LATEST to avoid
-	version hickups (stable beating latest) somewhere from TCLLIBPATH
+	version hick-ups (stable beating latest) somewhere from TCLLIBPATH
 	etc. [b820ed69]
 
 2018-10-02  Gustaf Neumann  <neumann@wu-wien.ac.at>
@@ -439,4 +439,4 @@
 	* prefer US american spelling variants [9aa53ef6]
 	* change version number to first version number after the 2.2.0 release
 	  (2.3d0) [dd3cfbfd]
-	* fix usernames at sourceforge [f92b5538]
+	* fix usernames at Sourceforge [f92b5538]
