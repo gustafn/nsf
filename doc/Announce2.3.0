@@ -38,8 +38,21 @@ New Features
      rendered volatile or not (in addition to using the volatile
      method on the object).
 
+   * Reform of uplevel and upvar: First, uplevel and upvar methods, as
+     well as [current callinglevel] and [self callinglevel] now
+     behave consistently (re frame skipping for mixin and filter
+     transparency). If there is no innermost enclosing proc frame,
+     the innermost non-proc (e.g., namespace) frame is selected
+     (rather than a "#0" as a default). Second, argument handling for
+     both uplevel (i.e., level sniffing in multi-arg case) and
+     upvar (e.g., made silent TCL_ERROR for invalid argument
+     arities explicit) have been fixed.
+
 - NX:
 
+  * Method combination for ensemble methods: Using [next] at the end
+    of chains of ensemble methods fired the unknown handler,
+    unintentionally. This was fixed.
   * nx::zip rewrite: nx::zip now uses the built-in Tcl 8.6 encode and
     decode facilties, if available, rather than requiring the Trf
     package to be present.
@@ -47,7 +60,10 @@ New Features
 - XOTcl:
 
   * Improved compatibility of XOTcl2 with XOTcl1 behaviour
-    for volatile objects: ...
+    for volatile objects (see "volatile reform" above).
+  * Improved compatibility of XOTcl2 with XOTcl1 behaviour for
+    uplevel/upvar from within methods (see "uplevel/ upvar reform"
+    above).
 
 - nx::serializer:
 
@@ -56,7 +72,13 @@ New Features
 
 - MongoDB:
 
-  * Added JSON serializer: The "find all" method now accepts the
+  * Added JSON serializer: The "find all" and "bson" methods now
+    provide for JSON-formatted results, on request.
+
+    ::nx::mongo::Class "find all" -asJSON
+    ::nx::mongo::Object bson asJSON
+
+  accept the
   -asJSON flag to return a JSON formatted string. This is to
   facilitate implementing single-page JavaScript applications.
 
@@ -75,14 +97,18 @@ New Features
   * Tcl 8.7:
 
     Support for Tcl 8.7a1 and the upcoming, unreleased Tcl 8.7a2
-    (core.tcl.tk branch "core-8-branch"). NSF compiles and its
+    (core.tcl-lang.org/tcl branch "core-8-branch"). NSF compiles and its
     regression tests execute successfully.
 
-  * Misc (esp. NSF/C):
+  * Misc (esp. NSF/C): Ran valgrind checks, plugged one source of
+    potential leaks (NsfProcStubDeleteProc) and one invalid read on a
+    dangling pointer (NsfCCreateMethod).
 
   * Test suite: Fix recursion tests on 8.5 (windows-only,
     forward.test) for platform-specific error messages (CheckCStack),
-    obsolete for 8.6 with NRE.
+    obsolete for 8.6 with NRE. Guarded test case on recursive
+    forwards, to avoid preemptive crashes on stack-size limited
+    systems.
 
 - Build environments:
 
@@ -90,8 +116,15 @@ New Features
     lead to unusable, pointless function-pointer comparisons
     (Nsf_ConvertToSwitch vs.  Nsf_ConvertToBoolean).
 
+  * Improve robustness of configure/ make procedure in the absence of
+    generated DTRACE artifacts so that they are truly conditional
+    on the corresponding configure flags for DTRACE.
+
   * Improved robustness of Windows (nmake) installation routines by
     testing for the existence of the install directory.
+
+  * Rendered inference of GIT commit in autotools setup more robust, in
+    light of partial GIT checkouts (e.g., w/o tags).
 
 The detailed changelog is available at
 https://next-scripting.org/xowiki/download/file/ChangeLog-2.2.0-2.3.0.log

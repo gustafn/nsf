@@ -1,276 +1,205 @@
+2019-04-26  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* forward.test: Constrain the max recursion depth around recursive
+	forwards, so that we do not run into early crashes on systems with
+	limited stack sizes (when the stack is saturated before a recursion
+	limit is hit). This fixes test runs on MinGW/ gcc builds at AppVeyor.
+	[6debf965]
+
+2019-04-23  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* forward.tests: Provide some background comment on platform-dependent
+	error messages as test conditions (infinite loop) and make sure tests
+	under 8.6 are executed as intended. [e760812b]
+
+	* Continued work in changelog and announcement (still WIP)
+	  [22becf70]
+
+2019-04-21  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsf.c: Added "pure" declarations [0d57967b]
+	* nsf.c, nsfObj.c, nsfProfile.c, nsfStack.c, nsfShadow.c: Removed
+	null test after dereferences, avoid potentail null dereferences in
+	error cases [1f532a9d, ef01bf0b]
+
+2019-04-20  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsf.c (NsfObjectPropertyCmd): Improve code safety and remove
+	dead statement [727ef73d]
+	* nsf.c (DispatchDefaultMethod): Get rid of warning of static
+	checker, reduce number of returns before end of function
+	[3c3c372b]
+
+2019-04-19  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsf.c, nsfError.c: Minor code cleanup [9333a832]
+	* nsf.c (ForwardArg): Add asserts [dcbc76a2]
+
+2019-04-19  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* ChangeLog-2.2.0-2.3.0.log, Announce2.3.0: Continued work in
+	changelog and announcement (still WIP)
+	  [4f0774c0]
+
+2019-04-18  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsf.c (NsfCCreateMethod): Revised fix for memory leak on
+	"hyper-volatile" objects. it seems, we have to set the
+	_is_autonamed flag in advance of obj initialization [0aabdb62]
+
+2019-04-17  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsf.c (NextSearchAndInvoke): Addressing coverty defect 337829
+	(dereference before null check)
+	  [f5000938]
+
+2019-04-15  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- make spelling more consitent [7b2d369f]
+	- fix typo [b568b39b]
+	- Provide a more conservative change for setting autonamed flag
+	  [ecda5a16]
+	- provide more context info when the version mismatch test fails
+	  [ff219acd]
+	- remove "-Wabi" for standard intense checking
+	- more troubles then benefits [b55cf93e]
+	* nsfInt.h: Improve consistency of naming parameters denoting NSF
+	objects [6dc8e9ad]
+
+2019-04-15  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* nsf.c (NsfCCreateMethod): Fix access of potentially freed object to
+	set the autonamed property (indicated by valdgrind). When destroyed
+	and cleaned during DoObjInitialization, "newObject" will remain as a
+	dangling pointer. Besides, setting the property before
+	DoObjInitialization will make the object property available from within
+	the initcmd or init method. [08bf8cbe]
+
+	* nsf.c (NsfProcStubDeleteProc): Plug leakage of command structure
+	(found by valgrind) [545663bd]
+
+2019-04-14  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* ChangeLog-2.2.0-2.3.0: Add changelog and announcement files
+	(WIP) [13bbfb85]
+
 2019-04-12  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
 	* nsf.c: Muniro formatting changes [5e7610d4]
 
 2019-04-12  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-	- Provide 2.2 builds on Appveyor [955967fa]
-
-
-	- Use maintenance branch for 2.2, to fulfil presence requirements of
-	  build descriptor [034ea94d]
-
-
-	- Provide for 2.2.0 builds, and fix allowed failures [25d6f9a3]
-
-
-	- Deploy mode for Appveyor builds [fb2a31e7]
+	* appveyor.yml: Provide 2.2 builds on Appveyor [955967fa, 034ea94d]
+	* .travis.yml: Provide for 2.2.0 builds, and fix allowed failures [25d6f9a3]
+	* appveyor.yml: Deploy mode for Appveyor builds [fb2a31e7]
 
 2019-04-11  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	- Add missing install instruction [skip travis] [b2825a79]
-
-
-	- Fix yaml [skip travis] [ebaa3d49]
-
-
-	- Fix yaml [skip travis] [f9090473]
-
-
-	- Fix yaml [skip travis] [f7f11897]
-
-
-	- Add deploy key to AppVeyor [skip travis] [1d6dbca6]
+	* appveyor.yml: Prepare deploy mode for [1d6dbca6, f7f11897,
+	f9090473, ebaa3d49, b2825a79]
 
 2019-04-10  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	- Remove context noise (directory tree) from the tarballs [585904b1]
-
-
-	-
-	  * configure, configure.ac: Make sure 'git describe' uses --always, to
+	* .travis.yml: Remove context noise (directory tree) from the tarballs [585904b1]
+	* configure, configure.ac: Make sure 'git describe' uses --always, to
 	not fail on truncated checkouts without tags in reach (as on Travis)
 	[168c4584]
-
-
-	- Provide some harness around 'make test', to avoid swallowing failing
+	* build.tcl: Provide some harness around 'make test', to avoid swallowing failing
 	  test suites in light of the write-error condition [e97d7fb1]
-
-
-	-
-	  * nsf.c (NsfDebugShowObj): For consistency, stick with %x using PRIxPTR
-	  [eb1d421a]
-
-
-	- *nsf.c (NsfDebugShowObj): Simplify from using %x to %p, to avoid
-	PTR2UINT (which, starting with 8.7, will return u long, not u int)
-	[e270ccdb]
+	* nsf.c (NsfDebugShowObj): For consistency, stick with %x using PRIxPTR
+	  [eb1d421a, e270ccdb]
 
 2019-04-09  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	- Completed rewrite, ufff [31aa3666]
-
-
-	- Another try [66f716d0]
-
-
-	- Fix gcc version for macos [e6ecd0ce]
-
-
-	- Rewrite build matrix (testing) [3b557e75]
-
-
-	- Refine build matrix [f7b03ccc]
-
-
-	- Refine build matrix [73e3884a]
-
-
-	- Make tarball names more explanatory [7dcde484]
-
-
-	- linux image requires more generic fix, Python module variant not
-	  available [aed8ea31]
-
-
-	- Change script block [7f3d59b9]
-
-
-	- Test NONBLOCK fix for write error [bf3b3810]
-
-
-	- Change http:// occurrences to https://, if applicable (URLs tested)
+	* .travis.yml: Refined build matrix, included actual gcc for macOS
+	into build matrix [31aa3666, 66f716d0]; made tarball names more
+	explanatory [7dcde484]; NONBLOCK fix for write error [aed8ea31,
+	bf3b3810]
+	* Change http:// occurrences to https://, if applicable (URLs tested)
 	  [a963e889]
-
-
-	- Fix permissions [aef46edc]
-
-
-	- Avoid ssh-add [368429d7]
-
-
-	- Avoid host check [260b0eab]
-
-
-	- Fix ssh/scp calls [76e8cc2b]
-
-
-	- Re-enable install target [ae50ec69]
-
-
-	- Add a debugging statement around make test [0da374a0]
+	* .travis.yml: Fix ssh/scp calls [76e8cc2b], avoid host check
+	[260b0eab], Fix permissions [aef46edc]
 
 2019-04-08  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	- Stepping back, continued [2cf4592b]
-
-
-	- Stepping back, sigh [a16d90cc]
-
-
-	- Attempt at write-error fix [6803f779]
-
-
-	- Leave it be, for the moment [7ecd981f]
-
-
-	- Don't stop on stderr print-outs [fccfdc03]
-
-
-	- Make calls less verbose, are we hitting a limit? [caf2b43e]
-
-
-	- Avoid colliding paths [91e76546]
-
-
-	- Activate some introspection [16f15e09]
-
-
-	- Fold separate bash calls into one [049a0557]
-
-
-	- Fix configure path [90e3ef3c]
-
-
-	- Now with com [60dcfe05]
-
-
-	- Rebuild key, once again [f0ed06ec]
-
-
-	- Adding new key [94cd1b31]
-
-
-	- Add build script with install target [a3c52384]
-
-
-	- Fix glitch in openssl call [0e7be046]
-
-
-	- Test for auto-deployment of builds [56752f08]
-
-
-	- Prepare for automated deploymnent of build artifacts [skip travis]
-	  [1eacec29]
-
-
-	-
-	  * apps/build.tcl: Revert URL change for build script, archive is
+	* .travis.yml: Provide for automated deployment of build artifacts
+	on Travis CI [1eacec29 - 56752f08]
+	* apps/build.tcl: Revert URL change for build script, archive is
 	  retrieved broken otherwise? [09dab29b]
-
-
-	- Rewrite URLs containing tcl.tk as authority to tcl-lang.org [1711d246]
+	* Rewrite URLs containing tcl.tk as authority to tcl-lang.org
+	[1711d246]
 
 2019-03-31  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- improve spelling [a8c1439e]
+	* Object.man, nsfInt.h, nx.tcl, properties.test: Improve spelling
+	[a8c1439e]
 
 2019-03-29  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- move new assertion to the right place [713b8852]
-
-
-	- improve wording [cfb3421c]
-
-
-	- ease human tracing of uninitialized/NULL values [e8349924]
+	* nsf.c (ForwardArg): Move new assertion to the right place
+	[713b8852]
+	* Object.man, tutorial.html: Improve wording [cfb3421c]
+	* nsf.c: Ease human tracing of uninitialized/NULL values
+	[e8349924]
 
 2019-03-29  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	- Fix test [a7a09d79]
+	* .travis.yml: Fix test [a7a09d79]
 
 2019-03-28  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	- Complete caching by testing for kits [24caeb31]
-
-
-	- fix descriptor [14b0a59b]
-
-
-	- Add caching support to travis descriptor [b28a01de]
+	* .travis.yml: Add caching support for tclkits. [24caeb31,
+	14b0a59b, b28a01de]
 
 2019-03-27  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- add generated configure file for change
-	  e3968e8c972a8ac13bfaba27fcf2ae9e36689211 [e9f818e5]
-
-
-	- address dtrace triggers from Makefile, although not configured
-	  [e3968e8c]
-
-
-	- try to simplify Makefile dependencies for DTRACE [d13e45f7]
+	* Makefile.in, configure.ac, configure: Improve robustness of
+	configure/ make procedure in the absence of generated DTRACE
+	artifacts so that they are truly conditional on the corresponding
+	configure flags for DTRACE. Thanks to Zoran fore
+	reporting. [e9f818e5, e3968e8c, d13e45f7]
 
 2019-03-22  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	-
-	  * nsf.c (NsfOUplevelMethod, NsfOUpvarMethod): Silence compiler warnings
+	* nsf.c (NsfOUplevelMethod, NsfOUpvarMethod): Silence compiler warnings
 	  on nonnull/NULL compares. [32cc7bc9]
-
-
-	-
-	  * nsf.c (NsfOUplevelMethod, NsfOUpvarMethod,
-	  NsfCallstackFindCallingContext): Reform of uplevel and
-	  upvar methods, based on the recent feedback by Zoran.
-	  First, uplevel and upvar methods, as well as [current
-	  callinglevel] now behave consistently (re frame skipping
-	  for mixin and filter transparency). If there is no
-	  innermost enclosing proc frame, the innermost non-proc
-	  (e.g., namespace) frame is selected (rather than a "#0"
-	  as default). Second, argument handling for both uplevel
-	  (i.e., level sniffing in multi-arg case) and upvar (e.g.,
-	  made silent TCL_ERROR for invalid argument arities
-	  explicit) have been fixed.
-	  * Object.man, methods.test: Added documentation for both methods
-	  (Object.man) and tests. [baee0c34]
+	* nsf.c (NsfOUplevelMethod, NsfOUpvarMethod)
+	(NsfCallstackFindCallingContext): Reform of uplevel and
+	upvar methods, based on the recent feedback by Zoran.
+	First, uplevel and upvar methods, as well as [current
+	callinglevel] now behave consistently (re frame skipping
+	for mixin and filter transparency). If there is no
+	innermost enclosing proc frame, the innermost non-proc
+	(e.g., namespace) frame is selected (rather than a "#0"
+	as default). Second, argument handling for both uplevel
+	(i.e., level sniffing in multi-arg case) and upvar (e.g.,
+	made silent TCL_ERROR for invalid argument arities
+	explicit) have been fixed.
+	* Object.man, methods.test: Added documentation for both methods
+	(Object.man) and tests. [baee0c34]
 
 2019-03-22  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- reduce dead assignments improve indentation of variables [4f234291]
-
-
-	- avoid variable name "index" in generated code since "index" shadows
-	  an outer function [8a19ff2e]
+	* nsf.c (NsfDListAppend): Reduce dead assignments improve
+	indentation of variables [4f234291]
+	* gentclAPI.tcl (ConvertTo*): Avoid variable name "index" in
+	generated code since "index" shadows an outer function [8a19ff2e]
 
 2019-03-21  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- mongodb: add "bson asJSON" convenience method [6cff9d9b]
+	* nx-mongo.tcl, nx-mongo.test: Add "bson asJSON" convenience
+	method [6cff9d9b]
 
 2019-03-20  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	- Fix YAML syntax [0dac3440]
-
-
-	- appveyor.yml: Provide for caching the tclkit running the build
+	* appveyor.yml: Fix YAML syntax [0dac3440]
+	* appveyor.yml: Provide for caching the tclkit running the build
 	  script, to improve robustness and availability [0a587021]
 
 2019-03-20  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	- handle ticket #3 on sourceforge: explicit "next" call in ensemble
-	  leads to unwanted "unknown" handler call [156a37fe]
+	* nsf.c (NextSearchAndInvoke), submethods.test: Fixed explicit "next"
+	call in ensemble leading to unwanted "unknown" handler call [156a37fe]
 
 2019-03-18  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
