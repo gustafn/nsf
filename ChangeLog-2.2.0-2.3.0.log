@@ -38,8 +38,7 @@
 2019-04-19  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
 	* ChangeLog-2.2.0-2.3.0.log, Announce2.3.0: Continued work in
-	changelog and announcement (still WIP)
-	  [4f0774c0]
+	changelog and announcement (still WIP) [4f0774c0]
 
 2019-04-18  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
@@ -55,14 +54,14 @@
 
 2019-04-15  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	- make spelling more consitent [7b2d369f]
-	- fix typo [b568b39b]
-	- Provide a more conservative change for setting autonamed flag
-	  [ecda5a16]
-	- provide more context info when the version mismatch test fails
-	  [ff219acd]
-	- remove "-Wabi" for standard intense checking
-	- more troubles then benefits [b55cf93e]
+	* nsf.c: Make spelling more consistent [7b2d369f]
+	* next-migration.txt: Fix typo [b568b39b]
+	* nsf.c (NsfCCreateMethod): Provide a more conservative change for
+	setting autonamed flag [ecda5a16]
+	* object-system.test: Provide more context info when the version
+	mismatch test fails [ff219acd]
+	* Makefile.in: Remove "-Wabi" for standard intense checking, more
+	troubles then benefits [b55cf93e]
 	* nsfInt.h: Improve consistency of naming parameters denoting NSF
 	objects [6dc8e9ad]
 
