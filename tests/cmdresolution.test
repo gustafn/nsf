@@ -2,6 +2,9 @@
 #
 # testing cmd resolution
 #
+
+package prefer latest
+
 package require nx
 package require XOTcl
 package require nx::test

@@ -1,4 +1,7 @@
 # -*- Tcl -*-
+
+package prefer latest
+
 package req nx
 package require nx::test
 

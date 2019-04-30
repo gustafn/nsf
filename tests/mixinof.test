@@ -1,5 +1,8 @@
 # -*- Tcl -*-
 # testing mixinof
+
+package prefer latest
+
 package require nx
 package require nx::test
 

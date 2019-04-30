@@ -1,3 +1,5 @@
+package prefer latest
+
 package require nx::test
 
 proc direct-constraints {obj} {
