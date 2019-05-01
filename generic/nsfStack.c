@@ -206,7 +206,7 @@ CscListAdd(const Tcl_Interp *interp, const NsfCallStackContent *cscPtr) {
  *
  * Side effects:
  *
- *    List element potentially removed and freed. If a list turns
+ *    List element potentially removed and freed. If a list becomes
  *    empty, the interp's state is updated.
  *
  *----------------------------------------------------------------------
@@ -746,7 +746,7 @@ NsfCallStackFindActiveFrame(const Tcl_Interp *interp, int offset, Tcl_CallFrame 
  *    None.
  *
  * Side effects:
- *    The varFramePtr of the interp is potentially updated
+ *    The varFramePtr of the interp is potentially updated.
  *
  *----------------------------------------------------------------------
  */
@@ -759,7 +759,9 @@ CallStackUseActiveFrame(const Tcl_Interp *interp, callFrameContext *ctx) {
 
   inFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
 
-  /* Get the first active non object frame */
+  /*
+   * Get the first active non-object frame .
+   */
   framePtr = CallStackGetActiveProcFrame(inFramePtr);
 
   /*fprintf(stderr,"... use frameptr %p \n", framePtr);*/
@@ -1194,9 +1196,9 @@ static void CallStackPopAll(Tcl_Interp *interp) {
  *----------------------------------------------------------------------
  * CscAlloc --
  *
- *    Allocate the CSC structure either from the stack or via
- *    StackAlloc (the latter is recorded in the callType). The Alloc
- *    operation requires a CscFinish operation later.
+ *    Allocate the CSC structure either from the stack or via StackAlloc (the
+ *    latter is recorded in the callType). The CscAlloc operation requires a
+ *    CscFinish operation later.
  *
  * Results:
  *    A valid, semi-initialized cscPtr.
@@ -1273,7 +1275,7 @@ CscInit_(
    */
   if (likely(cmd != NULL)) {
     /*
-     * Track object activations
+     * Track object activations.
      */
     object->activationCount ++;
     MEM_COUNT_ALLOC("object.activationCount",object);
@@ -1281,7 +1283,7 @@ CscInit_(
             cscPtr, (cmd != NULL) ? Tcl_GetCommandName(object->teardown, cmd) : "UNK",
             ObjectName(object),  object->activationCount, cl);*/
     /*
-     * Track class activations
+     * Track class activations.
      */
     if (class != NULL) {
       /*
@@ -1290,8 +1292,8 @@ CscInit_(
       class->object.activationCount ++;
       MEM_COUNT_ALLOC("class.activationCount", class);
       /*
-       * Increment the namespace ptr in case Tcl tries to delete
-       * this namespace during the invocation
+       * Increment the namespace pointer in case Tcl tries to delete
+       * this namespace during the invocation.
        */
       NSNamespacePreserve(Tcl_Command_nsPtr(cmd));
       /*fprintf(stderr, "NSNamespacePreserve %p\n", nsPtr);*/
@@ -1343,8 +1345,8 @@ CscFinish_(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
     cscPtr->self, ObjectName(cscPtr->self), cscPtr->flags, cscPtr->cmdPtr); */
 
   /*
-   *  In the cases, where an cmd was provided, we tracked in init the
-   *  activations. Release these activations now. Notem, that
+   *  In the cases, where a cmd was provided, we tracked in init the
+   *  activations. Release these activations now. Note that
    *  cscPtr->cmdPtr might have been epoched, but it is still
    *  available, since we used NsfCommandPreserve() in CscInit().
    */

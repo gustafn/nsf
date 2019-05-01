@@ -685,13 +685,13 @@ FilterregDupInternalRep(
   memcpy(dstPtr, srcPtr, sizeof(Filterreg));
 
   /*
-   * increment refcounts
+   * Increment refcounts
    */
   INCR_REF_COUNT2("filterregPtr->filterObj", srcPtr->filterObj);
   if (srcPtr->guardObj != NULL) {INCR_REF_COUNT2("FilterregPtr->guardObj", srcPtr->guardObj);}
 
   /*
-   * update destination obj
+   * Update destination Tcl_Obj.
    */
   dstObjPtr->typePtr = srcObjPtr->typePtr;
   dstObjPtr->internalRep.twoPtrValue.ptr1 = dstPtr;
