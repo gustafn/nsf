@@ -2959,7 +2959,11 @@ MergeInheritanceLists(NsfClasses *pl, NsfClass *class) {
    * perform the merge operation. For n elements in superClasses, the merge
    * operation is performed n-1 times.
    */
-  for (sl = superClasses->nextPtr; sl != NULL; sl = sl->nextPtr) {
+
+  sl = superClasses->nextPtr;
+  assert(superClasses->nextPtr != NULL);
+
+  do {
     NsfClasses *mergeList = sl->cl->order, *baseListCurrent;
 
 #if defined(NSF_LINEARIZER_TRACE)
@@ -3078,7 +3082,11 @@ MergeInheritanceLists(NsfClasses *pl, NsfClass *class) {
       pl = NULL;
       plNext = NsfClassListAdd(&pl, class, NULL);
     }
-  }
+    /*
+     * Get next element from the list.
+     */
+    sl = sl->nextPtr;
+  } while (sl != NULL);
 
   for (sl = deletionList; sl != NULL; sl = sl->nextPtr) {
     /* fprintf(stderr, "delete from deletion list %p client data %p\n", sl, sl->clientData); */
@@ -6507,7 +6515,7 @@ UnsetTracedVars(
            entryPtr != NULL;
            entryPtr = Tcl_NextHashEntry(&search)) {
         Tcl_Obj *nameObj;
-        Var *varPtr;
+        Var     *varPtr;
 
         GetVarAndNameFromHash(entryPtr, &varPtr, &nameObj);
         if ((varPtr->flags & VAR_TRACED_UNSET) != 0u /* TclIsVarTraced(varPtr) */) {
@@ -29731,17 +29739,16 @@ cmd nscopyvars NsfNSCopyVars {
 */
 static int
 NsfNSCopyVarsCmd(Tcl_Interp *interp, Tcl_Obj *fromNsObj, Tcl_Obj *toNsObj) {
-  Tcl_Namespace *fromNsPtr = NULL, *toNsPtr;
-  Var *varPtr = NULL;
-  Tcl_HashSearch hSrch;
+  Tcl_Namespace       *fromNsPtr = NULL, *toNsPtr;
+  Var                 *varPtr = NULL;
+  Tcl_HashSearch       hSrch;
   const Tcl_HashEntry *hPtr;
-  TclVarHashTable *varTablePtr;
-  NsfObject *object, *destObject;
-  const char *destFullName;
-  Tcl_Obj *destFullNameObj;
-  Tcl_CallFrame frame, *framePtr = &frame;
-  Tcl_Obj *varNameObj = NULL;
-  int      result;
+  TclVarHashTable     *varTablePtr;
+  NsfObject           *destObject;
+  const char          *destFullName;
+  Tcl_Obj             *destFullNameObj;
+  Tcl_CallFrame        frame, *framePtr = &frame;
+  int                  result;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(fromNsObj != NULL);
@@ -29755,14 +29762,13 @@ NsfNSCopyVarsCmd(Tcl_Interp *interp, Tcl_Obj *fromNsObj, Tcl_Obj *toNsObj) {
                            ObjStr(toNsObj));
     }
 
-    object = GetObjectFromString(interp, ObjStr(fromNsObj));
     destFullName = toNsPtr->fullName;
     destFullNameObj = Tcl_NewStringObj(destFullName, -1);
     INCR_REF_COUNT(destFullNameObj);
     varTablePtr = Tcl_Namespace_varTablePtr(fromNsPtr);
     Tcl_PushCallFrame(interp, (Tcl_CallFrame *)framePtr, toNsPtr, 0);
   } else {
-    NsfObject *newObject;
+    NsfObject *newObject, *object;
 
     if (GetObjectFromObj(interp, fromNsObj, &object) != TCL_OK) {
       return NsfPrintError(interp, "CopyVars: Origin object/namespace %s does not exist",
@@ -29786,7 +29792,7 @@ NsfNSCopyVarsCmd(Tcl_Interp *interp, Tcl_Obj *fromNsObj, Tcl_Obj *toNsObj) {
    */
   hPtr = (varTablePtr != NULL) ? Tcl_FirstHashEntry(TclVarHashTablePtr(varTablePtr), &hSrch) : NULL;
   while (hPtr != NULL) {
-    Tcl_Obj *resultObj;
+    Tcl_Obj *varNameObj, *resultObj;
 
     GetVarAndNameFromHash(hPtr, &varPtr, &varNameObj);
     INCR_REF_COUNT(varNameObj);
@@ -29795,11 +29801,11 @@ NsfNSCopyVarsCmd(Tcl_Interp *interp, Tcl_Obj *fromNsObj, Tcl_Obj *toNsObj) {
       if (TclIsVarScalar(varPtr)) {
         /*
          * Copy scalar variables from the namespace, which might be
-         * either object or namespace variables.
+         * either instance or namespace variables.
          */
 
         if (destObject != NULL) {
-          /* fprintf(stderr, "copy in obj %s var %s val '%s'\n", ObjectName(object), ObjStr(varNameObj),
+          /* fprintf(stderr, "copy in obj %s var %s val '%s'\n", ObjectName(destObject), ObjStr(varNameObj),
              ObjStr(TclVarValue(Tcl_Obj, varPtr, objPtr)));*/
 
           resultObj = Nsf_ObjSetVar2((Nsf_Object *)destObject, interp, varNameObj, NULL,
@@ -29829,7 +29835,7 @@ NsfNSCopyVarsCmd(Tcl_Interp *interp, Tcl_Obj *fromNsObj, Tcl_Obj *toNsObj) {
             INCR_REF_COUNT(eltNameObj);
 
             if (TclIsVarScalar(eltVar)) {
-              if (object != NULL) {
+              if (destObject != NULL) {
                 resultObj = Nsf_ObjSetVar2((Nsf_Object *)destObject, interp, varNameObj, eltNameObj,
                                            TclVarValue(Tcl_Obj, eltVar, objPtr), TCL_LEAVE_ERR_MSG);
               } else {
@@ -34608,6 +34614,7 @@ DeleteProcsAndVars(
          entryPtr = Tcl_NextHashEntry(&search)) {
       Tcl_Obj *nameObj;
       Var *varPtr;
+
       GetVarAndNameFromHash(entryPtr, &varPtr, &nameObj);
       if (!TclIsVarUndefined(varPtr) || TclIsVarNamespaceVar(varPtr)) {
         /* fprintf(stderr, "unsetting var %s\n", ObjStr(nameObj));*/
