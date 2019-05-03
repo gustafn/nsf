@@ -1,7 +1,7 @@
 package require nx
 
-package require XOTcl 2.2
-package provide nx::serializer 2.3a0
+package require XOTcl 2.3
+package provide nx::serializer 2.3
 
 # For the time being, we require classical XOTcl.
 

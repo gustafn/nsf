@@ -39,7 +39,7 @@
 #
 
 package require nx
-package provide XOTcl 2.3a0
+package provide XOTcl 2.3
 
 #######################################################
 # Classical ::xotcl*
