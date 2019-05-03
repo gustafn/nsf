@@ -5,7 +5,7 @@ Framework (NSF) 2.3.0. The changes are mostly ... See below for the details.
 
 
 Diff stats since 2.2.0:
-  122 files changed, 4440 insertions(+), 2339 deletions(-)
+   149 files changed, 15475 insertions(+), 12587 deletions(-)
 
 Major changes relative to 2.2.0 are:
 

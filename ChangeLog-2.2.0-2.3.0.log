@@ -1,3 +1,28 @@
+2019-05-03  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* Regenerated documentation [6cbeef2d]
+	* Object.man: Remove line break in script evaluation [f7541b47]
+	* Bump version number from 2.3a0 to 2.3 [77a193c1]
+
+2019-05-02  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsf.c (MergeInheritanceLists, NsfNSCopyVarsCmd)
+	(NsfCallStackFindCallingContext): Reduce dead store operations and
+	null after dereference [e89a635d]
+
+2019-05-01  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsfObj.c (FilterregDupInternalRep, CscListAdd, CscAlloc):
+	Improve spelling [7aad1f9b]
+
+2019-04-30  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* tests/*.test: Add 'package prefer latest' to remaining test files.
+	  [8e2e356e]
+	* ChangeLog-2.2.0-2.3.0.log, Announce2.3.0: Fix typos [6630359b],
+	fix a remainder in changelog [1997fa85], done content-wise
+	[4a1f3640]
+
 2019-04-26  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
 	* forward.test: Constrain the max recursion depth around recursive
