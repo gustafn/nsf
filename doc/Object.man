@@ -759,11 +759,11 @@ registered.
 [item] If the [arg level] specifier is omitted, [method uplevel]
 will skip any auxiliary frames added to the stack by active
 [term "filter"]s and [term mixin]s. The resulting stack-frame level
-corresponds to the [term callinglevel] as indicated by [cmd
-nx::current]. In this case method [method uplevel] can be used to
-evaluate the command in the next enclosing procedure call, i.e., a
-frame corresponding to a proc, method, or apply call, while skipping
-frames of filters and mixins.
+corresponds to the [term callinglevel] as indicated by [cmd nx::current]. In
+this case method [method uplevel] can be used to evaluate the command
+in the next enclosing procedure call, i.e., a frame corresponding to a
+proc, method, or apply call, while skipping frames of filters and
+mixins.
 
 [item] If the [arg level] specifier is provided (relative, or
 absolute), [method "uplevel"] will execute the command in the
