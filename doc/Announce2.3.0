@@ -50,6 +50,30 @@ New Features
 
 - NX:
 
+  * Properties and variables now provide "exists" as an additional
+    accessor method, in addition to "get":
+
+    % package req nx
+    2.3
+    % nx::Class create C {
+       :property -accessor public {a 1} 
+    }
+    ::C
+    % ::C create ::c1
+    ::c1
+    % if {[::c1 a exists]} { ::c1 a get } else { ::c1 a set "1" }
+                  ^^^^^^
+
+    This is mainly to provide for symmetry in the property and
+    variable API, which otherwise requires one to resort to low-level
+    tests for existence, e.g.:
+
+    if {[::c1 eval {info exists :a}]} ...
+
+    This breaks the property/ variable abstraction, because one cannot
+    move to a different value store other than object variables w/o
+    rewriting client code.
+
   * Method combination for ensemble methods: Using [next] at the end
     of chains of ensemble methods fired the unknown handler,
     unintentionally. This was fixed.

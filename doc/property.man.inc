@@ -27,9 +27,12 @@ sets a [arg defaultValue] for this property.
 
 [para] 
 
-If [option "-accessor"] is set, a property will provide for
-a pair of getter and setter methods:
+If [option "-accessor"] is set, a property will provide for different
+getter and setter methods:
 [list_begin definitions]
+[def "[arg obj] [arg propertyName] [method exists]"]
+Returns 1 if the value store of [arg propertyName] (e.g., an object
+variable) exists and has been given a value, returns 0 otherwise.
 [def "[arg obj] [arg propertyName] [method set] [arg value]"]
 Sets the [term property] [arg propertyName] to [arg value].
 [def "[arg obj] [arg propertyName] [method get]"]

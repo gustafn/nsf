@@ -646,7 +646,7 @@ nx::test case dispatch-without-object {
   }
 
   # dispatch methods without current object 
-  ? ::o::a {wrong # args: use "::o ::o::a add|delete|get|set|unset"}
+  ? ::o::a {wrong # args: use "::o ::o::a add|delete|exists|get|set|unset"}
   ? ::o::b "::o2"
   ? ::o::foo "no current object; command called outside the context of a Next Scripting method"
   ? ::o::x "no current object; x called outside the context of a Next Scripting method"

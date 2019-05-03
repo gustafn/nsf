@@ -2273,6 +2273,10 @@ namespace eval ::nx {
     ::nsf::var::unset -nocomplain=$nocomplain $obj $prop
   }
 
+  ::nx::VariableSlot public method value=exists {obj prop} {
+    ::nsf::var::exists $obj $prop
+  }
+
   ::nx::VariableSlot public method value=add {obj prop value {pos 0}} {
     if {![:isMultivalued]} {
       #puts stderr "... vars [[self] info vars] // [[self] eval {set :multiplicity}]"

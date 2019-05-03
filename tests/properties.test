@@ -11,7 +11,6 @@ package req nx::test
 #puts stderr "*** default defaultAccessor '[nx::configure defaultAccessor]'"
 nx::configure defaultAccessor none
 
-
 #####################################################################
 # class-level properties
 #####################################################################
@@ -786,6 +785,85 @@ nx::test case class-object-properties {
   ? {C cget -b} b1
   ? {C configure -b b2} ""
   ? {C cget -b} b2
+}
+
+nx::test case exists-on-props {
+  nx::Class create C {
+    :object property {A A1}
+    :property {a a1}
+    
+    :object property -accessor public {B B1}
+    :property -accessor public {b b1}
+    :object property -accessor public BB
+    :property -accessor public bb
+
+    :object property -accessor protected {C C1}
+    :property -accessor protected {c c1}
+    
+    :object property -accessor private {D D1}
+    :property -accessor private {d d1}
+
+    :create c1
+
+    :public object method do {args} {
+      : {*}$args
+    }
+
+    :public method do {args} {
+      : {*}$args
+    }
+
+    :public object method doLocal {args} {
+      : -local {*}$args
+    }
+    
+    :public method doLocal {args} {
+      : -local {*}$args
+    }
+    
+  }
+
+  ? {::C A exists} \
+      "method 'A' unknown for ::C; in order to create an instance of class ::C, consider using '::C create A ?...?'"
+  ? {::c1 a exists} "::c1: unable to dispatch method 'a'"
+
+  ? {::C B exists} 1
+  ? {::c1 b exists} 1
+
+  ? {::C B get} "B1"
+  ? {::c1 b get} "b1"
+
+  ? {::C BB exists} 0
+  ? {::c1 bb exists} 0
+  
+  ? {::C do C exists} 1
+  ? {::C eval {info exists :C}} 1
+  ? {::c1 do c exists} 1
+  ? {::c1 eval {info exists :c}} 1
+
+  ? {::C do C unset} ""
+  ? {::c1 do c unset} ""
+
+  ? {::C do C exists} 0
+  ? {::C eval {info exists :C}} 0
+  ? {::c1 do c exists} 0
+  ? {::c1 eval {info exists :c}} 0
+
+  # interaction: exists + private
+  
+  ? {::C doLocal D exists} 1
+  ? {::c1 doLocal d exists} 1
+
+  ? {::C doLocal D unset} ""
+  ? {::c1 doLocal d unset} ""
+
+  ? {::C doLocal D exists} 0
+  ? {::c1 doLocal d exists} 0
+
+  ? {::C D exists} \
+      "method 'D' unknown for ::C; in order to create an instance of class ::C, consider using '::C create D ?...?'"
+  ? {::c1 d exists} "::c1: unable to dispatch method 'd'"
+  
 }
 
 

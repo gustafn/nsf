@@ -18,10 +18,13 @@ be defined.
 
 [para] 
 
-If [option "-accessor"] is set explicitly, a [term variable] will provide for a pair of
-getter and setter methods:
+If [option "-accessor"] is set explicitly, a [term variable] will
+provide for getter and setter methods:
 
 [list_begin definitions]
+[def "[arg obj] [arg variableName] [method exists]"]
+Returns 1 if the value store of [arg variableName] (e.g., an object
+variable) exists and has been given a value, returns 0 otherwise.
 [def "[arg obj] [arg variableName] [method set] [arg varValue]"]
 Sets [arg variableName] to [arg varValue].
 [def "[arg obj] [arg variableName] [method get]"]

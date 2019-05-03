@@ -2,7 +2,7 @@
 '\" Generated from file 'Class\&.man' by tcllib/doctools with format 'nroff'
 '\" Copyright (c) 2014-2016 Stefan Sobernig <stefan\&.sobernig@wu\&.ac\&.at>, Gustaf Neumann <gustaf\&.neumann@wu\&.ac\&.at>; available under the Creative Commons Attribution 3\&.0 Austria license (CC BY 3\&.0 AT)\&.
 '\"
-.TH "nx::Class" 3 2\&.3a0 Class "NX API"
+.TH "nx::Class" 3 2\&.3 Class "NX API"
 .\" The -*- nroff -*- definitions below are for supplemental macros used
 .\" in Tcl/Tk manual entries.
 .\"
@@ -955,9 +955,13 @@ delimiter which specifies a value checker for the values
 which become assigned to the property\&. The second, optional element
 sets a \fIdefaultValue\fR for this property\&.
 .sp
-If \fB-accessor\fR is set, a property will provide for
-a pair of getter and setter methods:
+If \fB-accessor\fR is set, a property will provide for different
+getter and setter methods:
 .RS
+.TP
+\fIobj\fR \fIpropertyName\fR \fBexists\fR
+Returns 1 if the value store of \fIpropertyName\fR (e\&.g\&., an object
+variable) exists and has been given a value, returns 0 otherwise\&.
 .TP
 \fIobj\fR \fIpropertyName\fR \fBset\fR \fIvalue\fR
 Sets the property \fIpropertyName\fR to \fIvalue\fR\&.
@@ -1063,9 +1067,13 @@ delimiter which specifies a value checker for the values
 managed by the variable\&. Optionally, a \fIdefaultValue\fR can
 be defined\&.
 .sp
-If \fB-accessor\fR is set explicitly, a variable will provide for a pair of
-getter and setter methods:
+If \fB-accessor\fR is set explicitly, a variable will
+provide for getter and setter methods:
 .RS
+.TP
+\fIobj\fR \fIvariableName\fR \fBexists\fR
+Returns 1 if the value store of \fIvariableName\fR (e\&.g\&., an object
+variable) exists and has been given a value, returns 0 otherwise\&.
 .TP
 \fIobj\fR \fIvariableName\fR \fBset\fR \fIvarValue\fR
 Sets \fIvariableName\fR to \fIvarValue\fR\&.
