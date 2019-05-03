@@ -2,7 +2,7 @@
 '\" Generated from file 'Object\&.man' by tcllib/doctools with format 'nroff'
 '\" Copyright (c) 2014-19 Stefan Sobernig <stefan\&.sobernig@wu\&.ac\&.at>, Gustaf Neumann <gustaf\&.neumann@wu\&.ac\&.at>; available under the Creative Commons Attribution 3\&.0 Austria license (CC BY 3\&.0 AT)\&.
 '\"
-.TH "nx::Object" 3 2\&.3a0 Object "NX API"
+.TH "nx::Object" 3 2\&.3 Object "NX API"
 .\" The -*- nroff -*- definitions below are for supplemental macros used
 .\" in Tcl/Tk manual entries.
 .\"
@@ -1406,24 +1406,24 @@ of \fIarg\fR of the calling method invocation\&.
 .TP
 \fIobj\fR \fBuplevel\fR ?\fIlevel\fR? \fIarg1\fR ?\fIarg2\fR \&.\&.\&.?
 Evaluate a script or a command at a different stack-frame
-level\&. Behaves like Tcl's \fBuplevel\fR, with the following
-important exceptions\&.
+level\&. The command behaves in essence like Tcl's \fBuplevel\fR, but can
+be used to achieve identical results when filters or mixins are
+registered\&.
 .RS
 .IP \(bu
 If the \fIlevel\fR specifier is omitted, \fBuplevel\fR
-will skip any auxiliary frames added to the stack by active filters and mixins\&. The
-resulting stack-frame level corresponds to the callinglevel
-as indicated by \fBnx::current\fR\&.
-.IP \(bu
-If the \fIlevel\fR specifier is omitted, \fBuplevel\fR gives
-preference to the innermost enclosing procedure call, i\&.e\&., a frame
-corresponding to a proc, method, or apply call\&. Any frames inbetween,
-incl\&. those of filters and mixins (see above), will be skipped\&.
+will skip any auxiliary frames added to the stack by active
+filters and mixins\&. The resulting stack-frame level
+corresponds to the callinglevel as indicated by \fBnx::current\fR\&. In
+this case method \fBuplevel\fR can be used to evaluate the command
+in the next enclosing procedure call, i\&.e\&., a frame corresponding to a
+proc, method, or apply call, while skipping frames of filters and
+mixins\&.
 .IP \(bu
 If the \fIlevel\fR specifier is provided (relative, or
-absolute), \fBuplevel\fR will move execution into the requested
-stack-frame level (incl\&. those introduced by active active filters and
-mixins), if valid\&.
+absolute), \fBuplevel\fR will execute the command in the
+stack-frame level\&. In such cases, method \fBuplevel\fR
+behaves like Tcl's \fBuplevel\fR command\&.
 .RE
 .CS
 
@@ -1453,25 +1453,25 @@ mixins and filters being (potentially) registered on \fBobj\fR\&.
 .RS
 .TP
 \fIobj\fR \fBupvar\fR ?\fIlevel\fR? \fIotherVar1\fR \fIlocalVar1\fR ?\fIotherVar2\fR \fIlocalVar2\fR \&.\&.\&.?
-Links one or more local variables to variables defined for other
-scopes (namespaces, objects, call frames)\&. Behaves like Tcl's \fBupvar\fR,
-with the following important exceptions\&.
+Links one or more local variables to variables defined in other
+scopes (namespaces, objects, call frames)\&.
+The command behaves in essence like Tcl's \fBupvar\fR, but can
+be used to achieve identical results when filters or mixins are
+registered\&.
 .RS
 .IP \(bu
 If the \fIlevel\fR specifier is omitted, \fBupvar\fR
 will skip any auxiliary frames added to the stack by active filters and mixins\&. The
 resulting stack-frame level corresponds to the callinglevel
-as indicated by \fBnx::current\fR\&.
-.IP \(bu
-If the \fIlevel\fR specifier is omitted, \fBupvar\fR gives
-preference to the innermost enclosing procedure call, i\&.e\&., a frame
-corresponding to a proc, method, or apply call\&. Any frames inbetween,
-incl\&. those of filters and mixins (see above), will be skipped\&.
+as indicated by \fBnx::current\fR\&. Therefore, method \fBupvar\fR gives
+access to the next enclosing procedure call, i\&.e\&., a frame
+corresponding to a proc, method, or apply call, while skipping
+frames of filters and mixins\&.
 .IP \(bu
 If the \fIlevel\fR specifier is provided (relative, or
 absolute), \fBupvar\fR will link into the requested
-stack-frame level (incl\&. those introduced by active active filters and
-mixins), if valid\&.
+stack-frame level\&. In these cases, method \fBupvar\fR
+behaves like Tcl's  \fBupvar\fR command\&.
 .RE
 .CS
 
