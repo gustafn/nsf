@@ -612,7 +612,7 @@ namespace eval ::xotcl::comm::httpd {
   Httpd::Responder::Wrk instproc respond {} {
     my instvar fileName method resourceName hasFormData
     [my info parent] instvar respondpatterns
-    ### auch das ist ein kandidat fuer eine chain of responsibility
+    ### auch das ist ein Kandidat fuer eine Chain-of responsibility
     foreach {pattern action} $respondpatterns {
       if {[regexp $pattern "$method $resourceName $hasFormData"]} {
 	my $action
@@ -752,7 +752,7 @@ namespace eval ::xotcl::comm::httpd {
     # (credentials) ok sind. Hier habe ich probleme auf die sachen,
     # die der worker gesendet (bspw. nonce) hat zu kommen. Ich
     # weiß, man kann mit [my info children] daran kommen. Aber,
-    # was ist, wenn man mehrere Worker hat?
+    # was is, wenn man mehrere Worker hat?
 
     ## Fredj, das sollte kein Problem sein: das credentialsNotOk wird
     ## vom aktuellen worker (respond) aufgerufen. man kann dem *NotOk

@@ -117,7 +117,7 @@
 	  we might wish a more general solution (see comment for
 	  futures releases)
 
-	- when creation with an required configure parameter failed, delete the
+	- when creation with a required configure parameter failed, delete the
 	  half-baked object to avoid confusing states.
 
 	- nx::test: show msg at start of test file

@@ -29,7 +29,7 @@ New Features
      0
 
      This is to avoid having to rely on pattern sniffing of the
-     command names. In addition, the propery is now set early enough,
+     command names. In addition, the property is now set early enough,
      right after allocating the NSF object, to test for the autonaming
      condition from within the creation procedure (ttrace).
      
@@ -83,9 +83,9 @@ New Features
 
 - XOTcl:
 
-  * Improved compatibility of XOTcl2 with XOTcl1 behaviour
+  * Improved compatibility of XOTcl2 with XOTcl1 behavior
     for volatile objects (see "volatile reform" above).
-  * Improved compatibility of XOTcl2 with XOTcl1 behaviour for
+  * Improved compatibility of XOTcl2 with XOTcl1 behavior for
     uplevel/upvar from within methods (see "uplevel/ upvar reform"
     above).
 

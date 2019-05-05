@@ -46,7 +46,7 @@ namespace eval ::xotcl::trace {
   @ Object instproc statFilter {} {
     Description {Experimental statistics filter}
   }
-  @ Object instproc showVars {args "ist of variables"} {
+  @ Object instproc showVars {args "list of variables"} {
     Description {Show the values of the specified variables (or of all variables)
       of an object on stderr.}
   }

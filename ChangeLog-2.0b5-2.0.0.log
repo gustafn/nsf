@@ -529,7 +529,7 @@
 	  function DependentSubClasses(). With the new implementation,
 	  NsfParameterCacheClassInvalidateCmd() is as efficient as before without
 	  to MostGeneralSuperclass optimization (but being complete now) when
-	  working on the root classes (an more efficient on subclasses).
+	  working on the root classes (and more efficient on subclasses).
 
 2014-06-04  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
