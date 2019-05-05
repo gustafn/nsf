@@ -122,7 +122,7 @@ NsfProfileDeprecatedCall(Tcl_Interp *interp, NsfObject *UNUSED(object), NsfClass
   NsfProfileMethodLabel(&ds, class, methodName);
   Tcl_DStringAppend(&ds, "}", 1);
 
-  NsfDeprecatedCmd(interp,"method", ds.string, altMethod);
+  NsfDeprecatedCmd(interp, "method", ds.string, altMethod);
   Tcl_DStringFree(&ds);
 }
 

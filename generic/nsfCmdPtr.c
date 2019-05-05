@@ -50,7 +50,7 @@ NsfGetClientDataFromCmdPtr(const Tcl_Command cmd) {
 
   nonnull_assert(cmd != NULL);
 
-  /*fprintf(stderr, "objProc=%p %p\n", Tcl_Command_objProc(cmd),NsfObjDispatch);*/
+  /*fprintf(stderr, "objProc=%p %p\n", Tcl_Command_objProc(cmd), NsfObjDispatch);*/
   if (likely(Tcl_Command_objProc(cmd) == NsfObjDispatch)) {
     result = Tcl_Command_objClientData(cmd);
 
@@ -75,7 +75,7 @@ NsfGetClassFromCmdPtr(const Tcl_Command cmd) {
   nonnull_assert(cmd != NULL);
 
   cd = NsfGetClientDataFromCmdPtr(cmd);
-  /*fprintf(stderr, "cd=%p\n",cd);*/
+  /*fprintf(stderr, "cd=%p\n", cd);*/
   if (likely(cd != NULL)) {
     result = NsfObjectToClass(cd);
   } else {

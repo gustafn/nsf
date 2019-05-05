@@ -183,7 +183,7 @@ Ns_ModuleInit(char *hServer, char *hModule) {
   assert(hServer != NULL);
   assert(hModule != NULL);
 
-  /*Ns_Log(Notice, "+++ ModuleInit","INIT");*/
+  /*Ns_Log(Notice, "+++ ModuleInit", "INIT");*/
   ret = Ns_TclInitInterps(hServer, NsNsf_Init, (void*)hModule);
 
   if (ret == TCL_OK) {

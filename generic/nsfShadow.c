@@ -69,7 +69,7 @@ NsfReplaceCommandCleanup(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfShadowTclComma
   nonnull_assert(nameObj != NULL);
   nonnull_assert(ti != NULL);
 
-  /*fprintf(stderr," cleanup for %s  ti=%p in %p\n", NsfGlobalStrings[name], ti, interp);*/
+  /*fprintf(stderr, " cleanup for %s  ti=%p in %p\n", NsfGlobalStrings[name], ti, interp);*/
   cmd = Tcl_GetCommandFromObj(interp, nameObj);
   if (cmd != NULL) {
     Tcl_Command_objProc(cmd) = ti->proc;
@@ -155,7 +155,7 @@ NsfReplaceCommand(Tcl_Interp *interp, Tcl_Obj *nameObj,
   nonnull_assert(nameObj != NULL);
   nonnull_assert(ti != NULL);
 
-  /* fprintf(stderr,"NsfReplaceCommand %s\n", ObjStr(nameObj)); */
+  /* fprintf(stderr, "NsfReplaceCommand %s\n", ObjStr(nameObj)); */
   cmd = Tcl_GetCommandFromObj(interp, nameObj);
 
   if (cmd == NULL) {
@@ -387,15 +387,17 @@ Nsf_InfoFrameObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, int objc,
 	Tcl_ListObjAppendElement(interp, listObj, ov[i+1]);
       }
 
-      Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("object",6));
+      Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("object", 6));
       Tcl_ListObjAppendElement(interp, listObj, cscPtr->self->cmdName);
-      Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("class",5));
+      Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("class", 5));
       Tcl_ListObjAppendElement(interp, listObj, (cscPtr->cl != NULL) ? cscPtr->cl->object.cmdName
 			       : NsfGlobalObjs[NSF_EMPTY]);
-      Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("method",6));
-      Tcl_ListObjAppendElement(interp, listObj, (cscPtr->cmdPtr != NULL) ? Tcl_NewStringObj(Tcl_GetCommandName(interp, cscPtr->cmdPtr), -1)
+      Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("method", 6));
+      Tcl_ListObjAppendElement(interp, listObj,
+                               (cscPtr->cmdPtr != NULL)
+                               ? Tcl_NewStringObj(Tcl_GetCommandName(interp, cscPtr->cmdPtr), -1)
 			       : NsfGlobalObjs[NSF_EMPTY]);
-      Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("frametype",9));
+      Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("frametype", 9));
       if (cscPtr->frameType == NSF_CSC_TYPE_PLAIN) {
         frameType = "intrinsic";
       } else if (cscPtr->frameType & NSF_CSC_TYPE_ACTIVE_MIXIN) {
@@ -407,16 +409,16 @@ Nsf_InfoFrameObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, int objc,
       } else {
         frameType = "unknown";
       }
-      Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj(frameType,-1));
+      Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj(frameType, -1));
       Tcl_SetObjResult(interp, listObj);
     } else if (frameFlags & (FRAME_IS_NSF_OBJECT)) {
       NsfObject *object = (NsfObject *)Tcl_CallFrame_clientData(varFramePtr);
       /* Tcl_Obj *listObj = Tcl_NewListObj(0, NULL); */
 
-      Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("object",6));
+      Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("object", 6));
       Tcl_ListObjAppendElement(interp, resultObj, object->cmdName);
-      Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("frameType",9));
-      Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("object",6));
+      Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("frameType", 9));
+      Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("object", 6));
       Tcl_SetObjResult(interp, resultObj);
     }
   }
@@ -484,9 +486,9 @@ NsfShadowTclCommands(Tcl_Interp *interp, NsfShadowOperations load) {
     NsfReplaceCommandCheck(interp, NsfGlobalObjs[NSF_INFO_FRAME],  Nsf_InfoFrameObjCmd, CMD_INFO(rst, NSF_INFO_FRAME));
     NsfReplaceCommandCheck(interp, NsfGlobalObjs[NSF_RENAME],      Nsf_RenameObjCmd,    CMD_INFO(rst, NSF_RENAME));
   } else {
-    NsfReplaceCommandCleanup(interp, NsfGlobalObjs[NSF_INFO_BODY], CMD_INFO(rst, NSF_INFO_BODY));
-    NsfReplaceCommandCleanup(interp, NsfGlobalObjs[NSF_INFO_FRAME],CMD_INFO(rst, NSF_INFO_FRAME));
-    NsfReplaceCommandCleanup(interp, NsfGlobalObjs[NSF_RENAME],    CMD_INFO(rst, NSF_RENAME));
+    NsfReplaceCommandCleanup(interp, NsfGlobalObjs[NSF_INFO_BODY],  CMD_INFO(rst, NSF_INFO_BODY));
+    NsfReplaceCommandCleanup(interp, NsfGlobalObjs[NSF_INFO_FRAME], CMD_INFO(rst, NSF_INFO_FRAME));
+    NsfReplaceCommandCleanup(interp, NsfGlobalObjs[NSF_RENAME],     CMD_INFO(rst, NSF_RENAME));
 
     FREE(NsfShadowTclCommandInfo*, rst->tclCommands);
     rst->tclCommands = NULL;
@@ -518,7 +520,7 @@ int NsfCallCommand(Tcl_Interp *interp, NsfGlobalNames name,
   ALLOC_ON_STACK(Tcl_Obj*, objc, ov);
   /*
    {int i;
-    fprintf(stderr,"calling %s (%p %p) in %p, objc=%d ",
+    fprintf(stderr, "calling %s (%p %p) in %p, objc=%d ",
 	    NsfGlobalStrings[name], ti, ti->proc, interp, objc);
             for(i=0;i<objc;i++){fprintf(stderr, "'%s' ", ObjStr(objv[i]));}
     fprintf(stderr, "\n");

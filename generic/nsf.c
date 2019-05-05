@@ -14472,7 +14472,7 @@ ObjectCmdMethodDispatch(
 
     if (RUNTIME_STATE(interp)->unknown) {
       Tcl_Obj       *callInfoObj = Tcl_NewListObj(1, &callerSelf->cmdName);
-      Tcl_CallFrame *varFramePtr, *tclFramePtr = CallStackGetTclFrame(interp,(Tcl_CallFrame *)framePtr, 1);
+      Tcl_CallFrame *varFramePtr, *tclFramePtr = CallStackGetTclFrame(interp, (Tcl_CallFrame *)framePtr, 1);
       int            pathLength, pathLength0 = 0, unknownIndex;
       Tcl_Obj       *pathObj = NsfMethodNamePath(interp, tclFramePtr, MethodName(objv[0]));
       bool           getPath = NSF_TRUE;
@@ -15287,7 +15287,7 @@ static void CacheCmd(
        * Save the NsfColonCmdContext in the proc context for memory management
        * and as well for reuse in twoPtrValue.ptr2.
        */
-      /* rst->freeListPtr = NsfListCons(ccCtxPtr,rst->freeListPtr); */
+      /* rst->freeListPtr = NsfListCons(ccCtxPtr, rst->freeListPtr); */
       NsfDListAppend(&rst->freeDList, ccCtxPtr);
       methodObj->internalRep.twoPtrValue.ptr2 = ccCtxPtr;
 
@@ -18268,7 +18268,9 @@ ParameterMethodDispatch(
   {int i;
   fprintf(stderr, "ParameterMethodDispatch %s flags %06x nrRemainingArgs %d ",
           paramPtr->name, paramPtr->flags, nrRemainingArgs);
-  for(i = 0; i < nrRemainingArgs; i++) {fprintf(stderr, " [%d]=%p %s,", i, &nextObjPtr[i], ObjStr(nextObjPtr[i]));}
+  for(i = 0; i < nrRemainingArgs; i++) {
+    fprintf(stderr, " [%d]=%p %s,", i, &nextObjPtr[i], ObjStr(nextObjPtr[i]));
+  }
   fprintf(stderr, "\n");
   }
 #endif
@@ -19606,7 +19608,7 @@ ForwardProcessOptions(Tcl_Interp *interp, Tcl_Obj *nameObj,
     Tcl_DStringAppend(dsPtr, "%1 {", 4);
     Tcl_DStringAppend(dsPtr, ObjStr(withDefault), -1);
     Tcl_DStringAppend(dsPtr, "}", 1);
-    NsfDeprecatedCmd(interp, "forward option","-default ...", Tcl_DStringValue(dsPtr));
+    NsfDeprecatedCmd(interp, "forward option", "-default ...", Tcl_DStringValue(dsPtr));
     DSTRING_FREE(dsPtr);
 
     tcd->subcommands = withDefault;
@@ -25031,7 +25033,7 @@ GetOriginalCommand(
            Tcl_GetCommandName(NULL, cmd), Tcl_GetCommandName(NULL, tcd->aliasedCmd),
            (void*)cmd, (void*)tcd->aliasedCmd  );
            char *name =Tcl_GetCommandName(NULL, cmd);
-           if (!strcmp("incr",name)) {char *p = NULL; *p=1;}
+           if (!strcmp("incr", name)) {char *p = NULL; *p=1;}
         */
 
         cmd = tcd->aliasedCmd;
@@ -25888,7 +25890,7 @@ ListMethod(Tcl_Interp *interp,
           Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("-debug", 6));
         }
         if (((unsigned int)Tcl_Command_flags(tcd->wrapperCmd) & NSF_CMD_DEPRECATED_METHOD) != 0) {
-          Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("-deprecated",11));
+          Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("-deprecated", 11));
         }
 
         Tcl_ListObjAppendElement(interp, resultObj,
@@ -26863,9 +26865,9 @@ AliasIndex(Tcl_Obj *cmdName, const char *methodName, bool withPer_object) {
   Tcl_DStringAppend(dsPtr,  ",", 1);
   Tcl_DStringAppend(dsPtr,  methodName, -11);
   if (withPer_object) {
-    Tcl_DStringAppend(dsPtr,  ",1", 2);
+    Tcl_DStringAppend(dsPtr, ",1", 2);
   } else {
-    Tcl_DStringAppend(dsPtr,  ",0", 2);
+    Tcl_DStringAppend(dsPtr, ",0", 2);
   }
   /*fprintf(stderr, "AI %s\n", Tcl_DStringValue(dsPtr));*/
   resultObj = Tcl_NewStringObj(dsPtr->string, dsPtr->length);
@@ -27157,7 +27159,7 @@ AliasDereference(Tcl_Interp *interp, NsfObject *object, const char *methodName, 
     AliasCmdClientData *tcd = (AliasCmdClientData *)Tcl_Command_objClientData(cmd);
 
     assert(tcd != NULL);
-    /*fprintf(stderr, "AliasDereference %s epoch %d\n",methodName, Tcl_Command_cmdEpoch(tcd->aliasedCmd));*/
+    /*fprintf(stderr, "AliasDereference %s epoch %d\n", methodName, Tcl_Command_cmdEpoch(tcd->aliasedCmd));*/
     if (unlikely(Tcl_Command_cmdEpoch(tcd->aliasedCmd) != 0)) {
 
       /*fprintf(stderr, "NsfProcAliasMethod aliasedCmd %p epoch %p\n",
@@ -28171,7 +28173,7 @@ NsfFinalizeCmd(Tcl_Interp *interp, int withKeepvars) {
   int result;
 
   /* fprintf(stderr, "#### (%lx) NsfFinalizeCmd exitHandlerRound %d\n",
-     (long)(void*)pthread_self(),RUNTIME_STATE(interp)->exitHandlerDestroyRound );*/
+     (long)(void*)pthread_self(), RUNTIME_STATE(interp)->exitHandlerDestroyRound );*/
 
   nonnull_assert(interp != NULL);
 
@@ -28220,11 +28222,11 @@ NsfFinalizeCmd(Tcl_Interp *interp, int withKeepvars) {
     /*fprintf(stderr, "CLEANUP TOP NS\n");*/
     Tcl_Export(interp, rst->NsfNS, "", 1);
     if (rst->NsfClassesNS != NULL) {
-      MEM_COUNT_FREE("TclNamespace",rst->NsfClassesNS);
+      MEM_COUNT_FREE("TclNamespace", rst->NsfClassesNS);
       Tcl_DeleteNamespace(rst->NsfClassesNS);
     }
     if (rst->NsfNS != NULL) {
-      MEM_COUNT_FREE("TclNamespace",rst->NsfNS);
+      MEM_COUNT_FREE("TclNamespace", rst->NsfNS);
       Tcl_DeleteNamespace(rst->NsfNS);
     }
 
@@ -35250,7 +35252,7 @@ ExitHandler(ClientData clientData) {
   /*
    * Free runtime state.
    */
-  /*fprintf(stderr, "+++ ExiHandler frees runtime state of interp %p\n",interp);*/
+  /*fprintf(stderr, "+++ ExiHandler frees runtime state of interp %p\n", interp);*/
   ckfree((char *) rst);
 #if defined(USE_ASSOC_DATA)
   Tcl_DeleteAssocData(interp, "NsfRuntimeState");
