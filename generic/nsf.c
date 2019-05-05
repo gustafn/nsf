@@ -2513,7 +2513,9 @@ NsfClassListAddNoDup(NsfClasses **firstPtrPtr, NsfClass *class, ClientData clien
 
   clPtr = *firstPtrPtr;
   if (clPtr != NULL) {
-    for (; (clPtr->nextPtr != NULL) && (clPtr->cl != class); clPtr = clPtr->nextPtr);
+    while ((clPtr->nextPtr != NULL) && (clPtr->cl != class)) {
+      clPtr = clPtr->nextPtr;
+    }
     nextPtr = &clPtr->nextPtr;
   } else {
     nextPtr = firstPtrPtr;
@@ -21844,7 +21846,7 @@ CleanupDestroyClass(Tcl_Interp *interp, NsfClass *class, bool softrecreate, bool
  *    None.
  *
  * Side effects:
- *    Makes a class structure useable.
+ *    Makes a class structure usable.
  *
  *----------------------------------------------------------------------
  */
