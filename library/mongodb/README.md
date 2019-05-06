@@ -1,5 +1,6 @@
 
-# Interface between mongoDB and the Next Scripting Framework #
+
+# Interface between MongoDB and the Next Scripting Framework #
 
 This is an interface between MongoDB based on NSF (Next Scripting
 Framework)
@@ -12,27 +13,28 @@ of NSF.  The example shows how to use the source code generator from NSF to
 generate a C interface.
 
 -gustaf neumann    March 27, 2011
+-stefan sobernig     May 6,      2019
 
 
 ## Ingredients: ##
 
-  https://github.com/mongodb/mongo  
-  https://github.com/mongodb/mongo-c-driver  
+  https://github.com/mongodb/mongo
+  https://github.com/mongodb/mongo-c-driver
 
 The current version of the NSF mongo binding is 2.2 and was
 tested with
 - Tcl 8.5, 8.6 and 8.7
-- MongoDB 3.6.6 (released July 10, 2018)
-- mongodb-c-driver 1.12.0 (released July 18, 2018)
-- libbson 1.12.0 (released July 18, 2018)
+- MongoDB 4.0.9 (released April 16, 2019)
+- mongodb-c-driver 1.14.0 (released February 22, 2019)
+- libbson 1.14.0 (released February 22, 2019)
 
 Follow the following steps to get MongoDB up and running
 and to compile the MongoDB driver for NX.
 
 
-## Obtain Mongodb and Mongo-C-Driver: ##
+## Obtain MongoDB and Mongo-C-Driver: ##
 
-- Compile or obtain mongodb (the database).
+- Compile or obtain MongoDB (the database).
 
 - Compile or obtain the mongo-c-driver (client interface)
 
@@ -70,15 +72,16 @@ and to compile the MongoDB driver for NX.
   "--disable-automatic-init-and-cleanup" is missing.
 
 
-## Compiling the Mongo NSF Binding: ##
+## Compiling the MongoDB NSF Binding: ##
 
 Assume the following installation directories
 
   - Tcl:             /usr/local/ns/lib/
   - mongo-c-driver: /usr/local/src/mongo-c-driver/
 
-configure the mongodb NSF interface via the following
+Configure the MongoDB NSF interface via the following
 command in the directory nsf*/library/mongodb/
+
 You will probably have to adjust the paths.
 
 ````
@@ -89,12 +92,20 @@ You will probably have to adjust the paths.
 ````
 
 In order to run the sample script,
-  * first start the mongodb (e.g. mongod)
 
-  * go to your NSF source directory
-
-  * make sure, the c-driver libraries are on the library path
+	* first start the mongodb (e.g. mongod)
+	* go to your NSF source directory
+	* make sure, the c-driver libraries are on the library path
     (assuming the c-driver was installed in /usr/local/lib)
+
+Linux:
+
+````
+    export LD_LIBRARY_PATH=/usr/local/lib:`pwd`
+````
+
+
+macOS:
 
 ````
     export DYLD_LIBRARY_PATH=/usr/local/lib:`pwd`
@@ -106,25 +117,17 @@ In order to run the sample script,
     ./nxsh library/mongodb/tests/nsf-mongo.test
 ````
 
-    The script is using the low level interface (nsf::mongo) and has a
-    few insert, query and delete statements, some of these are
+    The script is using both the low-level interface (nsf::mongo) and the
+    high-level one (nx::mongo), with each exercising a
+    few insert, query and delete statements, some of which are
     commented out.
 
- * run
-
-````
-    ./nxsh library/mongodb/example-nx-mongo.tcl
-````
-
-    This example script is using the higher-level object-oriented
-    interface for NX (nx::mongo).
-
-    After running this script, you should could
-    check the content in MongoDB:
+    After running this script, you should check the content using the
+    MongoDB shell:
 
 ````
     % mongo
-    MongoDB shell version: v3.4.0
+    MongoDB shell version: v4.0.9
     connecting to: test
     > use tutorial
     switched to db tutorial
@@ -135,7 +138,7 @@ In order to run the sample script,
    { "_id" : ObjectId("530c6e4649686ad16e261f84"), "name" : "Joe", "projects" : "abc", "age" : 23, "classes" : [  DBRef("courses", ObjectId("100000000000000000000000")) ] }
    { "_id" : ObjectId("530c6e4649686ad16e261f85"), "name" : "Franz", "info" : { "x" : 203, "y" : 102 }, "age" : 29, "projects" : "gtat" }
    { "_id" : ObjectId("530c6e4649686ad16e261f86"), "name" : "Selim", "ts" : Timestamp(1302945037, 1), "d" : ISODate("2011-04-16T09:53:39.279Z") }
-   >
+   > quit()
 ````
 
 ## Further sample-scripts: ##
@@ -148,4 +151,3 @@ In order to run the sample script,
     ./nxsh library/mongodb/tests/nx-serialize.test
     ./nxsh library/mongodb/tests/nsf-gridfs.test
 ````
-
