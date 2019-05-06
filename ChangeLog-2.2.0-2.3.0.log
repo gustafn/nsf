@@ -1,3 +1,17 @@
+2019-05-06  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* nsf-gridfs.test: Add one more piece of harness to test suite [ce93f504]
+	* library/mongodb/*: Ran NSF MongoDB tests, against MongoDB 4.0.9 and
+	Mongo-C driver 1.14.0 (both, latest stable); updated README.md
+	accordingly, and fixed gridfs tests that hadn't been corrected for
+	renaming README to README.md [c1f4cdc0]
+
+2019-05-03  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* nx.tcl, properties.test: Add exists accessor to properties and
+	variables; incl. tests and documentation [fc11b238]
+	* Updated changelog, fixed stats in announcement [63fa3171]
+
 2019-05-03  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
 	* Regenerated documentation [6cbeef2d]

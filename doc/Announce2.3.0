@@ -1,11 +1,13 @@
 Dear Community,
 
 We are pleased to announce the availability of the Next Scripting
-Framework (NSF) 2.3.0. The changes are mostly ... See below for the details.
+Framework (NSF) 2.3.0. The changes are mostly perfective improvements
+in terms of bug fixes, API consistency, and backwards
+compatibility. See below for the details.
 
 
 Diff stats since 2.2.0:
-   149 files changed, 15475 insertions(+), 12587 deletions(-)
+   155 files changed, 15686 insertions(+), 12640 deletions(-)
 
 Major changes relative to 2.2.0 are:
 
@@ -18,57 +20,58 @@ New Features
     supported before, and could also lead to crashes (when redefining
     a renamed nsf::proc).
 
-   * New object property "autonamed": NSF objects having been created
-     using "new", rather than using "create", can now be tested for this
-     condition using the object property "autonamed":
+  * New object property "autonamed": NSF objects having been created
+    using "new", rather than using "create", can now be tested for
+    this condition using the object property "autonamed":
 
      % package req nx
+     2.3
      % nsf::object::property [nx::Object new] autonamed
      1
      % nsf::object::property [nx::Object create o] autonamed
      0
 
-     This is to avoid having to rely on pattern sniffing of the
-     command names. In addition, the propery is now set early enough,
-     right after allocating the NSF object, to test for the autonaming
-     condition from within the creation procedure (ttrace).
+    This is to avoid having to rely on pattern sniffing of the command
+    names. In addition, the property is now set early enough, right
+    after allocating the NSF object, to test for the autonaming
+    condition from within the creation procedure (ttrace).
      
-   * Extended object property "volatile": By setting or unsetting the
-     object property "volatile", a given NSF object can now be
-     rendered volatile or not (in addition to using the volatile
-     method on the object).
+  * Extended object property "volatile": By setting or unsetting the
+    object property "volatile", a given NSF object can now be rendered
+    volatile or not (in addition to using the volatile method on the
+    object).
 
-   * Reform of uplevel and upvar: First, uplevel and upvar methods, as
-     well as [current callinglevel] and [self callinglevel] now
-     behave consistently (re frame skipping for mixin and filter
-     transparency). If there is no innermost enclosing proc frame,
-     the innermost non-proc (e.g., namespace) frame is selected
-     (rather than a "#0" as a default). Second, argument handling for
-     both uplevel (i.e., level sniffing in multi-arg case) and
-     upvar (e.g., made silent TCL_ERROR for invalid argument
-     arities explicit) have been fixed.
+  * Reform of uplevel and upvar: First, uplevel and upvar methods, as
+    well as [current callinglevel] and [self callinglevel] now behave
+    consistently (re frame skipping for mixin and filter
+    transparency). If there is no innermost enclosing proc frame, the
+    innermost non-proc (e.g., namespace) frame is selected (rather
+    than a "#0" as a default). Second, argument handling for both
+    uplevel (i.e., level sniffing in multi-arg case) and upvar (e.g.,
+    made silent TCL_ERROR for an invalid argument arity explicit) have
+    been fixed.
 
 - NX:
 
   * Properties and variables now provide "exists" as an additional
     accessor method, in addition to "get":
 
-    % package req nx
-    2.3
-    % nx::Class create C {
-       :property -accessor public {a 1} 
-    }
-    ::C
-    % ::C create ::c1
-    ::c1
-    % if {[::c1 a exists]} { ::c1 a get } else { ::c1 a set "1" }
-                  ^^^^^^
+     % package req nx
+     2.3
+     % nx::Class create C {
+        :property -accessor public {a 1} 
+     }
+     ::C
+     % ::C create ::c1
+     ::c1
+     % if {[::c1 a exists]} { ::c1 a get } else { ::c1 a set "1" }
+                   ^^^^^^
 
-    This is mainly to provide for symmetry in the property and
-    variable API, which otherwise requires one to resort to low-level
-    tests for existence, e.g.:
+    This is mainly to provide for symmetry in the property and variable
+    API, which otherwise requires one to resort to low-level tests for
+    existence, e.g.:
 
-    if {[::c1 eval {info exists :a}]} ...
+     if {[::c1 eval {info exists :a}]} ...
 
     This breaks the property/ variable abstraction, because one cannot
     move to a different value store other than object variables w/o
@@ -99,12 +102,14 @@ New Features
   * Added JSON serializer: The "find all" and "bson" methods now
     provide for JSON-formatted results, on request.
 
-    ::nx::mongo::Class "find all" -asJSON
-    ::nx::mongo::Object bson asJSON
+     ::nx::mongo::Class "find all" -asJSON
+     ::nx::mongo::Object bson asJSON
 
-  accept the
-  -asJSON flag to return a JSON formatted string. This is to
-  facilitate implementing single-page JavaScript applications.
+    This is to facilitate implementing single-page JavaScript
+    applications, among others.
+
+  * Fixed test suite; tested the NSF MongoDB binding against latest
+    stable releases of MongoDB (4.0.9) and MongoDB-C driver (1.14.0).
 
 - Documentation:
 
@@ -128,7 +133,7 @@ New Features
     potential leaks (NsfProcStubDeleteProc) and one invalid read on a
     dangling pointer (NsfCCreateMethod).
 
-  * Test suite: Fix recursion tests on 8.5 (windows-only,
+  * Test suite: Fix recursion tests on 8.5 (Windows-only,
     forward.test) for platform-specific error messages (CheckCStack),
     obsolete for 8.6 with NRE. Guarded test case on recursive
     forwards, to avoid preemptive crashes on stack-size limited
