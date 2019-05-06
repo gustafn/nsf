@@ -36,6 +36,7 @@ package require nsf::mongo
 set dir [file dirname [file dirname [info script]]]
 set fn [glob -tails -directory $dir -- README*]
 ? {llength $fn} 1
+? {file readable [file join $dir $fn]} 1
 
 # gridfs::remove_file removes all files with the specified name
 # multiple store operations create "revisions" with different uploadDates
