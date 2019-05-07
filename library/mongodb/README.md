@@ -5,7 +5,7 @@
 This is an interface between MongoDB based on NSF (Next Scripting
 Framework)
 
-This implementation provides a low level interface based on tagged elements
+This implementation provides a low-level interface based on tagged elements
 to force / preserve the datatypes of MongoDB when converting into Tcl.
 
 This code serves as well as an example how to use the source code generator
