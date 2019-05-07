@@ -20765,6 +20765,13 @@ ComputeLevelObj(Tcl_Interp *interp, CallStackLevel level) {
   switch (level) {
   case CALLING_LEVEL: {
     Tcl_CallFrame *callingFramePtr = NULL;
+
+    /*
+     * NsfCallStackFindCallingContext() sets always the framePtr, but
+     * initialize framePtr explicitly to silence static checkers, since
+     * ComputeLevelObj() is not performance critical.
+     */
+    framePtr = NULL;
     NsfCallStackFindCallingContext(interp, 1, &framePtr, &callingFramePtr);
     if (framePtr == NULL) {
       framePtr = callingFramePtr;
@@ -32449,15 +32456,22 @@ NsfOUplevelMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *cons
   objv += result + 1;
 
   if (result == 0) {
-    /* 0 is returned from TclObjGetFrame when no (or, an invalid) level specifier was provided */
+    /*
+     * 0 is returned from TclObjGetFrame when no (or, an invalid) level
+     * specifier was provided.
+     */
     Tcl_CallFrame *callingFramePtr = NULL;
     NsfCallStackFindCallingContext(interp, 1, &framePtr, &callingFramePtr);
     if (framePtr == NULL) {
-      /* no proc frame was found, default to parent frame */
+      /*
+       * No proc frame was found, default to parent frame.
+       */
       framePtr = callingFramePtr;
     }
   } else {
-    /* use the requested frame corresponding to the (valid) level specifier */
+    /*
+     * Use the requested frame corresponding to the (valid) level specifier.
+     */
     framePtr = (Tcl_CallFrame *)requestedFramePtr;
   }
 
