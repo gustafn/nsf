@@ -7,7 +7,8 @@ compatibility. See below for the details.
 
 
 Diff stats since 2.2.0:
-   155 files changed, 15686 insertions(+), 12640 deletions(-)
+   173 files changed, 5907 insertions(+), 2809 deletions(-)
+   (203 commits)
 
 Major changes relative to 2.2.0 are:
 
@@ -15,10 +16,28 @@ New Features
 
 - NSF:
 
-  * Rename reform for nsf::procs: NSF procedures can now be safely renamed
-    (or deleted) using the [rename] command. This was only partially
+  * Reform of "uplevel" and "upvar" methods:
+
+    - The methods "uplevel" and "upvar" (well as the underlying
+      functions [current callinglevel] and [self callinglevel]) behave
+      now more consistently and more similar to the XOTcl 1
+      semantics. This eases the migration of XOTcl 1 code. These
+      methods are needed for "frame skipping", i.e. when methods using
+      ":upvar" or ":uplevel" are overlaid with filters/mixin classes
+      but should keep the uplevel semantics without these
+      interceptors. Otherwise, adding a filter/mixin can break easily
+      existing code.
+
+    - The behavior of uplevel/upvar should be stable now in respect to
+      Tcl's "namespace eval" and similar commands.
+
+    - Error handling for providing potentially invalid level arguments
+      was fixed.
+
+  * Rename reform for "nsf::procs": NSF procs can now be safely renamed
+    (or deleted) using the Tcl [rename] command. This was only partially
     supported before, and could also lead to crashes (when redefining
-    a renamed nsf::proc).
+    a renamed NSF proc).
 
   * New object property "autonamed": NSF objects having been created
     using "new", rather than using "create", can now be tested for
@@ -31,25 +50,15 @@ New Features
      % nsf::object::property [nx::Object create o] autonamed
      0
 
-    This is to avoid having to rely on pattern sniffing of the command
-    names. In addition, the property is now set early enough, right
-    after allocating the NSF object, to test for the autonaming
-    condition from within the creation procedure (ttrace).
-     
-  * Extended object property "volatile": By setting or unsetting the
-    object property "volatile", a given NSF object can now be rendered
-    volatile or not (in addition to using the volatile method on the
-    object).
+    This is to avoid having to rely on pattern matching of the command
+    names. This is e.g. useful in the NaviServer/AOLserver blueprint
+    management, where temporary objects should be omitted.
 
-  * Reform of uplevel and upvar: First, uplevel and upvar methods, as
-    well as [current callinglevel] and [self callinglevel] now behave
-    consistently (re frame skipping for mixin and filter
-    transparency). If there is no innermost enclosing proc frame, the
-    innermost non-proc (e.g., namespace) frame is selected (rather
-    than a "#0" as a default). Second, argument handling for both
-    uplevel (i.e., level sniffing in multi-arg case) and upvar (e.g.,
-    made silent TCL_ERROR for an invalid argument arity explicit) have
-    been fixed.
+  * Extended object property "volatile": By setting or unsetting the
+    object property "volatile". A given NSF object can now be rendered
+    volatile or not dynamically (in addition to using the volatile
+    method on the object).
+
 
 - NX:
 
@@ -59,13 +68,13 @@ New Features
      % package req nx
      2.3
      % nx::Class create C {
-        :property -accessor public {a 1} 
+	:property -accessor public {a 1}
      }
      ::C
      % ::C create ::c1
      ::c1
      % if {[::c1 a exists]} { ::c1 a get } else { ::c1 a set "1" }
-                   ^^^^^^
+		   ^^^^^^
 
     This is mainly to provide for symmetry in the property and variable
     API, which otherwise requires one to resort to low-level tests for
@@ -77,25 +86,29 @@ New Features
     move to a different value store other than object variables w/o
     rewriting client code.
 
-  * Method combination for ensemble methods: Using [next] at the end
-    of chains of ensemble methods fired the unknown handler,
-    unintentionally. This was fixed.
+  * Fixed method combination for ensemble methods: Using [next] at the
+    end of a next chain in ensemble methods could fire previously
+    unintentionally the unknown handler.
+
   * nx::zip rewrite: nx::zip now uses the built-in Tcl 8.6 encode and
-    decode facilties, if available, rather than requiring the Trf
+    decode facilities, if available, rather than requiring the Trf
     package to be present.
 
 - XOTcl:
 
-  * Improved compatibility of XOTcl2 with XOTcl1 behaviour
+  * Improved compatibility of XOTcl2 with XOTcl1 behavior
     for volatile objects (see "volatile reform" above).
-  * Improved compatibility of XOTcl2 with XOTcl1 behaviour for
+
+  * Improved compatibility of XOTcl2 with XOTcl1 behavior for
     uplevel/upvar from within methods (see "uplevel/ upvar reform"
     above).
+
 
 - nx::serializer:
 
   * Improved backward compatibility: Preserve overriding accessor/
     mutators methods (instprocs) for slots.
+
 
 - MongoDB:
 
@@ -111,9 +124,11 @@ New Features
   * Fixed test suite; tested the NSF MongoDB binding against latest
     stable releases of MongoDB (4.0.9) and MongoDB-C driver (1.14.0).
 
+
 - Documentation:
 
   * Added documentation of uplevel and upvar methods.
+
 
 - Maintenance & bug fixes:
 
@@ -127,7 +142,7 @@ New Features
 
     Support for Tcl 8.7a1 and the upcoming, unreleased Tcl 8.7a2
     (core.tcl-lang.org/tcl branch "core-8-branch"). NSF compiles and its
-    regression tests execute successfully.
+    regression tests execute successfully (including TCL_NO_DEPRECATE).
 
   * Misc (esp. NSF/C): Ran valgrind checks, plugged one source of
     potential leaks (NsfProcStubDeleteProc) and one invalid read on a
@@ -139,11 +154,13 @@ New Features
     forwards, to avoid preemptive crashes on stack-size limited
     systems.
 
+
 - Build environments:
 
-  * Turned off COMDAT folding (/opt:icf) under nmake builds which can
-    lead to unusable, pointless function-pointer comparisons
-    (Nsf_ConvertToSwitch vs.  Nsf_ConvertToBoolean).
+  * Microsoft C compilers: Turned off COMDAT folding (/opt:icf) under
+    "nmake" builds which can lead to unusable, pointless
+    function-pointer comparisons (Nsf_ConvertToSwitch vs.
+    Nsf_ConvertToBoolean).
 
   * Improve robustness of configure/ make procedure in the absence of
     generated DTRACE artifacts so that they are truly conditional
@@ -154,6 +171,7 @@ New Features
 
   * Rendered inference of GIT commit in autotools setup more robust, in
     light of partial GIT checkouts (e.g., w/o tags).
+
 
 The detailed changelog is available at
 https://next-scripting.org/xowiki/download/file/ChangeLog-2.2.0-2.3.0.log

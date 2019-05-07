@@ -34,7 +34,7 @@ package require nsf::mongo
 ? {set gridFS [::mongo::gridfs::open $mongoConn myfs fs]} mongoc_gridfs_t:0
 
 set dir [file dirname [file dirname [info script]]]
-set fn [glob -tails -directory $dir -- README*]
+set fn [glob -tails -directory $dir -- README.md]
 ? {llength $fn} 1
 ? {file readable [file join $dir $fn]} 1
 
@@ -74,20 +74,24 @@ set mongoColl [mongo::collection::open $mongoConn myfs fs.files]
     }
   }
   set chunks
-} 5
+} 6
 ? {mongo::gridfile::close $f} ""
 
 #
 # Access the files stored in the gridfs via plain query interface.
 # (should be just one)
 puts "\nAll Files:"
-? {llength [::mongo::collection::query $mongoColl {}]} 1
+#puts [join [::mongo::collection::query $mongoColl {}] \n]
+set nr1 [llength [::mongo::collection::query $mongoColl {}]]
+? {expr {$nr1 > 0}} 1
 
 # store one more copy
 ? {::mongo::gridfile::create -source file $gridFS [file join $dir $fn] $fn text/plain} 1
 
-# we should have now two entries:
-? {llength [::mongo::collection::query $mongoColl {}]} 2
+
+# we should have now one more entry:
+set nr2 [llength [::mongo::collection::query $mongoColl {}]]
+? {expr {$nr2 == $nr1 + 1}} 1
 puts [join [::mongo::collection::query $mongoColl {}] \n]
 
 #

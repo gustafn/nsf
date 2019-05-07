@@ -5,7 +5,7 @@
 This is an interface between MongoDB based on NSF (Next Scripting
 Framework)
 
-This implementation provides a low level interface based on tagged elements
+This implementation provides a low-level interface based on tagged elements
 to force / preserve the datatypes of MongoDB when converting into Tcl.
 
 This code serves as well as an example how to use the source code generator
@@ -91,12 +91,12 @@ You will probably have to adjust the paths.
 	       --enable-threads --enable-symbols
 ````
 
-In order to run the sample script,
+In order to run the NSF sample script, perform the following steps
 
 	* first start the mongodb (e.g. mongod)
 	* go to your NSF source directory
 	* make sure, the c-driver libraries are on the library path
-    (assuming the c-driver was installed in /usr/local/lib)
+      (assuming the c-driver was installed in /usr/local/lib)
 
 Linux:
 
@@ -117,10 +117,9 @@ macOS:
     ./nxsh library/mongodb/tests/nsf-mongo.test
 ````
 
-    The script is using both the low-level interface (nsf::mongo) and the
+    The script tests the low-level interface (nsf::mongo) and the
     high-level one (nx::mongo), with each exercising a
-    few insert, query and delete statements, some of which are
-    commented out.
+    few insert, query and delete statements.
 
     After running this script, you should check the content using the
     MongoDB shell:
@@ -141,10 +140,24 @@ macOS:
    > quit()
 ````
 
-## Further sample-scripts: ##
+## Testing the object oriented mapping between NX and MongoDB: ##
+
+Test the basic mapping and the OO query methods:
+
+````
+    ./nxsh library/mongodb/tests/nx-mongo.test
+````
+
+Show the classical Business Informer example in NX:
 
 ````
     ./nxsh library/mongodb/tests/nx-bi.test
+````
+
+Further test scripts for reference handling, serialization and
+MongoDB GridFS.
+
+````
     ./nxsh library/mongodb/tests/nx-reference-one.test
     ./nxsh library/mongodb/tests/nx-reference-many.test
     ./nxsh library/mongodb/tests/nx-rep.test

@@ -15,7 +15,7 @@ package require XOTcl 2.0; namespace import -force xotcl::*
     <tr><td>-local    <td> A string match pattern to decide
                      which url should be treated as local
                      e.g.  -local *wu-wien.ac.at/*
-                     Per default the locality filter ist set
+                     Per default the locality filter is set
                      to the name of the host followed by '/*'</td></tr>
     <tr><td>-restrict <td> 0 or 1,  sets the locality filter to the subtree
                      implied by the URL</td></tr>

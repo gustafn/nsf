@@ -416,11 +416,10 @@
 	* nsf.c:
 	(ParamOptionParse): 'virtualobjectargs' and 'virtualclassargs'
 	defaulted to ConvertViaCmd when parsed from Tcl spec; explicitly
-        set ConvertToNothing to match the intended semantics and to avoid
+	set ConvertToNothing to match the intended semantics and to avoid
 	false warnings (e.g., missing type=virtualobjectargs type checker).
 	[03b838a]
-	(NsfParameterInfoCmd): Correct two typos in in-code
-	comment. [6d563e2]
+	(NsfParameterInfoCmd): Correct two typos in code comment. [6d563e2]
 
 2016-10-02  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 

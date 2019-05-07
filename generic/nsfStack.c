@@ -321,7 +321,7 @@ static void Nsf_PushFrameObj(Tcl_Interp *interp, NsfObject *object, const CallFr
   nonnull_assert(object != NULL);
   nonnull_assert(framePtr != NULL);
 
-  /*fprintf(stderr,"PUSH OBJECT_FRAME (Nsf_PushFrameObj) frame %p\n", framePtr);*/
+  /*fprintf(stderr, "PUSH OBJECT_FRAME (Nsf_PushFrameObj) frame %p\n", framePtr);*/
   if (object->nsPtr != NULL) {
     Tcl_PushCallFrame(interp, (Tcl_CallFrame *)framePtr, object->nsPtr,
                       0|FRAME_IS_NSF_OBJECT);
@@ -345,7 +345,7 @@ static void Nsf_PopFrameObj(Tcl_Interp *interp, CallFrame *framePtr) {
   nonnull_assert(interp != NULL);
   nonnull_assert(framePtr != NULL);
 
-  /*fprintf(stderr,"POP  OBJECT_FRAME (Nsf_PopFrameObj) frame %p, varTable %p set to NULL, already %d\n",
+  /*fprintf(stderr, "POP  OBJECT_FRAME (Nsf_PopFrameObj) frame %p, varTable %p set to NULL, already %d\n",
     framePtr, Tcl_CallFrame_varTablePtr(framePtr), Tcl_CallFrame_varTablePtr(framePtr) == NULL);*/
 
   Tcl_CallFrame_varTablePtr(framePtr) = NULL;
@@ -377,7 +377,7 @@ Nsf_PushFrameCsc(Tcl_Interp *interp, const NsfCallStackContent *cscPtr, CallFram
   nonnull_assert(framePtr != NULL);
 
   varFramePtr = Tcl_Interp_varFramePtr(interp);
-  /*fprintf(stderr,"PUSH CMETHOD_FRAME (Nsf_PushFrameCsc) frame %p cscPtr %p methodName %s\n",
+  /*fprintf(stderr, "PUSH CMETHOD_FRAME (Nsf_PushFrameCsc) frame %p cscPtr %p methodName %s\n",
     framePtr, cscPtr, Tcl_GetCommandName(interp, cscPtr->cmdPtr));*/
 
   Tcl_PushCallFrame(interp, (Tcl_CallFrame *)framePtr, Tcl_CallFrame_nsPtr(varFramePtr),
@@ -390,7 +390,7 @@ NSF_INLINE static void
 Nsf_PopFrameCsc(Tcl_Interp *interp, CallFrame *UNUSED(framePtr)) {
   nonnull_assert(interp != NULL);
 
-  /*fprintf(stderr,"POP CMETHOD_FRAME (Nsf_PopFrameCsc) frame %p, varTablePtr = %p\n",
+  /*fprintf(stderr, "POP CMETHOD_FRAME (Nsf_PopFrameCsc) frame %p, varTablePtr = %p\n",
     framePtr, Tcl_CallFrame_varTablePtr(framePtr));*/
   Tcl_PopCallFrame(interp);
 }
@@ -770,7 +770,7 @@ CallStackUseActiveFrame(const Tcl_Interp *interp, callFrameContext *ctx) {
    */
   framePtr = CallStackGetActiveProcFrame(inFramePtr);
 
-  /*fprintf(stderr,"... use frameptr %p \n", framePtr);*/
+  /*fprintf(stderr, "... use frameptr %p \n", framePtr);*/
 
   if (inFramePtr == framePtr) {
     /* call frame pointers are fine */
@@ -876,7 +876,7 @@ CallStackFindEnsembleCsc(const Tcl_CallFrame *framePtr, Tcl_CallFrame **framePtr
     cscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
     assert(cscPtr != NULL);
 
-    /*fprintf(stderr,"--- frame %p cmdPtr %p NSF_CSC_TYPE_ENSEMBLE %d NSF_CSC_CALL_IS_ENSEMBLE %d \
+    /*fprintf(stderr, "--- frame %p cmdPtr %p NSF_CSC_TYPE_ENSEMBLE %d NSF_CSC_CALL_IS_ENSEMBLE %d \
                          NSF_CSC_TYPE_INACTIVE %d\n",
             varFramePtr,
             cscPtr->cmdPtr,
@@ -1284,7 +1284,7 @@ CscInit_(
      * Track object activations.
      */
     object->activationCount ++;
-    MEM_COUNT_ALLOC("object.activationCount",object);
+    MEM_COUNT_ALLOC("object.activationCount", object);
     /*fprintf(stderr, "CscInit %p method %s activationCount ++ (%s) --> %d (cl %p)\n",
             cscPtr, (cmd != NULL) ? Tcl_GetCommandName(object->teardown, cmd) : "UNK",
             ObjectName(object),  object->activationCount, cl);*/

@@ -718,12 +718,8 @@ install: function(toclevels) {
     clearInterval(timerId);
     reinstall();
   }
+    reinstall();
 
-  timerId = setInterval(reinstall, 500);
-  if (document.addEventListener)
-    document.addEventListener("DOMContentLoaded", reinstallAndRemoveTimer, false);
-  else
-    window.onload = reinstallAndRemoveTimer;
 }
 
 }
@@ -735,8 +731,8 @@ asciidoc.install(4);
 <div id="header">
 <h1>Tutorial for the Next Scripting Language</h1>
 <span id="author">Gustaf Neumann &lt;neumann@wu-wien.ac.at&gt;, Stefan Sobernig &lt;stefan.sobernig@wu.ac.at&gt;</span><br />
-<span id="revnumber">version 2.2.0,</span>
-<span id="revdate">September 2018</span>
+<span id="revnumber">version 2.3.0,</span>
+<span id="revdate">May 2019</span>
 <br /><span id="revremark">Written for the Initial Release of the Next Scripting Framework.</span>
 <div id="toc">
   <div id="toctitle">Table of Contents</div>
@@ -3464,8 +3460,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Version 2.2.0<br />
-Last updated 2019-04-12 16:25:08 CEST
+Version 2.3.0<br />
+Last updated 2019-05-07 11:27:03 CEST
 </div>
 </div>
 </body>

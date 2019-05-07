@@ -161,7 +161,7 @@ selfDispatchCompile(Tcl_Interp *interp, Tcl_Parse *parsePtr,
        wordIdx++, tokenPtr += (tokenPtr->numComponents + 1)) {
 
     /*
-    fprintf(stderr,"  %d: %p token type=%d size=%d\n",
+    fprintf(stderr, "  %d: %p token type=%d size=%d\n",
 	    wordIdx, tokenPtr, tokenPtr->type, tokenPtr->size );
     */
     if (tokenPtr->type == TCL_TOKEN_SIMPLE_WORD) {
@@ -169,12 +169,12 @@ selfDispatchCompile(Tcl_Interp *interp, Tcl_Parse *parsePtr,
 				     tokenPtr->size, 0), envPtr);
       envPtr->maxStackDepth = 1;
       /*
-      fprintf(stderr,"  %d: simple '%s' components=%d\n",
+      fprintf(stderr, "  %d: simple '%s' components=%d\n",
 	      wordIdx, tokenPtr->start, tokenPtr->numComponents);
       */
     } else {
       /*
-      fprintf(stderr,"  %d NOT simple '%s' components=%d\n",
+      fprintf(stderr, "  %d NOT simple '%s' components=%d\n",
 	      wordIdx, tokenPtr->start, tokenPtr->numComponents);
       */
       code = TclCompileTokens(interp, tokenPtr+1,

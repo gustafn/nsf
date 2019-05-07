@@ -293,7 +293,7 @@
 	* nsf.c, speedtest.xotcl: Improved handling of object property
 	autonamed [c86c0775]
 	* serializer.tcl: Preserve overriding slot accessor methods
-	defined via XOTcl instprocs during serialisation. [542f9ead]
+	defined via XOTcl instprocs during serialization. [542f9ead]
 
 2019-03-12  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
@@ -436,7 +436,7 @@
 2018-10-24  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
 	* disposition.test, parameters.test: Adjust tests to reflect the
-	changed representational behaviour for numerics (int, wide) according
+	changed representational behavior for numerics (int, wide) according
 	to TIP 514 (now in Tcl 8.7a2+). [fca63858]
 
 2018-10-23  Gustaf Neumann  <neumann@wu-wien.ac.at>

@@ -861,7 +861,7 @@ Object and Class System
 <P>Initially XOTcl offers two new commands: <tt>Object</tt> and
 <tt>Class</tt>. They represent hooks to the features of the language.
 This section discusses both of them in detail and shows how they
-function in the context of XOTcl. Note, that even if most of this is
+function in the context of XOTcl. Note that even if most of this is
 compatible to OTcl, a few changes occur. For this reason, this
 section is no introduction to plain OTcl. The <tt>Object</tt> command
 provides access to the <tt>Object</tt> class, which holds the common
@@ -1024,7 +1024,7 @@ with XOTcl-methods, these are in particular:
 	</P>
 	<LI><P STYLE="margin-bottom: 0in"><tt>self class</tt>: the self
 	command with the  argument <tt>class</tt> returns the name of the
-	class, which holds the currently executing instproc. Note, that this
+	class, which holds the currently executing instproc. Note that this
 	may be different to the class of the current object. If it is called
 	from a proc it returns an empty string. 
 	</P>
@@ -1041,7 +1041,7 @@ instead of <tt>[<tt>self</tt>]</tt>:</p>
     <tt>my</tt> <tt>set</tt> persons($name) [<tt>clock</tt> seconds]
   }
 </pre><P>
-<P>Note, that there is a difference to the realization of these
+<P>Note that there is a difference to the realization of these
 object information to OTcl. XOTcl uses commands in order to make
 XOTcl-methods compatible to Tcl-procedures and accessible via
 namespace-paths. OTcl uses the three variables <tt>self</tt>, <tt>class</tt>
@@ -1544,8 +1544,8 @@ delete the object nor leave it without class. In XOTcl a deleted class
 leaves it's instances with the class <tt>Object</tt>.
 </P>
 <P>So all empty class- and superclass-relationships are automatically
-reset to <tt>Object</tt>. Note, that this are differences to OTcl,
-where the destruction of an class destroys all instances and an empty
+reset to <tt>Object</tt>. Note that this are differences to OTcl,
+where the destruction of a class destroys all instances and an empty
 super-class list remains empty. 
 </P>
 <H3><A NAME="class_method_chaining"></A>Method Chaining 
@@ -1622,7 +1622,7 @@ After creation an object of class <tt>Kitchen</tt> gets automatically
 four instance variables <tt>cookName</tt>, <tt>roomNumber</tt>,
 <tt>doorPosition</tt> and <tt>stoveType</tt> set up with default
 values in this order (since this is the order of the classes in the
-next-path). Note, that the order is important, because one missing
+next-path). Note that the order is important, because one missing
 next call, in one of the <tt>init</tt> methods, means that succeeding
 <tt>init</tt> methods will not be executed. This mechanism functions
 equally on all kinds of instprocs, not only on constructors. 
@@ -1754,8 +1754,7 @@ user-defined meta-classes can be defined as subclasses of the
 predefined meta-class <tt>Class</tt>, or by adding an instmixin class
 (see <A HREF="per-class-mixins">below</A>) containing <tt>Class</tt>
 to the precedence chain of the class.  By defining <tt>Object
-instmixin Class</tt> one can even change the object system of XOTcl in
-in a way such that every created Object is a meta-class.
+instmixin Class</tt> one can even change the object system of XOTclin a way such that every created Object is a meta-class.
 </P>
 <P>Since the concept of a meta-class are sometimes
 confusing to people of a background of some other programming
@@ -1970,7 +1969,7 @@ However, this behavior is not implemented in XOTcl, but in C.
   <tt>doInitializations</tt>.
   </p>
   <p>
-  Note, that <tt>recreate</tt> is not called, when a someone tries
+  Note that <tt>recreate</tt> is not called, when a someone tries
   to recreate a class as an object or an object as a class. In these
   cases, <tt>destroy</tt> + <tt>create</tt> are used.
 <pre CLASS="code">
@@ -2320,7 +2319,7 @@ the <I>filter</I> method is invoked automatically.
 <P>All messages to a filtered object must go through the filter before
 they reach their destination object. A simple example would be a sole
 filter on the class of the object. To define such a filter two steps
-are necessary. Firstly an filter method has to be defined, then the
+are necessary. Firstly a filter method has to be defined, then the
 filter has to be registered. The filter method consists of three parts
 which are all optional. A filter method has the following form:
 </P>
@@ -2812,13 +2811,13 @@ is not specified, otherwise it returns the matching per class-object mixin class
 </P>
 	
 The inverse operation of <tt>info mixin</tt> is <tt>mixinof</tt> finds
-out, into which objects an per-object mixin class is mixed into.
+out, into which objects a per-object mixin class is mixed into.
 	
 <pre CLASS="code">
   <em>clsName</em> <tt>info</tt> mixinof <em>?pattern?</em>
 </pre>
 	
-<P> Note, that the constructors (init methods) of per-object mixins (and per-class mixins)
+<P> Note that the constructors (init methods) of per-object mixins (and per-class mixins)
 are only called, if the mixin is registered already during object
 initialization (when <tt>init</tt> is called). For per-object mixins, one can 
 achieve the initialization of a mixin via an idiom like 
@@ -2827,7 +2826,7 @@ achieve the initialization of a mixin via an idiom like
 </pre> 
 that registers the mixin before <tt>init</tt> is called. When a mixin is registered
 after object creation and it needs initializations, it is necessary to
-define special methods for this.  Note, that the behavior described
+define special methods for this.  Note that the behavior described
 here is introduced in version 0.84 to ensure consistent behavior of
 intrinsic classes, per-object and per-class mixins, and to achieve
 predictable behavior for dynamic registration for all kind of mixins,
@@ -2897,7 +2896,7 @@ has the syntax:
   <em>className</em> <tt>instmixin</tt> <em>mixinList</em>
 </pre>
 The inverse operation of <tt>info inmixin</tt> is <tt>instmixinof</tt> finds
-out, into which objects an per-object mixin class is mixed into.
+out, into which objects a per-object mixin class is mixed into.
 	
 <pre CLASS="code">
   <em>className</em> <tt>info</tt> instmixinof <em>?-closure? ?pattern?</em>
@@ -2962,7 +2961,7 @@ is a mixin of the object, or <tt>0</tt> if not.
 </P>
 
 <p>Per-class mixins are applied transitively. That means the per-class
-mixin A of a per-class mixin B is also applied for an object in in B's
+mixin A of a per-class mixin B is also applied for an objectin B's
 scope. This is exactly the same as how superclasses are applied for
 instances. Consider the following example</p>
 
@@ -3244,7 +3243,7 @@ Use absolute class names. <tt>delete</tt> supports an optional flag <tt>-nocompl
 </CENTER>	
 </P>
 <P>
-Note, that the list of possible actions can be
+Note that the list of possible actions can be
 extended by extending the class <tt>::xotcl::Relations</tt>.
 </P>
 
@@ -3257,9 +3256,9 @@ abilities introduced so far. In instprocs all recent information is
 accessible within their scope. But the interceptors are mechanisms,
 which cover more then their sole scope. The meaningful usage of the
 meta-programming abilities often requires to go further and to get
-information from the caller's and the callee's scope (e.g for
+information from the caller's and the callee's scope (e.g. for
 delegation decisions). Therefore, we introduced rich call-stack
-information for the interceptors. Note, that these are also available
+information for the interceptors. Note that these are also available
 for ordinary methods, but the "called..." info options return empty
 strings.
 </P>
@@ -3383,7 +3382,7 @@ call-stack dependent.
     </CENTER>
 </P>
 <p><br></p>
-<P>Note, that three options with the prefix <tt>calling</tt>
+<P>Note that three options with the prefix <tt>calling</tt>
 represent the values of <tt>self</tt>, <tt>self proc</tt>, and <tt>self
 class</tt> in the scope where the original call was invoked. In the
 following section we will show a simple program in which all of the
@@ -4770,7 +4769,7 @@ an existing exit handler, we use <tt>getExitHandler</tt>:
 <H2><A NAME="autonames">Automatic Name Creation</A>
 </H2>
 The XOTcl <FONT SIZE=2>autoname</FONT>
-instance method provides an simple way to take the task of
+instance method provides a simple way to take the task of
 automatically creating names out of the responsibility of the
 programmer. The example below shows how to create on each invocation
 of method <FONT SIZE=2>new</FONT> an agent with a fresh name

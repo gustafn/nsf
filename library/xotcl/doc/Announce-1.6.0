@@ -58,7 +58,7 @@ Major changes relative to 1.5.6 are:
      will be marked as deprecated in the near future.
 
      Please note that the behavior of the match pattern has
-     changed and is therefor not completely compatible with 
+     changed and is therefore not completely compatible with 
      prior versions.
 
    * New info subcommands:
