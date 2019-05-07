@@ -1,7 +1,7 @@
 Migration Guide for the Next Scripting Language
 ===============================================
 Gustaf Neumann <neumann@wu-wien.ac.at>
-v2.2.0, September 2018:
+v2.3.0, May 2019:
 :Author Initials: GN
 :toc:
 :toclevels: 3
