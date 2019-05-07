@@ -32434,10 +32434,16 @@ NsfOUplevelMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *cons
                          NsfMethodName(objv[0]));
   }
 
-  result = TclObjGetFrame(interp, objv[1], &requestedFramePtr);
-  if (unlikely(result == -1)) {
-    return TCL_ERROR;
+
+  if (objc == 2) {
+    result = 0;
+  } else {
+    result = TclObjGetFrame(interp, objv[1], &requestedFramePtr);
+    if (unlikely(result == -1)) {
+      return TCL_ERROR;
+    }
   }
+  
   objc -= result + 1;
   if (objc == 0) {
     goto wrongArgs;

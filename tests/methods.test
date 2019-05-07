@@ -1875,13 +1875,20 @@ nx::test case uplevel-method-signature {
     :uplevel 1
   }
 
-  ? {uplevel #0 {objekt foo}} {wrong # args: should be "::objekt uplevel ?level? command ?arg ...?"}
+  ? {uplevel #0 {objekt foo}} {invalid command name "1"}
 
   objekt public object method foo {} {
     :uplevel #1
   }
 
-  ? {uplevel #0 {objekt foo}} {wrong # args: should be "::objekt uplevel ?level? command ?arg ...?"}
+  ? {uplevel #0 {objekt foo}} {}
+
+  objekt public object method foo {} {
+    :uplevel [list #1]
+  }
+
+  ? {uplevel #0 {objekt foo}} {invalid command name "#1"}
+
 
   objekt public object method foo {} {
     :uplevel 1 {return -level 0 #[info level]}
@@ -1906,6 +1913,131 @@ nx::test case uplevel-method-signature {
   }
   
   ? {uplevel #0 {objekt foo}} "#0"
+
+  #
+  # TODO: Is this below behaviour okay?
+  #
+  # (1) syntactically invalid level specifiers (no digit, no hash) in
+  # the more-arg case resort to interpreting the arg as a command name.
+  # (2) syntactically valid level specifiers (digit, hash), but that
+  # point to nowhere, are reported as a bad level.
+  #
+  # Level-syntax validity is a moving target: see TIP 515
+  # https://core.tcl-lang.org/tips/doc/trunk/tip/515.md
+  #
+
+  #
+  # ad (1)
+  #
+  objekt public object method foo {} {
+    :uplevel a return -level 0 "#\[info level\]"
+  }
+  
+  ? {uplevel #0 {objekt foo}} {invalid command name "a"}
+
+  objekt public object method foo {} {
+    :uplevel 1 return -level 0 "#\[info level\]"
+  }
+  
+  ? {uplevel #0 {objekt foo}} "\#0"
+
+  objekt public object method foo {} {
+    :uplevel #0 return -level 0 "#\[info level\]"
+  }
+  
+  ? {uplevel #0 {objekt foo}} "\#0"
+
+  #
+  # TODO: Should we concat at all, or limited to the objc > 3 case only?
+  #
+  
+  objekt public object method foo {} {
+    # concat interferes!
+    :uplevel [list [list a b]] return -level 0 "#\[info level\]"
+  }
+  
+  ? {uplevel #0 {objekt foo}} {invalid command name "a b"}
+
+  objekt public object method foo {} {
+    # concat interferes!
+    :uplevel [list [list a b]] [list return -level 0 "#\[info level\]"]
+  }
+  
+  ? {uplevel #0 {objekt foo}} {invalid command name "a b"}
+
+  objekt public object method foo {} {
+    # concat interferes!
+    :uplevel [list a b] [list return -level 0 "#\[info level\]"]
+  }
+  
+  ? {uplevel #0 {objekt foo}} {invalid command name "a"}
+
+  objekt public object method foo {} {
+    # concat interferes!
+    :uplevel [list a b] return -level 0 "#\[info level\]"
+  }
+  
+  ? {uplevel #0 {objekt foo}} {invalid command name "a"}
+
+  #
+  # ad (2)
+  #
+  objekt public object method foo {} {
+    :uplevel #1000 return -level 0 "#\[info level\]"
+  }
+  
+  ? {uplevel #0 {objekt foo}} {bad level "#1000"}
+
+  objekt public object method foo {} {
+    :uplevel 1000 return -level 0 "#\[info level\]"
+  }
+  
+  ? {uplevel #0 {objekt foo}} {bad level "1000"}
+}
+
+nx::test case uplevel-default-level {
+
+  #
+  # This is to test the single-argument case of uplevel, which will
+  # default to a computed level, internally. This should avoid
+  # "nonsense-parsing" of the single argument for a level specifier
+  # (with leading digit or hash). This is in line with changes to
+  # uplevel in Tcl 8.7 (see also TIP 515).
+  #
+  # https://core.tcl-lang.org/tips/doc/trunk/tip/515.md
+  #
+  
+  nx::Object create objekt
+  
+  objekt public object method foo {} {
+    :uplevel [list 123456 arg]
+  }
+
+  ? {uplevel #0 {
+    objekt foo
+  }} {invalid command name "123456"}
+
+  ? {uplevel #0 {
+    proc 123456 {args} {return $args}
+    set r [objekt foo]
+    rename 123456 ""
+    set r
+  }} "arg"
+
+  objekt public object method foo {} {
+    :uplevel [list #123456 arg2]
+  }
+
+  ? {uplevel #0 {
+    objekt foo
+  }} {invalid command name "#123456"}
+
+  ? {uplevel #0 {
+    proc #123456 {args} {return $args}
+    set r [objekt foo]
+    rename #123456 ""
+    set r
+  }} "arg2"
 }
 
 nx::test case upvar-method-signature {
