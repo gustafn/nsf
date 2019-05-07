@@ -34,7 +34,10 @@ package require nsf::mongo
 ? {set gridFS [::mongo::gridfs::open $mongoConn myfs fs]} mongoc_gridfs_t:0
 
 set dir [file dirname [file dirname [info script]]]
-set fn README
+set fn [glob -tails -directory $dir -- README*]
+? {llength $fn} 1
+? {file readable [file join $dir $fn]} 1
+
 # gridfs::remove_file removes all files with the specified name
 # multiple store operations create "revisions" with different uploadDates
 ::mongo::gridfile::delete $gridFS [list filename string $fn]
@@ -49,15 +52,15 @@ set mongoColl [mongo::collection::open $mongoConn myfs fs.files]
 #
 # Store a known file:
 #
-? {::mongo::gridfile::create -source file $gridFS $dir/$fn $fn text/plain} 1
+? {::mongo::gridfile::create -source file $gridFS [file join $dir $fn] $fn text/plain} 1
 
 #
 # Open grid file, get some of its properties, and read it in chunks
 # of 1000 bytes, and close it finally.
 
-? {set f [mongo::gridfile::open $gridFS {filename string README}]} mongoc_gridfs_file_t:0
+? {set f [mongo::gridfile::open $gridFS [list filename string $fn]]} mongoc_gridfs_file_t:0
 ? {mongo::gridfile::get_metadata $f} ""
-? {mongo::gridfile::get_contentlength $f} [file size $dir/README]
+? {mongo::gridfile::get_contentlength $f} [file size [file join $dir $fn]]
 ? {mongo::gridfile::get_contenttype $f} text/plain
 
 ? {
@@ -81,7 +84,7 @@ puts "\nAll Files:"
 ? {llength [::mongo::collection::query $mongoColl {}]} 1
 
 # store one more copy
-? {::mongo::gridfile::create -source file $gridFS $dir/$fn $fn text/plain} 1
+? {::mongo::gridfile::create -source file $gridFS [file join $dir $fn] $fn text/plain} 1
 
 # we should have now two entries:
 ? {llength [::mongo::collection::query $mongoColl {}]} 2
@@ -91,7 +94,7 @@ puts [join [::mongo::collection::query $mongoColl {}] \n]
 # Get the file named README from the gridfs via plain query interface
 #
 ? {set files [::mongo::collection::query $mongoColl \
-		  {filename string README} \
+		  [list filename string $fn] \
 		  -opts { limit int64 1 }]
   llength [lindex $files 0]
 } 18

@@ -310,7 +310,7 @@ pkgIndex.tcl:
 	(echo 'package ifneeded nsf::mongo $(PACKAGE_VERSION) \
 	    [list load [file join $$dir $(PKG_LIB_FILE)]]'\
 	) > pkgIndex.tcl
-	(echo 'package ifneeded nx::mongo 0.2 \
+	(echo 'package ifneeded nx::mongo $(PACKAGE_VERSION) \
 	    [list source [file join $$dir nx-mongo.tcl]]'\
 	) >> pkgIndex.tcl
 
