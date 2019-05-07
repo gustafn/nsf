@@ -1,8 +1,9 @@
 Steps for a beta release:
   - docs:
      * update all docs with asciidoc in doc/
+
   - code:
-     * tcl 8.5: 
+     * Tcl 8.5:
        * configure with --enable-development
          make test
        * configure with --enable-memcount=yes
@@ -19,9 +20,9 @@ Steps for a beta release:
          make "CC=clang" test
        * run static analysis:
          make cppcheck
-	 #/opt/local/bin/scan-build-mp-3.9 -enable-checker alpha make
-	 /opt/local/bin/scan-build-mp-3.9 make
-	 /opt/local/bin/scan-view-mp-3.9 ...
+	 #/opt/local/bin/scan-build-mp-8.0 -enable-checker alpha make
+	 /opt/local/bin/scan-build-mp-8.0 make
+	 /opt/local/bin/scan-view-mp-8.0 ...
        * run Coverity (7.6.0, requires gcc 4.8):
        	 (sudo port install gcc48)
 	 (download Coverity Build Tool from https://scan.coverity.com/download/)
@@ -41,8 +42,9 @@ Steps for a beta release:
        * configure without --enable-development
          make install
          make install-aol
-         test with naviserver/aolserver (xowiki/xowf)
-     * tcl 8.6: 
+         test with NaviServer/AOLserver (xowiki/xowf)
+
+     * Tcl 8.6:
        * configure with --enable-development
          make test
        * configure with --enable-memcount=yes
@@ -50,7 +52,7 @@ Steps for a beta release:
        * configure with --enable-development and activate valgrind in Makefile
          make test 2>&1|cat |fgrep "definitely lost"
          (8.6b2 ok, when every test returns "40 bytes in 2 blocks")
-         (8.6.0 ok, when every test returns "0 bytes in 0 blocks")
+         (8.6.0 or later ok, when every test returns "0 bytes in 0 blocks")
 
    - build windows binaries
    - test tk apps under windows
@@ -59,9 +61,9 @@ Steps for a beta release:
       * Summarize changes since the last release in doc/Announce-VERSION
         As source use e.g.
             git log --date-order --date=short|less
-	    ~/scripts/git-changelog2  -- 2.1.0..HEAD --no-merges > ChangeLog-2.1.0-HEAD
+	    ~/scripts/git-changelog2  -- 2.2.0..HEAD --no-merges > ChangeLog-2.2.0-HEAD
         Diffstats
-            git diff --stat  2.1.0..HEAD
+            git diff --stat  2.2.0..HEAD
       * Run spell checker over announcement + ChangeLog
       * git add announcement 
 
@@ -74,7 +76,7 @@ Steps for a beta release:
    - build test-tar-file
        * make tar
        * check content of tar file
-         tar ztvf ../nsf2.2.0.tar.gz |sort -rn -k 5,6|less
+         tar ztvf ../nsf2.3.0.tar.gz |sort -rn -k 5,6|less
 
    - tag version in git and commit
        git tag -a 2.0b5 -m 2.0b5
@@ -102,10 +104,10 @@ Steps for a beta release:
       * upload announce to new folder and rename it to README
 
    - update web site
-     * stefan, please add recommended steps here
+     * Stefan, please add recommended steps here
 
    - prepare next release:
-       rename folder containing nsf (e.g. to nsf2.2.0)
+       rename folder containing nsf (e.g. to nsf2.3.0)
        update version number in 
          * configure.ac (NsfVersion, NSF_MAJOR_VERSION, NSF_MINOR_VERSION)
 	 * library/nx/nx.tcl
