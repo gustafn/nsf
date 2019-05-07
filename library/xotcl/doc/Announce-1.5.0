@@ -120,7 +120,7 @@ Major changes relative to 1.4.0 are:
                commands (like SQL) are used to initialize instance
                variables, not all variables are used for each object)
         
-             - more experimental low level functionality, like
+             - more experimental low-level functionality, like
                * initcmd (executed, whenever the variable is read the first time)
                * valuecmd (executed, whenever the variable is read)
                * valuechangedcmd (executed, whenever the variable is altered)

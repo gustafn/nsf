@@ -223,7 +223,7 @@ namespace eval ::nx::mongo {
     }
 
     #
-    # The methods "bson encode|decode" perform the low level type
+    # The methods "bson encode|decode" perform the low-level type
     # mapping between NX objects and the bson serialization. For now,
     # this handles just the array notation.
     #

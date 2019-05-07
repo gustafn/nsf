@@ -556,7 +556,7 @@ o parametercmd p3
 # Define setter and getter methods in NX.
 #
 # NX does not provide own methods, but uses
-# the low level framework commands, since
+# the low-level framework commands, since
 # application developer will only 
 # need it in rare cases.
 

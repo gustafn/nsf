@@ -1006,7 +1006,7 @@ namespace eval ::nx {
   ######################################################################
   #
   # We are in bootstrap code; we cannot use slots/parameter to define
-  # slots, so the code is a little low level. After the definition of
+  # slots, so the code is a little low-level. After the definition of
   # the slots, we can use slot-based code such as "-parameter" or
   # "objectparameter".
   #
@@ -1212,7 +1212,7 @@ namespace eval ::nx {
   # value checkers
   MethodParameterSlot create ::nx::methodParameterSlot
 
-  # Define a temporary, low level interface for defining slot
+  # Define a temporary, low-level interface for defining slot
   # values. Normally, this is done via slot objects, which are defined
   # later. The proc is removed later in this script.
 

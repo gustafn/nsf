@@ -6360,7 +6360,7 @@ NSDeleteChild(Tcl_Interp *interp, Tcl_Command cmd, bool deleteObjectsOnly) {
             /*fprintf(stderr, "==== NSDeleteChild DispatchDestroyMethod FAILED object %p (cmd %p) id %p teardown %p flags %.6x\n",
               (void *)object, (void *)cmd, (void *)object->id, (void *)object->teardown, object->flags);*/
 
-            NsfLog(interp, NSF_LOG_NOTICE, "Destroy failed for object %s %p %.6x, perform low level deletion",
+            NsfLog(interp, NSF_LOG_NOTICE, "Destroy failed for object %s %p %.6x, perform low-level deletion",
                    (object->flags & NSF_DURING_DELETE) == NSF_DURING_DELETE ? "deleted-object" : ObjectName_(object),
                    (void*)object, object->flags);
             CallStackDestroyObject(interp, object);
