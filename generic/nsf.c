@@ -32438,7 +32438,6 @@ NsfOUplevelMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *cons
   nonnull_assert(objv != NULL);
 
   if (objc < 2) {
-    wrongArgs:
     return NsfPrintError(interp,
                          "wrong # args: should be \"%s %s ?level? command ?arg ...?\"",
                          ObjectName_(object),
@@ -32449,6 +32448,14 @@ NsfOUplevelMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *cons
   if (objc == 2) {
     result = 0;
   } else {
+    /* TclObjGetFrame returns:
+     *  0 ... when a syntactically invalid (incl. no) level specifier was provided
+     *  1 ... when a syntactically valid level specifier with corresp. frame 
+              was found
+     * -1 ... when a syntactically valid level specifier was provided, 
+              but an error occurred while finding the frame 
+              (error msg in interp, "bad level")
+     */
     result = TclObjGetFrame(interp, objv[1], &requestedFramePtr);
     if (unlikely(result == -1)) {
       return TCL_ERROR;
@@ -32456,15 +32463,13 @@ NsfOUplevelMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *cons
   }
   
   objc -= result + 1;
-  if (objc == 0) {
-    goto wrongArgs;
-  }
   objv += result + 1;
-
+  
   if (result == 0) {
     /*
      * 0 is returned from TclObjGetFrame when no (or, an invalid) level
-     * specifier was provided.
+     * specifier was provided; objv[0] is interpreted as a command word,
+     * uplevel defaults to the computed level.
      */
     Tcl_CallFrame *callingFramePtr = NULL;
     NsfCallStackFindCallingContext(interp, 1, &framePtr, &callingFramePtr);
