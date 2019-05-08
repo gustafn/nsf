@@ -7,8 +7,8 @@ compatibility. See below for the details.
 
 
 Diff stats since 2.2.0:
-   173 files changed, 16111 insertions(+), 12828 deletions(-)
-   (202 commits)
+   173 files changed, 16155 insertions(+), 12831 deletions(-)
+   (213 commits)
 
 Major changes relative to 2.2.0 are:
 
@@ -50,14 +50,28 @@ New Features
      % nsf::object::property [nx::Object create o] autonamed
      0
 
-    This is to avoid having to rely on pattern matching of the command
-    names. This is e.g. useful in the NaviServer/AOLserver blueprint
-    management, where temporary objects should be omitted.
+    The property "autonamed" can be used to avoid having to rely on
+    pattern matching of the command names. This is e.g. useful in the
+    NaviServer/AOLserver blueprint management, where temporary objects
+    should be omitted.
 
   * Extended object property "volatile": By setting or unsetting the
-    object property "volatile", a given NSF object can now be
-    dynamically rendered volatile or not (in addition to using the
-    volatile method on the object).
+    object property "volatile", the volatility of a given NSF object
+    changed dynamically. In previous releases, it was not possible
+    to remove the volatility property of an object.
+
+     % package req nx
+     2.3
+     % ::nx::Object create ::o -volatile
+     ::o
+
+     # query volatile property
+     % nsf::object::property ::o volatile
+     1
+
+     # modify volatile property
+     % nsf::object::property ::o volatile false
+     0
 
 
 - NX:
@@ -86,9 +100,9 @@ New Features
     move to a different value store other than object variables w/o
     rewriting client code.
 
-  * Fixed method combination for ensemble methods: Using [next] at the
-    end of a next chain in ensemble methods could fire unintentionally
-    the unknown handler, previously.
+  * Fixed method combination for ensemble methods: In previous
+    releases, calling [next] at the end of a next chain in ensemble
+    methods could fire unintentionally the unknown handler.
 
   * nx::zip rewrite: nx::zip now uses the built-in Tcl 8.6 encode and
     decode facilities, if available, rather than requiring the Trf
