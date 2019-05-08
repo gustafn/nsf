@@ -1,3 +1,44 @@
+2019-05-08  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsf.c (NsfOUplevelMethod): Minor cleanup and extended regression
+	test; reduced returns before end of function; reduced variable
+	scopes; don't use variable for different purposes. [fe42ee0c]
+
+2019-05-07  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* nsf.c (NsfOUplevelMethod): Add some comments to
+	NsfOUplevelMethod; and clean up after rework. [bf73e549]
+	* nsf.c, methods.test: Cont'd uplevel reform to sanitize the
+	single-arg case (in light of recent changes to 8.7, TIP 515 and
+	for the sake of XOTcl 1 compatibility): A single arg to uplevel
+	won't be inspected for a level specifier anymore; added tests and
+	TODOs [e3150993]
+
+2019-05-07  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsf-gridfs.test: Made gridfs test more robust [1aebb8d6]
+	* next-migration.txt, next-tutorial.txt: Updated documentation
+	with correct version numbers [b2778d3a]
+	* README.release: update one more version number
+	[3c3fe1f5]
+	* Announce2.3.0: final polishing on announcement [055758ab]
+	* xotcl2.tcl: Bump version number [fa6ed320]
+	* mongodb/README.md: Improve spelling consistency [699b2e94]
+	* README.release: Update release steps [21f46288]
+	* nsf.c (ComputeLevelObj): Silence clang 8 static checker [7b03a547]
+	* Improve documentation [4e80fb68]
+
+2019-05-06  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* ChangeLog-2.2.0-2.3.0.log, Announce2.3.0: Updated changelog,
+	fixed stats and indentation in announcement [e7552732]
+
+2019-05-05  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* generic/*.c: Made spaces after comma regular [62dc2923]
+	* Documentation: Improve grammar and spelling [2352fb1a]
+	* nsf.c (NsfClassListAddNoDup): Avoided one-liner loop [b6e483e0]
+
 2019-05-06  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
 	* nsf-gridfs.test: Add one more piece of harness to test suite [ce93f504]

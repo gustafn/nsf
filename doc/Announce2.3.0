@@ -7,8 +7,8 @@ compatibility. See below for the details.
 
 
 Diff stats since 2.2.0:
-   173 files changed, 5907 insertions(+), 2809 deletions(-)
-   (203 commits)
+   173 files changed, 16111 insertions(+), 12828 deletions(-)
+   (202 commits)
 
 Major changes relative to 2.2.0 are:
 
@@ -19,16 +19,16 @@ New Features
   * Reform of "uplevel" and "upvar" methods:
 
     - The methods "uplevel" and "upvar" (well as the underlying
-      functions [current callinglevel] and [self callinglevel]) behave
+      commands [current callinglevel] and [self callinglevel]) behave
       now more consistently and more similar to the XOTcl 1
       semantics. This eases the migration of XOTcl 1 code. These
       methods are needed for "frame skipping", i.e. when methods using
       ":upvar" or ":uplevel" are overlaid with filters/mixin classes
       but should keep the uplevel semantics without these
-      interceptors. Otherwise, adding a filter/mixin can break easily
+      interceptors. Otherwise, adding a filter/mixin can easily break
       existing code.
 
-    - The behavior of uplevel/upvar should be stable now in respect to
+    - The behavior of uplevel/upvar should be stable now with respect to
       Tcl's "namespace eval" and similar commands.
 
     - Error handling for providing potentially invalid level arguments
@@ -55,9 +55,9 @@ New Features
     management, where temporary objects should be omitted.
 
   * Extended object property "volatile": By setting or unsetting the
-    object property "volatile". A given NSF object can now be rendered
-    volatile or not dynamically (in addition to using the volatile
-    method on the object).
+    object property "volatile", a given NSF object can now be
+    dynamically rendered volatile or not (in addition to using the
+    volatile method on the object).
 
 
 - NX:
@@ -87,8 +87,8 @@ New Features
     rewriting client code.
 
   * Fixed method combination for ensemble methods: Using [next] at the
-    end of a next chain in ensemble methods could fire previously
-    unintentionally the unknown handler.
+    end of a next chain in ensemble methods could fire unintentionally
+    the unknown handler, previously.
 
   * nx::zip rewrite: nx::zip now uses the built-in Tcl 8.6 encode and
     decode facilities, if available, rather than requiring the Trf
