@@ -1410,7 +1410,7 @@
 	  URIs, and should be faster (by using collection objects
 	  instead of connection handles)
 	- Although the low-level nsf interface changed
-	  significantly, the high level (nx level) interface
+	  significantly, the high-level (nx level) interface
 	  remained unaffected.
 	- Configure has now --with-mongoc=... and --with-bson
 	  instead of --with-mongodb
@@ -1661,8 +1661,8 @@
 	- integrated configuration of mongodb into toplevel
 	  configfile option:
 	  --with-mongodb=MONGO_INCLUDE_DIR,MONGO_LIB_DIR
-	- added regression test files for mongodb support (low level
-	  (tcl-only) and high level (nx based oo support))
+	- added regression test files for mongodb support (low-level
+	  (tcl-only) and high-level (nx based oo support))
 	- integrated mongodb-testfiles with "make test"
 	- reduced verbosity of nx-mongo.tcl (added verbosity variable)
 
