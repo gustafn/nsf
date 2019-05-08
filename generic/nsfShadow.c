@@ -5,6 +5,7 @@
  *      Tcl obj-commands.
  *
  * Copyright (C) 1999-2017 Gustaf Neumann
+ * Copyright (C) 2019      Stefan Sobernig
  *
  * Vienna University of Economics and Business
  * Institute of Information Systems and New Media

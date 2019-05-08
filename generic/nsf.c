@@ -8,7 +8,7 @@
  * Copyright (C) 1999-2019 Gustaf Neumann (a) (b)
  * Copyright (C) 1999-2007 Uwe Zdun (a) (b)
  * Copyright (C) 2007-2008 Martin Matuska (b)
- * Copyright (C) 2010-2017 Stefan Sobernig (b)
+ * Copyright (C) 2010-2019 Stefan Sobernig (b)
  *
  *
  * (a) University of Essen
