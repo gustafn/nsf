@@ -1,3 +1,16 @@
+2019-05-09  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* doc/example-scripts/*.html: Regenerated asciidoc examples
+	  [629aa9a6]
+	* configure.ac, configure: Fix package version to include patch level
+	  (was dropped unintentionally); regenerated docs [6e30c554]
+
+2019-05-08  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* Update copyright years [71889f2d, 5a44ade2]
+	* ChangeLog-2.2.0-2.3.0.log, Announce2.3.0: Updated changelog and
+	announcement [c2fd7720]
+
 2019-05-08  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
 	* nsf.c (NsfOUplevelMethod): Minor cleanup and extended regression
