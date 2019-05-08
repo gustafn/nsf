@@ -32430,94 +32430,99 @@ objectMethod uplevel NsfOUplevelMethod {
 */
 static int
 NsfOUplevelMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *const objv[]) {
-  int result;
+  int        result, getFrameResult = 0;
   CallFrame *requestedFramePtr;
-  Tcl_CallFrame *framePtr = NULL, *savedVarFramePtr;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(objv != NULL);
 
   if (objc < 2) {
-    return NsfPrintError(interp,
+    result = NsfPrintError(interp,
                          "wrong # args: should be \"%s %s ?level? command ?arg ...?\"",
                          ObjectName_(object),
                          NsfMethodName(objv[0]));
-  }
 
+  } else  if (objc == 2) {
+    result = TCL_OK;
 
-  if (objc == 2) {
-    result = 0;
   } else {
-    /* TclObjGetFrame returns:
+    /*
+     * TclObjGetFrame returns:
      *  0 ... when a syntactically invalid (incl. no) level specifier was provided
-     *  1 ... when a syntactically valid level specifier with corresp. frame 
+     *  1 ... when a syntactically valid level specifier with corresp. frame
               was found
-     * -1 ... when a syntactically valid level specifier was provided, 
-              but an error occurred while finding the frame 
+     * -1 ... when a syntactically valid level specifier was provided,
+              but an error occurred while finding the frame
               (error msg in interp, "bad level")
      */
-    result = TclObjGetFrame(interp, objv[1], &requestedFramePtr);
-    if (unlikely(result == -1)) {
-      return TCL_ERROR;
-    }
+    getFrameResult = TclObjGetFrame(interp, objv[1], &requestedFramePtr);
+    result = unlikely(getFrameResult == -1) ? TCL_ERROR : TCL_OK;
   }
-  
-  objc -= result + 1;
-  objv += result + 1;
-  
-  if (result == 0) {
-    /*
-     * 0 is returned from TclObjGetFrame when no (or, an invalid) level
-     * specifier was provided; objv[0] is interpreted as a command word,
-     * uplevel defaults to the computed level.
-     */
-    Tcl_CallFrame *callingFramePtr = NULL;
-    NsfCallStackFindCallingContext(interp, 1, &framePtr, &callingFramePtr);
-    if (framePtr == NULL) {
+
+  if (likely(result == TCL_OK)) {
+    Tcl_CallFrame *framePtr, *savedVarFramePtr;
+
+    objc -= getFrameResult + 1;
+    objv += getFrameResult + 1;
+
+    if (getFrameResult == 0) {
       /*
-       * No proc frame was found, default to parent frame.
+       * 0 is returned from TclObjGetFrame when no (or, an invalid) level
+       * specifier was provided; objv[0] is interpreted as a command word,
+       * uplevel defaults to the computed level.
        */
-      framePtr = callingFramePtr;
+      Tcl_CallFrame *callingFramePtr = NULL;
+
+      framePtr = NULL;
+      NsfCallStackFindCallingContext(interp, 1, &framePtr, &callingFramePtr);
+
+      if (framePtr == NULL) {
+        /*
+         * No proc frame was found, default to parent frame.
+         */
+        framePtr = callingFramePtr;
+      }
+    } else {
+      /*
+       * Use the requested frame corresponding to the (valid) level specifier.
+       */
+      framePtr = (Tcl_CallFrame *)requestedFramePtr;
     }
-  } else {
+
+    assert(framePtr != NULL);
+
+    savedVarFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
+    Tcl_Interp_varFramePtr(interp) = (CallFrame *)framePtr;
+
     /*
-     * Use the requested frame corresponding to the (valid) level specifier.
+     * Execute the residual arguments as a command.
      */
-    framePtr = (Tcl_CallFrame *)requestedFramePtr;
-  }
 
-  assert(framePtr != NULL);
+    if (objc == 1) {
+      result = Tcl_EvalObjEx(interp, objv[0], TCL_EVAL_DIRECT);
+    } else {
+      /*
+       * More than one argument: concatenate them together with spaces
+       * between, then evaluate the result.  Tcl_EvalObjEx will delete
+       * the object when it decrements its refCount after eval'ing it.
+       */
+      Tcl_Obj *objPtr = Tcl_ConcatObj(objc, objv);
 
-  savedVarFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
-  Tcl_Interp_varFramePtr(interp) = (CallFrame *)framePtr;
+      result = Tcl_EvalObjEx(interp, objPtr, TCL_EVAL_DIRECT);
+    }
 
-  /*
-   * Execute the residual arguments as a command.
-   */
+    if (unlikely(result == TCL_ERROR)) {
+      Tcl_AppendObjToErrorInfo(interp,
+                               Tcl_ObjPrintf("\n    (\"uplevel\" body line %d)",
+                                             Tcl_GetErrorLine(interp)));
+    }
 
-  if (objc == 1) {
-    result = Tcl_EvalObjEx(interp, objv[0], TCL_EVAL_DIRECT);
-  } else {
     /*
-     * More than one argument: concatenate them together with spaces
-     * between, then evaluate the result.  Tcl_EvalObjEx will delete
-     * the object when it decrements its refCount after eval'ing it.
+     * Restore the variable frame, and return.
      */
-    Tcl_Obj *objPtr = Tcl_ConcatObj(objc, objv);
-    result = Tcl_EvalObjEx(interp, objPtr, TCL_EVAL_DIRECT);
+    Tcl_Interp_varFramePtr(interp) = (CallFrame *)savedVarFramePtr;
   }
 
-  if (unlikely(result == TCL_ERROR)) {
-    Tcl_AppendObjToErrorInfo(interp,
-                             Tcl_ObjPrintf("\n    (\"uplevel\" body line %d)",
-                                           Tcl_GetErrorLine(interp)));
-  }
-
-  /*
-   * Restore the variable frame, and return.
-   */
-
-  Tcl_Interp_varFramePtr(interp) = (CallFrame *)savedVarFramePtr;
   return result;
 }
 

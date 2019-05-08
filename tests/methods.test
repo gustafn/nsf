@@ -11,7 +11,7 @@ package require nx::test
 nx::test case name-validity-checks {
 
   nx::Class create C
-  
+
   #
   # Add some basic tests on valid/invalid method names.
   #
@@ -21,7 +21,7 @@ nx::test case name-validity-checks {
   ? {set ::h [nsf::method::create ::C "e1\tm1" {} {;}]} "invalid method name 'e1\tm1'"
   ? {set ::h [nsf::method::create ::C {{e1 m1}} {} {;}]} "invalid method name '{e1 m1}'"
   ? {set ::h [nsf::method::create ::C ":" {} {;}]} {can't create procedure ":" in non-global namespace with name starting with ":"}
-  
+
   # These are Tcl whitespace characters, which act as the separators in
   # Tcl list string reps:
   #
@@ -32,46 +32,46 @@ nx::test case name-validity-checks {
   # \u000D  \r      CARRIAGE RETURN
   # \u0020          SPACE
   #
-  
+
   ? {set ::h [nsf::method::create ::C "  e1   " {} {;}]} "invalid method name '  e1   '"
   ? {set ::h [nsf::method::create ::C {"  e1   "} {} {;}]} {invalid method name '"  e1   "'}
-  
+
   ? {set ::h [nsf::method::create ::C "\te1" {} {;}]} "invalid method name '\te1'"
   ? {set ::h [nsf::method::create ::C "e1\tm1" {} {;}]} "invalid method name 'e1\tm1'"
-  
+
   ? {set ::h [nsf::method::create ::C "\ne1" {} {;}]} "invalid method name '\ne1'"
   ? {set ::h [nsf::method::create ::C "e1\nm1" {} {;}]} "invalid method name 'e1\nm1'"
-  
+
   ? {set ::h [nsf::method::create ::C "\ve1" {} {;}]} "invalid method name '\ve1'"
   ? {set ::h [nsf::method::create ::C "e1\vm1" {} {;}]} "invalid method name 'e1\vm1'"
-  
+
   ? {set ::h [nsf::method::create ::C "\fe1" {} {;}]} "invalid method name '\fe1'"
   ? {set ::h [nsf::method::create ::C "e1\fm1" {} {;}]} "invalid method name 'e1\fm1'"
-  
+
   ? {set ::h [nsf::method::create ::C "\re1" {} {;}]} "invalid method name '\re1'"
   ? {set ::h [nsf::method::create ::C "e1\rm1" {} {;}]} "invalid method name 'e1\rm1'"
-  
-  
+
+
   # There is no tangible difference between a bareword and a one-element
   # list in Tcl (singelton list). So, there will remain exotique method
   # names including curly braces, along with other peculiar names,
   # e.g. those starting with #.
-  ? {set ::h [nsf::method::create ::C {{{{{a}}}}} {} {;}]} {::nsf::classes::C::{{{{a}}}}};
-  ? {set ::h [nsf::method::create ::C {#a} {} {;}]} {::nsf::classes::C::#a};
-    
+  ? {set ::h [nsf::method::create ::C {{{{{a}}}}} {} {;}]} {::nsf::classes::C::{{{{a}}}}}
+  ? {set ::h [nsf::method::create ::C {#a} {} {;}]} {::nsf::classes::C::#a}
+
   #
   # In Tcl, the empty string is a valid command (proc) name, with
   # obscure effects (e.g., cannot be renamed, unless) . We disallow it as method name.
   #
-    
+
   ? {set ::h [nsf::method::create ::C "" {} {;}]} "invalid method name ''"
-    
+
   # But, we can safeguard against list elements containing Tcl
   # whitespace characters at any nesting level.
-  ? {set ::h [nsf::method::create ::C {{{{{a b}}}}} {} {;}]} {invalid method name '{{{{a b}}}}'}; 
+  ? {set ::h [nsf::method::create ::C {{{{{a b}}}}} {} {;}]} {invalid method name '{{{{a b}}}}'}
 }
-    
-    
+
+
 nx::test configure -count 10
 
 nx::Class create C {
@@ -86,15 +86,15 @@ nx::Class create C {
   :protected forward protected_forward %self protected_method
 
   # setter
-  :property plain_setter 
-  :property -accessor public public_setter 
-  :property -accessor protected protected_setter 
+  :property plain_setter
+  :property -accessor public public_setter
+  :property -accessor protected protected_setter
 
   # alias
   :alias plain_alias [C info method registrationhandle plain_method]
   :public alias public_alias [C info method registrationhandle public_method]
   :protected alias protected_alias [C info method registrationhandle protected_method]
-  
+
   # class-object
   :object method plain_object_method {} {return [current method]}
   :public object method public_object_method {} {return [current method]}
@@ -125,7 +125,7 @@ C create c1 {
   # setter
   :object property {plain_object_setter ""}
   :object property -accessor public {public_object_setter ""}
-  :object property -accessor protected protected_object_setter 
+  :object property -accessor protected protected_object_setter
 
   # alias
   :object alias plain_object_alias [:info object method registrationhandle plain_object_method]
@@ -294,10 +294,10 @@ nx::test case colondispatch {
     #:public object method foo args {;}
     :public object method bar args {;}
   }
-  ? {o :bar} "::o: method name ':bar' must not start with a colon" 
-  ? {o eval :bar} "" 
-  ? {o :foo} "::o: method name ':foo' must not start with a colon" 
-  ? {o eval :foo} "::o: unable to dispatch method 'foo'" 
+  ? {o :bar} "::o: method name ':bar' must not start with a colon"
+  ? {o eval :bar} ""
+  ? {o :foo} "::o: method name ':foo' must not start with a colon"
+  ? {o eval :foo} "::o: unable to dispatch method 'foo'"
 }
 
 nx::test case colon-unknown {
@@ -343,9 +343,9 @@ nx::test case colon-unknown {
 
   #
   # Keep unknown messages compatible with Tcl's 'invalid command'
-  # messages in the cases below, e.g.: 
+  # messages in the cases below, e.g.:
   #
-  # proc =foo {args} {;}; ={*}[list foo 1 2 3 4 5 6]
+  # proc =foo {args} {;}   ;# ={*}[list foo 1 2 3 4 5 6]
   #
   ? [list $o expand-unknown-1] "$o: unable to dispatch method '{*}foo 1 2 3 4 5 6'"
   ? [list $o expand-unknown-2] "$o: unable to dispatch method '{*}'"
@@ -418,7 +418,7 @@ nx::test case mixin-via-objectparam {
     :mixins add M3
     :object mixins add M4
   }
-  
+
   ? {lsort [C info object mixins]} "::M2 ::M4"
   ? {lsort [C info mixins]} "::M1 ::M3"
 
@@ -450,7 +450,7 @@ nx::test case mixin-via-objectparam {
 
 # testing next via nonpos-args
 nx::test case next-from-nonpos-args {
-  
+
   nx::Object create o {
     :object method bar {-y:required -x:required} {
       #puts stderr "+++ o x=$x, y=$y [current args] ... next [current nextmethod]"
@@ -463,15 +463,15 @@ nx::test case next-from-nonpos-args {
       return [list x $x y $y [current args] -- {*}[next]]
     }
   }
-  
+
   o object mixins set M
   ? {o bar -x 13 -y 14} "x 13 y 14 {-x 13 -y 14} -- x 13 y 14 {-x 13 -y 14}"
   ? {o bar -y 14 -x 13} "x 13 y 14 {-y 14 -x 13} -- x 13 y 14 {-y 14 -x 13}"
 }
 
-# 
+#
 # test method property with protected/public
-# 
+#
 nx::test case property-method {
 
   nx::Class create C {
@@ -486,7 +486,7 @@ nx::test case property-method {
 
     set X [:object property -accessor public A]
     ? [list set _ $X] "::C::A"
-    
+
     # object property with default
     :object property {B B2}
     :object property -accessor public {C C2}
@@ -523,7 +523,7 @@ nx::test case property-method {
 }
 
 nx::test case subcmd {
-  
+
   nx::Class create Foo {
 
     :method "Info filter guard" {filter} {return [current object]-[current method]}
@@ -534,10 +534,10 @@ nx::test case subcmd {
     :object method "INFO filter guard" {a b} {return [current object]-[current method]}
     :object method "INFO filter methods" {-guards pattern:optional} {return [current object]-[current method]}
   }
-  
+
   ? {Foo INFO filter guard 1 2} ::Foo-guard
   ? {Foo INFO filter methods a*} ::Foo-methods
-  
+
   Foo create f1 {
     :object method "list length" {} {return [current object]-[current method]}
     :object method "list reverse" {} {return [current object]-[current method]}
@@ -585,7 +585,7 @@ nx::test case class-object-property {
   ? {C x get} 1
   ? {lsort [C info methods]} "a"
   ? {lsort [C info object methods]} "x"
-  ? {c1 a set b} {expected integer but got "b" for parameter "value"}  
+  ? {c1 a set b} {expected integer but got "b" for parameter "value"}
 }
 
 #
@@ -599,7 +599,7 @@ nx::test case methoddelete {
     :public object method bar {x} {return $x}
     :create c1
   }
-  
+
   ? {::nsf::method::delete C x} "::C: instance method 'x' does not exist"
   ? {::nsf::method::delete C -per-object x} "::C: object specific method 'x' does not exist"
   ? {::nsf::method::delete C foo} ""
@@ -645,7 +645,7 @@ nx::test case dispatch-without-object {
     :public object method bar {} {return [nx::self]}
   }
 
-  # dispatch methods without current object 
+  # dispatch methods without current object
   ? ::o::a {wrong # args: use "::o ::o::a add|delete|exists|get|set|unset"}
   ? ::o::b "::o2"
   ? ::o::foo "no current object; command called outside the context of a Next Scripting method"
@@ -728,7 +728,7 @@ nx::test case namespaced-scopes {
 # c) ensemble methods on level 2
 #
 nx::test case nested-scopes {
-  nx::Object create o 
+  nx::Object create o
   nx::Object create o::o1 {
     :public object method foo {} {return [namespace current]-[namespace which info]}
     :public object method "info foo" {} {return [namespace current]-[namespace which info]}
@@ -761,7 +761,7 @@ nx::test case nested-scopes {
 #
 nx::test case delete-per-object {
   nx::Object create o1 {
-    :object property -accessor public a1 
+    :object property -accessor public a1
     :object property -accessor public a2
     :public object method foo {} {return [namespace current]-[namespace which info]}
     :public object method "info foo" {} {return [namespace current]-[namespace which info]}
@@ -878,11 +878,11 @@ nx::test case default-unknown-handler {
   ? {o sakania} "::o: unable to dispatch method 'sakania'"
   ? {o yore dub} "::o: unable to dispatch method 'yore'"
   ? {o "yore dub"} "::o: unable to dispatch method 'yore dub'"
-  
+
 }
 
 #
-# simple unknown tests; 
+# simple unknown tests;
 # ensemble unknown tests are in submethods.test
 #
 nx::test case test-simple-unknown {
@@ -971,7 +971,7 @@ nx::test case fq-obj-dispatch {
     }
     :create ::d
   }
-  
+
   ? {::D eval {set :defaultcalled}} 0
   ? {::d} 1
   ? {C eval {set :unknown}} 0
@@ -1035,7 +1035,7 @@ nx::test case fq-obj-dispatch {
   # protocol?
   #
   package req XOTcl 2.0
-  
+
   ? {::nsf::object::exists ::X} 0
 
   xotcl::Class ::X -instproc p1 {v} {
@@ -1341,7 +1341,7 @@ nx::test case xotcl-assertion-swallows-result {
 
   package req XOTcl
 
-  xotcl::Class create Edge 
+  xotcl::Class create Edge
   Edge instproc foo {} {
     my set xxx
   }
@@ -1477,7 +1477,7 @@ nx::test case uplevel+tcl-transparency {
   ? bar 2
 
   ns_cache object mixins set Profile
-  
+
   # the version with tcl-uplevel should fail
   ? bar0 {can't read "x": no such variable}
 
@@ -1502,7 +1502,7 @@ nx::test case debug+deprecated {
   ? {nsf::method::property C bar deprecated} 0
   ? {nsf::method::property C -per-object ofoo debug} 0
   ? {nsf::method::property C -per-object obar deprecated} 0
-  
+
   ? {C info method debug foo} 0
   ? {C info method deprecated bar} 0
   ? {C info object method debug ofoo} 0
@@ -1511,7 +1511,7 @@ nx::test case debug+deprecated {
    C eval {
      :public method -debug foo {} {return 1}
      :public method -deprecated bar {} {return 1}
-     
+
      :public object method -debug ofoo {} {return 1}
      :public object method -deprecated obar {} {return 1}
   }
@@ -1616,7 +1616,7 @@ nx::test case callinglevels {
   objekt public object method foo {} {
     current callinglevel
   }
-  
+
   ? {uplevel #0 {objekt foo}} "#0"
   ? {uplevel #0 {
     namespace eval ::ns1 {
@@ -1744,7 +1744,7 @@ nx::test case uplevel {
     }
   }}}} "intercept #1"
   namespace delete ::ns1
-  
+
   objekt object mixins add [nx::Class new {
     :public method foo {args} {
       list [current method] {*}[next]
@@ -1770,7 +1770,7 @@ nx::test case uplevel {
     }
   }}}} "intercept foo #1"
   namespace delete ::ns1
-  
+
   set filters [objekt object filters clear]
   set mixins [objekt object mixins clear]
   unset -nocomplain ::_
@@ -1778,7 +1778,7 @@ nx::test case uplevel {
   objekt public object method foo {} {
     :uplevel {set FOO 1}
   }
-  
+
   ? {uplevel #0 {
     lappend _ [info exists FOO];
     objekt foo;
@@ -1845,7 +1845,7 @@ nx::test case uplevel {
     }
   }} "0 1"
   namespace delete ::ns1
-  
+
 }
 
 nx::test case uplevel-method-signature {
@@ -1905,17 +1905,15 @@ nx::test case uplevel-method-signature {
   objekt public object method foo {} {
     :uplevel #0 {return -level 0 #[info level]}
   }
-  
+
   ? {uplevel #0 {objekt foo}} "#0"
-  
+
   objekt public object method foo {} {
     :uplevel #0 return -level 0 "#\[info level\]"
   }
-  
+
   ? {uplevel #0 {objekt foo}} "#0"
 
-  #
-  # TODO: Is this below behaviour okay?
   #
   # (1) syntactically invalid level specifiers (no digit, no hash) in
   # the more-arg case resort to interpreting the arg as a command name.
@@ -1932,51 +1930,51 @@ nx::test case uplevel-method-signature {
   objekt public object method foo {} {
     :uplevel a return -level 0 "#\[info level\]"
   }
-  
+
   ? {uplevel #0 {objekt foo}} {invalid command name "a"}
 
   objekt public object method foo {} {
     :uplevel 1 return -level 0 "#\[info level\]"
   }
-  
+
   ? {uplevel #0 {objekt foo}} "\#0"
 
   objekt public object method foo {} {
     :uplevel #0 return -level 0 "#\[info level\]"
   }
-  
+
   ? {uplevel #0 {objekt foo}} "\#0"
 
   #
   # TODO: Should we concat at all, or limited to the objc > 3 case only?
   #
-  
+
   objekt public object method foo {} {
     # concat interferes!
     :uplevel [list [list a b]] return -level 0 "#\[info level\]"
   }
-  
+
   ? {uplevel #0 {objekt foo}} {invalid command name "a b"}
 
   objekt public object method foo {} {
     # concat interferes!
     :uplevel [list [list a b]] [list return -level 0 "#\[info level\]"]
   }
-  
+
   ? {uplevel #0 {objekt foo}} {invalid command name "a b"}
 
   objekt public object method foo {} {
     # concat interferes!
     :uplevel [list a b] [list return -level 0 "#\[info level\]"]
   }
-  
+
   ? {uplevel #0 {objekt foo}} {invalid command name "a"}
 
   objekt public object method foo {} {
     # concat interferes!
     :uplevel [list a b] return -level 0 "#\[info level\]"
   }
-  
+
   ? {uplevel #0 {objekt foo}} {invalid command name "a"}
 
   #
@@ -1985,13 +1983,13 @@ nx::test case uplevel-method-signature {
   objekt public object method foo {} {
     :uplevel #1000 return -level 0 "#\[info level\]"
   }
-  
+
   ? {uplevel #0 {objekt foo}} {bad level "#1000"}
 
   objekt public object method foo {} {
     :uplevel 1000 return -level 0 "#\[info level\]"
   }
-  
+
   ? {uplevel #0 {objekt foo}} {bad level "1000"}
 }
 
@@ -2006,9 +2004,9 @@ nx::test case uplevel-default-level {
   #
   # https://core.tcl-lang.org/tips/doc/trunk/tip/515.md
   #
-  
+
   nx::Object create objekt
-  
+
   objekt public object method foo {} {
     :uplevel [list 123456 arg]
   }
@@ -2084,6 +2082,31 @@ nx::test case upvar-method-signature {
   }
 
   ? {uplevel #0 {apply {{} {objekt foo; info exists "#5"}}}} 1
+}
+
+nx::test case uplevel-backwards-compatibility {
+
+  nx::Object create ::o1
+
+  proc a    {args} { return [list a    $args] }
+  proc 1000 {args} { return [list 1000 $args] }
+
+  ? {o1 eval {:uplevel 1000}}         {1000 {}}
+  ? {o1 eval {:uplevel 1000 a}}       {bad level "1000"}
+  ? {o1 eval {:uplevel 1000 a b}}     {bad level "1000"}
+  ? {o1 eval {:uplevel {1000 a}}}     {1000 a}
+  ? {o1 eval {:uplevel {1000 a b}}}   {1000 {a b}}
+  ? {o1 eval {:uplevel {1000 {a b}}}} {1000 {{a b}}}
+
+  ? {o1 eval {:uplevel ::1000}}         {1000 {}}
+  ? {o1 eval {:uplevel ::1000 a}}       {1000 a}
+  ? {o1 eval {:uplevel ::1000 a b}}     {1000 {a b}}
+  ? {o1 eval {:uplevel {::1000 a}}}     {1000 a}
+  ? {o1 eval {:uplevel {::1000 a b}}}   {1000 {a b}}
+  ? {o1 eval {:uplevel {::1000 {a b}}}} {1000 {{a b}}}
+
+  rename a ""
+  rename 1000 ""
 }
 
 
