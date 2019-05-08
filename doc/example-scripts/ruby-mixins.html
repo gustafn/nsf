@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 8.6.8" />
+<meta name="generator" content="AsciiDoc 8.6.9" />
 <title>Listing of doc/example-scripts/ruby-mixins.tcl</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -94,7 +94,9 @@ ul > li > * { color: black; }
   padding: 0;
   margin: 0;
 }
-
+pre {
+  white-space: pre-wrap;
+}
 
 #author {
   color: #527bbd;
@@ -223,7 +225,7 @@ div.exampleblock > div.content {
 }
 
 div.imageblock div.content { padding-left: 0; }
-span.image img { border-style: none; }
+span.image img { border-style: none; vertical-align: text-bottom; }
 a.image:visited { color: white; }
 
 dl {
@@ -433,7 +435,7 @@ thead, p.table.header {
 p.table {
   margin-top: 0;
 }
-/* Because the table frame attribute is overridden by CSS in most browsers. */
+/* Because the table frame attribute is overriden by CSS in most browsers. */
 div.tableblock > table[frame="void"] {
   border-style: none;
 }
@@ -784,7 +786,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 
 <span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>eval</span> {
   <span class='nx-keyword'>:protected</span> <span class='nx-keyword'>method</span> module {name<span class='nx-keyword'>:class</span>} {
-    nsf::relation [<span class='nx-keyword'>self</span>] <span class='nx-keyword'>superclass</span> [<span class='nx-keyword'>concat</span> <span class='nx-variable'>$name</span> [<span class='nx-keyword'>:info</span> <span class='nx-keyword'>superclass</span>]]
+    nsf::relation::set [<span class='nx-keyword'>self</span>] <span class='nx-keyword'>superclass</span> [<span class='nx-keyword'>concat</span> <span class='nx-variable'>$name</span> [<span class='nx-keyword'>:info</span> superclasses]]
   }
 }</pre></div></div>
 <div class="paragraph"><p>For illustration of the behavior of <code>module</code> we define a class
@@ -945,7 +947,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'>% g1 <span class='nx-keyword'>object</span> <span class='nx-keyword'>mixin</span> Mix
+<pre class='nx'>% g1 <span class='nx-keyword'>object</span> mixins <span class='nx-keyword'>set</span> Mix
 ::Mix
 
 % g1 <span class='nx-keyword'>info</span> precedence
@@ -965,7 +967,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'>% g1 <span class='nx-keyword'>object</span> <span class='nx-keyword'>mixin</span> <span class='nx-string'>""</span>
+<pre class='nx'>% g1 <span class='nx-keyword'>object</span> mixins <span class='nx-keyword'>set</span> <span class='nx-string'>""</span>
 % g1 <span class='nx-keyword'>info</span> precedence
 ::Group ::Enumerable ::nx::Object</pre></div></div>
 <div class="paragraph"><p>An important difference between NX/XOTcl style mixins (decorators)
@@ -1113,7 +1115,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'>% ATeam <span class='nx-keyword'>mixin</span> Mix
+<pre class='nx'>% ATeam mixins <span class='nx-keyword'>set</span> Mix
 ::Mix
 
 % s1 <span class='nx-keyword'>info</span> precedence
@@ -1129,7 +1131,7 @@ support Ruby-style mixins, and decorator style mixins in the same script.</p></d
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2013-06-07 00:16:54 CEST
+Last updated 2019-05-09 00:29:26 CEST
 </div>
 </div>
 </body>
