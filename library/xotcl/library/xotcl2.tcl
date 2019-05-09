@@ -5,8 +5,8 @@
 #      Implementation of the XOTcl 2 object system, based
 #      on the Next Scripting Framework (NSF).
 #
-# Copyright (C) 2010-2016 Gustaf Neumann
-# Copyright (C) 2010-2016 Stefan Sobernig
+# Copyright (C) 2010-2016      Gustaf Neumann
+# Copyright (C) 2010-2016,2019 Stefan Sobernig
 #
 # Vienna University of Economics and Business
 # Institute of Information Systems and New Media

@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 8.6.5" />
+<meta name="generator" content="AsciiDoc 8.6.9" />
 <title>Listing of doc/example-scripts/per-object-mixins.tcl</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -87,9 +87,15 @@ ul, ol, li > p {
 ul > li     { color: #aaa; }
 ul > li > * { color: black; }
 
-pre {
+.monospaced, code, pre {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
   padding: 0;
   margin: 0;
+}
+pre {
+  white-space: pre-wrap;
 }
 
 #author {
@@ -179,7 +185,7 @@ div.quoteblock, div.verseblock {
   margin-left: 1.0em;
   margin-right: 10%;
   border-left: 5px solid #f0f0f0;
-  color: #777777;
+  color: #888;
 }
 
 div.quoteblock > div.attribution {
@@ -219,7 +225,7 @@ div.exampleblock > div.content {
 }
 
 div.imageblock div.content { padding-left: 0; }
-span.image img { border-style: none; }
+span.image img { border-style: none; vertical-align: text-bottom; }
 a.image:visited { color: white; }
 
 dl {
@@ -349,7 +355,7 @@ div.colist td img {
   margin-bottom: 0.1em;
 }
 
-div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
   margin-top: 0;
   margin-bottom: 0;
 }
@@ -407,17 +413,13 @@ span.underline { text-decoration: underline; }
 span.overline { text-decoration: overline; }
 span.line-through { text-decoration: line-through; }
 
+div.unbreakable { page-break-inside: avoid; }
+
 
 /*
  * xhtml11 specific
  *
  * */
-
-tt {
-  font-family: monospace;
-  font-size: inherit;
-  color: navy;
-}
 
 div.tableblock {
   margin-top: 1.0em;
@@ -433,7 +435,7 @@ thead, p.table.header {
 p.table {
   margin-top: 0;
 }
-/* Because the table frame attribute is overridden by CSS in most browsers. */
+/* Because the table frame attribute is overriden by CSS in most browsers. */
 div.tableblock > table[frame="void"] {
   border-style: none;
 }
@@ -451,12 +453,6 @@ div.tableblock > table[frame="vsides"] {
  * html5 specific
  *
  * */
-
-.monospaced {
-  font-family: monospace;
-  font-size: inherit;
-  color: navy;
-}
 
 table.tableblock {
   margin-top: 1.0em;
@@ -514,6 +510,31 @@ th.tableblock.valign-middle, td.tableblock.valign-middle {
 th.tableblock.valign-bottom, td.tableblock.valign-bottom {
   vertical-align: bottom;
 }
+
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
+
+
 </style>
 <script type="text/javascript">
 /*<![CDATA[*/
@@ -558,7 +579,7 @@ toc: function (toclevels) {
 
   function tocEntries(el, toclevels) {
     var result = new Array;
-    var re = new RegExp('[hH]([2-'+(toclevels+1)+'])');
+    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
     // Function that scans the DOM tree for header elements (the DOM2
     // nodeIterator API would be a better technique but not supported by all
     // browsers).
@@ -587,7 +608,7 @@ toc: function (toclevels) {
   var i;
   for (i = 0; i < toc.childNodes.length; i++) {
     var entry = toc.childNodes[i];
-    if (entry.nodeName == 'DIV'
+    if (entry.nodeName.toLowerCase() == 'div'
      && entry.getAttribute("class")
      && entry.getAttribute("class").match(/^toclevel/))
       tocEntriesToRemove.push(entry);
@@ -633,7 +654,7 @@ footnotes: function () {
   var entriesToRemove = [];
   for (i = 0; i < noteholder.childNodes.length; i++) {
     var entry = noteholder.childNodes[i];
-    if (entry.nodeName == 'DIV' && entry.getAttribute("class") == "footnote")
+    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
       entriesToRemove.push(entry);
   }
   for (i = 0; i < entriesToRemove.length; i++) {
@@ -752,13 +773,13 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
 <pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> BaseClass {
-  :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> speak {} {
+  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> speak {} {
     <span class='nx-keyword'>puts</span> <span class='nx-string'>"Hello from BC."</span>
   }
 }
 
-<span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> DerivedClass -<span class='nx-keyword'>superclass</span> BaseClass {
-  :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> speak {} {
+<span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> DerivedClass -superclass BaseClass {
+  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> speak {} {
     <span class='nx-keyword'>next</span>
     <span class='nx-keyword'>puts</span> <span class='nx-string'>"Hello from DC."</span>
   }
@@ -769,8 +790,8 @@ o1 speak</pre></div></div>
 <div class="paragraph"><p>The output is:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>   Hello from BC.
-   Hello from DC.</tt></pre>
+<pre><code>   Hello from BC.
+   Hello from DC.</code></pre>
 </div></div>
 <div class="paragraph"><p>There are many ways to extend the behavior NX classes at
 runtime. The easiest thing is to add methods dynamically to
@@ -787,14 +808,14 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'>BaseClass <span class='nx-keyword'>method</span> unknown {m args} {
+<pre class='nx'>BaseClass <span class='nx-keyword'>method</span> <span class='nx-keyword'>unknown</span> {m args} {
   <span class='nx-keyword'>puts</span> <span class='nx-string'>"What? $m? I don't understand."</span>
 }
 o1 sing</pre></div></div>
 <div class="paragraph"><p>The output is:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>    What? sing? I don't understand.</tt></pre>
+<pre><code>    What? sing? I don't understand.</code></pre>
 </div></div>
 <div class="paragraph"><p>Often, you do not want to extend the class, but to
 modify the behavior of a single object. In NX, an object
@@ -810,14 +831,14 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'>o1 <span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> sing {} {
+<pre class='nx'>o1 <span class='nx-keyword'>public</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>method</span> sing {} {
   <span class='nx-keyword'>puts</span> <span class='nx-string'>"Ok, here it goes: Lala Lala!"</span>
 }
 o1 sing</pre></div></div>
 <div class="paragraph"><p>The output is:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>    Ok, here it goes: Lala Lala!</tt></pre>
+<pre><code>    Ok, here it goes: Lala Lala!</code></pre>
 </div></div>
 <div class="paragraph"><p>In many situations, it is desired to add/remove a set
 of methods dynamically to objects or classes. The mechanisms
@@ -837,11 +858,11 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
 <pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> M {
-  :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> sing {} {
+  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> sing {} {
     <span class='nx-keyword'>puts</span> -nonewline <span class='nx-string'>"[self] sings: "</span>
     <span class='nx-keyword'>next</span>
   }
-  :<span class='nx-keyword'>method</span> unknown args {
+  <span class='nx-keyword'>:method</span> <span class='nx-keyword'>unknown</span> args {
     <span class='nx-keyword'>puts</span> -nonewline <span class='nx-string'>"[self] is confused: "</span>
     <span class='nx-keyword'>next</span>
   }
@@ -859,7 +880,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'>o1 <span class='nx-keyword'>mixin</span> M</pre></div></div>
+<pre class='nx'>o1 <span class='nx-keyword'>object</span> mixins <span class='nx-keyword'>set</span> M</pre></div></div>
 <div class="olist lowerroman"><ol class="lowerroman">
 <li>
 <p>
@@ -883,11 +904,11 @@ o1 <span class='nx-keyword'>read</span></pre></div></div>
 <div class="paragraph"><p>The output is:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>   ::o1 sings: Ok, here it goes: Lala Lala!
-   ::o1 is confused: What? read? I don't understand.</tt></pre>
+<pre><code>   ::o1 sings: Ok, here it goes: Lala Lala!
+   ::o1 is confused: What? read? I don't understand.</code></pre>
 </div></div>
 <div class="paragraph"><p>We can remove the new behavior easily by unregistering the
-mixin class &#8230;.</p></div>
+mixin class &#8230;</p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -899,7 +920,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'>o1 <span class='nx-keyword'>mixin</span> <span class='nx-string'>""</span></pre></div></div>
+<pre class='nx'>o1 <span class='nx-keyword'>object</span> mixins <span class='nx-keyword'>set</span> <span class='nx-string'>""</span>; <span class='nx-comment'># implicit: overwrite using empty string
+</span>o1 <span class='nx-keyword'>object</span> mixins clear; <span class='nx-comment'># explicit</span></pre></div></div>
 <div class="olist lowerroman"><ol class="lowerroman">
 <li>
 <p>
@@ -923,8 +945,8 @@ o1 <span class='nx-keyword'>read</span></pre></div></div>
 <div class="paragraph"><p>The output is:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>   Ok, here it goes: Lala Lala!
-   What? read? I don't understand.</tt></pre>
+<pre><code>   Ok, here it goes: Lala Lala!
+   What? read? I don't understand.</code></pre>
 </div></div>
 <div class="paragraph"><p>Mixin classes can be used to extend the behavior of classes
 as well.</p></div>
@@ -939,7 +961,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'>BaseClass <span class='nx-keyword'>mixin</span> M
+<pre class='nx'>BaseClass mixins <span class='nx-keyword'>set</span> M
 
 o1 sing
 o1 <span class='nx-keyword'>read</span>
@@ -949,9 +971,9 @@ o2 <span class='nx-keyword'>read</span></pre></div></div>
 <div class="paragraph"><p>The output is:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>   ::o1 sings: Ok, here it goes: Lala Lala!
+<pre><code>   ::o1 sings: Ok, here it goes: Lala Lala!
    ::o1 is confused: What? read? I don't understand.
-   ::o2 is confused: What? read? I don't understand.</tt></pre>
+   ::o2 is confused: What? read? I don't understand.</code></pre>
 </div></div>
 </div>
 </div>
@@ -959,7 +981,7 @@ o2 <span class='nx-keyword'>read</span></pre></div></div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2011-09-19 03:46:57 CEST
+Last updated 2019-05-09 00:29:11 CEST
 </div>
 </div>
 </body>

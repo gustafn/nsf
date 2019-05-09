@@ -23,7 +23,7 @@ the corresponding reverse index}]
 [vset CMD "cls"]
 [vset MODIFIER ""]
 
-[copyright {2014-2016 Stefan Sobernig <stefan.sobernig@wu.ac.at>, Gustaf Neumann <gustaf.neumann@wu.ac.at>; available under the Creative Commons Attribution 3.0 Austria license (CC BY 3.0 AT).}]
+[copyright {2014-2019 Stefan Sobernig <stefan.sobernig@wu.ac.at>, Gustaf Neumann <gustaf.neumann@wu.ac.at>; available under the Creative Commons Attribution 3.0 Austria license (CC BY 3.0 AT).}]
 [titledesc {API reference of the base-metaclass of the NX objectsystem}]
 [moddesc {NX API}]
 
