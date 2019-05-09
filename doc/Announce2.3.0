@@ -7,8 +7,8 @@ compatibility. See below for the details.
 
 
 Diff stats since 2.2.0:
-   173 files changed, 16155 insertions(+), 12831 deletions(-)
-   (213 commits)
+   189 files changed, 17743 insertions(+), 16889 deletions(-)
+   (222 commits)
 
 Major changes relative to 2.2.0 are:
 
