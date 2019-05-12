@@ -5,7 +5,7 @@
 #
 package require nx
 package require nsf::mongo
-package provide nx::mongo 2.3
+package provide nx::mongo 2.4.0
 
 # todo: How to handle multiple connections; currently we have a single, global connection,
 # todo: All references are currently auto-fetched. Make this optional.
