@@ -6,6 +6,7 @@ branches:
   only:
     - master
     - 2.2
+    - 2.3.0
 
 environment:
   my_secret:
