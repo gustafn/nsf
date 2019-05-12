@@ -9,7 +9,7 @@ branches:
   only:
   - master
   - 2.2
-  - 2.3.0
+  - 2.3
 
 matrix:
   include:
