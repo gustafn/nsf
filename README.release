@@ -84,11 +84,16 @@ Steps for a beta release:
        # git push --follow-tags
        # git push commit
 
+       In case retagging is necessary:
+         git tag -d 2.3.0
+         git tag -a 2.3.0 -m 2.3.0
+         git push origin -f --tags
+
    - build tar
        * (make sure accurate COMMIT file is present, e.g., run ./configure once?)
        * make tar
        * check content of tar file
-         tar ztvf ../nsf2.0.tar.gz |sort -rn -k 5,6|less
+         tar ztvf ../nsf2.3.0.tar.gz |sort -rn -k 5,6|less
 
 
   -  put NX API and shell onto sourceforge:
