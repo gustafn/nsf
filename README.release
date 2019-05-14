@@ -98,7 +98,6 @@ Steps for a beta release:
      git checkout -b 2.3 2.3.0
      git push origin 2.3
      register a cron task for the new branch on Travis (website)
->>>>>>> c80b57b9fbb2735d12418c3f634390141b50a94b
 
    - build tar
        * (make sure accurate COMMIT file is present, e.g., run ./configure once?)
