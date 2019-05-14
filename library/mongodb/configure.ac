@@ -20,7 +20,7 @@ configdir=$(srcdir)/../../tclconfig
 # so you can encode the package version directly into the source files.
 #-----------------------------------------------------------------------
 
-AC_INIT([nsfmongo], [2.3])
+AC_INIT([nsfmongo], [2.4.0])
 AC_CONFIG_MACRO_DIR([m4])
 
 #--------------------------------------------------------------------

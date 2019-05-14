@@ -2,8 +2,8 @@
 # (then re-autoconf)
 
 PACKAGE_MAJOR	= 2
-PACKAGE_MINOR	= 3
-PACKAGE_VERSION	= "2.3"
+PACKAGE_MINOR	= 4
+PACKAGE_VERSION	= "2.4.0"
 
 !if exists("..\COMMIT")
 NSF_COMMIT = \
