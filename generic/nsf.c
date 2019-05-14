@@ -20986,10 +20986,10 @@ NsfUnsetTrace(
   nonnull_assert(clientData != NULL);
   nonnull_assert(interp != NULL);
 
-  /*fprintf(stderr, "NsfUnsetTrace %s flags %.4x %.4x\n", name, flags,
-    flags & TCL_INTERP_DESTROYED);*/
+  /*fprintf(stderr, "NsfUnsetTrace %s flags %.4x deleted %d\n", name, flags,
+    Tcl_InterpDeleted(interp));*/
 
-  if ((flags & TCL_INTERP_DESTROYED) == 0u) {
+  if (Tcl_InterpDeleted(interp) == 0) {
     if (GetObjectFromObj(interp, objPtr, &object) == TCL_OK) {
       Tcl_Obj *savedResultObj = Tcl_GetObjResult(interp); /* save the result */
 
