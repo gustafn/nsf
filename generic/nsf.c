@@ -242,8 +242,12 @@ Tcl_ObjCmdProc NsfProcStub;
 EXTERN Tcl_PackageInitProc Nsf_SafeInit;
 EXTERN Tcl_PackageInitProc Nsf_Init;
 static Tcl_ExitProc Nsf_ExitProc;
-static Tcl_ExitProc Nsf_ThreadExitProc;
 static Tcl_ExitProc ExitHandler;
+
+#if defined(TCL_THREADS)
+static Tcl_ExitProc Nsf_ThreadExitProc;
+#endif
+
 
 /*
  * Prototypes for methods called directly when CallDirectly() returns NULL
@@ -654,6 +658,7 @@ NsfDListAppend(NsfDList *dlPtr, void *element) {
   dlPtr->size ++;
 }
 
+#ifdef DO_CLEANUP
 static void
 NsfDListFree(NsfDList *dlPtr) {
   if (dlPtr->data != &dlPtr->static_data[0]) {
@@ -661,6 +666,7 @@ NsfDListFree(NsfDList *dlPtr) {
   }
   NsfDListInit(dlPtr);
 }
+#endif
 
 /*
  *----------------------------------------------------------------------
@@ -4483,7 +4489,7 @@ static int ObjectSystemsCleanup(Tcl_Interp *interp, bool withKeepvars)
 static int
 ObjectSystemsCleanup(Tcl_Interp *interp, bool withKeepvars) {
   NsfCmdList      *instances = NULL, *entryPtr;
-  NsfObjectSystem *osPtr, *nPtr;
+  NsfObjectSystem *osPtr;
 
   nonnull_assert(interp != NULL);
 
@@ -15181,7 +15187,7 @@ static void ColonCmdCacheHit(NsfColonCmdContext *ccCtxPtr) {
 #endif
 
 
-
+#ifdef DO_CLEANUP
 /*
  *----------------------------------------------------------------------
  * NsfColonCmdContextFree --
@@ -15208,6 +15214,7 @@ NsfColonCmdContextFree(void *clientData) {
 #endif
   FREE(NsfColonCmdContext, clientData);
 }
+#endif
 
 /*
  *----------------------------------------------------------------------
