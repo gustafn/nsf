@@ -20982,13 +20982,13 @@ FreeUnsetTraceVariable(Tcl_Interp *interp, const NsfObject *object) {
 
 static const char *NsfUnsetTrace(
     ClientData clientData, Tcl_Interp *interp,
-    const char *UNUSED(name), const char *UNUSED(name2), unsigned int flags
+    const char *UNUSED(name), const char *UNUSED(name2), unsigned int UNUSED(flags)
 ) nonnull(1) nonnull(2);
 
 static const char *
 NsfUnsetTrace(
     ClientData clientData, Tcl_Interp *interp,
-    const char *UNUSED(name), const char *UNUSED(name2), unsigned int flags
+    const char *UNUSED(name), const char *UNUSED(name2), unsigned int UNUSED(flags)
 ) {
   Tcl_Obj    *objPtr = (Tcl_Obj *)clientData;
   NsfObject  *object;
