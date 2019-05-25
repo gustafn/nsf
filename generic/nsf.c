@@ -4549,15 +4549,19 @@ ObjectSystemsCleanup(Tcl_Interp *interp, bool withKeepvars) {
 # endif
 #endif
   (void)withKeepvars; /* make sure, the variable is not reported as unused */
-  /*
-   * Free all objects systems with their root-classes.
-   */
-  for (osPtr = RUNTIME_STATE(interp)->objectSystems; osPtr != NULL; osPtr = nPtr) {
-    nPtr = osPtr->nextPtr;
-    ObjectSystemFree(interp, osPtr);
-  }
 
 #ifdef DO_CLEANUP
+  {
+    NsfObjectSystem *nPtr;
+    /*
+     * Free all objects systems with their root-classes.
+     */
+    for (osPtr = RUNTIME_STATE(interp)->objectSystems; osPtr != NULL; osPtr = nPtr) {
+      nPtr = osPtr->nextPtr;
+      ObjectSystemFree(interp, osPtr);
+    }
+  }
+
   /*
    * Finally, free all nsfprocs.
    */
