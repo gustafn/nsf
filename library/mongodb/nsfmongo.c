@@ -300,12 +300,12 @@ BsonToList(Tcl_Interp *interp, const bson_t *data , int depth)
       elemObj = Tcl_NewByteArrayObj(bytes, (int)length);
       break;
     }
-    case BSON_TYPE_CODE:       /* fall through */
-    case BSON_TYPE_CODEWSCOPE: /* fall through */
-    case BSON_TYPE_DBPOINTER:  /* fall through */
-    case BSON_TYPE_EOD:        /* fall through */
-    case BSON_TYPE_SYMBOL:     /* fall through */
-    case BSON_TYPE_UNDEFINED:  /* fall through */
+    case BSON_TYPE_CODE:       NSF_FALL_THROUGH; /* fall through */
+    case BSON_TYPE_CODEWSCOPE: NSF_FALL_THROUGH; /* fall through */
+    case BSON_TYPE_DBPOINTER:  NSF_FALL_THROUGH; /* fall through */
+    case BSON_TYPE_EOD:        NSF_FALL_THROUGH; /* fall through */
+    case BSON_TYPE_SYMBOL:     NSF_FALL_THROUGH; /* fall through */
+    case BSON_TYPE_UNDEFINED:  NSF_FALL_THROUGH; /* fall through */
     default:
       tag = NSF_BSON_UNKNOWN;
       elemObj = Tcl_NewStringObj("", 0);

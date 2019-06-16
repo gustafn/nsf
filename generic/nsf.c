@@ -8634,11 +8634,11 @@ AssertionCheck(Tcl_Interp *interp, NsfObject *object, NsfClass *class,
       case CHECK_POST:
         result = AssertionCheckList(interp, object, procs->post, method);
         break;
-      case CHECK_ALL:      /* fall through */
-      case CHECK_NONE:     /* fall through */
-      case CHECK_CLINVAR:  /* fall through */
-      case CHECK_OBJINVAR: /* fall through */
-      case CHECK_INVAR:    /* fall through */
+      case CHECK_ALL:      NSF_FALL_THROUGH; /* fall through */
+      case CHECK_NONE:     NSF_FALL_THROUGH; /* fall through */
+      case CHECK_CLINVAR:  NSF_FALL_THROUGH; /* fall through */
+      case CHECK_OBJINVAR: NSF_FALL_THROUGH; /* fall through */
+      case CHECK_INVAR:    NSF_FALL_THROUGH; /* fall through */
         break;
       }
     }
@@ -25673,11 +25673,11 @@ ListMethod(Tcl_Interp *interp,
       return TCL_OK;
     }
 
-  case InfomethodsubcmdBodyIdx:        /* fall through */
-  case InfomethodsubcmdOriginIdx:      /* fall through */
-  case InfomethodsubcmdTypeIdx:        /* fall through */
-  case InfomethodsubcmdDefinitionIdx:  /* fall through */
-  case InfomethodsubcmdDisassembleIdx: /* fall through */
+  case InfomethodsubcmdBodyIdx:        NSF_FALL_THROUGH; /* fall through */
+  case InfomethodsubcmdOriginIdx:      NSF_FALL_THROUGH; /* fall through */
+  case InfomethodsubcmdTypeIdx:        NSF_FALL_THROUGH; /* fall through */
+  case InfomethodsubcmdDefinitionIdx:  NSF_FALL_THROUGH; /* fall through */
+  case InfomethodsubcmdDisassembleIdx: NSF_FALL_THROUGH; /* fall through */
   case InfomethodsubcmdNULL:
     break;
   }
@@ -25781,17 +25781,17 @@ ListMethod(Tcl_Interp *interp,
         Tcl_SetObjResult(interp, resultObj);
         break;
       }
-    case InfomethodsubcmdArgsIdx:               /* fall through */
-    case InfomethodsubcmdDefinitionhandleIdx:   /* fall through */
-    case InfomethodsubcmdExistsIdx:             /* fall through */
-    case InfomethodsubcmdOriginIdx:             /* fall through */
-    case InfomethodsubcmdParameterIdx:          /* fall through */
-    case InfomethodsubcmdPostconditionIdx:      /* fall through */
-    case InfomethodsubcmdPreconditionIdx:       /* fall through */
-    case InfomethodsubcmdRegistrationhandleIdx: /* fall through */
-    case InfomethodsubcmdReturnsIdx:            /* fall through */
-    case InfomethodsubcmdSubmethodsIdx:         /* fall through */
-    case InfomethodsubcmdSyntaxIdx:             /* fall through */
+    case InfomethodsubcmdArgsIdx:               NSF_FALL_THROUGH; /* fall through */
+    case InfomethodsubcmdDefinitionhandleIdx:   NSF_FALL_THROUGH; /* fall through */
+    case InfomethodsubcmdExistsIdx:             NSF_FALL_THROUGH; /* fall through */
+    case InfomethodsubcmdOriginIdx:             NSF_FALL_THROUGH; /* fall through */
+    case InfomethodsubcmdParameterIdx:          NSF_FALL_THROUGH; /* fall through */
+    case InfomethodsubcmdPostconditionIdx:      NSF_FALL_THROUGH; /* fall through */
+    case InfomethodsubcmdPreconditionIdx:       NSF_FALL_THROUGH; /* fall through */
+    case InfomethodsubcmdRegistrationhandleIdx: NSF_FALL_THROUGH; /* fall through */
+    case InfomethodsubcmdReturnsIdx:            NSF_FALL_THROUGH; /* fall through */
+    case InfomethodsubcmdSubmethodsIdx:         NSF_FALL_THROUGH; /* fall through */
+    case InfomethodsubcmdSyntaxIdx:             NSF_FALL_THROUGH; /* fall through */
     case InfomethodsubcmdNULL:
     break;
     }
@@ -25821,19 +25821,19 @@ ListMethod(Tcl_Interp *interp,
         }
       }
       break;
-    case InfomethodsubcmdArgsIdx:                /* fall through */
-    case InfomethodsubcmdBodyIdx:                /* fall through */
-    case InfomethodsubcmdDefinitionhandleIdx:    /* fall through */
-    case InfomethodsubcmdExistsIdx:              /* fall through */
-    case InfomethodsubcmdOriginIdx:              /* fall through */
-    case InfomethodsubcmdParameterIdx:           /* fall through */
-    case InfomethodsubcmdPostconditionIdx:       /* fall through */
-    case InfomethodsubcmdPreconditionIdx:        /* fall through */
-    case InfomethodsubcmdRegistrationhandleIdx:  /* fall through */
-    case InfomethodsubcmdReturnsIdx:             /* fall through */
-    case InfomethodsubcmdSubmethodsIdx:          /* fall through */
-    case InfomethodsubcmdSyntaxIdx:              /* fall through */
-    case InfomethodsubcmdDisassembleIdx:         /* fall through */
+    case InfomethodsubcmdArgsIdx:                NSF_FALL_THROUGH; /* fall through */
+    case InfomethodsubcmdBodyIdx:                NSF_FALL_THROUGH; /* fall through */
+    case InfomethodsubcmdDefinitionhandleIdx:    NSF_FALL_THROUGH; /* fall through */
+    case InfomethodsubcmdExistsIdx:              NSF_FALL_THROUGH; /* fall through */
+    case InfomethodsubcmdOriginIdx:              NSF_FALL_THROUGH; /* fall through */
+    case InfomethodsubcmdParameterIdx:           NSF_FALL_THROUGH; /* fall through */
+    case InfomethodsubcmdPostconditionIdx:       NSF_FALL_THROUGH; /* fall through */
+    case InfomethodsubcmdPreconditionIdx:        NSF_FALL_THROUGH; /* fall through */
+    case InfomethodsubcmdRegistrationhandleIdx:  NSF_FALL_THROUGH; /* fall through */
+    case InfomethodsubcmdReturnsIdx:             NSF_FALL_THROUGH; /* fall through */
+    case InfomethodsubcmdSubmethodsIdx:          NSF_FALL_THROUGH; /* fall through */
+    case InfomethodsubcmdSyntaxIdx:              NSF_FALL_THROUGH; /* fall through */
+    case InfomethodsubcmdDisassembleIdx:         NSF_FALL_THROUGH; /* fall through */
     case InfomethodsubcmdNULL:
       break;
     }
@@ -25858,19 +25858,19 @@ ListMethod(Tcl_Interp *interp,
         Tcl_SetObjResult(interp, resultObj);
       }
       break;
-    case InfomethodsubcmdArgsIdx:                /* fall through */
-    case InfomethodsubcmdBodyIdx:                /* fall through */
-    case InfomethodsubcmdDefinitionhandleIdx:    /* fall through */
-    case InfomethodsubcmdExistsIdx:              /* fall through */
-    case InfomethodsubcmdOriginIdx:              /* fall through */
-    case InfomethodsubcmdParameterIdx:           /* fall through */
-    case InfomethodsubcmdPostconditionIdx:       /* fall through */
-    case InfomethodsubcmdPreconditionIdx:        /* fall through */
-    case InfomethodsubcmdRegistrationhandleIdx:  /* fall through */
-    case InfomethodsubcmdReturnsIdx:             /* fall through */
-    case InfomethodsubcmdSubmethodsIdx:          /* fall through */
-    case InfomethodsubcmdSyntaxIdx:              /* fall through */
-    case InfomethodsubcmdDisassembleIdx:         /* fall through */
+    case InfomethodsubcmdArgsIdx:                NSF_FALL_THROUGH; /* fall through */
+    case InfomethodsubcmdBodyIdx:                NSF_FALL_THROUGH; /* fall through */
+    case InfomethodsubcmdDefinitionhandleIdx:    NSF_FALL_THROUGH; /* fall through */
+    case InfomethodsubcmdExistsIdx:              NSF_FALL_THROUGH; /* fall through */
+    case InfomethodsubcmdOriginIdx:              NSF_FALL_THROUGH; /* fall through */
+    case InfomethodsubcmdParameterIdx:           NSF_FALL_THROUGH; /* fall through */
+    case InfomethodsubcmdPostconditionIdx:       NSF_FALL_THROUGH; /* fall through */
+    case InfomethodsubcmdPreconditionIdx:        NSF_FALL_THROUGH; /* fall through */
+    case InfomethodsubcmdRegistrationhandleIdx:  NSF_FALL_THROUGH; /* fall through */
+    case InfomethodsubcmdReturnsIdx:             NSF_FALL_THROUGH; /* fall through */
+    case InfomethodsubcmdSubmethodsIdx:          NSF_FALL_THROUGH; /* fall through */
+    case InfomethodsubcmdSyntaxIdx:              NSF_FALL_THROUGH; /* fall through */
+    case InfomethodsubcmdDisassembleIdx:         NSF_FALL_THROUGH; /* fall through */
     case InfomethodsubcmdNULL:
       break;
     }
@@ -25930,17 +25930,17 @@ ListMethod(Tcl_Interp *interp,
           Tcl_SetObjResult(interp, resultObj);
         }
         break;
-      case InfomethodsubcmdArgsIdx:                /* fall through */
-      case InfomethodsubcmdDefinitionhandleIdx:    /* fall through */
-      case InfomethodsubcmdExistsIdx:              /* fall through */
-      case InfomethodsubcmdOriginIdx:              /* fall through */
-      case InfomethodsubcmdParameterIdx:           /* fall through */
-      case InfomethodsubcmdPostconditionIdx:       /* fall through */
-      case InfomethodsubcmdPreconditionIdx:        /* fall through */
-      case InfomethodsubcmdRegistrationhandleIdx:  /* fall through */
-      case InfomethodsubcmdReturnsIdx:             /* fall through */
-      case InfomethodsubcmdSubmethodsIdx:          /* fall through */
-      case InfomethodsubcmdSyntaxIdx:              /* fall through */
+      case InfomethodsubcmdArgsIdx:                NSF_FALL_THROUGH; /* fall through */
+      case InfomethodsubcmdDefinitionhandleIdx:    NSF_FALL_THROUGH; /* fall through */
+      case InfomethodsubcmdExistsIdx:              NSF_FALL_THROUGH; /* fall through */
+      case InfomethodsubcmdOriginIdx:              NSF_FALL_THROUGH; /* fall through */
+      case InfomethodsubcmdParameterIdx:           NSF_FALL_THROUGH; /* fall through */
+      case InfomethodsubcmdPostconditionIdx:       NSF_FALL_THROUGH; /* fall through */
+      case InfomethodsubcmdPreconditionIdx:        NSF_FALL_THROUGH; /* fall through */
+      case InfomethodsubcmdRegistrationhandleIdx:  NSF_FALL_THROUGH; /* fall through */
+      case InfomethodsubcmdReturnsIdx:             NSF_FALL_THROUGH; /* fall through */
+      case InfomethodsubcmdSubmethodsIdx:          NSF_FALL_THROUGH; /* fall through */
+      case InfomethodsubcmdSyntaxIdx:              NSF_FALL_THROUGH; /* fall through */
       case InfomethodsubcmdNULL:
         break;
       }
@@ -26002,18 +26002,18 @@ ListMethod(Tcl_Interp *interp,
           break;
         }
 
-      case InfomethodsubcmdArgsIdx:                /* fall through */
-      case InfomethodsubcmdBodyIdx:                /* fall through */
-      case InfomethodsubcmdDefinitionhandleIdx:    /* fall through */
-      case InfomethodsubcmdExistsIdx:              /* fall through */
-      case InfomethodsubcmdParameterIdx:           /* fall through */
-      case InfomethodsubcmdPostconditionIdx:       /* fall through */
-      case InfomethodsubcmdPreconditionIdx:        /* fall through */
-      case InfomethodsubcmdRegistrationhandleIdx:  /* fall through */
-      case InfomethodsubcmdReturnsIdx:             /* fall through */
-      case InfomethodsubcmdSubmethodsIdx:          /* fall through */
-      case InfomethodsubcmdSyntaxIdx:              /* fall through */
-      case InfomethodsubcmdDisassembleIdx:         /* fall through */
+      case InfomethodsubcmdArgsIdx:                NSF_FALL_THROUGH; /* fall through */
+      case InfomethodsubcmdBodyIdx:                NSF_FALL_THROUGH; /* fall through */
+      case InfomethodsubcmdDefinitionhandleIdx:    NSF_FALL_THROUGH; /* fall through */
+      case InfomethodsubcmdExistsIdx:              NSF_FALL_THROUGH; /* fall through */
+      case InfomethodsubcmdParameterIdx:           NSF_FALL_THROUGH; /* fall through */
+      case InfomethodsubcmdPostconditionIdx:       NSF_FALL_THROUGH; /* fall through */
+      case InfomethodsubcmdPreconditionIdx:        NSF_FALL_THROUGH; /* fall through */
+      case InfomethodsubcmdRegistrationhandleIdx:  NSF_FALL_THROUGH; /* fall through */
+      case InfomethodsubcmdReturnsIdx:             NSF_FALL_THROUGH; /* fall through */
+      case InfomethodsubcmdSubmethodsIdx:          NSF_FALL_THROUGH; /* fall through */
+      case InfomethodsubcmdSyntaxIdx:              NSF_FALL_THROUGH; /* fall through */
+      case InfomethodsubcmdDisassembleIdx:         NSF_FALL_THROUGH; /* fall through */
       case InfomethodsubcmdNULL:
         break;
       }
@@ -26043,19 +26043,19 @@ ListMethod(Tcl_Interp *interp,
             break;
           }
 
-        case InfomethodsubcmdArgsIdx:                /* fall through */
-        case InfomethodsubcmdBodyIdx:                /* fall through */
-        case InfomethodsubcmdDefinitionhandleIdx:    /* fall through */
-        case InfomethodsubcmdExistsIdx:              /* fall through */
-        case InfomethodsubcmdParameterIdx:           /* fall through */
-        case InfomethodsubcmdPostconditionIdx:       /* fall through */
-        case InfomethodsubcmdPreconditionIdx:        /* fall through */
-        case InfomethodsubcmdRegistrationhandleIdx:  /* fall through */
-        case InfomethodsubcmdReturnsIdx:             /* fall through */
-        case InfomethodsubcmdSubmethodsIdx:          /* fall through */
-        case InfomethodsubcmdSyntaxIdx:              /* fall through */
-        case InfomethodsubcmdOriginIdx:              /* fall through */
-        case InfomethodsubcmdDisassembleIdx:         /* fall through */
+        case InfomethodsubcmdArgsIdx:                NSF_FALL_THROUGH; /* fall through */
+        case InfomethodsubcmdBodyIdx:                NSF_FALL_THROUGH; /* fall through */
+        case InfomethodsubcmdDefinitionhandleIdx:    NSF_FALL_THROUGH; /* fall through */
+        case InfomethodsubcmdExistsIdx:              NSF_FALL_THROUGH; /* fall through */
+        case InfomethodsubcmdParameterIdx:           NSF_FALL_THROUGH; /* fall through */
+        case InfomethodsubcmdPostconditionIdx:       NSF_FALL_THROUGH; /* fall through */
+        case InfomethodsubcmdPreconditionIdx:        NSF_FALL_THROUGH; /* fall through */
+        case InfomethodsubcmdRegistrationhandleIdx:  NSF_FALL_THROUGH; /* fall through */
+        case InfomethodsubcmdReturnsIdx:             NSF_FALL_THROUGH; /* fall through */
+        case InfomethodsubcmdSubmethodsIdx:          NSF_FALL_THROUGH; /* fall through */
+        case InfomethodsubcmdSyntaxIdx:              NSF_FALL_THROUGH; /* fall through */
+        case InfomethodsubcmdOriginIdx:              NSF_FALL_THROUGH; /* fall through */
+        case InfomethodsubcmdDisassembleIdx:         NSF_FALL_THROUGH; /* fall through */
         case InfomethodsubcmdNULL:
           break;
         }
@@ -26084,18 +26084,18 @@ ListMethod(Tcl_Interp *interp,
     case InfomethodsubcmdOriginIdx:
       break;
 
-    case InfomethodsubcmdArgsIdx:                /* fall through */
-    case InfomethodsubcmdBodyIdx:                /* fall through */
-    case InfomethodsubcmdDefinitionhandleIdx:    /* fall through */
-    case InfomethodsubcmdExistsIdx:              /* fall through */
-    case InfomethodsubcmdParameterIdx:           /* fall through */
-    case InfomethodsubcmdPostconditionIdx:       /* fall through */
-    case InfomethodsubcmdPreconditionIdx:        /* fall through */
-    case InfomethodsubcmdRegistrationhandleIdx:  /* fall through */
-    case InfomethodsubcmdReturnsIdx:             /* fall through */
-    case InfomethodsubcmdSubmethodsIdx:          /* fall through */
-    case InfomethodsubcmdSyntaxIdx:              /* fall through */
-    case InfomethodsubcmdDisassembleIdx:         /* fall through */
+    case InfomethodsubcmdArgsIdx:                NSF_FALL_THROUGH; /* fall through */
+    case InfomethodsubcmdBodyIdx:                NSF_FALL_THROUGH; /* fall through */
+    case InfomethodsubcmdDefinitionhandleIdx:    NSF_FALL_THROUGH; /* fall through */
+    case InfomethodsubcmdExistsIdx:              NSF_FALL_THROUGH; /* fall through */
+    case InfomethodsubcmdParameterIdx:           NSF_FALL_THROUGH; /* fall through */
+    case InfomethodsubcmdPostconditionIdx:       NSF_FALL_THROUGH; /* fall through */
+    case InfomethodsubcmdPreconditionIdx:        NSF_FALL_THROUGH; /* fall through */
+    case InfomethodsubcmdRegistrationhandleIdx:  NSF_FALL_THROUGH; /* fall through */
+    case InfomethodsubcmdReturnsIdx:             NSF_FALL_THROUGH; /* fall through */
+    case InfomethodsubcmdSubmethodsIdx:          NSF_FALL_THROUGH; /* fall through */
+    case InfomethodsubcmdSyntaxIdx:              NSF_FALL_THROUGH; /* fall through */
+    case InfomethodsubcmdDisassembleIdx:         NSF_FALL_THROUGH; /* fall through */
     case InfomethodsubcmdNULL:
       break;
     }
@@ -26342,7 +26342,7 @@ ProtectionMatches(CallprotectionIdx_t withCallprotection, Tcl_Command cmd) {
   case CallprotectionPublicIdx: result = (isProtected == 0); break;
   case CallprotectionProtectedIdx: result = (isProtected && !isPrivate); break;
   case CallprotectionPrivateIdx: result = isPrivate; break;
-  case CallprotectionNULL: /* fall through */
+  case CallprotectionNULL: NSF_FALL_THROUGH; /* fall through */
   default: result = NSF_TRUE; break;
   }
   return result;
@@ -27822,7 +27822,7 @@ NsfConfigureCmd(Tcl_Interp *interp, ConfigureoptionIdx_t option, Tcl_Obj *valueO
 
   switch (option) {
 
-  case ConfigureoptionDebugIdx: /* fall through */
+  case ConfigureoptionDebugIdx: NSF_FALL_THROUGH; /* fall through */
   case ConfigureoptionObjectsystemsIdx:
     /*
      * Handled above.
@@ -28612,8 +28612,8 @@ NsfMethodAliasCmd(
   switch (withProtection) {
   case ProtectionCall_protectedIdx:     flags = NSF_CMD_CALL_PROTECTED_METHOD; break;
   case ProtectionRedefine_protectedIdx: flags = NSF_CMD_REDEFINE_PROTECTED_METHOD; break;
-  case ProtectionNoneIdx: /* fall through */
-  case ProtectionNULL:    /* fall through */
+  case ProtectionNoneIdx: NSF_FALL_THROUGH; /* fall through */
+  case ProtectionNULL:    NSF_FALL_THROUGH; /* fall through */
   default:                flags = 0u; break;
   }
 
@@ -29044,12 +29044,12 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
   case MethodpropertyExistsIdx:
     Tcl_SetObjResult(interp, Tcl_NewIntObj(1));
     break;
-  case MethodpropertyClass_onlyIdx:          /* fall through */
-  case MethodpropertyCall_privateIdx:        /* fall through */
-  case MethodpropertyCall_protectedIdx:      /* fall through */
-  case MethodpropertyDebugIdx:               /* fall through */
-  case MethodpropertyDeprecatedIdx:          /* fall through */
-  case MethodpropertyRedefine_protectedIdx:  /* fall through */
+  case MethodpropertyClass_onlyIdx:          NSF_FALL_THROUGH; /* fall through */
+  case MethodpropertyCall_privateIdx:        NSF_FALL_THROUGH; /* fall through */
+  case MethodpropertyCall_protectedIdx:      NSF_FALL_THROUGH; /* fall through */
+  case MethodpropertyDebugIdx:               NSF_FALL_THROUGH; /* fall through */
+  case MethodpropertyDeprecatedIdx:          NSF_FALL_THROUGH; /* fall through */
+  case MethodpropertyRedefine_protectedIdx:  NSF_FALL_THROUGH; /* fall through */
     {
       int impliedSetFlag = 0, impliedClearFlag = 0;
 
@@ -29074,8 +29074,8 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
       case MethodpropertyRedefine_protectedIdx:
         flag = NSF_CMD_REDEFINE_PROTECTED_METHOD;
         break;
-      case MethodpropertyNULL:       /* fall through */
-      case MethodpropertyReturnsIdx: /* fall through */
+      case MethodpropertyNULL:       NSF_FALL_THROUGH; /* fall through */
+      case MethodpropertyReturnsIdx: NSF_FALL_THROUGH; /* fall through */
       case MethodpropertyExistsIdx:
         flag = 0u;
         break;
@@ -30391,7 +30391,7 @@ NsfRelationSetCmd(Tcl_Interp *interp, NsfObject *object, RelationtypeIdx_t type,
    * or handling other simple cases.
    */
   switch (type) {
-  case RelationtypeObject_filterIdx: /* fall through */
+  case RelationtypeObject_filterIdx: NSF_FALL_THROUGH; /* fall through */
   case RelationtypeObject_mixinIdx:
     if (valueObj == NULL) {
       objopt = object->opt;
@@ -30407,7 +30407,7 @@ NsfRelationSetCmd(Tcl_Interp *interp, NsfObject *object, RelationtypeIdx_t type,
     objopt = NsfRequireObjectOpt(object);
     break;
 
-  case RelationtypeClass_mixinIdx: /* fall through */
+  case RelationtypeClass_mixinIdx: NSF_FALL_THROUGH; /* fall through */
   case RelationtypeClass_filterIdx:
     assert(class != NULL);
     if (valueObj == NULL) {
@@ -30617,9 +30617,9 @@ NsfRelationSetCmd(Tcl_Interp *interp, NsfObject *object, RelationtypeIdx_t type,
     }
     break;
 
-  case RelationtypeClassIdx:      /* fall through */
-  case RelationtypeRootclassIdx:  /* fall through */
-  case RelationtypeSuperclassIdx: /* fall through */
+  case RelationtypeClassIdx:      NSF_FALL_THROUGH; /* fall through */
+  case RelationtypeRootclassIdx:  NSF_FALL_THROUGH; /* fall through */
+  case RelationtypeSuperclassIdx: NSF_FALL_THROUGH; /* fall through */
   case RelationtypeNULL:
     /* handled above */
     break;
@@ -30684,7 +30684,7 @@ NsfCurrentCmd(Tcl_Interp *interp, CurrentoptionIdx_t option) {
   assert(object != NULL);
 
   switch (option) {
-  case CurrentoptionMethodIdx: /* fall through */
+  case CurrentoptionMethodIdx: NSF_FALL_THROUGH; /* fall through */
   case CurrentoptionProcIdx:
     cscPtr = CallStackGetTopFrame0(interp);
     if (cscPtr != NULL) {
@@ -30849,7 +30849,7 @@ NsfCurrentCmd(Tcl_Interp *interp, CurrentoptionIdx_t option) {
     break;
   }
 
-  case CurrentoptionObjectIdx: /* fall through */
+  case CurrentoptionObjectIdx: NSF_FALL_THROUGH; /* fall through */
   case CurrentoptionNULL:
     /* handled above */
     break;
@@ -32409,7 +32409,7 @@ NsfOResidualargsMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj 
         }
         break;
       }
-    case NO_DASH: /* fall through */
+    case NO_DASH: NSF_FALL_THROUGH; /* fall through */
     default:
       {
         return NsfPrintError(interp, "%s configure: unexpected argument '%s' between parameters",
