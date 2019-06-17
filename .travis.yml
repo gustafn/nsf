@@ -170,8 +170,8 @@ before_install:
   found, continuing" ; fi
 install:
 - mkdir -p $KITS
-- if [ $TRAVIS_OS_NAME = linux ]; then URL=http://kitcreator.rkeene.org/kits/840dec4286102c869d85bae3b0dcd32565e7bf12/tclkit;
-  else URL=http://kitcreator.rkeene.org/kits/6967b89da1f6af7b12cdc82819f3bdb13a661242/tclkit;
+- if [ $TRAVIS_OS_NAME = linux ]; then URL=http://kitcreator.rkeene.org/kits/c8fe6fba3323b12b924b4a0716609abbaa00822c/tclkit;
+  else URL=http://kitcreator.rkeene.org/kits/31eaf9ae17e769609700b41d1d3c9abeda27510d/tclkit;
   fi
 - if [ ! -f ${KITS}/tclkit.$TRAVIS_OS_NAME ]; then wget -O ${KITS}/tclkit.$TRAVIS_OS_NAME
   $URL && chmod +x ${KITS}/tclkit.$TRAVIS_OS_NAME; fi

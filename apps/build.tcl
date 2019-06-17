@@ -1,9 +1,17 @@
+# w/o tls
 # linux: https://kitcreator.rkeene.org/kits/840dec4286102c869d85bae3b0dcd32565e7bf12/tclkit
-# osx: https://kitcreator.rkeene.org/kits/6967b89da1f6af7b12cdc82819f3bdb13a661242/tclkit
+# macos: https://kitcreator.rkeene.org/kits/6967b89da1f6af7b12cdc82819f3bdb13a661242/tclkit
+
+# w/ tls
+# linux: http://kitcreator.rkeene.org/kits/c8fe6fba3323b12b924b4a0716609abbaa00822c/tclkit
+# macos: http://kitcreator.rkeene.org/kits/31eaf9ae17e769609700b41d1d3c9abeda27510d/tclkit
 
 package require http
 package require tar
 package require platform
+package require tls
+
+http::register https 443 [list ::tls::socket -tls1 1]
 
 proc ::build {HOMEDIR BUILDDIR TCLTAG {TOOLCHAIN autoconf-tea}} {
   set tarball "tcl.tar.gz"
@@ -14,7 +22,7 @@ proc ::build {HOMEDIR BUILDDIR TCLTAG {TOOLCHAIN autoconf-tea}} {
   set fh [open $tarball wb+]
   try {
 
-    ::http::geturl http://core.tcl.tk/tcl/tarball/$tarball?uuid=$TCLTAG \
+    ::http::geturl https://core.tcl-lang.org/tcl/tarball/$tarball?uuid=$TCLTAG \
         -binary true \
         -channel $fh
 
