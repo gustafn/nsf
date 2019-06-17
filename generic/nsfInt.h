@@ -174,8 +174,9 @@ typedef int bool;
 #endif
 
 #define nonnull_assert(assertion) assert((assertion))
+
 /*
- * Tries to use gcc __attribute__ unused and mangles the name, so the
+ * Trie to use gcc __attribute__ unused and mangle the name, so the
  * attribute could not be used, if declared as unused.
  */
 #ifdef UNUSED

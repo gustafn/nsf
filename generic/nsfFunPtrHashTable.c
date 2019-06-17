@@ -52,10 +52,10 @@
  * pointers safely.
  *
  */
-static unsigned int FunPtrKey(Tcl_HashTable *tablePtr, void *keyPtr);
-static int CompareFunPtrKeys(void *keyPtr, Tcl_HashEntry *hPtr);
-static Tcl_HashEntry *AllocFunPtrEntry(Tcl_HashTable *tablePtr, void *keyPtr);
 
+static Tcl_HashKeyProc         FunPtrKey;
+static Tcl_CompareHashKeysProc CompareFunPtrKeys;
+static Tcl_AllocHashEntryProc  AllocFunPtrEntry;
 
 typedef struct funPtrEntry_t {
   Nsf_AnyFun *funPtr;

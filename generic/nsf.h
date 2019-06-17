@@ -398,6 +398,13 @@ typedef struct Nsf_Param {
 # define NSF_attribute_format(ARGS)
 #endif
 
+#if __GNUC_PREREQ(7, 0)
+# define NSF_FALL_THROUGH __attribute__((fallthrough))
+#else
+# define NSF_FALL_THROUGH ((void)0)
+#endif
+
+
 EXTERN int
 NsfArgumentError(Tcl_Interp *interp, const char *errorMsg, Nsf_Param const *paramPtr,
 		 Tcl_Obj *cmdNameObj, Tcl_Obj *methodPathObj)
