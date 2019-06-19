@@ -5,39 +5,57 @@
 # w/ tls
 # linux: http://kitcreator.rkeene.org/kits/c8fe6fba3323b12b924b4a0716609abbaa00822c/tclkit
 # macos: http://kitcreator.rkeene.org/kits/31eaf9ae17e769609700b41d1d3c9abeda27510d/tclkit
+# win: http://kitcreator.rkeene.org/kits/32c6369ff6ef02a685b75854237635d4a3d56611/tclkit.exe
 
 package require http
 package require tar
 package require platform
-package require tls
-
-http::register https 443 [list ::tls::socket -tls1 1]
 
 proc ::build {HOMEDIR BUILDDIR TCLTAG {TOOLCHAIN autoconf-tea}} {
   set tarball "tcl.tar.gz"
   set INSTALLDIR [file join $HOMEDIR install]
 
   cd $HOMEDIR
+
+  set URL https://core.tcl-lang.org/tcl/tarball/$tarball?uuid=$TCLTAG
   
-  set fh [open $tarball wb+]
-  try {
-
-    ::http::geturl https://core.tcl-lang.org/tcl/tarball/$tarball?uuid=$TCLTAG \
-        -binary true \
-        -channel $fh
-
-    seek $fh 0
-    zlib push gunzip $fh
-    ::tar::untar $fh -chan
+  if {![catch {package require tls}]} {
     
-  } on error {e opts} {
-    file delete -force tcl
-    return -options $opts $e
-  } finally {
-    close $fh
-    file delete $tarball
+    http::register https 443 [list ::tls::socket -tls1 1]
+
+    set fh [open $tarball wb+]
+    try {
+      
+      ::http::geturl $URL \
+          -binary true \
+          -channel $fh
+      
+      seek $fh 0
+      zlib push gunzip $fh
+      ::tar::untar $fh -chan
+      
+    } on error {e opts} {
+      file delete -force tcl
+      return -options $opts $e
+    } finally {
+      close $fh
+      file delete -force $tarball
+    }
+  } else {
+
+    # fall back to using curl
+    exec >@stdout 2>@stderr bash -lc "curl -L -k -o $tarball $URL"
+
+    set fh [open $tarball rb]
+    try {
+      zlib push gunzip $fh
+      ::tar::untar $fh -chan
+    } finally {
+      close $fh
+      file delete -force $tarball
+    }
   }
-  
+
   # exec tar -xzf tcl.tar.gz
   # https://stackoverflow.com/questions/22333745/how-does-tcl-exec-work-exactly
 
