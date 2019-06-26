@@ -14,7 +14,7 @@ environment:
   MINGW_DIR: mingw64
   MINGW_URL: https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/8.1.0/threads-win32/seh/x86_64-8.1.0-release-win32-seh-rt_v6-rev0.7z
   MINGW_ARCHIVE: x86_64-8.1.0-release-win32-seh-rt_v6-rev0.7z
-  TCLKIT_URL: http://kitcreator.rkeene.org/kits/32c6369ff6ef02a685b75854237635d4a3d56611/tclkit.exe
+  TCLKIT_URL: http://kitcreator.rkeene.org/kits/34ac4a331252f9796c31f875e282cb04a01f2743/tclkit.exe
   TCLKIT: tclkit.exe
   matrix:
   - TCLTAG: core-8-6-branch
