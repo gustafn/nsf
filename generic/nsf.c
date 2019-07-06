@@ -24494,7 +24494,7 @@ ArgumentParse(
 
 #if defined(PARSE_TRACE_FULL)
       fprintf(stderr, "... arg %p %s expect non-pos arg in block %s isFlag %d sig %d serial %d (%d => %d)\n",
-              argumentObj, ObjStr(argumentObj), currentParamPtr->name,
+              (void*)argumentObj, ObjStr(argumentObj), currentParamPtr->name,
               argumentObj->typePtr == &NsfFlagObjType,
               argumentObj->typePtr == &NsfFlagObjType ? flagPtr->signature == paramPtr : 0,
               argumentObj->typePtr == &NsfFlagObjType ? flagPtr->serial == serial : 0,
