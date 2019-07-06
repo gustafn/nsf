@@ -8638,7 +8638,7 @@ AssertionCheck(Tcl_Interp *interp, NsfObject *object, NsfClass *class,
       case CHECK_NONE:     NSF_FALL_THROUGH; /* fall through */
       case CHECK_CLINVAR:  NSF_FALL_THROUGH; /* fall through */
       case CHECK_OBJINVAR: NSF_FALL_THROUGH; /* fall through */
-      case CHECK_INVAR:    NSF_FALL_THROUGH; /* fall through */
+      case CHECK_INVAR:
         break;
       }
     }
@@ -29049,7 +29049,7 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
   case MethodpropertyCall_protectedIdx:      NSF_FALL_THROUGH; /* fall through */
   case MethodpropertyDebugIdx:               NSF_FALL_THROUGH; /* fall through */
   case MethodpropertyDeprecatedIdx:          NSF_FALL_THROUGH; /* fall through */
-  case MethodpropertyRedefine_protectedIdx:  NSF_FALL_THROUGH; /* fall through */
+  case MethodpropertyRedefine_protectedIdx:
     {
       int impliedSetFlag = 0, impliedClearFlag = 0;
 
