@@ -24505,6 +24505,7 @@ ArgumentParse(
       if (argumentObj->typePtr == &NsfFlagObjType
           && flagPtr->signature == paramPtr
           && flagPtr->serial == serial
+          && flagPtr->paramPtr != NULL /* when the parameter was previously used in a cget */
           ) {
         /*
          * The argument was processed before and the Tcl_Obj is still valid.
