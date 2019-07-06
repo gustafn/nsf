@@ -217,7 +217,6 @@
   NSF_DTRACE_METHOD_RETURN_PROBE((cscPtr),(retCode));			\
   CscFinish_((interp), (cscPtr))
 #else
-# define NDEBUG 1
 # define NsfCleanupObject(object,string)				\
   NsfCleanupObject_((object))
 # define CscFinish(interp,cscPtr,retCode,string)			\
