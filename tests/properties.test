@@ -1222,6 +1222,27 @@ nx::test case indirect-transitive-mixin-info {
 
 
 #
+# See bug report at:
+# https://groups.google.com/forum/#!topic/comp.lang.tcl/F9cn_Ah4js4
+#
+nx::test case bug-clt-configurable-false-cget {
+  nx::Class create D;
+  D property -configurable false "nix";
+  D create d;
+  # Provide for a shared parameter name Tcl_Obj, to enable intrep
+  # sharing between "cget" and "configure". The original bug report
+  # ran into the critical path using an interactive shell, with intrep
+  # sharing occurring via literals.
+  set flag "-nix"; 
+  catch {d cget $flag}
+  catch {d configure $flag anix} msg opts
+  ? [list string match "invalid non-positional argument '-nix', *"  [dict get $opts -errorinfo]] 1
+}
+ 
+
+
+
+#
 # Local variables:
 #    mode: tcl
 #    tcl-indent-level: 2
