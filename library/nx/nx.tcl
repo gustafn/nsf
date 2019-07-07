@@ -40,7 +40,7 @@
 
 package req nsf
 
-package provide nx 2.4
+package provide nx 2.4.0
 
 namespace eval ::nx {
 
