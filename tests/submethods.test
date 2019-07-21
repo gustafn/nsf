@@ -1091,6 +1091,54 @@ nx::test case ensemble-next-sackgasse {
   ? {b i s} "::B"
 }
 
+#
+# The tests below test for unknown ensemble methods in different configurations:
+# - w and w/o trailer (arguments beyond the unknown method name)
+# - at the top-level (i.e., pre-evaluated [catch {...}]) and at a nested
+#   callframe level.
+#
+# NOTE: Don't nest the test cases below into an nx::test case, this
+# will not produce the second configuration (no top-level execution).
+#
+
+nx::Class create C {
+    #              "bar x y z"
+    :public method "foo a b c" {} { return "ok" }
+    :create c
+}
+
+# unknown at the ensemble root: 'foo' vs. 'bar'
+? {c bar} {::c: unable to dispatch method 'bar'}
+? [list return -level 0 [catch {c bar} msg; set msg]] {::c: unable to dispatch method 'bar'}
+# unknown at the 1st ensemble level w/o trailer : 'a' vs. 'x'
+? {c foo x} {unable to dispatch sub-method "x" of ::c foo; valid are: foo a b c}
+? [list return -level 0 [catch {c foo x} msg; set msg]] {unable to dispatch sub-method "x" of ::c foo; valid are: foo a b c}
+# unknown at the 1st ensemble level w/ trailer : 'a' vs. 'x'
+? {c foo x b c} {unable to dispatch sub-method "x" of ::c foo; valid are: foo a b c}
+? [list return -level 0 [catch {c foo x b c} msg; set msg]] {unable to dispatch sub-method "x" of ::c foo; valid are: foo a b c}
+# unknown at the 2nd ensemble level w/o trailer : 'b' vs. 'y'
+? {c foo a y} {unable to dispatch sub-method "y" of ::c foo a; valid are: foo a b c}
+## at the top-level (no caller frame"), the below crashed NSF as report on c.l.t.:
+## see https://groups.google.com/forum/#!topic/comp.lang.tcl/wzh5uFKeKU8
+? [list return -level 0 [catch {c foo a y} msg; set msg]] {unable to dispatch sub-method "y" of ::c foo a; valid are: foo a b c}
+# unknown at the 2nd ensemble level w trailer : 'b' vs. 'y'
+? {c foo a y c} {unable to dispatch sub-method "y" of ::c foo a; valid are: foo a b c}
+? [list return -level 0 [catch {c foo a y c} msg; set msg]] {unable to dispatch sub-method "y" of ::c foo a; valid are: foo a b c}
+# unknown at the 3rd ensemble level w/o trailer : 'c' vs. 'z'
+? {c foo a b z} {unable to dispatch sub-method "z" of ::c foo a b; valid are: foo a b c}
+? [list return -level 0 [catch {c foo a b z} msg; set msg]] {unable to dispatch sub-method "z" of ::c foo a b; valid are: foo a b c}
+# unknown at the 3nd ensemble level w trailer : 'c' vs. 'z'
+? {c foo a b z d} {unable to dispatch sub-method "z" of ::c foo a b; valid are: foo a b c}
+? [list return -level 0 [catch {c foo a b z d} msg; set msg]] {unable to dispatch sub-method "z" of ::c foo a b; valid are: foo a b c}
+
+? {c foo a b c} "ok"
+? [list return -level 0 [catch {c foo a b c} msg; set msg]] "ok"
+? {c foo a b c d} {wrong # args: should be "c"}
+? [list return -level 0 [catch {c foo a b c d} msg; set msg]] {wrong # args: should be "c"}
+
+::c destroy
+::C destroy
+
 
 #
 # Local variables:
