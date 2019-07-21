@@ -20560,7 +20560,11 @@ NextSearchAndInvoke(
 
       for (;;) {
         varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr);
-        if (((unsigned int)Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) == 0) {
+        if (unlikely(varFramePtr == NULL)) {
+          break;
+        }
+        if (((unsigned int)Tcl_CallFrame_isProcCallFrame(varFramePtr)
+             & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) == 0) {
           /*
            * Parent frame is not an NSF frame.
            */
