@@ -214,9 +214,9 @@ Nsf_InfoBodyObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, int objc, 
   cmd = Tcl_FindCommand(interp, ObjStr(objv[1]), (Tcl_Namespace *)NULL, 0);
   if (cmd != NULL) {
     Tcl_ObjCmdProc *proc =  Tcl_Command_objProc(cmd);
-    ClientData clientData = Tcl_Command_objClientData(cmd);
-    if (proc == NsfProcStub && clientData) {
-      NsfProcClientData *tcd = clientData;
+    ClientData      procClientData = Tcl_Command_objClientData(cmd);
+    if (proc == NsfProcStub && procClientData != NULL) {
+      NsfProcClientData *tcd = procClientData;
       Tcl_Obj *ov[2];
       /*
        * The command is from an nsf::proc
@@ -262,17 +262,16 @@ Nsf_RenameObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, int objc, Tc
   cmd = Tcl_FindCommand(interp, ObjStr(objv[1]), (Tcl_Namespace *)NULL, 0);
   if (cmd != NULL) {
     Tcl_ObjCmdProc *proc =  Tcl_Command_objProc(cmd);
-    ClientData clientData = Tcl_Command_objClientData(cmd);
-    NsfObject *object = NsfGetObjectFromCmdPtr(cmd);
-    Tcl_Command parentCmd;
-    char *newName = ObjStr(objv[2]);
-          
+    ClientData      procClientData = Tcl_Command_objClientData(cmd);
+    NsfObject      *object = NsfGetObjectFromCmdPtr(cmd);
+    Tcl_Command     parentCmd;
+    char           *newName = ObjStr(objv[2]);
     
-    if (proc == NsfProcStub && clientData != NULL &&
+    if (proc == NsfProcStub && procClientData != NULL &&
         *newName != '\0') {
       Tcl_DString fqNewName;
       int result;
-      NsfProcClientData *tcd = clientData;
+      NsfProcClientData *tcd = procClientData;
 
       Tcl_DStringInit(&fqNewName);
       Tcl_DStringAppend(&fqNewName, "::nsf::procs::", 14);
