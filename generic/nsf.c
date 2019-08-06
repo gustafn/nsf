@@ -4340,7 +4340,9 @@ ObjectFindMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *methodObj, NsfC
 
       if ((mixin != NULL)
           && (*classPtr = (*lookupFunction)(interp, mixin, methodObj, &cmd))) {
-        if (((unsigned int)Tcl_Command_flags(cmd) & NSF_CMD_CLASS_ONLY_METHOD) != 0 && !NsfObjectIsClass(object)) {
+        if (((unsigned int)Tcl_Command_flags(cmd) & NSF_CMD_CLASS_ONLY_METHOD) != 0u
+            && !NsfObjectIsClass(object)
+           ) {
           cmd = NULL;
           continue;
         }
@@ -4526,8 +4528,10 @@ ObjectSystemsCleanup(Tcl_Interp *interp, bool withKeepvars) {
     /*fprintf(stderr, "key = %s %p %d flags %.6x\n",
       ObjectName(object), object, object && !NsfObjectIsClass(object), object->flags);*/
 
-    if (object != NULL && !NsfObjectIsClass(object)
-        && ((object->flags & NSF_DESTROY_CALLED) == 0u)) {
+    if (object != NULL
+        && !NsfObjectIsClass(object)
+        && ((object->flags & NSF_DESTROY_CALLED) == 0u)
+       ) {
       DispatchDestroyMethod(interp, object, 0u);
     }
   }
@@ -4537,7 +4541,9 @@ ObjectSystemsCleanup(Tcl_Interp *interp, bool withKeepvars) {
   for (entryPtr = instances; entryPtr != NULL; entryPtr = entryPtr->nextPtr) {
     const NsfClass *class = entryPtr->clorobj;
 
-    if (class != NULL && ((class->object.flags & NSF_DESTROY_CALLED) == 0u)) {
+    if (class != NULL
+        && ((class->object.flags & NSF_DESTROY_CALLED) == 0u)
+       ) {
       DispatchDestroyMethod(interp, (NsfObject *)class, 0u);
     }
   }
@@ -23367,7 +23373,8 @@ CallForwarder(ForwardCmdClientData *tcd, Tcl_Interp *interp, int objc, Tcl_Obj *
   }
 
 #if defined(NSF_FORWARD_WITH_ONERROR)
-  if (unlikely(result == TCL_ERROR && tcd->onerror)) {
+  if (unlikely(result == TCL_ERROR && tcd->onerror != NULL)) {
+    fprintf(stderr, "==== DEBUG AppVeyor: calling NsfForwardPrintError with error <<%s>>\n", ObjStr(Tcl_GetObjResult(interp)));
     result = NsfForwardPrintError(interp, tcd, objc, objv, "%s",
                                   ObjStr(Tcl_GetObjResult(interp)));
   }
