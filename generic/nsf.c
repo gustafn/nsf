@@ -22976,6 +22976,8 @@ NsfForwardPrintError(Tcl_Interp *interp, ForwardCmdClientData *tcd,
   NsfDStringVPrintf(&ds, fmt, ap);
   va_end(ap);
 
+  fprintf(stderr, "==== DEBUG AppVeyor: error msg<<%s>> (len %d)\n", ds.string, ds.length);
+
   if (tcd->onerror != NULL) {
     Tcl_Obj *script = Tcl_DuplicateObj(tcd->onerror);
     Tcl_Obj *cmd;
