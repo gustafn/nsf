@@ -23375,10 +23375,11 @@ CallForwarder(ForwardCmdClientData *tcd, Tcl_Interp *interp, int objc, Tcl_Obj *
 #if defined(NSF_FORWARD_WITH_ONERROR)
   if (unlikely(result == TCL_ERROR && tcd->onerror != NULL)) {
     Tcl_Obj *resultObj = Tcl_GetObjResult(interp);
+    const char *errorMsg =  ObjStr(resultObj);
 
     INCR_REF_COUNT(resultObj);
-    // fprintf(stderr, "==== DEBUG AppVeyor: calling NsfForwardPrintError with error <<%s>>\n", ObjStr(resultObj));
-    result = NsfForwardPrintError(interp, tcd, objc, objv, "%s", ObjStr(resultObj));
+    fprintf(stderr, "==== DEBUG AppVeyor: calling NsfForwardPrintError with <<%s>> (len %lu)\n", errorMsg, strlen(errorMsg));
+    result = NsfForwardPrintError(interp, tcd, objc, objv, "%s", errorMsg);
     DECR_REF_COUNT(resultObj);
   }
 #endif
