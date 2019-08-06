@@ -245,7 +245,7 @@ nx::Class create C {
 ? {C create c2 {:object method foo {} {;}}} ::c2
 
 #
-# check low level method creation on classes, and check C-level
+# check low-level method creation on classes, and check C-level
 # "-flag=value" handling
 #
 nsf::method::create ::C m1 {} {;}

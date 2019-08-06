@@ -1429,6 +1429,7 @@ namespace eval ::nx {
   }
 
   ObjectParameterSlot public method onError {cmd msg} {
+    puts stderr "==== DEBUG AppVeyor behavior <$cmd> <$msg>"
     if {[string match "%1 requires argument*" $msg]} {
       set template {wrong # args: use \"$cmd [join $methods |]\"}
     } elseif {[string match "*unknown for slot*" $msg]} {
@@ -1450,9 +1451,9 @@ namespace eval ::nx {
   ObjectParameterSlot protected method makeForwarder {} {
     #
     # Build forwarder from the source object class ($domain) to the slot
-    # to delegate read and update operations
+    # to delegate read and update operations.
     #
-    # intended to be called on RelationSlot or VariableSlot
+    # This method is intended to be called on RelationSlot or VariableSlot.
     #
     if {![info exists :forwardername]} {
       set :forwardername ${:methodname}
