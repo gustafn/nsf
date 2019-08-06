@@ -23374,9 +23374,12 @@ CallForwarder(ForwardCmdClientData *tcd, Tcl_Interp *interp, int objc, Tcl_Obj *
 
 #if defined(NSF_FORWARD_WITH_ONERROR)
   if (unlikely(result == TCL_ERROR && tcd->onerror != NULL)) {
-    fprintf(stderr, "==== DEBUG AppVeyor: calling NsfForwardPrintError with error <<%s>>\n", ObjStr(Tcl_GetObjResult(interp)));
-    result = NsfForwardPrintError(interp, tcd, objc, objv, "%s",
-                                  ObjStr(Tcl_GetObjResult(interp)));
+    Tcl_Obj *resultObj = Tcl_GetObjResult(interp);
+
+    INCR_REF_COUNT(resultObj);
+    // fprintf(stderr, "==== DEBUG AppVeyor: calling NsfForwardPrintError with error <<%s>>\n", ObjStr(resultObj));
+    result = NsfForwardPrintError(interp, tcd, objc, objv, "%s", ObjStr(resultObj));
+    DECR_REF_COUNT(resultObj);
   }
 #endif
 
