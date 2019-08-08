@@ -27376,7 +27376,7 @@ NsfDebugGetDict(Tcl_Interp *interp, Tcl_Obj *obj) {
 
   typeString = (obj->typePtr != NULL) ? obj->typePtr->name : "";
 
-  resultObj = Tcl_NewListObj(4, NULL);
+  resultObj = Tcl_NewListObj(0, NULL);
   Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("type", -1));
   Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj(typeString, -1));
   Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("refcount", -1));
@@ -27398,6 +27398,8 @@ NsfDebugGetDict(Tcl_Interp *interp, Tcl_Obj *obj) {
     }
     Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj(buffer, -1));
 
+  } else {
+    Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("", 0));
   }
   Tcl_SetObjResult(interp, resultObj);
 
