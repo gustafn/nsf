@@ -111,7 +111,7 @@ nx::Class create Group {
 #
 # To show the difference between a +module+ and a +decorator mixin+ we
 # define a class named +Mix+ with the single method +count+, which
-# wraps the result of the underlaying +count+ method between the
+# wraps the result of the underlying +count+ method between the
 # +alpha+ and +omega+.
 
 nx::Class create Mix {

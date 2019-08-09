@@ -369,13 +369,13 @@ nx::Class create Board {
 
 	:pline $p0 $p1 $p1 $p1 $d -width 4
 	:pline $p1 $p1 $p1 $p0 $d -width 4
-	:pline $p1 $p0 $p2 $p0 $d -width 4 ;# horizonal short line
+	:pline $p1 $p0 $p2 $p0 $d -width 4 ;# horizontal short line
 	:pline $p2 $p0 $p2 $p1 $d -width 4
 	:pline $p2 $p1 $p3 $p1 $d -width 4
 	:pline $p3 $p1 $p3 $p2 $d -width 4 ;# vertical short line
 	:pline $p3 $p2 $p2 $p2 $d -width 4
 	:pline $p2 $p2 $p2 $p3 $d -width 4
-	:pline $p2 $p3 $p1 $p3 $d -width 4 ;# horizonal short line
+	:pline $p2 $p3 $p1 $p3 $d -width 4 ;# horizontal short line
 	:pline $p1 $p3 $p1 $p2 $d -width 4
 	:pline $p1 $p2 $p0 $p2 $d -width 4
 	:pline $p0 $p2 $p0 $p1 $d -width 4 ;# vertical short line

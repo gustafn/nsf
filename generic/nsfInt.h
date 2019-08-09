@@ -219,7 +219,7 @@ typedef int bool;
 #endif
 
 /*
- * Makros
+ * Macros
  */
 
 #if defined(PRE86)

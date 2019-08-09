@@ -2431,8 +2431,9 @@ namespace eval ::nx {
       # We could consider calling "configure" instead, but that would
       # not work for true "variable" handlers.
       #
-      # In case a get trace is activated, don't compain about
+      # In case a "get" trace is activated, don't complain about
       # pre-existing variables, which might be set via traces.
+      #
       set allowpreset [expr {"get" in [$slot cget -trace] && [nsf::var::exists [self] $name]}]
       $slot setCheckedInstVar -allowpreset=$allowpreset -nocomplain=$nocomplain [self] $defaultValue
       #set :__initblock($name) 1
