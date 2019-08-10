@@ -427,7 +427,7 @@ with an empty argument list.
 [list_end]
 
 Object destruction, such as triggered by an application-level
-[method destroy] call (5), is finalized by [method {__dealloc}] offerd by
+[method destroy] call (5), is finalized by [method {__dealloc}] offered by
 [cmd nx::Class]. 
 
 [para]
