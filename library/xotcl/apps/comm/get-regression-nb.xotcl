@@ -40,10 +40,10 @@ package require XOTcl 2.0; namespace import -force xotcl::*
 #         cd wafe/src/cineast
 #         time get-regression-nb.xotcl -port 8086 -sequential 0 -clients 1
 #
-# Ergebnisse auf meinem Rechner:
+# Results on my PC
 #
-# der xotcl-webserver ist etwa 20% langsamer als apache.
-# das logging (instproc log) aktivieren kostet ein paar weitere prozent....
+# the xotcl webserver is about 20% slower than Apache.
+# Deactivate logging (instproc log) costs a few more percent.
 # -gn
 #
 # mohegan:~/wafe/src/cineast> time ./get-regression-nb.xotcl -port 8086 -sequential 0 -clients 1

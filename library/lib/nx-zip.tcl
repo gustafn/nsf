@@ -89,7 +89,7 @@ namespace eval ::nx::zip {
       set :outputStream $outputStream
 
       #
-      # Write all files to the outout stream
+      # Write all files to the output stream
       #
       set descriptionList [list]
       foreach {type in fnOut} ${:files} {

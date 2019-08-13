@@ -612,7 +612,7 @@ namespace eval ::xotcl::comm::httpd {
   Httpd::Responder::Wrk instproc respond {} {
     my instvar fileName method resourceName hasFormData
     [my info parent] instvar respondpatterns
-    ### auch das ist ein Kandidat fuer eine Chain-of responsibility
+    ### this is as well a candidate for a chain of responsibility
     foreach {pattern action} $respondpatterns {
       if {[regexp $pattern "$method $resourceName $hasFormData"]} {
 	my $action

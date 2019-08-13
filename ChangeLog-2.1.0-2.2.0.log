@@ -802,7 +802,7 @@
 	  making methods public [9429c5df]
 	* nsfStack.c: Move prototypes to begin of file [b2c4a961]
 	* nsfStack.c: Don't shadow variable names. [09a7e327]
-        * nsfStack.c: Remove commented code, add missin nonnull-assert,
+        * nsfStack.c: Remove commented code, add missing nonnull-assert,
 	  shorten overlong lines [6b1b9272]
 
 2017-10-19  Stefan Sobernig  <stefan.sobernig@wu.ac.at>

@@ -213,7 +213,7 @@ nx::test case param-manager {
 #   substdefault:  if no value given, subst on default (result is substituted value);
 #                  susbt cmd can use variable resolvers,
 #                  works for scripted/c-methods and obj-parm,
-#                  autmatically set by "$slot toParameterSpec" if default contains "[" ... "]".
+#                  automatically set by "$slot toParameterSpec" if default contains "[" ... "]".
 #
 #   initcmd:       evaluate body in an xotcl nonleaf frame, called via configure
 #                  (example: last arg on create)

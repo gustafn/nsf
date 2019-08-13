@@ -174,7 +174,7 @@
 2016-12-09  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
 	* nsf.c (ProcDispatchFinalize, InvokeShadowedProc): Fix debug
-	output wen compiled without --enable-profile. [e2dfaca, b99c256]
+	output when compiled without --enable-profile. [e2dfaca, b99c256]
 
 2016-12-09  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
@@ -1033,7 +1033,7 @@
 2015-12-25  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
 	* nsf.c, nsfInt.h, nsfProfile.c, configure.ac: Substitute all
-	remaning ObjectName and ClassName for variant with trailing "_",
+	remaining ObjectName and ClassName for variant with trailing "_",
 	where appropriate; allow nsf::procs with zero arguments or plain
 	arguments (when "-debug" is used); extended regression test; bump
 	version number to 2.1. [a0faba2]

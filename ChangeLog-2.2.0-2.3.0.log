@@ -112,7 +112,7 @@
 
 	* nsf.c: Added "pure" declarations [0d57967b]
 	* nsf.c, nsfObj.c, nsfProfile.c, nsfStack.c, nsfShadow.c: Removed
-	null test after dereferences, avoid potentail null dereferences in
+	null test after dereferences, avoid potential null dereferences in
 	error cases [1f532a9d, ef01bf0b]
 
 2019-04-20  Gustaf Neumann  <neumann@wu-wien.ac.at>
