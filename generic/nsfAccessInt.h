@@ -81,6 +81,14 @@
 #define Tcl_Command_deleteProc(cmd)    ((Command *)(cmd))->deleteProc
 #define Tcl_Command_deleteData(cmd)    ((Command *)(cmd))->deleteData
 
+/* 
+ * The offsetof() macro is an ANSI C library feature.
+ * Workaround for platforms missing offsetof(), e.g. VC++ 6.0 
+ */
+#ifndef offsetof
+# define offsetof(type, field) ((size_t) ((char *) &((type *) 0)->field))
+#endif
+
 /*
  * Var Reform Compatibility support.
  *
@@ -91,7 +99,7 @@
 #define TclIsCompiledLocalArgument(compiledLocalPtr)  ((compiledLocalPtr)->flags & VAR_ARGUMENT)
 #define TclIsCompiledLocalTemporary(compiledLocalPtr) ((compiledLocalPtr)->flags & VAR_TEMPORARY)
 
-#define TclVarHashGetValue(hPtr)	((Var *) ((char *)(hPtr) - TclOffset(VarInHash, entry)))
+#define TclVarHashGetValue(hPtr)	((Var *) ((char *)(hPtr) - offsetof(VarInHash, entry)))
 #define TclVarHashGetKey(varPtr)	(((VarInHash *)(varPtr))->entry.key.objPtr)
 #define TclVarHashTablePtr(varTablePtr)		&(varTablePtr)->table
 #define TclVarValue(type, varPtr, field)	(type *)(varPtr)->value.field

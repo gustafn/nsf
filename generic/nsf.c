@@ -10973,7 +10973,7 @@ FilterAddActive(Tcl_Interp *interp, const char *methodName) {
   if (newItem != 0) {
     Tcl_SetHashValue(hPtr, INT2PTR(1));
   } else {
-    int count = PTR2INT(Tcl_GetHashValue(hPtr));
+    long count = PTR2INT(Tcl_GetHashValue(hPtr));
     Tcl_SetHashValue(hPtr, INT2PTR(count+1));
   }
 }
@@ -13866,7 +13866,7 @@ ProcDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
 
   if (ttPtr != NULL) {
     const char      *methodName = data[0];
-    unsigned int     cmdFlags   = PTR2UINT(data[3]);
+    unsigned int     cmdFlags   = (unsigned int)PTR2UINT(data[3]);
 #if defined(NSF_PROFILE)
     NsfRuntimeState *rst        = RUNTIME_STATE(interp);
 #endif
@@ -23380,7 +23380,8 @@ CallForwarder(ForwardCmdClientData *tcd, Tcl_Interp *interp, int objc, Tcl_Obj *
     const char *errorMsg =  ObjStr(resultObj);
 
     INCR_REF_COUNT(resultObj);
-    fprintf(stderr, "==== DEBUG AppVeyor: calling NsfForwardPrintError with <<%s>> (len %lu)\n", errorMsg, strlen(errorMsg));
+    fprintf(stderr, "==== DEBUG AppVeyor: calling NsfForwardPrintError with <<%s>> (len %lu)\n",
+            errorMsg, (unsigned long)strlen(errorMsg));
     result = NsfForwardPrintError(interp, tcd, objc, objv, "%s", errorMsg);
     DECR_REF_COUNT(resultObj);
   }
