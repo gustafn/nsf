@@ -12,8 +12,8 @@ environment:
   my_secret:
     secure: ngfIQmr9kcRyopeRyHZG8g==
   MINGW_DIR: mingw64
-  MINGW_URL: https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/8.1.0/threads-win32/seh/x86_64-8.1.0-release-win32-seh-rt_v6-rev0.7z
-  MINGW_ARCHIVE: x86_64-8.1.0-release-win32-seh-rt_v6-rev0.7z
+  MINGW_URL: https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/7.3.0/threads-win32/seh/x86_64-7.3.0-release-win32-seh-rt_v5-rev0.7z/download
+  MINGW_ARCHIVE: x86_64-7.3.0-release-win32-seh-rt_v5-rev0.7z
   TCLKIT_URL: http://kitcreator.rkeene.org/kits/34ac4a331252f9796c31f875e282cb04a01f2743/tclkit.exe
   TCLKIT: tclkit.exe
   matrix:
@@ -45,16 +45,18 @@ install:
   - ps: iex ((New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/appveyor/secure-file/master/install.ps1'))
   - appveyor-tools\secure-file -decrypt deploy_key.appveyor.enc -out deploy_key -secret %my_secret%
   - appveyor-retry choco install openssh -confirm
-  # - if not exist "%MINGW_ARCHIVE%" appveyor DownloadFile "%MINGW_URL%" -FileName "%MINGW_ARCHIVE%"
-  # - 7z x -y "%MINGW_ARCHIVE%" > nul
+  - if not exist "%MINGW_ARCHIVE%" appveyor DownloadFile "%MINGW_URL%" -FileName "%MINGW_ARCHIVE%"
+  - 7z x -y "%MINGW_ARCHIVE%" > nul
   - if not exist "%TCLKIT%" appveyor DownloadFile "%TCLKIT_URL%" -FileName "%TCLKIT%"
 
 build_script:
   - if "%TOOLCHAIN%" == "autoconf-tea" set CHERE_INVOKING=1
-  - if "%TOOLCHAIN%" == "autoconf-tea" set PATH=C:\msys64\mingw64\bin;C:\msys64\usr\bin;%PATH%
+  # - if "%TOOLCHAIN%" == "autoconf-tea" set PATH=C:\msys64\mingw64\bin;C:\msys64\usr\bin;%PATH%
+  - if "%TOOLCHAIN%" == "autoconf-tea" set PATH=%MINGW_DIR%\bin;%PATH%
   # Needed to align MSYS and Windows HOME dirs
   - if "%TOOLCHAIN%" == "autoconf-tea" set HOME=C:\Users\appveyor
-  - if "%TOOLCHAIN%" == "autoconf-tea" bash -lc "cd && echo \"export PATH=/c/msys64/mingw64/bin:/c/msys64/usr/bin:\$PATH; export MSYSTEM=MINGW64; export MINGW_PREFIX=/c/msys64/mingw64; \" >> .profile"
+  # - if "%TOOLCHAIN%" == "autoconf-tea" bash -lc "cd && echo \"export PATH=/c/msys64/mingw64/bin:/c/msys64/usr/bin:\$PATH; export MSYSTEM=MINGW64; export MINGW_PREFIX=/c/msys64/mingw64; \" >> .profile"
+  - if "%TOOLCHAIN%" == "autoconf-tea" bash -lc "cd && echo \"export PATH=/c/Users/appveyor/mingw64/bin:\$PATH; export MSYSTEM=MINGW64; export MINGW_PREFIX=/c/Users/appveyor/mingw64; \" >> .profile"
   - if "%TOOLCHAIN%" == "nmake-tea" call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
   - tclkit.exe apps/build.tcl %CD% %APPVEYOR_BUILD_FOLDER% %TCLTAG% %TOOLCHAIN%
 
@@ -69,3 +71,4 @@ after_build:
 
 cache:
   - tclkit.exe -> appveyor.yml
+  - x86_64-7.3.0-release-win32-seh-rt_v5-rev0.7z -> appveyor.yml
