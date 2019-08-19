@@ -48,6 +48,8 @@ install:
   - if not exist "%MINGW_ARCHIVE%" appveyor DownloadFile "%MINGW_URL%" -FileName "%MINGW_ARCHIVE%"
   - 7z x -y "%MINGW_ARCHIVE%" > nul
   - if not exist "%TCLKIT%" appveyor DownloadFile "%TCLKIT_URL%" -FileName "%TCLKIT%"
+  - echo PWD=%CD%
+  - dir %MINGW_DIR%
 
 build_script:
   - if "%TOOLCHAIN%" == "autoconf-tea" set CHERE_INVOKING=1

@@ -71,11 +71,11 @@ proc ::build {HOMEDIR BUILDDIR TCLTAG {TOOLCHAIN autoconf-tea}} {
   
   cd $tclDir
 
-  # puts ENV=$::env(PATH)
-  # puts ENV=$::env(HOME)
-  # exec >@stdout 2>@stderr bash -lc "echo \$PATH"
-  # exec >@stdout 2>@stderr bash -lc "cd && pwd"
-  # exec >@stdout 2>@stderr bash -lc "cd && ls -la"
+  puts ENV=$::env(PATH)
+  puts ENV=$::env(HOME)
+  exec >@stdout 2>@stderr bash -lc "echo \$PATH"
+  exec >@stdout 2>@stderr bash -lc "cd && pwd"
+  exec >@stdout 2>@stderr bash -lc "cd && ls -la"
   
   switch -exact -- $TOOLCHAIN {
     autoconf-tea {
