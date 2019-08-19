@@ -75,6 +75,7 @@ proc ::build {HOMEDIR BUILDDIR TCLTAG {TOOLCHAIN autoconf-tea}} {
   puts ENV=$::env(HOME)
   exec >@stdout 2>@stderr bash -lc "echo \$PATH"
   exec >@stdout 2>@stderr bash -lc "cd && pwd"
+  exec >@stdout 2>@stderr bash -lc "pwd"
   exec >@stdout 2>@stderr bash -lc "cd && ls -la"
   
   switch -exact -- $TOOLCHAIN {
