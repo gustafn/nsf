@@ -58,7 +58,7 @@ build_script:
   # Needed to align MSYS and Windows HOME dirs
   - if "%TOOLCHAIN%" == "autoconf-tea" set HOME=C:\Users\appveyor
   # - if "%TOOLCHAIN%" == "autoconf-tea" bash -lc "cd && echo \"export PATH=/c/msys64/mingw64/bin:/c/msys64/usr/bin:\$PATH; export MSYSTEM=MINGW64; export MINGW_PREFIX=/c/msys64/mingw64; \" >> .profile"
-  - if "%TOOLCHAIN%" == "autoconf-tea" bash -lc "cd && echo \"export PATH=/c/projects/nsf-2ylk0/mingw64/bin:\$PATH; export MSYSTEM=MINGW64; export MINGW_PREFIX=/c/Users/appveyor/mingw64; alias make='mingw32-make'; \" >> .profile"
+  - if "%TOOLCHAIN%" == "autoconf-tea" bash -lc "cd && echo \"export PATH=/c/projects/nsf-2ylk0/mingw64/bin:\$PATH; export MSYSTEM=MINGW64; export MINGW_PREFIX=/c/Users/appveyor/mingw64; alias make='mingw32-make'; shopt -s expand_aliases; \" >> .profile"
   - if "%TOOLCHAIN%" == "nmake-tea" call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
   - tclkit.exe apps/build.tcl %CD% %APPVEYOR_BUILD_FOLDER% %TCLTAG% %TOOLCHAIN%
 
