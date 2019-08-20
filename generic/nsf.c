@@ -6466,11 +6466,9 @@ NSDeleteChildren(Tcl_Interp *interp, const Tcl_Namespace *nsPtr) {
     /*Tcl_Command cmd = (Tcl_Command)Tcl_GetHashValue(hPtr);
     fprintf(stderr, "NSDeleteChild %p table %p numEntries before %d\n",
     cmd, hPtr->tablePtr, cmdTablePtr->numEntries );*/
-    if (NSDeleteChild(interp, (Tcl_Command)Tcl_GetHashValue(hPtr), NSF_TRUE)) {
-      expected = (NSDeleteChild(interp, (Tcl_Command)Tcl_GetHashValue(hPtr), NSF_TRUE)
-                  ? cmdTablePtr->numEntries - 1
-                  : cmdTablePtr->numEntries);
-    }
+    expected = (NSDeleteChild(interp, (Tcl_Command)Tcl_GetHashValue(hPtr), NSF_TRUE)
+                ? cmdTablePtr->numEntries - 1
+                : cmdTablePtr->numEntries);
   }
  /*
   * Finally, delete the classes.
