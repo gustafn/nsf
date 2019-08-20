@@ -386,6 +386,12 @@ typedef struct Nsf_Param {
 # define NSF_nonnull_assert(assertion) assert((assertion))
 #endif
 
+#if __GNUC_PREREQ(2, 96)
+# define NSF_pure __attribute__((pure))
+#else
+# define NSF_pure
+#endif
+
 
 /*
  * Unfortunately, we can't combine NSF_attribute_format() with

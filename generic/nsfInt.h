@@ -155,12 +155,6 @@ typedef int bool;
 #  define likely(x) (x)
 #endif
 
-#if __GNUC_PREREQ(2, 96)
-# define pure __attribute__((pure))
-#else
-# define pure
-#endif
-
 #if __GNUC_PREREQ(3, 3)
 # define nonnull(ARGS) __attribute__((__nonnull__(ARGS)))
 #else
@@ -856,7 +850,7 @@ int NsfShadowTclCommands(Tcl_Interp *interp, NsfShadowOperations load)
   nonnull(1);
 
 Tcl_Obj *NsfMethodObj(const NsfObject *object, int methodIdx)
-  nonnull(1) pure;
+  nonnull(1) NSF_pure;
 
 int NsfReplaceCommandCleanup(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfShadowTclCommandInfo *ti)
   nonnull(1) nonnull(2) nonnull(3);
@@ -1357,7 +1351,7 @@ EXTERN Nsf_methodDefinition *Nsf_CmdDefinitionGet(Tcl_ObjCmdProc *proc)
 
 
 #ifndef HAVE_STRNSTR
-char *strnstr(const char *buffer, const char *needle, size_t buffer_len) pure;
+char *strnstr(const char *buffer, const char *needle, size_t buffer_len) NSF_pure;
 #endif
 
 /*
