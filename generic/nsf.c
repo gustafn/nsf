@@ -6480,7 +6480,7 @@ NSDeleteChildren(Tcl_Interp *interp, const Tcl_Namespace *nsPtr) {
                 ? cmdTablePtr->numEntries - 1
                 : cmdTablePtr->numEntries);
   }
-  }
+}
 
 
 /*
