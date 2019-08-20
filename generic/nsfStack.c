@@ -56,18 +56,18 @@ static void Nsf_PopFrameCsc(Tcl_Interp *interp, CallFrame *UNUSED(framePtr))
   nonnull(1);
 
 static Tcl_CallFrame* CallStackGetActiveProcFrame(Tcl_CallFrame *framePtr)
-  nonnull(1) pure;
+  nonnull(1) NSF_pure;
 
 NSF_INLINE static NsfObject* GetSelfObj2(
     const Tcl_Interp *UNUSED(interp),
     Tcl_CallFrame *framePtr
-) nonnull(2) pure;
+) nonnull(2) NSF_pure;
 
 static Tcl_CallFrame* CallStackGetTclFrame(
     const Tcl_Interp *interp,
     Tcl_CallFrame *varFramePtr,
     int skip
-) nonnull(1) pure;
+) nonnull(1) NSF_pure;
 
 static NsfCallStackContent* CallStackGetTopFrame(
     const Tcl_Interp *interp,
@@ -75,7 +75,7 @@ static NsfCallStackContent* CallStackGetTopFrame(
 ) nonnull(1);
 
 NSF_INLINE static NsfCallStackContent* CallStackGetTopFrame0(const Tcl_Interp *interp)
-  nonnull(1) pure;
+  nonnull(1) NSF_pure;
 
 static NsfCallStackContent* NsfCallStackFindCallingContext(
     const Tcl_Interp *interp,
@@ -102,7 +102,7 @@ static void CallStackRestoreSavedFrames(
 ) nonnull(1) nonnull(2);
 
 static NsfCallStackContent* CallStackFindActiveFilter(const Tcl_Interp *interp)
-  nonnull(1) pure;
+  nonnull(1) NSF_pure;
 
 static NsfCallStackContent* CallStackFindEnsembleCsc(
     const Tcl_CallFrame *framePtr,
@@ -122,7 +122,7 @@ NSF_INLINE static int FilterActiveOnObj(
     const Tcl_Interp *interp,
     const NsfObject *object,
     const Tcl_Command cmd
-) nonnull(1) nonnull(2) pure;
+) nonnull(1) nonnull(2) NSF_pure;
 
 static void CallStackReplaceVarTableReferences(
     const Tcl_Interp *interp,
