@@ -53,7 +53,7 @@ nx::test case name-validity-checks {
 
 
   # There is no tangible difference between a bareword and a one-element
-  # list in Tcl (singelton list). So, there will remain exotique method
+  # list in Tcl (singleton list). So, there will remain exotique method
   # names including curly braces, along with other peculiar names,
   # e.g. those starting with #.
   ? {set ::h [nsf::method::create ::C {{{{{a}}}}} {} {;}]} {::nsf::classes::C::{{{{a}}}}}

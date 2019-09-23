@@ -326,7 +326,7 @@ puts stderr ===MINI-OBJECTSYSTEM
 ? {::nsf::relation::get ::class class} ::class
 ? {::nsf::relation::get ::class superclass} ::object
 
-# define non-standard methos to create/destroy objects and classes
+# define non-standard methods to create/destroy objects and classes
 ::nsf::method::alias ::class  + ::nsf::methods::class::create
 ::nsf::method::alias ::object - ::nsf::methods::object::destroy
 

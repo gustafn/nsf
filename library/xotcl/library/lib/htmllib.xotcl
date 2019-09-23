@@ -391,7 +391,7 @@ namespace eval ::xotcl::htmllib {
 
     ## startUnorderedList - start a UL element
     ## Optional arguments:
-    ##   Commmon HTML arguments
+    ##   Common HTML arguments
 
     HtmlBuilder instproc startUnorderedList {args} {
 	set attributes [HtmlBuilder parseArguments $args [list] [list]]

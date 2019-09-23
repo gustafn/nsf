@@ -62,7 +62,7 @@ foreach {f fb} $fileList {
 #  <title>XOTcl - Documentation</title>
 #  </head>
 #  <body bgcolor=FFFFFF>
-#  <h1><IMG ALIGN=MIDDLE SRC = "./logo-100.jpg">Lanuage Reference - Index</h1>
+#  <h1><IMG ALIGN=MIDDLE SRC = "./logo-100.jpg">Language Reference - Index</h1>
 
 set content {
 

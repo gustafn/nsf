@@ -1036,7 +1036,7 @@ Test case scanning {
 	  
 	  # @.property attr1 
 	  #
-	  # This property 1 will be invisibile in the generated doc
+	  # This property 1 will be invisible in the generated doc
 	  #
 	  # @stashed
 	  :property attr1

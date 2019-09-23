@@ -387,7 +387,7 @@ nx::test case private {
   ? {nx::dispatch c1 p3} "B.p3"
 
   # via dispatch, the local flag uses (as always) the context of the
-  # currently execting class, which is not provided below
+  # currently executing class, which is not provided below
   ? {nx::dispatch c1 -local p1} "::c1: unable to dispatch method 'p1'"
 }
 

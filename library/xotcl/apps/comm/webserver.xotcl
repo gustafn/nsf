@@ -51,7 +51,7 @@ Httpd h1 -port $opts(-port) -root $opts(-root)
 Class SpecializedWorker -superclass Httpd::Wrk
 @ SpecializedWorker instproc respond {} { description {
   This method handles all responses from the webserver to the client.
-  We implent here "exit", and we return the information about the  actual 
+  We implement here "exit", and we return the information about the actual
   request and  user in HTML format for all other requests.
   <p>This method is an example, how to access on the server side 
   request specific information.

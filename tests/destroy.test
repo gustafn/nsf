@@ -240,7 +240,7 @@ test::c1 foo
 
 ? {::nsf::object::exists test::c1} 0  "object still exists after proc"
 ? "set ::firstDestroy" 1 "firstDestroy called"
-? "set ::ObjectDestroy" 1 "destroy was called when poping stack frame"
+? "set ::ObjectDestroy" 1 "destroy was called when popping stack frame"
 ? {::nsf::object::exists ::test::C} 0  "class still exists after proc"
 ? {namespace exists ::test::C} 0  "namespace ::test::C still exists after proc"
 ? {namespace exists ::test} 1  "parent ::test namespace still exists after proc"
@@ -657,7 +657,7 @@ test::C create test::c1
 test::c1 foo
 ? {::nsf::object::exists test::c1} 0  "object still exists after proc"
 ? "set ::firstDestroy" 1 "firstDestroy called"
-? "set ::ObjectDestroy" 1 "destroy was called when poping stack frame"
+? "set ::ObjectDestroy" 1 "destroy was called when popping stack frame"
 ? {::nsf::object::exists ::test::C} 0  "class still exists after proc"
 ? {namespace exists ::test::C} 0  "namespace ::test::C still exists after proc"
 ? {namespace exists ::test} 1  "parent ::test namespace still exists after proc"

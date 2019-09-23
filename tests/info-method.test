@@ -173,10 +173,10 @@ nx::test case info-method-base {
 }
 
 #
-# Test visability of obj-objects 
+# Test visibility of obj-objects
 #
 
-nx::test case visability-sub-objects {
+nx::test case visibility-sub-objects {
   ::nx::Object create o {
     ::nx::Object create [::nx::self]::sub {
       :object method foo {} {;}
@@ -193,9 +193,9 @@ nx::test case visability-sub-objects {
 }
 
 #
-# Test visability of aliased Objects
+# Test visibility of aliased Objects
 #
-nx::test case visability-aliased-object {
+nx::test case visibility-aliased-object {
   ::nx::Object create ::I
   ::nx::Class create C {
     :public alias i ::I
@@ -1193,7 +1193,7 @@ nx::test case method-isregistered {
 
 #
 # Testing "... info method origin ..." (in contrast to "... info method
-# handle ..."). "origin" always points to the definintion handle,
+# handle ..."). "origin" always points to the definition handle,
 # "handle" alone is the registration handle.
 #
 

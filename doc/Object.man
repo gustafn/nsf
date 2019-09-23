@@ -156,7 +156,7 @@ The method is used to obtain the current value of [arg configurationOption] for
 [arg obj]. The configuration options
 available for querying through [method cget] are determined by the
 configurable properties defined by the class hierarchy of [arg obj]. The
-queriable configuration options for [arg obj] can be
+queryable configuration options for [arg obj] can be
 obtained by calling [method "info lookup syntax configure"]. The [arg configurationOption] can
 be set and modified using [method configure].
 

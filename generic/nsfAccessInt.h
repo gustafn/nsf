@@ -68,7 +68,7 @@
 #define Tcl_Command_refCount(cmd)      ((Command *)(cmd))->refCount
 #define Tcl_Command_cmdEpoch(cmd)      ((Command *)(cmd))->cmdEpoch
 #define Tcl_Command_flags(cmd)         ((Command *)(cmd))->flags
-/* the following items could be obtained from 
+/* the following items could be obtained from
    Tcl_GetCommandInfoFromToken(cmd, infoPtr) */
 #define Tcl_Command_nsPtr(cmd)         ((Tcl_Namespace*)(((Command *)(cmd))->nsPtr))
 #define Tcl_Command_objProc(cmd)       ((Command *)(cmd))->objProc
@@ -81,9 +81,9 @@
 #define Tcl_Command_deleteProc(cmd)    ((Command *)(cmd))->deleteProc
 #define Tcl_Command_deleteData(cmd)    ((Command *)(cmd))->deleteData
 
-/* 
+/*
  * The offsetof() macro is an ANSI C library feature.
- * Workaround for platforms missing offsetof(), e.g. VC++ 6.0 
+ * Workaround for platforms missing offsetof(), e.g. VC++ 6.0
  */
 #ifndef offsetof
 # define offsetof(type, field) ((size_t) ((char *) &((type *) 0)->field))
@@ -107,7 +107,3 @@
 #if !defined(Tcl_HashSize)
 # define Tcl_HashSize(tablePtr) ((tablePtr)->numEntries)
 #endif
-
-
-
-

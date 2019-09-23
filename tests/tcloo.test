@@ -9,7 +9,7 @@ package req nx::test
 # export | unexport 
 #
 # TclOO provides a bulk declarator to export (i.e., make
-# visibile and accessible) and to unexport (i.e., make invisible and
+# visible and accessible) and to unexport (i.e., make invisible and
 # inaccessible) method features of an object, a class, or a class
 # hierarchy. Note that export and unexport go beyond applying mere
 # visibility/accessibility modifiers; it is also about extending or
