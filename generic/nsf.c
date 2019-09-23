@@ -9480,6 +9480,9 @@ GetAllObjectMixinsOf(
   if (startClass->opt != NULL) {
     NsfCmdList *m;
 
+    /*
+     * Check whether startCl has associated per-class mixins.
+     */
     for (m = startClass->opt->isClassMixinOf; m != NULL; m = m->nextPtr) {
       NsfClass *class;
 
@@ -9500,14 +9503,10 @@ GetAllObjectMixinsOf(
         return done;
       }
     }
-  }
 
-  /*
-   * Check whether startCl has associated per-object mixins.
-   */
-  if (startClass->opt != NULL) {
-    NsfCmdList *m;
-
+    /*
+     * Check whether startCl has associated per-object mixins.
+     */
     for (m = startClass->opt->isObjectMixinOf; m != NULL; m = m->nextPtr) {
       NsfObject *object;
 
