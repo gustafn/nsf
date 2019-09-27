@@ -742,7 +742,7 @@ NsfDStringEval(
     Tcl_Interp *interp, Tcl_DString *dsPtr, const char *context,
     unsigned int traceEvalFlags
 ) {
-  Tcl_InterpState  state;
+  Tcl_InterpState  state = NULL;
   NsfRuntimeState *rst;
   int              result, prevDoProfile;
   unsigned int     prevPreventRecursionFlags;
@@ -11057,8 +11057,8 @@ FilterAdd(Tcl_Interp *interp, NsfCmdList **filterList, Tcl_Obj *filterregObj,
           NsfObject *startingObject, NsfClass *startingClass) {
   Tcl_Obj     *filterObj = NULL;
   Tcl_Obj     *guardObj = NULL;
-  Tcl_Command  cmd;
-  NsfClass    *class;
+  Tcl_Command  cmd = NULL;
+  NsfClass    *class = NULL;
   int          result = TCL_OK;
 
   nonnull_assert(interp != NULL);
@@ -13881,9 +13881,7 @@ ProcDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
       NsfProfileRecordProcData(interp, methodName, ttPtr->sec, ttPtr->usec);
     }
 #endif
-    if (ttPtr != NULL) {
-      ckfree((char *)ttPtr);
-    }
+    ckfree((char *)ttPtr);
   }
 
   ParseContextRelease(pcPtr);
@@ -20803,9 +20801,6 @@ ComputeLevelObj(Tcl_Interp *interp, CallStackLevel level) {
   case ACTIVE_LEVEL:
     NsfCallStackFindActiveFrame(interp,    1, &framePtr);
     break;
-  default:
-    framePtr = NULL;
-    break; /* silence compiler */
   }
 
   if (framePtr != NULL) {
@@ -24441,8 +24436,8 @@ ArgumentParse(
   int              o, fromArg;
   bool             dashdash = NSF_FALSE;
   long             j;
-  const Nsf_Param *currentParamPtr = paramPtr;
-  const Nsf_Param *lastParamPtr = paramPtr + nrParams - 1;
+  const Nsf_Param *currentParamPtr;
+  const Nsf_Param *lastParamPtr;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(objv != NULL);
@@ -24480,6 +24475,8 @@ ArgumentParse(
   }
 #endif
 
+  currentParamPtr = paramPtr;
+  lastParamPtr = paramPtr + nrParams - 1;
   for (o = fromArg; o < objc; o++) {
     const Nsf_Param *pPtr = currentParamPtr;
     Tcl_Obj         *argumentObj = objv[o], *valueObj = NULL;
@@ -25146,7 +25143,6 @@ ListParamDefs(Tcl_Interp *interp, const Nsf_Param *paramsPtr,
   case NSF_PARAMS_LIST:      listObj = ParamDefsList(interp, paramsPtr, contextObject, pattern);   break;
   case NSF_PARAMS_NAMES:     listObj = ParamDefsNames(interp, paramsPtr, contextObject, pattern);  break;
   case NSF_PARAMS_SYNTAX:    listObj = NsfParamDefsSyntax(interp, paramsPtr, contextObject, pattern); break;
-  default:                   listObj = NULL; assert(0); /*should never happen */; break;
   }
 
   return listObj;
@@ -26362,8 +26358,9 @@ ProtectionMatches(CallprotectionIdx_t withCallprotection, Tcl_Command cmd) {
   case CallprotectionPublicIdx: result = (isProtected == 0); break;
   case CallprotectionProtectedIdx: result = (isProtected && !isPrivate); break;
   case CallprotectionPrivateIdx: result = isPrivate; break;
-  case CallprotectionNULL: NSF_FALL_THROUGH; /* fall through */
-  default: result = NSF_TRUE; break;
+  case CallprotectionNULL:
+    result = NSF_TRUE;
+    break;
   }
   return result;
 }
@@ -28635,8 +28632,9 @@ NsfMethodAliasCmd(
   case ProtectionCall_protectedIdx:     flags = NSF_CMD_CALL_PROTECTED_METHOD; break;
   case ProtectionRedefine_protectedIdx: flags = NSF_CMD_REDEFINE_PROTECTED_METHOD; break;
   case ProtectionNoneIdx: NSF_FALL_THROUGH; /* fall through */
-  case ProtectionNULL:    NSF_FALL_THROUGH; /* fall through */
-  default:                flags = 0u; break;
+  case ProtectionNULL:
+    flags = 0u;
+    break;
   }
 
   if (class != NULL) {
@@ -28718,7 +28716,7 @@ NsfMethodAssertionCmd(Tcl_Interp *interp, NsfObject *object, AssertionsubcmdIdx_
     } else {
       return AssertionListCheckOption(interp, object);
     }
-    break;
+    /*break; unreachable */
 
   case AssertionsubcmdObject_invarIdx:
     if (argObj != NULL) {
@@ -29035,7 +29033,6 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
   Tcl_Command     cmd;
   const NsfClass *class;
   bool            fromClassNS;
-  unsigned int    flag;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(object != NULL);
@@ -29074,6 +29071,7 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
   case MethodpropertyRedefine_protectedIdx:
     {
       int impliedSetFlag = 0, impliedClearFlag = 0;
+      unsigned int flag;
 
       switch (methodProperty) {
       case MethodpropertyClass_onlyIdx:
@@ -29572,7 +29570,7 @@ NsfObjectSystemCreateCmd(Tcl_Interp *interp, Tcl_Obj *rootClassObj, Tcl_Obj *roo
         return NsfPrintError(interp, "system methods must be provided as pairs");
       }
       for (i = 0; i < oc; i += 2) {
-        Tcl_Obj *arg, **arg_ov;
+        Tcl_Obj *arg, **arg_ov = NULL;
         int      arg_oc = -1, result;
 
         arg = ov[i+1];
@@ -32349,7 +32347,7 @@ NsfOResidualargsMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj 
   int          i, start = 1, argc, nextArgc, normalArgs, result = TCL_OK;
   dashArgType  isdasharg = NO_DASH;
   const char  *methodName, *nextMethodName, *initString = NULL;
-  Tcl_Obj    **argv, **nextArgv;
+  Tcl_Obj    **argv = NULL, **nextArgv;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(object != NULL);
@@ -32412,31 +32410,30 @@ NsfOResidualargsMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj 
         i += argc;
         break;
       }
-    case LIST_DASH:  /* Argument is a list with a leading dash, grouping determined by list */
-      { i++;
-        nextMethodName = NULL;
 
-        if (i < objc) {
-          isdasharg = IsDashArg(interp, objv[i], 1, &nextMethodName, &nextArgc, &nextArgv);
-        } else {
-          nextMethodName = NULL;
-          nextArgv = NULL;
-          nextArgc = 0;
-        }
-        if (initString != NULL) {
-          result = CallConfigureMethod(interp, object, initString, methodName, argc+1, argv+1);
-          if (unlikely(result != TCL_OK)) {
-            return result;
-          }
-        }
-        break;
+    case LIST_DASH:  /* Argument is a list with a leading dash, grouping determined by list */
+      i++;
+      nextMethodName = NULL;
+
+      if (i < objc) {
+        isdasharg = IsDashArg(interp, objv[i], 1, &nextMethodName, &nextArgc, &nextArgv);
+      } else {
+        nextMethodName = NULL;
+        nextArgv = NULL;
+        nextArgc = 0;
       }
-    case NO_DASH: NSF_FALL_THROUGH; /* fall through */
-    default:
-      {
-        return NsfPrintError(interp, "%s configure: unexpected argument '%s' between parameters",
+      if (initString != NULL) {
+        result = CallConfigureMethod(interp, object, initString, methodName, argc+1, argv+1);
+        if (unlikely(result != TCL_OK)) {
+          return result;
+        }
+      }
+      break;
+
+    case NO_DASH:
+      nextArgc = 0;
+      return NsfPrintError(interp, "%s configure: unexpected argument '%s' between parameters",
                              ObjectName_(object), ObjStr(objv[i]));
-      }
     }
   }
 
@@ -32464,7 +32461,7 @@ objectMethod uplevel NsfOUplevelMethod {
 static int
 NsfOUplevelMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *const objv[]) {
   int        result, getFrameResult = 0;
-  CallFrame *requestedFramePtr;
+  CallFrame *requestedFramePtr = NULL;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(objv != NULL);
@@ -33395,7 +33392,7 @@ NsfCSuperclassMethod(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *superclassesO
 static MethodtypeIdx_t
 AggregatedMethodType(MethodtypeIdx_t methodType) {
   switch (methodType) {
-  case MethodtypeNULL: /* default */
+  case MethodtypeNULL: NSF_FALL_THROUGH; /* fall through */
   case MethodtypeAllIdx:
     methodType = NSF_METHODTYPE_ALL;
     break;
@@ -33420,9 +33417,6 @@ AggregatedMethodType(MethodtypeIdx_t methodType) {
     break;
   case MethodtypeNsfprocIdx:
     methodType = NSF_METHODTYPE_NSFPROC;
-    break;
-  default:
-    methodType = 0;
     break;
   }
 
