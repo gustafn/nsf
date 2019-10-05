@@ -5357,7 +5357,7 @@ NsColonVarResolver(Tcl_Interp *interp, const char *varName, Tcl_Namespace *UNUSE
 #endif
   if (*varPtr == NULL) {
     /*
-     * We failed to find the variable so far, therefore we create it
+     * We failed to find the variable so far, therefore, we create it
      * in this var table.  Note that in several cases above,
      * TCL_CONTINUE takes care for variable creation.
      */
@@ -5854,7 +5854,7 @@ InterpColonVarResolver(Tcl_Interp *interp, const char *varName, Tcl_Namespace *U
     assert(1);
   } else {
     /*
-     * We failed to find the variable, therefore we create it new
+     * We failed to find the variable, therefore, we create it new
      */
     var = (Tcl_Var)VarHashCreateVar(varTablePtr, keyObj, &new);
 #if defined(VAR_RESOLVER_TRACE)
@@ -6457,7 +6457,7 @@ NSDeleteChildren(Tcl_Interp *interp, const Tcl_Namespace *nsPtr) {
 
   /*
    * A destroy of one element of the hash-table can trigger the
-   * destroy of another item of the same table. Therefore we use
+   * destroy of another item of the same table. Therefore, we use
    * Nsf_NextHashEntry(), which handles this case.
    */
   for (hPtr = Tcl_FirstHashEntry(cmdTablePtr, &hSrch);
@@ -10277,7 +10277,7 @@ CanInvokeMixinMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Command cmd, Nsf
       ((cmdFlags & NSF_CMD_CLASS_ONLY_METHOD) != 0u && !NsfObjectIsClass(object))) {
     /*
      * The command is not applicable for objects (i.e. might crash,
-     * since it expects a class record); therefore skip it
+     * since it expects a class record); therefore, skip it
      */
     return NSF_CHECK_FAILED;
   }
@@ -19681,7 +19681,7 @@ ForwardProcessOptions(Tcl_Interp *interp, Tcl_Obj *nameObj,
 
     if (!isAbsolutePath(nameString)) {
       tcd->cmdName = NameInNamespaceObj(nameString, CallingNameSpace(interp));
-      /*fprintf(stderr, "+++ name %s not absolute, therefore qualifying %s\n", nameString,
+      /*fprintf(stderr, "+++ name %s not absolute, therefore, qualifying %s\n", nameString,
         ObjStr(tcd->cmdName));*/
     }
   }
@@ -23435,7 +23435,7 @@ NsfForwardMethod(ClientData clientData, Tcl_Interp *interp,
 
   } else if (tcd->args == NULL && *(ObjStr(tcd->cmdName)) != '%') {
     /*
-     * We have no args, therefore we have only to replace the method name
+     * We have no args, therefore, we have only to replace the method name
      * with the given cmd name.
      */
     ALLOC_ON_STACK(Tcl_Obj*, objc, ov);
@@ -30054,7 +30054,7 @@ NsfParameterCacheClassInvalidateCmd(Tcl_Interp *interp, NsfClass *class) {
 #endif
 
   /*
-   * During shutdown, no new objects are created, therefore we do not need to
+   * During shutdown, no new objects are created, therefore, we do not need to
    * to invalidate the cached parsedParamPtr of the classes.
    */
   if (unlikely(RUNTIME_STATE(interp)->exitHandlerDestroyRound == NSF_EXITHANDLER_OFF)) {
@@ -30847,7 +30847,7 @@ NsfCurrentCmd(Tcl_Interp *interp, CurrentoptionIdx_t option) {
 
   case CurrentoptionLevelIdx:
     /*
-     * We have an "object", therefore we are on an NSF-frame/level. In this
+     * We have an "object", therefore, we are on an NSF-frame/level. In this
      * case, "nsf level" behaves like "info level" (without arguments).
      */
     Tcl_SetObjResult(interp, Tcl_NewIntObj(Tcl_CallFrame_level(Tcl_Interp_varFramePtr(interp))));
@@ -32581,7 +32581,7 @@ NsfOUpvarMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *const 
 
   if (objc % 2 == 0) {
     /*
-     * Even number of arguments (including method), therefore the level
+     * Even number of arguments (including method), therefore, the level
      * specifier is considered to be the first argument.
      */
     frameInfoObj = NULL;
@@ -32589,7 +32589,7 @@ NsfOUpvarMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *const 
     i = 2;
   } else {
     /*
-     * Odd number of arguments (including method), therefore the level
+     * Odd number of arguments (including method), therefore, the level
      * specifier considered absent and the level has to be computed.
      */
     frameInfoObj = ComputeLevelObj(interp, CALLING_LEVEL);
@@ -34940,7 +34940,7 @@ ObjectHasChildren(
  *
  * FreeAllNsfObjectsAndClasses --
  *
- *      Destroy and free all objects and classes defined int the interp.
+ *      Destroy and free all objects and classes defined in the interp.
  *
  * Results:
  *      None.

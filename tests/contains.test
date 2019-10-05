@@ -156,7 +156,7 @@ package require XOTcl 2.0
 # Test that we do not allow one to mix object systems within the intrinsic
 # classes of an object. Otherwise we would have problems with the
 # recreate "C0 create c0". On a recreate of c0 the object system for
-# C0 is ::xotcl, therefore we try to call recreate. In the C0 class
+# C0 is ::xotcl, therefore, we try to call recreate. In the C0 class
 # hierarchy is from nx and contains no "recreate" method.
 
 ? {catch {::xotcl::Class create C0 -superclass ::nx::Object} errorMsg} 1

@@ -1432,7 +1432,7 @@ nx::test case class-configure-default {
   
   #
   # When we call configure on the superclass, we do not want the
-  # default to be used to reset it to ::nx::Object. Therefore the
+  # default to be used to reset it to ::nx::Object. Therefore, the
   # configure uses the default for parameters with METHOD_INVOCATION
   # only, when the object is not yet initialized.
   #

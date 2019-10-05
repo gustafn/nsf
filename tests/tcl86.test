@@ -297,7 +297,7 @@ nx::test case bug-3418547 {
   ::o foo
   ? {getType @} "bytecode"        ;# "@" is still of type "bytecode"  (byte code compilation should not leak)
 
-  ? {::o foo} ::nx::@             ;# "@" is resolved in the nx context, therefore we get nx::@
+  ? {::o foo} ::nx::@             ;# "@" is resolved in the nx context, therefore, we get nx::@
   
   #
   # 2) Provide alternative @
@@ -317,7 +317,7 @@ nx::test case bug-3418547 {
   
   ? @ ::@                         ;# proc "?" interprets "@" as a script and turns "@"
                                   ;# into type "bytecode". The proc leaves the nx context
-                                  ;# by using a "namespace eval", therefore we see ::@
+                                  ;# by using a "namespace eval", therefore, we see ::@
   ? {getType @} "bytecode"        ;# "@" is of type "bytecode"
   
   ? {namespace eval :: @} ::@     ;# exercise the same "namespace eval" as described above
@@ -375,7 +375,7 @@ proc ::nx::@ {} {
   return ::nx::@
 }
 
-set r [@]       ;# "@" is not executed in an nx environment (no testcase eval), therefore resolved globally
+set r [@]       ;# "@" is not executed in an nx environment (no testcase eval), therefore, resolved globally
 ? {set r} ::@
 if {!$::tcl87} {
     ? {getType @}   "cmdName"
@@ -395,9 +395,9 @@ if {!$::tcl87} {
 
 ? {::o foo} ::nx::@
 
-set r [@]       ;# "@" is not executed in an nx environment (no testcase eval), therefore resolves globally
+set r [@]       ;# "@" is not executed in an nx environment (no testcase eval), therefore, resolves globally
 ? {set r} ::@
-? {@} ::@       ;# "@" is executed in an "namespace eval ::", therefore no nx context
+? {@} ::@       ;# "@" is executed in an "namespace eval ::", therefore, no nx context
 
 # cleanup
 rename ::nx::@ ""

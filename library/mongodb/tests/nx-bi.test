@@ -83,7 +83,7 @@ $p save
 # After saving the item, the main object contains an _id, such that a
 # subsequent save operations do not create an additional entries in
 # the database. For our little experiment here, we like to save
-# multiple copies to see the results of our changes. Therefore we
+# multiple copies to see the results of our changes. Therefore, we
 # remove the _id manually:
 $p eval {unset :_id}
 
@@ -103,7 +103,7 @@ $c delete
 
 # The delete operation does not automatically persist the change,
 # since there might be multiple changes in a complex
-# document. Therefore we have to perform an save operation of the
+# document. Therefore, we have to perform an save operation of the
 # containing document.
 $p save
 

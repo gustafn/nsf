@@ -150,7 +150,7 @@ nx::test case info-subclass-error-messages {
 
   #
   # The argument definition of "pattern" for subclass has
-  # "nodashalnum" option, therefore we can deduce that "-a" must be
+  # "nodashalnum" option, therefore, we can deduce that "-a" must be
   # a flag. OTOH, if "-a" is a proper value (e.g. value of a
   # variable), then the following command would be perfectly fine.
   #

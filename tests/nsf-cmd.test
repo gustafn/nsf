@@ -490,13 +490,13 @@ nx::test case nsf-log-recursive {
   ? {set ::count} 1
 
   #
-  # now we add the debug flag to foo, therefore "foo" will call
+  # now we add the debug flag to foo, therefore, "foo" will call
   # "nsf::log", which might become a infinite recursion loop.
   #
   nsf::proc -debug foo {} {return 1}
 
   #
-  # "foo" is has now "-debug" set, therefore it calls the log function
+  # "foo" is has now "-debug" set, therefore, it calls the log function
   #
   set ::count 0
   ? {foo} "1"
