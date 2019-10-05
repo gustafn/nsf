@@ -212,7 +212,7 @@ static int NsfMongoRunCmd(Tcl_Interp *interp, int withNocomplain, mongoc_client_
 static int NsfMongoStatus(Tcl_Interp *interp, mongoc_client_t *connPtr, Tcl_Obj *connObj)
   NSF_nonnull(1) NSF_nonnull(2);
 
-enum {
+EXTERN enum {
  NsfCollectionCloseIdx,
  NsfCollectionOpenIdx,
  NsfMongoCloseIdx,

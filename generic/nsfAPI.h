@@ -771,7 +771,7 @@ static int NsfObjInfoSlotobjectsMethod(Tcl_Interp *interp, NsfObject *object, Ns
 static int NsfObjInfoVarsMethod(Tcl_Interp *interp, NsfObject *object, const char *pattern)
   NSF_nonnull(1) NSF_nonnull(2);
 
-enum {
+EXTERN enum {
  NsfCAllocMethodIdx,
  NsfCCreateMethodIdx,
  NsfCDeallocMethodIdx,

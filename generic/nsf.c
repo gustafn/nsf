@@ -33536,7 +33536,7 @@ NsfObjInfoHasMixinMethod(Tcl_Interp *interp, NsfObject *object, NsfClass *class)
   nonnull_assert(object != NULL);
   nonnull_assert(class != NULL);
 
-  Tcl_SetBooleanObj(Tcl_GetObjResult(interp), (int)HasMixin(interp, object, class));
+  Tcl_SetBooleanObj(Tcl_GetObjResult(interp), (int)(HasMixin(interp, object, class)));
   return TCL_OK;
 }
 
@@ -33566,7 +33566,7 @@ NsfObjInfoHasTypeMethod(Tcl_Interp *interp, NsfObject *object, NsfClass *class) 
   nonnull_assert(object != NULL);
   nonnull_assert(class != NULL);
 
-  Tcl_SetBooleanObj(Tcl_GetObjResult(interp), (int)IsSubType(object->cl, class));
+  Tcl_SetBooleanObj(Tcl_GetObjResult(interp), (int)(IsSubType(object->cl, class)));
   return TCL_OK;
 }
 

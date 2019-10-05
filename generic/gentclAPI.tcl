@@ -523,7 +523,7 @@ static Nsf_methodDefinition method_definitions[$nrIfds];
   puts $stubDecls
   puts $decls
   set enumString [join $enums ",\n "]
-  puts "enum {\n $enumString\n} NsfMethods;\n"
+  puts "EXTERN enum {\n $enumString\n} NsfMethods;\n"
   puts $fns
   set definitionString [join $ifds ",\n"]
   set terminator {NULL, NULL, 0, {{NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}}

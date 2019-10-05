@@ -713,9 +713,8 @@ typedef enum SystemMethodsIdx {
   NSF_s_set_idx
 } SystemMethodsIdx;
 
-#if !defined(NSF_C)
 EXTERN const char *Nsf_SystemMethodOpts[];
-#else
+#if defined(NSF_C)
 const char *Nsf_SystemMethodOpts[] = {
   "-class.alloc",
   "-class.create",
@@ -780,9 +779,8 @@ typedef enum {
   NSF_STRING_IS, NSF_EVAL, NSF_DISASSEMBLE,
   NSF_RENAME
 } NsfGlobalNames;
-#if !defined(NSF_C)
 EXTERN const char *NsfGlobalStrings[];
-#else
+#if defined(NSF_C)
 const char *NsfGlobalStrings[] = {
   "", "0", "1",
   /* methods called internally */
@@ -1394,4 +1392,5 @@ char *strnstr(const char *buffer, const char *needle, size_t buffer_len) NSF_pur
 #define NsfCallStackFindLastInvocation(interp, offset, framePtrPtr) \
   NsfCallStackFindCallingContext((interp), (offset), (framePtrPtr), NULL)
 
+EXTERN const char *Nsf_Configureoption[];
 #endif /* _nsf_int_h_ */
