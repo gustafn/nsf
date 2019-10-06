@@ -31,7 +31,7 @@ nx::test case syntax {
 
   ? {::nsf::method::alias C} \
       {required argument 'methodName' is missing, should be:
-	::nsf::method::alias /object/ ?-per-object? /methodName/ ?-frame method|object|default? ?-protection call-protected|redefine-protected|none? /cmdName/}
+        ::nsf::method::alias /object/ ?-per-object? /methodName/ ?-frame method|object|default? ?-protection call-protected|redefine-protected|none? /cmdName/}
 
   ? {::nsf::method::alias C foo ::set} "::nsf::classes::C::foo"
 
@@ -391,7 +391,7 @@ nx::test case passed-arguments {
 
   ? {D create d1} \
       {required argument 'd' is missing, should be:
-	::d1 configure -d /value/ ?-a /value/? ?-b /boolean/? ?-c /value/? ?-object-mixins /mixinreg .../? ?-object-filters /filterreg .../? ?-class /class/? ?/__initblock/?}
+        ::d1 configure -d /value/ ?-a /value/? ?-b /boolean/? ?-c /value/? ?-object-mixins /mixinreg .../? ?-object-filters /filterreg .../? ?-class /class/? ?/__initblock/?}
 
   ? {D create d2 -d x -b a} \
       {expected boolean but got "a" for parameter "-b"} \
@@ -404,7 +404,7 @@ nx::test case passed-arguments {
 
   ? {d1 foo} \
       {required argument 'r' is missing, should be:
-	::d1 foo ?-b /boolean/? -r /integer/ ?-x /integer/? ?-object /object/? ?-class /class/?} \
+        ::d1 foo ?-b /boolean/? -r /integer/ ?-x /integer/? ?-object /object/? ?-class /class/?} \
       "call method without a required argument"
 
   ? {d1 foo -r a} \
@@ -565,16 +565,16 @@ nx::test case subst-default {
   #    deactivated for now; otherwise we would need "\\"
 
   D public method bar {
-		{-s:substdefault "[current]"}
-		{-literal "[current]"}
-		{-c:substdefault "[:c get]"}
-		{-d:integer,substdefault "$d"}
-		{-switch:switch}
-		{-optflag}
-		x
-		y:integer
-		{z 1}
-	      } {
+                {-s:substdefault "[current]"}
+                {-literal "[current]"}
+                {-c:substdefault "[:c get]"}
+                {-d:integer,substdefault "$d"}
+                {-switch:switch}
+                {-optflag}
+                x
+                y:integer
+                {z 1}
+              } {
     return $s-$literal-$c-$d
   }
 
@@ -798,7 +798,7 @@ nx::test case value-checker-call-check {
       }
     }
   }
-  
+
   ? {info exists ::counter(h)} 0
   set pv1 [PV new -h 121]
   ? {set ::counter(h)} 1
@@ -806,9 +806,9 @@ nx::test case value-checker-call-check {
   ? {set ::counter(h)} 2
   $pv1 configure -h 212
   ? {set ::counter(h)} 3
-  
+
   unset -nocomplain ::counter(h)
-  
+
   ? {info exists ::counter(hs)} 0
   set pv2 [PV new -hs 121]
   ? {set ::counter(hs)} 1
@@ -816,9 +816,9 @@ nx::test case value-checker-call-check {
   ? {set ::counter(hs)} 2
   $pv1 configure -hs 313
   ? {set ::counter(hs)} 3
-  
+
   unset -nocomplain ::counter(hs)
-  
+
 }
 
 
@@ -928,7 +928,7 @@ nx::test case substdefault {
       return $x
     }
   }
-  ? {s1 foo} 1 
+  ? {s1 foo} 1
   ? {s1 foo 2} 2
 
   ? {S object method foo {a:substdefault} {return 1}} \
@@ -1017,7 +1017,7 @@ nx::test case substdefault-objparam-perobj {
 
     # unneeded double substdefault
     :object variable s6:substdefault,substdefault {[current]}
-    
+
     # substdefault with incremental
     :object variable -incremental s7:substdefault {[current]}
   }
@@ -1265,23 +1265,23 @@ nx::test case slot-specific-converter {
 
     :property -accessor public sex:sex,convert {
       :object method type=sex {name value} {
-	#puts stderr "[self] slot specific converter"
-	switch -glob $value {
-	  m* {return m}
-	  f* {return f}
-	  default {error "expected sex but got $value"}
-	}
+        #puts stderr "[self] slot specific converter"
+        switch -glob $value {
+          m* {return m}
+          f* {return f}
+          default {error "expected sex but got $value"}
+        }
       }
     }
 
     :property -accessor public sexes:sex,0..*,convert {
       :object method type=sex {name value} {
-	#puts stderr "[self] sexes slot specific converter"
-	switch -glob $value {
-	  m* {return m}
-	  f* {return f}
-	  default {error "expected sex but got $value"}
-	}
+        #puts stderr "[self] sexes slot specific converter"
+        switch -glob $value {
+          m* {return m}
+          f* {return f}
+          default {error "expected sex but got $value"}
+        }
       }
     }
   }
@@ -1292,7 +1292,7 @@ nx::test case slot-specific-converter {
   Person public method foo {s:sex,slot=::Person::slot::sex,convert} {return $s}
   ? {p1 foo male} m
   ? {p1 sex set male} m
-  
+
   Person create p2 -sexes {male female}
   ? {p2 cget -sexes} {m f}
   ? {p2 sexes get} {m f}
@@ -1309,7 +1309,7 @@ nx::test case slot-specific-converter {
   nx::test configure -count $count
 
   Person public method bar {s:sex,0..*,slot=::Person::slot::sexes,convert} {return $s}
-  ? {p2 bar {female male female}} {f m f} 
+  ? {p2 bar {female male female}} {f m f}
 }
 
 #######################################################
@@ -1711,7 +1711,7 @@ namespace eval foo {
     :public object method f12 {} {::nsf::is object,type=nx::Object c1}; # resolves to ::foo::nx::Object
     :public object method f13 {} {::nsf::is object,type=Object c1}; # resolves to ::foo::Object
     :public object method f14 {} {::nsf::is object,type=C c1}; # resolves to ::foo::C
-    :public object method f15 {} {::nsf::is object,type=[namespace which C] c1}; # ::foo::C 
+    :public object method f15 {} {::nsf::is object,type=[namespace which C] c1}; # ::foo::C
   }
 
   ? {o f01} 1
@@ -1844,7 +1844,7 @@ nx::test case req-param {
   set ::_ ""
   ? {C create c2} \
 "required argument 'x' is missing, should be:
-	::c2 configure -x /value/ -y /value/ ?-object-mixins /mixinreg .../? ?-object-filters /filterreg .../? ?-class /class/? ?/__initblock/?"
+        ::c2 configure -x /value/ -y /value/ ?-object-mixins /mixinreg .../? ?-object-filters /filterreg .../? ?-class /class/? ?/__initblock/?"
 
   # Was the constructor called? Should not.
   ? {set ::_} ""
@@ -1871,7 +1871,7 @@ nx::test case req-param {
 
   ? {d1 configure} \
       "required argument 'x' is missing, should be:
-	::d1 configure -x /value/ ?-object-mixins /mixinreg .../? ?-object-filters /filterreg .../? ?-class /class/? ?/__initblock/?"
+        ::d1 configure -x /value/ ?-object-mixins /mixinreg .../? ?-object-filters /filterreg .../? ?-class /class/? ?/__initblock/?"
 
   ? {d1 configure -x 123} ""
   ? {d1 cget -x} 123
@@ -2082,7 +2082,7 @@ nx::test case parameter-object-mixin-dependency {
   #
   ? {c1 configure -a1 x} \
 "required argument 'b1' is missing, should be:
-	::c1 configure -b1 /value/ ?-a1 /value/? ?-object-mixins /mixinreg .../? ?-object-filters /filterreg .../? ?-class /class/? ?/__initblock/?"
+        ::c1 configure -b1 /value/ ?-a1 /value/? ?-object-mixins /mixinreg .../? ?-object-filters /filterreg .../? ?-class /class/? ?/__initblock/?"
 
   #
   # The object parameter based on the per-object-mixins must not be
@@ -2176,7 +2176,7 @@ nx::test case parameter-object-mixin-dependency-object-property {
 
   ? {c1 __configure -a1 x} \
 "required argument 'b1' is missing, should be:
-	::c1 configure ?-a2 /value/? -b1 /value/ ?-a1 /value/? ?-object-mixins /mixinreg .../? ?-object-filters /filterreg .../? ?-class /class/? ?/__initblock/?"
+        ::c1 configure ?-a2 /value/? -b1 /value/ ?-a1 /value/? ?-object-mixins /mixinreg .../? ?-object-filters /filterreg .../? ?-class /class/? ?/__initblock/?"
 
   ? {c1 info precedence} "::M ::C ::nx::Object"
   ? {lsort [C info slots -closure]} \
@@ -2218,8 +2218,8 @@ nx::test case bignums {
     ? {o foo [expr {2 ** 31}]} "2147483648"
     #? {o foo [expr {2 ** 32}]} {expected integer but got "4294967296" for parameter "x"}
     ? {o foo [expr {2 ** 32}]} "4294967296"
-    
-    
+
+
     ? [list string is integer [expr {2 ** 63}]] 0
     ? [list string is integer [expr {2 ** 64}]] 0
     #? {o foo [expr {2 ** 63}]} {expected integer but got "9223372036854775808" for parameter "x"}
@@ -2227,12 +2227,12 @@ nx::test case bignums {
     ? {o foo [expr {2 ** 63}]} "9223372036854775808"
     ? {o foo [expr {2 ** 64}]} "18446744073709551616"
     ? {o foo [expr {2 ** 128}]} "340282366920938463463374607431768211456"
-    
+
     ? {o foo [expr {wide(2 ** 63)}]} "-9223372036854775808"
-    
+
     ? {o foo [expr {2.0}]} {expected integer but got "2.0" for parameter "x"}
     ? {o foo [expr {2.0 * 2}]} {expected integer but got "4.0" for parameter "x"}
-    
+
     #
     # Note: In Tcl version less or equal 8.5.9 (to be precise, before
     # fossil check-in 769801ace1) there is a rounding issue for
@@ -2245,18 +2245,18 @@ nx::test case bignums {
       set ::nsf::savedTclPrecision $::tcl_precision
       set ::tcl_precision 17
     }
-    
+
     ? {o foo [expr {2.0 ** 128}]} {expected integer but got "3.4028236692093846e+38" for parameter "x"}
     ? {o foo [expr {(2 ** 128)*1.0}]} {expected integer but got "3.4028236692093846e+38" for parameter "x"}
-    
+
     if {[info exists ::nsf::savedTclPrecision]} {
       set ::tcl_precision $::nsf::savedTclPrecision
       unset ::nsf::savedTclPrecision
     }
-    
+
     ? {o foo32 [expr {2 ** 31}]} "2147483648"
     ? {o foo32 [expr {2 ** 32}]} {expected int32 but got "4294967296" for parameter "x"}
-    
+
     #
     # In Tcl 8.5, "wideinteger" means 64 bit integer
     #
@@ -2264,11 +2264,11 @@ nx::test case bignums {
     ? [list string is wideinteger [expr {2 ** 64}]] 0
     ? {o bar [expr {2 ** 63}]} "9223372036854775808"
     ? {o bar [expr {2 ** 64}]} {expected wideinteger but got "18446744073709551616" for parameter "x"}
-    
+
     ? [list string is wideinteger [expr {wide(2 ** 64)}]] 1
     ? {o bar [expr {wide(2 ** 63)}]} "-9223372036854775808"
     ? {o bar [expr {wide(2 ** 64)}]} "0"
-    
+
     #
     # In Tcl 8.5, "bignums" have to be checked with "double"
     #
@@ -2277,7 +2277,7 @@ nx::test case bignums {
     ? {o baz [expr {2 ** 63}]} "9223372036854775808"
     ? {o baz [expr {2 ** 64}]} "18446744073709551616"
     ? {o baz [expr {2 ** 128}]} "340282366920938463463374607431768211456"
-    
+
   } else {
 
     #
@@ -2299,33 +2299,33 @@ nx::test case bignums {
     ? {o foo [expr {2 ** 16}]} "65536"
     ? {o foo [expr {2 ** 31}]} "2147483648"
     ? {o foo [expr {2 ** 32}]} "4294967296"
-    
-    
+
+
     ? [list string is integer [expr {2 ** 63 - 1}]] 1
     ? [list string is integer [expr {2 ** 64}]] 1
     ? [list nsf::is int32 [expr {2 ** 63 - 1}]] 0
     ? {o foo [expr {2 ** 63}]} "9223372036854775808"
     ? {o foo [expr {2 ** 64}]} "18446744073709551616"
     ? {o foo [expr {2 ** 128}]} "340282366920938463463374607431768211456"
-    
+
     ? {o foo [expr {wide(2 ** 63)}]} "-9223372036854775808"
-    
+
     ? {o foo [expr {2.0}]} {expected integer but got "2.0" for parameter "x"}
     ? {o foo [expr {2.0 * 2}]} {expected integer but got "4.0" for parameter "x"}
-        
+
     ? {o foo [expr {2.0 ** 128}]} {expected integer but got "3.4028236692093846e+38" for parameter "x"}
     ? {o foo [expr {(2 ** 128)*1.0}]} {expected integer but got "3.4028236692093846e+38" for parameter "x"}
-    
+
     ? {o foo32 [expr {2 ** 31}]} "2147483648"
     ? {o foo32 [expr {2 ** 32}]} {expected int32 but got "4294967296" for parameter "x"}
 
     # [string is wide] is now more picky about the upper 64-bit int bound: 2^63-1, and not 2^63
-    
+
     ? [list string is wideinteger [expr {2 ** 63 - 1}]] 1
     ? [list string is wideinteger [expr {2 ** 63}]] 0
     ? {o bar [expr {2 ** 63 - 1}]} "9223372036854775807"
     ? {o bar [expr {2 ** 64}]} {expected wideinteger but got "18446744073709551616" for parameter "x"}
-    
+
     ? [list string is wideinteger [expr {wide(2 ** 64)}]] 1
     ? {o bar [expr {wide(2 ** 63)}]} "-9223372036854775808"
     ? {o bar [expr {wide(2 ** 64)}]} "0"
@@ -2333,7 +2333,7 @@ nx::test case bignums {
     #
     # [string is integer] will accept arbitrarily sized numeric
     # strings (no range check)
-    # 
+    #
 
     ? [list string is int [expr {2 ** 63}]] 1
     ? [list string is int [expr {2 ** 64}]] 1
@@ -2344,15 +2344,15 @@ nx::test case bignums {
     #
     # [string is double] will accept arbitrarily sized doubles (no
     # range check)
-    # 
+    #
 
     ? [list string is double [expr {2 ** 63 * 0.1}]] 1
     ? [list string is double [expr {2 ** 64 * 0.1}]] 1
     ? {o baz [expr {2 ** 63 * 0.1}]} "9.223372036854776e+17"
     ? {o baz [expr {2 ** 64 * 0.1}]} "1.8446744073709553e+18"
     ? {o baz [expr {2 ** 128 * 0.1}]} "3.402823669209385e+37"
- 
-    
+
+
   }
 }
 
@@ -2468,13 +2468,13 @@ nx::test case object-level-variable {
 
     # set variable with a value checker, multiple with invalid value
     ? [list [self] object variable -nocomplain xm1:int,1..n {1 2a 3}] \
-	{invalid value in "1 2a 3": expected integer but got "2a"}
+        {invalid value in "1 2a 3": expected integer but got "2a"}
     ? [list [self] object property -nocomplain [list xm2:int,1..n {1 2a 3}]] \
-	{invalid value in "1 2a 3": expected integer but got "2a" for parameter "xm2"}
+        {invalid value in "1 2a 3": expected integer but got "2a" for parameter "xm2"}
 
     # useless definition
     ? [list [self] object variable dummy:int] \
-	{variable definition for 'dummy' (without value and accessor) is useless}
+        {variable definition for 'dummy' (without value and accessor) is useless}
 
     #
     # define an application specific converter
@@ -2482,7 +2482,7 @@ nx::test case object-level-variable {
     ::nx::ObjectParameterSlot method type=range {name value arg} {
       lassign [split $arg -] min max
       if {$value < $min || $value > $max} {
-	error "value '$value' of parameter $name not between $min and $max"
+        error "value '$value' of parameter $name not between $min and $max"
       }
       return $value
     }
@@ -2491,9 +2491,9 @@ nx::test case object-level-variable {
     # Test usage of application specific converter in "variable" and
     # "property"; invalid value
     ? [list [self] object variable -nocomplain r1:range,arg=1-10 11] \
-	{value '11' of parameter value not between 1 and 10}
+        {value '11' of parameter value not between 1 and 10}
     ? [list [self] object property -nocomplain [list r2:range,arg=1-10 11]] \
-	{value '11' of parameter r2 not between 1 and 10}
+        {value '11' of parameter r2 not between 1 and 10}
 
     # valid value
     ? [list [self] object variable -nocomplain r1:range,arg=1-10 5] ""
@@ -2904,8 +2904,8 @@ nx::test case forward-to-set {
   nx::Class create Foo {
     :property -accessor public bar {
       :public object method value=set { object property value } {
-	incr ::slotcalls 1
-	nsf::var::set $object $property $value
+        incr ::slotcalls 1
+        nsf::var::set $object $property $value
       }
     }
   }
@@ -2928,8 +2928,8 @@ nx::test case forward-to-set {
   nx::Class create Foo {
     :property -accessor public {baz 1} {
       :public object method value=set { object property value } {
-	incr ::slotcalls 1
-	nsf::var::set $object $property $value
+        incr ::slotcalls 1
+        nsf::var::set $object $property $value
       }
     }
   }
@@ -2960,8 +2960,8 @@ nx::test case forward-to-set2 {
   ? {nx::Class create Foo {
     :property -accessor none bar {
       :public object method value=set { object property value } {
-	incr ::slotcalls 1
-	nsf::var::set $object $property $value
+        incr ::slotcalls 1
+        nsf::var::set $object $property $value
       }
     }}
   } "::Foo"
@@ -2974,8 +2974,8 @@ nx::test case forward-to-set2 {
   nx::Class create Foo {
     :property -accessor none {baz 1} {
       :public object method value=set { object property value } {
-	incr ::slotcalls 1
-	nsf::var::set $object $property $value
+        incr ::slotcalls 1
+        nsf::var::set $object $property $value
       }
     }
   }
@@ -3000,7 +3000,7 @@ nx::test case forward-to-incremental {
   ? {nx::Class create Foo {
     :property bar {
       :public object method initialize { object property } {
-	incr ::slotcalls 1
+        incr ::slotcalls 1
       }
     }}
   } "::Foo"
@@ -3022,10 +3022,10 @@ nx::test case slot-container-name-interaction {
   nx::Class create Test2 {
     :property -accessor public list {
       :public object method value=set { obj var val } {
-	nsf::var::set $obj $var [list $obj $var $val]
+        nsf::var::set $obj $var [list $obj $var $val]
       }
       :object method unknown { val obj var args } {
-	return unknown
+        return unknown
       }
     }
   }
@@ -3051,8 +3051,8 @@ nx::test case object-level-defaults {
   ? {catch {
     o object variable -accessor public -initblock {
       :public object method value=set args {
-	incr :assignCalled
-	next
+        incr :assignCalled
+        next
       }
     } a 1}} 0
   ? {o eval {info exists :a}} 1
@@ -3165,10 +3165,10 @@ nx::test case nsf-method-checkalways {
 #
 nx::test case parameter-get {
     nx::Class create C {
-	:property foo:integer
-	:property o:object,type=::nx::Object
-	:property c:class
-	:property m:metaclass
+        :property foo:integer
+        :property o:object,type=::nx::Object
+        :property c:class
+        :property m:metaclass
     }
 
     ? {C info lookup parameters create foo} "-foo:integer"
@@ -3228,21 +3228,21 @@ nx::test case value=changed {
 
     :property a {
       :public object method value=set {object property value} {
-	incr ::slotset_$property
+        incr ::slotset_$property
         nsf::var::set $object $property [expr {$value + 1}]
       }
     }
 
     :property -trace set b {
       :public object method value=set {object property value} {
-	incr ::slotset_$property
+        incr ::slotset_$property
         nsf::var::set -notrace $object $property [expr {$value + 1}]
       }
     }
 
     :property -accessor public -trace set c {
       :public object method value=set {object property value} {
-	incr ::slotset_$property
+        incr ::slotset_$property
         nsf::var::set -notrace $object $property [expr {$value + 1}]
       }
     }
@@ -3463,9 +3463,17 @@ nx::test case parseargs {
     ? {nsf::parseargs {a:int} {a}} {expected integer but got "a" for parameter "a"}
 
     ? {
-	nsf::parseargs {-foo:int {-bar:int 2} baz} {hi}
-	list [info exists foo] [info exists bar] [info exists baz]
+        nsf::parseargs {-foo:int {-bar:int 2} baz} {hi}
+        list [info exists foo] [info exists bar] [info exists baz]
     } "0 1 1"
+
+    #
+    # Test with empty list of actual arguments
+    #
+    ? {apply {{} {nsf::parseargs {} {}; llength [info vars]}}} 0
+    ? {apply {{} {nsf::parseargs {{x ""}} {}; info vars}}} x
+    ? {apply {{} {nsf::parseargs {{x ""} {y ""}} {}; lsort [info vars]}}} {x y}
+    ? {apply {{} {nsf::parseargs {{-a 1} {-b} {x ""} {y ""}} {}; lsort [info vars]}}} {a x y}
 
     ? {set bar} 2
     ? {set baz} hi
@@ -3475,7 +3483,6 @@ nx::test case parseargs {
     ? {apply {{} {nsf::parseargs {a b args} {1 2 3 4}; expr {[info exists a]+[info exists b]+[info exists args]}}}} "3"
 
     ? {apply {{} {nsf::parseargs a 1; expr {"a" in [info vars]};}}} 1
-    ? {apply {{} {nsf::parseargs {} {}; llength [info vars];}}} 0
 
     # TODO: Are the below cases intended?
     #? {apply {{} {nsf::parseargs {a} {}; llength [info vars];}}} 0
@@ -3508,7 +3515,7 @@ nx::test case type-converter-binding {
       nx::Class create A
       nx::Class create B {
         :property b1:object,type=A; # rewritten to ::ns1::A (not ::A as previously!).
-        ? [list [:info slots b1] cget -type] ::ns1::A 
+        ? [list [:info slots b1] cget -type] ::ns1::A
         :property b2:object,type=ns2::A; # rewritten to ::ns1::ns2::A (not ::ns2::A as previously!).
         ? [list [:info slots b2] cget -type] ::ns1::ns2::A
       }
@@ -3530,17 +3537,17 @@ nx::test case type-converter-binding {
 
   ? {catch {::ns1::B create b1 -b1 [::ns1::A new] -b2 [::ns1::ns2::A new]}} 0
 }
-  
+
 nx::test case substdefault-hardening {
   nx::Class create K {
     :object property {p2 "$x"}
     :property {p4 "$y"}
     :create k
   }
-  
+
   ? {::K cget -p2} {$x}
   ? {::k cget -p4} {$y}
-  
+
   ? {::K object property {p3:substdefault "[[set _ 1]"}} {substdefault: default '[[set _ 1]' is not a complete script}
   ? {::K property {p5:substdefault "[[set _ 2]"}} {substdefault: default '[[set _ 2]' is not a complete script}
 
@@ -3548,13 +3555,13 @@ nx::test case substdefault-hardening {
   ? {[::K new] cget -p6} {2]}
   ::K object property {p7:substdefault "[set _ 7]]"}
   ? {::K cget -p7} {7]}
-      
+
 }
 
 nx::test case type-reform {
 
   namespace eval :: {
-    
+
     ::nsf::proc foo {p2:object,type=C} {
       return [$p2 info class]
     }
@@ -3567,10 +3574,10 @@ nx::test case type-reform {
         return $p1
       }
     }
-    
+
     ::nsf::method::setter o s1:object,type=C
     ::nsf::method::setter C s2:object,type=C
-    
+
     ::proc bar args {
       ::nsf::parseargs p1:object,type=C $args
       return [$p1 info class]
@@ -3597,21 +3604,21 @@ nx::test case type-reform {
           ::nsf::parseargs p2:object,type=C $args
           return [$p2 info class]
         }
-        
+
         ::proc baz {a} {
           ::nsf::is object,type=C $a
           return [$a info class]
         }
-        
+
         ::nsf::method::setter A s3:object,type=C
         ::nsf::method::setter A -per-object s4:object,type=C
-        
+
       }
     }
   }
-  
+
   set ::C ::ns1::ns2::C
-  
+
   ## In the intrep (param structure), unqualified names will be qualified;
   ? {::o foo [::C new]} ::C
   ? {[::o faa [::C new]] info class} ::C
@@ -3622,25 +3629,25 @@ nx::test case type-reform {
   ## the stringrep remains untouched (to allow for cloning, serializing
   ## method records more easily)
   ? {nsf::parameter::info type [::o info object method parameters foo p1]} C
-  
+
   ? {[::ns1::ns2::A new] foo [$::C new]} $::C
   ? {nsf::parameter::info type [::ns1::ns2::A info method parameters foo p1]} C
   ? {[[::ns1::ns2::A new] faa [$::C new]] info class} $::C
   ? {[[::ns1::ns2::A new] s3 [$::C new]] info class} $::C
   ? {[::ns1::ns2::A s4 [$::C new]] info class} $::C
-  
+
   ? {::ns1::ns2::foo [$::C new]} $::C
-  
+
   ? {::foo [::C new]} ::C
   ? {::bar [::C new]} ::C
   ? {::baz [::C new]} ::C
   ? {::ns1::ns2::bar [$::C new]} $::C
   ? {::ns1::ns2::baz [$::C new]} $::C
-  
+
   ## error msgs now contain the qualified type names
   ::C create ::c
   ? {[::ns1::ns2::A new] foo ::c} \
-      "expected object of type ::ns1::ns2::C but got \"::c\" for parameter \"p1\""  
+      "expected object of type ::ns1::ns2::C but got \"::c\" for parameter \"p1\""
 }
 
 #

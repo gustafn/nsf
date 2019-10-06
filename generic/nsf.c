@@ -491,7 +491,7 @@ static int ArgumentParse(
     int serial,
     unsigned int processFlags,
     ParseContext *pcPtr
-) nonnull(1) nonnull(3) nonnull(5) nonnull(6) nonnull(10);
+) nonnull(1) nonnull(5) nonnull(6) nonnull(10);
 
 static int ArgumentCheck(
     Tcl_Interp *interp, Tcl_Obj *objPtr, const struct Nsf_Param *pPtr,
@@ -24440,7 +24440,6 @@ ArgumentParse(
   const Nsf_Param *lastParamPtr;
 
   nonnull_assert(interp != NULL);
-  nonnull_assert(objv != NULL);
   nonnull_assert(procNameObj != NULL);
   nonnull_assert(paramPtr != NULL);
   nonnull_assert(pcPtr != NULL);
@@ -24937,7 +24936,14 @@ ArgumentParse(
   pcPtr->lastObjc = o;
   pcPtr->objc = nrParams;
 
-  assert(ISOBJ(objv[pcPtr->lastObjc-1]));
+  /*
+   * The index "pcPtr->lastObjc-1" can be "-1", which is a problem, when
+   * called via nsf::parseargs, where the allocated objv array starts at
+   * position 0. It is fine when just a part of the real objv is passed to
+   * ArgumentParse().
+   *
+   *     assert(ISOBJ(objv[pcPtr->lastObjc-1]));
+   */
 
 #if defined(PARSE_TRACE_FULL)
   fprintf(stderr, "..... argv processed o %d lastObjc %d nrParams %d o<objc %d varargs %d\n",
@@ -28415,6 +28421,8 @@ NsfParseArgsCmd(Tcl_Interp *interp, Tcl_Obj *argspecObj, Tcl_Obj *arglistObj) {
   }
 
   result = Tcl_ListObjGetElements(interp, arglistObj, &objc, &objv);
+  fprintf(stderr, "NsfParseArgsCmd objc %d objv %p\n", objc, (void*)objv); // yyy
+
   if (likely(result == TCL_OK) && parsedParam.paramDefs != NULL) {
     ParseContext  pc;
     NsfParamDefs *paramDefs = parsedParam.paramDefs;
