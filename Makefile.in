@@ -147,6 +147,7 @@ INSTALL         = @INSTALL@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_DATA    = @INSTALL_DATA@
 INSTALL_SCRIPT  = @INSTALL_SCRIPT@
+INSTALL_DATA_DIR = ${INSTALL} -d -m 755
 
 # INSTALL_OPTIONS =
 # INSTALL		= $(SHELL) $(srcdir)/config/install-sh -c ${INSTALL_OPTIONS}
@@ -424,12 +425,14 @@ install-aol: install-binaries install-libraries install-xotcl-libraries
 #========================================================================
 # This rule installs platform-independent files, such as header files.
 #========================================================================
-install-libraries: libraries $(DESTDIR)$(includedir) $(DESTDIR)$(pkglibdir)
+install-libraries: libraries
+	@$(INSTALL_DATA_DIR) $(DESTDIR)$(includedir)
 	@echo "Installing header files in $(DESTDIR)$(includedir)"
 	@for i in $(PKG_HEADERS) ; do \
 	    echo "    Installing $$i" ; \
 	    $(INSTALL_DATA) $(srcdir)/$$i $(DESTDIR)$(includedir) ; \
 	done;
+	@$(INSTALL_DATA_DIR) $(DESTDIR)$(pkglibdir)
 	@echo "Installing Libraries to $(DESTDIR)$(pkglibdir)/"
 	@for i in $(libdirs) ; do \
 	    echo "    Installing $$i/" ; \
@@ -457,7 +460,8 @@ install-libraries: libraries $(DESTDIR)$(includedir) $(DESTDIR)$(pkglibdir)
 	@cat $(srcdir)/unix/pkgIndex.unix >> $(DESTDIR)$(pkglibdir)/pkgIndex.tcl
 	@$(INSTALL_DATA) $(srcdir)/nsfConfig.sh $(DESTDIR)$(libdir)/
 
-install-xotcl-libraries: install-libraries $(DESTDIR)$(pkglibdir)
+install-xotcl-libraries: install-libraries
+	@$(INSTALL_DATA_DIR) $(DESTDIR)$(pkglibdir)
 	@echo "Installing XOTcl Libraries to $(DESTDIR)$(xotcl_pkglibdir)/"
 	@rm -rf $(DESTDIR)$(xotcl_pkglibdir)
 	@mkdir -p $(DESTDIR)$(xotcl_pkglibdir)
@@ -528,12 +532,14 @@ install-xotcl-apps: install-xotcl-libraries
 #	    chmod 444 $(DESTDIR)$(mandir)/man1/$$i; \
 #	    done)
 
-install-doc: $(DESTDIR)$(mandir)/man1 $(DESTDIR)$(mandir)/man3
+install-doc:
+	@$(INSTALL_DATA_DIR) $(DESTDIR)$(mandir)/man1
 	@echo "Installing documentation in $(DESTDIR)$(mandir)"
 	@list='$(srcdir)/doc/*.1'; for i in $$list; do \
 	    echo "Installing $$i"; \
 	    $(INSTALL_DATA) $$i $(DESTDIR)$(mandir)/man1 ; \
 	done
+	@$(INSTALL_DATA_DIR) $(DESTDIR)$(mandir)/man3
 	@list='$(srcdir)/doc/*.3'; for i in $$list; do \
 	    echo "Installing $$i"; \
 	    $(INSTALL_DATA) $$i $(DESTDIR)$(mandir)/man3 ; \
@@ -879,7 +885,7 @@ install-lib-binaries:
 #========================================================================
 
 install-bin-binaries:
-	@mkdir -p $(DESTDIR)$(bindir)
+	@$(INSTALL_DATA_DIR) $(DESTDIR)$(bindir)
 	@list='$(bin_BINARIES)'; for p in $$list; do \
 	  if test -f $$p; then \
 	    echo " $(INSTALL_PROGRAM) $$p $(DESTDIR)$(bindir)/$$p"; \
@@ -904,23 +910,6 @@ uninstall-binaries:
 	list='$(bin_BINARIES)'; for p in $$list; do \
 	  rm -f $(DESTDIR)$(bindir)/$$p; \
 	done
-
-$(DESTDIR)$(includedir):
-	$(mkinstalldirs) $@
-$(DESTDIR)$(bindir):
-	$(mkinstalldirs)  $@
-$(DESTDIR)$(libdir):
-	$(mkinstalldirs)  $@
-$(DESTDIR)$(pkglibdir):
-	$(mkinstalldirs)  $@
-$(DESTDIR)$(pkglibdir)/apps: $(DESTDIR)$(pkglibdir)
-	$(mkinstalldirs)  $@
-$(DESTDIR)$(mandir)/man1:
-	$(mkinstalldirs)  $@
-$(DESTDIR)$(mandir)/man3:
-	$(mkinstalldirs)  $@
-$(DESTDIR)$(mandir)/mann:
-	$(mkinstalldirs)  $@
 
 end:
 	@echo "" 
