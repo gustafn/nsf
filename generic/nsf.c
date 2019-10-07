@@ -24320,7 +24320,7 @@ ArgumentDefaults(ParseContext *pcPtr, Tcl_Interp *interp,
 
         INCR_REF_COUNT2("methodPathObj", methodPathObj);
 
-        NsfPrintError(interp, "required argument '%s' is missing, should be:\n\t%s%s%s %s",
+        NsfPrintError(interp, "required argument '%s' is missing, should be:\n        %s%s%s %s",
                       (pPtr->nameObj != NULL) ? ObjStr(pPtr->nameObj) : pPtr->name,
                       (pcPtr->object != NULL) ? ObjectName(pcPtr->object) : "", (pcPtr->object != NULL) ? " " : "",
                       ObjStr(methodPathObj),
@@ -31781,7 +31781,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *co
       if (unlikely(varObj == NULL)) {
         Tcl_Obj *paramDefsObj = NsfParamDefsSyntax(interp, paramDefs->paramsPtr, object, NULL);
 
-        NsfPrintError(interp, "required argument '%s' is missing, should be:\n\t%s%s%s %s", (paramPtr->nameObj != NULL) ? ObjStr(paramPtr->nameObj) : paramPtr->name, (pc.object != NULL) ? ObjectName(pc.object) : "", (pc.object != NULL) ? " " : "",
+        NsfPrintError(interp, "required argument '%s' is missing, should be:\n        %s%s%s %s", (paramPtr->nameObj != NULL) ? ObjStr(paramPtr->nameObj) : paramPtr->name, (pc.object != NULL) ? ObjectName(pc.object) : "", (pc.object != NULL) ? " " : "",
                       ObjStr(pc.full_objv[0]),
                       ObjStr(paramDefsObj));
         DECR_REF_COUNT2("paramDefsObj", paramDefsObj);
