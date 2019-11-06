@@ -720,7 +720,7 @@ namespace eval ::xotcl::comm::httpAccess {
     }
     Http instproc POST {} {
 	# we have query and data only for a uniform interface for
-	# forms that cann pass the attribute value pairs always via
+	# forms that can pass the attribute value pairs always via
 	# query.
 	if {[my exists query]} {
 	    my data [my query]

@@ -21,7 +21,7 @@ package require nx::test
 ? {::nx::mongo::db collection tutorial.persons} "mongoc_collection_t:0"
 
 #
-# When we create a capped colletion, we cannot use
+# When we create a capped collection, we cannot use
 #
 #  nx::mongo::db delete tutorial.persons {}
 #

@@ -681,7 +681,7 @@ nx::test case user-value-checker {
   }
 
   #
-  # Trival test case
+  # Trivial test case
   #
 
   D public method foo {a:in,arg=a|b|c} {

@@ -753,7 +753,7 @@ nx::test case refount-destroy-delete1 {
   ? {::o object alias X ::x} "::o::X"
 
   # Recreate the object. On recreation, the object is not freed,
-  # therefore we test the reference counter is aleady set, and must
+  # therefore we test the reference counter is already set, and must
   # nor be incremented
   nx::Object create ::x
   ? {::o object alias X ::x} "::o::X"

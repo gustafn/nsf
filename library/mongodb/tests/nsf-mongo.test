@@ -85,7 +85,7 @@ puts "Connection: $mongoConn"
 if {1} {
   
   #::mongo::collection::delete $mongoConn tutorial.persons {}
-  # Drop old potenially old collection and 
+  # Drop old potentially old collection and
   # recreate it as a capped collection
   ::mongo::run -nocomplain $mongoConn tutorial {drop string persons}
   puts "\nCreate a capped collection:"

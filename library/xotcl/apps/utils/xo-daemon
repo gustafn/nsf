@@ -19,7 +19,7 @@ package require XOTcl 2.0; namespace import -force xotcl::*
          shown.
       <@LI> <@EM>startall</@EM>: all scripts that were started before 
          via this script, are started
-      <@LI> <@EM>stop</@EM> terminates te specified script.
+      <@LI> <@EM>stop</@EM> terminates the specified script.
       <@LI> <@EM>stopall</@EM> terminates all scripts started via this
          command
       <@LI> <@EM>restart</@EM> tries to restart the specified script.

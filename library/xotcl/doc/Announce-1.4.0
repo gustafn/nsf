@@ -10,7 +10,7 @@ Major changes relative to 1.3.9 are:
          are not affected by a recreate; this allows files with class definitions
 	 more easily to reload
        + easier syntax for providing commands for initializing default values
-       + setting and querying options for ::xotcl::configure simiar to set
+       + setting and querying options for ::xotcl::configure similar to set
 
      * Improved code quality: 
        + fixed a bug in connection with nonpositional arguments and "args"

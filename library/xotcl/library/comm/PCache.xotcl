@@ -232,8 +232,7 @@ namespace eval ::xotcl::comm::pcache {
 
 
     Object instproc allInstances {} {
-	# Diese Methode ermittelt rekursiv alle direkten und indirekten
-	# Instanzen einer Klasse
+	# Compute recursively all instances of a class.
 	::set inst [my info instances]
 	foreach s [my info subclass] {
 	    foreach i [$s allInstances] { ::lappend inst $i }
