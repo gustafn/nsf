@@ -28421,7 +28421,6 @@ NsfParseArgsCmd(Tcl_Interp *interp, Tcl_Obj *argspecObj, Tcl_Obj *arglistObj) {
   }
 
   result = Tcl_ListObjGetElements(interp, arglistObj, &objc, &objv);
-  fprintf(stderr, "NsfParseArgsCmd objc %d objv %p\n", objc, (void*)objv); // yyy
 
   if (likely(result == TCL_OK) && parsedParam.paramDefs != NULL) {
     ParseContext  pc;
