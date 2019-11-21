@@ -3392,7 +3392,7 @@ TestX objectReferences -proc run {{n 20}} {
     ::errorCheck [o mixin XX3] ::XX3 "__unknown XX3"
   }
 
-  # this version of unknown creates gobal objects
+  # this version of unknown creates global objects
   Class proc __unknown {name} {
     #puts "unknown called with $name"
     set name ::[namespace tail $name]

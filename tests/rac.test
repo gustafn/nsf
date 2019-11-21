@@ -193,7 +193,7 @@ Sensor public method incrValue2 {} {
 #
 # ACTUAL: . -> PRE -> INVAR -> (BODY) -> POST -> INVAR -> .
 #
-# TODO: EXPTECTED (ECMA-367 §8.23.26): 
+# TODO: EXPECTED (ECMA-367 §8.23.26):
 # 	. -> INVAR -> PRE -> (BODY) -> INVAR -> POST -> .
 #
 

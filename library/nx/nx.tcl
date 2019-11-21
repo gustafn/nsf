@@ -1534,7 +1534,7 @@ namespace eval ::nx {
 	  if {[llength $options] > 0} {
             #
             # In case the parameter options contain a "slotset", this
-            # options would not be allowed by nsf::is. Therefore, we
+            # would not be allowed by nsf::is. Therefore, we
             # remove this option before testing (we are already in the
             # slot object).
             #

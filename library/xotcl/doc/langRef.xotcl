@@ -1512,7 +1512,7 @@ if {$::tcl_version >= 8.6} {
     This method is called, whenever XOTcl references a class,
     which is not defined yet. In the following example:
 	<@tt>Class C -superclass D</@tt>
-    D is not defined. Therefore <@tt>Class __unknown D</@tt>
+    D is not defined. Therefore, <@tt>Class __unknown D</@tt>
     is called. This callback can be used to perform auto-loading
     of classes. After this call, XOTcl tries again to
     resolve D. If it succeeds, XOTcl will continue; otherwise,

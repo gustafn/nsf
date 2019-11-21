@@ -121,7 +121,7 @@ O mixin assign M ;# new name
 # b) provide a no-op value, such that we define only meta-data in the slot
 # c) define a low-level tcl command like setrelation (or extend it) to handle the setter
 
-# "class" is not multivalued, therefore we should not add (or remove) add/delete
+# "class" is not multivalued, therefore, we should not add (or remove) add/delete
 # from the set of subcommands...
 ? {::nx::RelationSlot info class} "::nx::MetaSlot"
 O o1
