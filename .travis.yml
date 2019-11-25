@@ -40,7 +40,7 @@ matrix:
     - os: linux
       dist: xenial
       compiler: clang
-      env: TCLTAG=core-8-7-a1
+      env: TCLTAG=core-8-7-a3
     - os: linux
       dist: xenial
       compiler: gcc-7
@@ -50,15 +50,15 @@ matrix:
             - ubuntu-toolchain-r-test
           packages:
             - g++-7
-      env: TCLTAG=core-8-7-a1
+      env: TCLTAG=core-8-7-a3
     - os: osx
       osx_image: xcode10.2
       compiler: clang
-      env: TCLTAG=core-8-7-a1
+      env: TCLTAG=core-8-7-a3
     - os: osx
       osx_image: xcode10.2	
       compiler: gcc-8
-      env: TCLTAG=core-8-7-a1
+      env: TCLTAG=core-8-7-a3
     # ----------------------------
     - os: linux
       dist: xenial
@@ -111,7 +111,7 @@ matrix:
     - os: linux
       dist: xenial
       compiler: clang
-      env: TCLTAG=core-8-6-9
+      env: TCLTAG=core-8-6-10
     - os: linux
       dist: xenial
       compiler: gcc-7
@@ -121,16 +121,16 @@ matrix:
             - ubuntu-toolchain-r-test
           packages:
             - g++-7
-      env: TCLTAG=core-8-6-9
+      env: TCLTAG=core-8-6-10
     - os: osx
       osx_image: xcode10.2
       compiler: clang
-      env: TCLTAG=core-8-6-9
+      env: TCLTAG=core-8-6-10
     - os: osx
       osx_image: xcode10.2	
       compiler: gcc-8
       env:
-        - TCLTAG=core-8-6-9
+        - TCLTAG=core-8-6-10
   # ----------------------------
     - os: linux
       dist: xenial
