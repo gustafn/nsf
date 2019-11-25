@@ -39,7 +39,7 @@ environment:
     TOOLCHAIN: nmake-tea
   - TCLTAG: core-8-branch
     TOOLCHAIN: autoconf-tea
-- TCLTAG: core-8-branch
+  - TCLTAG: core-8-branch
     TOOLCHAIN: nmake-tea
 
 matrix:
