@@ -125,8 +125,7 @@ NsfStackDump(Tcl_Interp *interp) {
     Tcl_Obj *cmdObj = Tcl_NewObj();
 
     fprintf(stderr, "\tFrame=%p ", (void *)f);
-    if ((f != NULL)
-        && (f->isProcCallFrame != 0)
+    if ((f->isProcCallFrame != 0)
         && (f->procPtr != NULL)
         && (f->procPtr->cmdPtr != NULL)
         ) {
@@ -135,7 +134,7 @@ NsfStackDump(Tcl_Interp *interp) {
       Tcl_GetCommandFullName(interp, (Tcl_Command)f->procPtr->cmdPtr, cmdObj);
       fprintf(stderr, "%s (%p) lvl=%d\n", ObjStr(cmdObj), (void *)f->procPtr->cmdPtr, f->level);
     } else {
-        if (f != NULL && f->varTablePtr != NULL) {
+        if (f->varTablePtr != NULL) {
             fprintf(stderr, "var_table = %p ", (void *)f->varTablePtr);
         }
         fprintf(stderr, "- \n");
@@ -148,8 +147,6 @@ NsfStackDump(Tcl_Interp *interp) {
   fprintf(stderr, "\tFrame=%p ", (void *)v);
   if (v != NULL) {
       fprintf(stderr, "caller %p var_table %p ", (void *)v->callerPtr, (void *)v->varTablePtr);
-      /*      if (v->varTablePtr != NULL)
-              panic(0, "testing");*/
   }
   if (v != NULL && v->isProcCallFrame && v->procPtr && v->procPtr->cmdPtr) {
     Tcl_GetCommandFullName(interp, (Tcl_Command)  v->procPtr->cmdPtr, varCmdObj);
