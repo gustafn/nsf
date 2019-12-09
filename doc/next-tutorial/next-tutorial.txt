@@ -333,7 +333,7 @@ stack under-runs (a stack under-run happens, when more +pop+ than
 +push+ operations are issued on a stack). Safety checking can be
 implemented mostly independent from the implementation details of the
 stack (usage of internal data structures). There are as well different
-ways of checking the safety. Therefore we say that safety checking is
+ways of checking the safety. Therefore, we say that safety checking is
 orthogonal to the stack core implementation.
 
 With NX we can define stack-safety as a separate class using methods
@@ -442,7 +442,7 @@ image::per-object-mixin.png[title="Per-object Mixin",align="center"]
 
 Note that in <<xmp-using-class-safety,{xmp-using-class-safety}>>,
 the class +Safety+ is only mixed into a single object (here
-+s2+), therefore we refer to this case as a _per-object mixin_.
++s2+), therefore, we refer to this case as a _per-object mixin_.
 <<img-per-object-mixin,{img-per-object-mixin}>> shows the class
 diagram, where the class +Safety+ is used as a per-object mixin for
 +s2+.
@@ -1498,7 +1498,7 @@ The example in <<xmp-method-resolution2,{xmp-method-resolution2}>> is
 an extension of the previous example. We define here two additional
 classes +M1+ and +M2+ which are used as per-object and per-class
 mixins.  Both classes define the method +foo+, these methods shadow
-the definitions of the intrinsic class hierarchy. Therefore an
+the definitions of the intrinsic class hierarchy. Therefore, an
 invocation of +foo+ on object +d1+ causes first an invocation of
 method in the per-object mixin.
 
@@ -1538,7 +1538,7 @@ The invocation flag +-local+ means that the method has to be resolved
 from the same place, where the current method is defined. Since the
 current method is defined as a object method, +foo+ is resolved as
 a object method. The effect is that the mixin definitions are
-ignored. The invocation flag +-local+ was already introduced int the
+ignored. The invocation flag +-local+ was already introduced in the
 section about method protection, where it was used to call _private_
 methods.
 
@@ -1550,7 +1550,7 @@ The invocation flag +-system+ means that the method has to be resolved
 from basic - typically predefined - classes of the object system. This
 can be useful, when script overloads system methods, but still want to
 call the shadowed methods from the base classes. In our case, we have
-no definitions of +foo+ on the base clases, therefore an error message
+no definitions of +foo+ on the base clases, therefore, an error message
 is returned.
 
 The output of <<xmp-method-resolution3,{xmp-method-resolution3}>> is:
@@ -1653,7 +1653,7 @@ It is certainly possible to combine positional and non-positional
 arguments. Method +baz+ provides two non-positional parameter (+-y+
 and +-y+) and one positional parameter (namely +a+). The invocation in
 line 34 passes the value of +1+ to +x+ and the value of +100+ to +a+.
-There is no value passed to +y+, therefore value of +y+ will be
+There is no value passed to +y+, therefore, value of +y+ will be
 undefined in the body of +baz+, +info exists y+ checks for the
 existence of the variable +y+ and returns +0+.
 
@@ -1661,7 +1661,7 @@ The invocation in line 35 passes only a value to the positional
 parameter. A more tricky case is in line 36, where we want to pass
 +-y+ as a value to the positional parameter +a+. The case is more
 tricky since syntactically the argument parser might consider +-y+ as
-the name of one of the non-positional parameter. Therefore we use +--+
+the name of one of the non-positional parameter. Therefore, we use +--+
 (double dash) to indicate the end of the block of the non-positional
 parameters and therefore the value of +-y+ is passed to +a+.
 
@@ -2184,7 +2184,7 @@ image::configure-parameter.png[align="center",title="System and Application Clas
 
 In NX, these definitions imply that instances of the class of +Person+
 have the properties +name+ and +birthday+ as _non-positional object
-parameters_.  Furthermore it implies that instances of +Student+ will
+parameters_.  Furthermore, it implies that instances of +Student+ will
 have the configure parameters of +Person+ augmented with the object
 parameters from +Student+ (namely +matnr+ and +oncampus+).  Based on
 these configure parameters, we can create a +Person+ named +Bob+ and a
@@ -2265,7 +2265,7 @@ is the relation of the class to its superclass.In our example, we have
 specified, that +Student+ has +Person+ as superclass via the
 non-positional configure parameter +-superclass+. If no superclass is
 specified for a class, the default superclass is
-+nx::Object+. Therefore +nx::Object+ is the default value for the
++nx::Object+. Therefore, +nx::Object+ is the default value for the
 parameter +superclass+.
 
 Another frequently used parameter for classes is +-mixins+ to denote

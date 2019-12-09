@@ -24059,7 +24059,7 @@ ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, const struct Nsf_Param *pPtr,
   /*
    * Omit argument checking, provided that ...
    * ... argument checking is turned off *and* no converter is specified, or
-   * ... the ruling parameter option is 'initcmd'
+   * ... the ruling parameter option is 'cmd'
    * ... slotset is active
    */
   if ((unlikely((doCheckArguments & NSF_ARGPARSE_CHECK) == 0u) && (pPtr->flags & (NSF_ARG_IS_CONVERTER)) == 0u) ||
@@ -31846,6 +31846,11 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *co
            */
           Tcl_Obj *varObj = Tcl_ObjGetVar2(interp, NsfGlobalObjs[NSF_ARRAY_INITCMD],
                                            paramPtr->nameObj, 0);
+
+          /*fprintf(stderr, "### NSF_ARRAY_INITCMD %s has a value %s\n",
+                  NsfGlobalStrings[NSF_ARRAY_INITCMD],
+                  ObjStr(paramPtr->defaultValue));*/
+
           if (varObj == NULL) {
             /*
              * The variable is not set. Therefore, we assume, we have to

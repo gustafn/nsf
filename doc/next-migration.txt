@@ -101,7 +101,7 @@ in the following respects:
      under arbitrary names for arbitrary objects or classes.
 
    .. NX provides means for _method protection_ (method modifiers
-     +public+, +protected+, and +private+). Therefore developers have
+     +public+, +protected+, and +private+). Therefore, developers have
      to define explicitly public interfaces in order to use methods
      from other objects.
 

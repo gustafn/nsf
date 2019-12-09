@@ -36,7 +36,7 @@ nx::Class create Delegatee {
 
 # === Demonstrating the behavior in a shell: 
 #
-# Create a +Delegator+, which has no +delegatee+ defined. Therefore
+# Create a +Delegator+, which has no +delegatee+ defined. Therefore,
 # delegator performs the action by itself, the default implementation.
 #
 ? {set a [Delegator new]} "::nsf::__#0"

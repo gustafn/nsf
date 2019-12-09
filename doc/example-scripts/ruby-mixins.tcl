@@ -201,7 +201,7 @@ nx::Class create SpecialForce -superclass ATeam {
 ? {SpecialForce create s1 -members {Donald Micky Daniel Gustav}} ::s1
 
 # As above, the precedence of +Enumerable+ is lower then the
-# precedence of +ATeam+ and +Enumerable+. Therefore +ATeam+ can refine
+# precedence of +ATeam+ and +Enumerable+. Therefore, +ATeam+ can refine
 # the behavior of +Enumerable+, the class +SpecialForce+ can refine
 # the behavior of +ATeam+.
 ? {s1 info precedence} "::SpecialForce ::ATeam ::Enumerable ::nx::Object"

@@ -16,7 +16,7 @@ nx::Class create Fish -superclass Eatable {
 }
 
 #
-# A +FoodBax+ may only contain eatable items. Therefore with we define
+# A +FoodBax+ may only contain eatable items. Therefore, with we define
 # +items+ as a property of type +Eatable" which has a multiplicity of
 # +0..n+ (might contain 0 to n eatable items). Furthermore, we define
 # items as +incremental+, such we can add / remove items with +item
