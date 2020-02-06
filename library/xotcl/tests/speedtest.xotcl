@@ -597,6 +597,33 @@ nx::test new -msg {volatile + new overloaded + mixin + proc} \
     -cmd {foo; ::B info instances} -expected {} -count 2 \
     -post {B destroy; A destroy; M destroy; MC destroy; rename foo ""}
 
+nx::test new -msg {dict external} \
+    -pre {
+      unset ::_
+      Object create o
+    } \
+    -cmd {
+      lappend ::_ [o dict set d a first]
+      lappend ::_ [o dict set d b second]
+      lappend ::_ [o dict get [o set d] b]
+      set ::_
+    } -expected {{a first} {a first b second} second} -count 2 \
+    -post {o destroy; unset ::_}
+
+nx::test new -msg {dict resolver} \
+    -pre {
+      Object create o
+      o proc foo {} {
+        dict set :mydict 1 one
+        dict set :mydict 2 two
+        dict keys ${:mydict}
+      }
+    } \
+    -cmd {
+      o foo
+    } -expected {1 2} -count 2 \
+    -post {o destroy}
+
 #
 # Check whether the setting of the autoname object property is already
 # visible immediately after the object creation (e.g. in an overloaded

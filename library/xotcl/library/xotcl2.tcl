@@ -251,6 +251,7 @@ namespace eval ::xotcl {
   # provide some Tcl-commands as methods for ::xotcl::Object
   ::nsf::method::alias Object append  -frame object ::append
   ::nsf::method::alias Object array   -frame object ::array
+  ::nsf::method::alias Object dict    -frame object ::dict
   ::nsf::method::alias Object eval    -frame object ::eval
   ::nsf::method::alias Object incr    -frame object ::incr
   ::nsf::method::alias Object lappend -frame object ::lappend
@@ -1466,6 +1467,7 @@ namespace eval ::xotcl {
   # Tcl commands
   set ::nsf::parameter::syntax(::append) "/varName/ ?/value/ ...?"
   set ::nsf::parameter::syntax(::array) "/option/ /arrayName/ ?/arg/ ...?"
+  set ::nsf::parameter::syntax(::dict) "/option/ /dictName|dictValue/ ?/arg/ ...?"
   set ::nsf::parameter::syntax(::eval) "/arg/ ?/arg/ ...?"
   set ::nsf::parameter::syntax(::incr) "/varName/ ?/increment/?"
   set ::nsf::parameter::syntax(::lappend) "/varName/ ?/value/ ...?"
