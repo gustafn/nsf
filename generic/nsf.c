@@ -18146,7 +18146,7 @@ static int ParamDefsParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *par
  *    parameter forward the full cycle of
  *
  *     (a) splitting the spec,
- *     (b) convert it to a the client data structure,
+ *     (b) convert it to the client data structure,
  *     (c) invoke forward,
  *     (d) free client data structure
  *

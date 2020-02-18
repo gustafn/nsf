@@ -108,7 +108,7 @@ namespace eval ::nx::zip {
 
         # For every file, it contains again part of the information of
         # the local file headers, but with some additional information
-        # such as a the "version made by", comment, ...
+        # such as the "version made by", comment, ...
 
         set comment ""
         set platform 0 ;# dos/windows
