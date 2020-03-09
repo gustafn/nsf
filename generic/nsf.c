@@ -2818,12 +2818,12 @@ MustBeBefore(const NsfClass *aClass, const NsfClass *bClass, const NsfClasses *s
   assert(bClass->order != NULL);
 
   /*
-   * Check whether a is in the precedence order of b. E.g.
+   * Check whether "x" is in the precedence order of "y". E.g.
    *
-   *   a c1 object
-   *   b c2 a object
+   *   x c1 object
+   *   y c2 x object
    *
-   * If so then b must be before a to preserve the precedence order based on
+   * If so then "y" must be before "x" to preserve the precedence order based on
    * single inheritance (monotonicity).
    */
   success = (NsfClassListFind(bClass->order, aClass) != NULL);
@@ -6913,7 +6913,7 @@ NSCheckNamespace(
   /*fprintf(stderr, "NSCheckNamespace %s parentNsPtr %p\n", nameString, parentNsPtr);*/
 
   /*
-   * Check whether there is a already a namespace for the full name. The
+   * Check whether there is an already a namespace for the full name. The
    * namespace will be only in rare cases, but we have to make this check in
    * every case. If there is a full namespace, we can use it to determine the
    * parent name.
@@ -10809,7 +10809,7 @@ GuardAddFromDefinitionList(NsfCmdList *dest, Tcl_Command interceptorCmd,
  *----------------------------------------------------------------------
  * GuardAddInheritedGuards --
  *
- *    Add a inherited guards to the provided destination list.
+ *    Add an inherited guards to the provided destination list.
  *
  * Results:
  *    None.
@@ -18238,7 +18238,7 @@ ParameterMethodForwardDispatch(Tcl_Interp *interp, NsfObject *object,
  * ParameterMethodDispatch --
  *
  *    Dispatch a method provided via parameter definition. The function checks
- *    the parameter definition, builds a argument list for the function call
+ *    the parameter definition, builds an argument list for the function call
  *    and invokes finally the configured cmd.  This function is typically
  *    called from configure.
  *
@@ -30578,7 +30578,7 @@ NsfRelationSetCmd(Tcl_Interp *interp, NsfObject *object, RelationtypeIdx_t type,
           CmdListAddSorted(&nclopt->isObjectMixinOf, object->id, NULL);
         } else {
           NsfLog(interp, NSF_LOG_WARN,
-                 "Problem registering %s as a object mixin of %s\n",
+                 "Problem registering %s as an object mixin of %s\n",
                  ObjStr(valueObj), ObjectName_(object));
         }
       }
@@ -35690,7 +35690,7 @@ Nsf_Init(
    *  [info frame /number/] or TclInfoFrame()) without
    *  verification. However, NSF non-proc frames, in particular
    *  initcmd blocks, point to the fakeProc structure which does not
-   *  contain a initialized Command pointer. For now, we default to
+   *  contain an initialized Command pointer. For now, we default to
    *  an internal command. However, we might have to revisit this decision
    *  as non-proc frames (e.g., initcmds) report a "proc" entry
    *  for c-based functions with a proc scope, such as "::nsf::colon"),

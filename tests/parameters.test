@@ -671,7 +671,7 @@ nx::test case user-value-checker {
 
   #
   # Create a user-defined value-checker for method parameters,
-  # with a extra argument
+  # with an extra argument
   #
   ::nx::methodParameterSlot object method type=in {name value arg} {
     if {$value ni [split $arg |]} {

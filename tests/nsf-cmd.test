@@ -491,7 +491,7 @@ nx::test case nsf-log-recursive {
 
   #
   # now we add the debug flag to foo, therefore, "foo" will call
-  # "nsf::log", which might become a infinite recursion loop.
+  # "nsf::log", which might become an infinite recursion loop.
   #
   nsf::proc -debug foo {} {return 1}
 

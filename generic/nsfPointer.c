@@ -178,7 +178,7 @@ Nsf_PointerGetHptr(void *valuePtr) {
  *
  * Nsf_PointerDelete --
  *
- *      Delete an hash entry from the locally maintained hash table and
+ *      Delete a hash entry from the locally maintained hash table and
  *      free the associated memory, if the hash entry is
  *      found. Normally, the key should be provided. If the key is not
  *      available, we perform a reverse lookup from the hash table.

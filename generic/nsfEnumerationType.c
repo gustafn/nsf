@@ -168,7 +168,7 @@ Nsf_EnumerationTypeGetDomain(Nsf_TypeConverter *converter) {
  *----------------------------------------------------------------------
  * Register --
  *
- *    Register a enumeration-type converter and its domain.
+ *    Register an enumeration-type converter and its domain.
  *
  * Results:
  *    Tcl result code.

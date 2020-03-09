@@ -297,7 +297,7 @@ void NsfShowStack(Tcl_Interp *interp) {
  * Push and pop operations.
  *
  * Note that it is possible that between push and pop
- * a object->nsPtr can be created (e.g. during a read trace)
+ * an object->nsPtr can be created (e.g. during a read trace)
  */
 
 /*

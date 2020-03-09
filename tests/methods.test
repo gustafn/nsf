@@ -359,7 +359,7 @@ nx::test case mixinguards {
   nx::Class create C
   nx::Class create M
 
-  # register the mixin on C as a object mixin and define a mixinguard
+  # register the mixin on C as an object mixin and define a mixinguard
 
   #C mixins set M
   #C mixins guard M {1 == 1}
@@ -689,7 +689,7 @@ nx::test case scopes {
 
 #
 # Test the current namespaces and resolution for methods
-# registered on a object in a certain namespace
+# registered on an object in a certain namespace
 # a) top-level methods
 # b) ensemble methods on level 1
 # c) ensemble methods on level 2
