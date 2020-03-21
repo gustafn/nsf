@@ -26364,9 +26364,8 @@ ProtectionMatches(CallprotectionIdx_t withCallprotection, Tcl_Command cmd) {
   case CallprotectionPublicIdx: result = (isProtected == 0); break;
   case CallprotectionProtectedIdx: result = (isProtected && !isPrivate); break;
   case CallprotectionPrivateIdx: result = isPrivate; break;
-  case CallprotectionNULL:
-    result = NSF_TRUE;
-    break;
+  case CallprotectionNULL: result = NSF_TRUE; break;
+  default: result = NSF_FALSE; break;
   }
   return result;
 }
