@@ -28478,7 +28478,7 @@ NsfMethodAliasCmd(
   Tcl_Command         cmd, oldCmd, newCmd;
   Tcl_Namespace      *nsPtr;
   int                 result;
-  unsigned int        flags;
+  unsigned int        flags = 0u;
   const NsfClass     *class;
   NsfObject          *newTargetObject;
 
