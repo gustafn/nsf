@@ -81,11 +81,6 @@ proc ::build {HOMEDIR BUILDDIR TCLTAG {TOOLCHAIN autoconf-tea}} {
   switch -exact -- $TOOLCHAIN {
     autoconf-tea {
       set opts [list --libdir=$tclDir --enable-64bit]
-
-      # see https://core.tcl-lang.org/tips/doc/trunk/tip/538.md
-      if {$TCLTAG eq "core-8-branch"} {
-        lappend opts "--without-system-libtommath"
-      }
       
       exec >@stdout 2>@stderr bash -lc "./configure $opts"
       exec >@stdout 2>@stderr bash -lc "make"

@@ -16652,7 +16652,23 @@ Nsf_ConvertToInt32(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr,
  *----------------------------------------------------------------------
  */
 
+#if TCL_MAJOR_VERSION > 8 || TCL_MINOR_VERSION > 6
+/*
+ * Starting with Tcl 8.7a4 and TIP 538, NSF might end up built against Tcl
+ * linking against a system-wide/ external libtommath, rather than with an
+ * embedded libtommath. In both cases, even the embedded one, Tcl does not
+ * ship tommat.h anymore. This leaves NSF without the necessary build-time
+ * definitions for mp_int and mp_clear (see below). For the time being, we
+ * rely on a hot fix by the TIP 538 author, providing compat definitions when
+ * setting the TCL_NO_TOMMATH_H macro before including tclTomMath.h.
+ *
+ * See https://core.tcl-lang.org/tcl/tktview?name=4663e0636f (also for other
+ * mid-term options)
+ */
+#define TCL_NO_TOMMATH_H 1
+#endif
 #include <tclTomMath.h>
+
 int Nsf_ConvertToInteger(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr,
                      ClientData *clientData, Tcl_Obj **outObjPtr)
   nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(5);
