@@ -1852,7 +1852,7 @@ nx::test case req-param {
   # Did the object survive the error? Should not.
   ? {::nsf::is object c2} 0
 
-  # The following should run through without erros
+  # The following should run through without errors
   ? {C create c3 -y 1 -x 0} "::c3"
   ? {set ::_} "passed args ''"
   ? {c3 cget -x} "0"

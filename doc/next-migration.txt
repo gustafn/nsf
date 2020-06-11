@@ -1107,7 +1107,7 @@ variables.
 |[source,tcl]
 ----------------
 
-# Define a object variable "V" with value 100 and
+# Define an object variable "V" with value 100 and
 # an instance variable "x". "V" is defined for the
 # class object Foo, "x" is defined in the
 # instances of the class. "object variable" works

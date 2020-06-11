@@ -500,7 +500,7 @@ object-specific methods.
 Stack create s4 {
 
   #
-  # Create a stack with a object-specific method
+  # Create a stack with an object-specific method
   # to check the type of entries
   #
 
@@ -1271,7 +1271,7 @@ instance +c1+ of class +C+, and as well as the object specific method
 +baz+ defined on the object +o1+. An object method is defined
 via +object method+.
 
-Note that we can define a object method that shadows (redefines)
+Note that we can define an object method that shadows (redefines)
 for this object methods provided from classes.
 
 [[xmp-object-applicable1]]
@@ -1536,8 +1536,8 @@ situations.
 
 The invocation flag +-local+ means that the method has to be resolved
 from the same place, where the current method is defined. Since the
-current method is defined as a object method, +foo+ is resolved as
-a object method. The effect is that the mixin definitions are
+current method is defined as an object method, +foo+ is resolved as
+an object method. The effect is that the mixin definitions are
 ignored. The invocation flag +-local+ was already introduced in the
 section about method protection, where it was used to call _private_
 methods.
