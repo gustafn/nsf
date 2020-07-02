@@ -904,7 +904,7 @@ CallStackFindEnsembleCsc(const Tcl_CallFrame *framePtr, Tcl_CallFrame **framePtr
  * CallStackNextFrameOfType --
  *
  *    Return the next frame on the call stack being of a specified type. The
- *    type is specified by a bitmask passed as flags.
+ *    type is specified by a bit mask passed as flags.
  *
  * Results:
  *    Tcl_CallFrame

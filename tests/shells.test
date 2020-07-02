@@ -43,7 +43,7 @@ nx::test case nxsh {
   }
   ? [list getFirstLine [list exec $nxsh NXSCRIPT.tcl << "$run; exit"]] \
       "couldn't read file \"NXSCRIPT.tcl\": no such file or directory"
-  ## non-interactive mode (-c)
+  ## noninteractive mode (-c)
   ? [list exec $nxsh -c "$run" NXSCRIPT.tcl] \
       "1-NXSCRIPT.tcl"
   ? [list exec $nxsh -c << $run] "0-"

@@ -305,10 +305,10 @@ nx::test case colon-unknown {
     :object method foo {a b c args} { return [current method]-ok }
 
     ## Expansion to valid method calls (messages)
-    :object method expand-non-empty-list-1 {} {
+    :object method expand-nonempty-list-1 {} {
       {*}[list :foo 1 2 3 4 5 6];
     }
-    :object method expand-non-empty-list-2 {} {
+    :object method expand-nonempty-list-2 {} {
       : {*}[list foo 1 2 3 4 5 6];
     }
     :object method expand-self-call-1 {} {
@@ -336,8 +336,8 @@ nx::test case colon-unknown {
     }
   }]
 
-  ? [list $o expand-non-empty-list-1] "foo-ok"
-  ? [list $o expand-non-empty-list-2] "foo-ok"
+  ? [list $o expand-nonempty-list-1] "foo-ok"
+  ? [list $o expand-nonempty-list-2] "foo-ok"
   ? [list $o expand-self-call-1] $o
   ? [list $o expand-self-call-2] $o
 

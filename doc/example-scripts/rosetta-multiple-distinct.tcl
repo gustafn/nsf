@@ -4,7 +4,7 @@
 #
 # Create a sequence (array, list, whatever) consisting of "n"
 # distinct, initialized items of the same type. The value of "n"
-# should be determined at runtime.
+# should be determined at run time.
 # 
 # https://rosettacode.org/wiki/Multiple_distinct_objects
 #
@@ -18,7 +18,7 @@ package req nx::test
 #
 
 nx::Class create Foo
-set n 100; # runtime parameter
+set n 100; # run time parameter
 
 #
 # Wrong: Only a single item (object) is created, its (command) name is

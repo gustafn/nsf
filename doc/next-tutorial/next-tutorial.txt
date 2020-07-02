@@ -682,7 +682,7 @@ A *property* is a definition of a configurable instance variable.
 The term configurable means that (a) one can provide at creation time of
 an instance a value for this variable, and (b), one can query the
 value via the accessor function +cget+ and (c), one can change the
-value of the variable via +configure+ at runtime. Since the general
+value of the variable via +configure+ at run time. Since the general
 accessor function +cget+ and +configure+ are available, an application
 developer does not have to program own accessor methods. When value
 checkers are provided, each time, the value of the variable is to be
@@ -756,7 +756,7 @@ constructors. The declarative approach in NX reduces the need for
 tailored constructor methods significantly.
 
 Note that the property +matnr+ of class +Student+ is required. This
-means, that if we try to create an instance of +Student+, a runtime
+means, that if we try to create an instance of +Student+, a run time
 exception will be triggered. The property +oncamups+ is boolean and
 contains a default value. Providing a default value means that
 whenever we create an instance of this class the object will contain
@@ -2011,7 +2011,7 @@ nx::Object create o6 {
   }
 
   #
-  # Positional parameter with a non-empty
+  # Positional parameter with a nonempty
   # list of values
   #
   :public object method baz {x:integer,1..n} {
@@ -2081,7 +2081,7 @@ class +::D+. When the parameter option +substdefault+ is used
 default, all substitution kinds of Tcl are active: command, variable, and
 backslash substitution. +substdefault+ can be
 parametrized to include or to exclude any combination of substitution
-kinds by providing a bitmask:
+kinds by providing a bit mask:
 
 - +substdefault=0b111+: all substitutions active (default)
 - +substdefault=0b100+: substitute backslashes only (like +subst -novariables -nocommands+)
@@ -2239,7 +2239,7 @@ Configure parameter for Student s1:
 --------------------------------------------------
 
 The given parameter show, how (a) objects can be configured
-at runtime or (b) how new instances can be configured
+at run time or (b) how new instances can be configured
 at creation time via the +new+ or +create+ methods.
 Introspection can be used to obtain the configuration
 parameters from an object via

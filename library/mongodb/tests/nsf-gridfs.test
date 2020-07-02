@@ -2,7 +2,7 @@
 #
 # This test suite tests some basic interactions from the nsf mongo
 # interface with gridFS. It connects to mongoDB, opens a GridFS named
-# "myfs" and inserts a file into the file systems.  Run the script
+# "myfs" and inserts a file into the filesystems.  Run the script
 # with the current directory of nsfmongo, such it can find the README
 # file.
 #

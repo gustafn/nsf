@@ -125,7 +125,7 @@ typedef int bool;
  * ANSI versions.
  *
  * Note: It is sufficient to test for __MINGW32__ to trap all MinGW
- * tool chains, including 64bit versions. See
+ * tool chains, including 64-bit versions. See
  * https://sourceforge.net/p/predef/wiki/Compilers/#mingw-and-mingw-w64
  */
 

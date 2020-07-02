@@ -1666,7 +1666,7 @@ NsfMongoGridFileOpen(Tcl_Interp *interp,
 /***********************************************************************
  * GridFile interface
  *
- * Currently offsets and sizes are limited to 32bit integers, we should
+ * Currently offsets and sizes are limited to 32-bit integers, we should
  * relax this later.
  ***********************************************************************/
 

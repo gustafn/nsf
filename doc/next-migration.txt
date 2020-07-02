@@ -1017,7 +1017,7 @@ differentiated terminology. NX distinguishes between configurable
 instance variables (also called _properties_) and non configurable
 instance variables (called _variables_), which might have as well
 e.g. default values. The values of configurable properties can be
-queried at runtime via +cget+, and their values can be altered via
+queried at run time via +cget+, and their values can be altered via
 +configure+. When the value of a configure parameter is provided or
 changed, the value checkers from the variable definition are used to
 ensure, the value is permissible (i.e. it is for example an integer
@@ -1321,7 +1321,7 @@ performance sensitive.
 #
 # User defined value constraints are possible.
 # All parameter value checkers can be turned on
-# and off at runtime.
+# and off at run time.
 #
 # Define a required boolean property "a"
 # and an integer property "b" with a default.
@@ -1384,7 +1384,7 @@ Class create Foo {
 NX supports in contrary to XOTcl to define the _multiplicity_ of values
 per parameter. In NX, one can specify that a parameter can accept the
 value "" (empty) in addition to e.g. an integer, or one can specify that the
-value is an empty or non-empty list of values via the multiplicity. For
+value is an empty or nonempty list of values via the multiplicity. For
 every specified value, the value checkers are applied.
 
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
@@ -1400,7 +1400,7 @@ every specified value, the value checkers are applied.
 ----------------
 # Parameter with multiplicity
 #   ints is a list of integers, with default
-#   objs is a non-empty list of objects
+#   objs is a nonempty list of objects
 #   obj is a single object, maybe empty
 
 Class create Foo -properties {
@@ -1710,7 +1710,7 @@ Class create C {
   :forward ++ -returns integer ::expr 1 +
 
  # Define a method that has to return a
- # non-empty list of objects
+ # nonempty list of objects
  :public object method instances {} \
     -returns object,1..n {
    return [:info instances]
@@ -2249,7 +2249,7 @@ method).
 ==== List Configure Parameters
 The way, how newly created objects can be configured is determined in NX
 via properties. The configuration happens during creation via the
-methods +create+ or +new+ or during runtime via +configure+. These
+methods +create+ or +new+ or during run time via +configure+. These
 methods have therefore virtual argument lists, depending on the object
 or class on which they are applied.
 

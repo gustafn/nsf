@@ -791,7 +791,7 @@ nx::test case cyclic-alias {
     # we can define currently the recursive definition
     ? [list [:] public object alias foo $handle] "::o::foo"
   }
-  # at runtime, we get an exception
+  # at run time, we get an exception
   #puts stderr ======
   ? {o foo} {target "::o::foo" of alias foo apparently disappeared}
 

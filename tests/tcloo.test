@@ -15,7 +15,7 @@ package req nx::test
 # visibility/accessibility modifiers; it is also about extending or
 # reducing the public method interface of an object along the
 # linearization path (or of derived, intermediary classes in an
-# inheritance hierarchy). This export|unexport can be realised by
+# inheritance hierarchy). This export|unexport can be realized by
 # assembling some NSF building blocks: method call protection,
 # selective next forwarding, ...
 # 

@@ -427,7 +427,7 @@ Test case scanning {
       $prj destroy
     }
 
-    # TODO: how to realise scanning and parsing for mixed ex- and
+    # TODO: how to realize scanning and parsing for mixed ex- and
     # in-situ documentation? That is, how to differentiate between
     # absolutely and relatively qualified comment blocks in line-based
     # scanning phase (or later)?

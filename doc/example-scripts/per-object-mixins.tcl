@@ -37,7 +37,7 @@ o1 speak
 # ----
 
 # There are many ways to extend the behavior NX classes at
-# runtime. The easiest thing is to add methods dynamically to
+# run time. The easiest thing is to add methods dynamically to
 # classes. E.g. we can extend the BaseClass with the method unknown,
 # which is called whenever an unknown method is called.
 

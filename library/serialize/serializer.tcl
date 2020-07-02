@@ -875,7 +875,7 @@ namespace eval ::nx::serializer {
       # interpreter when the blueprint script was changed. In the
       # latter case, we have already in the current interpreter
       # predefined objects and classes. When objects are created at
-      # runtime and staying the connection threads, these object will
+      # run time and staying the connection threads, these object will
       # be turned into base class objects, when the classes are
       # deleted and newly defined. Therefore, we cleanup the interp in
       # a first step. Alternate approaches could be to handle these

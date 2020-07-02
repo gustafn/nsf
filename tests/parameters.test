@@ -149,8 +149,8 @@ nx::test case parametercheck {
   # do not allow "currently unknown" user defined types in parametercheck
   ? {::nsf::is -complain in1 aaa} {invalid value constraints "in1"}
 
-  ? {::nsf::is -complain lower c} 1 "lower case char"
-  ? {::nsf::is -complain lower abc} 1 "lower case chars"
+  ? {::nsf::is -complain lower c} 1 "lowercase char"
+  ? {::nsf::is -complain lower abc} 1 "lowercase chars"
   ? {::nsf::is -complain lower Abc} {expected lower but got "Abc"}
   ? {string is lower abc} 1 "tcl command 'string is lower'"
 

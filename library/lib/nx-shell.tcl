@@ -106,7 +106,7 @@ nx::Object create ::nx::shell {
         fileevent stdin readable {}
         :onExit -shell ${:forever}
       } else {
-        # non-interactive modes
+        # noninteractive modes
         :nonInteract {*}$argv
       }
     :exitOff
@@ -115,7 +115,7 @@ nx::Object create ::nx::shell {
 
   :protected object method nonInteract {-c:switch args} {
     if {$c} {
-      # non-interactive mode: arg command xor stdin
+      # noninteractive mode: arg command xor stdin
       if {[llength $args]} {
         # arg command plus argc/argv
         set args [lassign $args script]
@@ -129,7 +129,7 @@ nx::Object create ::nx::shell {
       }
       :evalScript -exit $script
     } else {
-      # non-interactive mode: script
+      # noninteractive mode: script
       set ::argv [lassign $args argv0]
       incr ::argc -1
       if {[catch {uplevel #0 [list source $argv0]} msg opts]} {

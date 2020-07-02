@@ -1252,7 +1252,7 @@ nx::test case dispo-object-targets {
       "Calling defaultmethod via alias+noarg combo with empty default"
   T setObjectParams [list [list z:alias,noarg "XXX"]]
   ? {T create t; ::obj eval {info exists :defaultmethod}} 1 \
-      "Calling defaultmethod via alias+noarg non-empty with \
+      "Calling defaultmethod via alias+noarg nonempty with \
 	default combo (default is not passed)"
   #
   # b) intermediary object aliases, non-fully qualified selector 

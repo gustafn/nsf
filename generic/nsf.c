@@ -126,7 +126,7 @@ typedef struct NsfProcContext {
 /*
  * TclCmdClientdata is an incomplete type containing the common
  * field(s) of ForwardCmdClientData, AliasCmdClientData and
- * SetterCmdClientData used for filling in at runtime the actual
+ * SetterCmdClientData used for filling in at run time the actual
  * object.
  */
 typedef struct TclCmdClientData {
@@ -974,7 +974,7 @@ ParseContextInit(
  *
  * ParseContextExtendObjv --
  *
- *      Extend Tcl_Obj array at runtime, when more elements are
+ *      Extend Tcl_Obj array at run time, when more elements are
  *      needed. This function is called to extend an already
  *      initialized ParseContext.
  *
@@ -2656,7 +2656,7 @@ NsfClassListUnlink(NsfClasses **firstPtrPtr, const void *key) {
     NsfClasses *prevPtr = NULL;
 
     /*
-     * List is non-empty.
+     * List is nonempty.
      */
     for (entryPtr = *firstPtrPtr;
          entryPtr != NULL;
@@ -8488,7 +8488,7 @@ AssertionCheckList(Tcl_Interp *interp, NsfObject *object,
 
   /*
    * Do not check assertion modifying methods, otherwise we cannot react in
-   * catch on a runtime assertion check failure
+   * catch on a run time assertion check failure
    */
 
 #if 1
@@ -15974,7 +15974,7 @@ DispatchDestroyMethod(Tcl_Interp *interp, NsfObject *object, unsigned int flags)
   if (unlikely(rst == NULL)) {
 
     /*
-     * There is no runtime state in this interpreter.
+     * There is no run time state in this interpreter.
      */
     if ((Tcl_Interp_flags(interp) & DELETED)) {
 
@@ -15984,7 +15984,7 @@ DispatchDestroyMethod(Tcl_Interp *interp, NsfObject *object, unsigned int flags)
       result = TCL_OK;
     } else {
       /*
-       * In all other cases we expect a runtime state. If this is violated,
+       * In all other cases we expect a run time state. If this is violated,
        * something substantial must be wrong, so panic.
        */
 
@@ -20231,7 +20231,7 @@ NextGetArguments(
       nobjv = (Tcl_Obj **)ckalloc((unsigned)sizeof(Tcl_Obj *) * (unsigned)nobjc);
       MEM_COUNT_ALLOC("nextArgumentVector", nobjv);
       /*
-       * Copy the ensemble path name
+       * Copy the ensemble pathname
        */
       memcpy((char *)nobjv, cscPtr->objv, sizeof(Tcl_Obj *) * (size_t)methodNameLength);
 
@@ -22950,7 +22950,7 @@ NsfSetterMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *co
  *
  *    Helper function to print either an error message directly to call the
  *    forwarder specific callback method specified in
- *    tcd->onerror. Background: ForwardArg() is called at runtime to
+ *    tcd->onerror. Background: ForwardArg() is called at run time to
  *    substitute the argument list. Catching such errors is not conveniently
  *    doable via catch, since it would be necessary to wrap every possible
  *    usage of a forwarder in a catch. Therefore, the callback function can be
@@ -30518,7 +30518,7 @@ NsfRelationSetCmd(Tcl_Interp *interp, NsfObject *object, RelationtypeIdx_t type,
 
     /* TODO:
        Need to remove these properties?
-       Allow one to delete a class system at runtime?
+       Allow one to delete a class system at run time?
     */
     }
 
@@ -35334,9 +35334,9 @@ ExitHandler(ClientData clientData) {
 #endif
 
   /*
-   * Free runtime state.
+   * Free run time state.
    */
-  /*fprintf(stderr, "+++ ExiHandler frees runtime state of interp %p\n", interp);*/
+  /*fprintf(stderr, "+++ ExiHandler frees run time state of interp %p\n", interp);*/
   ckfree((char *) rst);
 #if defined(USE_ASSOC_DATA)
   Tcl_DeleteAssocData(interp, "NsfRuntimeState");
@@ -35719,7 +35719,7 @@ Nsf_Init(
      * The file "predefined.h" contains some methods and library procs
      * implemented in Tcl - they could go in .tcl file, but they are embedded
      * here with Tcl_Eval to avoid the need to carry around a separate file at
-     * runtime.
+     * run time.
      */
 
 #include "predefined.h"
