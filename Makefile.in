@@ -559,7 +559,7 @@ test: binaries libraries test-core test-xotcl test-http @test_actiweb@
 	for dir in $$dirs ; do \
 	   if (cd $$dir; $(MAKE) $@) ; then true ; else exit 1 ; fi ; \
 	done; fi
-	$(TCLSH) $(src_test_dir_native)/summary.tcl -title NX+XOTcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	@$(TCLSH) $(src_test_dir_native)/summary.tcl -title NX+XOTcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 
 test-nohttp: binaries libraries test-core test-xotcl
 

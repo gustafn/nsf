@@ -239,7 +239,7 @@ test: binaries libraries
 	$(TCLSH) $(srcdir)/tests/nx-reference-many.test -libdir . $(TESTFLAGS)
 	$(TCLSH) $(srcdir)/tests/nx-serialize.test -libdir . $(TESTFLAGS)
 	$(TCLSH) $(srcdir)/tests/nx-rep.test -libdir . $(TESTFLAGS)
-	$(TCLSH) $(srcdir)/../../tests/summary.tcl -title MongoDB -libdir . $(TESTFLAGS)
+	@$(TCLSH) $(srcdir)/../../tests/summary.tcl -title MongoDB -libdir . $(TESTFLAGS)
 
 
 shell: binaries libraries
