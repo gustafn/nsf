@@ -241,7 +241,7 @@ namespace eval ::nx::mongo {
         foreach {pos type v} $value {lappend result [:bson decode $type $v]}
         return $result
       } elseif {$bsontype eq "document"} {
-        #puts stderr "*** we have an document '$value', [:serialize]"
+        #puts stderr "*** we have a document '$value', [:serialize]"
         if {${:type} eq "embedded" && [info exists :arg]} {
           #puts stderr "*** we have an embedded class = ${:arg}"
           set value [${:arg} bson create $value]
@@ -813,14 +813,14 @@ namespace eval ::nx::mongo {
   }
 
   #
-  # Allow special representations in MongoDB for instance variables.
+  # Provide special representations in MongoDB for instance variables.
   # The methods
   #
   #   bson rep encode <CODEC> ....
   #   bson rep decode <CODEC> ....
   #
-  # allow for creating tailored methods to obtain + encode instance
-  # variables and for decode an setting these. The codecs
+  # can be used for creating tailored methods to obtain and encode
+  # instance variables and for decoding and setting these. The codecs
   # (coder/decoder) are extensible on the application level by
   # defining ensemble methods with the name of the codec as last part.
 

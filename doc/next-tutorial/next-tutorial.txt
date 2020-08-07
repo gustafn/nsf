@@ -520,7 +520,7 @@ constraint in its argument list (+thing:integer+) that makes sure
 that only integers can be stacked. In case the argument is not an
 integer, an exception will be raised. Of course, one could perform the
 value constraint checking as well in the body of the method +proc+ by
-accepting an generic argument and by performing the test for the value
+accepting a generic argument and by performing the test for the value
 in the body of the method. In the case, the passed value is an
 integer, the +push+ method of <<xmp-object-integer-stack,
 {xmp-object-integer-stack}>> calls +next+, and therefore calls the
@@ -1157,7 +1157,7 @@ s1 helper 3 4  ;# raises error: unable to dispatch method helper
 --------------------------------------------------
 
 The base class implements a public method +foo+ using the helper
-method named +helper+. The derived class implements a as well a public
+method named +helper+. The derived class implements as well a public
 method +bar+, which is also using a helper method named +helper+. When
 an instance +s1+ is created from the derived class, the method +foo+
 is invoked which uses in turn the private method of the base
@@ -1995,7 +1995,7 @@ previous examples).
 nx::Object create o6 {
 
   #
-  # Positional parameter with an possibly empty
+  # Positional parameter with a possibly empty
   # single value
   #
   :public object method foo {x:integer,0..1} {
@@ -2003,7 +2003,7 @@ nx::Object create o6 {
   }
 
   #
-  # Positional parameter with an possibly empty
+  # Positional parameter with a possibly empty
   # list of values value
   #
   :public object method bar {x:integer,0..n} {

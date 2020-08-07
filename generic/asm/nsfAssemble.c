@@ -165,7 +165,7 @@ AsmInstructionArgvSet(Tcl_Interp *interp, int from, int to, int currentArg,
  *----------------------------------------------------------------------
  * AsmInstructionArgvCheck --
  *
- *    Check the argument types of a assemble statement.
+ *    Check the argument types of an assemble statement.
  *
  *----------------------------------------------------------------------
  */

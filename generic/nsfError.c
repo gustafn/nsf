@@ -544,7 +544,7 @@ NsfDispatchClientDataError(
  *
  *      Produce an error message when a method/command was called
  *      outside the context of an object or a method. The passed in
- *      methodName is NULL when e.g. "self" is called outside of a NSF
+ *      methodName is NULL when e.g. "self" is called outside of an NSF
  *      context.
  *
  * Results:
