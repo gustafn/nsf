@@ -391,7 +391,7 @@ namespace eval ::xotcl::xodoc {
     }
 
     @ XODoc instproc writeFile {
-	filename "file name destination" name "name of the HTML document"
+	filename "filename destination" name "name of the HTML document"
     } {
 	description "Create HTML docuemntation from metadata token and write to file <filename>"
     }

@@ -159,7 +159,7 @@ namespace eval ::xotcl::comm::connection {
       # my showCall
       my instvar socket
       # Prior to the fix for Tcl bug #3401422, there was a regression
-      # in Tcl 8.6 beta versions, causing a previously non-blocking
+      # in Tcl 8.6 beta versions, causing a previously nonblocking
       # socket created using [socket -async] to return to a blocking
       # state. This required a manual overwrite (see below). Starting
       # with the 8.6 release candidates, this is obsolete.
