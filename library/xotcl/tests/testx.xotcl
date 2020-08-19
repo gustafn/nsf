@@ -352,21 +352,21 @@ TestX filterAddRemove -proc run {{n 20}} {
       return $r
     }
     Filtered${i} instfilter testfilter
-    Filtered${i} instproc a args {
-      return "in a"
+    Filtered${i} instproc a1 args {
+      return "in a1"
     }
     Filtered${i} f${i}
     set ::result ""
-    set erg [f${i} a]
+    set erg [f${i} a1]
     ::errorCheck $::result \
-        "{in a-::SA($i)::f2} {in a-::SA($i)::fa} {in a-::SB($i)::f2} {in a-::SB($i)::fb} {in a-::SC($i)::fc} {in a-::Filtered${i}::testfilter}" \
+        "{in a1-::SA($i)::f2} {in a1-::SA($i)::fa} {in a1-::SB($i)::f2} {in a1-::SB($i)::fb} {in a1-::SC($i)::fc} {in a1-::Filtered${i}::testfilter}" \
         "Filter Test - add"
     SC($i) instfilter {}
     SB($i) instfilter fb
     SA($i) instfilter {}
     set ::result ""
-    set erg [f${i} a]
-    ::errorCheck $::result "{in a-::SB($i)::fb} {in a-::Filtered${i}::testfilter}" \
+    set erg [f${i} a1]
+    ::errorCheck $::result "{in a1-::SB($i)::fb} {in a1-::Filtered${i}::testfilter}" \
         "Filter Test - remove"
 
     f${i} proc procFilter args {
@@ -375,8 +375,8 @@ TestX filterAddRemove -proc run {{n 20}} {
     f${i} filter {fa f2 procFilter}
 
     set ::result ""
-    set erg [f${i} a]
-    ::errorCheck $::result "{in a-::SB($i)::fb} {in a-::Filtered${i}::testfilter} {in a-::procFilter-::SB($i)::f2} {in a-::procFilter-::SA($i)::fa}" \
+    set erg [f${i} a1]
+    ::errorCheck $::result "{in a1-::SB($i)::fb} {in a1-::Filtered${i}::testfilter} {in a1-::procFilter-::SB($i)::f2} {in a1-::procFilter-::SA($i)::fa}" \
         "Obj Filter Test call three filter + instfilter"
 
     ::errorCheck [f${i} info filter]-[SB($i) info instfilter]-[SC($i) info instfilter] \
@@ -391,15 +391,15 @@ TestX filterAddRemove -proc run {{n 20}} {
     SB($i) instfilter {}
 
     set ::result ""
-    set erg [f${i} a]
+    set erg [f${i} a1]
     ::errorCheck $::result \
-        "{in a-::procFilter-::SB($i)::f2} {in a-::procFilter-::SA($i)::fa}" \
+        "{in a1-::procFilter-::SB($i)::f2} {in a1-::procFilter-::SA($i)::fa}" \
         "only obj filter"
 
     f${i} filter {}
     set ::result ""
-    set erg [f${i} a]
-    ::errorCheck $erg "in a" \
+    set erg [f${i} a1]
+    ::errorCheck $erg "in a1" \
         "obj filter remove"
   }
 
@@ -425,24 +425,24 @@ TestX filterAddRemove -proc run {{n 20}} {
     # multiple imports for existing (x) and not existing vars (y)
     o instvar x y
     append result "x: $x "
-    append result "y: ie [info exists y] me [my exists y] " \
+    append result "y: info-exists [info exists y] me [my exists y] " \
         "iv '[info vars y]' oe [o exists y] oiv '[o info vars y]' // "
     set y 100
-    append result "y: ie [info exists y] me [my exists y] " \
+    append result "y: info-exists [info exists y] me [my exists y] " \
         "iv '[info vars y]' oe [o exists y] oiv '[o info vars y]'"
     ::errorCheck $result \
-        "x: 1 y: ie 0 me 0 iv 'y' oe 0 oiv '' // y: ie 1 me 0 iv 'y' oe 1 oiv 'y'" \
+        "x: 1 y: info-exists 0 me 0 iv 'y' oe 0 oiv '' // y: info-exists 1 me 0 iv 'y' oe 1 oiv 'y'" \
         "instvar test 1 failed"
     set result ""
     o1 instvar x y
     append result "x: $x "
-    append result "y: ie [info exists y] me [my exists y] " \
+    append result "y: info-exists [info exists y] me [my exists y] " \
         "iv '[info vars y]' oe [o1 exists y] oiv '[o1 info vars y]' // "
     set y 101
-    append result "y: ie [info exists y] me [my exists y] " \
+    append result "y: info-exists [info exists y] me [my exists y] " \
         "iv '[info vars y]' oe [o1 exists y] oiv '[o1 info vars y]'"
     ::errorCheck $result \
-        "x: 11 y: ie 0 me 0 iv 'y' oe 0 oiv '' // y: ie 1 me 0 iv 'y' oe 1 oiv 'y'" \
+        "x: 11 y: info-exists 0 me 0 iv 'y' oe 0 oiv '' // y: info-exists 1 me 0 iv 'y' oe 1 oiv 'y'" \
         "instvar test 2 failed"
   }
 
@@ -455,15 +455,15 @@ TestX filterAddRemove -proc run {{n 20}} {
   global filterResult
   set filterResult ""
 
-  Object a -requireNamespace
-  a set o 12
-  a set p 13
+  Object a1 -requireNamespace
+  a1 set o 12
+  a1 set p 13
   Class A
   A set m 14
 
   Object instproc f args {
     global filterResult
-    a instvar o p
+    a1 instvar o p
     A instvar m
     ::append filterResult " [self] [self calledproc] [self callingproc]"
     ::append filterResult " $o $p $m"
@@ -471,7 +471,7 @@ TestX filterAddRemove -proc run {{n 20}} {
   }
 
   proc x {} {
-    set ::a::e xxx
+    set ::a1::e xxx
   }
 
   Object instfilter f
@@ -479,14 +479,14 @@ TestX filterAddRemove -proc run {{n 20}} {
   x
   rename x ""
 
-  ::errorCheck $::a::e xxx \
+  ::errorCheck $::a1::e xxx \
       "filterAddRemove: instvar test -- proc set failed"
-  a set e yyy
+  a1 set e yyy
 
-  ::errorCheck $::a::e yyy \
+  ::errorCheck $::a1::e yyy \
       "filterAddRemove: instvar test -- obj set failed"
   
-  ::errorCheck $filterResult " ::A instvar f 12 13 14 ::a set run 12 13 14" \
+  ::errorCheck $filterResult " ::A instvar f 12 13 14 ::a1 set run 12 13 14" \
       "filterAddRemove: instvar test -- instvar filter failed"
 
   Object instfilter ""   
@@ -763,7 +763,7 @@ TestX filterGuards -proc run {{n 20}} {
       b1 filter {{f2 -guard {[self calledproc] eq "info"}}}
 
       set ::filterResult ""
-      b1 proc a {} {
+      b1 proc a1 {} {
 	#
       }
       ::errorCheck $::filterResult "" \
@@ -3129,14 +3129,14 @@ smallScripts proc run {{n 20}} {
 
     for {set i 1} {$i < $n} {incr i} {
       Class A
-      A a
+      A a1
       set oname1 [Object autoname ooo]
       set oname2 [Object autoname -instance OOO]
       A autoname  -reset AAA
       set names [A autoname AAA]
-      a autoname -reset aaa
-      lappend names [a autoname aaa]
-      lappend names [a autoname aaa]
+      a1 autoname -reset aaa
+      lappend names [a1 autoname aaa]
+      lappend names [a1 autoname aaa]
       ::errorCheck $names "AAA1 aaa1 aaa2" "Autoname creation"
       ::errorCheck $oname1 "ooo$i" "Autoname Object 1"
       ::errorCheck $oname2 "oOO$i" "Autoname Object 2"
@@ -3328,7 +3328,7 @@ TestX objectReferences -proc run {{n 20}} {
   }
   
   for {set i 1} {$i < 20} {incr i} {
-    # "reference to xotcl object in instvar"
+    # "reference to XOTcl object in instvar"
     Class LexxTreeMounter
     Class LexxTree
     LexxTreeMounter proc new {args} {
@@ -3354,7 +3354,7 @@ TestX objectReferences -proc run {{n 20}} {
 
     ::errorCheck [llength [LexxTreeMounter info instances]] 1 singleton
 
-    # "Global reference to xotcl object"
+    # "Global reference to XOTcl object"
     set ::v [Object ::a]
     set ::w [Object ::b]
     set ::z(1) [Object ::c]
@@ -3986,7 +3986,7 @@ TestX create nonposargs -proc run {{n 20}} {
   o proc y {-x {-a {1 2 3}} a b} {
     return "$args"
   }
-  o proc z1 {-x:required {-a {1 2 3}} a args} {
+  o proc z1 {-x:required {-a {1 2 3}} a1 args} {
     return "$x -- $args"
   }
   o proc z2 {-x:required {-a {1 }} {-b {1 2}} args} {return "$x -- $args -- $a -- $b"}
@@ -4051,7 +4051,7 @@ TestX create nonposargs -proc run {{n 20}} {
     o z1 a 1 2 3
   } m
   errorCheck $m {required argument 'x' is missing, should be:
-        ::o z1 -x /value/ ?-a /value/? /a/ ?/arg .../?} "required missing"
+        ::o z1 -x /value/ ?-a /value/? /a1/ ?/arg .../?} "required missing"
   errorCheck [o z1 -x 1  a 1 2 3] "1 -- 1 2 3" "invocation 1"
   errorCheck [o z2 -x 2  a 1 2 3] "2 -- a 1 2 3 -- 1  -- 1 2" "invocation 2"
   catch {
@@ -4199,10 +4199,10 @@ TestX create nonposargs -proc run {{n 20}} {
     if {$x != 1} {error "x $x != 1"}
     if {[info exists args]} {error "args still exists"}
   }
-  o proc p1 {{-x 1} a args} {
-    #puts "--- [self proc] x=$x [info exists a] args=$args"
-    if {![info exists a]} {error "pos arg a does not exist"}
-    if {$a != 1} {error "a $a != 1"}
+  o proc p1 {{-x 1} a1 args} {
+    #puts "--- [self proc] x=$x [info exists a1] args=$args"
+    if {![info exists a1]} {error "pos arg a1 does not exist"}
+    if {$a1 != 1} {error "a $a1 != 1"}
     if {$x != 1} {error "x $x != 1"}
     if {$args ne ""} {error "args $args ne {}"}
   }
@@ -4218,31 +4218,31 @@ TestX create nonposargs -proc run {{n 20}} {
     if {$x != 2} {error "x $x != 2"}
     if {$args ne "a b c"} {error "args $args ne {a b c}"}
   }
-  o proc p5 {{-x 1} a args} {
-    #puts "--- [self proc] x=$x [info exists a] args=$args"
-    if {![info exists a]} {error "pos arg a does not exist"}
-    if {$a != 1} {error "a $a != 1"}
+  o proc p5 {{-x 1} a1 args} {
+    #puts "--- [self proc] x=$x [info exists a1] args=$args"
+    if {![info exists a1]} {error "pos arg a1 does not exist"}
+    if {$a1 != 1} {error "a $a1 != 1"}
     if {$x != 1} {error "x $x != 1"}
     if {$args ne "a b c"} {error "args $args ne {a b c}"}
   }
-  o proc p6 {{-x 1} a args} {
-    #puts "--- [self proc] x=$x [info exists a] args=$args"
-    if {![info exists a]} {error "pos arg a does not exist"}
-    if {$a != 1} {error "a $a != 1"}
+  o proc p6 {{-x 1} a1 args} {
+    #puts "--- [self proc] x=$x [info exists a1] args=$args"
+    if {![info exists a1]} {error "pos arg a1 does not exist"}
+    if {$a1 != 1} {error "a1 $a1 != 1"}
     if {$x != 2} {error "x $x != 2"}
     if {$args ne "a b c"} {error "args $args ne {a b c}"}
   }
-  o proc p7 {{-x 1} a args} {
-    #puts "--- [self proc] x=$x [info exists a] args=$args"
-    if {![info exists a]} {error "pos arg a does not exist"}
-    if {$a != 1} {error "a $a != 1"}
+  o proc p7 {{-x 1} a1 args} {
+    #puts "--- [self proc] x=$x [info exists a1] args=$args"
+    if {![info exists a1]} {error "pos arg a1 does not exist"}
+    if {$a1 != 1} {error "a1 $a1 != 1"}
     if {$x != 2} {error "x $x != 2"}
     if {$args ne ""} {error "args $args ne {}"}
   }
-  o proc p8 {{-x 1} {a 1} args} {
+  o proc p8 {{-x 1} {a1 1} args} {
     #puts "--- [self proc] x=$x [info exists a] args=$args"
-    if {![info exists a]} {error "pos arg a does not exist"}
-    if {$a != 1} {error "a $a != 1"}
+    if {![info exists a1]} {error "pos arg a1 does not exist"}
+    if {$a1 != 1} {error "a1 $a1 != 1"}
     if {$x != 2} {error "x $x != 2"}
     if {$args ne ""} {error "args $args ne {}"}
   }

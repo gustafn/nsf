@@ -601,14 +601,14 @@ set x [Object new -set x 1 -contains {
 #
 
 Class Fred -slots {
-  #Attribute create a -defaultcmd { set _ 4 }
-  Attribute create a -trace default
-  a object method value=default {obj property} { return 4 }
+  #Attribute create attr1 -defaultcmd { set _ 4 }
+  Attribute create attr1 -trace default
+  attr1 object method value=default {obj property} { return 4 }
 }
-? {Fred x} ::x
-? {x a 4} 4
+? {Fred create x} ::x
+? {x attr1 4} 4
 x move y
-? {y a} 4
+? {y attr1} 4
 
 ::nx::test case slots-compat
 #
