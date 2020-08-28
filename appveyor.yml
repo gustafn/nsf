@@ -51,7 +51,7 @@ matrix:
 
 install:
   - if "%TOOLCHAIN%" == "nmake-tea" call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars64.bat"
-  - appveyor-retry choco install openssh -confirm
+  # - appveyor-retry choco install openssh -confirm
   - ps: iex ((New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/appveyor/secure-file/master/install.ps1'))
   - appveyor-tools\secure-file -decrypt deploy_key.appveyor.enc -out deploy_key -secret %my_secret%
   - if not exist "%MINGW_ARCHIVE%" appveyor DownloadFile "%MINGW_URL%" -FileName "%MINGW_ARCHIVE%"
@@ -80,7 +80,7 @@ after_build:
 - ps: $env:DATESTRING=(get-date -UFormat "%Y%m%d").ToString()
 - set TARBALL="nsf_%APPVEYOR_REPO_BRANCH%_%TCLTAG%_win_%TOOLCHAIN%_%DATESTRING%_%APPVEYOR_BUILD_NUMBER%.zip"
 - if exist "%CD%\install" 7z a %TARBALL% %CD%\install\* 
-- if exist "%TARBALL%" "C:\Program Files\OpenSSH-Win64\scp.exe" -v -oStrictHostKeyChecking=no -i deploy_key %TARBALL% "sobernig@alice.wu.ac.at:/home/sobernig/builds"
+- if exist "%TARBALL%" C:\msys64\usr\bin\scp.exe -v -oStrictHostKeyChecking=no -i deploy_key %TARBALL% "sobernig@alice.wu.ac.at:/home/sobernig/builds"
 
 cache:
   - tclkit.exe -> appveyor.yml
