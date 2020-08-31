@@ -220,7 +220,8 @@ static Tcl_ObjType CONST86
   *Nsf_OT_intType = NULL,
   *Nsf_OT_parsedVarNameType = NULL,
   *Nsf_OT_byteArrayType = NULL,
-  *Nsf_OT_properByteArrayType = NULL;
+  *Nsf_OT_properByteArrayType = NULL,
+  *Nsf_OT_bignumType = NULL;
 
 /*
  * Function prototypes
@@ -16689,7 +16690,7 @@ Nsf_ConvertToInteger(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr
    * Try to short_cut common cases to avoid conversion to bignums, since
    * Tcl_GetBignumFromObj returns a value, which has to be freed.
    */
-  if (objPtr->typePtr == Nsf_OT_intType) {
+  if (objPtr->typePtr == Nsf_OT_intType || objPtr->typePtr == Nsf_OT_bignumType) {
     /*
      * We know already that the value is an int
      */
@@ -35544,6 +35545,15 @@ Nsf_Init(
 
   Nsf_OT_byteArrayType = Tcl_GetObjType("bytearray");
   assert(Nsf_OT_byteArrayType != NULL);
+
+  { mp_int bignumValue;
+
+    tmpObj = Tcl_NewStringObj("10000000000000000000000", -1);
+    Tcl_GetBignumFromObj(NULL, tmpObj, &bignumValue);
+    Nsf_OT_bignumType =  tmpObj->typePtr;
+    assert(Nsf_OT_bignumType != NULL);
+    Tcl_DecrRefCount(tmpObj);
+  }
 
   /*
    * Get bytearray and proper bytearray from Tcl (latter if available,
