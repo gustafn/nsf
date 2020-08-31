@@ -16670,9 +16670,10 @@ Nsf_ConvertToInt32(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr,
 # ifndef MP_INT_DECLARED
 typedef size_t mp_int[4];
 # endif
+#else
+# include <tclTomMath.h>
 #endif
 
-//#include <tclTomMath.h>
 
 int Nsf_ConvertToInteger(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr,
                      ClientData *clientData, Tcl_Obj **outObjPtr)
