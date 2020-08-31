@@ -16665,9 +16665,11 @@ Nsf_ConvertToInt32(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr,
  * See https://core.tcl-lang.org/tcl/tktview?name=4663e0636f (also for other
  * mid-term options)
  */
-#define TCL_NO_TOMMATH_H 1
+//#define TCL_NO_TOMMATH_H 1
+typedef size_t mp_int[4];
 #endif
-#include <tclTomMath.h>
+
+//#include <tclTomMath.h>
 
 int Nsf_ConvertToInteger(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr,
                      ClientData *clientData, Tcl_Obj **outObjPtr)
@@ -16698,9 +16700,9 @@ Nsf_ConvertToInteger(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr
      */
     result = TCL_ERROR;
   } else {
-    long        longValue;
-    Tcl_WideInt wideIntValue;
-    mp_int      bignumValue;
+    long         longValue;
+    Tcl_WideInt  wideIntValue;
+    mp_int       bignumValue;
 
     /*
      * We have to figure out, whether the value is an int. We perform this
