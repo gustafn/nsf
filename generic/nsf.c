@@ -35489,9 +35489,13 @@ Nsf_Init(
     if (Tcl_InitStubs(interp, "8.5", 0) == NULL) {
       return TCL_ERROR;
     }
+# if TCL_MAJOR_VERSION > 8 || TCL_MINOR_VERSION > 6
+    /* Tcl_TomMath_InitStubs() not needed */
+# else
     if (Tcl_TomMath_InitStubs(interp, "8.5") == NULL) {
       return TCL_ERROR;
     }
+# endif
     stubsInitialized = 1;
   }
 #endif
