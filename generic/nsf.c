@@ -5,7 +5,7 @@
  *      for supporting language-oriented programming.  For details, see
  *      https://next-scripting.org/.
  *
- * Copyright (C) 1999-2019 Gustaf Neumann (a) (b)
+ * Copyright (C) 1999-2020 Gustaf Neumann (a) (b)
  * Copyright (C) 1999-2007 Uwe Zdun (a) (b)
  * Copyright (C) 2007-2008 Martin Matuska (b)
  * Copyright (C) 2010-2019 Stefan Sobernig (b)
@@ -16698,7 +16698,9 @@ Nsf_ConvertToInteger(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr
      */
     result = TCL_ERROR;
   } else {
-    mp_int bignumValue;
+    long        longValue;
+    Tcl_WideInt wideIntValue;
+    mp_int      bignumValue;
 
     /*
      * We have to figure out, whether the value is an int. We perform this
@@ -16707,12 +16709,19 @@ Nsf_ConvertToInteger(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr
      */
 
     /*if (objPtr->typePtr != NULL) {
-      fprintf(stderr, "type is on call %p %s value %s \n",
-          objPtr->typePtr, ObjTypeStr(objPtr), ObjStr(objPtr));
-          }*/
+      fprintf(stderr, "### type is on call %p %s value %s \n",
+              objPtr->typePtr, ObjTypeStr(objPtr), ObjStr(objPtr));
+              }*/
 
-    if ((result = Tcl_GetBignumFromObj(interp, objPtr, &bignumValue)) == TCL_OK) {
-      mp_clear(&bignumValue);
+    if ((result = Tcl_GetLongFromObj(interp, objPtr, &longValue)) == TCL_OK) {
+
+    } else if ((result = Tcl_GetWideIntFromObj(interp, objPtr, &wideIntValue)) == TCL_OK) {
+
+    } else if ((result = Tcl_GetBignumFromObj(interp, objPtr, &bignumValue)) == TCL_OK) {
+      Tcl_Obj *bigNumObj = Tcl_NewBignumObj(&bignumValue);
+
+      Tcl_DecrRefCount(bigNumObj);
+      /* fprintf(stderr, "### IS BIG %s\n", objPtr->typePtr->name); */
     }
   }
 
