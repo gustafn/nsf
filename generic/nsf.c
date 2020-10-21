@@ -27429,7 +27429,7 @@ NsfDebugGetDict(Tcl_Interp *interp, Tcl_Obj *obj) {
       snprintf(buffer + i*2, sizeof(buffer) - (i+1)*2, "%.2x", (unsigned)(*((obj->bytes)+i) & 0xff));
     }
     if (objLength > NSF_DEBUG_SHOW_BYTES) {
-      strncat(buffer, trailer, sizeof(buffer) - strlen(buffer) - 1);
+      memmove(buffer, trailer, sizeof(buffer) - strlen(buffer) - 1);
     }
     Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj(buffer, -1));
 
