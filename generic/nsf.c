@@ -14736,7 +14736,7 @@ MethodDispatchCsc(
     /*
      * The cmd is a scripted method
      */
-
+    //assert(((Proc *)cp)->refCount > 0);
     result = ProcMethodDispatch(cp, interp, objc, objv, methodName,
                                 object, cscPtr->cl, cmd, cscPtr);
 #if defined(NRE)
@@ -20808,7 +20808,7 @@ static Tcl_Obj * ComputeLevelObj(Tcl_Interp *interp, CallStackLevel level)
 
 static Tcl_Obj *
 ComputeLevelObj(Tcl_Interp *interp, CallStackLevel level) {
-  Tcl_CallFrame *framePtr;
+  Tcl_CallFrame *framePtr = NULL;
   Tcl_Obj       *resultObj;
 
   nonnull_assert(interp != NULL);
@@ -23003,7 +23003,7 @@ NsfForwardPrintError(Tcl_Interp *interp, ForwardCmdClientData *tcd,
   NsfDStringVPrintf(&ds, fmt, ap);
   va_end(ap);
 
-  fprintf(stderr, "==== DEBUG AppVeyor: error msg<<%s>> (len %d)\n", ds.string, ds.length);
+  //fprintf(stderr, "==== DEBUG AppVeyor: error msg<<%s>> (len %d)\n", ds.string, ds.length);
 
   if (tcd->onerror != NULL) {
     Tcl_Obj *script = Tcl_DuplicateObj(tcd->onerror);
@@ -25170,7 +25170,7 @@ static Tcl_Obj *
 ListParamDefs(Tcl_Interp *interp, const Nsf_Param *paramsPtr,
               NsfObject *contextObject,  const char *pattern,
               NsfParamsPrintStyle style) {
-  Tcl_Obj *listObj;
+  Tcl_Obj *listObj = NsfGlobalObjs[NSF_EMPTY]; /* enumeration is complete, make stupid checker happy */
 
   nonnull_assert(interp != NULL);
   nonnull_assert(paramsPtr != NULL);
