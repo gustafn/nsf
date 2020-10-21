@@ -39,7 +39,7 @@ the command line provided by [arg arg1]. If [arg arg1] is omitted,
 
 [para] 
 
-[syscmd "nxsh"] can be used like [syscmd "tclsh"] to make NX scripts directly invokable from the shell, by providing the following first line ("shebang") in the respective script:
+[syscmd "nxsh"] can be used like [syscmd "tclsh"] to make NX scripts directly invocable from the shell, by providing the following first line ("shebang") in the respective script:
 
 [example {
 	#! /usr/bin/env nxsh 

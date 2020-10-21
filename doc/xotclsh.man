@@ -18,7 +18,7 @@
 
 [para] 
 
-[syscmd "xotclsh"] can be used like [syscmd "tclsh"] to make XOTcl2 scripts directly invokable from the shell, by providing the following first line ("shebang") in the respective script:
+[syscmd "xotclsh"] can be used like [syscmd "tclsh"] to make XOTcl2 scripts directly invocable from the shell, by providing the following first line ("shebang") in the respective script:
 
 [example {
 	#! /usr/bin/env xotclsh 
