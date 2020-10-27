@@ -70,8 +70,8 @@
 #if defined(PRE86)
 extern NsfStubs *nsfStubsPtr;
 #else
-MODULE_SCOPE const NsfStubs *nsfStubsPtr;
-MODULE_SCOPE const NsfIntStubs *nsfIntStubsPtr;
+//MODULE_SCOPE const NsfStubs *nsfStubsPtr;
+//MODULE_SCOPE const NsfIntStubs *nsfIntStubsPtr;
 #endif
 CONST86 NsfStubs *nsfStubsPtr = NULL;
 CONST86 NsfIntStubs *nsfIntStubsPtr = NULL;

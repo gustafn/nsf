@@ -83,7 +83,8 @@ MethodFreeInternalRep(
   if (mcPtr != NULL) {
 #if defined(METHOD_OBJECT_TRACE)
     fprintf(stderr, "MethodFreeInternalRep %p methodContext %p methodEpoch %d type <%s>\n",
-            objPtr, mcPtr, mcPtr->methodEpoch, (objPtr->typePtr != NULL) ? objPtr->typePtr->name : "none");
+            (void*)objPtr, (void*)mcPtr,
+            mcPtr->methodEpoch, (objPtr->typePtr != NULL) ? objPtr->typePtr->name : "none");
 #endif
     /*
      * ... and free structure
@@ -105,7 +106,7 @@ MethodDupInternalRep(
   register NsfMethodContext *srcMcPtr = srcObjPtr->internalRep.twoPtrValue.ptr1, *dstMcPtr;
 
 #if defined(METHOD_OBJECT_TRACE)
-  fprintf(stderr, "MethodDupInternalRep src %p dst %p\n", srcObjPtr, dstObjPtr);
+  fprintf(stderr, "MethodDupInternalRep src %p dst %p\n", (void *)srcObjPtr, (void *)dstObjPtr);
 #endif
 
   dstMcPtr = NEW(NsfMethodContext);
@@ -141,7 +142,8 @@ NsfMethodObjSet(
 #if defined(METHOD_OBJECT_TRACE)
   fprintf(stderr, "... NsfMethodObjSet %p %s context %p methodEpoch %d "
           "cmd %p cl %p %s old obj type <%s> flags %.6x\n",
-          objPtr, ObjStr(objPtr), context, methodEpoch, cmd, cl,
+          (void *)objPtr, ObjStr(objPtr), context, methodEpoch,
+          (void *)cmd, (void *)cl,
           (cl != NULL) ? ClassName(cl) : "obj",
           (objPtr->typePtr != NULL) ? objPtr->typePtr->name : "none", flags);
 #endif
@@ -161,13 +163,14 @@ NsfMethodObjSet(
     objPtr->typePtr = objectType;
 #if defined(METHOD_OBJECT_TRACE)
     fprintf(stderr, "alloc %p methodContext %p methodEpoch %d type <%s> %s refCount %d\n",
-            objPtr, mcPtr, methodEpoch, objectType->name, ObjStr(objPtr), objPtr->refCount);
+            (void *)objPtr, (void *)mcPtr,
+            methodEpoch, objectType->name, ObjStr(objPtr), objPtr->refCount);
 #endif
   } else {
     mcPtr = (NsfMethodContext *)objPtr->internalRep.twoPtrValue.ptr1;
 #if defined(METHOD_OBJECT_TRACE)
     fprintf(stderr, "... NsfMethodObjSet %p reuses internal rep, serial (%d/%d) refCount %d\n",
-            objPtr, mcPtr->methodEpoch, methodEpoch, objPtr->refCount);
+            (void *)objPtr, mcPtr->methodEpoch, methodEpoch, objPtr->refCount);
 #endif
   }
 
@@ -248,7 +251,7 @@ FlagDupInternalRep(
   register NsfFlag *srcPtr = (NsfFlag *)srcObjPtr->internalRep.twoPtrValue.ptr1, *dstPtr;
 
 #if defined(METHOD_OBJECT_TRACE)
-  fprintf(stderr, "FlagDupInternalRepx src %p dst %p\n", srcObjPtr, dstObjPtr);
+  fprintf(stderr, "FlagDupInternalRepx src %p dst %p\n", (void *)srcObjPtr,(void *)dstObjPtr);
 #endif
 
   dstPtr = NEW(NsfFlag);
@@ -396,7 +399,7 @@ MixinregDupInternalRep(
 
 #if defined(METHOD_OBJECT_TRACE)
   fprintf(stderr, "MixinregDupInternalRep src %p dst %p\n",
-          srcObjPtr, dstObjPtr);
+          (void *)srcObjPtr, (void *)dstObjPtr);
 #endif
   dstPtr = NEW(Mixinreg);
   memcpy(dstPtr, srcPtr, sizeof(Mixinreg));
@@ -405,7 +408,9 @@ MixinregDupInternalRep(
    * increment refcounts
    */
   NsfObjectRefCountIncr(&(srcPtr->mixin)->object);
-  if (srcPtr->guardObj != NULL) {INCR_REF_COUNT2("mixinRegPtr->guardObj", srcPtr->guardObj);}
+  if (srcPtr->guardObj != NULL) {
+    INCR_REF_COUNT2("mixinRegPtr->guardObj", srcPtr->guardObj);
+  }
 
   /*
    * update destination obj
@@ -678,7 +683,7 @@ FilterregDupInternalRep(
   assert(srcPtr != NULL);
 
 #if defined(METHOD_OBJECT_TRACE)
-  fprintf(stderr, "FilterregDupInternalRep src %p dst %p\n", srcObjPtr, dstObjPtr);
+  fprintf(stderr, "FilterregDupInternalRep src %p dst %p\n", (void *)srcObjPtr, (void *)dstObjPtr);
 #endif
 
   dstPtr = NEW(Filterreg);

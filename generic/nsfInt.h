@@ -383,8 +383,8 @@ typedef struct NsfMemCounter {
 #ifdef OBJDELETION_TRACE
 # define PRINTOBJ(ctx,object) \
   fprintf(stderr, "  %s %p %s oid=%p teardown=%p destroyCalled=%d\n", \
-	  (ctx),(object),(object)->teardown?ObjStr((object)->cmdName):"(deleted)", \
-	  (object)->id, (object)->teardown,                                 \
+	  (ctx),(void *)(object),(object)->teardown?ObjStr((object)->cmdName):"(deleted)", \
+	  (void *)(object)->id, (void *)(object)->teardown,                                \
 	  ((object)->flags & NSF_DESTROY_CALLED))
 #else
 # define PRINTOBJ(ctx,object)
@@ -1081,12 +1081,12 @@ EXTERN void NsfCleanupObject_(NsfObject *object) nonnull(1);
 #if defined(NSFOBJ_TRACE)
 # define NsfObjectRefCountIncr(object)		\
   ((NsfObject *)(object))->refCount++;		\
-  fprintf(stderr, "RefCountIncr %p count=%d %s\n", (object), ((NsfObject *)(object))->refCount, \
+  fprintf(stderr, "RefCountIncr %p count=%d %s\n", (void *)(object), ((NsfObject *)(object))->refCount, \
 	  ((NsfObject *)object)->cmdName?ObjStr(((NsfObject *)(object))->cmdName):"no name");   \
   MEM_COUNT_ALLOC("NsfObject.refCount", (object))
 # define NsfObjectRefCountDecr(object)					\
   (object)->refCount--;							\
-  fprintf(stderr, "RefCountDecr %p count=%d\n", (object), (object)->refCount); \
+  fprintf(stderr, "RefCountDecr %p count=%d\n", (void *)(object), (object)->refCount); \
   MEM_COUNT_FREE("NsfObject.refCount", (object))
 #else
 # define NsfObjectRefCountIncr(object)          \
@@ -1164,13 +1164,13 @@ void NsfMemCountRelease(void);
  */
 #if defined(TCL_STACK_ALLOC_TRACE)
 # define NsfTclStackFree(interp,ptr,msg) \
-  fprintf(stderr, "---- TclStackFree %p %s\n", ptr, msg);\
+  fprintf(stderr, "---- TclStackFree %p %s\n", (void *)ptr, msg);\
   TclStackFree(interp,ptr)
 
 static char *
-NsfTclStackAlloc(Tcl_Interp *interp, size_t size, char *msg) {
-  char *ptr = TclStackAlloc(interp, size);
-  fprintf(stderr, "---- TclStackAlloc %p %s\n", ptr, msg);
+NsfTclStackAlloc(Tcl_Interp *interp, size_t size, const char *msg) {
+  char *ptr = TclStackAlloc(interp, (int)size);
+  fprintf(stderr, "---- TclStackAlloc %p %s\n", (void *)ptr, msg);
   return ptr;
 }
 #else

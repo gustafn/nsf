@@ -409,12 +409,12 @@ typedef struct Nsf_Param {
 # define NSF_FALL_THROUGH ((void)0)
 #endif
 
-
+/*
 EXTERN int
 NsfArgumentError(Tcl_Interp *interp, const char *errorMsg, Nsf_Param const *paramPtr,
 		 Tcl_Obj *cmdNameObj, Tcl_Obj *methodPathObj)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
-
+*/
 
 EXTERN int
 NsfDispatchClientDataError(Tcl_Interp *interp, ClientData clientData,
@@ -487,16 +487,16 @@ typedef struct Nsf_methodDefinition {
 /*
  * Nsf Enumeration type interface
  */
+#if 0
 EXTERN int Nsf_EnumerationTypeRegister(Tcl_Interp *interp, Nsf_EnumeratorConverterEntry *typeRecords)
   NSF_nonnull(1) NSF_nonnull(2);
-
 
 /*
  * Nsf Cmd definition interface
  */
 EXTERN int  Nsf_CmdDefinitionRegister(Tcl_Interp *interp, Nsf_methodDefinition *definitionRecords)
   NSF_nonnull(1) NSF_nonnull(2);
-
+#endif
 
 /*
  * Include the public function declarations that are accessible via
