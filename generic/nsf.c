@@ -15434,6 +15434,7 @@ ObjectDispatch(
     Proc *procPtr = Tcl_Command_objClientData(ccCtxPtr->cmd);
 
     if ((Tcl_Interp *)procPtr->iPtr != interp
+        || procPtr->bodyPtr == NULL
         || procPtr->refCount < 1
         || procPtr->numArgs < 0
         || procPtr->numArgs > 10000
@@ -15441,11 +15442,11 @@ ObjectDispatch(
         || procPtr->numCompiledLocals > 10000
        ) {
       fprintf(stderr, "################### do NOT trust cached procPtr %p of %s "
-              "(object %s class %s) "
+              "(object %s class %s) bodyPtr %p "
               "iPtr %p interp %p refCount %d numArgs %d numCompiledLocals %d\n",
               (void*)procPtr, methodName,
               ObjectName(object), ClassName(object->cl),
-              (void*)procPtr->iPtr, (void*)interp,
+              (void*)procPtr->bodyPtr, (void*)procPtr->iPtr, (void*)interp,
               procPtr->refCount, procPtr->numArgs, procPtr->numCompiledLocals);
       ccCtxPtr = NULL;
     }
