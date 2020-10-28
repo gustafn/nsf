@@ -1429,7 +1429,7 @@ namespace eval ::nx {
   }
 
   ObjectParameterSlot public method onError {cmd msg} {
-    puts stderr "==== DEBUG AppVeyor behavior <$cmd> <$msg>"
+    #puts stderr "==== DEBUG AppVeyor behavior <$cmd> <$msg>"
     if {[string match "%1 requires argument*" $msg]} {
       set template {wrong # args: use \"$cmd [join $methods |]\"}
     } elseif {[string match "*unknown for slot*" $msg]} {
