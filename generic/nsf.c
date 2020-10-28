@@ -15414,6 +15414,44 @@ ObjectDispatch(
   ccCtxPtr = methodObj->internalRep.twoPtrValue.ptr2;
 
 
+#if 1
+  /*
+   * This code block is purely for debugging erroneous behavior with broken
+   * cached Tcl Command, where the command itself looks perfectly fine, but
+   * the procPtr behind this contains invalid data. This seems to happen only
+   * for scripted commands. In such cases, we do not trust the data obtained
+   * from the Tcl_Obj.
+   */
+  if (ccCtxPtr != NULL
+      && (
+          methodObjTypePtr == Nsf_OT_tclCmdNameType
+          || methodObjTypePtr == &NsfInstanceMethodObjType
+          || methodObjTypePtr == &NsfObjectMethodObjType
+      )
+      && Tcl_Command_objProc(ccCtxPtr->cmd) == TclObjInterpProc) {
+    //fprintf(stderr, "cached scipted call %s (object %s class %s) \n",
+    //        methodName, ObjectName(object), ClassName(object->cl));
+    Proc *procPtr = Tcl_Command_objClientData(ccCtxPtr->cmd);
+
+    if ((Tcl_Interp *)procPtr->iPtr != interp
+        || procPtr->refCount < 1
+        || procPtr->numArgs < 0
+        || procPtr->numArgs > 10000
+        || procPtr->numCompiledLocals < 0
+        || procPtr->numCompiledLocals > 10000
+       ) {
+      fprintf(stderr, "################### do NOT trust cached procPtr %p of %s "
+              "(object %s class %s) "
+              "iPtr %p interp %p refCount %d numArgs %d numCompiledLocals %d\n",
+              (void*)procPtr, methodName,
+              ObjectName(object), ClassName(object->cl),
+              (void*)procPtr->iPtr, (void*)interp,
+              procPtr->refCount, procPtr->numArgs, procPtr->numCompiledLocals);
+      ccCtxPtr = NULL;
+    }
+  }
+#endif
+
   assert(object->teardown != NULL);
 
 #if defined(METHOD_OBJECT_TRACE)
@@ -23417,8 +23455,8 @@ CallForwarder(ForwardCmdClientData *tcd, Tcl_Interp *interp, int objc, Tcl_Obj *
     const char *errorMsg =  ObjStr(resultObj);
 
     INCR_REF_COUNT(resultObj);
-    fprintf(stderr, "==== DEBUG AppVeyor: calling NsfForwardPrintError with <<%s>> (len %lu)\n",
-            errorMsg, (unsigned long)strlen(errorMsg));
+    //fprintf(stderr, "==== DEBUG AppVeyor: calling NsfForwardPrintError with <<%s>> (len %lu)\n",
+    //        errorMsg, (unsigned long)strlen(errorMsg));
     result = NsfForwardPrintError(interp, tcd, objc, objv, "%s", errorMsg);
     DECR_REF_COUNT(resultObj);
   }
