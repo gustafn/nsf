@@ -19,7 +19,7 @@ incompatibilities between XOTcl 1 and XOTcl 2.
 
 The Next Scripting Language (NX) is a successor of XOTcl 1 and is
 based on 10 years of experience with XOTcl in projects containing
-several hundert thousand lines of code. While XOTcl was the first
+several hundred thousand lines of code. While XOTcl was the first
 language designed to provide language support for design patterns, the
 focus of the Next Scripting Framework and NX are on combining this
 with Language Oriented Programming. In many respects, NX was designed
@@ -49,7 +49,7 @@ repackage the power of XOTcl in an easy to learn environment, highly
 orthogonal environment, which is better suited for large projects,
 trying to reduce maintenance costs.
 
-We expect that many user will find it attractive to upgrade
+We expect that many users will find it attractive to upgrade
 from XOTcl 1 to XOTcl 2, and some other users will upgrade to NX.
 This document focuses mainly on the differences between XOTcl 1 and
 NX, but addresses as well potential incompatibilities between XOTcl 1
@@ -170,7 +170,7 @@ in the following respects:
      processed in Tcl).
 
 . *Significantly Improved Test Suite:* The regression test suite of
-  Next Scripting Scripting framework contain now more than
+  Next Scripting framework contain now more than
   5.000 tests, and order of magnitude more than in XOTcl 1.6
 
 . *Much Smaller Interface:* The Next Scripting Language has a much
@@ -203,7 +203,7 @@ in the next sections.
 
 NX supports a block syntax, where the methods are defined during the
 creation of the class. The XOTcl syntax is slightly more redundant,
-since every definition of a method is a single toplevel command
+since every definition of a method is a single top-level command
 starting with the class name (also NX supports the style used in
 XOTcl).  In NX, all methods are per default protected (XOTcl does not
 support protection). In NX methods are defined in the definition of
@@ -296,13 +296,13 @@ namespace eval mypackage {
 
   package require XOTcl 2.0
 
-  # Define a class with a public method foo using XOTcl
+  # Define a class with a public method "foo" using XOTcl
   xotcl::Class C1
   C1 instproc foo {} {puts "hello world"}
 
   package require nx
 
-  # Define a class with a public method foo using NX
+  # Define a class with a public method "foo" using NX
   nx::Class create C2 {
     :public method foo {} {puts "hello world"}
   }
@@ -393,7 +393,7 @@ introduces method protection, which is only supported by NX.
 
 The following examples show the definition of a class and its methods
 in the init-block of a class (NX only), and the definition of methods
-via separate top level calls (XOTcl and NX).
+via separate top-level calls (XOTcl and NX).
 
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
 |======================
@@ -403,7 +403,7 @@ via separate top level calls (XOTcl and NX).
 ----------------
 # Define instance method 'foo' and object
 # method 'bar' for a Class 'C' with separate
-# toplevel commands
+# top-level commands
 
 Class C
 C instproc foo args {...}
@@ -731,7 +731,7 @@ NX provides an explicit +delete+ method for the deletion of methods.
 
 The Next Scripting Framework defines Tcl resolvers for method and
 variable names to implement object specific behavior. Within the
-bodies of scripted methods these resolver treat variable and function
+bodies of scripted methods these resolvers treat variable and function
 names starting with a colon `:` specially. In short, a colon-prefixed
 variable name refers to an instance variable, and a colon-prefixed
 function name refers to a method. The sub-sections below provide
@@ -1014,7 +1014,7 @@ specifications.
 
 Since the term "parameter" is underspecified, NX uses a more
 differentiated terminology. NX distinguishes between configurable
-instance variables (also called _properties_) and non configurable
+instance variables (also called _properties_) and non-configurable
 instance variables (called _variables_), which might have as well
 e.g. default values. The values of configurable properties can be
 queried at run time via +cget+, and their values can be altered via
@@ -1032,7 +1032,8 @@ an accessor is a method with the same name as the variable. In XOTcl,
 every +parameter+ defined as well automatically a same-named accessor
 method, leading to potential name conflicts with other method names.
 
-In the examples below we show the definition of configurable a non-configurable instance variables using +variable+ and +property+
+In the examples below we show the definition of non-configurable
+instance variables using +variable+ and +property+
 respectively.
 
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
@@ -1197,7 +1198,7 @@ puts [f1 cget -b]
 # value of instance variable "b"
 f1 configure -b 100
 
-# Return the (non substituted) value of
+# Return the (non-substituted) value of
 # parameter "c", and the substituted value 
 # of parameter "d"
 f1 cget -c
@@ -1566,7 +1567,7 @@ of the method create: +/cls/ info lookup parameters create+
 Method parameters are used to specify the interface of a single method
 (what kind of values may be passed to a method, what default values
 are provided etc.).  The method parameters specifications in XOTcl 1
-were limited and allowed only value constraints for non positional
+were limited and allowed only value constraints for non-positional
 arguments.
 
 NX and XOTcl 2 provide value constraints for all kind of method parameters.
@@ -2019,7 +2020,7 @@ appropriate depending on the context.
 
 ==== List callable methods
 
-In order to obtain for an object the set of artefacts defined in the
+In order to obtain the set of artefacts for an object defined in the
  class hierarchy, NX uses +info lookup+. One can either lookup methods
  (via +info lookup methods+) or slots (via +info lookup slots+). The
  plural term refers to a potential set of return values.
@@ -2138,7 +2139,7 @@ methods and for obtaining more detailed information about these
 methods.
 
 In NX, this list of +info+ subcommands is much shorter and more
-orthogonal. For example +info method definition+ can be used to obtain
+orthogonal. For example, +info method definition+ can be used to obtain
 with a single command the full definition of a _scripted method_, and
 furthermore, it works as well the same way to obtain e.g. the
 definition of a _forwarder_ or an _alias_.

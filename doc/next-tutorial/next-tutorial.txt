@@ -107,7 +107,7 @@ of the data structure that abstract from the actual implementation.
 In our first example, we define a class named +Stack+ with the methods
 +push+ and +pop+. When an instance of the stack is created (e.g. a
 concrete stack +s1+) the stack will contain an instance variable named
-+things+, initialized with the an empty list.
++things+, initialized with an empty list.
 
 [[xmp-class-stack]]
 .Listing {counter:figure-number}: Class Stack
@@ -168,7 +168,7 @@ between square brackets. This means that the function +linsert+ is called and
 a new list is returned, where the new element is inserted at the first
 position (index 0) in the list +things+. The result of the +linsert+
 function is assigned again to the instance variable +things+, which is
-updated this way.  Finally the method +push+ returns the pushed thing
+updated this way.  Finally, the method +push+ returns the pushed thing
 using the +return+ statement.
 
 The method +pop+ returns the most recently stacked element and removes
@@ -318,7 +318,7 @@ methods provided by the class to objects is as well a difference. If
 the methods of the class are updated, all instances of the class will
 immediately get the modified behavior. However, this does not mean that
 the reuse for the methods of +stack+ is not possible. NX allows for
-example to copy objects (similar to prototype based languages) or to
+example to copy objects (similar to prototype-based languages) or to
 reuse methods via e.g. aliases (more about this later).
 
 Note that we use capitalized names for classes and lowercase names for
@@ -433,7 +433,7 @@ use introspection to query for the objects
 +s1+ and +s2+ in which order the involved classes are processed. This
 order is called the +precedence order+ and is obtained via +info
 precedence+. We see that the mixin class +Safety+ is only in use for
-+s2+, and takes there precedence over +Stack+. The common root class
++s2+, and takes precedence over +Stack+. The common root class
 +nx::Object+ is for both +s1+ and +s2+ the base class.
 
 [[img-per-object-mixin]]
@@ -901,7 +901,7 @@ In the example above we create a class +Dog+ with a scripted method
 named +bark+. The method body defines the code, which is executed when
 the method is invoked. In this example, the method +bar+ prints out a
 line on the terminal starting with the object name (this is determined
-by the built in command +self+) followed by "Bark, bark, bark.".  This
+by the built-in command +self+) followed by "Bark, bark, bark.".  This
 method is defined on a class and applicable to instances of the class
 (here the instance +fido+).
 
@@ -964,7 +964,7 @@ fido::tail length get
 # the tail of fido
 fido::tail length set 10
 
-# Proving an invalid values will raise an error
+# Show that an invalid value raises an error
 fido::tail length set "Hello"
 --------------------------------------------------
 
@@ -1162,7 +1162,7 @@ method +bar+, which is also using a helper method named +helper+. When
 an instance +s1+ is created from the derived class, the method +foo+
 is invoked which uses in turn the private method of the base
 class. Therefore, the invocation +s1 foo 3 4+ returns its sum. If
-the +local+ flag had not beed used in helper, +s1+ would
+the +local+ flag had not been used in helper, +s1+ would
 have tried to call the helper of +Sub+, which would be incorrect. For
 all other purposes, the private methods are "invisible" in all
 situations, e.g., when mixins are used, or within the +next+-path, etc.
@@ -1338,11 +1338,11 @@ nx::Class create C {
 }
 
 # Method "bar" is a class method of class "C"
-# therefore applicable on the class object "C"
+# therefore, applicable on the class object "C"
 C bar
 
 # Method "foo" is an instance method of "C"
-# therefore applicable on instance "c1"
+# therefore, applicable on instance "c1"
 c1 foo
 
 # When trying to invoke the class method on the
@@ -1363,7 +1363,7 @@ concept to Tcl's ensemble commands.
 An *ensemble method* is a form of a hierarchical method consisting of
 a container method and sub-methods. The first argument of the
 container method is interpreted as a selector (the sub-method). Every
-sub-method can be an container method as well.
+sub-method can be a container method as well.
 =========================================
 
 Ensemble methods provide a means to group related commands together,
@@ -1550,7 +1550,7 @@ The invocation flag +-system+ means that the method has to be resolved
 from basic - typically predefined - classes of the object system. This
 can be useful, when script overloads system methods, but still want to
 call the shadowed methods from the base classes. In our case, we have
-no definitions of +foo+ on the base clases, therefore, an error message
+no definitions of +foo+ on the base sclasses, therefore, an error message
 is returned.
 
 The output of <<xmp-method-resolution3,{xmp-method-resolution3}>> is:
@@ -1661,7 +1661,7 @@ The invocation in line 35 passes only a value to the positional
 parameter. A more tricky case is in line 36, where we want to pass
 +-y+ as a value to the positional parameter +a+. The case is more
 tricky since syntactically the argument parser might consider +-y+ as
-the name of one of the non-positional parameter. Therefore, we use +--+
+the name of one of the non-positional parameters. Therefore, we use +--+
 (double dash) to indicate the end of the block of the non-positional
 parameters and therefore the value of +-y+ is passed to +a+.
 
@@ -1758,17 +1758,17 @@ o3 bar
 --------------------------------------------------
 
 In order to define a default value for a parameter, the parameter
-specification must be of the form of a 2 element list, where the
+specification must be of the form of a 2-element list, where the
 second argument is the default value. See for an example in
 <<xmp-default-value,{xmp-default-value}>>.
 
 ==== Value Constraints
 
 NX provides value constraints for all kind of parameters. By
-specifying value constraints a developer can restrict the permissible
+specifying value constraints, a developer can restrict the permissible
 values for a parameter and document the expected values in the source
 code. Value checking in NX is conditional, it can be turned on or off
-in general or on a per-usage level (more about this later). The same
+in general, or on a per-usage level (more about this later). The same
 mechanisms can be used not only for input value checking, but as well
 for return value checking (we will address this point as well later).
 
@@ -2059,7 +2059,7 @@ performed, the parameter option +substdefault+ can be provided.
 nx::Class create ::D
 nx::Class create ::C {
   #
-  # By default all substitutions (command, variable, control
+  # By default, all substitutions (command, variable, control
   # characters) are active, when "substdefault" is used:
   #
   :property {d:object,type=::D,substdefault {[::D new]}}
@@ -2308,7 +2308,7 @@ More detailed definition of the configure parameter types comes here.
 ==== Slot Classes and Slot Objects
 
 In one of the previous sections, we defined scripted (application
-defined) checker methods on a class named +nx::Slot+.  In general NX
+defined) checker methods on a class named +nx::Slot+.  In general, NX
 offers the possibility to define value checkers not only for all
 usages of parameters but as well differently for method parameters or
 configure parameters

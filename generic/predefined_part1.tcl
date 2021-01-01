@@ -4,11 +4,11 @@
 # the Next Scripting Framework. This file will be transformed by
 # mk_predefined.tcl into "predefined.h", which in included in nsf.c.
 #
-#   Copyright (C) 2009-2017 Gustaf Neumann
+#   Copyright (C) 2009-2021 Gustaf Neumann
 #   Copyright (C) 2010 Stefan Sobernig
 #
 # The predefined code has to be split into 2 parts due to a string
-# literal limitaton in ISO C99, that requires compilers to support
+# literal limitation in ISO C99, that requires compilers to support
 # only strings up to 4095 bytes.
 #
 # This is part 1.
