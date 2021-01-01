@@ -41,7 +41,7 @@
 /*
  *----------------------------------------------------------------------
  *
- *  NsfMethodObjType Tcl_Obj type --
+ *      NsfMethodObjType Tcl_Obj type --
  *
  *      The NsfMethodObjType is a Tcl_Obj type carrying the result of
  *      a method lookup. We define two types (NsfInstanceMethodObjType
@@ -120,7 +120,7 @@ MethodDupInternalRep(
 /*
  *----------------------------------------------------------------------
  *
- *  NsfMethodObjSet --
+ *      NsfMethodObjSet --
  *
  *      Convert the provided Tcl_Obj into the type of NsfMethodContext.
  *
@@ -191,7 +191,7 @@ NsfMethodObjSet(
 /*
  *----------------------------------------------------------------------
  *
- *  NsfFlagObjType --
+ *      NsfFlagObjType --
  *
  *      The NsfFlagObjType is a Tcl_Obj type carrying the result of a
  *      flag lookup.
@@ -265,7 +265,7 @@ FlagDupInternalRep(
 /*
  *----------------------------------------------------------------------
  *
- *  NsfFlagObjSet --
+ *      NsfFlagObjSet --
  *
  *      Convert the provided Tcl_Obj into the type of an NSF flag.
  *
@@ -329,7 +329,7 @@ NsfFlagObjSet(
 /*
  *----------------------------------------------------------------------
  *
- *  Mixinreg Tcl_Obj type --
+ *      Mixinreg Tcl_Obj type --
  *
  *      The mixin registration type is a Tcl_Obj type carrying a
  *      class and a guard object. The string representation might have
@@ -606,7 +606,7 @@ NsfMixinregInvalidate(
 /*
  *----------------------------------------------------------------------
  *
- *  Filterreg Tcl_Obj type --
+ *      Filterreg Tcl_Obj type --
  *
  *      The filter registration type is a Tcl_Obj type carrying the
  *      name of a filter and a guard object. The string representation

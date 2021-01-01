@@ -175,15 +175,15 @@ AllocFunPtrEntry(
  *----------------------------------------------------------------------
  * Nsf_InitFunPtrHashTable --
  *
- *    Initializes a hash table structure providing for function
- *    pointers as hash keys. It is a slim wrapper around
- *    Tcl_InitCustomHashTable().
+ *      Initializes a hash table structure providing for function
+ *      pointers as hash keys. It is a slim wrapper around
+ *      Tcl_InitCustomHashTable().
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -200,14 +200,14 @@ Nsf_InitFunPtrHashTable(Tcl_HashTable *tablePtr) {
  *----------------------------------------------------------------------
  * Nsf_CreateFunPtrHashEntry --
  *
- *    Creates or finds an entry based on a given function-pointer
- *    key. It is a slim wrapper around Tcl_CreateHashEntry().
+ *      Creates or finds an entry based on a given function-pointer
+ *      key. It is a slim wrapper around Tcl_CreateHashEntry().
  *
  * Results:
- *    Returns a pointer to the matching entry.
+ *      Returns a pointer to the matching entry.
  *
  * Side effects:
- *    A new entry may be stored in the hash table.
+ *      A new entry may be stored in the hash table.
  *
  *----------------------------------------------------------------------
  */
@@ -234,14 +234,14 @@ Nsf_CreateFunPtrHashEntry(
  *----------------------------------------------------------------------
  * Nsf_FindFunPtrHashEntry --
  *
- *    Finds the entry with a matching function-pointer key in a given
- *    table. It is a slim wrapper around Tcl_FindHashEntry().
+ *      Finds the entry with a matching function-pointer key in a given
+ *      table. It is a slim wrapper around Tcl_FindHashEntry().
  *
  * Results:
- *    Returns a pointer to the matching entry, or NULL.
+ *      Returns a pointer to the matching entry, or NULL.
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */

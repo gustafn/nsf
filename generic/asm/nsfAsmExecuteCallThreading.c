@@ -256,7 +256,7 @@ static int asmStoreResult(ClientData clientData, Tcl_Interp *interp, int argc, T
  *----------------------------------------------------------------------
  * AsmExecute --
  *
- *    Define the execution engine for the code
+ *      Define the execution engine for the code
  *
  *----------------------------------------------------------------------
  */

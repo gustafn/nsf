@@ -1,5 +1,5 @@
 /*
- *  nsfAssemble.c --
+ *      nsfAssemble.c --
  *
  *      Support for the experimental assemble feature. This file is
  *      only included in the source when NSF_ASSEMBLE is turned on.
@@ -133,7 +133,7 @@ void AsmInstructionPrint(AsmInstruction *ip) {
  *----------------------------------------------------------------------
  * AsmExecute, AsmAssemble --
  *
- *    Define the execution engine for the code
+ *      Define the execution engine for the code
  *
  *----------------------------------------------------------------------
  */
@@ -165,7 +165,7 @@ AsmInstructionArgvSet(Tcl_Interp *interp, int from, int to, int currentArg,
  *----------------------------------------------------------------------
  * AsmInstructionArgvCheck --
  *
- *    Check the argument types of an assemble statement.
+ *      Check the argument types of an assemble statement.
  *
  *----------------------------------------------------------------------
  */
@@ -228,8 +228,8 @@ AsmInstructionArgvCheck(Tcl_Interp *interp, int from, int to, CONST char **argTy
  *----------------------------------------------------------------------
  * AsmInstructionArgvSet --
  *
- *    Set argument to be passed to an instruction of the assemble
- *    code.
+ *      Set argument to be passed to an instruction of the assemble
+ *      code.
  *
  *----------------------------------------------------------------------
  */
@@ -288,14 +288,14 @@ AsmInstructionArgvSet(Tcl_Interp *interp, int from, int to, int currentArg,
  *----------------------------------------------------------------------
  * NsfAsmProcDeleteProc --
  *
- *    Tcl_CmdDeleteProc for NsfAsmProcDeleteProc. Is called, whenever a
- *    NsfAsmProcDeleteProc is deleted and frees the associated client data.
+ *      Tcl_CmdDeleteProc for NsfAsmProcDeleteProc. Is called, whenever a
+ *      NsfAsmProcDeleteProc is deleted and frees the associated client data.
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    Frees client-data
+ *      Frees client-data
  *
  *----------------------------------------------------------------------
  */
@@ -317,15 +317,15 @@ NsfAsmProcDeleteProc(ClientData clientData) {
  *----------------------------------------------------------------------
  * NsfAsmProc --
  *
- *    Tcl_ObjCmdProc implementing Asm procs. This function processes
- *    the argument list in accordance with the parameter definitions
- *    and calls in case of success the asm proc body.
+ *      Tcl_ObjCmdProc implementing Asm procs. This function processes
+ *      the argument list in accordance with the parameter definitions
+ *      and calls in case of success the asm proc body.
  *
  * Results:
- *    Tcl return code.
+ *      Tcl return code.
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */

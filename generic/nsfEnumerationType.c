@@ -48,13 +48,13 @@ static int Register(const char *domain, Nsf_TypeConverter *converter) nonnull(2)
  *----------------------------------------------------------------------
  * Nsf_EnumerationTypeInit --
  *
- *    Initialize a hash table to keep the enumeration-type converters.
+ *      Initialize a hash table to keep the enumeration-type converters.
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -75,14 +75,14 @@ Nsf_EnumerationTypeInit(void) {
  *----------------------------------------------------------------------
  * Nsf_EnumerationTypeRelease --
  *
- *    Release and, eventually, delete the hash table for enumeration-type
- *    converters.
+ *      Release and, eventually, delete the hash table for enumeration-type
+ *      converters.
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -103,13 +103,13 @@ Nsf_EnumerationTypeRelease(void) {
  *----------------------------------------------------------------------
  * Nsf_EnumerationTypeRegister --
  *
- *    Registers an array of enumeration types upon NSF initialization.
+ *      Registers an array of enumeration types upon NSF initialization.
  *
  * Results:
- *    Tcl result code.
+ *      Tcl result code.
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -133,15 +133,15 @@ Nsf_EnumerationTypeRegister(Tcl_Interp *UNUSED(interp), Nsf_EnumeratorConverterE
  *----------------------------------------------------------------------
  * Nsf_EnumerationTypeGetDomain --
  *
- *    Obtain the domain (i.e., the permitted enumeration literals) for a given
- *    enumeration-type converter.
+ *      Obtain the domain (i.e., the permitted enumeration literals) for a given
+ *      enumeration-type converter.
  *
  * Results: 
- *    Domain of permitted enumeration literals as a string or NULL, if
- *    not successful.
+ *      Domain of permitted enumeration literals as a string or NULL, if
+ *      not successful.
  *
  * Side effects:
- *    Sets a mutex lock.
+ *      Sets a mutex lock.
  *
  *----------------------------------------------------------------------
  */
@@ -168,13 +168,13 @@ Nsf_EnumerationTypeGetDomain(Nsf_TypeConverter *converter) {
  *----------------------------------------------------------------------
  * Register --
  *
- *    Register an enumeration-type converter and its domain.
+ *      Register an enumeration-type converter and its domain.
  *
  * Results:
- *    Tcl result code.
+ *      Tcl result code.
  *
  * Side effects:
- *    Sets a mutex lock.
+ *      Sets a mutex lock.
  *
  *----------------------------------------------------------------------
  */

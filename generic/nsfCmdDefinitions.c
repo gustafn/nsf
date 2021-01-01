@@ -49,13 +49,13 @@ static int Register(Tcl_Interp *interp, Nsf_methodDefinition *methodDefinition);
  *----------------------------------------------------------------------
  * Nsf_CmdDefinitionInit --
  *
- *    Initialize the hash-table structure for storing the method definitions.
+ *      Initialize the hash-table structure for storing the method definitions.
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -75,13 +75,13 @@ Nsf_CmdDefinitionInit(void) {
 /*----------------------------------------------------------------------
  * Nsf_CmdDefinitionRelease --
  *
- *    Release and, eventually, delete the hash table for method definitions.
+ *      Release and, eventually, delete the hash table for method definitions.
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -103,13 +103,13 @@ Nsf_CmdDefinitionRelease(void) {
  *----------------------------------------------------------------------
  * Nsf_CmdDefinitionRegister --
  *
- *    Register an array of cmd definitions
+ *      Register an array of cmd definitions
  *
  * Results:
- *    TCL_OK
+ *      TCL_OK
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -131,13 +131,13 @@ Nsf_CmdDefinitionRegister(Tcl_Interp *interp, Nsf_methodDefinition *definitionRe
  *----------------------------------------------------------------------
  * Nsf_CmdDefinitionGet --
  *
- *    Obtain the definition for a previously registered proc.
+ *      Obtain the definition for a previously registered proc.
  *
  * Results:
- *    A pointer to a Method definition or NULL.
+ *      A pointer to a Method definition or NULL.
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -162,13 +162,13 @@ Nsf_CmdDefinitionGet(Tcl_ObjCmdProc *proc) {
  *----------------------------------------------------------------------
  * Register --
  *
- *    Register a method definition.
+ *      Register a method definition.
  *
  * Results:
- *    Tcl result code.
+ *      Tcl result code.
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */

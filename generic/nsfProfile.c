@@ -48,15 +48,15 @@ typedef struct NsfProfileData {
  *----------------------------------------------------------------------
  * NsfProfileObjectLabel, NsfProfileMethodLabel --
  *
- *    Produce a string label for an object or method using in profiling.
- *    NsfProfileMethodLabel() is available also when compiled without
- *    NSF_PROFILE.
+ *      Produce a string label for an object or method using in profiling.
+ *      NsfProfileMethodLabel() is available also when compiled without
+ *      NSF_PROFILE.
  *
  * Results:
- *    None
+ *      None
  *
  * Side effects:
- *    Initializes and fills the passed Tcl_DString,
+ *      Initializes and fills the passed Tcl_DString,
  *
  *----------------------------------------------------------------------
  */
@@ -96,14 +96,14 @@ NsfProfileMethodLabel(Tcl_DString *dsPtr, NsfClass *class, const char *methodNam
  *----------------------------------------------------------------------
  * NsfProfileDeprecatedCall --
  *
- *    Output a line in case a deprecated function/method is called using
- *    the low-level NsfDeprecatedCmd() function.
+ *      Output a line in case a deprecated function/method is called using
+ *      the low-level NsfDeprecatedCmd() function.
  *
  * Results:
- *    None
+ *      None
  *
  * Side effects:
- *    logging
+ *      logging
  *
  *----------------------------------------------------------------------
  */
@@ -130,15 +130,15 @@ NsfProfileDeprecatedCall(Tcl_Interp *interp, NsfObject *UNUSED(object), NsfClass
  *----------------------------------------------------------------------
  * NsfProfileDebugCall, NsfProfileDebugExit --
  *
- *    Output a line in case a function/method is called/exited having the
- *    debug flag set.  These two functions use the Tcl commands ::nsf::debug::call
- *    and ::nsf::debug::exit for reporting.
+ *      Output a line in case a function/method is called/exited having the
+ *      debug flag set.  These two functions use the Tcl commands ::nsf::debug::call
+ *      and ::nsf::debug::exit for reporting.
  *
  * Results:
- *    None
+ *      None
  *
  * Side effects:
- *    logging
+ *      logging
  *
  *----------------------------------------------------------------------
  */
@@ -217,15 +217,15 @@ NsfProfileDebugExit(Tcl_Interp *interp, NsfObject *object, NsfClass *class, cons
  *----------------------------------------------------------------------
  * ReportLine --
  *
- *    Report a profile line via NsfLog(). Since NsfLog() uses a Tcl function,
- *    ReportLine has to turn off profiling to avoid recursive profile
- *    invocation. It is as well necessary to save the interp result.
+ *      Report a profile line via NsfLog(). Since NsfLog() uses a Tcl function,
+ *      ReportLine has to turn off profiling to avoid recursive profile
+ *      invocation. It is as well necessary to save the interp result.
  *
  * Results:
- *    None
+ *      None
  *
  * Side effects:
- *    logging
+ *      logging
  *
  *----------------------------------------------------------------------
  */
@@ -259,14 +259,14 @@ ReportLine(Tcl_Interp *interp, int level, NsfRuntimeState *rst, const char *line
  *----------------------------------------------------------------------
  * NsfProfileFillTable --
  *
- *    Insert or Update a keyed entry with provided microseconds and
- *    update the counts for this entry.
+ *      Insert or Update a keyed entry with provided microseconds and
+ *      update the counts for this entry.
  *
  * Results:
- *    None
+ *      None
  *
  * Side effects:
- *    Updated or created profile data entry
+ *      Updated or created profile data entry
  *
  *----------------------------------------------------------------------
  */
@@ -299,13 +299,13 @@ NsfProfileFillTable(Tcl_HashTable *table, const char *keyStr, double totalMicroS
  *----------------------------------------------------------------------
  * Nsf_ProfileFilterObjCmd --
  *
- *    Stub command to include C-level commands in profile traces.
+ *      Stub command to include C-level commands in profile traces.
  *
  * Results:
- *    Tcl result code
+ *      Tcl result code
  *
  * Side effects:
- *    Perform tracing
+ *      Perform tracing
  *
  *----------------------------------------------------------------------
  */
@@ -356,13 +356,13 @@ Nsf_ProfileFilterObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *co
  *----------------------------------------------------------------------
  * GetPair --
  *
- *    Split a Tcl_Obj into a nameObj and an integer value, if possible
+ *      Split a Tcl_Obj into a nameObj and an integer value, if possible
  *
  * Results:
- *    Tcl result
+ *      Tcl result
  *
  * Side effects:
- *    Produce warnings for error cases, when "verbose" is on.
+ *      Produce warnings for error cases, when "verbose" is on.
  *
  *----------------------------------------------------------------------
  */
@@ -407,15 +407,15 @@ GetPair(Tcl_Interp *interp, Tcl_Obj *objPtr, int verbose, Tcl_Obj **nameObjPtr, 
  *----------------------------------------------------------------------
  * NsfProfileTrace --
  *
- *    Function to control trace behavior callable via Tcl.
+ *      Function to control trace behavior callable via Tcl.
  *
  * Results:
- *    OK
+ *      OK
  *
  * Side effects:
- *    update RUNTIME_STATE(interp)->doTrace
- *    and    profilePtr->verbose
- *    and    profilePtr->inmemory
+ *      update RUNTIME_STATE(interp)->doTrace
+ *      and    profilePtr->verbose
+ *      and    profilePtr->inmemory
  *
  *----------------------------------------------------------------------
  */
@@ -519,14 +519,14 @@ NsfProfileTrace(Tcl_Interp *interp, int withEnable, int withVerbose, int withDon
  *----------------------------------------------------------------------
  * NsfProfileTraceCallAppend, NsfProfileTraceExitAppend --
  *
- *    Low level function to add entries to the trace Tcl_DString when functions ar
- *    called or exited.
+ *      Low level function to add entries to the trace Tcl_DString when functions ar
+ *      called or exited.
  *
  * Results:
- *    None
+ *      None
  *
  * Side effects:
- *    update profilePtr->depth and profilePtr->traceDs
+ *      update profilePtr->depth and profilePtr->traceDs
  *
  *----------------------------------------------------------------------
  */
@@ -575,16 +575,16 @@ NsfProfileTraceExitAppend(Tcl_Interp *interp, const char *label, double duration
  *----------------------------------------------------------------------
  * NsfProfileTraceCall, NsfProfileTraceExit --
  *
- *    Add entries to the trace Tcl_DString when methods/procs are called or
- *    exited.  This function builds the labels for invocation strings in the
- *    same way as for profiling and calls the lower-level function, which does
- *    the recording.
+ *      Add entries to the trace Tcl_DString when methods/procs are called or
+ *      exited.  This function builds the labels for invocation strings in the
+ *      same way as for profiling and calls the lower-level function, which does
+ *      the recording.
  *
  * Results:
- *    None
+ *      None
  *
  * Side effects:
- *    update profilePtr->depth and profilePtr->traceDs
+ *      update profilePtr->depth and profilePtr->traceDs
  *
  *----------------------------------------------------------------------
  */
@@ -648,17 +648,17 @@ NsfProfileTraceExit(Tcl_Interp *interp, NsfObject *object, NsfClass *class, cons
  *----------------------------------------------------------------------
  * NsfProfileRecordMethodData --
  *
- *    This function is invoked, when a call of a method ends. It
- *    records profiling information based on the provided call stack
- *    content and the caller. In particular, it records the time spent
- *    in an object (identified with an objectKey) and the time spent
- *    in the method (using methodKey).
+ *      This function is invoked, when a call of a method ends. It
+ *      records profiling information based on the provided call stack
+ *      content and the caller. In particular, it records the time spent
+ *      in an object (identified with an objectKey) and the time spent
+ *      in the method (using methodKey).
  *
  * Results:
- *    None
+ *      None
  *
  * Side effects:
- *    Updated or created profile data entries
+ *      Updated or created profile data entries
  *
  *----------------------------------------------------------------------
  */
@@ -743,14 +743,14 @@ NsfProfileRecordMethodData(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
  *----------------------------------------------------------------------
  * NsfProfileRecordProcData --
  *
- *    This function is invoked, when a call of a nsf::proc. It records
- *    time spent and count per nsf::proc.
+ *      This function is invoked, when a call of a nsf::proc. It records
+ *      time spent and count per nsf::proc.
  *
  * Results:
- *    None
+ *      None
  *
  * Side effects:
- *    Updated or created profile data entries
+ *      Updated or created profile data entries
  *
  *----------------------------------------------------------------------
  */
@@ -783,13 +783,13 @@ NsfProfileRecordProcData(Tcl_Interp *interp, const char *methodName, long startS
  *----------------------------------------------------------------------
  * NsfProfileClearTable --
  *
- *    Clear all data in a profile table.
+ *      Clear all data in a profile table.
  *
  * Results:
- *    None
+ *      None
  *
  * Side effects:
- *    freed profile information.
+ *      freed profile information.
  *
  *----------------------------------------------------------------------
  */
@@ -816,14 +816,14 @@ NsfProfileClearTable(Tcl_HashTable *table) {
  *----------------------------------------------------------------------
  * NsfProfileClearData --
  *
- *    Flush all data in all profile tables and reset the time
- *    counters.
+ *      Flush all data in all profile tables and reset the time
+ *      counters.
  *
  * Results:
- *    None
+ *      None
  *
  * Side effects:
- *    freed profile information.
+ *      freed profile information.
  *
  *----------------------------------------------------------------------
  */
@@ -853,14 +853,14 @@ NsfProfileClearData(Tcl_Interp *interp) {
  *----------------------------------------------------------------------
  * NsfProfileGetTable --
  *
- *    Return the profiling information for the specified profile table
- *    in form of a Tcl list.
+ *      Return the profiling information for the specified profile table
+ *      in form of a Tcl list.
  *
  * Results:
- *    Tcl List
+ *      Tcl List
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -893,16 +893,16 @@ NsfProfileGetTable(Tcl_Interp *interp, Tcl_HashTable *table) {
  *----------------------------------------------------------------------
  * NsfProfileGetData --
  *
- *    Return recorded profiling information. This function returns a
- *    list containing (a) the elapsed time since the last clear (or
- *    init), (b) the cumulative time, (c) the list with the per-object
- *    data and (d) the list with the method invocation data.
+ *      Return recorded profiling information. This function returns a
+ *      list containing (a) the elapsed time since the last clear (or
+ *      init), (b) the cumulative time, (c) the list with the per-object
+ *      data and (d) the list with the method invocation data.
  *
  * Results:
- *    Tcl List
+ *      Tcl List
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -934,15 +934,15 @@ NsfProfileGetData(Tcl_Interp *interp) {
  *----------------------------------------------------------------------
  * NsfProfileInit --
  *
- *    Initialize the profiling information. This is a one-time only
- *    operation and initializes the hash table and the timing
- *    results. The inverse operation is NsfProfileFree()
+ *      Initialize the profiling information. This is a one-time only
+ *      operation and initializes the hash table and the timing
+ *      results. The inverse operation is NsfProfileFree()
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -970,14 +970,14 @@ NsfProfileInit(Tcl_Interp *interp) {
  *----------------------------------------------------------------------
  * NsfProfileFree --
  *
- *    Free all profiling information. This is a one-time only
- *    operation only. The inverse operation is NsfProfileInit().
+ *      Free all profiling information. This is a one-time only
+ *      operation only. The inverse operation is NsfProfileInit().
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */

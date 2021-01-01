@@ -1,5 +1,5 @@
 /* 
- *  threaded.c --
+ *      threaded.c --
  *
  *      A small study on implementation techniques for threaded code.
  *      
@@ -33,7 +33,7 @@
  *      Compile e.g. with:
  *           cc -O3 -Wall threaded.c   -o threaded
  *
- *     Gustaf Neumann (Nov 2011)
+ *      Gustaf Neumann (Nov 2011)
  */
 
 #include <stdio.h>
@@ -43,7 +43,7 @@
  *----------------------------------------------------------------------
  * DiffTime --
  *
- *    Compute the time difference between two timevals.
+ *      Compute the time difference between two timevals.
  *
  *----------------------------------------------------------------------
  */
@@ -65,7 +65,7 @@ DiffTime(struct timeval *t1, struct timeval *t0, struct timeval *diffPtr) {
  *----------------------------------------------------------------------
  * timeit --
  *
- *    Run a function multiple times and measure the performance.
+ *      Run a function multiple times and measure the performance.
  *
  *----------------------------------------------------------------------
  */
@@ -93,8 +93,8 @@ int stack[100];
  *----------------------------------------------------------------------
  * switch_threading --
  *
- *    Define an enum for the instructions and use a switch to select
- *    the instructions.
+ *      Define an enum for the instructions and use a switch to select
+ *      the instructions.
  *
  *----------------------------------------------------------------------
  */
@@ -131,8 +131,8 @@ void switch_threading() {
  *----------------------------------------------------------------------
  * call_threading --
  *
- *    Define for every instruction a function, the program consists of
- *    an array of function pointers.
+ *      Define for every instruction a function, the program consists of
+ *      an array of function pointers.
  *
  *----------------------------------------------------------------------
  */
@@ -160,9 +160,9 @@ void call_threading() {
  *----------------------------------------------------------------------
  * label_threading --
  *
- *    Define for every instruction a label, the code is a sequence of
- *    labels. This works with gcc, clang and IBM's XL C, but not on
- *    every compiler.
+ *      Define for every instruction a label, the code is a sequence of
+ *      labels. This works with gcc, clang and IBM's XL C, but not on
+ *      every compiler.
  *
  *----------------------------------------------------------------------
  */
@@ -199,7 +199,7 @@ void label_threading() {
  *----------------------------------------------------------------------
  * main --
  *
- *    Just call the testcases with timing.
+ *      Just call the testcases with timing.
  *
  *----------------------------------------------------------------------
  */

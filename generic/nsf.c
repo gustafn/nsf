@@ -1,5 +1,5 @@
 /*
- *  nsf.c --
+ *      nsf.c --
  *
  *      Basic Machinery of the Next Scripting Framework, a Tcl-based framework
  *      for supporting language-oriented programming.  For details, see
@@ -12,14 +12,14 @@
  *
  *
  * (a) University of Essen
- *     Specification of Software Systems
- *     Altendorferstrasse 97-101
- *     D-45143 Essen, Germany
+ *      Specification of Software Systems
+ *      Altendorferstrasse 97-101
+ *      D-45143 Essen, Germany
  *
  * (b) Vienna University of Economics and Business
- *     Institute of Information Systems and New Media
- *     A-1020, Welthandelsplatz 1
- *     Vienna, Austria
+ *      Institute of Information Systems and New Media
+ *      A-1020, Welthandelsplatz 1
+ *      Vienna, Austria
  *
  * This work is licensed under the MIT License
  * https://www.opensource.org/licenses/MIT
@@ -45,22 +45,22 @@
  * DEALINGS IN THE SOFTWARE.
  *
  *
- *  This software is based upon MIT Object Tcl by David Wetherall and
- *  Christopher J. Lindblad, that contains the following copyright
- *  message:
+ *      This software is based upon MIT Object Tcl by David Wetherall and
+ *      Christopher J. Lindblad, that contains the following copyright
+ *      message:
  *
  *   "Copyright 1993 Massachusetts Institute of Technology
  *
- *    Permission to use, copy, modify, distribute, and sell this
- *    software and its documentation for any purpose is hereby granted
- *    without fee, provided that the above copyright notice appear in
- *    all copies and that both that copyright notice and this
- *    permission notice appear in supporting documentation, and that
- *    the name of M.I.T. not be used in advertising or publicity
- *    pertaining to distribution of the software without specific,
- *    written prior permission.  M.I.T. makes no representations about
- *    the suitability of this software for any purpose.  It is
- *    provided "as is" without express or implied warranty."
+ *      Permission to use, copy, modify, distribute, and sell this
+ *      software and its documentation for any purpose is hereby granted
+ *      without fee, provided that the above copyright notice appear in
+ *      all copies and that both that copyright notice and this
+ *      permission notice appear in supporting documentation, and that
+ *      the name of M.I.T. not be used in advertising or publicity
+ *      pertaining to distribution of the software without specific,
+ *      written prior permission.  M.I.T. makes no representations about
+ *      the suitability of this software for any purpose.  It is
+ *      provided "as is" without express or implied warranty."
  */
 
 #define NSF_FORWARD_WITH_ONERROR 1
@@ -620,11 +620,11 @@ static void DeleteProcsAndVars(Tcl_Interp *interp, Tcl_Namespace *nsPtr, bool wi
  *
  * NsfDListInit, NsfDListAppend, NsfDListFree   --
  *
- *      Functions similar to Tcl_DString, but working on (void*) elements
- *      instead of chars. The NsfDList operations work on static data as long
- *      the space is sufficient, and doubles in size afterwards. In the
- *      worst case, half of the data is unused, but that is the same size of
- *      overhead like for a single linked list.
+ *      Functions similar to Tcl_DString, but working on (void*)
+ *      elements instead of chars. The NsfDList operations work on
+ *      static data as long the space is sufficient, and doubles in size
+ *      afterwards. In the worst case, half of the data is unused, but
+ *      that is the same size of overhead like for a single linked list.
  *
  * Results:
  *      None.
@@ -674,8 +674,8 @@ NsfDListFree(NsfDList *dlPtr) {
  *
  * NsfErrorContext --
  *
- *      Print the current errorCode and errorInfo to stderr.
- *      This should be used as the last resort, when e.g. logging fails
+ *      Print the current errorCode and errorInfo to stderr.  This
+ *      should be used as the last resort, when e.g. logging fails
  *
  * Results:
  *      None.
@@ -756,8 +756,9 @@ NsfDStringEval(
 
   if ((traceEvalFlags & NSF_EVAL_PREVENT_RECURSION) != 0u) {
     /*
-     * We do not want to debug the debug statements, since this would cause an
-     * infinite recursion.  Check whether we allow execution of the eval call.
+     * We do not want to debug the debug statements, since this would
+     * cause an infinite recursion.  Check whether we allow execution of
+     * the eval call.
      */
     if ((rst->preventRecursionFlags & traceEvalFlags) != 0) {
       /*
@@ -870,11 +871,12 @@ NsfLog(
  *
  * NsfDeprecatedCmd --
  *
- *      Provide a warning about a deprecated command or method. The message is
- *      produced via calling the external Tcl function ::nsf::deprecated. In
- *      case, profiling is turned on, it is deactivated temporarily. Saving
- *      the interp result should not be an issue, since the command is called
- *      before the body of the command is executed.
+ *      Provide a warning about a deprecated command or method. The
+ *      message is produced via calling the external Tcl function
+ *      ::nsf::deprecated. In case, profiling is turned on, it is
+ *      deactivated temporarily. Saving the interp result should not be
+ *      an issue, since the command is called before the body of the
+ *      command is executed.
  *
  * Results:
  *      None.
@@ -1163,10 +1165,10 @@ ParseContextRelease(ParseContext *pcPtr) {
  *
  * CallMethod --
  *
- *      Call a Next Scripting method. The provided "clientData" has to contain
- *      the object, on which the method is to be dispatched, "methodDobj"
- *      denotes the method, "objc" (which has to be >=2) and "objv" denotes
- *      the argument vector.
+ *      Call a Next Scripting method. The provided "clientData" has to
+ *      contain the object, on which the method is to be dispatched,
+ *      "methodDobj" denotes the method, "objc" (which has to be >=2)
+ *      and "objv" denotes the argument vector.
  *
  * Results:
  *      Tcl return code
@@ -1222,9 +1224,9 @@ CallMethod(ClientData clientData, Tcl_Interp *interp, Tcl_Obj *methodObj,
  * NsfCallMethodWithArgs --
  *
  *      Call method (passed in methodObj) on the object, with the often
- *      provided arg1 and the optional remaining args (passed vis objv).  This
- *      way, we save the memcpy in case no argument or a single argument are
- *      provided (common cases).
+ *      provided arg1 and the optional remaining args (passed vis objv).
+ *      This way, we save the memcpy in case no argument or a single
+ *      argument are provided (common cases).
  *
  * Results:
  *      Tcl result.
@@ -1313,20 +1315,21 @@ VarHashTableCreate(void) {
  *----------------------------------------------------------------------
  * Nsf_NextHashEntry --
  *
- *    Function very similar to Tcl_NextHashEntry. If during the iteration of
- *    hash entries some of these entries are removed, Tcl_NextHashEntry() can
- *    lead to a valid looking but invalid hPtr, when the next entry was
- *    already deleted. This seem to occur only, when there are more than 12
- *    hash entries in the table (multiple buckets).  Therefore, we use
- *    numEntries to check whether it is sensible to return a hash entry. We
- *    can trigger refetch of the hSrchPtr, when the number of expected entries
- *    differs from the numbers of the actual entries.
+ *      Function very similar to Tcl_NextHashEntry. If during the
+ *      iteration of hash entries some of these entries are removed,
+ *      Tcl_NextHashEntry() can lead to a valid looking but invalid
+ *      hPtr, when the next entry was already deleted. This seem to
+ *      occur only, when there are more than 12 hash entries in the
+ *      table (multiple buckets).  Therefore, we use numEntries to check
+ *      whether it is sensible to return a hash entry. We can trigger
+ *      refetch of the hSrchPtr, when the number of expected entries
+ *      differs from the numbers of the actual entries.
  *
  * Results:
- *    Hash Entry or NULL.
+ *      Hash Entry or NULL.
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -1356,13 +1359,13 @@ Nsf_NextHashEntry(Tcl_HashTable *tablePtr, int expected, Tcl_HashSearch *hSrchPt
  *----------------------------------------------------------------------
  * NsfCommandPreserve --
  *
- *    Increment Tcl's command refCount
+ *      Increment Tcl's command refCount
  *
  * Results:
- *    void
+ *      void
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -1379,13 +1382,13 @@ NsfCommandPreserve(Tcl_Command cmd) {
  *----------------------------------------------------------------------
  * NsfCommandRelease --
  *
- *    Decrement Tcl command refCount and free it if necessary.
+ *      Decrement Tcl command refCount and free it if necessary.
  *
  * Results:
- *    void
+ *      void
  *
  * Side effects:
- *    Free potentially memory
+ *      Free potentially memory
  *
  *----------------------------------------------------------------------
  */
@@ -1706,13 +1709,13 @@ ObjTrace(const char *string, NsfObject *object) {
  *----------------------------------------------------------------------
  * NSTail --
  *
- *    Return the namespace tail of a name.
+ *      Return the namespace tail of a name.
  *
  * Results:
- *    String.
+ *      String.
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -1739,14 +1742,14 @@ NSTail(const char *string) {
  *----------------------------------------------------------------------
  * IsClassNsName --
  *
- *    Check whether the provided string starts with the prefix of the
- *    classes namespace.
+ *      Check whether the provided string starts with the prefix of the
+ *      classes namespace.
  *
  * Results:
- *    Boolean.
+ *      Boolean.
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -1771,14 +1774,14 @@ IsClassNsName(const char *string, const char **cont) {
  *----------------------------------------------------------------------
  * GetObjectFromNsName --
  *
- *    Get object or class from a fully qualified cmd name, such as
- *    e.g. ::nsf::classes::X
+ *      Get object or class from a fully qualified cmd name, such as
+ *      e.g. ::nsf::classes::X
  *
  * Results:
- *    NsfObject and *fromClasses
+ *      NsfObject and *fromClasses
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -1806,14 +1809,14 @@ GetObjectFromNsName(Tcl_Interp *interp, const char *string, bool *fromClassNS) {
  *----------------------------------------------------------------------
  * DStringAppendQualName --
  *
- *    Append to initialized DString the name of the namespace followed
- *    by a simple name (methodName, cmdName).
+ *      Append to initialized DString the name of the namespace followed
+ *      by a simple name (methodName, cmdName).
  *
  * Results:
- *    String pointing to DString value.
+ *      String pointing to DString value.
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -1842,14 +1845,14 @@ DStringAppendQualName(Tcl_DString *dsPtr, const Tcl_Namespace *nsPtr, const char
  *----------------------------------------------------------------------
  * NsfCleanupObject --
  *
- *    Delete an object physically (performing ckfree()) when its refCount
- *    reaches 0
+ *      Delete an object physically (performing ckfree()) when its refCount
+ *      reaches 0
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    Frees memory.
+ *      Frees memory.
  *
  *----------------------------------------------------------------------
  */
@@ -1888,21 +1891,21 @@ NsfCleanupObject_(NsfObject *object) {
 
 
 /*
- *  Tcl_Obj functions for objects
+ *      Tcl_Obj functions for objects
  */
 
 /*
  *----------------------------------------------------------------------
  * TclObjIsNsfObject --
  *
- *    Check whether the provided Tcl_Obj is bound to an NSF object. If so,
- *    return the NsfObject in the third argument.
+ *      Check whether the provided Tcl_Obj is bound to an NSF object. If
+ *      so, return the NsfObject in the third argument.
  *
  * Results:
- *    Boolean
+ *      Boolean
  *
  * Side effects:
- *    None
+ *      None
  *
  *----------------------------------------------------------------------
  */
@@ -1937,15 +1940,16 @@ TclObjIsNsfObject(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfObject **objectPtr) {
  *----------------------------------------------------------------------
  * GetObjectFromObj --
  *
- *    Lookup a Next Scripting object from the given objPtr, preferably from
- *    an object of type "cmdName". On success the NsfObject is returned in the
- *    third argument. The objPtr might be converted by this function.
+ *      Lookup a Next Scripting object from the given objPtr, preferably
+ *      from an object of type "cmdName". On success the NsfObject is
+ *      returned in the third argument. The objPtr might be converted by
+ *      this function.
  *
  * Results:
- *    True or false,
+ *      True or false,
  *
  * Side effects:
- *    object type of objPtr might be changed
+ *      object type of objPtr might be changed
  *
  *----------------------------------------------------------------------
  */
@@ -2029,14 +2033,14 @@ GetObjectFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfObject **objectPtr) {
  *----------------------------------------------------------------------
  * NsfCallObjectUnknownHandler --
  *
- *    Call ::nsf::object::unknown; this function is typically called, when an unknown
- *    object or class is passed as an argument.
+ *      Call ::nsf::object::unknown; this function is typically called,
+ *      when an unknown object or class is passed as an argument.
  *
  * Results:
- *    Tcl result code
+ *      Tcl result code
  *
  * Side effects:
- *    Called handler might side effect.
+ *      Called handler might side effect.
  *
  *----------------------------------------------------------------------
  */
@@ -2110,17 +2114,18 @@ NsfCallArgumentUnknownHandler(
  *----------------------------------------------------------------------
  * GetClassFromObj --
  *
- *    Lookup a Next Scripting class from the given objPtr. If the class could
- *    not be directly converted and withUnknown is true, the function calls
- *    the unknown function (::nsf::object::unknown) to fetch the class on
- *    demand and retries the conversion.  On success the NsfClass is returned
- *    in the third argument. The objPtr might be converted by this function.
+ *      Lookup a Next Scripting class from the given objPtr. If the
+ *      class could not be directly converted and withUnknown is true,
+ *      the function calls the unknown function (::nsf::object::unknown)
+ *      to fetch the class on demand and retries the conversion.  On
+ *      success the NsfClass is returned in the third argument. The
+ *      objPtr might be converted by this function.
  *
  * Results:
- *    True or false,
+ *      True or false,
  *
  * Side effects:
- *    object type of objPtr might be changed
+ *      object type of objPtr might be changed
  *
  *----------------------------------------------------------------------
  */
@@ -2241,15 +2246,16 @@ NsfGetClassFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr,
  *----------------------------------------------------------------------
  * IsObjectOfType --
  *
- *    Check whether the provided NsfObject is of a certain type. The arguments
- *    "what" and "objPtr" are just used for the error messages. "objPtr" is
- *    the value from which the object was converted from.
+ *      Check whether the provided NsfObject is of a certain type. The
+ *      arguments "what" and "objPtr" are just used for the error
+ *      messages. "objPtr" is the value from which the object was
+ *      converted from.
  *
  * Results:
- *    Tcl result code.
+ *      Tcl result code.
  *
  * Side effects:
- *    None
+ *      None
  *
  *----------------------------------------------------------------------
  */
@@ -2312,14 +2318,14 @@ IsObjectOfType(
  *----------------------------------------------------------------------
  * NameInNamespaceObj --
  *
- *    Create a fully qualified name in the provided namespace or in
- *    the current namespace in form of a Tcl_Obj (with 0 refCount);
+ *      Create a fully qualified name in the provided namespace or in
+ *      the current namespace in form of a Tcl_Obj (with 0 refCount);
  *
  * Results:
- *    Tcl_Obj containing fully qualified name
+ *      Tcl_Obj containing fully qualified name
  *
  * Side effects:
- *    Allocates fresh copies of list elements
+ *      Allocates fresh copies of list elements
  *
  *----------------------------------------------------------------------
  */
@@ -2346,14 +2352,15 @@ NameInNamespaceObj(const char *name, Tcl_Namespace *nsPtr) {
  *----------------------------------------------------------------------
  * NewTclCommand --
  *
- *    Given a provided prefix in dsPtr, make it a name of a command that does not exist.
- *    This function is used by the *new command, when "anonymous" objects are created
+ *      Given a provided prefix in dsPtr, make it a name of a command
+ *      that does not exist.  This function is used by the *new command,
+ *      when "anonymous" objects are created
  *
  * Results:
- *    dsPtr will be complete to represent a new (unused) name of a command
+ *      dsPtr will be complete to represent a new (unused) name of a command.
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -2390,13 +2397,13 @@ NewTclCommand(Tcl_Interp *interp, Tcl_DString *dsPtr) {
  *----------------------------------------------------------------------
  * NsfReverseClasses --
  *
- *    Reverse class list. Caller is responsible for freeing data.
+ *      Reverse class list. Caller is responsible for freeing data.
  *
  * Results:
- *    Pointer to start of the reversed list
+ *      Pointer to start of the reversed list
  *
  * Side effects:
- *    Allocates fresh copies of list elements
+ *      Allocates fresh copies of list elements
  *
  *----------------------------------------------------------------------
  */
@@ -2427,13 +2434,13 @@ NsfReverseClasses(NsfClasses *sl) {
  *----------------------------------------------------------------------
  * NsfClassListFree --
  *
- *    Frees all elements of the provided class list
+ *      Frees all elements of the provided class list
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    Frees memory.
+ *      Frees memory.
  *
  *----------------------------------------------------------------------
  */
@@ -2457,14 +2464,14 @@ NsfClassListFree(NsfClasses *classList) {
  *----------------------------------------------------------------------
  * NsfClassListAdd --
  *
- *    Add class list entry to the specified list. In case the initial
- *    list is empty, *firstPtrPtr is updated as well.
+ *      Add class list entry to the specified list. In case the initial
+ *      list is empty, *firstPtrPtr is updated as well.
  *
  * Results:
- *    Returns address of next-pointer.
+ *      Returns address of next-pointer.
  *
  * Side effects:
- *    New list element is allocated.
+ *      New list element is allocated.
  *
  *----------------------------------------------------------------------
  */
@@ -2495,14 +2502,15 @@ NsfClassListAdd(NsfClasses **firstPtrPtr, NsfClass *class, ClientData clientData
  *----------------------------------------------------------------------
  * NsfClassListAddNoDup --
  *
- *    Add class list entry to the specified list without duplicates. In case
- *    the initial list is empty, *firstPtrPtr is updated as well.
+ *      Add class list entry to the specified list without
+ *      duplicates. In case the initial list is empty, *firstPtrPtr is
+ *      updated as well.
  *
  * Results:
- *    Returns address of next pointer.
+ *      Returns address of next pointer.
  *
  * Side effects:
- *    New list element is allocated.
+ *      New list element is allocated.
  *
  *----------------------------------------------------------------------
  */
@@ -2543,13 +2551,13 @@ NsfClassListAddNoDup(NsfClasses **firstPtrPtr, NsfClass *class, ClientData clien
  *----------------------------------------------------------------------
  * NsfClassListFind --
  *
- *    Find an element in the class list and return it if found.
+ *      Find an element in the class list and return it if found.
  *
  * Results:
- *    Found element or NULL
+ *      Found element or NULL
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -2575,14 +2583,14 @@ NsfClassListFind(NsfClasses *clPtr, const NsfClass *class) {
  *----------------------------------------------------------------------
  * NsfClassListStats --
  *
- *    Print some statistics about generated Class List structures for
- *    debugging purpose.
+ *      Print some statistics about generated Class List structures for
+ *      debugging purpose.
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -2630,16 +2638,16 @@ NsfClassListPrint(const char *title, const NsfClasses *clsList) {
  *----------------------------------------------------------------------
  * NsfClassListUnlink --
  *
- *    Return removed item with matching key form nsfClasses.
- *    Key is void to allow not only class pointers as keys.
+ *      Return removed item with matching key form nsfClasses.
+ *      Key is void to allow not only class pointers as keys.
  *
  * Results:
- *    unlinked element or NULL.
- *    In case the first element is unlinked, *firstPtrPtr
- *    is updated.
+ *      unlinked element or NULL.
+ *      In case the first element is unlinked, *firstPtrPtr
+ *      is updated.
  *
  * Side effects:
- *    none.
+ *      none.
  *
  *----------------------------------------------------------------------
  */
@@ -2698,17 +2706,17 @@ NsfClassListUnlink(NsfClasses **firstPtrPtr, const void *key) {
  *----------------------------------------------------------------------
  * TopoSortSub --
  *
- *    Performs a topological sort of the subclass hierarchy of a given
- *    class. The resulting list contains no duplicates or cycles and is
- *    returned in the class member "order". During computation, it colors
- *    the processed nodes in WHITE, GRAY or BLACK.
+ *      Performs a topological sort of the subclass hierarchy of a given
+ *      class. The resulting list contains no duplicates or cycles and
+ *      is returned in the class member "order". During computation, it
+ *      colors the processed nodes in WHITE, GRAY or BLACK.
  *
  * Results:
- *    Boolean indicating whether a cycle was detected (0) or not (1); and,
- *    therefore, whether the sort failed (0) or succeeded (1).
+ *      Boolean indicating whether a cycle was detected (0) or not (1); and,
+ *      therefore, whether the sort failed (0) or succeeded (1).
  *
  * Side effects:
- *    Allocates class list.
+ *      Allocates class list.
  *
  *----------------------------------------------------------------------
  */
@@ -2792,17 +2800,17 @@ TopoSortSub(NsfClass *class, NsfClass *baseClass, bool withMixinOfs) {
  *----------------------------------------------------------------------
  * MustBeBefore --
  *
- *    Check the partial ordering of classes based on precedence list in the
- *    form of prior ordering from the topological sort. We compare here
- *    orderings based the class hierarchies with single inheritance and prior
- *    solved multiple inheritance orderings. The test is true, if b must be
- *    before a.
+ *      Check the partial ordering of classes based on precedence list
+ *      in the form of prior ordering from the topological sort. We
+ *      compare here orderings based the class hierarchies with single
+ *      inheritance and prior solved multiple inheritance orderings. The
+ *      test is true, if b must be before a.
  *
  * Results:
- *    Boolean value indicating success.
+ *      Boolean value indicating success.
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -2872,15 +2880,15 @@ MustBeBefore(const NsfClass *aClass, const NsfClass *bClass, const NsfClasses *s
  *----------------------------------------------------------------------
  * ValidClassListTail --
  *
- *    Debug function to assure that the provided class lists are valid. The
- *    tail of the class list must be a base class of the current object
- *    system.
+ *      Debug function to assure that the provided class lists are
+ *      valid. The tail of the class list must be a base class of the
+ *      current object system.
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -2905,16 +2913,16 @@ static void ValidClassListTail(const char *what, NsfClasses *classListPtr) {
  *----------------------------------------------------------------------
  * MergeInheritanceLists --
  *
- *    Merge the PrecedenceOrders of class cl. This function is called, when cl
- *    is defined with multiple inheritance. The precedence orders of the
- *    specified classes are merged in an order preserving manner to achieve
- *    monotonicity.
+ *      Merge the PrecedenceOrders of class cl. This function is called,
+ *      when cl is defined with multiple inheritance. The precedence
+ *      orders of the specified classes are merged in an order
+ *      preserving manner to achieve monotonicity.
  *
  * Results:
- *    precedence order.
+ *      precedence order.
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -3126,15 +3134,15 @@ static void AssertOrderIsWhite(NsfClasses *order) {
  *----------------------------------------------------------------------
  * TopoSortSuper --
  *
- *    Compute the precedence order for baseClass based on the superclasses. If
- *    the order is computable, update base class and return NSF_TRUE. Otherwise
- *    return NSF_FALSE.
+ *      Compute the precedence order for baseClass based on the
+ *      superclasses. If the order is computable, update base class and
+ *      return NSF_TRUE. Otherwise return NSF_FALSE.
  *
  * Results:
- *    Boolean indicating success
+ *      Boolean indicating success
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -3218,17 +3226,18 @@ TopoSortSuper(NsfClass *class, NsfClass *baseClass) {
  *----------------------------------------------------------------------
  * PrecedenceOrder --
  *
- *    Return a class list containing the transitive list of superclasses
- *    starting with (and containing) the provided class. The superclass list
- *    is cached in cl->order and has to be invalidated by FlushPrecedences()
- *    in case the order changes. The caller does not have to free the returned
- *    class list (like for TransitiveSubClasses);
+ *      Return a class list containing the transitive list of
+ *      superclasses starting with (and containing) the provided
+ *      class. The superclass list is cached in cl->order and has to be
+ *      invalidated by FlushPrecedences() in case the order changes. The
+ *      caller does not have to free the returned class list (like for
+ *      TransitiveSubClasses);
  *
  * Results:
- *    Class list, NULL on error
+ *      Class list, NULL on error
  *
  * Side effects:
- *    Updating cl->order.
+ *      Updating cl->order.
  *
  *----------------------------------------------------------------------
  */
@@ -3343,15 +3352,15 @@ PrecedenceOrder(NsfClass *class) {
  *----------------------------------------------------------------------
  * GetSubClasses --
  *
- *    Return a class list containing the transitive or dependent subclasses
- *    starting with (and containing) the provided class. The caller has to
- *    free the returned class list.
+ *      Return a class list containing the transitive or dependent
+ *      subclasses starting with (and containing) the provided
+ *      class. The caller has to free the returned class list.
  *
  * Results:
- *    Class list, at least with one element (i.e., the provided class).
+ *      Class list, at least with one element (i.e., the provided class).
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -3394,14 +3403,15 @@ GetSubClasses(NsfClass *class, bool withMixinOfs) {
  *----------------------------------------------------------------------
  * FlushPrecedences --
  *
- *    This function iterations over the provided class list and flushes (and
- *    frees) the superclass caches in cl->order for every element.
+ *      This function iterations over the provided class list and
+ *      flushes (and frees) the superclass caches in cl->order for every
+ *      element.
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    Freeing class lists cached in cl->order.
+ *      Freeing class lists cached in cl->order.
  *
  *----------------------------------------------------------------------
  */
@@ -3427,13 +3437,13 @@ FlushPrecedences(const NsfClasses *subClasses) {
  *----------------------------------------------------------------------
  * AddInstance --
  *
- *    Add an instance to a class.
+ *      Add an instance to a class.
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    Add entry to children hash-table.
+ *      Add entry to children hash-table.
  *
  *----------------------------------------------------------------------
  */
@@ -3461,14 +3471,14 @@ AddInstance(NsfObject *object, NsfClass *class) {
  *----------------------------------------------------------------------
  * RemoveInstance --
  *
- *    Remove an instance from a class. The function checks, whether the entry
- *    is actually still an instance before it deletes it.
+ *      Remove an instance from a class. The function checks, whether the entry
+ *      is actually still an instance before it deletes it.
  *
  * Results:
- *    void
+ *      void
  *
  * Side effects:
- *    Entry deleted from instances hash-table
+ *      Entry deleted from instances hash-table
  *
  *----------------------------------------------------------------------
  */
@@ -3597,15 +3607,15 @@ RemoveSuper(NsfClass *class, NsfClass *superClass) {
  *----------------------------------------------------------------------
  * GetEnsembleObjectFromName --
  *
- *    Get an ensemble object from a method name.  If the method name
- *    is fully qualified, just use a Tcl lookup, otherwise get it from
- *    the provided namespace,
+ *      Get an ensemble object from a method name.  If the method name
+ *      is fully qualified, just use a Tcl lookup, otherwise get it from
+ *      the provided namespace,
  *
  * Results:
- *    ensemble object or NULL
+ *      ensemble object or NULL
  *
  * Side effects:
- *    none
+ *      none
  *
  *----------------------------------------------------------------------
  */
@@ -3647,14 +3657,14 @@ GetEnsembleObjectFromName(Tcl_Interp *interp, Tcl_Namespace *nsPtr, Tcl_Obj *nam
  *----------------------------------------------------------------------
  * GetRegObject --
  *
- *    Try to get the object, on which the method was registered from a
- *    fully qualified method handle
+ *      Try to get the object, on which the method was registered from a
+ *      fully qualified method handle
  *
  * Results:
- *    NsfObject * or NULL on failure
+ *      NsfObject * or NULL on failure
  *
  * Side effects:
- *    none
+ *      none
  *
  *----------------------------------------------------------------------
  */
@@ -3704,17 +3714,17 @@ GetRegObject(Tcl_Interp *interp, Tcl_Command cmd, const char *methodName,
  *----------------------------------------------------------------------
  * ResolveMethodName --
  *
- *    Resolve a method name relative to a provided namespace.
- *    The method name can be
+ *      Resolve a method name relative to a provided namespace.
+ *      The method name can be
  *      a) a fully qualified name
  *      b) a list of method name and subcommands
  *      c) a simple name
  *
  * Results:
- *    Tcl_Command or NULL on failure
+ *      Tcl_Command or NULL on failure
  *
  * Side effects:
- *    none
+ *      none
  *
  *----------------------------------------------------------------------
  */
@@ -3958,13 +3968,13 @@ ResolveMethodName(
  *----------------------------------------------------------------------
  * CmdIsProc --
  *
- *    Check, whether the cmd is interpreted
+ *      Check, whether the cmd is interpreted
  *
  * Results:
- *    Boolean
+ *      Boolean
  *
  * Side effects:
- *    None
+ *      None
  *
  *----------------------------------------------------------------------
  */
@@ -3985,13 +3995,13 @@ CmdIsProc(const Tcl_Command cmd) {
  *----------------------------------------------------------------------
  * CmdIsNsfObject --
  *
- *    Check whether the provided cmd refers to an NsfObject or Class.
+ *      Check whether the provided cmd refers to an NsfObject or Class.
  *
  * Results:
- *    Boolean
+ *      Boolean
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -4008,14 +4018,14 @@ CmdIsNsfObject(Tcl_Command cmd) {
  *----------------------------------------------------------------------
  * GetTclProcFromCommand --
  *
- *    Check whether cmd refers to a Tcl proc, and if so, return the proc
- *    definition.
+ *      Check whether cmd refers to a Tcl proc, and if so, return the
+ *      proc definition.
  *
  * Results:
- *    The found proc of cmd or NULL.
+ *      The found proc of cmd or NULL.
  *
  * Side effects:
- *    None
+ *      None
  *
  *----------------------------------------------------------------------
  */
@@ -4041,13 +4051,13 @@ GetTclProcFromCommand(const Tcl_Command cmd) {
  *----------------------------------------------------------------------
  * FindMethod --
  *
- *    Lookup the cmd for methodName in a namespace.
+ *      Lookup the cmd for methodName in a namespace.
  *
  * Results:
- *    The found cmd of the method or NULL.
+ *      The found cmd of the method or NULL.
  *
  * Side effects:
- *    None
+ *      None
  *
  *----------------------------------------------------------------------
  */
@@ -4075,13 +4085,13 @@ FindMethod(
  *----------------------------------------------------------------------
  * FindProcMethod --
  *
- *    Lookup the proc for methodName in a namespace.
+ *      Lookup the proc for methodName in a namespace.
  *
  * Results:
- *    The found proc of the method or NULL.
+ *      The found proc of the method or NULL.
  *
  * Side effects:
- *    None
+ *      None
  *
  *----------------------------------------------------------------------
  */
@@ -4103,16 +4113,17 @@ FindProcMethod(const Tcl_Namespace *nsPtr, const char *methodName) {
  *----------------------------------------------------------------------
  * SearchPLMethod, SearchPLMethod0 --
  *
- *    Search a method along a provided class list.  The methodName must be
- *    simple (must not contain space). While SearchPLMethod() allows one to
- *    specify a flag for filtering the command, SearchPLMethod0() is a lightly
- *    optimized function without the filtering option.
+ *      Search a method along a provided class list.  The methodName
+ *      must be simple (must not contain space). While SearchPLMethod()
+ *      allows one to specify a flag for filtering the command,
+ *      SearchPLMethod0() is a lightly optimized function without the
+ *      filtering option.
  *
  * Results:
- *    The found class defining the method or NULL.
+ *      The found class defining the method or NULL.
  *
  * Side effects:
- *    None
+ *      None
  *
  *----------------------------------------------------------------------
  */
@@ -4186,17 +4197,17 @@ SearchPLMethod(
  *----------------------------------------------------------------------
  * SearchCMethod --
  *
- *    Search a method along the superclass hierarchy of the provided
- *    class. The methodObj must be simple (must not contain
- *    space). The method has the interface for internal calls during
- *    interpretation, while SearchSimpleCMethod() has the interface
- *    with more overhead for introspection.
+ *      Search a method along the superclass hierarchy of the provided
+ *      class. The methodObj must be simple (must not contain
+ *      space). The method has the interface for internal calls during
+ *      interpretation, while SearchSimpleCMethod() has the interface
+ *      with more overhead for introspection.
  *
  * Results:
- *    The found class defining the method or NULL.
+ *      The found class defining the method or NULL.
  *
  * Side effects:
- *    None
+ *      None
  *
  *----------------------------------------------------------------------
  */
@@ -4217,16 +4228,16 @@ SearchCMethod(NsfClass *class, const char *methodName, Tcl_Command *cmdPtr) {
  *----------------------------------------------------------------------
  * SearchSimpleCMethod --
  *
- *    Search a method along the superclass hierarchy of the provided
- *    class. The methodObj must be simple (must not contain
- *    space). The method has the same interface as
- *    SearchComplexCMethod().
+ *      Search a method along the superclass hierarchy of the provided
+ *      class. The methodObj must be simple (must not contain
+ *      space). The method has the same interface as
+ *      SearchComplexCMethod().
  *
  * Results:
- *    The found class defining the method or NULL.
+ *      The found class defining the method or NULL.
  *
  * Side effects:
- *    None
+ *      None
  *
  *----------------------------------------------------------------------
  */
@@ -4252,16 +4263,16 @@ SearchSimpleCMethod(
  *----------------------------------------------------------------------
  * SearchComplexCMethod --
  *
- *    Search a method along the superclass hierarchy of the provided
- *    class. The methodObj can refer to an ensemble object (can
- *    contain space). The method has the same interface as
- *    SearchSimpleCMethod().
+ *      Search a method along the superclass hierarchy of the provided
+ *      class. The methodObj can refer to an ensemble object (can
+ *      contain space). The method has the same interface as
+ *      SearchSimpleCMethod().
  *
  * Results:
- *    The found class defining the method or NULL.
+ *      The found class defining the method or NULL.
  *
  * Side effects:
- *    None
+ *      None
  *
  *----------------------------------------------------------------------
  */
@@ -4296,16 +4307,16 @@ SearchComplexCMethod(Tcl_Interp *interp, NsfClass *class,
  *----------------------------------------------------------------------
  * ObjectFindMethod --
  *
- *    Find a method for a given object in the precedence path. The
- *    provided methodObj might be an ensemble object. This function
- *    tries to optimize access by calling different implementations
- *    for simple and ensemble method names.
+ *      Find a method for a given object in the precedence path. The
+ *      provided methodObj might be an ensemble object. This function
+ *      tries to optimize access by calling different implementations
+ *      for simple and ensemble method names.
  *
  * Results:
- *    Tcl command.
+ *      Tcl command.
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -4371,13 +4382,13 @@ ObjectFindMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *methodObj, NsfC
  *----------------------------------------------------------------------
  * GetObjectSystem --
  *
- *    Return the object system for which the object was defined
+ *      Return the object system for which the object was defined
  *
  * Results:
- *    Object system pointer
+ *      Object system pointer
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -4400,13 +4411,13 @@ GetObjectSystem(const NsfObject *object) {
  *----------------------------------------------------------------------
  * ObjectSystemFree --
  *
- *    Free a single object system structure including its root-classes.
+ *      Free a single object system structure including its root-classes.
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    Free memory of structure, free the root-classes.
+ *      Free memory of structure, free the root-classes.
  *
  *----------------------------------------------------------------------
  */
@@ -4447,13 +4458,13 @@ ObjectSystemFree(Tcl_Interp *interp, NsfObjectSystem *osPtr) {
  *----------------------------------------------------------------------
  * ObjectSystemAdd --
  *
- *    Add and entry to the list of object systems of the interpreter.
+ *      Add and entry to the list of object systems of the interpreter.
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    Updating the per interp list of object systems.
+ *      Updating the per interp list of object systems.
  *
  *----------------------------------------------------------------------
  */
@@ -4476,14 +4487,14 @@ ObjectSystemAdd(Tcl_Interp *interp, NsfObjectSystem *osPtr) {
  *----------------------------------------------------------------------
  * ObjectSystemsCleanup --
  *
- *    Delete all objects from all defined object systems.  This method
- *    is to be called when a Next Scripting process or thread exists.
+ *      Delete all objects from all defined object systems.  This method
+ *      is to be called when a Next Scripting process or thread exists.
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    All commands and objects are deleted, memory is freed.
+ *      All commands and objects are deleted, memory is freed.
  *
  *----------------------------------------------------------------------
  */
@@ -4592,16 +4603,16 @@ ObjectSystemsCleanup(Tcl_Interp *interp, bool withKeepvars) {
  *----------------------------------------------------------------------
  * CallDirectly --
  *
- *    Determine when it is possible/necessary to call a method
- *    implementation directly or via method dispatch.
+ *      Determine when it is possible/necessary to call a method
+ *      implementation directly or via method dispatch.
  *
  * Results:
- *    1 is returned when command should be invoked directly, 0
- *    otherwise.
+ *      1 is returned when command should be invoked directly, 0
+ *      otherwise.
  *
  * Side effects:
- *    methodObjPtr is set with the Tcl_Obj of the name of the method,
- *    if there is one defined.
+ *      methodObjPtr is set with the Tcl_Obj of the name of the method,
+ *      if there is one defined.
  *
  *----------------------------------------------------------------------
  */
@@ -4686,13 +4697,13 @@ CallDirectly(Tcl_Interp *interp, NsfObject *object, int methodIdx, Tcl_Obj **met
  *----------------------------------------------------------------------
  * NsfMethodObj --
  *
- *    Return the methodObj for a given method index.
+ *      Return the methodObj for a given method index.
  *
  * Results:
- *    Returns Tcl_Obj* or NULL
+ *      Returns Tcl_Obj* or NULL
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -4797,15 +4808,15 @@ MakeObjNamespace(Tcl_Interp *interp, NsfObject *object) {
  *----------------------------------------------------------------------
  * CompiledLocalsLookup --
  *
- *    Lookup variable from the compiled locals. The function performs a linear
- *    search in an unsorted list maintained by Tcl. This function is just used
- *    for the rather deprecated "instvar" method.
+ *      Lookup variable from the compiled locals. The function performs a linear
+ *      search in an unsorted list maintained by Tcl. This function is just used
+ *      for the rather deprecated "instvar" method.
  *
  * Results:
- *    Returns Tcl_Var (or NULL, when lookup is not successful)
+ *      Returns Tcl_Var (or NULL, when lookup is not successful)
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -4859,16 +4870,16 @@ CompiledLocalsLookup(CallFrame *varFramePtr, const char *varName) {
  *----------------------------------------------------------------------
  * CompiledColonLocalsLookupBuildCache --
  *
- *    Helper function for CompiledColonLocalsLookup(): build up a sorted cache
- *    consisting only of colon prefixed variables, such that e.g.
- *    non-successful lookup can be performed in O(n/2).  In comparison to
- *    CompiledLocalsLookup() this function is about a factor of 4 faster.
+ *      Helper function for CompiledColonLocalsLookup(): build up a sorted cache
+ *      consisting only of colon prefixed variables, such that e.g.
+ *      non-successful lookup can be performed in O(n/2).  In comparison to
+ *      CompiledLocalsLookup() this function is about a factor of 4 faster.
  *
  * Results:
- *    Returns Tcl_Var (or NULL, when lookup is not successful)
+ *      Returns Tcl_Var (or NULL, when lookup is not successful)
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -4999,15 +5010,15 @@ CompiledColonLocalsLookupBuildCache(CallFrame *varFramePtr, const char *varName,
  *----------------------------------------------------------------------
  * CompiledColonLocalsLookup --
  *
- *    Lookup single colon prefixed variables from the compiled locals. This
- *    function uses a cache consisting of colon prefixed variables to speed up
- *    variable access.
+ *      Lookup single colon prefixed variables from the compiled locals. This
+ *      function uses a cache consisting of colon prefixed variables to speed up
+ *      variable access.
  *
  * Results:
- *    Returns Tcl_Var (or NULL, when lookup is not successful)
+ *      Returns Tcl_Var (or NULL, when lookup is not successful)
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -5112,14 +5123,14 @@ CompiledColonLocalsLookup(CallFrame *varFramePtr, const char *varName) {
  *----------------------------------------------------------------------
  * GetVarAndNameFromHash --
  *
- *    Convenience function to obtain variable and name from
- *    a variable hash entry.
+ *      Convenience function to obtain variable and name from
+ *      a variable hash entry.
  *
  * Results:
- *    Results are passed back in argument 2 and 3
+ *      Results are passed back in argument 2 and 3
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -5149,14 +5160,14 @@ GetVarAndNameFromHash(const Tcl_HashEntry *hPtr, Var **val, Tcl_Obj **varNameObj
  *----------------------------------------------------------------------
  * MethodName --
  *
- *    Return the methodName from a Tcl_Obj, strips potentially the
- *    colon prefix
+ *      Return the methodName from a Tcl_Obj, strips potentially the
+ *      colon prefix
  *
  * Results:
- *    method name
+ *      method name
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -5188,15 +5199,15 @@ NsfMethodName(Tcl_Obj *methodObj) {
  *----------------------------------------------------------------------
  * NsfMethodNamePath --
  *
- *    Compute the full method name for error messages containing the
- *    ensemble root.
+ *      Compute the full method name for error messages containing the
+ *      ensemble root.
  *
  * Results:
- *    Tcl_Obj of reference count 0, caller has to take care for
- *    refcounting.
+ *      Tcl_Obj of reference count 0, caller has to take care for
+ *      refcounting.
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -5227,14 +5238,14 @@ NsfMethodNamePath(Tcl_Interp *interp,
  *----------------------------------------------------------------------
  * NsColonVarResolver --
  *
- *    Namespace resolver for namespace specific variable lookup.
- *    colon prefix
+ *      Namespace resolver for namespace specific variable lookup.
+ *      colon prefix
  *
  * Results:
- *    method name
+ *      method name
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -5389,13 +5400,13 @@ typedef struct NsfResolvedVarInfo {
  *----------------------------------------------------------------------
  * HashVarFree --
  *
- *    Free hashed variables based on refCount.
+ *      Free hashed variables based on refCount.
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *   Changed refCount or freed variable.
+ *      Changed refCount or freed variable.
  *
  *----------------------------------------------------------------------
  */
@@ -5413,23 +5424,23 @@ HashVarFree(Tcl_Var var) {
  *----------------------------------------------------------------------
  * CompiledColonVarFetch --
  *
- *    This function is the actual variable resolution handler for a
- *    colon-prefixed (":/varName/") found in a compiled script registered by
- *    the compiling var resolver (see InterpCompiledColonVarResolver()). When
- *    initializing a call frame, this handler is called, crawls the object's
- *    var table (creating a variable, if needed), and returns a Var
- *    structure. Based on this, a link variable ":/varName/" pointing to this
- *    object variable (i.e., "varName") is created and is stored in the
- *    compiled locals array of the call frame. Beware that these link
- *    variables interact with the family of link-creating commands
+ *      This function is the actual variable resolution handler for a
+ *      colon-prefixed (":/varName/") found in a compiled script registered by
+ *      the compiling var resolver (see InterpCompiledColonVarResolver()). When
+ *      initializing a call frame, this handler is called, crawls the object's
+ *      var table (creating a variable, if needed), and returns a Var
+ *      structure. Based on this, a link variable ":/varName/" pointing to this
+ *      object variable (i.e., "varName") is created and is stored in the
+ *      compiled locals array of the call frame. Beware that these link
+ *      variables interact with the family of link-creating commands
  *    ([variable], [global], [upvar]) by being subject to "retargeting" upon
- *    name conflicts (see tests/varresolutiontest.tcl for some examples).
+ *      name conflicts (see tests/varresolutiontest.tcl for some examples).
  *
  * Results:
- *    Tcl_Var containing value or NULL.
+ *      Tcl_Var containing value or NULL.
  *
  * Side effects:
- *    Updates of Variable structure cache in necessary.
+ *      Updates of Variable structure cache in necessary.
  *
  *----------------------------------------------------------------------
  */
@@ -5543,13 +5554,13 @@ CompiledColonVarFetch(Tcl_Interp *interp, Tcl_ResolvedVarInfo *vinfoPtr) {
  *----------------------------------------------------------------------
  * CompiledColonVarFree --
  *
- *    DeleteProc of the compiled variable handler.
+ *      DeleteProc of the compiled variable handler.
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *   Free compiled variable structure and variable.
+ *      Free compiled variable structure and variable.
  *
  *----------------------------------------------------------------------
  */
@@ -5579,28 +5590,28 @@ CompiledColonVarFree(Tcl_ResolvedVarInfo *vInfoPtr) {
  *----------------------------------------------------------------------
  * InterpCompiledColonVarResolver --
  *
- *    For colon-prefixed (":/varName/") variables, we provide our own
- *    var resolver for compiling scripts and evaluating compiled
- *    scripts (e.g., proc bodies). At the time of first compilation
+ *      For colon-prefixed (":/varName/") variables, we provide our own
+ *      var resolver for compiling scripts and evaluating compiled
+ *      scripts (e.g., proc bodies). At the time of first compilation
  *    (or re-compilation), this resolver is processed (see
- *    tclProc.c:InitResolvedLocals()). It registers two handlers for a
- *    given, colon-prefixed variable found in the script: the actual
- *    variable fetcher and a variable cleanup handler. The variable
- *    fetcher is executed whenever a Tcl call frame is initialized and
- *    the array of compiled locals is constructed (see also
- *    InitResolvedLocals()).
+ *      tclProc.c:InitResolvedLocals()). It registers two handlers for a
+ *      given, colon-prefixed variable found in the script: the actual
+ *      variable fetcher and a variable cleanup handler. The variable
+ *      fetcher is executed whenever a Tcl call frame is initialized and
+ *      the array of compiled locals is constructed (see also
+ *      InitResolvedLocals()).
  *
- *    The Tcl var resolver protocol dictates that per-namespace
- *    compiling var resolvers take precedence over this per-interp
- *    compiling var resolver. That is, per-namespace resolvers are
- *    processed first and can effectively out-rule per-interp
- *    resolvers by signaling TCL_OK or TCL_BREAK.
+ *      The Tcl var resolver protocol dictates that per-namespace
+ *      compiling var resolvers take precedence over this per-interp
+ *      compiling var resolver. That is, per-namespace resolvers are
+ *      processed first and can effectively out-rule per-interp
+ *      resolvers by signaling TCL_OK or TCL_BREAK.
  *
  * Results:
- *    TCL_OK or TCL_CONTINUE (according to Tcl's var resolver protocol)
+ *      TCL_OK or TCL_CONTINUE (according to Tcl's var resolver protocol)
  *
  * Side effects:
- *    Registers per-variable resolution and cleanup handlers.
+ *      Registers per-variable resolution and cleanup handlers.
  *
  *----------------------------------------------------------------------
  */
@@ -5656,15 +5667,15 @@ InterpCompiledColonVarResolver(Tcl_Interp *interp,
  *----------------------------------------------------------------------
  * InterpGetFrameAndFlags --
  *
- *    Return for the provided interp the flags of the frame (returned as
- *    result) and the actual varFrame (returned in the second argument). In
- *    case, the toplevel frame is a LAMBDA frame, skip it.
+ *      Return for the provided interp the flags of the frame (returned as
+ *      result) and the actual varFrame (returned in the second argument). In
+ *      case, the toplevel frame is a LAMBDA frame, skip it.
  *
  * Results:
- *    Frame flags, varFrame
+ *      Frame flags, varFrame
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -5702,25 +5713,25 @@ InterpGetFrameAndFlags(Tcl_Interp *interp, CallFrame **framePtr) {
  *----------------------------------------------------------------------
  * InterpColonVarResolver --
  *
- *    For accessing object (instance) variables using the colon-prefix
- *    notation (":/varName/"), we provide our own var resolvers. This function
- *    is the non-compiling var resolver; its services are requested in two
- *    situations: a) when evaluating non-compiled statements, b) when
- *    executing slow-path bytecode instructions, with "slow path" referring to
- *    bytecode instructions not making use of the compiled locals array (and,
- *    e.g., reverting to TclObjLookupVar*() calls).
+ *      For accessing object (instance) variables using the colon-prefix
+ *      notation (":/varName/"), we provide our own var resolvers. This function
+ *      is the non-compiling var resolver; its services are requested in two
+ *      situations: a) when evaluating non-compiled statements, b) when
+ *      executing slow-path bytecode instructions, with "slow path" referring to
+ *      bytecode instructions not making use of the compiled locals array (and,
+ *      e.g., reverting to TclObjLookupVar*() calls).
  *
- *    The Tcl var resolver protocol dictates that per-namespace, non-compiling
- *    var resolvers take precedence over this per-interp non-compiling var
- *    resolver. That is, per-namespace resolvers are processed first and can
- *    effectively out-rule per-interp resolvers by signaling TCL_OK or
- *    TCL_BREAK. See e.g. TclLookupSimpleVar().
+ *      The Tcl var resolver protocol dictates that per-namespace, non-compiling
+ *      var resolvers take precedence over this per-interp non-compiling var
+ *      resolver. That is, per-namespace resolvers are processed first and can
+ *      effectively out-rule per-interp resolvers by signaling TCL_OK or
+ *      TCL_BREAK. See e.g. TclLookupSimpleVar().
  *
  * Results:
- *    TCL_OK or TCL_CONTINUE (according to on Tcl's var resolver protocol)
+ *      TCL_OK or TCL_CONTINUE (according to on Tcl's var resolver protocol)
  *
  * Side effects:
- *    If successful, return varPtr, pointing to instance variable.
+ *      If successful, return varPtr, pointing to instance variable.
  *
  *----------------------------------------------------------------------
  */
@@ -5886,15 +5897,15 @@ InterpColonVarResolver(Tcl_Interp *interp, const char *varName, Tcl_Namespace *U
  *----------------------------------------------------------------------
  * InterpColonCmdResolver --
  *
- *    Resolve command names. If the command starts with the Next
- *    Scripting specific prefix and we are on a Next Scripting stack
- *    frame, treat command as OO method.
+ *      Resolve command names. If the command starts with the Next
+ *      Scripting specific prefix and we are on a Next Scripting stack
+ *      frame, treat command as OO method.
  *
  * Results:
- *    TCL_OK or TCL_CONTINUE (based on Tcl's command resolver protocol)
+ *      TCL_OK or TCL_CONTINUE (based on Tcl's command resolver protocol)
  *
  * Side effects:
- *   If successful, return cmdPtr, pointing to method.
+ *      If successful, return cmdPtr, pointing to method.
  *
  *----------------------------------------------------------------------
  */
@@ -6032,14 +6043,14 @@ InterpColonCmdResolver(Tcl_Interp *interp, const char *cmdName, Tcl_Namespace *U
  *----------------------------------------------------------------------
  * NsfNamespaceInit --
  *
- *    Initialize a provided namespace by setting its resolvers and
- *    namespace path
+ *      Initialize a provided namespace by setting its resolvers and
+ *      namespace path
  *
  * Results:
- *    none
+ *      none
  *
  * Side effects:
- *    change ns behavior
+ *      change ns behavior
  *
  *----------------------------------------------------------------------
  */
@@ -6110,17 +6121,17 @@ NSNamespaceClientDataObject(ClientData clientData) {
  *----------------------------------------------------------------------
  * SlotContainerCmdResolver --
  *
- *    This is a specialized cmd resolver for slotcontainer.  The command
- *    resolver should be registered for a namespace and avoids the lookup of
- *    childobjs for unqualified calls. This way, it is e.g. possible to call
- *    in a slot-obj a method [list], even in cases, where a property "list"
- *    is defined.
+ *      This is a specialized cmd resolver for slotcontainer.  The command
+ *      resolver should be registered for a namespace and avoids the lookup of
+ *      childobjs for unqualified calls. This way, it is e.g. possible to call
+ *      in a slot-obj a method [list], even in cases, where a property "list"
+ *      is defined.
  *
  * Results:
- *    either TCL_CONTINUE or TCL_OK;
+ *      either TCL_CONTINUE or TCL_OK;
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -6177,15 +6188,15 @@ SlotContainerCmdResolver(Tcl_Interp *interp, const char *cmdName,
  *----------------------------------------------------------------------
  * RequireObjNamespace --
  *
- *    Obtain for an object a namespace if necessary and initialize it.
- *    In this function, variables existing outside of the namespace
- *    get copied over to the fresh namespace.
+ *      Obtain for an object a namespace if necessary and initialize it.
+ *      In this function, variables existing outside of the namespace
+ *      get copied over to the fresh namespace.
  *
  * Results:
- *    Tcl_Namespace
+ *      Tcl_Namespace
  *
  * Side effects:
- *    Allocate potentially a Tcl_Namespace
+ *      Allocate potentially a Tcl_Namespace
  *
  *----------------------------------------------------------------------
  */
@@ -6212,13 +6223,13 @@ RequireObjNamespace(Tcl_Interp *interp, NsfObject *object) {
  *----------------------------------------------------------------------
  * NSNamespacePreserve --
  *
- *    Increment namespace refCount
+ *      Increment namespace refCount
  *
  * Results:
- *    void
+ *      void
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -6234,13 +6245,13 @@ NSNamespacePreserve(Tcl_Namespace *nsPtr) {
  *----------------------------------------------------------------------
  * NSNamespaceRelease --
  *
- *    Decrement namespace's "refCount" and free namespace if necessary.
+ *      Decrement namespace's "refCount" and free namespace if necessary.
  *
  * Results:
- *    void
+ *      void
  *
  * Side effects:
- *    Free potentially memory.
+ *      Free potentially memory.
  *
  *----------------------------------------------------------------------
  */
@@ -6269,14 +6280,14 @@ NSNamespaceRelease(Tcl_Namespace *nsPtr) {
  *----------------------------------------------------------------------
  * NSDeleteCmd --
  *
- *    Delete the Tcl command for the provided methodName located in
- *    the provided namespace.
+ *      Delete the Tcl command for the provided methodName located in
+ *      the provided namespace.
  *
  * Results:
- *    Tcl result or -1, if no such method exists int.
+ *      Tcl result or -1, if no such method exists int.
  *
  * Side effects:
- *    Command is deleted.
+ *      Command is deleted.
  *
  *----------------------------------------------------------------------
  */
@@ -6299,15 +6310,15 @@ NSDeleteCmd(Tcl_Interp *interp, Tcl_Namespace *nsPtr, const char *methodName) {
  *----------------------------------------------------------------------
  * NSDeleteChild --
  *
- *    Delete a child of an object in cases, when the parent object is
- *    deleted. It is designed to delete either objects or classes to
- *    be a little bit more graceful on destructors. Not perfect yet.
+ *      Delete a child of an object in cases, when the parent object is
+ *      deleted. It is designed to delete either objects or classes to
+ *      be a little bit more graceful on destructors. Not perfect yet.
  *
  * Results:
- *    Boolean indicating success
+ *      Boolean indicating success
  *
  * Side effects:
- *    Might destroy an object.
+ *      Might destroy an object.
  *
  *----------------------------------------------------------------------
  */
@@ -6403,13 +6414,13 @@ NSDeleteChild(Tcl_Interp *interp, Tcl_Command cmd, bool deleteObjectsOnly) {
  *----------------------------------------------------------------------
  * NSDeleteChildren --
  *
- *    Delete the child objects of a namespace.
+ *      Delete the child objects of a namespace.
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    Might destroy child objects.
+ *      Might destroy child objects.
  *
  *----------------------------------------------------------------------
  */
@@ -6490,27 +6501,27 @@ NSDeleteChildren(Tcl_Interp *interp, const Tcl_Namespace *nsPtr) {
  *----------------------------------------------------------------------
  * UnsetTracedVars --
  *
- *   This is a helper function which, as a first pass, attempts to unset
- *   traced object variables before TclDeleteVars() performs a second pass.
- *   This two-pass deletion of object variables is necessary because an unset
- *   trace might bring back the object variable currently being deleted. A
- *   single pass risks leaking so-revived Var structures. TclDeleteVars()
- *   requires variables under deletion to be untraced.
+ *      This is a helper function which, as a first pass, attempts to unset
+ *      traced object variables before TclDeleteVars() performs a second pass.
+ *      This two-pass deletion of object variables is necessary because an unset
+ *      trace might bring back the object variable currently being deleted. A
+ *      single pass risks leaking so-revived Var structures. TclDeleteVars()
+ *      requires variables under deletion to be untraced.
  *
- *   As Tcl does not provide access to the necessary lower-level Var API to
- *   extensions (ideally: TclDeleteNamespaceVars or TclPtrUnsetVar), we resort
- *   to a mix of navigating the variable table and calling high-level unset
- *   operations (UnsetInstVar).
+ *      As Tcl does not provide access to the necessary lower-level Var API to
+ *      extensions (ideally: TclDeleteNamespaceVars or TclPtrUnsetVar), we resort
+ *      to a mix of navigating the variable table and calling high-level unset
+ *      operations (UnsetInstVar).
  *
- *   With the fix to ticket https://core.tcl-lang.org/tcl/info/4dbdd9af144dbdd9af14,
- *   Tcl itself provides for two deletion passes for namespace variables (see
- *   TclDeleteNamespaceVars).
+ *      With the fix to ticket https://core.tcl-lang.org/tcl/info/4dbdd9af144dbdd9af14,
+ *      Tcl itself provides for two deletion passes for namespace variables (see
+ *      TclDeleteNamespaceVars).
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    Triggers the unset traces, if any.
+ *      Triggers the unset traces, if any.
  *
  *----------------------------------------------------------------------
  */
@@ -6582,17 +6593,17 @@ UnsetTracedVars(
  *----------------------------------------------------------------------
  * NSCleanupNamespace --
  *
- *   Cleans up an object or class namespace by deleting 1) its variables, 2)
- *   resetting the var table, and 3) deleting user-defined namespace procs.
+ *      Cleans up an object or class namespace by deleting 1) its variables, 2)
+ *      resetting the var table, and 3) deleting user-defined namespace procs.
  *
- *   For namespaces holding variables with possible unset traces, make sure
- *   that UnsetTracedVars is called just before NSCleanupNamespace().
+ *      For namespaces holding variables with possible unset traces, make sure
+ *      that UnsetTracedVars is called just before NSCleanupNamespace().
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    Re-initializes the variable table of the cleaned-up namespace
+ *      Re-initializes the variable table of the cleaned-up namespace
  *    (TclInitVarHashTable).
  *
  *----------------------------------------------------------------------
@@ -6719,14 +6730,14 @@ Nsf_DeleteNamespace(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
  *----------------------------------------------------------------------
  * NSValidObjectName --
  *
- *    Check the provided colons in an object name. If the name is
- *    valid, the function NSF_TRUE.
+ *      Check the provided colons in an object name. If the name is
+ *      valid, the function NSF_TRUE.
  *
  * Results:
- *    returns boolean indicating success
+ *      returns boolean indicating success
  *
  * Side effects:
- *    none
+ *      none
  *
  *----------------------------------------------------------------------
  */
@@ -6775,15 +6786,15 @@ NSValidObjectName(const char *name, size_t l) {
  *----------------------------------------------------------------------
  * NSGetFreshNamespace --
  *
- *    Create an object namespace, provide a deleteProc (avoid
- *    interference between object and namespace deletion order) and
- *    keep the object as client data.
+ *      Create an object namespace, provide a deleteProc (avoid
+ *      interference between object and namespace deletion order) and
+ *      keep the object as client data.
  *
  * Results:
- *    Tcl_Namespace
+ *      Tcl_Namespace
  *
  * Side effects:
- *    might allocate a namespace
+ *      might allocate a namespace
  *
  *----------------------------------------------------------------------
  */
@@ -6837,14 +6848,14 @@ NSGetFreshNamespace(Tcl_Interp *interp, NsfObject *object, const char *name) {
  *----------------------------------------------------------------------
  * NSRequireParentObject --
  *
- *    Try to require a parent object (e.g. during ttrace).  This function
- *    tries to load a parent object via ::nsf::object::unknown.
+ *      Try to require a parent object (e.g. during ttrace).  This function
+ *      tries to load a parent object via ::nsf::object::unknown.
  *
  * Results:
- *    Tcl result code
+ *      Tcl result code
  *
  * Side effects:
- *    might create an object
+ *      might create an object
  *
  *----------------------------------------------------------------------
  */
@@ -6877,25 +6888,25 @@ NSRequireParentObject(Tcl_Interp *interp, const char *parentName) {
  *----------------------------------------------------------------------
  * NSCheckNamespace --
  *
- *    Check whether a namespace with the given name exists. If not, make sure
- *    that a potential parent object has already required a namespace. If
- *    there is no parent namespace yet, try to create a parent object via
- *    __unknown.
+ *      Check whether a namespace with the given name exists. If not, make sure
+ *      that a potential parent object has already required a namespace. If
+ *      there is no parent namespace yet, try to create a parent object via
+ *      __unknown.
  *
- *    If the provided parentNsPtr is not NULL, we know, that (a) the
- *    provided name was relative and simple (contains no ":"
- *    characters) and that (b) this namespace was used to build a fully
- *    qualified name. In these cases, the parentNsPtr points already
- *    to the parentName, containing potentially a parent Object. In
- *    all other cases, the parent name is either obtained from the
- *    full namespace, or from string operations working on the
- *    provided name.
+ *      If the provided parentNsPtr is not NULL, we know, that (a) the
+ *      provided name was relative and simple (contains no ":"
+ *      characters) and that (b) this namespace was used to build a fully
+ *      qualified name. In these cases, the parentNsPtr points already
+ *      to the parentName, containing potentially a parent Object. In
+ *      all other cases, the parent name is either obtained from the
+ *      full namespace, or from string operations working on the
+ *      provided name.
  *
  * Results:
- *    Tcl_Namespace for the provided name
+ *      Tcl_Namespace for the provided name
  *
  * Side effects:
- *    might create parent objects
+ *      might create parent objects
  *
  *----------------------------------------------------------------------
  */
@@ -7000,15 +7011,15 @@ NSCheckNamespace(
  *----------------------------------------------------------------------
  * NSFindCommand --
  *
- *    Find the "real" command belonging e.g. to a Next Scripting class or
- *    object.  Do not return cmds produced by Tcl_Import, but the "real" cmd
- *    to which they point.
+ *      Find the "real" command belonging e.g. to a Next Scripting class or
+ *      object.  Do not return cmds produced by Tcl_Import, but the "real" cmd
+ *      to which they point.
  *
  * Results:
- *    Tcl_Command or NULL
+ *      Tcl_Command or NULL
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -7039,15 +7050,15 @@ NSFindCommand(Tcl_Interp *interp, const char *name) {
  *----------------------------------------------------------------------
  * ReverseLookupCmdFromCmdTable --
  *
- *    Allows for looking up objects in command tables (e.g., namespace cmd
- *    tables, the interp's hidden cmd table) based on their command pointer
+ *      Allows for looking up objects in command tables (e.g., namespace cmd
+ *      tables, the interp's hidden cmd table) based on their command pointer
  *    (rather than their command name).
  *
  * Results:
- *    Boolean result indicating success
+ *      Boolean result indicating success
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -7086,16 +7097,16 @@ ReverseLookupCmdFromCmdTable(
  *----------------------------------------------------------------------
  * GetHiddenObjectFromCmd --
  *
- *    Obtains a hidden object for a specified cmd. The function uses a reverse
- *    lookup of *hidden* object structures based on their commands. This
- *    helper is needed for handling hidden and re-exposed objects during the
- *    shutdown and the cleanup of object systems.
+ *      Obtains a hidden object for a specified cmd. The function uses a reverse
+ *      lookup of *hidden* object structures based on their commands. This
+ *      helper is needed for handling hidden and re-exposed objects during the
+ *      shutdown and the cleanup of object systems.
  *
  * Results:
- *    NsfObject* or NULL
+ *      NsfObject* or NULL
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -7156,15 +7167,15 @@ GetHiddenObjectFromCmd(
  *----------------------------------------------------------------------
  * GetObjectFromString --
  *
- *    Lookup an object from a given string. The function performs a
- *    command lookup (every object is a command) and checks, if the
- *    command is bound to an NSF object.
+ *      Lookup an object from a given string. The function performs a
+ *      command lookup (every object is a command) and checks, if the
+ *      command is bound to an NSF object.
  *
  * Results:
- *    NsfObject* or NULL
+ *      NsfObject* or NULL
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -7190,14 +7201,14 @@ GetObjectFromString(Tcl_Interp *interp, const char *name) {
  *----------------------------------------------------------------------
  * GetClassFromString --
  *
- *    Lookup a class from a given string. The function performs an
- *    object lookup and checks, if the object is a class
+ *      Lookup a class from a given string. The function performs an
+ *      object lookup and checks, if the object is a class
  *
  * Results:
- *    NsfClass* or NULL
+ *      NsfClass* or NULL
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -7214,14 +7225,14 @@ GetClassFromString(Tcl_Interp *interp, const char *name) {
  *----------------------------------------------------------------------
  * CanRedefineCmd --
  *
- *    This function tests, whether a method (provided as a string) is
- *    allowed to be redefined in a provided namespace.
+ *      This function tests, whether a method (provided as a string) is
+ *      allowed to be redefined in a provided namespace.
  *
  * Results:
- *    Tcl result code.
+ *      Tcl result code.
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -7295,14 +7306,14 @@ CanRedefineCmd(
  *----------------------------------------------------------------------
  * NsfAddObjectMethod --
  *
- *    Externally callable function to register an object level method
- *    for the provided object.
+ *      Externally callable function to register an object level method
+ *      for the provided object.
  *
  * Results:
- *    Tcl result code.
+ *      Tcl result code.
  *
  * Side effects:
- *    Newly created Tcl command.
+ *      Newly created Tcl command.
  *
  *----------------------------------------------------------------------
  */
@@ -7362,14 +7373,14 @@ NsfAddObjectMethod(
  *----------------------------------------------------------------------
  * NsfAddClassMethod --
  *
- *    Externally callable function to register a class level method
- *    for the provided class.
+ *      Externally callable function to register a class level method
+ *      for the provided class.
  *
  * Results:
- *    Tcl result code.
+ *      Tcl result code.
  *
  * Side effects:
- *    Newly created Tcl command.
+ *      Newly created Tcl command.
  *
  *----------------------------------------------------------------------
  */
@@ -7685,15 +7696,15 @@ CallStackDestroyObject(Tcl_Interp *interp, NsfObject *object) {
  *----------------------------------------------------------------------
  * CmdListAdd --
  *
- *    Add an entry to a cmdlist. Optionally, the function checks for
- *    duplicates (does not insert a duplicate) or it allows one to add new
- *    entries to the end of the list.
+ *      Add an entry to a cmdlist. Optionally, the function checks for
+ *      duplicates (does not insert a duplicate) or it allows one to add new
+ *      entries to the end of the list.
  *
  * Results:
- *    The newly inserted command list item or a found item (never null)
+ *      The newly inserted command list item or a found item (never null)
  *
  * Side effects:
- *    Added List entry.
+ *      Added List entry.
  *
  *----------------------------------------------------------------------
  */
@@ -7776,16 +7787,16 @@ CmdListAdd(
  *----------------------------------------------------------------------
  * CmdListAddSorted --
  *
- *    Add an entry to a cmdlist without duplicates. The order of the entries
- *    is not supposed to be relevant. This function maintains a sorted list to
- *    reduce cost to n/2. Can be improved be using better data structures of
- *    needed.
+ *      Add an entry to a cmdlist without duplicates. The order of the entries
+ *      is not supposed to be relevant. This function maintains a sorted list to
+ *      reduce cost to n/2. Can be improved be using better data structures of
+ *      needed.
  *
  * Results:
- *    The newly inserted command list item or a found item
+ *      The newly inserted command list item or a found item
  *
  * Side effects:
- *    Added List entry.
+ *      Added List entry.
  *
  *----------------------------------------------------------------------
  */
@@ -7920,16 +7931,16 @@ CmdListRemoveFromList(NsfCmdList **cmdList, NsfCmdList *delCL) {
  *----------------------------------------------------------------------
  * CmdListRemoveDeleted --
  *
- *    Remove all command pointers from a command list which are marked
+ *      Remove all command pointers from a command list which are marked
  *    "deleted". The condition for deletion is the presence of the flag
- *    CMD_IS_DELETED, with the flag bit being set by
- *    Tcl_DeleteCommandFromToken().
+ *      CMD_IS_DELETED, with the flag bit being set by
+ *      Tcl_DeleteCommandFromToken().
  *
  * Results:
- *    The cmd list filtered for non-deleted commands
+ *      The cmd list filtered for non-deleted commands
  *
  * Side effects:
- *    None
+ *      None
  *
  *----------------------------------------------------------------------
  */
@@ -8076,14 +8087,14 @@ CmdListFindNameInList(Tcl_Interp *interp, const char *name, NsfCmdList *cmdList)
  *----------------------------------------------------------------------
  * CheckConditionInScope --
  *
- *    Check a given condition in the current call-frame's scope. It is
- *    the responsibility of the caller to push the intended call-frame.
+ *      Check a given condition in the current call-frame's scope. It is
+ *      the responsibility of the caller to push the intended call-frame.
  *
  * Results:
- *    Tcl result code.
+ *      Tcl result code.
  *
  * Side effects:
- *    None
+ *      None
  *
  *----------------------------------------------------------------------
  */
@@ -8119,13 +8130,13 @@ CheckConditionInScope(Tcl_Interp *interp, Tcl_Obj *condition) {
  *----------------------------------------------------------------------
  * TclObjListFreeList --
  *
- *    Free the elements of the obj list.
+ *      Free the elements of the obj list.
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    free memory.
+ *      free memory.
  *
  *----------------------------------------------------------------------
  */
@@ -8153,14 +8164,14 @@ TclObjListFreeList(NsfTclObjList *list) {
  *----------------------------------------------------------------------
  * TclObjListNewElement --
  *
- *    Add a new element to the obj list with an optional value (stored in
- *    payload).
+ *      Add a new element to the obj list with an optional value (stored in
+ *      payload).
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    allocate memory.
+ *      allocate memory.
  *
  *----------------------------------------------------------------------
  */
@@ -8190,15 +8201,15 @@ TclObjListNewElement(NsfTclObjList **list, Tcl_Obj *obj, Tcl_Obj *valueObj) {
  *----------------------------------------------------------------------
  * TclObjListAdd --
  *
- *    Add an NsfTclObjList element to the obj list indexed by a key into a
- *    sorted list of elements. Duplicates are appended to the payload
- *    elements.
+ *      Add an NsfTclObjList element to the obj list indexed by a key into a
+ *      sorted list of elements. Duplicates are appended to the payload
+ *      elements.
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    Add element to the obj-list.
+ *      Add element to the obj-list.
  *
  *----------------------------------------------------------------------
  */
@@ -8251,14 +8262,14 @@ TclObjListAdd(Tcl_Interp *interp, NsfTclObjList **list, Tcl_Obj *key, Tcl_Obj *v
  *----------------------------------------------------------------------
  * AddObjToTclList --
  *
- *    Add a Tcl_Obj to a potential not-existing Tcl list, which is created on
- *    demand.
+ *      Add a Tcl_Obj to a potential not-existing Tcl list, which is created on
+ *      demand.
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    Add Tcl_Obj to the Tcl list, potentially creating list.
+ *      Add Tcl_Obj to the Tcl list, potentially creating list.
  *
  *----------------------------------------------------------------------
  */
@@ -8848,13 +8859,13 @@ MixinComputeOrderFullList(
  *----------------------------------------------------------------------
  * MixinResetOrder --
  *
- *    Free the mixin order of the provided object if it exists.
+ *      Free the mixin order of the provided object if it exists.
  *
  * Results:
- *    void
+ *      void
  *
  * Side effects:
- *    Frees potentially the mixinOrder list.
+ *      Frees potentially the mixinOrder list.
  *
  *----------------------------------------------------------------------
  */
@@ -8874,14 +8885,14 @@ MixinResetOrder(NsfObject *object) {
  *----------------------------------------------------------------------
  * NsfClassListAddPerClassMixins --
  *
- *    Append the class mixins to the provided list. CheckList is used to
- *    eliminate potential duplicates.
+ *      Append the class mixins to the provided list. CheckList is used to
+ *      eliminate potential duplicates.
  *
  * Results:
- *    void
+ *      void
  *
  * Side effects:
- *    Appends potentially elements to classListPtr and checkList
+ *      Appends potentially elements to classListPtr and checkList
  *
  *----------------------------------------------------------------------
  */
@@ -8912,15 +8923,15 @@ NsfClassListAddPerClassMixins(Tcl_Interp *interp, NsfClass *class,
  *----------------------------------------------------------------------
  * MixinComputeOrder --
  *
- *    Compute a duplicate-free linearized order of per-object and per-class
- *    mixins and the class inheritance. The precedence rule is that the last
- *    occurrence makes it into the final list.
+ *      Compute a duplicate-free linearized order of per-object and per-class
+ *      mixins and the class inheritance. The precedence rule is that the last
+ *      occurrence makes it into the final list.
  *
  * Results:
- *    void
+ *      void
  *
  * Side effects:
- *    object->mixinOrder is updated.
+ *      object->mixinOrder is updated.
  *
  *----------------------------------------------------------------------
  */
@@ -9044,14 +9055,14 @@ MixinComputeOrder(Tcl_Interp *interp, NsfObject *object) {
  *----------------------------------------------------------------------
  * MixinAdd --
  *
- *    Add a mixinreg (mixin-class with a potential guard) provided as a
- *    Tcl_Obj* to 'mixinList' by appending it to the provided cmdList.
+ *      Add a mixinreg (mixin-class with a potential guard) provided as a
+ *      Tcl_Obj* to 'mixinList' by appending it to the provided cmdList.
  *
  * Results:
- *    Tcl result code.
+ *      Tcl result code.
  *
  * Side effects:
- *    Potentially allocating cmd list elements added to the mixinList
+ *      Potentially allocating cmd list elements added to the mixinList
  *
  *----------------------------------------------------------------------
  */
@@ -9107,14 +9118,14 @@ MixinAdd(Tcl_Interp *interp, NsfCmdList **mixinList, Tcl_Obj *nameObj) {
  *----------------------------------------------------------------------
  * AppendMatchingElement --
  *
- *    Call AppendElement to the resultObj for values matching the specified
- *    pattern.
+ *      Call AppendElement to the resultObj for values matching the specified
+ *      pattern.
  *
  * Results:
- *    void
+ *      void
  *
  * Side effects:
- *    Appends element to the result object
+ *      Appends element to the result object
  *
  *----------------------------------------------------------------------
  */
@@ -9140,15 +9151,15 @@ AppendMatchingElement(
  *----------------------------------------------------------------------
  * AppendMatchingElementsFromCmdList --
  *
- *    Apply AppendMatchingElement() to all elements of the passed
- *    Cmdlist
+ *      Apply AppendMatchingElement() to all elements of the passed
+ *      Cmdlist
  *
  * Results:
- *    NSF_TRUE iff a matching object was provided and it was found;
- *    NSF_FALSE otherwise
+ *      NSF_TRUE iff a matching object was provided and it was found;
+ *      NSF_FALSE otherwise
  *
  * Side effects:
- *    Appends elements to the result
+ *      Appends elements to the result
  *
  *----------------------------------------------------------------------
  */
@@ -9189,14 +9200,14 @@ AppendMatchingElementsFromCmdList(
  *----------------------------------------------------------------------
  * AppendMatchingElementsFromClasses --
  *
- *    Apply AppendMatchingElement() to all elements of the passed
- *    class list
+ *      Apply AppendMatchingElement() to all elements of the passed
+ *      class list
  *
  * Results:
- *    NSF_TRUE iff a matching object was provided and it was found; NSF_FALSE otherwise
+ *      NSF_TRUE iff a matching object was provided and it was found; NSF_FALSE otherwise
  *
  * Side effects:
- *    Appends elements to the result
+ *      Appends elements to the result
  *
  *----------------------------------------------------------------------
  */
@@ -9237,14 +9248,14 @@ AppendMatchingElementsFromClasses(
  *----------------------------------------------------------------------
  * GetAllInstances --
  *
- *    Get all instances of a class recursively into an initialized
- *    String key hash-table
+ *      Get all instances of a class recursively into an initialized
+ *      String key hash-table
  *
  * Results:
- *    void
+ *      void
  *
  * Side effects:
- *    Passed hash-table contains instances
+ *      Passed hash-table contains instances
  *
  *----------------------------------------------------------------------
  */
@@ -9324,14 +9335,14 @@ GetAllInstances(Tcl_Interp *interp, NsfCmdList **instances, NsfClass *startClass
  *----------------------------------------------------------------------
  * AddToResultSet --
  *
- *    Helper function to add classes to the result set (implemented as
- *    a hash-table), flagging test for matchObject as result
+ *      Helper function to add classes to the result set (implemented as
+ *      a hash-table), flagging test for matchObject as result
  *
  * Results:
- *    NSF_TRUE iff a matching object was provided and it was found; NSF_FALSE otherwise
+ *      NSF_TRUE iff a matching object was provided and it was found; NSF_FALSE otherwise
  *
  * Side effects:
- *    Appends optionally element to the result object
+ *      Appends optionally element to the result object
  *
  *----------------------------------------------------------------------
  */
@@ -9370,15 +9381,15 @@ AddToResultSet(
  *----------------------------------------------------------------------
  * AddToResultSetWithGuards --
  *
- *    Helper function to add classes with guards to the result set
+ *      Helper function to add classes with guards to the result set
  *    (implemented as a hash-table, full version as a Tcl list), flagging test
- *    for matchObject as result.
+ *      for matchObject as result.
  *
  * Results:
- *    NSF_TRIE iff a matching object was provided and it was found; NSF_FALSE otherwise
+ *      NSF_TRIE iff a matching object was provided and it was found; NSF_FALSE otherwise
  *
  * Side effects:
- *    Appends optionally element to the result object
+ *      Appends optionally element to the result object
  *
  *----------------------------------------------------------------------
  */
@@ -9430,17 +9441,17 @@ AddToResultSetWithGuards(
  *----------------------------------------------------------------------
  * GetAllObjectMixinsOf --
  *
- *    Computes a set of classes, into which this class was mixed in
- *    via per object mixin. The function gets recursively all per
- *    object mixins from a class and its subclasses/isClassMixinOf
- *    and adds it into an initialized object ptr hash-table
+ *      Computes a set of classes, into which this class was mixed in
+ *      via per object mixin. The function gets recursively all per
+ *      object mixins from a class and its subclasses/isClassMixinOf
+ *      and adds it into an initialized object ptr hash-table
  *    (TCL_ONE_WORD_KEYS)
  *
  * Results:
- *    Boolean value indicating when done.
+ *      Boolean value indicating when done.
  *
  * Side effects:
- *    The set of classes is returned in the provided hash-table
+ *      The set of classes is returned in the provided hash-table
  *
  *----------------------------------------------------------------------
  */
@@ -9537,15 +9548,15 @@ GetAllObjectMixinsOf(
  *----------------------------------------------------------------------
  * AddClassListEntriesToMixinsOfSet --
  *
- *    Helper function of GetAllClassMixinsOf(). Iterate over the provided
- *    class list (mixinOfs) and add every entry to the result set. If the
- *    entry is new, GetAllClassMixinsOf() is called recursively.
+ *      Helper function of GetAllClassMixinsOf(). Iterate over the provided
+ *      class list (mixinOfs) and add every entry to the result set. If the
+ *      entry is new, GetAllClassMixinsOf() is called recursively.
  *
  * Results:
- *    Boolean value indicating when done.
+ *      Boolean value indicating when done.
  *
  * Side effects:
- *    The set of classes is returned in the provided hash-table
+ *      The set of classes is returned in the provided hash-table
  *
  *----------------------------------------------------------------------
  */
@@ -9612,16 +9623,16 @@ AddClassListEntriesToMixinsOfSet(
  *----------------------------------------------------------------------
  * GetAllClassMixinsOf --
  *
- *    Computes a set of classes, into which this class was mixed in
- *    via as a class mixin. The function gets recursively all per
- *    class mixins from a class and its subclasses and adds it
- *    into an initialized object ptr hash-table (TCL_ONE_WORD_KEYS)
+ *      Computes a set of classes, into which this class was mixed in
+ *      via as a class mixin. The function gets recursively all per
+ *      class mixins from a class and its subclasses and adds it
+ *      into an initialized object ptr hash-table (TCL_ONE_WORD_KEYS)
  *
  * Results:
- *    Boolean value indicating when done.
+ *      Boolean value indicating when done.
  *
  * Side effects:
- *    The set of classes is returned in the provided hash-table
+ *      The set of classes is returned in the provided hash-table
  *
  *----------------------------------------------------------------------
  */
@@ -9730,15 +9741,15 @@ GetAllClassMixinsOf(
  *----------------------------------------------------------------------
  * GetAllClassMixins --
  *
- *    Computes a set class-mixins of a given class and handles
- *    transitive cases. The classes are added it into an initialized
- *    object ptr hash-table (TCL_ONE_WORD_KEYS)
+ *      Computes a set class-mixins of a given class and handles
+ *      transitive cases. The classes are added it into an initialized
+ *      object ptr hash-table (TCL_ONE_WORD_KEYS)
  *
  * Results:
- *    Boolean value indicating when done.
+ *      Boolean value indicating when done.
  *
  * Side effects:
- *    The set of classes is returned in the provided hash-table
+ *      The set of classes is returned in the provided hash-table
  *
  *----------------------------------------------------------------------
  */
@@ -9832,14 +9843,14 @@ GetAllClassMixins(
  *----------------------------------------------------------------------
  * RemoveFromClassMixinsOf --
  *
- *    Remove the class (provided as a cmd) from all isClassMixinOf definitions
- *    from the provided classes (provided as cmdlist).
+ *      Remove the class (provided as a cmd) from all isClassMixinOf definitions
+ *      from the provided classes (provided as cmdlist).
  *
  * Results:
- *    void
+ *      void
  *
  * Side effects:
- *    Deletes potentially some entries in the isClassMixinOf lists.
+ *      Deletes potentially some entries in the isClassMixinOf lists.
  *
  *----------------------------------------------------------------------
  */
@@ -9873,14 +9884,14 @@ RemoveFromClassMixinsOf(Tcl_Command cmd, NsfCmdList *cmdList) {
  *----------------------------------------------------------------------
  * RemoveFromObjectMixinsOf --
  *
- *    Remove the class (provided as a cmd) from all isObjectMixinOf definitions
- *    from the provided classes (provided as cmdList).
+ *      Remove the class (provided as a cmd) from all isObjectMixinOf definitions
+ *      from the provided classes (provided as cmdList).
  *
  * Results:
- *    void
+ *      void
  *
  * Side effects:
- *    Deletes potentially some entries in the isObjectMixinOf lists.
+ *      Deletes potentially some entries in the isObjectMixinOf lists.
  *
  *----------------------------------------------------------------------
  */
@@ -9916,14 +9927,14 @@ RemoveFromObjectMixinsOf(Tcl_Command cmd, NsfCmdList *cmdList) {
  *----------------------------------------------------------------------
  * RemoveFromClassmixins --
  *
- *    Remove the class (provided as a cmd) from all class mixins lists
- *    from the provided classes (provided as cmdList).
+ *      Remove the class (provided as a cmd) from all class mixins lists
+ *      from the provided classes (provided as cmdList).
  *
  * Results:
- *    void
+ *      void
  *
  * Side effects:
- *    Deletes potentially some entries in the class mixins lists.
+ *      Deletes potentially some entries in the class mixins lists.
  *
  *----------------------------------------------------------------------
  */
@@ -9962,14 +9973,14 @@ RemoveFromClassmixins(Tcl_Command cmd, NsfCmdList *cmdList) {
  *----------------------------------------------------------------------
  * RemoveFromObjectMixins --
  *
- *    Remove the class (provided as a cmd) from all object mixin lists
- *    from the provided classes (provided as cmdList).
+ *      Remove the class (provided as a cmd) from all object mixin lists
+ *      from the provided classes (provided as cmdList).
  *
  * Results:
- *    void
+ *      void
  *
  * Side effects:
- *    Deletes potentially some entries in the object mixins lists.
+ *      Deletes potentially some entries in the object mixins lists.
  *
  *----------------------------------------------------------------------
  */
@@ -10008,14 +10019,14 @@ RemoveFromObjectMixins(Tcl_Command cmd, NsfCmdList *cmdList) {
  *----------------------------------------------------------------------
  * ResetOrderOfObjectsUsingThisClassAsObjectMixin --
  *
- *    Reset the per-object mixin order for all objects having this class as
- *    per-object mixin.
+ *      Reset the per-object mixin order for all objects having this class as
+ *      per-object mixin.
  *
  * Results:
- *    void
+ *      void
  *
  * Side effects:
- *    Deletes potentially the mixin list for the objects.
+ *      Deletes potentially the mixin list for the objects.
  *
  *----------------------------------------------------------------------
  */
@@ -10050,16 +10061,16 @@ ResetOrderOfObjectsUsingThisClassAsObjectMixin(const NsfClass *class) {
  *----------------------------------------------------------------------
  * MixinInvalidateObjOrders --
  *
- *    Reset mixin order for all instances of the class and the instances of
- *    its dependent subclasses. This function is typically called, when the
- *    the class hierarchy or the class mixins have changed and invalidate
- *    mixin entries in all dependent instances.
+ *      Reset mixin order for all instances of the class and the instances of
+ *      its dependent subclasses. This function is typically called, when the
+ *      the class hierarchy or the class mixins have changed and invalidate
+ *      mixin entries in all dependent instances.
  *
  * Results:
- *    void
+ *      void
  *
  * Side effects:
- *    Deletes potentially the mixin list for the objects and classes.
+ *      Deletes potentially the mixin list for the objects and classes.
  *
  *----------------------------------------------------------------------
  */
@@ -10114,22 +10125,22 @@ MixinInvalidateObjOrders(NsfClasses *subClasses) {
  *----------------------------------------------------------------------
  * MixinComputeDefined --
  *
- *    This function computes the mixin order for the provided object and
- *    adjusts the mixin flags accordingly. The mixin order is either
+ *      This function computes the mixin order for the provided object and
+ *      adjusts the mixin flags accordingly. The mixin order is either
  *
- *       DEFINED (there are mixins on the instance),
- *       NONE    (there are no mixins for the instance),
- *       or INVALID (a class restructuring has occurred.
- *                  It is not clear whether mixins are defined or not).
+ *         DEFINED (there are mixins on the instance),
+ *         NONE    (there are no mixins for the instance),
+ *         or INVALID (a class restructuring has occurred.
+ *                 It is not clear whether mixins are defined or not).
  *
- *    If the mixin order is INVALID, MixinComputeDefined can be used to
- *    compute the order and set the instance to DEFINED or NONE
+ *      If the mixin order is INVALID, MixinComputeDefined can be used to
+ *      compute the order and set the instance to DEFINED or NONE
  *
  * Results:
- *    void
+ *      void
  *
  * Side effects:
- *    Might alter the mixin order.
+ *      Might alter the mixin order.
  *
  *----------------------------------------------------------------------
  */
@@ -10152,16 +10163,16 @@ MixinComputeDefined(Tcl_Interp *interp, NsfObject *object) {
  *----------------------------------------------------------------------
  * ComputePrecedenceList --
  *
- *    Returns the precedence list for the provided object.  The precedence
- *    list can optionally include the mixins and the root-class. If pattern is
- *    provided, this is used as well for filtering. The caller has to free the
- *    resulting list via NsfClassListFree();
+ *      Returns the precedence list for the provided object.  The precedence
+ *      list can optionally include the mixins and the root-class. If pattern is
+ *      provided, this is used as well for filtering. The caller has to free the
+ *      resulting list via NsfClassListFree();
  *
  * Results:
- *    Precedence list in form of a class list, potentially NULL due to filtering.
+ *      Precedence list in form of a class list, potentially NULL due to filtering.
  *
  * Side effects:
- *    Allocated class list.
+ *      Allocated class list.
  *
  *----------------------------------------------------------------------
  */
@@ -10217,15 +10228,15 @@ ComputePrecedenceList(Tcl_Interp *interp, NsfObject *object,
  *----------------------------------------------------------------------
  * SeekCurrent --
  *
- *    Walk through the command list until the provided command is reached.
- *    return the next entry. If the provided cmd is NULL, then return the
- *    first entry.
+ *      Walk through the command list until the provided command is reached.
+ *      return the next entry. If the provided cmd is NULL, then return the
+ *      first entry.
  *
  * Results:
- *    Command list pointer or NULL
+ *      Command list pointer or NULL
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -10254,13 +10265,13 @@ SeekCurrent(const Tcl_Command cmd, register NsfCmdList *cmdListPtr) {
  *----------------------------------------------------------------------
  * CanInvokeMixinMethod --
  *
- *    Check, whether the provided cmd is allowed to be dispatch in a mixin.
+ *      Check, whether the provided cmd is allowed to be dispatch in a mixin.
  *
  * Results:
- *    Tcl result code or NSF_CHECK_FAILED in case, search should continue
+ *      Tcl result code or NSF_CHECK_FAILED in case, search should continue
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -10299,19 +10310,19 @@ CanInvokeMixinMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Command cmd, Nsf
  *----------------------------------------------------------------------
  * MixinSearchProc --
  *
- *    Search for a method name in the mixin list of the provided
- *    object. Depending on the state of the mixin stack, the search starts
- *    at the beginning or at the last dispatched, shadowed method on
- *    the mixin path.
+ *      Search for a method name in the mixin list of the provided
+ *      object. Depending on the state of the mixin stack, the search starts
+ *      at the beginning or at the last dispatched, shadowed method on
+ *      the mixin path.
  *
  * Results:
- *    Tcl result code.
- *    Returns as well always cmd (maybe NULL) in cmdPtr.
- *    Returns on success as well the class and the currentCmdPointer
- *    for continuation in next.
+ *      Tcl result code.
+ *      Returns as well always cmd (maybe NULL) in cmdPtr.
+ *      Returns on success as well the class and the currentCmdPointer
+ *      for continuation in next.
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -10543,7 +10554,7 @@ MixinSearchMethodByName(NsfCmdList *mixinList, const char *name, NsfClass **clas
 
 
 /*
- *  Filter-Commands
+ *      Filter-Commands
  */
 
 /*
@@ -10632,13 +10643,13 @@ FilterSearch(const char *name, NsfObject *startingObject,
  *----------------------------------------------------------------------
  * GuardCheck --
  *
- *    Check, a filter guard
+ *      Check, a filter guard
  *
  * Results:
- *    Tcl result code or NSF_CHECK_FAILED in case, search should continue
+ *      Tcl result code or NSF_CHECK_FAILED in case, search should continue
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -10771,17 +10782,17 @@ GuardCall(NsfObject *object, Tcl_Interp *interp, Tcl_Obj *guardObj, NsfCallStack
  *----------------------------------------------------------------------
  * GuardAddFromDefinitionList --
  *
- *    Add a guard to the specified destination list (first arg) from a list of
- *    definitions (last arg).  If the provided cmd is found in the list of
- *    definitions, it is added to the destination list if it has non-null
- *    client data.
+ *      Add a guard to the specified destination list (first arg) from a list of
+ *      definitions (last arg).  If the provided cmd is found in the list of
+ *      definitions, it is added to the destination list if it has non-null
+ *      client data.
  *
  * Results:
- *    Returns Boolean value depending on whether the cmd is part of the
- *    definition list.
+ *      Returns Boolean value depending on whether the cmd is part of the
+ *      definition list.
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -10813,13 +10824,13 @@ GuardAddFromDefinitionList(NsfCmdList *dest, Tcl_Command interceptorCmd,
  *----------------------------------------------------------------------
  * GuardAddInheritedGuards --
  *
- *    Add an inherited guards to the provided destination list.
+ *      Add an inherited guards to the provided destination list.
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    Updates potentially destination list
+ *      Updates potentially destination list
  *
  *----------------------------------------------------------------------
  */
@@ -10900,14 +10911,14 @@ GuardAddInheritedGuards(Tcl_Interp *interp, NsfCmdList *dest,
  *----------------------------------------------------------------------
  * GuardList --
  *
- *    Set interp result to a named guard in the provided guardList. The
- *    variable "guardList" might be NULL.
+ *      Set interp result to a named guard in the provided guardList. The
+ *      variable "guardList" might be NULL.
  *
  * Results:
- *    interp result
+ *      interp result
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -10950,16 +10961,16 @@ GuardList(Tcl_Interp *interp, NsfCmdList *guardList, const char *interceptorName
  *----------------------------------------------------------------------
  * FilterAddActive --
  *
- *    Add a method name to the set of methods, which were used as filters in
- *    the current interp.
+ *      Add a method name to the set of methods, which were used as filters in
+ *      the current interp.
  *
- *    TODO: let the set shrink, when filters are removed.
+ *      TODO: let the set shrink, when filters are removed.
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    Adding or updating of a hash entry
+ *      Adding or updating of a hash entry
  *
  *----------------------------------------------------------------------
  */
@@ -10987,14 +10998,14 @@ FilterAddActive(Tcl_Interp *interp, const char *methodName) {
  *----------------------------------------------------------------------
  * FilterIsActive --
  *
- *    Check, whether a method name is in the set of methods, which were used as
- *    filters in the current interp.
+ *      Check, whether a method name is in the set of methods, which were used as
+ *      filters in the current interp.
  *
  * Results:
- *    Boolean
+ *      Boolean
  *
  * Side effects:
- *    none
+ *      none
  *
  *----------------------------------------------------------------------
  */
@@ -11016,13 +11027,13 @@ FilterIsActive(Tcl_Interp *interp, const char *methodName) {
  *----------------------------------------------------------------------
  * FiltersDefined --
  *
- *    Return the number of defined distinct names of filters.
+ *      Return the number of defined distinct names of filters.
  *
  * Results:
- *    Positive number.
+ *      Positive number.
  *
  * Side effects:
- *    none.
+ *      none.
  *
  *----------------------------------------------------------------------
  */
@@ -11042,13 +11053,13 @@ FiltersDefined(Tcl_Interp *interp) {
  *----------------------------------------------------------------------
  * FilterAdd --
  *
- *    Append a filter command to the 'filterList' of an obj/class
+ *      Append a filter command to the 'filterList' of an obj/class
  *
  * Results:
- *    Standard Tcl result
+ *      Standard Tcl result
  *
  * Side effects:
- *    Modifies interp result in error situations.
+ *      Modifies interp result in error situations.
  *
  *----------------------------------------------------------------------
  */
@@ -11125,13 +11136,13 @@ FilterAdd(Tcl_Interp *interp, NsfCmdList **filterList, Tcl_Obj *filterregObj,
  *----------------------------------------------------------------------
  * FilterResetOrder --
  *
- *    Reset the filter order cached in obj->filterOrder
+ *      Reset the filter order cached in obj->filterOrder
  *
  * Results:
- *    None
+ *      None
  *
  * Side effects:
- *    None
+ *      None
  *
  *----------------------------------------------------------------------
  */
@@ -11152,15 +11163,15 @@ FilterResetOrder(NsfObject *object) {
  *----------------------------------------------------------------------
  * FilterSearchAgain --
  *
- *    Search the filter in the hierarchy again with FilterSearch, e.g.  upon
- *    changes in the class hierarchy or mixins that carry the filter command,
- *    so that we can be sure it is still reachable.
+ *      Search the filter in the hierarchy again with FilterSearch, e.g.  upon
+ *      changes in the class hierarchy or mixins that carry the filter command,
+ *      so that we can be sure it is still reachable.
  *
  * Results:
- *    None
+ *      None
  *
  * Side effects:
- *    None
+ *      None
  *
  *----------------------------------------------------------------------
  */
@@ -11209,15 +11220,15 @@ FilterSearchAgain(Tcl_Interp *interp, NsfCmdList **filters,
  *----------------------------------------------------------------------
  * FilterInvalidateObjOrders --
  *
- *    Invalidate filter entries in all dependent instances. This will be
- *    e.g. necessary, when the class hierarchy or the class filters have
- *    changed.
+ *      Invalidate filter entries in all dependent instances. This will be
+ *      e.g. necessary, when the class hierarchy or the class filters have
+ *      changed.
  *
  * Results:
- *    None
+ *      None
  *
  * Side effects:
- *    None
+ *      None
  *
  *----------------------------------------------------------------------
  */
@@ -11267,15 +11278,15 @@ FilterInvalidateObjOrders(Tcl_Interp *interp, NsfClasses *subClasses) {
  * FilterRemoveDependentFilterCmds --
  *
  *
- *    Remove all filters from all subclasses that refer to "removeClass". This
- *    function is e.g. used to remove filters defined in superclass list from
- *    a dependent class.
+ *      Remove all filters from all subclasses that refer to "removeClass". This
+ *      function is e.g. used to remove filters defined in superclass list from
+ *      a dependent class.
  *
  * Results:
- *    None
+ *      None
  *
  * Side effects:
- *    None
+ *      None
  *
  *----------------------------------------------------------------------
  */
@@ -11320,14 +11331,14 @@ FilterRemoveDependentFilterCmds(NsfClass *removeClass, NsfClasses *subClasses) {
  *----------------------------------------------------------------------
  * MethodHandleObj --
  *
- *    Builds a methodHandle from a method name. We assume, the methodName is
- *    not fully qualified (i.e. it must not start with a colon).
+ *      Builds a methodHandle from a method name. We assume, the methodName is
+ *      not fully qualified (i.e. it must not start with a colon).
  *
  * Results:
- *    fresh Tcl_Obj
+ *      fresh Tcl_Obj
  *
  * Side effects:
- *    none
+ *      none
  *
  *----------------------------------------------------------------------
  */
@@ -11357,15 +11368,15 @@ MethodHandleObj(NsfObject *object, int withPer_object, const char *methodName) {
  *----------------------------------------------------------------------
  * FilterInfo --
  *
- *    Set the interp results with a Tcl list containing the content of the
- *    filter list. The options withGuards and withMethodHandles can be used
- *    for different output structures
+ *      Set the interp results with a Tcl list containing the content of the
+ *      filter list. The options withGuards and withMethodHandles can be used
+ *      for different output structures
  *
  * Results:
- *    Standard Tcl results
+ *      Standard Tcl results
  *
  * Side effects:
- *    Updating interp result
+ *      Updating interp result
  *
  *----------------------------------------------------------------------
  */
@@ -11425,13 +11436,13 @@ FilterInfo(Tcl_Interp *interp, NsfCmdList *f, const char *pattern,
  *----------------------------------------------------------------------
  * FilterComputeOrderFullList --
  *
- *    Compute a fresh list of filters and append it to the filterList.
+ *      Compute a fresh list of filters and append it to the filterList.
  *
  * Results:
- *    None
+ *      None
  *
  * Side effects:
- *    Updating filterList
+ *      Updating filterList
  *
  *----------------------------------------------------------------------
  */
@@ -11506,16 +11517,16 @@ FilterComputeOrderFullList(
  *----------------------------------------------------------------------
  * FilterComputeOrder --
  *
- *    Computes a linearized order of object and class filter. Then duplicates
- *    in the full list and with the class inheritance list of 'obj' are
- *    eliminated.  The precedence rule is that the last occurrence makes it
- *    into the final list (object->filterOrder).
+ *      Computes a linearized order of object and class filter. Then duplicates
+ *      in the full list and with the class inheritance list of 'obj' are
+ *      eliminated.  The precedence rule is that the last occurrence makes it
+ *      into the final list (object->filterOrder).
  *
  * Results:
- *    None
+ *      None
  *
  * Side effects:
- *    Updating interp result
+ *      Updating interp result
  *
  *----------------------------------------------------------------------
  */
@@ -11607,21 +11618,21 @@ FilterComputeOrder(Tcl_Interp *interp, NsfObject *object) {
  *----------------------------------------------------------------------
  * FilterComputeDefined --
  *
- *    Compute the state of the filter order. The filter order is either
+ *      Compute the state of the filter order. The filter order is either
  *
- *       DEFINED (there are filter on the instance),
- *       NONE    (there are no filter for the instance),
- *       or INVALID (a class restructuring has occurred, thus it is not clear
- *                whether filters are defined or not).
+ *         DEFINED (there are filter on the instance),
+ *         NONE    (there are no filter for the instance),
+ *         or INVALID (a class restructuring has occurred, thus it is 
+                    not clear whether filters are defined or not).
  *
- *    If it is INVALID FilterComputeDefined can be used to compute the order
- *    and set the instance to DEFINE or NONE.
+ *      If it is INVALID FilterComputeDefined can be used to compute the
+ *      order and set the instance to DEFINE or NONE.
  *
  * Results:
- *    None
+ *      None
  *
  * Side effects:
- *    Updating object-flags
+ *      Updating object-flags
  *
  *----------------------------------------------------------------------
  */
@@ -11644,14 +11655,14 @@ FilterComputeDefined(Tcl_Interp *interp, NsfObject *object) {
  *----------------------------------------------------------------------
  * FilterStackPush --
  *
- *    Push a filter stack information on this object and initialize it with
- *    calledProc.
+ *      Push a filter stack information on this object and initialize it with
+ *      calledProc.
  *
  * Results:
- *    None
+ *      None
  *
  * Side effects:
- *    Updating object->filterStack
+ *      Updating object->filterStack
  *
  *----------------------------------------------------------------------
  */
@@ -11676,13 +11687,13 @@ FilterStackPush(NsfObject *object, Tcl_Obj *calledProc) {
  *----------------------------------------------------------------------
  * FilterStackPush --
  *
- *    Pop filter stack information from the specified object
+ *      Pop filter stack information from the specified object
  *
  * Results:
- *    None
+ *      None
  *
  * Side effects:
- *    Free filter stack info
+ *      Free filter stack info
  *
  *----------------------------------------------------------------------
  */
@@ -11709,16 +11720,16 @@ FilterStackPop(NsfObject *object) {
  *----------------------------------------------------------------------
  * FilterFindReg --
  *
- *    Search through the filter list on obj and class hierarchy for
- *    registration of a cmdPtr as filter
+ *      Search through the filter list on obj and class hierarchy for
+ *      registration of a cmdPtr as filter
  *
  * Results:
- *    Returns a Tcl list with the filter registration, like:
+ *      Returns a Tcl list with the filter registration, like:
  *    "<obj> filter <filterName>, "<class> filter <filterName>,
- *    or an empty list, if not registered
+ *      or an empty list, if not registered
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -11770,15 +11781,15 @@ FilterFindReg(Tcl_Interp *interp, NsfObject *object, Tcl_Command cmd) {
  *----------------------------------------------------------------------
  * FilterSearchProc --
  *
- *     FilterSearchProc seeks the current filter and the relevant calling
- *     information (class and currentCmd). The function assumes to be called
- *     with an existing filterStack.
+ *      FilterSearchProc seeks the current filter and the relevant calling
+ *      information (class and currentCmd). The function assumes to be called
+ *      with an existing filterStack.
  *
  * Results:
- *    Tcl_Command or NULL
+ *      Tcl_Command or NULL
  *
  * Side effects:
- *    Updates *currentCmd and **cl
+ *      Updates *currentCmd and **cl
  *
  *----------------------------------------------------------------------
  */
@@ -11845,15 +11856,15 @@ FilterSearchProc(Tcl_Interp *interp, NsfObject *object,
  *----------------------------------------------------------------------
  * SuperclassAdd --
  *
- *    Add a list of superClasses (specified in the argument vector) to
- *    the specified class. On the first call, the class has no previous
- *    superClasses.
+ *      Add a list of superClasses (specified in the argument vector) to
+ *      the specified class. On the first call, the class has no previous
+ *      superClasses.
  *
  * Results:
- *    Tcl result code.
+ *      Tcl result code.
  *
  * Side effects:
- *    Rearranging the class relations, flushing previous precedence orders.
+ *      Rearranging the class relations, flushing previous precedence orders.
  *
  *----------------------------------------------------------------------
  */
@@ -11995,13 +12006,13 @@ SuperclassAdd(Tcl_Interp *interp, NsfClass *class, int oc, Tcl_Obj **ov, Tcl_Obj
  *----------------------------------------------------------------------
  * CheckVarName --
  *
- *    Check, whether the provided name is free of namespace markup.
+ *      Check, whether the provided name is free of namespace markup.
  *
  * Results:
- *    Tcl result code.
+ *      Tcl result code.
  *
  * Side effects:
- *    none
+ *      none
  *
  *----------------------------------------------------------------------
  */
@@ -12036,13 +12047,13 @@ CheckVarName(Tcl_Interp *interp, const char *varNameString) {
  *----------------------------------------------------------------------
  * VarExists --
  *
- *    Check, whether the named variable exists on the specified object.
+ *      Check, whether the named variable exists on the specified object.
  *
  * Results:
- *    Tcl result code.
+ *      Tcl result code.
  *
  * Side effects:
- *    none
+ *      none
  *
  *----------------------------------------------------------------------
  */
@@ -12097,14 +12108,14 @@ VarExists(
  *----------------------------------------------------------------------
  * MakeProcError --
  *
- *    Function called internally from Tcl in case the definition of the proc
- *    failed.
+ *      Function called internally from Tcl in case the definition of the proc
+ *      failed.
  *
  * Results:
- *    None
+ *      None
  *
  * Side effects:
- *    none
+ *      none
  *
  *----------------------------------------------------------------------
  */
@@ -12133,13 +12144,13 @@ MakeProcError(
  *----------------------------------------------------------------------
  * ByteCompiled --
  *
- *    Function to determine whether a proc is already byte compiled or not.
+ *      Function to determine whether a proc is already byte compiled or not.
  *
  * Results:
- *    Standard Tcl return code
+ *      Standard Tcl return code
  *
  * Side effects:
- *    none
+ *      none
  *
  *----------------------------------------------------------------------
  */
@@ -12246,14 +12257,14 @@ ByteCompiled(
  *----------------------------------------------------------------------
  * PushProcCallFrame --
  *
- *    Set up and push a new call frame for the procedure invocation.
- *    call-frame. The proc is passed via clientData.
+ *      Set up and push a new call frame for the procedure invocation.
+ *      call-frame. The proc is passed via clientData.
  *
  * Results:
- *    Tcl result code
+ *      Tcl result code
  *
  * Side effects:
- *    compiles body conditionally
+ *      compiles body conditionally
  *
  *----------------------------------------------------------------------
  */
@@ -12321,14 +12332,14 @@ PushProcCallFrame(
  *----------------------------------------------------------------------
  * ObjectSystemsCheckSystemMethod --
  *
- *    Mark the specified method as (potentially) 'overloaded' in all object
- *    systems and declare it 'defined' in the specified object system.
+ *      Mark the specified method as (potentially) 'overloaded' in all object
+ *      systems and declare it 'defined' in the specified object system.
  *
  * Results:
- *    Tcl result code.
+ *      Tcl result code.
  *
  * Side effects:
- *    Updates the object system structure(s).
+ *      Updates the object system structure(s).
  *
  *----------------------------------------------------------------------
  */
@@ -12474,13 +12485,13 @@ ObjectSystemsCheckSystemMethod(
 /*----------------------------------------------------------------------
  * ParamsNew --
  *
- *    Allocate an array of Nsf_Param structures
+ *      Allocate an array of Nsf_Param structures
  *
  * Results:
- *    Pointer to allocated memory
+ *      Pointer to allocated memory
  *
  * Side effects:
- *    Allocation of memory.
+ *      Allocation of memory.
  *
  *----------------------------------------------------------------------
  */
@@ -12497,13 +12508,13 @@ ParamsNew(size_t nr) {
 /*----------------------------------------------------------------------
  * ParamFree --
  *
- *    Deallocate the contents of a single Nsf_Param*
+ *      Deallocate the contents of a single Nsf_Param*
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    Free the parameter definition.
+ *      Free the parameter definition.
  *
  *----------------------------------------------------------------------
  */
@@ -12529,13 +12540,13 @@ ParamFree(Nsf_Param *paramPtr) {
 /*----------------------------------------------------------------------
  * ParamsFree --
  *
- *    Deallocate a block of multiple Nsf_Param*
+ *      Deallocate a block of multiple Nsf_Param*
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    Free the parameter definition.
+ *      Free the parameter definition.
  *
  *----------------------------------------------------------------------
  */
@@ -12559,15 +12570,15 @@ ParamsFree(Nsf_Param *paramsPtr) {
 /*----------------------------------------------------------------------
  * ParamDefsGet --
  *
- *    Obtain parameter definitions for a cmdPtr; Optionally, this command
- *    returns as well a flag for ProcessMethodArguments to indicate if the
- *    parameter have to checked always.
+ *      Obtain parameter definitions for a cmdPtr; Optionally, this command
+ *      returns as well a flag for ProcessMethodArguments to indicate if the
+ *      parameter have to checked always.
  *
  * Results:
- *    Parameter definitions or NULL
+ *      Parameter definitions or NULL
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -12601,13 +12612,13 @@ ParamDefsGet(
 /*----------------------------------------------------------------------
  * ParamDefsGetReturns --
  *
- *    Obtain the "returns" value from NsfProcContext.
+ *      Obtain the "returns" value from NsfProcContext.
  *
  * Results:
- *    Tcl_Obj or NULL
+ *      Tcl_Obj or NULL
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -12635,15 +12646,15 @@ ParamDefsGetReturns(const Tcl_Command cmdPtr) {
 /*----------------------------------------------------------------------
  * NsfParamDefsNonposLookup --
  *
- *    Process a list of ParamDefs look for a non-pos args. If there is no exact
- *    match, look for an abbreviated match having at least
- *    NSF_ABBREV_MIN_CHARS leading chars which are identical.
+ *      Process a list of ParamDefs look for a non-pos args. If there is no exact
+ *      match, look for an abbreviated match having at least
+ *      NSF_ABBREV_MIN_CHARS leading chars which are identical.
  *
  * Results:
- *    Standard Tcl result; might set paramPtrPtr;
+ *      Standard Tcl result; might set paramPtrPtr;
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -12736,14 +12747,14 @@ NsfParamDefsNonposLookup(
  *----------------------------------------------------------------------
  * CGetParamLookup --
  *
- *    Obtain the parameter definition for a Tcl_Obj starting with a "-".  It
- *    can return an error, when the specified parameter is ambiguous.
+ *      Obtain the parameter definition for a Tcl_Obj starting with a "-".  It
+ *      can return an error, when the specified parameter is ambiguous.
  *
  * Results:
- *    Tcl return code, on success paramPtr in last argument
+ *      Tcl return code, on success paramPtr in last argument
  *
  * Side effects:
- *    None
+ *      None
  *
  *----------------------------------------------------------------------
  */
@@ -12819,13 +12830,13 @@ CGetParamLookup(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfParamDefs *paramDefs, c
  *----------------------------------------------------------------------
  * NsfProcDeleteProc --
  *
- *    FreeProc for procs with associated parameter definitions.
+ *      FreeProc for procs with associated parameter definitions.
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    Freeing memory.
+ *      Freeing memory.
  *
  *----------------------------------------------------------------------
  */
@@ -12868,14 +12879,14 @@ NsfProcDeleteProc(
  *----------------------------------------------------------------------
  * ProcContextRequire --
  *
- *    Obtain an NsfProcContext for the given cmd. Create a new one, if it does
- *    not exist, or return the existing one.
+ *      Obtain an NsfProcContext for the given cmd. Create a new one, if it does
+ *      not exist, or return the existing one.
  *
  * Results:
- *    NsfProcContext *
+ *      NsfProcContext *
  *
  * Side effects:
- *    Might allocate memory
+ *      Might allocate memory
  *
  *----------------------------------------------------------------------
  */
@@ -12916,13 +12927,13 @@ ProcContextRequire(
  *----------------------------------------------------------------------
  * ProcContextGet --
  *
- *    Obtain an NsfProcContext for the given cmd when it is defined.
+ *      Obtain an NsfProcContext for the given cmd when it is defined.
  *
  * Results:
- *    NsfProcContext * or NULL
+ *      NsfProcContext * or NULL
  *
  * Side effects:
- *    None
+ *      None
  *
  *----------------------------------------------------------------------
  */
@@ -12947,15 +12958,15 @@ ProcContextGet(
  *----------------------------------------------------------------------
  * ParamDefsStore --
  *
- *    Store the provided parameter definitions in the provided
- *    command. It stores a new deleteProc which will call the original
- *    delete proc automatically.
+ *      Store the provided parameter definitions in the provided
+ *      command. It stores a new deleteProc which will call the original
+ *      delete proc automatically.
  *
  * Results:
- *    Tcl result code.
+ *      Tcl result code.
  *
  * Side effects:
- *    None
+ *      None
  *
  *----------------------------------------------------------------------
  */
@@ -13001,14 +13012,14 @@ ParamDefsStore(
  *----------------------------------------------------------------------
  * ParamDefsNew --
  *
- *    Allocate a new paramDefs structure and initialize it with zeros. The
- *    allocated structure should be freed with ParamDefsFree().
+ *      Allocate a new paramDefs structure and initialize it with zeros. The
+ *      allocated structure should be freed with ParamDefsFree().
  *
  * Results:
- *    pointer to paramDefs structure
+ *      pointer to paramDefs structure
  *
  * Side effects:
- *    Allocating memory
+ *      Allocating memory
  *
  *----------------------------------------------------------------------
  */
@@ -13038,15 +13049,15 @@ ParamDefsNew(void) {
  *----------------------------------------------------------------------
  * ParamDefsFree --
  *
- *    Free the parameter definitions. Since the parameter definitions are
- *    ref-counted, this function should be just called via
- *    ParamDefsRefCountDecr.
+ *      Free the parameter definitions. Since the parameter definitions are
+ *      ref-counted, this function should be just called via
+ *      ParamDefsRefCountDecr.
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    Free the parameter definitions.
+ *      Free the parameter definitions.
  *
  *----------------------------------------------------------------------
  */
@@ -13073,18 +13084,18 @@ ParamDefsFree(NsfParamDefs *paramDefs) {
  * ParamDefsRefCountIncr --
  * ParamDefsRefCountDecr --
  *
- *    Perform book keeping on the parameter definitions. RefCounting is
- *    necessary, since it might be possible that during the processing of the
- *    e.g. object parameters, these might be redefined (when an object
- *    parameter calls a method, redefining the structures).
- *    ParamDefsRefCountDecr() is responsible for actually freeing the
- *    structure.
+ *      Perform book keeping on the parameter definitions. RefCounting is
+ *      necessary, since it might be possible that during the processing of the
+ *      e.g. object parameters, these might be redefined (when an object
+ *      parameter calls a method, redefining the structures).
+ *      ParamDefsRefCountDecr() is responsible for actually freeing the
+ *      structure.
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    No direct.
+ *      No direct.
  *
  *----------------------------------------------------------------------
  */
@@ -13113,14 +13124,14 @@ ParamDefsRefCountDecr(NsfParamDefs *paramDefs) {
  *----------------------------------------------------------------------
  * ParamDefsFormatOption --
  *
- *    Append a parameter option to the nameStringObj representing the
- *    syntax of the parameter definition.
+ *      Append a parameter option to the nameStringObj representing the
+ *      syntax of the parameter definition.
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    none
+ *      none
  *
  *----------------------------------------------------------------------
  */
@@ -13156,14 +13167,14 @@ ParamDefsFormatOption(
  *----------------------------------------------------------------------
  * ParamDefsFormat --
  *
- *    Produce a Tcl_Obj representing a single parameter in the syntax
- *    of the parameter definition.
+ *      Produce a Tcl_Obj representing a single parameter in the syntax
+ *      of the parameter definition.
  *
  * Results:
- *    Tcl_Obj
+ *      Tcl_Obj
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -13299,14 +13310,14 @@ ParamDefsFormat(
  *----------------------------------------------------------------------
  * ParamDefsList --
  *
- *    Produce a Tcl_ListObj containing the list of the parameters
- *    based on a parameter structure.
+ *      Produce a Tcl_ListObj containing the list of the parameters
+ *      based on a parameter structure.
  *
  * Results:
- *    Tcl_Obj
+ *      Tcl_Obj
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -13344,14 +13355,14 @@ ParamDefsList(
  *----------------------------------------------------------------------
  * ParamDefsNames --
  *
- *    Produce a Tcl_ListObj containing the names of the parameters
- *    based on a parameter structure.
+ *      Produce a Tcl_ListObj containing the names of the parameters
+ *      based on a parameter structure.
  *
  * Results:
- *    Tcl_Obj
+ *      Tcl_Obj
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -13395,13 +13406,13 @@ ParamDefsNames(
  *----------------------------------------------------------------------
  * ParamGetType --
  *
- *    Obtain the type of a single parameter and return it as a string.
+ *      Obtain the type of a single parameter and return it as a string.
  *
  * Results:
- *    Type of the parameter in form of a string
+ *      Type of the parameter in form of a string
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -13440,15 +13451,15 @@ ParamGetType(Nsf_Param const *paramPtr) {
  *----------------------------------------------------------------------
  * ParamGetDomain --
  *
- *    Obtain the domain of a single parameter and return it as a
- *    string. The domain is an approximate type used in the parameter
- *    syntax.
+ *      Obtain the domain of a single parameter and return it as a
+ *      string. The domain is an approximate type used in the parameter
+ *      syntax.
  *
  * Results:
- *    Domain of the parameter in form of a string
+ *      Domain of the parameter in form of a string
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -13473,14 +13484,14 @@ ParamGetDomain(Nsf_Param const *paramPtr) {
  *----------------------------------------------------------------------
  * NsfParamDefsSyntaxOne --
  *
- *    Appends the formatted parameter (provided as 2nd argument) to the
- *    content of the first argument.
+ *      Appends the formatted parameter (provided as 2nd argument) to the
+ *      content of the first argument.
  *
  * Results:
- *    None
+ *      None
  *
  * Side effects:
- *    Appending to first argument.
+ *      Appending to first argument.
  *
  *----------------------------------------------------------------------
  */
@@ -13522,15 +13533,15 @@ NsfParamDefsSyntaxOne(Tcl_Obj *argStringObj, const Nsf_Param *pPtr) {
 /*
  * NsfParamDefsVirtualFormat --
  *
- *    This function is called, when we know we can resolve a virtual argument
- *    against the context object. In such cases, obtain the resolved parsed
- *    params and call the formatter.
+ *      This function is called, when we know we can resolve a virtual argument
+ *      against the context object. In such cases, obtain the resolved parsed
+ *      params and call the formatter.
  *
  * Results:
- *    Standard Tcl result code.
+ *      Standard Tcl result code.
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -13571,14 +13582,14 @@ NsfParamDefsVirtualFormat(
  *----------------------------------------------------------------------
  * NsfParamDefsAppendVirtual --
  *
- *    Check for the given paramsPtr whether this is a virtual parameter and if
- *    possible, resolve it and append the formatted content to the Tcl_Obj.
+ *      Check for the given paramsPtr whether this is a virtual parameter and if
+ *      possible, resolve it and append the formatted content to the Tcl_Obj.
  *
  * Results:
- *    Boolean value for success
+ *      Boolean value for success
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -13618,15 +13629,15 @@ NsfParamDefsAppendVirtual(
  *----------------------------------------------------------------------
  * NsfParamDefsSyntax --
  *
- *    Return the parameter definitions of a sequence of parameters in
- *    the form of the "parametersyntax", inspired by the Tcl manual
- *    pages.
+ *      Return the parameter definitions of a sequence of parameters in
+ *      the form of the "parametersyntax", inspired by the Tcl manual
+ *      pages.
  *
  * Results:
- *    Tcl_Obj containing the parameter syntax
+ *      Tcl_Obj containing the parameter syntax
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -13731,13 +13742,13 @@ NsfParamDefsSyntax(
  *----------------------------------------------------------------------
  * ParsedParamFree --
  *
- *    Free the provided information of the parsed parameters.
+ *      Free the provided information of the parsed parameters.
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    Freed Memory.
+ *      Freed Memory.
  *
  *----------------------------------------------------------------------
  */
@@ -13763,17 +13774,17 @@ ParsedParamFree(NsfParsedParam *parsedParamPtr) {
  *----------------------------------------------------------------------
  * ProcMethodDispatchFinalize --
  *
- *    Finalization function for ProcMethodDispatch which executes
- *    scripted methods. Essentially it handles post-assertions and
- *    frees per-invocation memory. The function was developed for NRE
- *    enabled Tcl versions but is used in the same way for non-NRE
- *    enabled versions.
+ *      Finalization function for ProcMethodDispatch which executes
+ *      scripted methods. Essentially it handles post-assertions and
+ *      frees per-invocation memory. The function was developed for NRE
+ *      enabled Tcl versions but is used in the same way for non-NRE
+ *      enabled versions.
  *
  * Results:
- *    Tcl result code.
+ *      Tcl result code.
  *
  * Side effects:
- *    indirect effects by calling Tcl code
+ *      indirect effects by calling Tcl code
  *
  *----------------------------------------------------------------------
  */
@@ -13843,14 +13854,14 @@ ProcMethodDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
  *----------------------------------------------------------------------
  * ProcDispatchFinalize --
  *
- *    Finalization function for nsf::proc. Simplified version of
- *    ProcMethodDispatchFinalize().
+ *      Finalization function for nsf::proc. Simplified version of
+ *      ProcMethodDispatchFinalize().
  *
  * Results:
- *    Tcl result code.
+ *      Tcl result code.
  *
  * Side effects:
- *    indirect effects by calling Tcl code
+ *      indirect effects by calling Tcl code
  *
  *----------------------------------------------------------------------
  */
@@ -13900,13 +13911,13 @@ ProcDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
  *----------------------------------------------------------------------
  * ProcMethodDispatch --
  *
- *    Invoke a scripted method (with assertion checking and filters).
+ *      Invoke a scripted method (with assertion checking and filters).
  *
  * Results:
- *    Tcl result code.
+ *      Tcl result code.
  *
  * Side effects:
- *    Indirect effects by calling Tcl code
+ *      Indirect effects by calling Tcl code
  *
  *----------------------------------------------------------------------
  */
@@ -14108,15 +14119,15 @@ ProcMethodDispatch(
  *----------------------------------------------------------------------
  * CmdMethodDispatch --
  *
- *    Invoke a method implemented as a cmd.  Essentially it stacks
- *    optionally a frame, calls the method, pops the frame and runs
- *    invariants.
+ *      Invoke a method implemented as a cmd.  Essentially it stacks
+ *      optionally a frame, calls the method, pops the frame and runs
+ *      invariants.
  *
  * Results:
- *    Tcl result code.
+ *      Tcl result code.
  *
  * Side effects:
- *    Indirect effects by calling cmd
+ *      Indirect effects by calling cmd
  *
  *----------------------------------------------------------------------
  */
@@ -14184,15 +14195,15 @@ CmdMethodDispatch(
  *----------------------------------------------------------------------
  * ObjectCmdMethodDispatch --
  *
- *    Invoke a method implemented as an object. The referenced object is used
- *    as a source for methods to be executed.  Essentially this is currently
- *    primarily used to implement the dispatch of ensemble objects.
+ *      Invoke a method implemented as an object. The referenced object is used
+ *      as a source for methods to be executed.  Essentially this is currently
+ *      primarily used to implement the dispatch of ensemble objects.
  *
  * Results:
- *    Tcl result code.
+ *      Tcl result code.
  *
  * Side effects:
- *    Indirect effects by calling cmd
+ *      Indirect effects by calling cmd
  *
  *----------------------------------------------------------------------
  */
@@ -14599,14 +14610,14 @@ static int NsfAsmProc(ClientData UNUSED(clientData), Tcl_Interp *UNUSED(interp),
  *----------------------------------------------------------------------
  * CheckCStack --
  *
- *    Monitor the growth of the C Stack when complied with
- *    NSF_STACKCHECK.
+ *      Monitor the growth of the C Stack when complied with
+ *      NSF_STACKCHECK.
  *
  * Results:
- *    none
+ *      none
  *
  * Side effects:
- *    update of rst->bottomOfStack
+ *      update of rst->bottomOfStack
  *
  *----------------------------------------------------------------------
  */
@@ -14655,15 +14666,15 @@ CheckCStack(Tcl_Interp *interp, const char *prefix, const char *fullMethodName) 
  *----------------------------------------------------------------------
  * MethodDispatchCsc --
  *
- *    Dispatch a method (scripted or cmd) with an already allocated
- *    call stack content. The method calls either ProcMethodDispatch()
+ *      Dispatch a method (scripted or cmd) with an already allocated
+ *      call stack content. The method calls either ProcMethodDispatch()
  *    (for scripted methods) or CmdMethodDispatch() (otherwise).
  *
  * Results:
- *    Tcl result code.
+ *      Tcl result code.
  *
  * Side effects:
- *    Indirect effects by calling methods
+ *      Indirect effects by calling methods
  *
  *----------------------------------------------------------------------
  */
@@ -14860,14 +14871,14 @@ MethodDispatchCsc(
  *----------------------------------------------------------------------
  * MethodDispatch --
  *
- *    Convenience wrapper for MethodDispatchCsc(). It allocates a call
- *    stack content and invokes MethodDispatchCsc.
+ *      Convenience wrapper for MethodDispatchCsc(). It allocates a call
+ *      stack content and invokes MethodDispatchCsc.
  *
  * Results:
- *    Tcl result code.
+ *      Tcl result code.
  *
  * Side effects:
- *    Indirect effects by calling methods
+ *      Indirect effects by calling methods
  *
  *----------------------------------------------------------------------
  */
@@ -14932,17 +14943,17 @@ MethodDispatch(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[],
  *----------------------------------------------------------------------
  * ObjectDispatchFinalize --
  *
- *    Finalization function for ObjectDispatch() which performs method
- *    lookup and call all kind of methods. The function runs after
- *    ObjectDispatch() and calls the unknown handler if necessary and
- *    resets the filter and mixin stacks.
+ *      Finalization function for ObjectDispatch() which performs method
+ *      lookup and call all kind of methods. The function runs after
+ *      ObjectDispatch() and calls the unknown handler if necessary and
+ *      resets the filter and mixin stacks.
  *
  * Results:
- *    Tcl result code.
+ *      Tcl result code.
  *
  * Side effects:
- *    Maybe side effects by the cmd called by ParameterCheck()
- *    or DispatchUnknownMethod()
+ *      Maybe side effects by the cmd called by ParameterCheck()
+ *      or DispatchUnknownMethod()
  *
  *----------------------------------------------------------------------
  */
@@ -15072,13 +15083,13 @@ NsfFindClassMethod(Tcl_Interp *interp, NsfClass *class, const char *methodName) 
  *----------------------------------------------------------------------
  * CmdObjProcName --
  *
- *    Try to find a symbolic name for the objCmdProc of a Tcl_command.
+ *      Try to find a symbolic name for the objCmdProc of a Tcl_command.
  *
  * Results:
- *    String name, potentially "other"
+ *      String name, potentially "other"
  *
  * Side effects:
- *    None
+ *      None
  *
  *----------------------------------------------------------------------
  */
@@ -15148,13 +15159,13 @@ CmdObjProcName(
  *----------------------------------------------------------------------
  * ColonCmdCacheSet --
  *
- *     Fill out an ColonCmdCacheSet entry
+ *      Fill out an ColonCmdCacheSet entry
  *
  * Results:
- *    None
+ *      None
  *
  * Side effects:
- *    None
+ *      None
  *
  *----------------------------------------------------------------------
  */
@@ -15205,13 +15216,13 @@ static void ColonCmdCacheHit(NsfColonCmdContext *ccCtxPtr) {
  *----------------------------------------------------------------------
  * NsfColonCmdContextFree --
  *
- *    FreeProc for NsfColonCmdContext
+ *      FreeProc for NsfColonCmdContext
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    Freeing memory.
+ *      Freeing memory.
  *
  *----------------------------------------------------------------------
  */
@@ -15233,14 +15244,14 @@ NsfColonCmdContextFree(void *clientData) {
  *----------------------------------------------------------------------
  * CacheCmd --
  *
- *     Cache a Tcl_Command element in a Tcl_Obj, using either the NSF specific
- *     object types, or the colon cmd cache for Tcl cmd types.
+ *      Cache a Tcl_Command element in a Tcl_Obj, using either the NSF specific
+ *      object types, or the colon cmd cache for Tcl cmd types.
  *
  * Results:
- *    None
+ *      None
  *
  * Side effects:
- *    Add cache entry
+ *      Add cache entry
  *
  *----------------------------------------------------------------------
  */
@@ -15335,17 +15346,17 @@ static void CacheCmd(
  *----------------------------------------------------------------------
  * ObjectDispatch --
  *
- *    This function performs the method lookup and call all kind of
- *    methods. It checks, whether a filter or mixin has to be
- *    applied. In these cases, the effective method lookup is
- *    performed by "next".
+ *      This function performs the method lookup and call all kind of
+ *      methods. It checks, whether a filter or mixin has to be
+ *      applied. In these cases, the effective method lookup is
+ *      performed by "next".
  *
  * Results:
- *    Tcl result code.
+ *      Tcl result code.
  *
  * Side effects:
- *    Maybe side effects by the cmd called by ParameterCheck()
- *    or DispatchUnknownMethod()
+ *      Maybe side effects by the cmd called by ParameterCheck()
+ *      or DispatchUnknownMethod()
  *
  *----------------------------------------------------------------------
  */
@@ -15952,14 +15963,14 @@ ObjectDispatch(
  *----------------------------------------------------------------------
  * DispatchDefaultMethod --
  *
- *    Dispatch the default method (when object is called without arguments)
- *    in case the object system has it defined.
+ *      Dispatch the default method (when object is called without arguments)
+ *      in case the object system has it defined.
  *
  * Results:
- *    result code.
+ *      result code.
  *
  * Side effects:
- *    indirect effects by calling Tcl code
+ *      indirect effects by calling Tcl code
  *
  *----------------------------------------------------------------------
  */
@@ -15995,17 +16006,17 @@ DispatchDefaultMethod(Tcl_Interp *interp, NsfObject *object,
  *----------------------------------------------------------------------
  * DispatchDestroyMethod --
  *
- *    Dispatch the method "destroy" in case the object system has it
- *    defined. During the final cleanup of the object system, the
- *    destroy is called separately from deallocation. Normally,
- *    Object.destroy() calls dealloc, which is responsible for the
- *    physical deallocation.
+ *      Dispatch the method "destroy" in case the object system has it
+ *      defined. During the final cleanup of the object system, the
+ *      destroy is called separately from deallocation. Normally,
+ *      Object.destroy() calls dealloc, which is responsible for the
+ *      physical deallocation.
  *
  * Results:
- *    result code
+ *      result code
  *
  * Side effects:
- *    indirect effects by calling Tcl code
+ *      indirect effects by calling Tcl code
  *
  *----------------------------------------------------------------------
  */
@@ -16106,13 +16117,13 @@ DispatchDestroyMethod(Tcl_Interp *interp, NsfObject *object, unsigned int flags)
  * DispatchInitMethod --
  *
 in case the object system has it
- *    defined and it was not already called on the object,
+ *      defined and it was not already called on the object,
  *
  * Results:
- *    Result code.
+ *      Result code.
  *
  * Side effects:
- *    Indirect effects by calling Tcl code
+ *      Indirect effects by calling Tcl code
  *
  *----------------------------------------------------------------------
  */
@@ -16164,15 +16175,15 @@ DispatchInitMethod(Tcl_Interp *interp, NsfObject *object,
  *----------------------------------------------------------------------
  * DispatchUnknownMethod --
  *
- *    Dispatch the method "unknown" in case the object system has it
- *    defined and the application program contains an unknown handler.
+ *      Dispatch the method "unknown" in case the object system has it
+ *      defined and the application program contains an unknown handler.
  *
  * Results:
- *    result code
+ *      result code
  *
  * Side effects:
- *    There might be indirect effects by calling Tcl code; also,
- *    the interp's unknown-state is reset.
+ *      There might be indirect effects by calling Tcl code; also,
+ *      the interp's unknown-state is reset.
  *
  *----------------------------------------------------------------------
  */
@@ -16272,16 +16283,16 @@ DispatchUnknownMethod(Tcl_Interp *interp, NsfObject *object,
  *----------------------------------------------------------------------
  * NsfObjDispatch --
  *
- *    This function is called on every object dispatch (when an object
- *    is invoked). It calls either the passed method, or dispatches
- *    some default method.
+ *      This function is called on every object dispatch (when an object
+ *      is invoked). It calls either the passed method, or dispatches
+ *      some default method.
  *
  * Results:
- *    Tcl result code.
+ *      Tcl result code.
  *
  * Side effects:
- *    Maybe side effects by the cmd called by ParameterCheck()
- *    or DispatchUnknownMethod()
+ *      Maybe side effects by the cmd called by ParameterCheck()
+ *      or DispatchUnknownMethod()
  *
  *----------------------------------------------------------------------
  */
@@ -16331,21 +16342,21 @@ NsfObjDispatch(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *con
 }
 
 /*
- *  Proc-Creation
+ *      Proc-Creation
  */
 
 /*
  *----------------------------------------------------------------------
  * AddPrefixToBody --
  *
- *    Create a fresh TclObj* containing the body with a potential prefix.
- *    The caller has to decrement the ref-count on this Tcl_Obj*.
+ *      Create a fresh TclObj* containing the body with a potential prefix.
+ *      The caller has to decrement the ref-count on this Tcl_Obj*.
  *
  * Results:
- *    Tcl_Obj
+ *      Tcl_Obj
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -16374,14 +16385,14 @@ AddPrefixToBody(Tcl_Obj *body, bool useParamDefs, NsfParsedParam *paramPtr) {
  *----------------------------------------------------------------------
  * NoMetaChars --
  *
- *    Check, of the provided string contains meta characters
+ *      Check, of the provided string contains meta characters
  *    (i.e. "*", "?", or "[")
  *
  * Results:
- *    Boolean value
+ *      Boolean value
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -16412,14 +16423,14 @@ NoMetaChars(const char *pattern) {
  *----------------------------------------------------------------------
  * Nsf_ConvertToString --
  *
- *    Minimal Nsf_TypeConverter setting the client data (passed to C
- *    functions) to the ObjStr of the object.
+ *      Minimal Nsf_TypeConverter setting the client data (passed to C
+ *      functions) to the ObjStr of the object.
  *
  * Results:
- *    Tcl result code, *clientData and **outObjPtr
+ *      Tcl result code, *clientData and **outObjPtr
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -16444,14 +16455,14 @@ Nsf_ConvertToString(Tcl_Interp *UNUSED(interp), Tcl_Obj *objPtr, const Nsf_Param
  *----------------------------------------------------------------------
  * ConvertToNothing --
  *
- *    Minimalistic Nsf_TypeConverter, even setting the client data (passed to
- *    C functions).
+ *      Minimalistic Nsf_TypeConverter, even setting the client data (passed to
+ *      C functions).
  *
  * Results:
- *    Tcl result code, **outObjPtr
+ *      Tcl result code, **outObjPtr
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -16517,15 +16528,15 @@ Nsf_ConvertToTclObjType(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *p
  *----------------------------------------------------------------------
  * Nsf_ConvertToTclobj --
  *
- *    Nsf_TypeConverter setting the client data (passed to C functions) to the
- *    passed Tcl_Obj. Optionally this converter checks if the Tcl_Obj has
- *    permissible content via the Tcl "string is" checkers.
+ *      Nsf_TypeConverter setting the client data (passed to C functions) to the
+ *      passed Tcl_Obj. Optionally this converter checks if the Tcl_Obj has
+ *      permissible content via the Tcl "string is" checkers.
  *
  * Results:
- *    Tcl result code, *clientData and **outObjPtr
+ *      Tcl result code, *clientData and **outObjPtr
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -16604,15 +16615,15 @@ Nsf_ConvertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr,
  *----------------------------------------------------------------------
  * Nsf_ConvertToBoolean --
  *
- *    Nsf_TypeConverter setting the client data (passed to C functions) to the
- *    internal representation of a boolean. This converter checks the passed
- *    value via Tcl_GetBooleanFromObj().
+ *      Nsf_TypeConverter setting the client data (passed to C functions) to the
+ *      internal representation of a boolean. This converter checks the passed
+ *      value via Tcl_GetBooleanFromObj().
  *
  * Results:
- *    Tcl result code, *clientData and **outObjPtr
+ *      Tcl result code, *clientData and **outObjPtr
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -16646,15 +16657,15 @@ Nsf_ConvertToBoolean(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr
  *----------------------------------------------------------------------
  * Nsf_ConvertToInt32 --
  *
- *    Nsf_TypeConverter setting the client data (passed to C functions) to the
- *    internal representation of an integer. This converter checks the passed
- *    value via Tcl_GetIntFromObj().
+ *      Nsf_TypeConverter setting the client data (passed to C functions) to the
+ *      internal representation of an integer. This converter checks the passed
+ *      value via Tcl_GetIntFromObj().
  *
  * Results:
- *    Tcl result code, *clientData and **outObjPtr
+ *      Tcl result code, *clientData and **outObjPtr
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -16687,15 +16698,15 @@ Nsf_ConvertToInt32(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr,
  *----------------------------------------------------------------------
  * Nsf_ConvertToInteger --
  *
- *    Nsf_TypeConverter setting the client data (passed to C functions) to the
- *    Tcl_Obj containing the bignum value. This converter checks the passed
- *    value via Tcl_GetBignumFromObj().
+ *      Nsf_TypeConverter setting the client data (passed to C functions) to the
+ *      Tcl_Obj containing the bignum value. This converter checks the passed
+ *      value via Tcl_GetBignumFromObj().
  *
  * Results:
- *    Tcl result code, *clientData and **outObjPtr
+ *      Tcl result code, *clientData and **outObjPtr
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -16791,17 +16802,17 @@ Nsf_ConvertToInteger(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr
  *----------------------------------------------------------------------
  * Nsf_ConvertToSwitch --
  *
- *    Nsf_TypeConverter setting the client data (passed to C functions) to the
- *    internal representation of an Boolean. This converter simply calls
- *    Tcl_ConvertToBoolean(). The distinction between "switch" and boolean is
- *    made on the semantics of which arguments/defaults are passed to the real
- *    converter.
+ *      Nsf_TypeConverter setting the client data (passed to C functions) to the
+ *      internal representation of an Boolean. This converter simply calls
+ *      Tcl_ConvertToBoolean(). The distinction between "switch" and boolean is
+ *      made on the semantics of which arguments/defaults are passed to the real
+ *      converter.
  *
  * Results:
- *    Tcl result code, *clientData and **outObjPtr
+ *      Tcl result code, *clientData and **outObjPtr
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -16826,15 +16837,15 @@ Nsf_ConvertToSwitch(Tcl_Interp *interp, Tcl_Obj *objPtr, const Nsf_Param *pPtr,
  *----------------------------------------------------------------------
  * Nsf_ConvertToObject --
  *
- *    Nsf_TypeConverter setting the client data (passed to C functions) to the
- *    internal representation of an object. This converter checks the passed
- *    value via IsObjectOfType().
+ *      Nsf_TypeConverter setting the client data (passed to C functions) to the
+ *      internal representation of an object. This converter checks the passed
+ *      value via IsObjectOfType().
  *
  * Results:
- *    Tcl result code, *clientData and **outObjPtr
+ *      Tcl result code, *clientData and **outObjPtr
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -16865,15 +16876,15 @@ Nsf_ConvertToObject(Tcl_Interp *interp, Tcl_Obj *objPtr, const Nsf_Param *pPtr,
  *----------------------------------------------------------------------
  * Nsf_ConvertToClass --
  *
- *    Nsf_TypeConverter setting the client data (passed to C functions) to the
- *    internal representation of a class. This converter checks the passed
- *    value via IsObjectOfType().
+ *      Nsf_TypeConverter setting the client data (passed to C functions) to the
+ *      internal representation of a class. This converter checks the passed
+ *      value via IsObjectOfType().
  *
  * Results:
- *    Tcl result code, *clientData and **outObjPtr
+ *      Tcl result code, *clientData and **outObjPtr
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -16909,16 +16920,16 @@ Nsf_ConvertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr,
  *----------------------------------------------------------------------
  * Nsf_ConvertToFilterreg --
  *
- *    Nsf_TypeConverter setting the client data (passed to C functions) to the
- *    Tcl_Obj. This nsf type converter checks the passed value via the
- *    NsfFilterregObjType tcl_obj converter, which provides an internal
- *    representation for the client function.
+ *      Nsf_TypeConverter setting the client data (passed to C functions) to the
+ *      Tcl_Obj. This nsf type converter checks the passed value via the
+ *      NsfFilterregObjType tcl_obj converter, which provides an internal
+ *      representation for the client function.
  *
  * Results:
- *    Tcl result code, *clientData and **outObjPtr
+ *      Tcl result code, *clientData and **outObjPtr
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -16950,16 +16961,16 @@ Nsf_ConvertToFilterreg(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pP
  *----------------------------------------------------------------------
  * Nsf_ConvertToMixinreg --
  *
- *    Nsf_TypeConverter setting the client data (passed to C functions) to the
- *    Tcl_Obj. This nsf type converter checks the passed value via the
- *    NsfMixinregObjType tcl_obj converter, which provides an internal
- *    representation for the client function.
+ *      Nsf_TypeConverter setting the client data (passed to C functions) to the
+ *      Tcl_Obj. This nsf type converter checks the passed value via the
+ *      NsfMixinregObjType tcl_obj converter, which provides an internal
+ *      representation for the client function.
  *
  * Results:
- *    Tcl result code, *clientData and **outObjPtr
+ *      Tcl result code, *clientData and **outObjPtr
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -16991,16 +17002,16 @@ Nsf_ConvertToMixinreg(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPt
  *----------------------------------------------------------------------
  * Nsf_ConvertToParameter --
  *
- *    Nsf_TypeConverter setting the client data (passed to C functions) to the
- *    Tcl_Obj. This nsf type converter checks if the provided value could be a
- *    valid parameter spec (i.e. start with no ":", is not an unnamed spec
+ *      Nsf_TypeConverter setting the client data (passed to C functions) to the
+ *      Tcl_Obj. This nsf type converter checks if the provided value could be a
+ *      valid parameter spec (i.e. start with no ":", is not an unnamed spec
  *    "-:int"). This converter performs just a rough syntactic check.
  *
  * Results:
- *    Tcl result code, *clientData and **outObjPtr
+ *      Tcl result code, *clientData and **outObjPtr
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -17037,15 +17048,15 @@ Nsf_ConvertToParameter(Tcl_Interp *interp, Tcl_Obj *objPtr, const Nsf_Param *pPt
  *----------------------------------------------------------------------
  * ConvertViaCmd --
  *
- *    Nsf_TypeConverter calling a used-defined checking/conversion
- *    function. It sets the client data (passed to C functions) to the
- *    Tcl_Obj.
+ *      Nsf_TypeConverter calling a used-defined checking/conversion
+ *      function. It sets the client data (passed to C functions) to the
+ *      Tcl_Obj.
  *
  * Results:
- *    Tcl result code, *clientData and **outObjPtr
+ *      Tcl result code, *clientData and **outObjPtr
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -17159,21 +17170,21 @@ ConvertViaCmd(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr,
  *----------------------------------------------------------------------
  * ConvertToObjpattern --
  *
- *    This function obtains a Tcl_Obj *, which contains the pattern if a Next
- *    Scripting Object. When this pattern contains no meta characters, we
- *    check whether the object exists. If it exists, the Tcl_Obj is converted to
- *    the cmd-type. If it does not exit, the function using this pattern will
- *    fail. If the pattern contains meta characters, we prepend to the pattern
+ *      This function obtains a Tcl_Obj *, which contains the pattern if a Next
+ *      Scripting Object. When this pattern contains no meta characters, we
+ *      check whether the object exists. If it exists, the Tcl_Obj is converted to
+ *      the cmd-type. If it does not exit, the function using this pattern will
+ *      fail. If the pattern contains meta characters, we prepend to the pattern
  *    "::" if necessary to avoid errors, if one specifies a pattern object
- *    without the prefix. In this case, the patternObj is of plain type.
- *    The resulting patternObj has always the refCount incremented, which has
- *    to be decremented by the caller.x
+ *      without the prefix. In this case, the patternObj is of plain type.
+ *      The resulting patternObj has always the refCount incremented, which has
+ *      to be decremented by the caller.x
  *
  * Results:
- *    Tcl result code.
+ *      Tcl result code.
  *
  * Side effects:
- *    Incremented refCount for the patternObj.
+ *      Incremented refCount for the patternObj.
  *
  *----------------------------------------------------------------------
  */
@@ -17231,14 +17242,14 @@ ConvertToObjpattern(Tcl_Interp *interp, Tcl_Obj *objPtr, const Nsf_Param *UNUSED
  *----------------------------------------------------------------------
  * ParamCheckObj --
  *
- *    This function returns a fresh Tcl_Obj in the form of a method name for a
- *    checker method.
+ *      This function returns a fresh Tcl_Obj in the form of a method name for a
+ *      checker method.
  *
  * Results:
- *    Tcl_Obj
+ *      Tcl_Obj
  *
  * Side effects:
- *    None
+ *      None
  *
  *----------------------------------------------------------------------
  */
@@ -17260,14 +17271,14 @@ ParamCheckObj(const char *start, size_t len) {
  *----------------------------------------------------------------------
  * ParamOptionSetConverter --
  *
- *    Fill in the fields int to the specified paramPtr structure
- *    checker method and perform sanity checking.
+ *      Fill in the fields int to the specified paramPtr structure
+ *      checker method and perform sanity checking.
  *
  * Results:
- *    Standard result code
+ *      Standard result code
  *
  * Side effects:
- *    None
+ *      None
  *
  *----------------------------------------------------------------------
  */
@@ -17302,13 +17313,13 @@ ParamOptionSetConverter(Tcl_Interp *interp, Nsf_Param *paramPtr,
  *----------------------------------------------------------------------
  * Unescape --
  *
- *    Unescape double commas in the provided Tcl_Obj.
+ *      Unescape double commas in the provided Tcl_Obj.
  *
  * Results:
- *    None
+ *      None
  *
  * Side effects:
- *    Potentially shortened string content
+ *      Potentially shortened string content
  *
  *----------------------------------------------------------------------
  */
@@ -17342,16 +17353,16 @@ Unescape(Tcl_Obj *objPtr) {
  *----------------------------------------------------------------------
  * ParamOptionParse --
  *
- *    Parse a single parameter option of a parameter. The parameter option
- *    string is passed in as second argument, the sizes start and remainder
- *    flag the offsets in the string follow. As a result, the fields of the
- *    parameter structure are updated.
+ *      Parse a single parameter option of a parameter. The parameter option
+ *      string is passed in as second argument, the sizes start and remainder
+ *      flag the offsets in the string follow. As a result, the fields of the
+ *      parameter structure are updated.
  *
  * Results:
- *    Tcl result code, updated fields in the Nsf_Param structure.
+ *      Tcl result code, updated fields in the Nsf_Param structure.
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -17739,14 +17750,14 @@ ParamOptionParse(Tcl_Interp *interp, const char *argString,
  *----------------------------------------------------------------------
  * ParamDefinitionParse --
  *
- *    Parse a single parameter definition with a possible default provided in
- *    the form of a Tcl_Obj.
+ *      Parse a single parameter definition with a possible default provided in
+ *      the form of a Tcl_Obj.
  *
  * Results:
- *    Tcl result code
+ *      Tcl result code
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -18086,19 +18097,19 @@ ParamDefinitionParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, uns
  *----------------------------------------------------------------------
  * ParamDefsParse --
  *
- *    Parse a list of parameters in the form of Tcl_Objs into a parsedParamPtr
- *    structure (last argument). The argument allowedOptions is used to flag,
- *    what parameter options are generally allowed (typically different for
- *    method and object parameters). Unless forceParamdefs is set, the parsed
- *    parameter structure is only returned when needed (i.e. when not all
- *    parameters are plain parameters).
+ *      Parse a list of parameters in the form of Tcl_Objs into a parsedParamPtr
+ *      structure (last argument). The argument allowedOptions is used to flag,
+ *      what parameter options are generally allowed (typically different for
+ *      method and object parameters). Unless forceParamdefs is set, the parsed
+ *      parameter structure is only returned when needed (i.e. when not all
+ *      parameters are plain parameters).
  *
  * Results:
- *    Tcl result code, parsedParameter structure in last argument (allocated
- *    by the caller).
+ *      Tcl result code, parsedParameter structure in last argument (allocated
+ *      by the caller).
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -18218,25 +18229,25 @@ static int ParamDefsParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *par
  *----------------------------------------------------------------------
  * ParameterMethodForwardDispatch --
  *
- *    Dispatch a forwarding method provided via parameter definition.
+ *      Dispatch a forwarding method provided via parameter definition.
  *
- *    The current implementation performs for every object
- *    parameter forward the full cycle of
+ *      The current implementation performs for every object
+ *      parameter forward the full cycle of
  *
  *     (a) splitting the spec,
  *     (b) convert it to the client data structure,
  *     (c) invoke forward,
  *     (d) free client data structure
  *
- *    In the future, it should convert to the client data
- *    structure just once and free it with the disposal of the
- *    parameter. This could be achieved
+ *      In the future, it should convert to the client data
+ *      structure just once and free it with the disposal of the
+ *      parameter. This could be achieved
  *
  * Results:
- *    Tcl result code
+ *      Tcl result code
  *
  * Side effects:
- *    The called function might side-effect.
+ *      The called function might side-effect.
  *
  *----------------------------------------------------------------------
  */
@@ -18315,16 +18326,16 @@ ParameterMethodForwardDispatch(Tcl_Interp *interp, NsfObject *object,
  *----------------------------------------------------------------------
  * ParameterMethodDispatch --
  *
- *    Dispatch a method provided via parameter definition. The function checks
- *    the parameter definition, builds an argument list for the function call
- *    and invokes finally the configured cmd.  This function is typically
- *    called from configure.
+ *      Dispatch a method provided via parameter definition. The function checks
+ *      the parameter definition, builds an argument list for the function call
+ *      and invokes finally the configured cmd.  This function is typically
+ *      called from configure.
  *
  * Results:
- *    Tcl result code
+ *      Tcl result code
  *
  * Side effects:
- *    The called function might side-effect.
+ *      The called function might side-effect.
  *
  *----------------------------------------------------------------------
  */
@@ -18550,13 +18561,13 @@ ParameterMethodDispatch(
  *----------------------------------------------------------------------
  * MakeProc --
  *
- *    Define a scripted function via the ObjCmd "proc".
+ *      Define a scripted function via the ObjCmd "proc".
  *
  * Results:
- *    Tcl result code
+ *      Tcl result code
  *
  * Side effects:
- *    Defined function or exception.
+ *      Defined function or exception.
  *
  *----------------------------------------------------------------------
  */
@@ -18735,14 +18746,14 @@ MakeProc(
  *----------------------------------------------------------------------
  * MakeMethod --
  *
- *    Define a scripted method to be defined on defObject and registered on
- *    regObject (if specified). This function handles as well assertions.
+ *      Define a scripted method to be defined on defObject and registered on
+ *      regObject (if specified). This function handles as well assertions.
  *
  * Results:
- *    Tcl result code
+ *      Tcl result code
  *
  * Side effects:
- *    Defined method or exception.
+ *      Defined method or exception.
  *
  *----------------------------------------------------------------------
  */
@@ -18867,14 +18878,14 @@ MakeMethod(Tcl_Interp *interp, NsfObject *defObject, NsfObject *regObject,
  *----------------------------------------------------------------------
  * NsfProcStubDeleteProc --
  *
- *    Tcl_CmdDeleteProc for NsfProcStubs. Is called, whenever a
- *    NsfProcStub is deleted and frees the associated client data.
+ *      Tcl_CmdDeleteProc for NsfProcStubs. Is called, whenever a
+ *      NsfProcStub is deleted and frees the associated client data.
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    Frees client-data
+ *      Frees client-data
  *
  *----------------------------------------------------------------------
  */
@@ -18898,14 +18909,14 @@ NsfProcStubDeleteProc(ClientData clientData) {
  *----------------------------------------------------------------------
  * InvokeShadowedProc --
  *
- *    Call the proc specified in objc/objv; procNameObj should be used
- *    for error messages.
+ *      Call the proc specified in objc/objv; procNameObj should be used
+ *      for error messages.
  *
  * Results:
- *    Tcl result code.
+ *      Tcl result code.
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -19011,15 +19022,15 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj,
  *----------------------------------------------------------------------
  * NsfProcStub --
  *
- *    Tcl_ObjCmdProc implementing Proc Stubs. This function processes
- *    the argument list in accordance with the parameter definitions
- *    and calls in case of success the shadowed proc.
+ *      Tcl_ObjCmdProc implementing Proc Stubs. This function processes
+ *      the argument list in accordance with the parameter definitions
+ *      and calls in case of success the shadowed proc.
  *
  * Results:
- *    Tcl return code.
+ *      Tcl return code.
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -19147,23 +19158,23 @@ NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const 
  *----------------------------------------------------------------------
  * NsfProcAdd --
  *
- *    Add a command for implementing a Tcl proc with next scripting
- *    parameter handling.
+ *      Add a command for implementing a Tcl proc with next scripting
+ *      parameter handling.
  *
- *    For the time being, this function adds two things, (a) a Tcl cmd
- *    functioning as a stub for the argument processing (in accordance
- *    with the parameter definitions) and (b) the shadowed Tcl proc
- *    with a mutated name.
+ *      For the time being, this function adds two things, (a) a Tcl cmd
+ *      functioning as a stub for the argument processing (in accordance
+ *      with the parameter definitions) and (b) the shadowed Tcl proc
+ *      with a mutated name.
  *
- *    TODO: the current 1 cmd + 1 proc implementation is not robust
- *    against renaming and partial deletions (deletion of the
- *    stub).
+ *      TODO: the current 1 cmd + 1 proc implementation is not robust
+ *      against renaming and partial deletions (deletion of the
+ *      stub).
  *
  * Results:
- *    Tcl return code.
+ *      Tcl return code.
  *
  * Side effects:
- *    Adding one Tcl command and one Tcl proc
+ *      Adding one Tcl command and one Tcl proc
  *
  *----------------------------------------------------------------------
  */
@@ -19358,15 +19369,15 @@ NsfProcAdd(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
  *----------------------------------------------------------------------
  * ProcessMethodArguments --
  *
- *    Process the arguments provided to a method call. It parses the argument
- *    vector objv, disallows certain parameter types and updates the parse
- *    context.
+ *      Process the arguments provided to a method call. It parses the argument
+ *      vector objv, disallows certain parameter types and updates the parse
+ *      context.
  *
  * Results:
- *    Tcl return code.
+ *      Tcl return code.
  *
  * Side effects:
- *    Updates parameter context
+ *      Updates parameter context
  *
  *----------------------------------------------------------------------
  */
@@ -19481,13 +19492,13 @@ ProcessMethodArguments(ParseContext *pcPtr, Tcl_Interp *interp,
  *----------------------------------------------------------------------
  * ForwardCmdDeleteProc --
  *
- *    This Tcl_CmdDeleteProc is called, when a forward method is deleted
+ *      This Tcl_CmdDeleteProc is called, when a forward method is deleted
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    Frees client data of the setter command.
+ *      Frees client data of the setter command.
  *
  *----------------------------------------------------------------------
  */
@@ -19514,13 +19525,13 @@ ForwardCmdDeleteProc(ClientData clientData) {
  *----------------------------------------------------------------------
  * SetterCmdDeleteProc --
  *
- *    This Tcl_CmdDeleteProc is called, when a setter method is deleted
+ *      This Tcl_CmdDeleteProc is called, when a setter method is deleted
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    Frees client data of the setter command.
+ *      Frees client data of the setter command.
  *
  *----------------------------------------------------------------------
  */
@@ -19545,13 +19556,13 @@ SetterCmdDeleteProc(ClientData clientData) {
  *----------------------------------------------------------------------
  * AliasCmdDeleteProc --
  *
- *    This Tcl_CmdDeleteProc is called, when an alias method is deleted
+ *      This Tcl_CmdDeleteProc is called, when an alias method is deleted
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    Frees client data of the setter command.
+ *      Frees client data of the setter command.
  *
  *----------------------------------------------------------------------
  */
@@ -19621,19 +19632,19 @@ AliasCmdDeleteProc(ClientData clientData) {
  *----------------------------------------------------------------------
  * GetMatchObject --
  *
- *    Helper method used by nsfAPI.h and the info methods to check whether the
- *    Tcl_Obj patternObj was provided and can be looked up. If this is the
- *    case, wild card matching etc. does not have to be performed, but just
- *    the properties of the object have to be tested.
+ *      Helper method used by nsfAPI.h and the info methods to check whether the
+ *      Tcl_Obj patternObj was provided and can be looked up. If this is the
+ *      case, wild card matching etc. does not have to be performed, but just
+ *      the properties of the object have to be tested.
  *
  * Results:
- *    0 or 1 or -1, potentially the matchObject (when 0 is returned)
- *    0: we have wild-card characters, iterate to get matches
- *    1: we have an existing object
+ *      0 or 1 or -1, potentially the matchObject (when 0 is returned)
+ *      0: we have wild-card characters, iterate to get matches
+ *      1: we have an existing object
  *   -1: we no wild-card characters and a non-existing object
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -19664,14 +19675,14 @@ GetMatchObject(Tcl_Interp *interp, Tcl_Obj *patternObj, Tcl_Obj *origObj,
  *----------------------------------------------------------------------
  * ForwardProcessOptions --
  *
- *    Process the options provided by the forward method and turn these into
- *    the ForwardCmdClientData structure.
+ *      Process the options provided by the forward method and turn these into
+ *      the ForwardCmdClientData structure.
  *
  * Results:
- *    Tcl result code.
+ *      Tcl result code.
  *
  * Side effects:
- *    Allocated and initialized ForwardCmdClientData
+ *      Allocated and initialized ForwardCmdClientData
  *
  *----------------------------------------------------------------------
  */
@@ -19800,13 +19811,13 @@ ForwardProcessOptions(Tcl_Interp *interp, Tcl_Obj *nameObj,
  *----------------------------------------------------------------------
  * StripBodyPrefix --
  *
- *    Strip the prefix of the body, which might have been added by nsf.
+ *      Strip the prefix of the body, which might have been added by nsf.
  *
  * Results:
- *    The string of the body without the prefix.
+ *      The string of the body without the prefix.
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -19830,14 +19841,14 @@ StripBodyPrefix(const char *body) {
  *----------------------------------------------------------------------
  * AddSlotObjects --
  *
- *    Compute the slot objects (children of the slot container) for a provided
- *    object. The objects can be filtered via a pattern.
+ *      Compute the slot objects (children of the slot container) for a provided
+ *      object. The objects can be filtered via a pattern.
  *
  * Results:
- *    The function appends results to the provide listObj
+ *      The function appends results to the provide listObj
  *
  * Side effects:
- *    Might add as well to the hash-table to avoid duplicates.
+ *      Might add as well to the hash-table to avoid duplicates.
  *
  *----------------------------------------------------------------------
  */
@@ -19961,13 +19972,13 @@ AddSlotObjects(Tcl_Interp *interp, NsfObject *parent, const char *prefix,
  *----------------------------------------------------------------------
  * FindCalledClass --
  *
- *    Find the called class of the called proc on the call-stack.
+ *      Find the called class of the called proc on the call-stack.
  *
  * Results:
- *    NsfClass * or NULL
+ *      NsfClass * or NULL
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -20025,15 +20036,15 @@ FindCalledClass(Tcl_Interp *interp, NsfObject *object) {
  *----------------------------------------------------------------------
  * NextSearchMethod --
  *
- *    Determine the method to be called via "next". The function returns on
- *    success the found cmd and information like method name, was it from a
- *    mixin, filter, or was the end of the filter chain reached.
+ *      Determine the method to be called via "next". The function returns on
+ *      success the found cmd and information like method name, was it from a
+ *      mixin, filter, or was the end of the filter chain reached.
  *
  * Results:
- *    Tcl result code
+ *      Tcl result code
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -20207,16 +20218,16 @@ NextSearchMethod(
  *----------------------------------------------------------------------
  * NextGetArguments --
  *
- *    Obtain arguments for a method invoked via next either from the argument
- *    vector or from the stack (call stack content or Tcl stack). In case of
- *    ensemble calls the stack entries of the ensemble invocation are
- *    used. The function returns the arguments 4 to 8.
+ *      Obtain arguments for a method invoked via next either from the argument
+ *      vector or from the stack (call stack content or Tcl stack). In case of
+ *      ensemble calls the stack entries of the ensemble invocation are
+ *      used. The function returns the arguments 4 to 8.
  *
  * Results:
- *    Tcl return code
+ *      Tcl return code
  *
  * Side effects:
- *    none
+ *      none
  *
  *----------------------------------------------------------------------
  */
@@ -20345,17 +20356,17 @@ NextGetArguments(
  *----------------------------------------------------------------------
  * NextInvokeFinalize --
  *
- *    This finalize function is either called via NRE callback or
- *    directly (from NextSearchAndInvoke). It resets after a successful
- *    lookup and invocation the continuation context (filter flags etc)
- *    and cleans up optionally the argument vector (inverse operation
- *    of NextGetArguments).
+ *      This finalize function is either called via NRE callback or
+ *      directly (from NextSearchAndInvoke). It resets after a successful
+ *      lookup and invocation the continuation context (filter flags etc)
+ *      and cleans up optionally the argument vector (inverse operation
+ *      of NextGetArguments).
  *
  * Results:
- *    Tcl return code
+ *      Tcl return code
  *
  * Side effects:
- *    freeing memory
+ *      freeing memory
  *
  *----------------------------------------------------------------------
  */
@@ -20409,17 +20420,17 @@ NextInvokeFinalize(ClientData data[], Tcl_Interp *interp, int result) {
  *----------------------------------------------------------------------
  * NextSearchAndInvoke --
  *
- *    The function is called with a final argument vector and searches for a
- *    possibly shadowed method. If a target method is found, this dispatcher
- *    function updates the continuation context (filter flags etc.), invokes
- *    upon the target method, and performs a cleanup.
+ *      The function is called with a final argument vector and searches for a
+ *      possibly shadowed method. If a target method is found, this dispatcher
+ *      function updates the continuation context (filter flags etc.), invokes
+ *      upon the target method, and performs a cleanup.
  *
  * Results:
- *    Tcl return code
+ *      Tcl return code
  *
  * Side effects:
- *    The invoked method might produce side effects. Also, the interp's unknown
- *    state may be modified.
+ *      The invoked method might produce side effects. Also, the interp's unknown
+ *      state may be modified.
  *
  *----------------------------------------------------------------------
  */
@@ -20701,21 +20712,21 @@ NextSearchAndInvoke(
  *----------------------------------------------------------------------
  * NsfNextObjCmd --
  *
- *    nsf::xotclnext is for backwards compatibility to the next
- *    implementation in XOTcl.  It receives an argument vector which
- *    is used for the invocation. If no argument vector is provided,
- *    the argument vector of the last invocation is used. If the
- *    argument vector starts with "--noArgs", then no arguments are
- *    passed to the shadowed method.
+ *      nsf::xotclnext is for backwards compatibility to the next
+ *      implementation in XOTcl.  It receives an argument vector which
+ *      is used for the invocation. If no argument vector is provided,
+ *      the argument vector of the last invocation is used. If the
+ *      argument vector starts with "--noArgs", then no arguments are
+ *      passed to the shadowed method.
  *
- *    TODO: On the longer range, this function should go into an external
- *    library (e.g. XOTcl compatibility library)
+ *      TODO: On the longer range, this function should go into an external
+ *      library (e.g. XOTcl compatibility library)
  *
  * Results:
- *    Tcl return code
+ *      Tcl return code
  *
  * Side effects:
- *    The invoked method might produce side effects
+ *      The invoked method might produce side effects
  *
  *----------------------------------------------------------------------
  */
@@ -20764,16 +20775,16 @@ NsfNextObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, int objc, Tcl_O
  *----------------------------------------------------------------------
  * FindNextMethod --
  *
- *    This function is called via [current nextmethod] to resolve the method
- *    to be invoked by [next]. If there is a next method found on the
- *    precedence path, a method handle (Tcl_Obj) will be returned. The caller is
- *    responsible for managing the resulting Tcl_Obj, if any.
+ *      This function is called via [current nextmethod] to resolve the method
+ *      to be invoked by [next]. If there is a next method found on the
+ *      precedence path, a method handle (Tcl_Obj) will be returned. The caller is
+ *      responsible for managing the resulting Tcl_Obj, if any.
  *
  * Results:
- *    Tcl_Obj; NULL otherwise (no next method or called from outside of NSF)
+ *      Tcl_Obj; NULL otherwise (no next method or called from outside of NSF)
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -20838,14 +20849,14 @@ static Tcl_Obj *FindNextMethod(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
  *----------------------------------------------------------------------
  * ComputeLevelObj --
  *
- *    This function computes a fresh Tcl_Obj referring to the interp level. The
- *    caller has to care about freeing the returned Tcl_Obj.
+ *      This function computes a fresh Tcl_Obj referring to the interp level. The
+ *      caller has to care about freeing the returned Tcl_Obj.
  *
  * Results:
- *    Tcl_Obj *
+ *      Tcl_Obj *
  *
  * Side effects:
- *    Allocates a new Tcl_Obj
+ *      Allocates a new Tcl_Obj
  *
  *----------------------------------------------------------------------
  */
@@ -20926,15 +20937,15 @@ ComputeLevelObj(Tcl_Interp *interp, CallStackLevel level) {
  *----------------------------------------------------------------------
  * UnsetInAllNamespaces --
  *
- *    Try to unset a variable, searching for the variable in all
- *    name-spaces. This function is used by volatile to unset the automatic
- *    variable used for the destroy trace.
+ *      Try to unset a variable, searching for the variable in all
+ *      name-spaces. This function is used by volatile to unset the automatic
+ *      variable used for the destroy trace.
  *
  * Results:
- *    Tcl return code
+ *      Tcl return code
  *
  * Side effects:
- *    Might unset variable
+ *      Might unset variable
  *
  *----------------------------------------------------------------------
  */
@@ -20995,13 +21006,13 @@ UnsetInAllNamespaces(
  *----------------------------------------------------------------------
  * FreeUnsetTraceVariable --
  *
- *    Unset trace variable.
+ *      Unset trace variable.
  *
  * Results:
- *    Tcl return code
+ *      Tcl return code
  *
  * Side effects:
- *    Might unset variable
+ *      Might unset variable
  *
  *----------------------------------------------------------------------
  */
@@ -21052,14 +21063,14 @@ FreeUnsetTraceVariable(Tcl_Interp *interp, const NsfObject *object) {
  *----------------------------------------------------------------------
  * NsfUnsetTrace --
  *
- *    Function to be triggered whenever the trigger variable is
- *    deleted. Typically, this function deletes the associated object.
+ *      Function to be triggered whenever the trigger variable is
+ *      deleted. Typically, this function deletes the associated object.
  *
  * Results:
- *    Result msg or null.
+ *      Result msg or null.
  *
  * Side effects:
- *    Might delete associated object.
+ *      Might delete associated object.
  *
  *----------------------------------------------------------------------
  */
@@ -21117,14 +21128,14 @@ NsfUnsetTrace(
  *----------------------------------------------------------------------
  * CleanupDestroyObject --
  *
- *    Perform cleanup of object; after the function is executed, the object is
- *    in the same fresh state as after initialization.
+ *      Perform cleanup of object; after the function is executed, the object is
+ *      in the same fresh state as after initialization.
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    Possibly freeing memory.
+ *      Possibly freeing memory.
  *
  *----------------------------------------------------------------------
  */
@@ -21229,14 +21240,14 @@ CleanupDestroyObject(Tcl_Interp *interp, NsfObject *object, bool softrecreate) {
  *----------------------------------------------------------------------
  * CleanupInitObject --
  *
- *    Perform the initialization of an object in a virgin state.
- *    During bootstrap, cl might be NULL.
+ *      Perform the initialization of an object in a virgin state.
+ *      During bootstrap, cl might be NULL.
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    Updating the object structure
+ *      Updating the object structure
  *
  *----------------------------------------------------------------------
  */
@@ -21278,14 +21289,14 @@ CleanupInitObject(
  *----------------------------------------------------------------------
  * PrimitiveDestroy --
  *
- *    Dispatch either PrimitiveCDestroy or PrimitiveODestroy
- *    depending on whether the object is a class
+ *      Dispatch either PrimitiveCDestroy or PrimitiveODestroy
+ *      depending on whether the object is a class
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -21305,14 +21316,14 @@ PrimitiveDestroy(ClientData clientData) {
  *----------------------------------------------------------------------
  * TclDeletesObject --
  *
- *    Function to be called, when Tcl deletes the command which has an
- *    object/class associated. This happens, when e.g. a namespace is deleted.
+ *      Function to be called, when Tcl deletes the command which has an
+ *      object/class associated. This happens, when e.g. a namespace is deleted.
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -21358,15 +21369,15 @@ TclDeletesObject(ClientData clientData) {
  *----------------------------------------------------------------------
  * PrimitiveODestroy --
  *
- *    Delete an object with its namespace and associated data structures
+ *      Delete an object with its namespace and associated data structures
  *    (mixin stack, filter stack). The physical deallocation is handled by
- *    NsfCleanupObject() which performs reference counting.
+ *      NsfCleanupObject() which performs reference counting.
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    Free object contents.
+ *      Free object contents.
  *
  *----------------------------------------------------------------------
  */
@@ -21445,16 +21456,16 @@ PrimitiveODestroy(ClientData clientData) {
  *----------------------------------------------------------------------
  * DoDealloc --
  *
- *    Perform deallocation of an object/class. This function is called
- *    from the dealloc method and internally to get rid of an
- *    abject. It cares about volatile and frees/triggers free
- *    operation depending on the stack references.
+ *      Perform deallocation of an object/class. This function is called
+ *      from the dealloc method and internally to get rid of an
+ *      abject. It cares about volatile and frees/triggers free
+ *      operation depending on the stack references.
  *
  * Results:
- *    Tcl return code
+ *      Tcl return code
  *
  * Side effects:
- *    freed object or object is marked to be freed.
+ *      freed object or object is marked to be freed.
  *
  *----------------------------------------------------------------------
  */
@@ -21492,14 +21503,14 @@ DoDealloc(Tcl_Interp *interp, NsfObject *object) {
  *----------------------------------------------------------------------
  * MarkUndestroyed --
  *
- *    Mark an object as if destroy was not called. This function is e.g. used
- *    from recreate.
+ *      Mark an object as if destroy was not called. This function is e.g. used
+ *      from recreate.
  *
  * Results:
- *    None
+ *      None
  *
  * Side effects:
- *    Setting object flag.
+ *      Setting object flag.
  *
  *----------------------------------------------------------------------
  */
@@ -21518,13 +21529,13 @@ MarkUndestroyed(NsfObject *object) {
  *----------------------------------------------------------------------
  * PrimitiveOInit --
  *
- *    Set/reset the object to a fresh, un-destroyed state
+ *      Set/reset the object to a fresh, un-destroyed state
  *
  * Results:
- *    Tcl return code
+ *      Tcl return code
  *
  * Side effects:
- *    initializing object structure
+ *      initializing object structure
  *
  *----------------------------------------------------------------------
  */
@@ -21593,14 +21604,14 @@ PrimitiveOInit(NsfObject *object, Tcl_Interp *interp, const char *name,
  *----------------------------------------------------------------------
  * PrimitiveOCreate --
  *
- *    Allocate memory for an object, create the object name and the associated
- *    Tcl command and call the initialization functions.
+ *      Allocate memory for an object, create the object name and the associated
+ *      Tcl command and call the initialization functions.
  *
  * Results:
- *    NsfObject*
+ *      NsfObject*
  *
  * Side effects:
- *    Allocating memory
+ *      Allocating memory
  *
  *----------------------------------------------------------------------
  */
@@ -21667,16 +21678,16 @@ PrimitiveOCreate(Tcl_Interp *interp, Tcl_Obj *nameObj, Tcl_Namespace *parentNsPt
  *----------------------------------------------------------------------
  * DefaultSuperClass --
  *
- *    Determine the default superclass of the class (specified as
- *    second argument) and metaclass (third argument). The function
- *    searches for the variable NSF_DEFAULTMETACLASS or
- *    NSF_DEFAULTSUPERCLASS and uses it if present.
+ *      Determine the default superclass of the class (specified as
+ *      second argument) and metaclass (third argument). The function
+ *      searches for the variable NSF_DEFAULTMETACLASS or
+ *      NSF_DEFAULTSUPERCLASS and uses it if present.
  *
  * Results:
- *    Default superclass or NULL
+ *      Default superclass or NULL
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -21752,15 +21763,15 @@ DefaultSuperClass(Tcl_Interp *interp, const NsfClass *class, const NsfClass *met
  *----------------------------------------------------------------------
  * CleanupDestroyClass --
  *
- *    Cleanup class in a destroy call.  Remove filters, mixins, assertions,
- *    instances and remove finally class from class hierarchy. In the recreate
- *    case, it preserves the pointers from other class structures.
+ *      Cleanup class in a destroy call.  Remove filters, mixins, assertions,
+ *      instances and remove finally class from class hierarchy. In the recreate
+ *      case, it preserves the pointers from other class structures.
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    Updated class structures.
+ *      Updated class structures.
  *
  *----------------------------------------------------------------------
  */
@@ -21945,14 +21956,14 @@ CleanupDestroyClass(Tcl_Interp *interp, NsfClass *class, bool softrecreate, bool
  *----------------------------------------------------------------------
  * CleanupInitClass --
  *
- *    Basic initialization of a class, setting namespace, super- and
- *    subclasses, and setup optionally instances table.
+ *      Basic initialization of a class, setting namespace, super- and
+ *      subclasses, and setup optionally instances table.
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    Makes a class structure usable.
+ *      Makes a class structure usable.
  *
  *----------------------------------------------------------------------
  */
@@ -22025,14 +22036,14 @@ CleanupInitClass(
  *----------------------------------------------------------------------
  * PrimitiveCDestroy --
  *
- *    Delete a class with its namespace and associated data structures. The
- *    physical deallocation is handled by PrimitiveODestroy().
+ *      Delete a class with its namespace and associated data structures. The
+ *      physical deallocation is handled by PrimitiveODestroy().
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    Free object contents.
+ *      Free object contents.
  *
  *----------------------------------------------------------------------
  */
@@ -22092,13 +22103,13 @@ PrimitiveCDestroy(ClientData clientData) {
  *----------------------------------------------------------------------
  * PrimitiveCInit --
  *
- *    Set/reset a class to a fresh, un-destroyed state
+ *      Set/reset a class to a fresh, un-destroyed state
  *
  * Results:
- *    Tcl return code
+ *      Tcl return code
  *
  * Side effects:
- *    initializing object structure
+ *      initializing object structure
  *
  *----------------------------------------------------------------------
  */
@@ -22134,15 +22145,15 @@ PrimitiveCInit(NsfClass *class, Tcl_Interp *interp, const char *name) {
  *----------------------------------------------------------------------
  * PrimitiveCCreate --
  *
- *    Allocate memory for a class, initialize the class specific data
- *    structure (e.g. class namespace) and call PrimitiveOCreate() for the
- *    object specific initialization.
+ *      Allocate memory for a class, initialize the class specific data
+ *      structure (e.g. class namespace) and call PrimitiveOCreate() for the
+ *      object specific initialization.
  *
  * Results:
- *    NsfClass*
+ *      NsfClass*
  *
  * Side effects:
- *    Allocating memory
+ *      Allocating memory
  *
  *----------------------------------------------------------------------
  */
@@ -22218,17 +22229,17 @@ PrimitiveCCreate(
  *----------------------------------------------------------------------
  * ChangeClass --
  *
- *    Change class of a Next Scripting object. This function takes
- *    care that one tries not to change an object into a class or vice
- *    versa. Changing metaclass to metaclass, or class to class, or
- *    object to object is fine, but upgrading/downgrading is not
- *    allowed.
+ *      Change class of a Next Scripting object. This function takes
+ *      care that one tries not to change an object into a class or vice
+ *      versa. Changing metaclass to metaclass, or class to class, or
+ *      object to object is fine, but upgrading/downgrading is not
+ *      allowed.
  *
  * Results:
- *    Tcl return code
+ *      Tcl return code
  *
  * Side effects:
- *    Changes class of object if possible and updates instance relation.
+ *      Changes class of object if possible and updates instance relation.
  *
  *----------------------------------------------------------------------
  */
@@ -22283,16 +22294,16 @@ ChangeClass(Tcl_Interp *interp, NsfObject *object, NsfClass *class) {
  *----------------------------------------------------------------------
  * DoObjInitialization --
  *
- *    Perform the object initialization: first call "configure" and the
- *    constructor "init", if not called already from configure. The function
- *    will make sure that the called methods do not change the result passed
- *    into this function.
+ *      Perform the object initialization: first call "configure" and the
+ *      constructor "init", if not called already from configure. The function
+ *      will make sure that the called methods do not change the result passed
+ *      into this function.
  *
  * Results:
- *    Tcl return code
+ *      Tcl return code
  *
  * Side effects:
- *    Indirect effects by calling Tcl code
+ *      Indirect effects by calling Tcl code
  *
  *----------------------------------------------------------------------
  */
@@ -22371,7 +22382,7 @@ DoObjInitialization(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *co
     Tcl_Obj *errObj;
 
     /*
-     *        Preserve the outer error message, calls triggered by
+     *  Preserve the outer error message, calls triggered by
      *  DispatchDestroyMethod() can cause the interp result to be reset
      */
 
@@ -22393,13 +22404,13 @@ DoObjInitialization(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *co
  *----------------------------------------------------------------------
  * IsRootMetaClass --
  *
- *    Check, of the class has the root metaclass flag set.
+ *      Check, of the class has the root metaclass flag set.
  *
  * Results:
- *    Boolean
+ *      Boolean
  *
  * Side effects:
- *    None
+ *      None
  *
  *----------------------------------------------------------------------
  */
@@ -22415,13 +22426,13 @@ IsRootMetaClass(const NsfClass *class) {
  *----------------------------------------------------------------------
  * IsBaseClass --
  *
- *    Check, whether the object is a base class.
+ *      Check, whether the object is a base class.
  *
  * Results:
- *    Boolean
+ *      Boolean
  *
  * Side effects:
- *    none
+ *      none
  *
  *----------------------------------------------------------------------
  */
@@ -22437,13 +22448,13 @@ IsBaseClass(const NsfObject *object) {
  *----------------------------------------------------------------------
  * IsRootClass --
  *
- *    Check, whether the object is a root-class.
+ *      Check, whether the object is a root-class.
  *
  * Results:
- *    Boolean
+ *      Boolean
  *
  * Side effects:
- *    none
+ *      none
  *
  *----------------------------------------------------------------------
  */
@@ -22460,14 +22471,14 @@ IsRootClass(const NsfClass *class) {
  *----------------------------------------------------------------------
  * IsMetaClass --
  *
- *    Check, whether the object is a metaclass. Optionally, mixins are
- *    checked as well.
+ *      Check, whether the object is a metaclass. Optionally, mixins are
+ *      checked as well.
  *
  * Results:
- *    Boolean
+ *      Boolean
  *
  * Side effects:
- *    none
+ *      none
  *
  *----------------------------------------------------------------------
  */
@@ -22525,13 +22536,13 @@ IsMetaClass(Tcl_Interp *interp, NsfClass *class, bool withMixins) {
  *----------------------------------------------------------------------
  * IsSubType --
  *
- *    Check, whether a class is a subclass of another class
+ *      Check, whether a class is a subclass of another class
  *
  * Results:
- *    Boolean
+ *      Boolean
  *
  * Side effects:
- *    none
+ *      none
  *
  *----------------------------------------------------------------------
  */
@@ -22554,13 +22565,13 @@ IsSubType(NsfClass *subClass, const NsfClass *class) {
  *----------------------------------------------------------------------
  * HasMixin --
  *
- *    Check, whether the specified object the specified class as mixin.
+ *      Check, whether the specified object the specified class as mixin.
  *
  * Results:
- *    Boolean
+ *      Boolean
  *
  * Side effects:
- *    none
+ *      none
  *
  *----------------------------------------------------------------------
  */
@@ -22595,14 +22606,14 @@ HasMixin(Tcl_Interp *interp, NsfObject *object, NsfClass *class) {
  *----------------------------------------------------------------------
  * ImportInstVarIntoCurrentScope --
  *
- *    Import an instance variable into the current variable scope
- *    (e.g. function scope).
+ *      Import an instance variable into the current variable scope
+ *      (e.g. function scope).
  *
  * Results:
- *    Standard Tcl result
+ *      Standard Tcl result
  *
  * Side effects:
- *    none
+ *      none
  *
  *----------------------------------------------------------------------
  */
@@ -22750,13 +22761,13 @@ ImportInstVarIntoCurrentScope(Tcl_Interp *interp, const char *cmdName, NsfObject
  *----------------------------------------------------------------------
  * SetInstVar --
  *
- *    Set an instance variable of the specified object to the given value.
+ *      Set an instance variable of the specified object to the given value.
  *
  * Results:
- *    Tcl result code.
+ *      Tcl result code.
  *
  * Side effects:
- *    Set instance variable.
+ *      Set instance variable.
  *
  *----------------------------------------------------------------------
  */
@@ -22829,15 +22840,15 @@ SetInstVar(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj, Tcl_Obj *val
  *----------------------------------------------------------------------
  * SetInstArray --
  *
- *    Set an instance variable array of the specified object to the given
- *    value. This function performs essentially an "array set" or "array get"
- *    operation.
+ *      Set an instance variable array of the specified object to the given
+ *      value. This function performs essentially an "array set" or "array get"
+ *      operation.
  *
  * Results:
- *    Tcl result code.
+ *      Tcl result code.
  *
  * Side effects:
- *    Set instance variable.
+ *      Set instance variable.
  *
  *----------------------------------------------------------------------
  */
@@ -22887,13 +22898,13 @@ SetInstArray(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *arrayNameObj, Tcl_O
  *----------------------------------------------------------------------
  * UnsetInstVar --
  *
- *    Unset an instance variable of the specified object.
+ *      Unset an instance variable of the specified object.
  *
  * Results:
- *    Tcl result code.
+ *      Tcl result code.
  *
  * Side effects:
- *    Variable unset.
+ *      Variable unset.
  *
  *----------------------------------------------------------------------
  */
@@ -22924,16 +22935,16 @@ UnsetInstVar(Tcl_Interp *interp, int withNocomplain, NsfObject *object, const ch
  *----------------------------------------------------------------------
  * NsfSetterMethod --
  *
- *    This Tcl_ObjCmdProc is called, when a setter method is invoked. A setter
- *    is a method that accesses/modifies a same-named instance variable. If
- *    the setter is called without arguments, it returns the values, if it is
- *    called with one argument, the argument is used as new value.
+ *      This Tcl_ObjCmdProc is called, when a setter method is invoked. A setter
+ *      is a method that accesses/modifies a same-named instance variable. If
+ *      the setter is called without arguments, it returns the values, if it is
+ *      called with one argument, the argument is used as new value.
  *
  * Results:
- *    Tcl result code.
+ *      Tcl result code.
  *
  * Side effects:
- *    Can set an instance variable.
+ *      Can set an instance variable.
  *
  *----------------------------------------------------------------------
  */
@@ -23012,19 +23023,20 @@ NsfSetterMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *co
  *----------------------------------------------------------------------
  * NsfForwardPrintError --
  *
- *    Helper function to print either an error message directly to call the
- *    forwarder specific callback method specified in
- *    tcd->onerror. Background: ForwardArg() is called at run time to
- *    substitute the argument list. Catching such errors is not conveniently
- *    doable via catch, since it would be necessary to wrap every possible
- *    usage of a forwarder in a catch. Therefore, the callback function can be
- *    used to give a sensible error message appropriate for each context.
+ *      Helper function to print either an error message directly to
+ *      call the forwarder specific callback method specified in
+ *      tcd->onerror. Background: ForwardArg() is called at run time to
+ *      substitute the argument list. Catching such errors is not
+ *      conveniently doable via catch, since it would be necessary to
+ *      wrap every possible usage of a forwarder in a catch. Therefore,
+ *      the callback function can be used to give a sensible error
+ *      message appropriate for each context.
  *
  * Results:
- *    Tcl result code.
+ *      Tcl result code.
  *
  * Side effects:
- *    Potential side effects through the script.
+ *      Potential side effects through the script.
  *
  *----------------------------------------------------------------------
  */
@@ -23095,15 +23107,16 @@ NsfForwardPrintError(Tcl_Interp *interp, ForwardCmdClientData *tcd,
  *----------------------------------------------------------------------
  * ForwardArg --
  *
- *    This function is a helper function of NsfForwardMethod() and processes a
- *    single entry (ForwardArgObj) of the forward spec. Essentially, it
- *    performs the percent substitution of the forward spec.
+ *      This function is a helper function of NsfForwardMethod() and
+ *      processes a single entry (ForwardArgObj) of the forward
+ *      spec. Essentially, it performs the percent substitution of the
+ *      forward spec.
  *
  * Results:
- *    Tcl result code.
+ *      Tcl result code.
  *
  * Side effects:
- *    Updates the provided output arguments.
+ *      Updates the provided output arguments.
  *
  *----------------------------------------------------------------------
  */
@@ -23392,15 +23405,15 @@ ForwardArg(
  *----------------------------------------------------------------------
  * CallForwarder --
  *
- *    Invoke the method to which the forwarder points. This function receives
- *    the already transformed argument vector, calls the method and performs
- *    error handling.
+ *      Invoke the method to which the forwarder points. This function
+ *      receives the already transformed argument vector, calls the
+ *      method and performs error handling.
  *
  * Results:
- *    Tcl result code.
+ *      Tcl result code.
  *
  * Side effects:
- *    Maybe through the invoked command.
+ *      Maybe through the invoked command.
  *
  *----------------------------------------------------------------------
  */
@@ -23470,15 +23483,16 @@ CallForwarder(ForwardCmdClientData *tcd, Tcl_Interp *interp, int objc, Tcl_Obj *
  *----------------------------------------------------------------------
  * NsfForwardMethod --
  *
- *    This Tcl_ObjCmdProc is called, when a forwarder is invoked. It performs
- *    argument substitution through ForwardArg() and calls finally the method,
- *    to which the call was forwarded via CallForwarder().
+ *      This Tcl_ObjCmdProc is called, when a forwarder is invoked. It
+ *      performs argument substitution through ForwardArg() and calls
+ *      finally the method, to which the call was forwarded via
+ *      CallForwarder().
  *
  * Results:
- *    Tcl result code.
+ *      Tcl result code.
  *
  * Side effects:
- *    Maybe through the invoked command.
+ *      Maybe through the invoked command.
  *
  *----------------------------------------------------------------------
  */
@@ -23701,15 +23715,15 @@ NsfForwardMethod(ClientData clientData, Tcl_Interp *interp,
  *----------------------------------------------------------------------
  * NsfProcAliasMethod --
  *
- *    Since alias-resolving happens in dispatch, this Tcl_ObjCmdProc should
- *    never be called during normal operations. The only way to invoke this
- *    could happen via directly calling the handle.
+ *      Since alias-resolving happens in dispatch, this Tcl_ObjCmdProc
+ *      should never be called during normal operations. The only way to
+ *      invoke this could happen via directly calling the handle.
  *
  * Results:
- *    TCL_ERROR
+ *      TCL_ERROR
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -23738,13 +23752,14 @@ NsfProcAliasMethod(ClientData clientData,
  *----------------------------------------------------------------------
  * NsfObjscopedMethod --
  *
- *    This Tcl_ObjCmdProc is called, when an obj-scoped alias is invoked.
+ *      This Tcl_ObjCmdProc is called, when an obj-scoped alias is
+ *      invoked.
  *
  * Results:
- *    Tcl result code.
+ *      Tcl result code.
  *
  * Side effects:
- *    Maybe through the invoked command.
+ *      Maybe through the invoked command.
  *
  *----------------------------------------------------------------------
  */
@@ -23780,15 +23795,16 @@ NsfObjscopedMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
  *----------------------------------------------------------------------
  * IsDashArg --
  *
- *    Check, whether the provided argument (pointed to be the index isFirstArg)
- *    starts with a "-", or is a list starting with a "-". The method returns
- *    via **methodName the name of the dashed argument (without the dash).
+ *      Check, whether the provided argument (pointed to be the index
+ *      isFirstArg) starts with a "-", or is a list starting with a
+ *      "-". The method returns via **methodName the name of the dashed
+ *      argument (without the dash).
  *
  * Results:
- *    Enum value dashArgType.
+ *      Enum value dashArgType.
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -23852,17 +23868,18 @@ IsDashArg(Tcl_Interp *interp, Tcl_Obj *obj, int isFirstArg, const char **methodN
  *----------------------------------------------------------------------
  * CallConfigureMethod --
  *
- *    Call a method identified by a string selector; or provide an error
- *    message. This dispatcher function records as well constructor (init)
- *    calls via this interface. The dispatcher is used in XOTcl's
- *    configure(), interpreting arguments with a leading dash as method dispatches.
- *    This behavior is now implemented in NsfOResidualargsMethod().
+ *      Call a method identified by a string selector; or provide an
+ *      error message. This dispatcher function records as well
+ *      constructor (init) calls via this interface. The dispatcher is
+ *      used in XOTcl's configure(), interpreting arguments with a
+ *      leading dash as method dispatches.  This behavior is now
+ *      implemented in NsfOResidualargsMethod().
  *
  * Results:
- *    Tcl result code.
+ *      Tcl result code.
  *
  * Side effects:
- *    Maybe side effects from the called methods.
+ *      Maybe side effects from the called methods.
  *
  *----------------------------------------------------------------------
  */
@@ -23921,14 +23938,14 @@ CallConfigureMethod(Tcl_Interp *interp, NsfObject *object, const char *initStrin
  *----------------------------------------------------------------------
  * IsRootNamespace --
  *
- *    Check whether the provided namespace is the namespace of the base
- *    class of an object system.
+ *      Check whether the provided namespace is the namespace of the base
+ *      class of an object system.
  *
  * Results:
- *    Boolean value.
+ *      Boolean value.
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -23955,18 +23972,18 @@ IsRootNamespace(const Tcl_Interp *interp, const Tcl_Namespace *nsPtr) {
  *----------------------------------------------------------------------
  * CallingNameSpace --
  *
- *    Find the last invocation outside the Next Scripting system
- *    namespaces. This function return the namespace of the caller but
- *    skips system-specific namespaces (e.g. the namespaces of the
- *    pre-defined slot handlers for mixin and class
- *    registration. etc.) If we would use such namespaces, we would
- *    resolve non-fully-qualified names against the root namespace).
+ *      Find the last invocation outside the Next Scripting system
+ *      namespaces. This function return the namespace of the caller but
+ *      skips system-specific namespaces (e.g. the namespaces of the
+ *      pre-defined slot handlers for mixin and class
+ *      registration. etc.) If we would use such namespaces, we would
+ *      resolve non-fully-qualified names against the root namespace).
  *
  * Results:
- *    Tcl_Namespace or NULL
+ *      Tcl_Namespace or NULL
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -24023,14 +24040,15 @@ ArgumentResetRefCounts(const struct Nsf_Param *pPtr, Tcl_Obj *valueObj) {
  *----------------------------------------------------------------------
  * ArgumentCheckHelper --
  *
- *    Helper function for ArgumentCheck() called when argument checking leads
- *    to a different output element (non-pure checking).
+ *      Helper function for ArgumentCheck() called when argument
+ *      checking leads to a different output element (non-pure
+ *      checking).
  *
  * Results:
- *    Tcl result code.
+ *      Tcl result code.
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -24107,14 +24125,14 @@ ArgumentCheckHelper(Tcl_Interp *interp,
  *----------------------------------------------------------------------
  * ArgumentCheck --
  *
- *    Check a single argument (2nd argument) against the parameter structure
- *    when argument checking is turned on (default).
+ *      Check a single argument (2nd argument) against the parameter
+ *      structure when argument checking is turned on (default).
  *
  * Results:
- *    Standard Tcl result
+ *      Standard Tcl result
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -24151,9 +24169,9 @@ ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, const struct Nsf_Param *pPtr,
   }
 
   /*
-   * If the argument is multivalued, perform the check for every element of
-   * the list (pure checker), or we have to build a new list of values (in
-   * case, the converter alters the values).
+   * If the argument is multivalued, perform the check for every element
+   * of the list (pure checker), or we have to build a new list of
+   * values (in case, the converter alters the values).
    */
   if (unlikely((pPtr->flags & NSF_ARG_MULTIVALUED) != 0u)) {
     int objc, i;
@@ -24236,14 +24254,14 @@ ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, const struct Nsf_Param *pPtr,
  *----------------------------------------------------------------------
  * ArgumentDefaults --
  *
- *    Process the argument vector and set defaults in parse context if
- *    provided and necessary.
+ *      Process the argument vector and set defaults in parse context if
+ *      provided and necessary.
  *
  * Results:
- *    Standard Tcl result
+ *      Standard Tcl result
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -24429,15 +24447,15 @@ ArgumentDefaults(ParseContext *pcPtr, Tcl_Interp *interp,
  *----------------------------------------------------------------------
  * ArgumentParse --
  *
- *    Parse the argument vector based on the parameter definitions.
- *    The parsed argument vector is returned in a normalized order
- *    in the parse context.
+ *      Parse the argument vector based on the parameter definitions.
+ *      The parsed argument vector is returned in a normalized order
+ *      in the parse context.
  *
  * Results:
- *    Tcl return code.
+ *      Tcl return code.
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -24463,13 +24481,13 @@ Nsf_ArgumentParse(
  *----------------------------------------------------------------------
  * NextParam --
  *
- *    Advance in the parameter definitions and return the next parameter.
+ *      Advance in the parameter definitions and return the next parameter.
  *
  * Results:
- *    Next parameter.
+ *      Next parameter.
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -24491,14 +24509,14 @@ NextParam(Nsf_Param const *paramPtr, const Nsf_Param *lastParamPtr) {
  *----------------------------------------------------------------------
  * ArgumentParse --
  *
- *    Parse the provided list of argument against the given definition. The
- *    result is returned in the parse context structure.
+ *      Parse the provided list of argument against the given definition. The
+ *      result is returned in the parse context structure.
  *
  * Results:
- *    Standard Tcl result.
+ *      Standard Tcl result.
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -25041,14 +25059,15 @@ ArgumentParse(
  *----------------------------------------------------------------------
  * ListVarKeys --
  *
- *    Return variable names of the provided hash table in the interp
- *    result. Optionally "pattern" might be used to filter the result list.
+ *      Return variable names of the provided hash table in the interp
+ *      result. Optionally "pattern" might be used to filter the result
+ *      list.
  *
  * Results:
- *    Standard Tcl result
+ *      Standard Tcl result
  *
  * Side effects:
- *    Modifies interp result
+ *      Modifies interp result
  *
  *----------------------------------------------------------------------
  */
@@ -25097,13 +25116,13 @@ ListVarKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr, const char *pattern) {
  *----------------------------------------------------------------------
  * GetOriginalCommand --
  *
- *    Obtain for an imported/aliased cmd the original definition.
+ *      Obtain for an imported/aliased cmd the original definition.
  *
  * Results:
- *    Tcl command
+ *      Tcl command
  *
  * Side effects:
- *    none
+ *      none
  *
  *----------------------------------------------------------------------
  */
@@ -25171,13 +25190,13 @@ GetOriginalCommand(
  *----------------------------------------------------------------------
  * ListProcBody --
  *
- *    Return the body of a scripted proc as Tcl interp result.
+ *      Return the body of a scripted proc as Tcl interp result.
  *
  * Results:
- *    Standard Tcl result
+ *      Standard Tcl result
  *
  * Side effects:
- *    Modifies interp result
+ *      Modifies interp result
  *
  *----------------------------------------------------------------------
  */
@@ -25200,13 +25219,13 @@ ListProcBody(Tcl_Interp *interp, Proc *procPtr) {
  *----------------------------------------------------------------------
  * ListParamDefs --
  *
- *    Compute the parameter definition in one of four different forms.
+ *      Compute the parameter definition in one of four different forms.
  *
  * Results:
- *    Standard Tcl result
+ *      Standard Tcl result
  *
  * Side effects:
- *    Modifies interp result
+ *      Modifies interp result
  *
  *----------------------------------------------------------------------
  */
@@ -25238,16 +25257,17 @@ ListParamDefs(Tcl_Interp *interp, const Nsf_Param *paramsPtr,
  *----------------------------------------------------------------------
  * ListCmdParams --
  *
- *    Obtains a cmd and a method name. As a side effect, sets the Tcl interp
- *    result to a list of parameter definitions, if available. The print-style
- *    NSF_PARAMS_NAMES, NSF_PARAMS_LIST, NSF_PARAMS_PARAMETER,
- *    NSF_PARAMS_SYNTAX controls the list content.
+ *      Obtains a cmd and a method name. As a side effect, sets the Tcl
+ *      interp result to a list of parameter definitions, if
+ *      available. The print-style NSF_PARAMS_NAMES, NSF_PARAMS_LIST,
+ *      NSF_PARAMS_PARAMETER, NSF_PARAMS_SYNTAX controls the list
+ *      content.
  *
  * Results:
- *    Tcl result code
+ *      Tcl result code
  *
  * Side effects:
- *    Sets interp result
+ *      Sets interp result
  *
  *----------------------------------------------------------------------
  */
@@ -25428,13 +25448,13 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd,  NsfObject *contextObject,
  *----------------------------------------------------------------------
  * AppendForwardDefinition --
  *
- *    Append the parameters of a forward definition to the specified listObj.
+ *      Append the parameters of a forward definition to the specified listObj.
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    Appending to listObj
+ *      Appending to listObj
  *
  *----------------------------------------------------------------------
  */
@@ -25480,14 +25500,14 @@ AppendForwardDefinition(Tcl_Interp *interp, Tcl_Obj *listObj, ForwardCmdClientDa
  *----------------------------------------------------------------------
  * AppendMethodRegistration --
  *
- *    Append to the listObj the command words needed for definition /
- *    registration.
+ *      Append to the listObj the command words needed for definition /
+ *      registration.
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    Appending to listObj
+ *      Appending to listObj
  *
  *----------------------------------------------------------------------
  */
@@ -25539,14 +25559,14 @@ AppendMethodRegistration(Tcl_Interp *interp, Tcl_Obj *listObj, const char *regis
  *----------------------------------------------------------------------
  * AppendReturnsClause --
  *
- *    Append to the listObj a returns clause, if it was specified for the
- *    current cmd.
+ *      Append to the listObj a returns clause, if it was specified for
+ *      the current cmd.
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    Appending to listObj
+ *      Appending to listObj
  *
  *----------------------------------------------------------------------
  */
@@ -25601,15 +25621,15 @@ static Tcl_Obj *DisassembleProc(Tcl_Interp *interp, Proc *procPtr,
  *----------------------------------------------------------------------
  * ListMethod --
  *
- *    Construct a command to regenerate the specified method. The method might
- *    be scripted or not (alias, forwarder, ...). The command is returned in
- *    the interp result.
+ *      Construct a command to regenerate the specified method. The
+ *      method might be scripted or not (alias, forwarder, ...). The
+ *      command is returned in the interp result.
  *
  * Results:
- *    Tcl result code.
+ *      Tcl result code.
  *
  * Side effects:
- *    Sets interp result
+ *      Sets interp result
  *
  *----------------------------------------------------------------------
  */
@@ -26210,14 +26230,14 @@ ListMethod(Tcl_Interp *interp,
  *----------------------------------------------------------------------
  * ListMethodResolve --
  *
- *    Call essentially ListMethod(), but try to resolve the method name/handle
- *    first.
+ *      Call essentially ListMethod(), but try to resolve the method
+ *      name/handle first.
  *
  * Results:
- *    Standard Tcl result
+ *      Standard Tcl result
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -26269,14 +26289,15 @@ ListMethodResolve(Tcl_Interp *interp, InfomethodsubcmdIdx_t subcmd,
  *----------------------------------------------------------------------
  * MethodSourceMatches --
  *
- *    Check, whether the provided class or object (mutually exclusive) matches
- *    with the required method source (typically all|application|system).
+ *      Check, whether the provided class or object (mutually exclusive)
+ *      matches with the required method source (typically
+ *      all|application|system).
  *
  * Results:
- *    Returns boolean
+ *      Returns boolean
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -26318,15 +26339,15 @@ static bool MethodSourceMatches(DefinitionsourceIdx_t withSource, NsfClass *clas
  *----------------------------------------------------------------------
  * MethodTypeMatches --
  *
- *    Check, whether the provided method (specified as a cmd) matches with the
- *    required method type (typically
- *    all|scripted|builtin|alias|forwarder|object|setter).
+ *      Check, whether the provided method (specified as a cmd) matches
+ *      with the required method type (typically
+ *      all|scripted|builtin|alias|forwarder|object|setter).
  *
  * Results:
- *    Returns Boolean value
+ *      Returns Boolean value
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -26410,14 +26431,15 @@ MethodTypeMatches(Tcl_Interp *interp, MethodtypeIdx_t methodType, Tcl_Command cm
  *----------------------------------------------------------------------
  * ProtectionMatches --
  *
- *    Check, whether the provided method (specified as a cmd) matches with the
- *    required call-protection (typically all|public|protected|private).
+ *      Check, whether the provided method (specified as a cmd) matches
+ *      with the required call-protection (typically
+ *      all|public|protected|private).
  *
  * Results:
- *    Returns boolean
+ *      Returns boolean
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -26660,8 +26682,8 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
  *
  * ListChildren --
  *
- *      List the children of the specified object. The result can be filtered
- *      via a pattern or a type.
+ *      List the children of the specified object. The result can be
+ *      filtered via a pattern or a type.
  *
  * Results:
  *      Tcl result code.
@@ -26754,8 +26776,9 @@ ListChildren(
  *
  * ListForward --
  *
- *      List registered forwarder defined in the hash table. The result can be filtered
- *      via a pattern, optionally the forward definition is returned.
+ *      List registered forwarder defined in the hash table. The result
+ *      can be filtered via a pattern, optionally the forward definition
+ *      is returned.
  *
  * Results:
  *      Tcl result code.
@@ -26877,8 +26900,9 @@ ListDefinedMethods(Tcl_Interp *interp, NsfObject *object, const char *pattern,
  *
  * ListSuperClasses --
  *
- *      List the superclasses of a class. Optionally the transitive closure is
- *      computed and the result can be filtered via a pattern.
+ *      List the superclasses of a class. Optionally the transitive
+ *      closure is computed and the result can be filtered via a
+ *      pattern.
  *
  * Results:
  *      Tcl result code.
@@ -27044,13 +27068,13 @@ AliasAdd(Tcl_Interp *interp, Tcl_Obj *cmdName, const char *methodName, bool with
  *
  * AliasDelete --
  *
- *      Delete an alias from the index
+ *      Deletes an alias from the index.
  *
  * Results:
- *      Standard Tcl result
+ *      Standard Tcl result.
  *
  * Side effects:
- *      delete an entry from the hidden associative array
+ *      Deletes an entry from the hidden associative array.
  *
  *----------------------------------------------------------------------
  */
@@ -27123,16 +27147,16 @@ AliasGet(Tcl_Interp *interp, Tcl_Obj *cmdName, const char *methodName, bool with
  *----------------------------------------------------------------------
  * AliasDeleteObjectReference --
  *
- *    Delete an alias to a referenced object. Such aliases are
- *    created by registering an alias to an object. This function
- *    distinguishes between a sub-object and an alias to an object,
- *    deletes the alias but never the referenced object.
+ *      Delete an alias to a referenced object. Such aliases are
+ *      created by registering an alias to an object. This function
+ *      distinguishes between a sub-object and an alias to an object,
+ *      deletes the alias but never the referenced object.
  *
  * Results:
- *    Boolean indicating when alias is deleted.
+ *      Boolean indicating when alias is deleted.
  *
  * Side effects:
- *    Deletes cmd sometimes
+ *      Deletes cmd sometimes
  *
  *----------------------------------------------------------------------
  */
@@ -27164,14 +27188,14 @@ AliasDeleteObjectReference(Tcl_Interp *interp, Tcl_Command cmd) {
  *----------------------------------------------------------------------
  * AliasRefetch --
  *
- *    Perform a refetch of an epoched aliased cmd and update the
- *    AliasCmdClientData structure with fresh values.
+ *      Perform a refetch of an epoched aliased cmd and update the
+ *      AliasCmdClientData structure with fresh values.
  *
  * Results:
- *    Tcl result code.
+ *      Tcl result code.
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -27251,16 +27275,16 @@ AliasRefetch(Tcl_Interp *interp, NsfObject *object, const char *methodName, Alia
  *----------------------------------------------------------------------
  * AliasDereference --
  *
- *    Dereference a cmd in respect of the alias structure. If necessary,
- *    this command refetches the aliased command.
+ *      Dereference a cmd in respect of the alias structure. If necessary,
+ *      this command refetches the aliased command.
  *
  * Results:
- *    NULL, in case refetching fails,
- *    the aliased cmd if it was an alias, or
- *    the original cmd
+ *      NULL, in case refetching fails,
+ *      the aliased cmd if it was an alias, or
+ *      the original cmd
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -27320,13 +27344,13 @@ static int
  *----------------------------------------------------------------------
  * SetBooleanFlag --
  *
- *    Set an unsigned int flag based on valueObj
+ *      Set an unsigned int flag based on valueObj
  *
  * Results:
- *    Tcl result code
+ *      Tcl result code
  *
  * Side effects:
- *    update passed flags
+ *      update passed flags
  *
  *----------------------------------------------------------------------
  */
@@ -27714,15 +27738,15 @@ static int NsfCallgrindZeroStatsCmd(Tcl_Interp *UNUSED(interp))            {
  *----------------------------------------------------------------------
  * NsfUnsetUnknownArgsCmd --
 *
- *    Unset variables set from arguments with the default dummy
- *    default value. The dummy default values are set by
- *    ArgumentDefaults()
+ *      Unset variables set from arguments with the default dummy
+ *      default value. The dummy default values are set by
+ *      ArgumentDefaults()
  *
  * Results:
- *    Tcl result code.
+ *      Tcl result code.
  *
  * Side effects:
- *    unsets some variables
+ *      unsets some variables
  *
  *----------------------------------------------------------------------
  */
@@ -29805,16 +29829,16 @@ NsfMyCmd(Tcl_Interp *interp,
  *----------------------------------------------------------------------
  * NsfNextCmd --
  *
- *    nsf::next calls the next shadowed method. It might get a single
- *    argument which is used as argument vector for that method. If no
- *    argument is provided, the argument vector of the last invocation
- *    is used.
+ *      nsf::next calls the next shadowed method. It might get a single
+ *      argument which is used as argument vector for that method. If no
+ *      argument is provided, the argument vector of the last invocation
+ *      is used.
  *
  * Results:
- *    Tcl return code
+ *      Tcl return code
  *
  * Side effects:
- *    The invoked method might produce side effects
+ *      The invoked method might produce side effects
  *
  *----------------------------------------------------------------------
  */
@@ -30380,14 +30404,14 @@ NsfRelationGetCmd(Tcl_Interp *interp, NsfObject *object, RelationtypeIdx_t type)
  *----------------------------------------------------------------------
  * NsfRelationClassMixinsSet --
  *
- *    Set class mixins; the main reason for the factored-out semantics is that
- *    it supports to undo/redo the operations in case of a failure.
+ *      Set class mixins; the main reason for the factored-out semantics is that
+ *      it supports to undo/redo the operations in case of a failure.
  *
  * Results:
- *    Tcl result code.
+ *      Tcl result code.
  *
  * Side effects:
- *    class mixins are set, various kinds of invalidations.
+ *      class mixins are set, various kinds of invalidations.
  *
  *----------------------------------------------------------------------
  */
@@ -31216,16 +31240,16 @@ ParamFreeInternalRep(
  *----------------------------------------------------------------------
  * ParamSetFromAny2 --
  *
- *    Convert the second argument (e.g. "x:integer") into the internal
- *    representation of a Tcl_Obj of the type parameter. The conversion is
- *    performed by the usual ParamDefinitionParse() function, used e.g. for
- *    the parameter passing for arguments.
+ *      Convert the second argument (e.g. "x:integer") into the internal
+ *      representation of a Tcl_Obj of the type parameter. The conversion is
+ *      performed by the usual ParamDefinitionParse() function, used e.g. for
+ *      the parameter passing for arguments.
  *
  * Results:
- *    Result code.
+ *      Result code.
  *
  * Side effects:
- *    Converted internal rep of Tcl_Obj
+ *      Converted internal rep of Tcl_Obj
  *
  *----------------------------------------------------------------------
  */
@@ -31304,16 +31328,16 @@ ParamSetFromAny(
  *----------------------------------------------------------------------
  * GetObjectParameterDefinition --
  *
- *    Obtain the parameter definitions for an object by calling the method
+ *      Obtain the parameter definitions for an object by calling the method
  *    "__objectparameter" if the value is not cached already. Either "object"
- *    or "class" must be non-null. Caching is performed on the class, the
- *    cached values are used in case there are no object-specific slots.
+ *      or "class" must be non-null. Caching is performed on the class, the
+ *      cached values are used in case there are no object-specific slots.
  *
  * Results:
- *    Tcl return code, parsed structure in last argument
+ *      Tcl return code, parsed structure in last argument
  *
  * Side effects:
- *    Updates potentially cl->parsedParamPtr
+ *      Updates potentially cl->parsedParamPtr
  *
  *----------------------------------------------------------------------
  */
@@ -31392,16 +31416,16 @@ ComputeParameterDefinition(
  *----------------------------------------------------------------------
  * GetObjectParameterDefinition --
  *
- *    Obtain the parameter definitions for an object by calling the method
+ *      Obtain the parameter definitions for an object by calling the method
  *    "__objectparameter" if the value is not cached already. Caching is
- *    performed on the class, the cached values are used in case there are no
- *    object-specific slots.
+ *      performed on the class, the cached values are used in case there are no
+ *      object-specific slots.
  *
  * Results:
- *    Tcl return code, parsed structure in last argument
+ *      Tcl return code, parsed structure in last argument
  *
  * Side effects:
- *    Updates potentially cl->parsedParamPtr
+ *      Updates potentially cl->parsedParamPtr
  *
  *----------------------------------------------------------------------
  */
@@ -31492,19 +31516,19 @@ GetObjectParameterDefinition(
  *----------------------------------------------------------------------
  * ParameterCheck --
  *
- *    Check the provided valueObj against the parameter specification provided
- *    in the second argument (paramObjPtr), when doCheckArguments is true. This
- *    function is used e.g. by nsf::is, where only the right-hand side of a
- *    parameter specification (after the colon) is specified. The argument
- *    Name (before the colon in a parameter spec) is provided via
- *    argNamePrefix. The converted parameter structure is returned optionally
- *    via the last argument.
+ *      Check the provided valueObj against the parameter specification provided
+ *      in the second argument (paramObjPtr), when doCheckArguments is true. This
+ *      function is used e.g. by nsf::is, where only the right-hand side of a
+ *      parameter specification (after the colon) is specified. The argument
+ *      Name (before the colon in a parameter spec) is provided via
+ *      argNamePrefix. The converted parameter structure is returned optionally
+ *      via the last argument.
  *
  * Results:
- *    Tcl return code, parsed structure in last argument
+ *      Tcl return code, parsed structure in last argument
  *
  * Side effects:
- *    Converts potentially tcl_obj type of paramObjPtr
+ *      Converts potentially tcl_obj type of paramObjPtr
  *
  *----------------------------------------------------------------------
  */
@@ -35291,7 +35315,7 @@ FreeAllNsfObjectsAndClasses(
 #endif /* DO_CLEANUP */
 
 /*
- *  Exit Handler
+ *      Exit Handler
  */
 
 static void

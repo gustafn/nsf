@@ -221,16 +221,16 @@ Nsf_PointerDelete(const char *key, void *valuePtr, int free) {
  *----------------------------------------------------------------------
  * Nsf_ConvertToPointer --
  *
- *    Nsf_TypeConverter setting the client data (passed to C functions)
- *    to the valuePtr of the opaque structure. This nsf type converter
- *    checks the passed value via the internally maintained pointer hash
- *    table.
+ *      Nsf_TypeConverter setting the client data (passed to C functions)
+ *      to the valuePtr of the opaque structure. This nsf type converter
+ *      checks the passed value via the internally maintained pointer hash
+ *      table.
  *
  * Results:
- *    Tcl result code, *clientData and **outObjPtr
+ *      Tcl result code, *clientData and **outObjPtr
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -263,13 +263,13 @@ Nsf_ConvertToPointer(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr
  *----------------------------------------------------------------------
  * Nsf_PointerTypeRegister --
  *
- *    Register a pointer type which is identified by the type string
+ *      Register a pointer type which is identified by the type string
  *
  * Results:
- *    Tcl result code.
+ *      Tcl result code.
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -301,14 +301,14 @@ Nsf_PointerTypeRegister(Tcl_Interp *interp, const char* typeName, int *counterPt
  *----------------------------------------------------------------------
  * Nsf_PointerTypeLookup --
  *
- *    Lookup of type name. If the type name is registered, return the
- *    converter or NULL otherwise.
+ *      Lookup of type name. If the type name is registered, return the
+ *      converter or NULL otherwise.
  *
  * Results:
- *    TypeConverter on success or NULL
+ *      TypeConverter on success or NULL
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -333,13 +333,13 @@ Nsf_PointerTypeLookup(const char* typeName) {
  *----------------------------------------------------------------------
  * Nsf_PointerInit --
  *
- *    Initialize the Pointer converter
+ *      Initialize the Pointer converter
  *
  * Results:
- *    void
+ *      void
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -364,13 +364,13 @@ Nsf_PointerInit(void) {
  *----------------------------------------------------------------------
  * Nsf_PointerExit --
  *
- *    Exit handler for the Pointer converter
+ *      Exit handler for the Pointer converter
  *
  * Results:
- *    void
+ *      void
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */

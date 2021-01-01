@@ -8,14 +8,14 @@
  * Copyright (C) 2011-2016 Stefan Sobernig (b)
  *
  * (a) University of Essen
- *     Specification of Software Systems
- *     Altendorferstrasse 97-101
- *     D-45143 Essen, Germany
+ *      Specification of Software Systems
+ *      Altendorferstrasse 97-101
+ *      D-45143 Essen, Germany
  *
  * (b) Vienna University of Economics and Business
- *     Institute of Information Systems and New Media
- *     A-1020, Welthandelsplatz 1
- *     Vienna, Austria
+ *      Institute of Information Systems and New Media
+ *      A-1020, Welthandelsplatz 1
+ *      Vienna, Austria
  *
  * This work is licensed under the MIT License https://www.opensource.org/licenses/MIT
  *

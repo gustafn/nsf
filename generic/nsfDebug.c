@@ -1,22 +1,22 @@
 /*
- *  nsfDebug.c --
+ *      nsfDebug.c --
  *
  *      Debugging facilities for the Next Scripting Framework.
  *
- *  Copyright (C) 1999-2017 Gustaf Neumann (a, b)
- *  Copyright (C) 1999-2007 Uwe Zdun (a, b)
- *  Copyright (C) 2016-2017 Stefan Sobernig (b)
+ *      Copyright (C) 1999-2017 Gustaf Neumann (a, b)
+ *      Copyright (C) 1999-2007 Uwe Zdun (a, b)
+ *      Copyright (C) 2016-2017 Stefan Sobernig (b)
  *
  *
  * (a) University of Essen
- *     Specification of Software Systems
- *     Altendorferstrasse 97-101
- *     D-45143 Essen, Germany
+ *      Specification of Software Systems
+ *      Altendorferstrasse 97-101
+ *      D-45143 Essen, Germany
  *
  * (b) Vienna University of Economics and Business
- *     Institute of Information Systems and New Media
- *     A-1020, Welthandelsplatz 1
- *     Vienna, Austria
+ *      Institute of Information Systems and New Media
+ *      A-1020, Welthandelsplatz 1
+ *      Vienna, Austria
  *
  * This work is licensed under the MIT License https://www.opensource.org/licenses/MIT
  *
@@ -63,20 +63,20 @@ static Tcl_Config const cfg[] = {
  *----------------------------------------------------------------------
  * NsfInitPkgConfig --
  *
- *    Registers NSF's build configuration according to TIP 59:
- *    https://core.tcl-lang.org/tips/doc/trunk/tip/59.md. This way, the build
- *    configuration is preserved in a non-destructible manner (from the script
- *    level, at least) and can be queried via a common interface:
+ *      Registers NSF's build configuration according to TIP 59:
+ *      https://core.tcl-lang.org/tips/doc/trunk/tip/59.md. This way, the build
+ *      configuration is preserved in a non-destructible manner (from the script
+ *      level, at least) and can be queried via a common interface:
  *    
  *    ::nsf::pkgconfig list
  *    ::nsf::pkgconfig get /key/
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects: 
- *   Creates the command ::nsf::pkgconfig, configuration data is
- *   stored within a dict associated with a given interp.
+ *      Creates the command ::nsf::pkgconfig, configuration data is
+ *      stored within a dict associated with a given interp.
  *
  *----------------------------------------------------------------------
  */
@@ -90,15 +90,15 @@ NsfInitPkgConfig(Tcl_Interp *interp) {
  *----------------------------------------------------------------------
  * NsfStackDump --
  *
- *    Write the current callstack with various debugging infos to stderr. This
- *    function is primarily for debugging proposes of the C implementation of
- *    nsf.
+ *      Write the current callstack with various debugging infos to stderr. This
+ *      function is primarily for debugging proposes of the C implementation of
+ *      nsf.
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    Debugging output
+ *      Debugging output
  *
  *----------------------------------------------------------------------
  */
@@ -162,14 +162,14 @@ NsfStackDump(Tcl_Interp *interp) {
  *----------------------------------------------------------------------
  * NsfPrintObjv --
  *
- *    Print the provided argument vector to stderr. This function is primarily
- *    for debugging proposes of the C implementation of nsf.
+ *      Print the provided argument vector to stderr. This function is primarily
+ *      for debugging proposes of the C implementation of nsf.
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    Debugging output
+ *      Debugging output
  *
  *----------------------------------------------------------------------
  */
@@ -197,13 +197,13 @@ NsfPrintObjv(char *string, int objc, Tcl_Obj *CONST objv[]) {
  *----------------------------------------------------------------------
  * NsfMemCountGetTable --
  *
- *    Obtain the hash table structure
+ *      Obtain the hash table structure
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    Updating Hash table
+ *      Updating Hash table
  *
  *----------------------------------------------------------------------
  */
@@ -227,15 +227,15 @@ NsfMemCountGetTable(int **initialized) {
  *----------------------------------------------------------------------
  * NsfMemCountAlloc --
  *
- *    Bookkeeping function for memory und refcount debugging. This function
- *    records the allocation of memory resources. The accompanying function is
- *    NsfMemCountFree().
+ *      Bookkeeping function for memory und refcount debugging. This function
+ *      records the allocation of memory resources. The accompanying function is
+ *      NsfMemCountFree().
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    Updating Hash table
+ *      Updating Hash table
  *
  *----------------------------------------------------------------------
  */
@@ -276,15 +276,15 @@ NsfMemCountAlloc(const char *id, const void *p) {
  *----------------------------------------------------------------------
  * NsfMemCountFree --
  *
- *    Bookkeeping function for memory und refcount debugging. This function
- *    records the deallocation of memory resources. The accompanying function
- *    is NsfMemCountAlloc().
+ *      Bookkeeping function for memory und refcount debugging. This function
+ *      records the deallocation of memory resources. The accompanying function
+ *      is NsfMemCountAlloc().
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    Updating Hash table
+ *      Updating Hash table
  *
  *----------------------------------------------------------------------
  */
@@ -320,14 +320,14 @@ NsfMemCountFree(const char *id, const void *p) {
  *----------------------------------------------------------------------
  * NsfMemCountInit --
  *
- *    Initialize book-keeping for memory und refcount debugging. The
- *    bookkeeping is realized via a per-interp hash table.
+ *      Initialize book-keeping for memory und refcount debugging. The
+ *      bookkeeping is realized via a per-interp hash table.
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    Initializes a hash table
+ *      Initializes a hash table
  *
  *----------------------------------------------------------------------
  */
@@ -346,16 +346,16 @@ NsfMemCountInit(void) {
  *----------------------------------------------------------------------
  * NsfMemCountRelease --
  *
- *    Terminate book-keeping for memory und refcount debugging. This function
- *    prints the resulting book-information to stderr, in case of paired
- *    allocs/frees and incr-ref-counts and dec-ref-counts, the Overall count
- *    should be 0.
+ *      Terminate book-keeping for memory und refcount debugging. This function
+ *      prints the resulting book-information to stderr, in case of paired
+ *      allocs/frees and incr-ref-counts and dec-ref-counts, the Overall count
+ *      should be 0.
  *
  * Results:
- *    None.
+ *      None.
  *
  * Side effects:
- *    Deletes the book-keeping hash table, outputs to stderr
+ *      Deletes the book-keeping hash table, outputs to stderr
  *
  *----------------------------------------------------------------------
  */

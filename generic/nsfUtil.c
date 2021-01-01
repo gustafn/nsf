@@ -41,15 +41,15 @@
  *----------------------------------------------------------------------
  * strnstr --
  *
- *    Implementation of strnstr() for platforms not providing it via their C
- *    library. The function strnstr locates the first occurrence of a
- *    substring in a null-terminated string.
+ *      Implementation of strnstr() for platforms not providing it via their C
+ *      library. The function strnstr locates the first occurrence of a
+ *      substring in a null-terminated string.
  *
  * Results:
- *    Strbstring or NULL
+ *      Strbstring or NULL
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -87,14 +87,14 @@ char *strnstr(const char *buffer, const char *needle, size_t buffer_len) {
  *----------------------------------------------------------------------
  * Nsf_ltoa --
  *
- *    Convert a long value into a string; this function is a fast
- *    version of sprintf(buf, "%ld", l);
+ *      Convert a long value into a string; this function is a fast
+ *      version of sprintf(buf, "%ld", l);
  *
  * Results:
- *    String containing decimal value of the provided parameter.
+ *      String containing decimal value of the provided parameter.
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -143,14 +143,14 @@ Nsf_ltoa(char *buf, long i, int *lengthPtr) {
  *----------------------------------------------------------------------
  * NsfStringIncr --
  *
- *    Increment a value on a number system with the provided alphabet. The
- *    intention of the function is to generate compact new symbols.
+ *      Increment a value on a number system with the provided alphabet. The
+ *      intention of the function is to generate compact new symbols.
  *
  * Results:
- *    New symbol in form of a string.
+ *      New symbol in form of a string.
  *
  * Side effects:
- *    None.
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -214,15 +214,15 @@ NsfStringIncr(NsfStringIncrStruct *iss) {
  *----------------------------------------------------------------------
  * NsfStringIncrInit, NsfStringIncrFree --
  *
- *    Support function for NsfStringIncr(). NsfStringIncrInit() function is
- *    called before NsfStringIncr() can be used on this buffer,
- *    NsfStringIncrFree() terminates usage.
+ *      Support function for NsfStringIncr(). NsfStringIncrInit() function is
+ *      called before NsfStringIncr() can be used on this buffer,
+ *      NsfStringIncrFree() terminates usage.
  *
  * Results:
- *    void
+ *      void
  *
  * Side effects:
- *    Initializes the .
+ *      Initializes the .
  *
  *----------------------------------------------------------------------
  */
