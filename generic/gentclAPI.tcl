@@ -238,7 +238,9 @@ proc gencall {methodName fn parameterDefinitions clientData
           "int32"      {set type "int "}
           "boolean"    {set type "int "}
           "*|*"        {
-            if {![info exists (-typeName)]} {set (-typeName) $(-argName)}
+            if {![info exists (-typeName)]} {
+              set (-typeName) $(-argName)
+            }
             set type "[convertername $(-type) $(-typeName)]Idx_t "
             #puts stderr "nonpos: (-typeName) <$(-typeName)> (-type) <$(-type)>    ==> type=<$type>"
           }
@@ -323,7 +325,7 @@ proc gencall {methodName fn parameterDefinitions clientData
     }
     if {!$ifSet} {lappend if "$type$varName"}
     if {$cVar} {
-      if {$type eq "int " || [string match "*Idx " $type]} {
+      if {$type eq "int " || [string match "*Idx_t " $type]} {
         lappend c [subst -nocommands {$type$varName = ($type)PTR2INT(pc.clientData[$i]);}]
       } else {
         lappend c [subst -nocommands {$type$varName = ($type)pc.clientData[$i];}]

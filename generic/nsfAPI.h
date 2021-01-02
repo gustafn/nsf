@@ -1312,7 +1312,7 @@ NsfClassInfoMethodMethodStub(ClientData clientData, Tcl_Interp *interp, int objc
                      method_definitions[NsfClassInfoMethodMethodIdx].paramDefs,
                      method_definitions[NsfClassInfoMethodMethodIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
-    InfomethodsubcmdIdx_t subcmd = (InfomethodsubcmdIdx_t )pc.clientData[0];
+    InfomethodsubcmdIdx_t subcmd = (InfomethodsubcmdIdx_t )PTR2INT(pc.clientData[0]);
     Tcl_Obj *nameObj = (Tcl_Obj *)pc.clientData[1];
 
     assert(pc.status == 0);
@@ -1341,11 +1341,11 @@ NsfClassInfoMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int obj
                      method_definitions[NsfClassInfoMethodsMethodIdx].paramDefs,
                      method_definitions[NsfClassInfoMethodsMethodIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
-    CallprotectionIdx_t withCallprotection = (CallprotectionIdx_t )pc.clientData[0];
+    CallprotectionIdx_t withCallprotection = (CallprotectionIdx_t )PTR2INT(pc.clientData[0]);
     int withClosure = (int )PTR2INT(pc.clientData[1]);
-    MethodtypeIdx_t withType = (MethodtypeIdx_t )pc.clientData[2];
+    MethodtypeIdx_t withType = (MethodtypeIdx_t )PTR2INT(pc.clientData[2]);
     int withPath = (int )PTR2INT(pc.clientData[3]);
-    DefinitionsourceIdx_t withSource = (DefinitionsourceIdx_t )pc.clientData[4];
+    DefinitionsourceIdx_t withSource = (DefinitionsourceIdx_t )PTR2INT(pc.clientData[4]);
     const char *pattern = (const char *)pc.clientData[5];
 
     assert(pc.status == 0);
@@ -1375,7 +1375,7 @@ NsfClassInfoMixinOfMethodStub(ClientData clientData, Tcl_Interp *interp, int obj
                      method_definitions[NsfClassInfoMixinOfMethodIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     int withClosure = (int )PTR2INT(pc.clientData[0]);
-    MixinscopeIdx_t withScope = (MixinscopeIdx_t )pc.clientData[1];
+    MixinscopeIdx_t withScope = (MixinscopeIdx_t )PTR2INT(pc.clientData[1]);
     const char *patternString = NULL;
     NsfObject *patternObject = NULL;
     Tcl_Obj *pattern = (Tcl_Obj *)pc.clientData[2];
@@ -1502,7 +1502,7 @@ NsfClassInfoSlotobjectsMethodStub(ClientData clientData, Tcl_Interp *interp, int
                      method_definitions[NsfClassInfoSlotobjectsMethodIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     int withClosure = (int )PTR2INT(pc.clientData[0]);
-    DefinitionsourceIdx_t withSource = (DefinitionsourceIdx_t )pc.clientData[1];
+    DefinitionsourceIdx_t withSource = (DefinitionsourceIdx_t )PTR2INT(pc.clientData[1]);
     NsfClass *typeClass = (NsfClass *)pc.clientData[2];
     const char *pattern = (const char *)pc.clientData[3];
 
@@ -1737,7 +1737,7 @@ NsfCmdInfoCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
                      method_definitions[NsfCmdInfoCmdIdx].paramDefs,
                      method_definitions[NsfCmdInfoCmdIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
-    InfomethodsubcmdIdx_t subcmd = (InfomethodsubcmdIdx_t )pc.clientData[0];
+    InfomethodsubcmdIdx_t subcmd = (InfomethodsubcmdIdx_t )PTR2INT(pc.clientData[0]);
     NsfObject *contextObject = (NsfObject *)pc.clientData[1];
     Tcl_Obj *methodNameObj = (Tcl_Obj *)pc.clientData[2];
     const char *pattern = (const char *)pc.clientData[3];
@@ -1770,7 +1770,7 @@ NsfConfigureCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
                      method_definitions[NsfConfigureCmdIdx].paramDefs,
                      method_definitions[NsfConfigureCmdIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
-    ConfigureoptionIdx_t option = (ConfigureoptionIdx_t )pc.clientData[0];
+    ConfigureoptionIdx_t option = (ConfigureoptionIdx_t )PTR2INT(pc.clientData[0]);
     Tcl_Obj *valueObj = (Tcl_Obj *)pc.clientData[1];
 
     assert(pc.status == 0);
@@ -1791,7 +1791,7 @@ NsfCurrentCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
                      method_definitions[NsfCurrentCmdIdx].paramDefs,
                      method_definitions[NsfCurrentCmdIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
-    CurrentoptionIdx_t option = (CurrentoptionIdx_t )pc.clientData[0];
+    CurrentoptionIdx_t option = (CurrentoptionIdx_t )PTR2INT(pc.clientData[0]);
 
     assert(pc.status == 0);
     return NsfCurrentCmd(interp, option);
@@ -1892,7 +1892,7 @@ NsfDirectDispatchCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
                      method_definitions[NsfDirectDispatchCmdIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     NsfObject *object = (NsfObject *)pc.clientData[0];
-    FrameIdx_t withFrame = (FrameIdx_t )pc.clientData[1];
+    FrameIdx_t withFrame = (FrameIdx_t )PTR2INT(pc.clientData[1]);
     Tcl_Obj *commandObj = (Tcl_Obj *)pc.clientData[2];
 
     assert(pc.status == 0);
@@ -1959,7 +1959,7 @@ NsfForwardPropertyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, T
     NsfObject *object = (NsfObject *)pc.clientData[0];
     int withPer_object = (int )PTR2INT(pc.clientData[1]);
     Tcl_Obj *methodNameObj = (Tcl_Obj *)pc.clientData[2];
-    ForwardpropertyIdx_t forwardProperty = (ForwardpropertyIdx_t )pc.clientData[3];
+    ForwardpropertyIdx_t forwardProperty = (ForwardpropertyIdx_t )PTR2INT(pc.clientData[3]);
     Tcl_Obj *valueObj = (Tcl_Obj *)pc.clientData[4];
 
     assert(pc.status == 0);
@@ -2027,8 +2027,8 @@ NsfMethodAliasCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
     NsfObject *object = (NsfObject *)pc.clientData[0];
     int withPer_object = (int )PTR2INT(pc.clientData[1]);
     const char *methodName = (const char *)pc.clientData[2];
-    FrameIdx_t withFrame = (FrameIdx_t )pc.clientData[3];
-    ProtectionIdx_t withProtection = (ProtectionIdx_t )pc.clientData[4];
+    FrameIdx_t withFrame = (FrameIdx_t )PTR2INT(pc.clientData[3]);
+    ProtectionIdx_t withProtection = (ProtectionIdx_t )PTR2INT(pc.clientData[4]);
     Tcl_Obj *cmdNameObj = (Tcl_Obj *)pc.clientData[5];
 
     assert(pc.status == 0);
@@ -2050,7 +2050,7 @@ NsfMethodAssertionCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, T
                      method_definitions[NsfMethodAssertionCmdIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     NsfObject *object = (NsfObject *)pc.clientData[0];
-    AssertionsubcmdIdx_t subcmd = (AssertionsubcmdIdx_t )pc.clientData[1];
+    AssertionsubcmdIdx_t subcmd = (AssertionsubcmdIdx_t )PTR2INT(pc.clientData[1]);
     Tcl_Obj *argObj = (Tcl_Obj *)pc.clientData[2];
 
     assert(pc.status == 0);
@@ -2129,7 +2129,7 @@ NsfMethodForwardCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
     int withEarlybinding = (int )PTR2INT(pc.clientData[4]);
     Tcl_Obj *onerrorObj = (Tcl_Obj *)pc.clientData[5];
     Tcl_Obj *prefixObj = (Tcl_Obj *)pc.clientData[6];
-    FrameIdx_t withFrame = (FrameIdx_t )pc.clientData[7];
+    FrameIdx_t withFrame = (FrameIdx_t )PTR2INT(pc.clientData[7]);
     int withVerbose = (int )PTR2INT(pc.clientData[8]);
     Tcl_Obj *targetObj = (Tcl_Obj *)pc.clientData[9];
 
@@ -2154,7 +2154,7 @@ NsfMethodPropertyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
     NsfObject *object = (NsfObject *)pc.clientData[0];
     int withPer_object = (int )PTR2INT(pc.clientData[1]);
     Tcl_Obj *methodNameObj = (Tcl_Obj *)pc.clientData[2];
-    MethodpropertyIdx_t methodProperty = (MethodpropertyIdx_t )pc.clientData[3];
+    MethodpropertyIdx_t methodProperty = (MethodpropertyIdx_t )PTR2INT(pc.clientData[3]);
     Tcl_Obj *valueObj = (Tcl_Obj *)pc.clientData[4];
 
     assert(pc.status == 0);
@@ -2312,7 +2312,7 @@ NsfObjectPropertyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
                      method_definitions[NsfObjectPropertyCmdIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     NsfObject *object = (NsfObject *)pc.clientData[0];
-    ObjectpropertyIdx_t objectProperty = (ObjectpropertyIdx_t )pc.clientData[1];
+    ObjectpropertyIdx_t objectProperty = (ObjectpropertyIdx_t )PTR2INT(pc.clientData[1]);
     Tcl_Obj *valueObj = (Tcl_Obj *)pc.clientData[2];
 
     assert(pc.status == 0);
@@ -2411,7 +2411,7 @@ NsfParameterInfoCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
                      method_definitions[NsfParameterInfoCmdIdx].paramDefs,
                      method_definitions[NsfParameterInfoCmdIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
-    ParametersubcmdIdx_t subcmd = (ParametersubcmdIdx_t )pc.clientData[0];
+    ParametersubcmdIdx_t subcmd = (ParametersubcmdIdx_t )PTR2INT(pc.clientData[0]);
     Tcl_Obj *specObj = (Tcl_Obj *)pc.clientData[1];
     Tcl_Obj *varnameObj = (Tcl_Obj *)pc.clientData[2];
 
@@ -2558,7 +2558,7 @@ NsfRelationGetCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
                      method_definitions[NsfRelationGetCmdIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     NsfObject *object = (NsfObject *)pc.clientData[0];
-    RelationtypeIdx_t type = (RelationtypeIdx_t )pc.clientData[1];
+    RelationtypeIdx_t type = (RelationtypeIdx_t )PTR2INT(pc.clientData[1]);
 
     assert(pc.status == 0);
     return NsfRelationGetCmd(interp, object, type);
@@ -2579,7 +2579,7 @@ NsfRelationSetCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
                      method_definitions[NsfRelationSetCmdIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     NsfObject *object = (NsfObject *)pc.clientData[0];
-    RelationtypeIdx_t type = (RelationtypeIdx_t )pc.clientData[1];
+    RelationtypeIdx_t type = (RelationtypeIdx_t )PTR2INT(pc.clientData[1]);
     Tcl_Obj *valueObj = (Tcl_Obj *)pc.clientData[2];
 
     assert(pc.status == 0);
@@ -3419,12 +3419,12 @@ NsfObjInfoLookupMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int
                      method_definitions[NsfObjInfoLookupMethodsMethodIdx].paramDefs,
                      method_definitions[NsfObjInfoLookupMethodsMethodIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
-    CallprotectionIdx_t withCallprotection = (CallprotectionIdx_t )pc.clientData[0];
+    CallprotectionIdx_t withCallprotection = (CallprotectionIdx_t )PTR2INT(pc.clientData[0]);
     int withIncontext = (int )PTR2INT(pc.clientData[1]);
-    MethodtypeIdx_t withType = (MethodtypeIdx_t )pc.clientData[2];
+    MethodtypeIdx_t withType = (MethodtypeIdx_t )PTR2INT(pc.clientData[2]);
     int withNomixins = (int )PTR2INT(pc.clientData[3]);
     int withPath = (int )PTR2INT(pc.clientData[4]);
-    DefinitionsourceIdx_t withSource = (DefinitionsourceIdx_t )pc.clientData[5];
+    DefinitionsourceIdx_t withSource = (DefinitionsourceIdx_t )PTR2INT(pc.clientData[5]);
     const char *pattern = (const char *)pc.clientData[6];
 
     assert(pc.status == 0);
@@ -3493,7 +3493,7 @@ NsfObjInfoLookupSlotsMethodStub(ClientData clientData, Tcl_Interp *interp, int o
                      method_definitions[NsfObjInfoLookupSlotsMethodIdx].paramDefs,
                      method_definitions[NsfObjInfoLookupSlotsMethodIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
-    DefinitionsourceIdx_t withSource = (DefinitionsourceIdx_t )pc.clientData[0];
+    DefinitionsourceIdx_t withSource = (DefinitionsourceIdx_t )PTR2INT(pc.clientData[0]);
     NsfClass *typeClass = (NsfClass *)pc.clientData[1];
     const char *pattern = (const char *)pc.clientData[2];
 
@@ -3519,7 +3519,7 @@ NsfObjInfoMethodMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, 
                      method_definitions[NsfObjInfoMethodMethodIdx].paramDefs,
                      method_definitions[NsfObjInfoMethodMethodIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
-    InfomethodsubcmdIdx_t subcmd = (InfomethodsubcmdIdx_t )pc.clientData[0];
+    InfomethodsubcmdIdx_t subcmd = (InfomethodsubcmdIdx_t )PTR2INT(pc.clientData[0]);
     Tcl_Obj *nameObj = (Tcl_Obj *)pc.clientData[1];
 
     assert(pc.status == 0);
@@ -3544,8 +3544,8 @@ NsfObjInfoMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc,
                      method_definitions[NsfObjInfoMethodsMethodIdx].paramDefs,
                      method_definitions[NsfObjInfoMethodsMethodIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
-    CallprotectionIdx_t withCallprotection = (CallprotectionIdx_t )pc.clientData[0];
-    MethodtypeIdx_t withType = (MethodtypeIdx_t )pc.clientData[1];
+    CallprotectionIdx_t withCallprotection = (CallprotectionIdx_t )PTR2INT(pc.clientData[0]);
+    MethodtypeIdx_t withType = (MethodtypeIdx_t )PTR2INT(pc.clientData[1]);
     int withPath = (int )PTR2INT(pc.clientData[2]);
     const char *pattern = (const char *)pc.clientData[3];
 
