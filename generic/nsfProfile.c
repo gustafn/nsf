@@ -53,7 +53,7 @@ typedef struct NsfProfileData {
  *      NSF_PROFILE.
  *
  * Results:
- *      None
+ *      None.
  *
  * Side effects:
  *      Initializes and fills the passed Tcl_DString,
@@ -100,10 +100,10 @@ NsfProfileMethodLabel(Tcl_DString *dsPtr, NsfClass *class, const char *methodNam
  *      the low-level NsfDeprecatedCmd() function.
  *
  * Results:
- *      None
+ *      None.
  *
  * Side effects:
- *      logging
+ *      Logging.
  *
  *----------------------------------------------------------------------
  */
@@ -135,10 +135,10 @@ NsfProfileDeprecatedCall(Tcl_Interp *interp, NsfObject *UNUSED(object), NsfClass
  *      and ::nsf::debug::exit for reporting.
  *
  * Results:
- *      None
+ *      None.
  *
  * Side effects:
- *      logging
+ *      Logging.
  *
  *----------------------------------------------------------------------
  */
@@ -222,10 +222,10 @@ NsfProfileDebugExit(Tcl_Interp *interp, NsfObject *object, NsfClass *class, cons
  *      invocation. It is as well necessary to save the interp result.
  *
  * Results:
- *      None
+ *      None.
  *
  * Side effects:
- *      logging
+ *      Logging.
  *
  *----------------------------------------------------------------------
  */
@@ -263,10 +263,10 @@ ReportLine(Tcl_Interp *interp, int level, NsfRuntimeState *rst, const char *line
  *      update the counts for this entry.
  *
  * Results:
- *      None
+ *      None.
  *
  * Side effects:
- *      Updated or created profile data entry
+ *      Updated or created profile data entry.
  *
  *----------------------------------------------------------------------
  */
@@ -302,7 +302,7 @@ NsfProfileFillTable(Tcl_HashTable *table, const char *keyStr, double totalMicroS
  *      Stub command to include C-level commands in profile traces.
  *
  * Results:
- *      Tcl result code
+ *      A standard Tcl result.
  *
  * Side effects:
  *      Perform tracing
@@ -359,7 +359,7 @@ Nsf_ProfileFilterObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *co
  *      Split a Tcl_Obj into a nameObj and an integer value, if possible
  *
  * Results:
- *      Tcl result
+ *      A standard Tcl result.
  *
  * Side effects:
  *      Produce warnings for error cases, when "verbose" is on.
@@ -523,7 +523,7 @@ NsfProfileTrace(Tcl_Interp *interp, int withEnable, int withVerbose, int withDon
  *      called or exited.
  *
  * Results:
- *      None
+ *      None.
  *
  * Side effects:
  *      update profilePtr->depth and profilePtr->traceDs
@@ -581,7 +581,7 @@ NsfProfileTraceExitAppend(Tcl_Interp *interp, const char *label, double duration
  *      the recording.
  *
  * Results:
- *      None
+ *      None.
  *
  * Side effects:
  *      update profilePtr->depth and profilePtr->traceDs
@@ -655,7 +655,7 @@ NsfProfileTraceExit(Tcl_Interp *interp, NsfObject *object, NsfClass *class, cons
  *      in the method (using methodKey).
  *
  * Results:
- *      None
+ *      None.
  *
  * Side effects:
  *      Updated or created profile data entries
@@ -747,7 +747,7 @@ NsfProfileRecordMethodData(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
  *      time spent and count per nsf::proc.
  *
  * Results:
- *      None
+ *      None.
  *
  * Side effects:
  *      Updated or created profile data entries
@@ -786,7 +786,7 @@ NsfProfileRecordProcData(Tcl_Interp *interp, const char *methodName, long startS
  *      Clear all data in a profile table.
  *
  * Results:
- *      None
+ *      None.
  *
  * Side effects:
  *      freed profile information.
@@ -820,7 +820,7 @@ NsfProfileClearTable(Tcl_HashTable *table) {
  *      counters.
  *
  * Results:
- *      None
+ *      None.
  *
  * Side effects:
  *      freed profile information.

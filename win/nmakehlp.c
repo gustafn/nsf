@@ -687,7 +687,7 @@ QualifyPath(
 }
 
 /*
- * Local variables:
+ * Local Variables:
  *      mode: c
  *      c-basic-offset: 4
  *      fill-column: 78

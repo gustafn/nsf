@@ -51,7 +51,7 @@ static NsfMutex pointerMutex = 0;
  *      registration.
  *
  * Results:
- *      Tcl result code
+ *      A standard Tcl result.
  *
  * Side effects:
  *      None.
@@ -266,7 +266,7 @@ Nsf_ConvertToPointer(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr
  *      Register a pointer type which is identified by the type string
  *
  * Results:
- *      Tcl result code.
+ *      A standard Tcl result.
  *
  * Side effects:
  *      None.
@@ -333,10 +333,10 @@ Nsf_PointerTypeLookup(const char* typeName) {
  *----------------------------------------------------------------------
  * Nsf_PointerInit --
  *
- *      Initialize the Pointer converter
+ *      Initialize the Pointer converter.
  *
  * Results:
- *      void
+ *      None.
  *
  * Side effects:
  *      None.
@@ -367,7 +367,7 @@ Nsf_PointerInit(void) {
  *      Exit handler for the Pointer converter
  *
  * Results:
- *      void
+ *      None.
  *
  * Side effects:
  *      None.

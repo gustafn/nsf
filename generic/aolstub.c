@@ -58,7 +58,7 @@ NS_EXPORT int Ns_ModuleVersion = 1;
  *      Loads the package for the first time, i.e. in the startup thread.
  *
  * Results:
- *      Standard Tcl result
+ *      A standard Tcl result.
  *
  * Side effects:
  *      Package initialized. Tcl commands created.
@@ -130,7 +130,7 @@ NsNsf_Init (Tcl_Interp *interp, void *context)
  *      Look in <serverroot>/modules/tcl/nsf for a simple example.
  *
  * Results:
- *      Standard Tcl result.
+ *      A standard Tcl result.
  *
  * Side effects:
  *      Tcl commands created.

@@ -252,10 +252,10 @@ NsfDStringArgv(
  *      Produce a formatted error message with a printf-like semantics.
  *
  * Results:
- *      TCL_ERROR
+ *      Returns always TCL_ERROR.
  *
  * Side effects:
- *      Sets the result message.
+ *      Leaves an error message in the interpreter's result object.
  *
  *----------------------------------------------------------------------
  */
@@ -285,10 +285,10 @@ NsfPrintError(Tcl_Interp *interp, const char *fmt, ...) {
  *      scripted NSF method.
  *
  * Results:
- *      TCL_ERROR
+ *      Returns always TCL_ERROR.
  *
  * Side effects:
- *      Sets the result message.
+ *      Leaves an error message in the interpreter's result object.
  *
  *----------------------------------------------------------------------
  */
@@ -330,10 +330,10 @@ NsfErrInProc(
  *      an invalid argument list (wrong number of arguments).
  *
  * Results:
- *      TCL_ERROR
+ *      Returns always TCL_ERROR.
  *
  * Side effects:
- *      Sets the result message.
+ *      Leaves an error message in the interpreter's result object.
  *
  *----------------------------------------------------------------------
  */
@@ -392,10 +392,10 @@ NsfObjWrongArgs(
  *      definition.
  *
  * Results:
- *      TCL_ERROR
+ *      Returns always TCL_ERROR.
  *
  * Side effects:
- *      Sets the result message.
+ *      Leaves an error message in the interpreter's result object.
  *
  *----------------------------------------------------------------------
  */
@@ -426,10 +426,10 @@ NsfArgumentError(
  *      too many arguments)
  *
  * Results:
- *      TCL_ERROR
+ *      Returns always TCL_ERROR.
  *
  * Side effects:
- *      Sets the result message.
+ *      Leaves an error message in the interpreter's result object.
  *
  *----------------------------------------------------------------------
  */
@@ -460,10 +460,10 @@ NsfUnexpectedArgumentError(Tcl_Interp *interp, const char *argumentString,
  *      Produce an error message on an invalid non-positional argument.
  *
  * Results:
- *      TCL_ERROR
+ *      Returns always TCL_ERROR.
  *
  * Side effects:
- *      Sets the result message.
+ *      Leaves an error message in the interpreter's result object.
  *
  *----------------------------------------------------------------------
  */
@@ -512,10 +512,10 @@ NsfUnexpectedNonposArgumentError(
  *      object.
  *
  * Results:
- *      TCL_ERROR
+ *      Returns always TCL_ERROR.
  *
  * Side effects:
- *      Sets the result message.
+ *      Leaves an error message in the interpreter's result object.
  *
  *----------------------------------------------------------------------
  */
@@ -548,10 +548,10 @@ NsfDispatchClientDataError(
  *      context.
  *
  * Results:
- *      TCL_ERROR
+ *      Returns always TCL_ERROR.
  *
  * Side effects:
- *      Sets the result message.
+ *      Leaves an error message in the interpreter's result object.
  *
  *----------------------------------------------------------------------
  */
@@ -573,10 +573,10 @@ NsfNoCurrentObjectError(Tcl_Interp *interp, const char *methodName) {
  *      an invalid value for some argument.
  *
  * Results:
- *      TCL_ERROR
+ *      Returns always TCL_ERROR.
  *
  * Side effects:
- *      Sets the result message.
+ *      Leaves an error message in the interpreter's result object.
  *
  *----------------------------------------------------------------------
  */

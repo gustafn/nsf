@@ -103,10 +103,10 @@ Nsf_CmdDefinitionRelease(void) {
  *----------------------------------------------------------------------
  * Nsf_CmdDefinitionRegister --
  *
- *      Register an array of cmd definitions
+ *      Register an array of cmd definitions.
  *
  * Results:
- *      TCL_OK
+ *      Always TCL_OK.
  *
  * Side effects:
  *      None.
@@ -165,7 +165,7 @@ Nsf_CmdDefinitionGet(Tcl_ObjCmdProc *proc) {
  *      Register a method definition.
  *
  * Results:
- *      Tcl result code.
+ *      A standard Tcl result.
  *
  * Side effects:
  *      None.

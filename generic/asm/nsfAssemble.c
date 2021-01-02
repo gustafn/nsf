@@ -322,7 +322,7 @@ NsfAsmProcDeleteProc(ClientData clientData) {
  *      and calls in case of success the asm proc body.
  *
  * Results:
- *      Tcl return code.
+ *      A standard Tcl result.
  *
  * Side effects:
  *      None.

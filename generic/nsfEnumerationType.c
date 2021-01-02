@@ -106,7 +106,7 @@ Nsf_EnumerationTypeRelease(void) {
  *      Registers an array of enumeration types upon NSF initialization.
  *
  * Results:
- *      Tcl result code.
+ *      A standard Tcl result.
  *
  * Side effects:
  *      None.
@@ -136,7 +136,7 @@ Nsf_EnumerationTypeRegister(Tcl_Interp *UNUSED(interp), Nsf_EnumeratorConverterE
  *      Obtain the domain (i.e., the permitted enumeration literals) for a given
  *      enumeration-type converter.
  *
- * Results: 
+ * Results:
  *      Domain of permitted enumeration literals as a string or NULL, if
  *      not successful.
  *
@@ -160,7 +160,7 @@ Nsf_EnumerationTypeGetDomain(Nsf_TypeConverter *converter) {
   if (hPtr != NULL) {
     domain = Tcl_GetHashValue(hPtr);
   }
-  
+
   return domain;
 }
 
@@ -171,7 +171,7 @@ Nsf_EnumerationTypeGetDomain(Nsf_TypeConverter *converter) {
  *      Register an enumeration-type converter and its domain.
  *
  * Results:
- *      Tcl result code.
+ *      A standard Tcl result.
  *
  * Side effects:
  *      Sets a mutex lock.

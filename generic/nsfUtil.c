@@ -54,7 +54,8 @@
  *----------------------------------------------------------------------
  */
 #ifndef HAVE_STRNSTR
-char *strnstr(const char *buffer, const char *needle, size_t buffer_len) {
+char *
+strnstr(const char *buffer, const char *needle, size_t buffer_len) {
   char *result = NULL;
 
   if (*needle == '\0') {
@@ -219,7 +220,7 @@ NsfStringIncr(NsfStringIncrStruct *iss) {
  *      NsfStringIncrFree() terminates usage.
  *
  * Results:
- *      void
+ *      None.
  *
  * Side effects:
  *      Initializes the .

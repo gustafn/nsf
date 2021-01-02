@@ -70,7 +70,8 @@ DiffTime(struct timeval *t1, struct timeval *t0, struct timeval *diffPtr) {
  *----------------------------------------------------------------------
  */
 
-static void timeit( void (* fn)() ) {
+static void
+timeit( void (* fn)() ) {
   struct timeval start, end, diff;
   int i;
 
@@ -98,7 +99,8 @@ int stack[100];
  *
  *----------------------------------------------------------------------
  */
-void switch_threading() {
+void
+switch_threading() {
   typedef enum {INST_PUSH_A, INST_PUSH_B, INST_ADD, INST_END} InstEnum;
   static InstEnum mycode[] = {INST_PUSH_A, INST_PUSH_B, INST_ADD, INST_END};
   int a, b;
@@ -142,7 +144,8 @@ void pushA () { *sp++ = 100; }
 void pushB () { *sp++ = 200; }
 void add   () { int a = *--sp; int b = *--sp; *sp++ = a + b; }
 
-void call_threading() {
+void
+call_threading() {
   static InstFn mycode[] = {&pushA, &pushB, &add, NULL};
   InstFn *ip;
 
@@ -168,7 +171,8 @@ void call_threading() {
  */
 typedef void (* InstLabel)();
 
-void label_threading() {
+void
+label_threading() {
   static InstLabel mycode[] = {&&INST_PUSH_A, &&INST_PUSH_B, &&INST_ADD, &&INST_END};
   InstLabel *ip;
   int a, b;
@@ -204,7 +208,8 @@ void label_threading() {
  *----------------------------------------------------------------------
  */
 
-int main() {
+int
+main() {
 
   timeit( switch_threading );
   timeit( call_threading   );

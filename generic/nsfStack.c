@@ -118,7 +118,7 @@ static Tcl_CallFrame* CallStackNextFrameOfType(
 static Tcl_Obj* CallStackMethodPath(Tcl_Interp *interp, Tcl_CallFrame *framePtr)
   nonnull(1) nonnull(2);
 
-NSF_INLINE static int FilterActiveOnObj(
+NSF_INLINE static bool FilterActiveOnObj(
     const Tcl_Interp *interp,
     const NsfObject *object,
     const Tcl_Command cmd
@@ -174,14 +174,14 @@ static NsfClasses * NsfClassListUnlink(NsfClasses **firstPtrPtr, const void *key
  *      Add an entry to the list of unstacked CSC entries.
  *
  * Results:
- *      none
+ *      None.
  *
  * Side effects:
  *      List element added
  *
  *----------------------------------------------------------------------
  */
-static int CscListRemove(const Tcl_Interp *interp, const NsfCallStackContent *cscPtr, NsfClasses **cscListPtr)
+static bool CscListRemove(const Tcl_Interp *interp, const NsfCallStackContent *cscPtr, NsfClasses **cscListPtr)
   nonnull(1) nonnull(2);
 static void CscListAdd(const Tcl_Interp *interp, const NsfCallStackContent *cscPtr)
   nonnull(1) nonnull(2);
@@ -202,7 +202,7 @@ CscListAdd(const Tcl_Interp *interp, const NsfCallStackContent *cscPtr) {
  *      Removes an entry from the list of unstacked CSC entries.
  *
  * Results:
- *      true on success or 0
+ *      Boolean value indicating success.
  *
  * Side effects:
  *
@@ -211,7 +211,7 @@ CscListAdd(const Tcl_Interp *interp, const NsfCallStackContent *cscPtr) {
  *
  *----------------------------------------------------------------------
  */
-static int
+static bool
 CscListRemove(const Tcl_Interp *interp, const NsfCallStackContent *cscPtr, NsfClasses **cscListPtr) {
   NsfClasses *entryPtr, **cscList;
 
@@ -245,7 +245,8 @@ CscListRemove(const Tcl_Interp *interp, const NsfCallStackContent *cscPtr, NsfCl
  *
  *----------------------------------------------------------------------
  */
-void NsfShowStack(Tcl_Interp *interp) {
+void
+NsfShowStack(Tcl_Interp *interp) {
   Tcl_CallFrame *framePtr;
 
   nonnull_assert(interp != NULL);
@@ -356,8 +357,7 @@ static void Nsf_PopFrameObj(Tcl_Interp *interp, CallFrame *framePtr) {
  *----------------------------------------------------------------------
  * Nsf_PushFrameCsc, Nsf_PopFrameCsc --
  *
- *      Push or pop a frame with a call-stack content as a CMETHOD
- *      frame.
+ *      Push or pop a frame with a call-stack content as a CMETHOD frame.
  *
  * Results:
  *      None.
@@ -396,7 +396,7 @@ Nsf_PopFrameCsc(Tcl_Interp *interp, CallFrame *UNUSED(framePtr)) {
 }
 
 /*
- * stack query operations
+ * Stack query operations.
  */
 
 /*
@@ -406,7 +406,7 @@ Nsf_PopFrameCsc(Tcl_Interp *interp, CallFrame *UNUSED(framePtr)) {
  *      Return the Tcl call frame of the last scripted method.
  *
  * Results:
- *      Tcl_CallFrame
+ *      Active Tcl_CallFrame (might be NULL).
  *
  * Side effects:
  *      None.
@@ -445,8 +445,8 @@ CallStackGetActiveProcFrame(Tcl_CallFrame *framePtr) {
  * GetSelfObj, GetSelfObj2 --
  *
  *      Return the corresponding object from a method or from an object
- *      frame. GetSelfObj defaults to the top-most call-frame, GetSelfObj2 allows
- *      one to set another frame.
+ *      frame. GetSelfObj defaults to the top-most call-frame,
+ *      GetSelfObj2 allows one to set another frame.
  *
  * Results:
  *      NsfObject * or NULL.
@@ -523,9 +523,10 @@ GetSelfObj2(const Tcl_Interp *UNUSED(interp), Tcl_CallFrame *framePtr) {
  *
  *----------------------------------------------------------------------
  */
-static Tcl_CallFrame* CallStackGetTclFrame(const Tcl_Interp *interp,
-                                           Tcl_CallFrame *varFramePtr,
-                                           int skip) {
+static Tcl_CallFrame*
+CallStackGetTclFrame(const Tcl_Interp *interp,
+                     Tcl_CallFrame *varFramePtr,
+                     int skip) {
   nonnull_assert(interp != NULL);
   assert(skip >= 0);
 
@@ -660,7 +661,8 @@ NsfCallStackFindCallingContext(const Tcl_Interp *interp,
                 || (cscPtr->frameType & NSF_CSC_TYPE_INACTIVE))
             ) {
           /*
-           * Skip NSF method frames, which are next calls, ensembles or inactive
+           * Skip NSF method frames, which are next calls, ensembles or
+           * inactive.
            */
         } else {
 
@@ -794,7 +796,7 @@ CallStackUseActiveFrame(const Tcl_Interp *interp, callFrameContext *ctx) {
  *      None.
  *
  * Side effects:
- *      The varFramePtr of the interp is potentially updated
+ *      The varFramePtr of the interp is potentially updated.
  *
  *----------------------------------------------------------------------
  */
@@ -818,7 +820,7 @@ CallStackRestoreSavedFrames(Tcl_Interp *interp, const callFrameContext *ctx) {
  *      Return the call-stack content of the currently active filter
  *
  * Results:
- *      Call-stack content or NULL, if no filter is active
+ *      Call-stack content or NULL, if no filter is active.
  *
  * Side effects:
  *      None.
@@ -853,7 +855,7 @@ CallStackFindActiveFilter(const Tcl_Interp *interp) {
  *      of the last ensemble invocation.
  *
  * Results:
- *      Call-stack content
+ *      Call-stack content.
  *
  * Side effects:
  *      None.
@@ -906,7 +908,7 @@ CallStackFindEnsembleCsc(const Tcl_CallFrame *framePtr, Tcl_CallFrame **framePtr
  *      type is specified by a bit mask passed as flags.
  *
  * Results:
- *      Tcl_CallFrame
+ *      Tcl_CallFrame (might be NULL).
  *
  * Side effects:
  *      None.
@@ -1049,14 +1051,14 @@ CallStackMethodPath(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
  *      cmd.
  *
  * Results:
- *      0 or 1
+ *      Boolean indicating success.
  *
  * Side effects:
  *      None.
  *
  *----------------------------------------------------------------------
  */
-NSF_INLINE static int
+NSF_INLINE static bool
 FilterActiveOnObj(
     const Tcl_Interp *interp,
     const NsfObject *object,
@@ -1073,11 +1075,11 @@ FilterActiveOnObj(
       NsfCallStackContent *cscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
       if (cmd == cscPtr->cmdPtr && object == cscPtr->self &&
           cscPtr->frameType == NSF_CSC_TYPE_ACTIVE_FILTER) {
-        return 1;
+        return NSF_TRUE;
       }
     }
   }
-  return 0;
+  return NSF_FALSE;
 }
 
 /*
@@ -1140,7 +1142,8 @@ CallStackReplaceVarTableReferences(const Tcl_Interp *interp, TclVarHashTable *ol
  *----------------------------------------------------------------------
  */
 
-static void CallStackPopAll(Tcl_Interp *interp) {
+static void
+CallStackPopAll(Tcl_Interp *interp) {
 
   nonnull_assert(interp != NULL);
 

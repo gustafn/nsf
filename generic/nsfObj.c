@@ -191,10 +191,8 @@ NsfMethodObjSet(
 /*
  *----------------------------------------------------------------------
  *
- *      NsfFlagObjType --
- *
- *      The NsfFlagObjType is a Tcl_Obj type carrying the result of a
- *      flag lookup.
+ * The NsfFlagObjType is a Tcl_Obj type carrying the result of a flag
+ * lookup.
  *
  *----------------------------------------------------------------------
  */
@@ -516,7 +514,7 @@ MixinregSetFromAny(
  *      Tcl result code, arg two and three on success.
  *
  * Side effects:
- *      None
+ *      None.
  *
  *----------------------------------------------------------------------
  */
@@ -575,7 +573,7 @@ NsfMixinregGet(
  *      non-of these have the chance to point to a stale entry.
  *
  * Results:
- *      Tcl result code
+ *      A standard Tcl result.
  *
  * Side effects:
  *      Freeing internal rep of Tcl_Objs.
@@ -774,7 +772,7 @@ FilterregSetFromAny(
  *      Tcl result code, arg two and three on success.
  *
  * Side effects:
- *      None
+ *      None.
  *
  *----------------------------------------------------------------------
  */

@@ -381,7 +381,7 @@ BsonTagToType(Tcl_Interp *interp, const char *tag)
  *      append a tagged element to a bson buffer.
  *
  * Results:
- *      Tcl result code.
+ *      A standard Tcl result.
  *
  * Side effects:
  *      Value appended to bson buffer.
@@ -560,7 +560,7 @@ BsonAppend(Tcl_Interp *interp, bson_t *bbPtr, const char *name, const char *tag,
  *      Append all elements of objv to an uninitialized bson buffer.
  *
  * Results:
- *      Tcl result code.
+ *      A standard Tcl result.
  *
  * Side effects:
  *      Value appended to bson buffer.

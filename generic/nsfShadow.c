@@ -53,7 +53,7 @@ static Tcl_ObjCmdProc Nsf_RenameObjCmd;
  *      referred by name.
  *
  * Results:
- *      Tcl return code.
+ *      A standard Tcl result.
  *
  * Side effects:
  *      None.
@@ -94,7 +94,7 @@ NsfReplaceCommandCleanup(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfShadowTclComma
  *      replacement if necessary.
  *
  * Results:
- *      Tcl return code.
+ *      A standard Tcl result.
  *
  * Side effects:
  *      None.
@@ -137,7 +137,7 @@ NsfReplaceCommandCheck(Tcl_Interp *interp, Tcl_Obj *nameObj, Tcl_ObjCmdProc *pro
  *      specified one.
  *
  * Results:
- *      Tcl return code.
+ *      A standard Tcl result.
  *
  * Side effects:
  *      None.
@@ -191,7 +191,7 @@ NsfReplaceCommand(Tcl_Interp *interp, Tcl_Obj *nameObj,
  *          nsf::proc foo {-a} {puts $a};  info body foo
  *
  * Results:
- *      Tcl return code.
+ *      A standard Tcl result.
  *
  * Side effects:
  *      None.
@@ -241,7 +241,7 @@ Nsf_InfoBodyObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, int objc, 
  *      it. Otherwise proceed by calling the shadowed function.
  *
  * Results:
- *      Tcl return code.
+ *      A standard Tcl result.
  *
  * Side effects:
  *      None.
@@ -324,7 +324,7 @@ Nsf_RenameObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, int objc, Tc
  *    "proc" and add "method", "class", "object" and "frametype".
  *
  * Results:
- *      Tcl return code.
+ *      A standard Tcl result.
  *
  * Side effects:
  *      None.
@@ -440,7 +440,7 @@ Nsf_InfoFrameObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, int objc,
  *          pre- and/or postprocessing on these calls.
  *
  * Results:
- *      Tcl return code.
+ *      A standard Tcl result.
  *
  * Side effects:
  *      None.
@@ -502,20 +502,21 @@ NsfShadowTclCommands(Tcl_Interp *interp, NsfShadowOperations load) {
  *----------------------------------------------------------------------
  * NsfCallCommand --
  *
- *      Calls Tcl Commands as direct as possible. The commands have to be looked
- *      up previously via NsfShadowTclCommands(). The element objv[0] is
- *      replaced with the predefined command name.
+ *      Calls a Tcl Command as direct as possible. The commands have to be
+ *      looked up previously via NsfShadowTclCommands(). The element objv[0]
+ *      is replaced with the predefined command name.
  *
  * Results:
- *      Tcl return code.
+ *      A standard Tcl result.
  *
  * Side effects:
  *      None.
  *
  *----------------------------------------------------------------------
  */
-int NsfCallCommand(Tcl_Interp *interp, NsfGlobalNames name,
-	    int objc, Tcl_Obj *const objv[]) {
+int
+NsfCallCommand(Tcl_Interp *interp, NsfGlobalNames name,
+               int objc, Tcl_Obj *const objv[]) {
   int result;
   NsfShadowTclCommandInfo *ti = &RUNTIME_STATE(interp)->tclCommands[name-NSF_EXPR];
   ALLOC_ON_STACK(Tcl_Obj*, objc, ov);
