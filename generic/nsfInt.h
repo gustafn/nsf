@@ -43,8 +43,8 @@
  *
  */
 
-#ifndef _nsf_int_h_
-#define _nsf_int_h_
+#ifndef NSF_INCLUDE_nsf_int_h_
+#define NSF_INCLUDE_nsf_int_h_
 
 /*
  * Well behaved compiler with C99 support should define __STDC_VERSION__
@@ -144,7 +144,7 @@ typedef int bool;
 # include <tclCompile.h>
 #endif
 
-#if __GNUC_PREREQ(2, 95)
+#if NSF__GNUC_PREREQ(2, 95)
 /* Use gcc branch prediction hint to minimize cost of e.g. DTrace
  * ENABLED checks.
  */
@@ -155,13 +155,13 @@ typedef int bool;
 #  define likely(x) (x)
 #endif
 
-#if __GNUC_PREREQ(3, 3)
+#if NSF__GNUC_PREREQ(3, 3)
 # define nonnull(ARGS) __attribute__((__nonnull__(ARGS)))
 #else
 # define nonnull(ARGS)
 #endif
 
-#if __GNUC_PREREQ(4, 9)
+#if NSF__GNUC_PREREQ(4, 9)
 # define returns_nonnull __attribute__((returns_nonnull))
 #else
 # define returns_nonnull
@@ -174,7 +174,7 @@ typedef int bool;
  * attribute could not be used, if declared as unused.
  */
 #ifdef UNUSED
-#elif __GNUC_PREREQ(2, 7)
+#elif NSF__GNUC_PREREQ(2, 7)
 # define UNUSED(x) UNUSED_ ## x __attribute__((unused))
 #elif defined(__LCLINT__)
 # define UNUSED(x) /*@unused@*/ (x)
@@ -1393,4 +1393,4 @@ char *strnstr(const char *buffer, const char *needle, size_t buffer_len) NSF_pur
   NsfCallStackFindCallingContext((interp), (offset), (framePtrPtr), NULL)
 
 EXTERN const char *Nsf_Configureoption[];
-#endif /* _nsf_int_h_ */
+#endif /* NSF_INCLUDE_nsf_int_h_ */

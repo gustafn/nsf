@@ -35,8 +35,8 @@
  * DEALINGS IN THE SOFTWARE.
  * */
 
-#ifndef _nsf_h_
-#define _nsf_h_
+#ifndef NSF_INCLUDED_nsf_h_
+#define NSF_INCLUDED_nsf_h_
 
 #include "tcl.h"
 
@@ -366,27 +366,26 @@ typedef struct Nsf_Param {
 #define NSF_ARG_SUBST_DEFAULT_BACKSLASHES 0x40000000u
 #define NSF_ARG_SUBST_DEFAULT_ALL         0x70000000u
 
-#undef  __GNUC_PREREQ
 #if defined __GNUC__ && defined __GNUC_MINOR__
-# define __GNUC_PREREQ(maj, min) \
+# define NSF__GNUC_PREREQ(maj, min) \
 	((__GNUC__ << 16) + __GNUC_MINOR__ >= ((maj) << 16) + (min))
 #else
-# define __GNUC_PREREQ(maj, min) (0)
+# define NSF__GNUC_PREREQ(maj, min) (0)
 #endif
 
-#if __GNUC_PREREQ(3, 3)
+#if NSF__GNUC_PREREQ(3, 3)
 # define NSF_nonnull(ARGS) __attribute__((__nonnull__(ARGS)))
 #else
 # define NSF_nonnull(ARGS)
 #endif
 
-#if __GNUC_PREREQ(6, 0)
+#if NSF__GNUC_PREREQ(6, 0)
 # define NSF_nonnull_assert(assertion)
 #else
 # define NSF_nonnull_assert(assertion) assert((assertion))
 #endif
 
-#if __GNUC_PREREQ(2, 96)
+#if NSF__GNUC_PREREQ(2, 96)
 # define NSF_pure __attribute__((pure))
 #else
 # define NSF_pure
@@ -397,13 +396,13 @@ typedef struct Nsf_Param {
  * Unfortunately, we can't combine NSF_attribute_format() with
  * functions called via stubs.
  */
-#if __GNUC_PREREQ(3, 4)
+#if NSF__GNUC_PREREQ(3, 4)
 # define NSF_attribute_format(ARGS) __attribute__((__format__ ARGS))
 #else
 # define NSF_attribute_format(ARGS)
 #endif
 
-#if __GNUC_PREREQ(7, 0)
+#if NSF__GNUC_PREREQ(7, 0)
 # define NSF_FALL_THROUGH __attribute__((fallthrough))
 #else
 # define NSF_FALL_THROUGH ((void)0)
@@ -533,4 +532,4 @@ Nsf_InitStubs(Tcl_Interp *interp, const char *version, int exact);
 #define TCL_STORAGE_CLASS DLLIMPORT
 */
 
-#endif /* _nsf_h_ */
+#endif /* NSF_INCLUDED_nsf_h_ */
