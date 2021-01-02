@@ -538,7 +538,14 @@ static bool NsfParamDefsAppendVirtual(
 ) nonnull(1) nonnull(2) nonnull(3) nonnull(6);
 
 /*
- * Prototypes for alias management
+ * Prototypes for methods.
+ */
+
+static const char *MethodName(Tcl_Obj *methodObj)
+  nonnull(1) returns_nonnull;
+
+/*
+ * Prototypes for alias management.
  */
 static int AliasDelete(Tcl_Interp *interp, Tcl_Obj *cmdName, const char *methodName, bool withPer_object)
   nonnull(1) nonnull(2) nonnull(3);
@@ -649,7 +656,7 @@ NsfDListInit(NsfDList *dlPtr) {
  * NsfDListAppend --
  *
  *      Function similar to Tcl_DStringAppend, but works on (void*)
- *      elements instead of chars. 
+ *      elements instead of chars.
  *
  * Results:
  *      None.
@@ -683,7 +690,7 @@ NsfDListAppend(NsfDList *dlPtr, void *element) {
  * NsfDListFree --
  *
  *      Functions similar to Tcl_DStringFree, but but works on (void*)
- *      elements instead of chars. 
+ *      elements instead of chars.
  *
  * Results:
  *      None.
@@ -1515,6 +1522,14 @@ NsfRequireObjNamespace(Tcl_Interp *interp, Nsf_Object *object) {
   RequireObjNamespace(interp, (NsfObject *) object);
 }
 
+const char *
+NsfMethodName(Tcl_Obj *methodObj) {
+
+  nonnull_assert(methodObj != NULL);
+
+  return MethodName(methodObj);
+}
+
 Tcl_Obj *
 Nsf_ObjSetVar2(Nsf_Object *object, Tcl_Interp *interp, Tcl_Obj *name1, Tcl_Obj *name2,
                  Tcl_Obj *valueObj, unsigned int flags) {
@@ -2238,7 +2253,7 @@ GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
       return TCL_OK;
     } else {
       /*
-       * flag, that we could not convert so far
+       * Flag, that we could not convert so far.
        */
       result = TCL_ERROR;
     }
@@ -4759,10 +4774,24 @@ NsfMethodObj(const NsfObject *object, int methodIdx) {
 
 
 /*
- * conditional memory allocations of optional storage
+ * Conditional memory allocations of optional storage
  */
 
-
+/*
+ *----------------------------------------------------------------------
+ * NsfRequireObjectOpt --
+ *
+ *      Makes sure that the provided object has the optional data member
+ *      set.
+ *
+ * Results:
+ *      Optional data for the object.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
 static NsfObjectOpt *
 NsfRequireObjectOpt(NsfObject *object) {
 
@@ -4775,7 +4804,21 @@ NsfRequireObjectOpt(NsfObject *object) {
   return object->opt;
 }
 
-
+/*
+ *----------------------------------------------------------------------
+ * NsfRequireClassOpt --
+ *
+ *      Makes sure that the provided class has the optional data member
+ *      set.
+ *
+ * Results:
+ *      Optional data for the class.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
 NsfClassOpt *
 NsfRequireClassOpt(NsfClass *class) {
 
@@ -4791,7 +4834,21 @@ NsfRequireClassOpt(NsfClass *class) {
   return class->opt;
 }
 
-
+/*
+ *----------------------------------------------------------------------
+ * MakeObjNamespace --
+ *
+ *      Creates for the object a namespace, if it does not exist.
+ *      already.
+ *
+ * Results:
+ *      None.
+ *
+ * Side effects:
+ *      Might create a namespace.
+ *
+ *----------------------------------------------------------------------
+ */
 static void MakeObjNamespace(Tcl_Interp *interp, NsfObject *object)
   nonnull(1) nonnull(2);
 
@@ -5209,9 +5266,6 @@ GetVarAndNameFromHash(const Tcl_HashEntry *hPtr, Var **val, Tcl_Obj **varNameObj
  *
  *----------------------------------------------------------------------
  */
-static const char *MethodName(Tcl_Obj *methodObj)
-  nonnull(1) returns_nonnull;
-
 static const char *
 MethodName(Tcl_Obj *methodObj) {
   const char *methodName;
@@ -5223,14 +5277,6 @@ MethodName(Tcl_Obj *methodObj) {
     methodName ++;
   }
   return methodName;
-}
-
-const char *
-NsfMethodName(Tcl_Obj *methodObj) {
-
-  nonnull_assert(methodObj != NULL);
-
-  return MethodName(methodObj);
 }
 
 /*
@@ -5709,7 +5755,7 @@ InterpCompiledColonVarResolver(Tcl_Interp *interp,
  *
  *      Return for the provided interp the flags of the frame (returned
  *      as result) and the actual varFrame (returned in the second
- *      argument). In case, the toplevel frame is a LAMBDA frame, skip
+ *      argument). In case, the top-level frame is a LAMBDA frame, skip
  *      it.
  *
  * Results:
@@ -7487,10 +7533,21 @@ NsfAddClassMethod(
 }
 
 /*
- * Auto-naming
+ *----------------------------------------------------------------------
+ * AutonameIncr --
+ *
+ *      Returns a Tcl_Obj containing an autonamed (interpreter unique)
+ *      value.
+ *
+ * Results:
+ *      Tcl Obj.
+ *
+ * Side effects:
+ *      Maintains counters in global Tcl arrays.
+ *
+ *----------------------------------------------------------------------
  */
-
-static Tcl_Obj * AutonameIncr(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfObject *object,
+static Tcl_Obj *AutonameIncr(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfObject *object,
              int isInstanceOpt, int doResetOpt)
   nonnull(1) nonnull(2) nonnull(3);
 
@@ -7514,7 +7571,8 @@ AutonameIncr(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfObject *object,
     long autoname_counter;
 
     /*
-     * The autoname counter can overflow, but this should cause no troubles.
+     * The autoname counter can overflow, but this should cause no
+     * troubles.
      */
     Tcl_GetLongFromObj(interp, valueObj, &autoname_counter);
     autoname_counter++;
@@ -7625,6 +7683,26 @@ AutonameIncr(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfObject *object,
  * Next Scripting CallStack functions
  */
 
+/*
+ *----------------------------------------------------------------------
+ * CallStackDoDestroy --
+ *
+ *      Deletion of objects has to take care on the callstack,
+ *      e.g. whether an object is active on the callstack or not. The
+ *      objects can only be deleted physically, when these are not
+ *      activate anymore. This logic is implemented by
+ *      CallStackDestroyObject() and CallStackDoDestroy(), where the
+ *      latter is responsible for the finaly deletion.
+ *
+ * Results:
+ *      None.
+ *
+ * Side effects:
+ *      Frees memory.
+ *
+ *----------------------------------------------------------------------
+ */
+
 NSF_INLINE static void CallStackDoDestroy(Tcl_Interp *interp, NsfObject *object)
   nonnull(1) nonnull(2);
 
@@ -7685,6 +7763,23 @@ CallStackDoDestroy(Tcl_Interp *interp, NsfObject *object) {
   }
 }
 
+/*
+ *----------------------------------------------------------------------
+ * CallStackDestroyObject --
+ *
+ *      See comments of CallStackDoDestroy() for the overall logic.  The
+ *      function CallStackDestroyObject() checks, if an object is activ
+ *      active on the call stack (via the activation count), and deletes
+ *      only objects via CallStackDoDestroy() which are not activate.
+ *
+ * Results:
+ *      None.
+ *
+ * Side effects:
+ *      Might frees memory.
+ *
+ *----------------------------------------------------------------------
+ */
 static void
 CallStackDestroyObject(Tcl_Interp *interp, NsfObject *object) {
 
@@ -10119,7 +10214,7 @@ ResetOrderOfObjectsUsingThisClassAsObjectMixin(const NsfClass *class) {
  *
  *      Reset mixin order for all instances of the class and the
  *      instances of its dependent subclasses. This function is
- *      typically called, when the the class hierarchy or the class
+ *      typically called, when the class hierarchy or the class
  *      mixins have changed and invalidate mixin entries in all
  *      dependent instances.
  *
@@ -12358,11 +12453,11 @@ PushProcCallFrame(
   nonnull_assert(cscPtr != NULL);
 
   /*
-   * Set up and push a new call frame for the new procedure invocation.  This
-   * call frame will execute either in the provided execNs or in the proc's
-   * namespace, which might be different than the current namespace. The
-   * proc's namespace is that of its command, which can change when the
-   * command is renamed from one namespace to another.
+   * Set up and push a new call frame for the new procedure invocation.
+   * This call frame will execute either in the provided execNs or in
+   * the proc's namespace, which might be different than the current
+   * namespace. The proc's namespace is that of its command, which can
+   * change when the command is renamed from one namespace to another.
    */
 
   if (execNsPtr == NULL) {
@@ -12370,7 +12465,8 @@ PushProcCallFrame(
   }
 
   /*
-   * TODO: we could use Tcl_PushCallFrame(), if we would allocate the Tcl stack frame earlier
+   * TODO: We could use Tcl_PushCallFrame(), if we would allocate the
+   * Tcl stack frame earlier.
    */
   result = TclPushStackFrame(interp, (Tcl_CallFrame **)&framePtr,
                              execNsPtr,
@@ -13281,11 +13377,11 @@ ParamDefsFormat(
       innerListObj = paramsPtr->paramObj;
     } else {
       /*
-       * We need this part only for C-defined parameter definitions, defined
-       * via genTclAPI.
+       * We need this part only for C-defined parameter definitions,
+       * defined via genTclAPI.
        *
-       * TODO: we could streamline this by defining as well C-API via the same
-       * syntax as for accepted for Tcl obj types "nsfParam"
+       * TODO: we could streamline this by defining as well C-API via
+       * the same syntax as for accepted for Tcl obj types "nsfParam"
        */
       int isNonpos = *paramsPtr->name == '-';
       int outputRequired = (isNonpos && ((paramsPtr->flags & NSF_ARG_REQUIRED) != 0u));
@@ -14617,8 +14713,8 @@ ObjectCmdMethodDispatch(
         }
         /*
          * Every ensemble block starts with a frame of
-         * NSF_CSC_TYPE_ENSEMBLE. If we find one, then we compute a new path
-         * in the next iteration.
+         * NSF_CSC_TYPE_ENSEMBLE. If we find one, then we compute a new
+         * path in the next iteration.
          */
         if ((stackCscPtr->frameType & (NSF_CSC_TYPE_ENSEMBLE)) == 0) {
           /*
@@ -14985,8 +15081,8 @@ MethodDispatch(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[],
 
   /*
    * We would not need CscInit when cp (clientData) == NULL &&
-   * !(Tcl_Command_flags(cmd) & NSF_CMD_NONLEAF_METHOD) TODO: We could pass
-   * cmd == NULL, but is this worth it?
+   * !(Tcl_Command_flags(cmd) & NSF_CMD_NONLEAF_METHOD) TODO: We could
+   * pass cmd == NULL, but is this worth it?
    */
   CscInit(cscPtr, object, class, cmd, frameType, flags, methodName);
 
@@ -15570,7 +15666,7 @@ ObjectDispatch(
   /*
    * Only start new filter chain, if
    *   (a) filters are defined and
-   *   (b) the toplevel csc entry is not a filter on self
+   *   (b) the top-level csc entry is not a filter on self
    */
 
   /*fprintf(stderr, "call %s, objflags %.6x, defined and valid %.6x doFilters %d guard count %d\n",
@@ -23793,7 +23889,7 @@ NsfForwardMethod(ClientData clientData, Tcl_Interp *interp,
  *      invoke this could happen via directly calling the handle.
  *
  * Results:
- *      Result is always TCL_ERROR (as returend by
+ *      Result is always TCL_ERROR (as returned by
  *      NsfDispatchClientDataError()).
  *
  * Side effects:
@@ -33914,10 +34010,10 @@ NsfObjInfoLookupMethodsMethod(Tcl_Interp *interp, NsfObject *object,
   nonnull_assert(object != NULL);
 
   /*
-   * TODO: we could make this faster for patterns without meta-chars
-   * by letting ListMethodKeys() to signal us when an entry was found.
-   * we wait, until the we decided about "info methods defined"
-   * vs. "info method search" vs. "info defined" etc.
+   * TODO: We could make this faster for patterns without meta-chars by
+   * letting ListMethodKeys() to signal us when an entry was found.  we
+   * wait, until the we decided about "info methods defined" vs. "info
+   * method search" vs. "info defined" etc.
    */
   if (withCallprotection == CallprotectionNULL) {
     withCallprotection = CallprotectionPublicIdx;
@@ -35391,7 +35487,22 @@ FreeAllNsfObjectsAndClasses(
 #endif /* DO_CLEANUP */
 
 /*
- *      Exit Handler
+ *----------------------------------------------------------------------
+ *
+ * ExitHandler --
+ *
+ *      The exit handler is called on thread exit and application
+ *      exit. It is responsible to free all resources to avoid memory
+ *      leaks, especially in multi-threaded applications, when threads
+ *      exit.
+ *
+ * Results:
+ *      None.
+ *
+ * Side effects:
+ *      Freeing memory.
+ *
+ *----------------------------------------------------------------------
  */
 
 static void

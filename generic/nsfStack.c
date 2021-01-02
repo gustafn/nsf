@@ -303,10 +303,10 @@ NsfShowStack(Tcl_Interp *interp) {
 
 /*
  *----------------------------------------------------------------------
- * Nsf_PushFrameObj, Nsf_PopFrameObj --
+ * Nsf_PushFrameObj --
  *
- *      Push or pop a frame with a call-stack content as an OBJECT
- *      frame.
+ *      Push a frame with a call-stack content as an OBJECT frame.
+ *      Friend of Nsf_PopFrameObj().
  *
  * Results:
  *      None.
@@ -316,7 +316,8 @@ NsfShowStack(Tcl_Interp *interp) {
  *
  *----------------------------------------------------------------------
  */
-static void Nsf_PushFrameObj(Tcl_Interp *interp, NsfObject *object, const CallFrame *framePtr) {
+static void
+Nsf_PushFrameObj(Tcl_Interp *interp, NsfObject *object, const CallFrame *framePtr) {
 
   nonnull_assert(interp != NULL);
   nonnull_assert(object != NULL);
@@ -340,7 +341,21 @@ static void Nsf_PushFrameObj(Tcl_Interp *interp, NsfObject *object, const CallFr
   Tcl_CallFrame_clientData(framePtr) = (ClientData)object;
 }
 
-
+/*
+ *----------------------------------------------------------------------
+ * Nsf_PopFrameObj --
+ *
+ *      Pop a frame with a call-stack content as an OBJECT frame.
+ *      Friend of Nsf_PushFrameObj().
+ *
+ * Results:
+ *      None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
 static void Nsf_PopFrameObj(Tcl_Interp *interp, CallFrame *framePtr) {
 
   nonnull_assert(interp != NULL);
@@ -681,11 +696,11 @@ NsfCallStackFindCallingContext(const Tcl_Interp *interp,
                  ) {
         *callingFramePtrPtr = varFramePtr;
       }
-      /* 
+      /*
        * Continue in loop.
        */
       varFramePtr = Tcl_CallFrame_callerVarPtr(varFramePtr);
-      
+
     } while (likely(varFramePtr != NULL));
 
     if (callingProcFramePtrPtr != NULL) {
@@ -733,7 +748,9 @@ NsfCallStackFindActiveFrame(const Tcl_Interp *interp, int offset, Tcl_CallFrame 
       }
     }
   }
-  /* we could not find an active frame; called from toplevel? */
+  /*
+   * We could not find an active frame; called from top-level?
+   */
   if (framePtrPtr != NULL) {
     *framePtrPtr = NULL;
   }
@@ -836,13 +853,18 @@ CallStackFindActiveFilter(const Tcl_Interp *interp) {
   varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
   for (; varFramePtr != NULL; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
     if (((unsigned int)Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) != 0u) {
-      NsfCallStackContent *cscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
+      NsfCallStackContent *cscPtr;
+
+      cscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
       if (cscPtr->frameType == NSF_CSC_TYPE_ACTIVE_FILTER) {
         return cscPtr;
       }
     }
   }
-  /* for some reasons, we could not find invocation (topLevel, destroy) */
+  /*
+   * For some reasons, we could not find invocation (might be top-level,
+   * destroy).
+   */
   return NULL;
 }
 
@@ -985,18 +1007,18 @@ CallStackMethodPath(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
             (cscPtr->frameType & NSF_CSC_TYPE_INACTIVE) != 0);*/
 
     /*
-     * The "ensemble" call type, we find applied to all intermediate and leaf
-     * ensemble frames. By filtering according to the ensemble call type, we
-     * effectively omit leaf ensemble and non-ensemble frames from being
-     * reported.
+     * The "ensemble" call type, we find applied to all intermediate and
+     * leaf ensemble frames. By filtering according to the ensemble call
+     * type, we effectively omit leaf ensemble and non-ensemble frames
+     * from being reported.
      */
     if ((cscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE) == 0u) {
       break;
     }
     /*
-     * The call-stack might contain consecutive calls of ensemble entry calls
-     * chained via next. We can detect consecutive calls via the elements
-     * count.
+     * The call-stack might contain consecutive calls of ensemble entry
+     * calls chained via next. We can detect consecutive calls via the
+     * elements count.
      */
     if (elements == 0 && (cscPtr->flags & NSF_CM_ENSEMBLE_UNKNOWN) && (cscPtr->flags & NSF_CSC_CALL_IS_NEXT)) {
       break;
@@ -1007,9 +1029,9 @@ CallStackMethodPath(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
     elements++;
 
     /*
-     * The "root" frame in a call-stack branch resulting from an ensemble
-     * dispatch is not typed as an NSF_CSC_TYPE_ENSEMBLE frame, the call type
-     * /is/ NSF_CSC_CALL_IS_ENSEMBLE (as checked above).
+     * The "root" frame in a call-stack branch resulting from an
+     * ensemble dispatch is not typed as an NSF_CSC_TYPE_ENSEMBLE frame,
+     * the call type /is/ NSF_CSC_CALL_IS_ENSEMBLE (as checked above).
      */
 
     if ((cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) == 0u) {
@@ -1022,7 +1044,7 @@ CallStackMethodPath(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
    *  arguments, reverse the list to obtain the right order.
    */
   if (elements > 1) {
-    int oc, i;
+    int       oc, i;
     Tcl_Obj **ov;
 
     INCR_REF_COUNT(methodPathObj);
@@ -1051,7 +1073,7 @@ CallStackMethodPath(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
  *      cmd.
  *
  * Results:
- *      Boolean indicating success.
+ *      Boolean value indicating success.
  *
  * Side effects:
  *      None.

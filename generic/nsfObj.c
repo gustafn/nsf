@@ -71,7 +71,14 @@ Tcl_ObjType NsfObjectMethodObjType = {
 };
 
 /*
- * freeIntRepProc
+ *----------------------------------------------------------------------
+ *
+ * MethodFreeInternalRep --
+ *
+ *      Frees internal representation. Implementation of
+ *      freeIntRepProc.
+ *
+ *----------------------------------------------------------------------
  */
 static void
 MethodFreeInternalRep(
@@ -96,7 +103,14 @@ MethodFreeInternalRep(
 }
 
 /*
- * dupIntRepProc
+ *----------------------------------------------------------------------
+ *
+ * MethodDupInternalRep --
+ *
+ *      Duplicates internal representation. Implementation of
+ *      dupIntRepProc.
+ *
+ *----------------------------------------------------------------------
  */
 static void
 MethodDupInternalRep(
@@ -120,9 +134,9 @@ MethodDupInternalRep(
 /*
  *----------------------------------------------------------------------
  *
- *      NsfMethodObjSet --
+ * NsfMethodObjSet --
  *
- *      Convert the provided Tcl_Obj into the type of NsfMethodContext.
+ *      Converts the provided Tcl_Obj into the type of NsfMethodContext.
  *
  *----------------------------------------------------------------------
  */
@@ -209,7 +223,14 @@ Tcl_ObjType NsfFlagObjType = {
 };
 
 /*
- * freeIntRepProc
+ *----------------------------------------------------------------------
+ *
+ * FlagFreeInternalRep --
+ *
+ *      Frees internal representation. Implementation of
+ *      freeIntRepProc.
+ *
+ *----------------------------------------------------------------------
  */
 static void
 FlagFreeInternalRep(
@@ -239,7 +260,14 @@ FlagFreeInternalRep(
 }
 
 /*
- * dupIntRepProc
+ *----------------------------------------------------------------------
+ *
+ * FlagDupInternalRep --
+ *
+ *      Duplicates internal representation. Implementation of
+ *      dupIntRepProc.
+ *
+ *----------------------------------------------------------------------
  */
 static void
 FlagDupInternalRep(
@@ -355,7 +383,14 @@ Tcl_ObjType NsfMixinregObjType = {
 };
 
 /*
- * freeIntRepProc
+ *----------------------------------------------------------------------
+ *
+ * MixinregFreeInternalRep --
+ *
+ *      Frees internal representation. Implementation of
+ *      freeIntRepProc.
+ *
+ *----------------------------------------------------------------------
  */
 static void
 MixinregFreeInternalRep(
@@ -384,7 +419,14 @@ MixinregFreeInternalRep(
 }
 
 /*
- * dupIntRepProc
+ *----------------------------------------------------------------------
+ *
+ * MixinregDupInternalRep --
+ *
+ *      Duplicates internal representation. Implementation of
+ *      dupIntRepProc.
+ *
+ *----------------------------------------------------------------------
  */
 static void
 MixinregDupInternalRep(
@@ -403,7 +445,7 @@ MixinregDupInternalRep(
   memcpy(dstPtr, srcPtr, sizeof(Mixinreg));
 
   /*
-   * increment refcounts
+   * Increment refcounts.
    */
   NsfObjectRefCountIncr(&(srcPtr->mixin)->object);
   if (srcPtr->guardObj != NULL) {
@@ -411,15 +453,21 @@ MixinregDupInternalRep(
   }
 
   /*
-   * update destination obj
+   * Update destination obj.
    */
   dstObjPtr->typePtr = srcObjPtr->typePtr;
   dstObjPtr->internalRep.twoPtrValue.ptr1 = dstPtr;
 }
 
-
 /*
- * setFromAnyProc
+ *----------------------------------------------------------------------
+ *
+ * MixinregSetFromAny --
+ *
+ *      Sets the type and internal representation when converting to
+ *      this object type. Implementation of setFromAnyProc.
+ *
+ *----------------------------------------------------------------------
  */
 static int
 MixinregSetFromAny(
@@ -634,9 +682,15 @@ Tcl_ObjType NsfFilterregObjType = {
     FilterregSetFromAny			/* setFromAnyProc */
 };
 
-
 /*
- * freeIntRepProc
+ *----------------------------------------------------------------------
+ *
+ * FilterregFreeInternalRep --
+ *
+ *      Frees internal representation. Implementation of
+ *      freeIntRepProc.
+ *
+ *----------------------------------------------------------------------
  */
 static void
 FilterregFreeInternalRep(
@@ -665,7 +719,14 @@ FilterregFreeInternalRep(
 }
 
 /*
- * dupIntRepProc
+ *----------------------------------------------------------------------
+ *
+ * FilterregDupInternalRep --
+ *
+ *      Duplicates internal representation. Implementation of
+ *      dupIntRepProc.
+ *
+ *----------------------------------------------------------------------
  */
 static void
 FilterregDupInternalRep(
@@ -701,7 +762,14 @@ FilterregDupInternalRep(
 }
 
 /*
- * setFromAnyProc
+ *----------------------------------------------------------------------
+ *
+ * FilterregSetFromAny --
+ *
+ *      Sets the type and internal representation when converting to
+ *      this object type. Implementation of setFromAnyProc.
+ *
+ *----------------------------------------------------------------------
  */
 static int
 FilterregSetFromAny(

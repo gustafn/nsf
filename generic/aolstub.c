@@ -68,7 +68,7 @@ NS_EXPORT int Ns_ModuleVersion = 1;
 
 
 static int
-NsNsf_Init (Tcl_Interp *interp, void *context)
+NsNsf_Init(Tcl_Interp *interp, void *context)
 {
  static int firsttime = 1;
  int ret;
@@ -139,7 +139,7 @@ NsNsf_Init (Tcl_Interp *interp, void *context)
  */
 
 static int
-NsNsf_Init1 (Tcl_Interp *interp, void *notUsed)
+NsNsf_Init1(Tcl_Interp *interp, void *notUsed)
 {
   int result;
 

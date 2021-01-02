@@ -134,7 +134,7 @@ static AsmStatementInfo asmStatementInfo[] = {
  *
  *      The assmbler, takes an assembly script in the form of a nested
  *      list and emits the internal representation for the execution
- *      enigine.
+ *      engine.
  *
  *----------------------------------------------------------------------
  */

@@ -46,17 +46,15 @@ typedef struct NsfProfileData {
 
 /*
  *----------------------------------------------------------------------
- * NsfProfileObjectLabel, NsfProfileMethodLabel --
+ * NsfProfileObjectLabel --
  *
- *      Produce a string label for an object or method using in profiling.
- *      NsfProfileMethodLabel() is available also when compiled without
- *      NSF_PROFILE.
+ *      Produce a string label for an object as used in profiling.
  *
  * Results:
  *      None.
  *
  * Side effects:
- *      Initializes and fills the passed Tcl_DString,
+ *      Initializes and fills the passed Tcl_DString.
  *
  *----------------------------------------------------------------------
  */
@@ -74,6 +72,20 @@ NsfProfileObjectLabel(Tcl_DString *dsPtr, NsfObject *object) {
   Tcl_DStringAppend(dsPtr, ClassName(object->cl), -1);
 }
 
+/*
+ *----------------------------------------------------------------------
+ * NsfProfileMethodLabel --
+ *
+ *      Produce a string label for a method as used in profiling.
+ *
+ * Results:
+ *      None.
+ *
+ * Side effects:
+ *      Initializes and fills the passed Tcl_DString.
+ *
+ *----------------------------------------------------------------------
+ */
 static void NsfProfileMethodLabel(Tcl_DString *dsPtr, NsfClass *class, const char *methodName)
   nonnull(1) nonnull(3);
 
@@ -128,11 +140,11 @@ NsfProfileDeprecatedCall(Tcl_Interp *interp, NsfObject *UNUSED(object), NsfClass
 
 /*
  *----------------------------------------------------------------------
- * NsfProfileDebugCall, NsfProfileDebugExit --
+ * NsfProfileDebugCall --
  *
- *      Output a line in case a function/method is called/exited having the
- *      debug flag set.  These two functions use the Tcl commands ::nsf::debug::call
- *      and ::nsf::debug::exit for reporting.
+ *      Output a line in case a function/method is called having the
+ *      debug flag set.  This function is used by the Tcl command
+ *      ::nsf::debug::call for reporting.
  *
  * Results:
  *      None.
@@ -175,6 +187,22 @@ NsfProfileDebugCall(Tcl_Interp *interp, NsfObject *object, NsfClass *class, cons
 
 }
 
+/*
+ *----------------------------------------------------------------------
+ * NsfProfileDebugExit --
+ *
+ *      Output a line in case a function/method is exited having the
+ *      debug flag set.  This function is used by ::nsf::debug::exit
+ *      for reporting.
+ *
+ * Results:
+ *      None.
+ *
+ * Side effects:
+ *      Logging.
+ *
+ *----------------------------------------------------------------------
+ */
 void
 NsfProfileDebugExit(Tcl_Interp *interp, NsfObject *object, NsfClass *class, const char *methodName,
                     long startSec, long startUsec) {
@@ -575,10 +603,10 @@ NsfProfileTraceExitAppend(Tcl_Interp *interp, const char *label, double duration
  *----------------------------------------------------------------------
  * NsfProfileTraceCall, NsfProfileTraceExit --
  *
- *      Add entries to the trace Tcl_DString when methods/procs are called or
- *      exited.  This function builds the labels for invocation strings in the
- *      same way as for profiling and calls the lower-level function, which does
- *      the recording.
+ *      Add entries to the trace Tcl_DString when methods/procs are
+ *      called or exited.  This function builds the labels for
+ *      invocation strings in the same way as for profiling and calls
+ *      the lower-level function, which does the recording.
  *
  * Results:
  *      None.
@@ -588,7 +616,6 @@ NsfProfileTraceExitAppend(Tcl_Interp *interp, const char *label, double duration
  *
  *----------------------------------------------------------------------
  */
-
 void
 NsfProfileTraceCall(Tcl_Interp *interp, NsfObject *object, NsfClass *class, const char *methodName) {
   NsfRuntimeState *rst = RUNTIME_STATE(interp);
