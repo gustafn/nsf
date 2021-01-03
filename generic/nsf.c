@@ -27015,7 +27015,9 @@ ListForward(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
  */
 static int
 ListDefinedMethods(Tcl_Interp *interp, NsfObject *object, const char *pattern,
-                   bool withPer_object, MethodtypeIdx_t methodType, CallprotectionIdx_t withCallprotection,
+                   bool withPer_object,
+                   MethodtypeIdx_t methodType,
+                   CallprotectionIdx_t withCallprotection,
                    bool withPath) {
   Tcl_HashTable *cmdTablePtr;
   Tcl_DString ds, *dsPtr = NULL;
@@ -28044,12 +28046,12 @@ cmd configure NsfConfigureCmd {
 */
 static int
 NsfConfigureCmd(Tcl_Interp *interp, ConfigureoptionIdx_t option, Tcl_Obj *valueObj) {
-  int boolVal;
+  int boolVal = 0;
 
   nonnull_assert(interp != NULL);
 #if defined(NSF_DTRACE)
   if (NSF_DTRACE_CONFIGURE_PROBE_ENABLED()) {
-    NSF_DTRACE_CONFIGURE_PROBE((char *)Nsf_Configureoption[option-1],
+    NSF_DTRACE_CONFIGURE_PROBE(Nsf_Configureoption[option-1].key,
                                (valueObj != NULL) ? ObjStr(valueObj) : NULL);
   }
 #endif
@@ -29351,8 +29353,8 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
   case MethodpropertyDeprecatedIdx:          NSF_FALL_THROUGH; /* fall through */
   case MethodpropertyRedefine_protectedIdx:
     {
-      int impliedSetFlag = 0, impliedClearFlag = 0;
-      unsigned int flag;
+      int          impliedSetFlag = 0, impliedClearFlag = 0;
+      unsigned int flag = 0u;
 
       switch (methodProperty) {
       case MethodpropertyClass_onlyIdx:
@@ -32632,10 +32634,10 @@ objectMethod residualargs NsfOResidualargsMethod {
 */
 static int
 NsfOResidualargsMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *const objv[]) {
-  int          i, start = 1, argc, nextArgc, normalArgs, result = TCL_OK;
+  int          i, start = 1, argc = 0, nextArgc = 0, normalArgs, result = TCL_OK;
   dashArgType  isdasharg = NO_DASH;
-  const char  *methodName, *nextMethodName, *initString = NULL;
-  Tcl_Obj    **argv = NULL, **nextArgv;
+  const char  *methodName, *nextMethodName = NULL, *initString = NULL;
+  Tcl_Obj    **argv = NULL, **nextArgv = NULL;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(object != NULL);
@@ -32672,7 +32674,7 @@ NsfOResidualargsMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj 
   }
 
 
-  for( ; i < objc;  argc = nextArgc, argv = nextArgv, methodName = nextMethodName) {
+  for( ; i < objc; argc = nextArgc, argv = nextArgv, methodName = nextMethodName) {
 
     Tcl_ResetResult(interp);
 
@@ -33679,36 +33681,17 @@ NsfCSuperclassMethod(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *superclassesO
 
 static MethodtypeIdx_t
 AggregatedMethodType(MethodtypeIdx_t methodType) {
-  switch (methodType) {
-  case MethodtypeNULL: NSF_FALL_THROUGH; /* fall through */
-  case MethodtypeAllIdx:
-    methodType = NSF_METHODTYPE_ALL;
-    break;
-  case MethodtypeScriptedIdx:
-    /*methodType = NSF_METHODTYPE_SCRIPTED|NSF_METHODTYPE_ALIAS;*/
-    methodType = NSF_METHODTYPE_SCRIPTED;
-    break;
-  case MethodtypeBuiltinIdx:
-    methodType = NSF_METHODTYPE_BUILTIN|NSF_METHODTYPE_OBJECT;
-    break;
-  case MethodtypeForwarderIdx:
-    methodType = NSF_METHODTYPE_FORWARDER;
-    break;
-  case MethodtypeAliasIdx:
-    methodType = NSF_METHODTYPE_ALIAS;
-    break;
-  case MethodtypeSetterIdx:
-    methodType = NSF_METHODTYPE_SETTER;
-    break;
-  case MethodtypeObjectIdx:
-    methodType = NSF_METHODTYPE_OBJECT;
-    break;
-  case MethodtypeNsfprocIdx:
-    methodType = NSF_METHODTYPE_NSFPROC;
-    break;
-  }
+  MethodtypeIdx_t result;
 
-  return methodType;
+  if (methodType == MethodtypeNULL) {
+    result = MethodtypeAllIdx;
+  } else if (methodType == MethodtypeBuiltinIdx) {
+    result = NSF_METHODTYPE_BUILTIN|NSF_METHODTYPE_OBJECT;
+  } else {
+    result = methodType;
+  }
+  //fprintf(stderr, "AggregatedMethodType input %.4x output %.4x\n", methodType, result);
+  return result;
 }
 
 /***********************************************************************

@@ -6,35 +6,35 @@
 
 #if defined(USE_NSF_STUBS)
 int Nsf_ConvertTo_Boolean(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
-			  ClientData *clientData, Tcl_Obj **outObjPtr) {
+                          ClientData *clientData, Tcl_Obj **outObjPtr) {
   return Nsf_ConvertToBoolean(interp, objPtr, pPtr, clientData, outObjPtr);
 }
 int Nsf_ConvertTo_Class(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
-			  ClientData *clientData, Tcl_Obj **outObjPtr) {
+                          ClientData *clientData, Tcl_Obj **outObjPtr) {
   return Nsf_ConvertToClass(interp, objPtr, pPtr, clientData, outObjPtr);
 }
 int Nsf_ConvertTo_Int32(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
-			  ClientData *clientData, Tcl_Obj **outObjPtr) {
+                          ClientData *clientData, Tcl_Obj **outObjPtr) {
   return Nsf_ConvertToInt32(interp, objPtr, pPtr, clientData, outObjPtr);
 }
 int Nsf_ConvertTo_Integer(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
-			  ClientData *clientData, Tcl_Obj **outObjPtr) {
+                          ClientData *clientData, Tcl_Obj **outObjPtr) {
   return Nsf_ConvertToInteger(interp, objPtr, pPtr, clientData, outObjPtr);
 }
 int Nsf_ConvertTo_Object(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
-			  ClientData *clientData, Tcl_Obj **outObjPtr) {
+                          ClientData *clientData, Tcl_Obj **outObjPtr) {
   return Nsf_ConvertToObject(interp, objPtr, pPtr, clientData, outObjPtr);
 }
 int Nsf_ConvertTo_Pointer(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
-			  ClientData *clientData, Tcl_Obj **outObjPtr) {
+                          ClientData *clientData, Tcl_Obj **outObjPtr) {
   return Nsf_ConvertToPointer(interp, objPtr, pPtr, clientData, outObjPtr);
 }
 int Nsf_ConvertTo_String(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
-			  ClientData *clientData, Tcl_Obj **outObjPtr) {
+                          ClientData *clientData, Tcl_Obj **outObjPtr) {
   return Nsf_ConvertToString(interp, objPtr, pPtr, clientData, outObjPtr);
 }
 int Nsf_ConvertTo_Tclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
-			  ClientData *clientData, Tcl_Obj **outObjPtr) {
+                          ClientData *clientData, Tcl_Obj **outObjPtr) {
   return Nsf_ConvertToTclobj(interp, objPtr, pPtr, clientData, outObjPtr);
 }
 #else
@@ -64,197 +64,330 @@ int Nsf_ConvertTo_Tclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *
 
 
 
-typedef enum {InfomethodsubcmdNULL, InfomethodsubcmdArgsIdx, InfomethodsubcmdBodyIdx, InfomethodsubcmdDefinitionIdx, InfomethodsubcmdExistsIdx, InfomethodsubcmdRegistrationhandleIdx, InfomethodsubcmdDefinitionhandleIdx, InfomethodsubcmdOriginIdx, InfomethodsubcmdParameterIdx, InfomethodsubcmdSyntaxIdx, InfomethodsubcmdTypeIdx, InfomethodsubcmdPreconditionIdx, InfomethodsubcmdPostconditionIdx, InfomethodsubcmdSubmethodsIdx, InfomethodsubcmdReturnsIdx, InfomethodsubcmdDisassembleIdx} InfomethodsubcmdIdx_t;
+typedef enum {InfomethodsubcmdNULL=0x0u, InfomethodsubcmdArgsIdx=1, InfomethodsubcmdBodyIdx=2, InfomethodsubcmdDefinitionIdx=3, InfomethodsubcmdExistsIdx=4, InfomethodsubcmdRegistrationhandleIdx=5, InfomethodsubcmdDefinitionhandleIdx=6, InfomethodsubcmdOriginIdx=7, InfomethodsubcmdParameterIdx=8, InfomethodsubcmdSyntaxIdx=9, InfomethodsubcmdTypeIdx=10, InfomethodsubcmdPreconditionIdx=11, InfomethodsubcmdPostconditionIdx=12, InfomethodsubcmdSubmethodsIdx=13, InfomethodsubcmdReturnsIdx=14, InfomethodsubcmdDisassembleIdx=15} InfomethodsubcmdIdx_t;
 
 static int ConvertToInfomethodsubcmd(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
-			    ClientData *clientData, Tcl_Obj **outObjPtr) {
-  int pos, result;
-  static const char *opts[] = {"args", "body", "definition", "exists", "registrationhandle", "definitionhandle", "origin", "parameter", "syntax", "type", "precondition", "postcondition", "submethods", "returns", "disassemble", NULL};
+                            ClientData *clientData, Tcl_Obj **outObjPtr) {
+  int pos=0, result;
+  static const  Nsf_ObjvTable opts[] = {
+    {"args", 1},
+    {"body", 2},
+    {"definition", 3},
+    {"exists", 4},
+    {"registrationhandle", 5},
+    {"definitionhandle", 6},
+    {"origin", 7},
+    {"parameter", 8},
+    {"syntax", 9},
+    {"type", 10},
+    {"precondition", 11},
+    {"postcondition", 12},
+    {"submethods", 13},
+    {"returns", 14},
+    {"disassemble", 15},
+    {NULL, 0u}
+  };
   (void)pPtr;
-  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "infomethodsubcmd", 0, &pos);
-  *clientData = (ClientData) INT2PTR(pos + 1);
+  result = Tcl_GetIndexFromObjStruct(interp, objPtr, opts, sizeof(Nsf_ObjvTable), "infomethodsubcmd", 0, &pos);
+  *clientData = (ClientData) INT2PTR(opts[pos].value);
   *outObjPtr = objPtr;
   return result;
 }
   
-typedef enum {CallprotectionNULL, CallprotectionAllIdx, CallprotectionPublicIdx, CallprotectionProtectedIdx, CallprotectionPrivateIdx} CallprotectionIdx_t;
+typedef enum {CallprotectionNULL=0x0u, CallprotectionAllIdx=1, CallprotectionPublicIdx=2, CallprotectionProtectedIdx=3, CallprotectionPrivateIdx=4} CallprotectionIdx_t;
 
 static int ConvertToCallprotection(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
-			    ClientData *clientData, Tcl_Obj **outObjPtr) {
-  int pos, result;
-  static const char *opts[] = {"all", "public", "protected", "private", NULL};
+                            ClientData *clientData, Tcl_Obj **outObjPtr) {
+  int pos=0, result;
+  static const  Nsf_ObjvTable opts[] = {
+    {"all", 1},
+    {"public", 2},
+    {"protected", 3},
+    {"private", 4},
+    {NULL, 0u}
+  };
   (void)pPtr;
-  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "callprotection", 0, &pos);
-  *clientData = (ClientData) INT2PTR(pos + 1);
+  result = Tcl_GetIndexFromObjStruct(interp, objPtr, opts, sizeof(Nsf_ObjvTable), "callprotection", 0, &pos);
+  *clientData = (ClientData) INT2PTR(opts[pos].value);
   *outObjPtr = objPtr;
   return result;
 }
   
-typedef enum {MethodtypeNULL, MethodtypeAllIdx, MethodtypeScriptedIdx, MethodtypeBuiltinIdx, MethodtypeAliasIdx, MethodtypeForwarderIdx, MethodtypeObjectIdx, MethodtypeSetterIdx, MethodtypeNsfprocIdx} MethodtypeIdx_t;
+typedef enum {MethodtypeNULL=0x0u, MethodtypeAllIdx=NSF_METHODTYPE_ALL, MethodtypeScriptedIdx=NSF_METHODTYPE_SCRIPTED, MethodtypeBuiltinIdx=NSF_METHODTYPE_BUILTIN, MethodtypeAliasIdx=NSF_METHODTYPE_ALIAS, MethodtypeForwarderIdx=NSF_METHODTYPE_FORWARDER, MethodtypeObjectIdx=NSF_METHODTYPE_OBJECT, MethodtypeSetterIdx=NSF_METHODTYPE_SETTER, MethodtypeNsfprocIdx=NSF_METHODTYPE_NSFPROC} MethodtypeIdx_t;
 
 static int ConvertToMethodtype(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
-			    ClientData *clientData, Tcl_Obj **outObjPtr) {
-  int pos, result;
-  static const char *opts[] = {"all", "scripted", "builtin", "alias", "forwarder", "object", "setter", "nsfproc", NULL};
+                            ClientData *clientData, Tcl_Obj **outObjPtr) {
+  int pos=0, result;
+  static const  Nsf_ObjvTable opts[] = {
+    {"all", NSF_METHODTYPE_ALL},
+    {"scripted", NSF_METHODTYPE_SCRIPTED},
+    {"builtin", NSF_METHODTYPE_BUILTIN},
+    {"alias", NSF_METHODTYPE_ALIAS},
+    {"forwarder", NSF_METHODTYPE_FORWARDER},
+    {"object", NSF_METHODTYPE_OBJECT},
+    {"setter", NSF_METHODTYPE_SETTER},
+    {"nsfproc", NSF_METHODTYPE_NSFPROC},
+    {NULL, 0u}
+  };
   (void)pPtr;
-  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "methodtype", 0, &pos);
-  *clientData = (ClientData) INT2PTR(pos + 1);
+  result = Tcl_GetIndexFromObjStruct(interp, objPtr, opts, sizeof(Nsf_ObjvTable), "methodtype", 0, &pos);
+  *clientData = (ClientData) INT2PTR(opts[pos].value);
   *outObjPtr = objPtr;
   return result;
 }
   
-typedef enum {DefinitionsourceNULL, DefinitionsourceAllIdx, DefinitionsourceApplicationIdx, DefinitionsourceSystemIdx} DefinitionsourceIdx_t;
+typedef enum {DefinitionsourceNULL=0x0u, DefinitionsourceAllIdx=1, DefinitionsourceApplicationIdx=2, DefinitionsourceSystemIdx=3} DefinitionsourceIdx_t;
 
 static int ConvertToDefinitionsource(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
-			    ClientData *clientData, Tcl_Obj **outObjPtr) {
-  int pos, result;
-  static const char *opts[] = {"all", "application", "system", NULL};
+                            ClientData *clientData, Tcl_Obj **outObjPtr) {
+  int pos=0, result;
+  static const  Nsf_ObjvTable opts[] = {
+    {"all", 1},
+    {"application", 2},
+    {"system", 3},
+    {NULL, 0u}
+  };
   (void)pPtr;
-  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "definitionsource", 0, &pos);
-  *clientData = (ClientData) INT2PTR(pos + 1);
+  result = Tcl_GetIndexFromObjStruct(interp, objPtr, opts, sizeof(Nsf_ObjvTable), "definitionsource", 0, &pos);
+  *clientData = (ClientData) INT2PTR(opts[pos].value);
   *outObjPtr = objPtr;
   return result;
 }
   
-typedef enum {MixinscopeNULL, MixinscopeAllIdx, MixinscopeClassIdx, MixinscopeObjectIdx} MixinscopeIdx_t;
+typedef enum {MixinscopeNULL=0x0u, MixinscopeAllIdx=1, MixinscopeClassIdx=2, MixinscopeObjectIdx=3} MixinscopeIdx_t;
 
 static int ConvertToMixinscope(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
-			    ClientData *clientData, Tcl_Obj **outObjPtr) {
-  int pos, result;
-  static const char *opts[] = {"all", "class", "object", NULL};
+                            ClientData *clientData, Tcl_Obj **outObjPtr) {
+  int pos=0, result;
+  static const  Nsf_ObjvTable opts[] = {
+    {"all", 1},
+    {"class", 2},
+    {"object", 3},
+    {NULL, 0u}
+  };
   (void)pPtr;
-  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "mixinscope", 0, &pos);
-  *clientData = (ClientData) INT2PTR(pos + 1);
+  result = Tcl_GetIndexFromObjStruct(interp, objPtr, opts, sizeof(Nsf_ObjvTable), "mixinscope", 0, &pos);
+  *clientData = (ClientData) INT2PTR(opts[pos].value);
   *outObjPtr = objPtr;
   return result;
 }
   
-typedef enum {ConfigureoptionNULL, ConfigureoptionDebugIdx, ConfigureoptionDtraceIdx, ConfigureoptionFilterIdx, ConfigureoptionSoftrecreateIdx, ConfigureoptionObjectsystemsIdx, ConfigureoptionKeepcmdsIdx, ConfigureoptionCheckresultsIdx, ConfigureoptionCheckargumentsIdx} ConfigureoptionIdx_t;
-const char *Nsf_Configureoption[] = {"debug", "dtrace", "filter", "softrecreate", "objectsystems", "keepcmds", "checkresults", "checkarguments", NULL};
+typedef enum {ConfigureoptionNULL=0x0u, ConfigureoptionDebugIdx=1, ConfigureoptionDtraceIdx=2, ConfigureoptionFilterIdx=3, ConfigureoptionSoftrecreateIdx=4, ConfigureoptionObjectsystemsIdx=5, ConfigureoptionKeepcmdsIdx=6, ConfigureoptionCheckresultsIdx=7, ConfigureoptionCheckargumentsIdx=8} ConfigureoptionIdx_t;
+const  Nsf_ObjvTable Nsf_Configureoption[] = {
+    {"debug", 1},
+    {"dtrace", 2},
+    {"filter", 3},
+    {"softrecreate", 4},
+    {"objectsystems", 5},
+    {"keepcmds", 6},
+    {"checkresults", 7},
+    {"checkarguments", 8},
+    {NULL, 0u}
+  };
 static int ConvertToConfigureoption(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
-			    ClientData *clientData, Tcl_Obj **outObjPtr) {
-  int pos, result;
+                            ClientData *clientData, Tcl_Obj **outObjPtr) {
+  int pos=0, result;
   
   (void)pPtr;
-  result = Tcl_GetIndexFromObj(interp, objPtr, Nsf_Configureoption, "configureoption", 0, &pos);
-  *clientData = (ClientData) INT2PTR(pos + 1);
+  result = Tcl_GetIndexFromObjStruct(interp, objPtr, Nsf_Configureoption, sizeof(Nsf_ObjvTable), "configureoption", 0, &pos);
+  *clientData = (ClientData) INT2PTR(Nsf_Configureoption[pos].value);
   *outObjPtr = objPtr;
   return result;
 }
   
-typedef enum {CurrentoptionNULL, CurrentoptionActivelevelIdx, CurrentoptionActivemixinIdx, CurrentoptionArgsIdx, CurrentoptionCalledclassIdx, CurrentoptionCalledmethodIdx, CurrentoptionCalledprocIdx, CurrentoptionCallingclassIdx, CurrentoptionCallinglevelIdx, CurrentoptionCallingmethodIdx, CurrentoptionCallingobjectIdx, CurrentoptionCallingprocIdx, CurrentoptionClassIdx, CurrentoptionFilterregIdx, CurrentoptionIsnextcallIdx, CurrentoptionLevelIdx, CurrentoptionMethodpathIdx, CurrentoptionMethodIdx, CurrentoptionNextmethodIdx, CurrentoptionObjectIdx, CurrentoptionProcIdx} CurrentoptionIdx_t;
+typedef enum {CurrentoptionNULL=0x0u, CurrentoptionActivelevelIdx=1, CurrentoptionActivemixinIdx=2, CurrentoptionArgsIdx=3, CurrentoptionCalledclassIdx=4, CurrentoptionCalledmethodIdx=5, CurrentoptionCalledprocIdx=6, CurrentoptionCallingclassIdx=7, CurrentoptionCallinglevelIdx=8, CurrentoptionCallingmethodIdx=9, CurrentoptionCallingobjectIdx=10, CurrentoptionCallingprocIdx=11, CurrentoptionClassIdx=12, CurrentoptionFilterregIdx=13, CurrentoptionIsnextcallIdx=14, CurrentoptionLevelIdx=15, CurrentoptionMethodpathIdx=16, CurrentoptionMethodIdx=17, CurrentoptionNextmethodIdx=18, CurrentoptionObjectIdx=19, CurrentoptionProcIdx=20} CurrentoptionIdx_t;
 
 static int ConvertToCurrentoption(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
-			    ClientData *clientData, Tcl_Obj **outObjPtr) {
-  int pos, result;
-  static const char *opts[] = {"activelevel", "activemixin", "args", "calledclass", "calledmethod", "calledproc", "callingclass", "callinglevel", "callingmethod", "callingobject", "callingproc", "class", "filterreg", "isnextcall", "level", "methodpath", "method", "nextmethod", "object", "proc", NULL};
+                            ClientData *clientData, Tcl_Obj **outObjPtr) {
+  int pos=0, result;
+  static const  Nsf_ObjvTable opts[] = {
+    {"activelevel", 1},
+    {"activemixin", 2},
+    {"args", 3},
+    {"calledclass", 4},
+    {"calledmethod", 5},
+    {"calledproc", 6},
+    {"callingclass", 7},
+    {"callinglevel", 8},
+    {"callingmethod", 9},
+    {"callingobject", 10},
+    {"callingproc", 11},
+    {"class", 12},
+    {"filterreg", 13},
+    {"isnextcall", 14},
+    {"level", 15},
+    {"methodpath", 16},
+    {"method", 17},
+    {"nextmethod", 18},
+    {"object", 19},
+    {"proc", 20},
+    {NULL, 0u}
+  };
   (void)pPtr;
-  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "currentoption", 0, &pos);
-  *clientData = (ClientData) INT2PTR(pos + 1);
+  result = Tcl_GetIndexFromObjStruct(interp, objPtr, opts, sizeof(Nsf_ObjvTable), "currentoption", 0, &pos);
+  *clientData = (ClientData) INT2PTR(opts[pos].value);
   *outObjPtr = objPtr;
   return result;
 }
   
-typedef enum {FrameNULL, FrameMethodIdx, FrameObjectIdx, FrameDefaultIdx} FrameIdx_t;
+typedef enum {FrameNULL=0x0u, FrameMethodIdx=1, FrameObjectIdx=2, FrameDefaultIdx=3} FrameIdx_t;
 
 static int ConvertToFrame(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
-			    ClientData *clientData, Tcl_Obj **outObjPtr) {
-  int pos, result;
-  static const char *opts[] = {"method", "object", "default", NULL};
+                            ClientData *clientData, Tcl_Obj **outObjPtr) {
+  int pos=0, result;
+  static const  Nsf_ObjvTable opts[] = {
+    {"method", 1},
+    {"object", 2},
+    {"default", 3},
+    {NULL, 0u}
+  };
   (void)pPtr;
-  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "frame", 0, &pos);
-  *clientData = (ClientData) INT2PTR(pos + 1);
+  result = Tcl_GetIndexFromObjStruct(interp, objPtr, opts, sizeof(Nsf_ObjvTable), "frame", 0, &pos);
+  *clientData = (ClientData) INT2PTR(opts[pos].value);
   *outObjPtr = objPtr;
   return result;
 }
   
-typedef enum {ForwardpropertyNULL, ForwardpropertyPrefixIdx, ForwardpropertyTargetIdx, ForwardpropertyVerboseIdx} ForwardpropertyIdx_t;
+typedef enum {ForwardpropertyNULL=0x0u, ForwardpropertyPrefixIdx=1, ForwardpropertyTargetIdx=2, ForwardpropertyVerboseIdx=3} ForwardpropertyIdx_t;
 
 static int ConvertToForwardproperty(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
-			    ClientData *clientData, Tcl_Obj **outObjPtr) {
-  int pos, result;
-  static const char *opts[] = {"prefix", "target", "verbose", NULL};
+                            ClientData *clientData, Tcl_Obj **outObjPtr) {
+  int pos=0, result;
+  static const  Nsf_ObjvTable opts[] = {
+    {"prefix", 1},
+    {"target", 2},
+    {"verbose", 3},
+    {NULL, 0u}
+  };
   (void)pPtr;
-  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "forwardProperty", 0, &pos);
-  *clientData = (ClientData) INT2PTR(pos + 1);
+  result = Tcl_GetIndexFromObjStruct(interp, objPtr, opts, sizeof(Nsf_ObjvTable), "forwardProperty", 0, &pos);
+  *clientData = (ClientData) INT2PTR(opts[pos].value);
   *outObjPtr = objPtr;
   return result;
 }
   
-typedef enum {ProtectionNULL, ProtectionCall_protectedIdx, ProtectionRedefine_protectedIdx, ProtectionNoneIdx} ProtectionIdx_t;
+typedef enum {ProtectionNULL=0x0u, ProtectionCall_protectedIdx=1, ProtectionRedefine_protectedIdx=2, ProtectionNoneIdx=3} ProtectionIdx_t;
 
 static int ConvertToProtection(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
-			    ClientData *clientData, Tcl_Obj **outObjPtr) {
-  int pos, result;
-  static const char *opts[] = {"call-protected", "redefine-protected", "none", NULL};
+                            ClientData *clientData, Tcl_Obj **outObjPtr) {
+  int pos=0, result;
+  static const  Nsf_ObjvTable opts[] = {
+    {"call-protected", 1},
+    {"redefine-protected", 2},
+    {"none", 3},
+    {NULL, 0u}
+  };
   (void)pPtr;
-  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "protection", 0, &pos);
-  *clientData = (ClientData) INT2PTR(pos + 1);
+  result = Tcl_GetIndexFromObjStruct(interp, objPtr, opts, sizeof(Nsf_ObjvTable), "protection", 0, &pos);
+  *clientData = (ClientData) INT2PTR(opts[pos].value);
   *outObjPtr = objPtr;
   return result;
 }
   
-typedef enum {AssertionsubcmdNULL, AssertionsubcmdCheckIdx, AssertionsubcmdObject_invarIdx, AssertionsubcmdClass_invarIdx} AssertionsubcmdIdx_t;
+typedef enum {AssertionsubcmdNULL=0x0u, AssertionsubcmdCheckIdx=1, AssertionsubcmdObject_invarIdx=2, AssertionsubcmdClass_invarIdx=3} AssertionsubcmdIdx_t;
 
 static int ConvertToAssertionsubcmd(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
-			    ClientData *clientData, Tcl_Obj **outObjPtr) {
-  int pos, result;
-  static const char *opts[] = {"check", "object-invar", "class-invar", NULL};
+                            ClientData *clientData, Tcl_Obj **outObjPtr) {
+  int pos=0, result;
+  static const  Nsf_ObjvTable opts[] = {
+    {"check", 1},
+    {"object-invar", 2},
+    {"class-invar", 3},
+    {NULL, 0u}
+  };
   (void)pPtr;
-  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "assertionsubcmd", 0, &pos);
-  *clientData = (ClientData) INT2PTR(pos + 1);
+  result = Tcl_GetIndexFromObjStruct(interp, objPtr, opts, sizeof(Nsf_ObjvTable), "assertionsubcmd", 0, &pos);
+  *clientData = (ClientData) INT2PTR(opts[pos].value);
   *outObjPtr = objPtr;
   return result;
 }
   
-typedef enum {MethodpropertyNULL, MethodpropertyClass_onlyIdx, MethodpropertyCall_privateIdx, MethodpropertyCall_protectedIdx, MethodpropertyDebugIdx, MethodpropertyDeprecatedIdx, MethodpropertyExistsIdx, MethodpropertyRedefine_protectedIdx, MethodpropertyReturnsIdx} MethodpropertyIdx_t;
+typedef enum {MethodpropertyNULL=0x0u, MethodpropertyClass_onlyIdx=1, MethodpropertyCall_privateIdx=2, MethodpropertyCall_protectedIdx=3, MethodpropertyDebugIdx=4, MethodpropertyDeprecatedIdx=5, MethodpropertyExistsIdx=6, MethodpropertyRedefine_protectedIdx=7, MethodpropertyReturnsIdx=8} MethodpropertyIdx_t;
 
 static int ConvertToMethodproperty(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
-			    ClientData *clientData, Tcl_Obj **outObjPtr) {
-  int pos, result;
-  static const char *opts[] = {"class-only", "call-private", "call-protected", "debug", "deprecated", "exists", "redefine-protected", "returns", NULL};
+                            ClientData *clientData, Tcl_Obj **outObjPtr) {
+  int pos=0, result;
+  static const  Nsf_ObjvTable opts[] = {
+    {"class-only", 1},
+    {"call-private", 2},
+    {"call-protected", 3},
+    {"debug", 4},
+    {"deprecated", 5},
+    {"exists", 6},
+    {"redefine-protected", 7},
+    {"returns", 8},
+    {NULL, 0u}
+  };
   (void)pPtr;
-  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "methodProperty", 0, &pos);
-  *clientData = (ClientData) INT2PTR(pos + 1);
+  result = Tcl_GetIndexFromObjStruct(interp, objPtr, opts, sizeof(Nsf_ObjvTable), "methodProperty", 0, &pos);
+  *clientData = (ClientData) INT2PTR(opts[pos].value);
   *outObjPtr = objPtr;
   return result;
 }
   
-typedef enum {ObjectpropertyNULL, ObjectpropertyInitializedIdx, ObjectpropertyClassIdx, ObjectpropertyRootmetaclassIdx, ObjectpropertyRootclassIdx, ObjectpropertyVolatileIdx, ObjectpropertyAutonamedIdx, ObjectpropertySlotcontainerIdx, ObjectpropertyHasperobjectslotsIdx, ObjectpropertyKeepcallerselfIdx, ObjectpropertyPerobjectdispatchIdx} ObjectpropertyIdx_t;
+typedef enum {ObjectpropertyNULL=0x0u, ObjectpropertyInitializedIdx=1, ObjectpropertyClassIdx=2, ObjectpropertyRootmetaclassIdx=3, ObjectpropertyRootclassIdx=4, ObjectpropertyVolatileIdx=5, ObjectpropertyAutonamedIdx=6, ObjectpropertySlotcontainerIdx=7, ObjectpropertyHasperobjectslotsIdx=8, ObjectpropertyKeepcallerselfIdx=9, ObjectpropertyPerobjectdispatchIdx=10} ObjectpropertyIdx_t;
 
 static int ConvertToObjectproperty(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
-			    ClientData *clientData, Tcl_Obj **outObjPtr) {
-  int pos, result;
-  static const char *opts[] = {"initialized", "class", "rootmetaclass", "rootclass", "volatile", "autonamed", "slotcontainer", "hasperobjectslots", "keepcallerself", "perobjectdispatch", NULL};
+                            ClientData *clientData, Tcl_Obj **outObjPtr) {
+  int pos=0, result;
+  static const  Nsf_ObjvTable opts[] = {
+    {"initialized", 1},
+    {"class", 2},
+    {"rootmetaclass", 3},
+    {"rootclass", 4},
+    {"volatile", 5},
+    {"autonamed", 6},
+    {"slotcontainer", 7},
+    {"hasperobjectslots", 8},
+    {"keepcallerself", 9},
+    {"perobjectdispatch", 10},
+    {NULL, 0u}
+  };
   (void)pPtr;
-  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "objectProperty", 0, &pos);
-  *clientData = (ClientData) INT2PTR(pos + 1);
+  result = Tcl_GetIndexFromObjStruct(interp, objPtr, opts, sizeof(Nsf_ObjvTable), "objectProperty", 0, &pos);
+  *clientData = (ClientData) INT2PTR(opts[pos].value);
   *outObjPtr = objPtr;
   return result;
 }
   
-typedef enum {ParametersubcmdNULL, ParametersubcmdDefaultIdx, ParametersubcmdListIdx, ParametersubcmdNameIdx, ParametersubcmdSyntaxIdx, ParametersubcmdTypeIdx} ParametersubcmdIdx_t;
+typedef enum {ParametersubcmdNULL=0x0u, ParametersubcmdDefaultIdx=1, ParametersubcmdListIdx=2, ParametersubcmdNameIdx=3, ParametersubcmdSyntaxIdx=4, ParametersubcmdTypeIdx=5} ParametersubcmdIdx_t;
 
 static int ConvertToParametersubcmd(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
-			    ClientData *clientData, Tcl_Obj **outObjPtr) {
-  int pos, result;
-  static const char *opts[] = {"default", "list", "name", "syntax", "type", NULL};
+                            ClientData *clientData, Tcl_Obj **outObjPtr) {
+  int pos=0, result;
+  static const  Nsf_ObjvTable opts[] = {
+    {"default", 1},
+    {"list", 2},
+    {"name", 3},
+    {"syntax", 4},
+    {"type", 5},
+    {NULL, 0u}
+  };
   (void)pPtr;
-  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "parametersubcmd", 0, &pos);
-  *clientData = (ClientData) INT2PTR(pos + 1);
+  result = Tcl_GetIndexFromObjStruct(interp, objPtr, opts, sizeof(Nsf_ObjvTable), "parametersubcmd", 0, &pos);
+  *clientData = (ClientData) INT2PTR(opts[pos].value);
   *outObjPtr = objPtr;
   return result;
 }
   
-typedef enum {RelationtypeNULL, RelationtypeObject_mixinIdx, RelationtypeClass_mixinIdx, RelationtypeObject_filterIdx, RelationtypeClass_filterIdx, RelationtypeClassIdx, RelationtypeSuperclassIdx, RelationtypeRootclassIdx} RelationtypeIdx_t;
+typedef enum {RelationtypeNULL=0x0u, RelationtypeObject_mixinIdx=1, RelationtypeClass_mixinIdx=2, RelationtypeObject_filterIdx=3, RelationtypeClass_filterIdx=4, RelationtypeClassIdx=5, RelationtypeSuperclassIdx=6, RelationtypeRootclassIdx=7} RelationtypeIdx_t;
 
 static int ConvertToRelationtype(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
-			    ClientData *clientData, Tcl_Obj **outObjPtr) {
-  int pos, result;
-  static const char *opts[] = {"object-mixin", "class-mixin", "object-filter", "class-filter", "class", "superclass", "rootclass", NULL};
+                            ClientData *clientData, Tcl_Obj **outObjPtr) {
+  int pos=0, result;
+  static const  Nsf_ObjvTable opts[] = {
+    {"object-mixin", 1},
+    {"class-mixin", 2},
+    {"object-filter", 3},
+    {"class-filter", 4},
+    {"class", 5},
+    {"superclass", 6},
+    {"rootclass", 7},
+    {NULL, 0u}
+  };
   (void)pPtr;
-  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "relationtype", 0, &pos);
-  *clientData = (ClientData) INT2PTR(pos + 1);
+  result = Tcl_GetIndexFromObjStruct(interp, objPtr, opts, sizeof(Nsf_ObjvTable), "relationtype", 0, &pos);
+  *clientData = (ClientData) INT2PTR(opts[pos].value);
   *outObjPtr = objPtr;
   return result;
 }
@@ -910,9 +1043,9 @@ NsfCAllocMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
     
 
       if (objc != 2) {
-	return NsfArgumentError(interp, "wrong # of arguments:",
-			     method_definitions[NsfCAllocMethodIdx].paramDefs,
-			     NULL, objv[0]);
+        return NsfArgumentError(interp, "wrong # of arguments:",
+                             method_definitions[NsfCAllocMethodIdx].paramDefs,
+                             NULL, objv[0]);
       }
     
     return NsfCAllocMethod(interp, class, objv[1]);
@@ -962,9 +1095,9 @@ NsfCDeallocMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
     
 
       if (objc != 2) {
-	return NsfArgumentError(interp, "wrong # of arguments:",
-			     method_definitions[NsfCDeallocMethodIdx].paramDefs,
-			     NULL, objv[0]);
+        return NsfArgumentError(interp, "wrong # of arguments:",
+                             method_definitions[NsfCDeallocMethodIdx].paramDefs,
+                             NULL, objv[0]);
       }
     
     return NsfCDeallocMethod(interp, class, objv[1]);
@@ -1015,9 +1148,9 @@ NsfCGetCachendParametersMethodStub(ClientData clientData, Tcl_Interp *interp, in
     
 
       if (unlikely(objc != 1)) {
-	return NsfArgumentError(interp, "too many arguments:",
-			     method_definitions[NsfCGetCachendParametersMethodIdx].paramDefs,
-			     NULL, objv[0]);
+        return NsfArgumentError(interp, "too many arguments:",
+                             method_definitions[NsfCGetCachendParametersMethodIdx].paramDefs,
+                             NULL, objv[0]);
       }
     
     return NsfCGetCachendParametersMethod(interp, class);
@@ -1124,9 +1257,9 @@ NsfCSuperclassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
     
 
       if (objc < 1 || objc > 2) {
-	return NsfArgumentError(interp, "wrong # of arguments:",
-			     method_definitions[NsfCSuperclassMethodIdx].paramDefs,
-			     NULL, objv[0]);
+        return NsfArgumentError(interp, "wrong # of arguments:",
+                             method_definitions[NsfCSuperclassMethodIdx].paramDefs,
+                             NULL, objv[0]);
       }
     
     return NsfCSuperclassMethod(interp, class, objc == 2 ? objv[1] : NULL);
@@ -1671,9 +1804,9 @@ NsfCallgrindStartInstrumentationCmdStub(ClientData clientData, Tcl_Interp *inter
     
 
       if (unlikely(objc != 1)) {
-	return NsfArgumentError(interp, "too many arguments:",
-			     method_definitions[NsfCallgrindStartInstrumentationCmdIdx].paramDefs,
-			     NULL, objv[0]);
+        return NsfArgumentError(interp, "too many arguments:",
+                             method_definitions[NsfCallgrindStartInstrumentationCmdIdx].paramDefs,
+                             NULL, objv[0]);
       }
     
     return NsfCallgrindStartInstrumentationCmd(interp);
@@ -1687,9 +1820,9 @@ NsfCallgrindStopInstrumentationCmdStub(ClientData clientData, Tcl_Interp *interp
     
 
       if (unlikely(objc != 1)) {
-	return NsfArgumentError(interp, "too many arguments:",
-			     method_definitions[NsfCallgrindStopInstrumentationCmdIdx].paramDefs,
-			     NULL, objv[0]);
+        return NsfArgumentError(interp, "too many arguments:",
+                             method_definitions[NsfCallgrindStopInstrumentationCmdIdx].paramDefs,
+                             NULL, objv[0]);
       }
     
     return NsfCallgrindStopInstrumentationCmd(interp);
@@ -1703,9 +1836,9 @@ NsfCallgrindToggleCollectCmdStub(ClientData clientData, Tcl_Interp *interp, int 
     
 
       if (unlikely(objc != 1)) {
-	return NsfArgumentError(interp, "too many arguments:",
-			     method_definitions[NsfCallgrindToggleCollectCmdIdx].paramDefs,
-			     NULL, objv[0]);
+        return NsfArgumentError(interp, "too many arguments:",
+                             method_definitions[NsfCallgrindToggleCollectCmdIdx].paramDefs,
+                             NULL, objv[0]);
       }
     
     return NsfCallgrindToggleCollectCmd(interp);
@@ -1719,9 +1852,9 @@ NsfCallgrindZeroStatsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc
     
 
       if (unlikely(objc != 1)) {
-	return NsfArgumentError(interp, "too many arguments:",
-			     method_definitions[NsfCallgrindZeroStatsCmdIdx].paramDefs,
-			     NULL, objv[0]);
+        return NsfArgumentError(interp, "too many arguments:",
+                             method_definitions[NsfCallgrindZeroStatsCmdIdx].paramDefs,
+                             NULL, objv[0]);
       }
     
     return NsfCallgrindZeroStatsCmd(interp);
@@ -1809,9 +1942,9 @@ NsfDebugCompileEpochStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
     
 
       if (unlikely(objc != 1)) {
-	return NsfArgumentError(interp, "too many arguments:",
-			     method_definitions[NsfDebugCompileEpochIdx].paramDefs,
-			     NULL, objv[0]);
+        return NsfArgumentError(interp, "too many arguments:",
+                             method_definitions[NsfDebugCompileEpochIdx].paramDefs,
+                             NULL, objv[0]);
       }
     
     return NsfDebugCompileEpoch(interp);
@@ -1825,9 +1958,9 @@ NsfDebugGetDictStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
     
 
       if (objc != 2) {
-	return NsfArgumentError(interp, "wrong # of arguments:",
-			     method_definitions[NsfDebugGetDictIdx].paramDefs,
-			     NULL, objv[0]);
+        return NsfArgumentError(interp, "wrong # of arguments:",
+                             method_definitions[NsfDebugGetDictIdx].paramDefs,
+                             NULL, objv[0]);
       }
     
     return NsfDebugGetDict(interp, objv[1]);
@@ -1841,9 +1974,9 @@ NsfDebugRunAssertionsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc
     
 
       if (unlikely(objc != 1)) {
-	return NsfArgumentError(interp, "too many arguments:",
-			     method_definitions[NsfDebugRunAssertionsCmdIdx].paramDefs,
-			     NULL, objv[0]);
+        return NsfArgumentError(interp, "too many arguments:",
+                             method_definitions[NsfDebugRunAssertionsCmdIdx].paramDefs,
+                             NULL, objv[0]);
       }
     
     return NsfDebugRunAssertionsCmd(interp);
@@ -1857,9 +1990,9 @@ NsfDebugShowObjStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
     
 
       if (objc != 2) {
-	return NsfArgumentError(interp, "wrong # of arguments:",
-			     method_definitions[NsfDebugShowObjIdx].paramDefs,
-			     NULL, objv[0]);
+        return NsfArgumentError(interp, "wrong # of arguments:",
+                             method_definitions[NsfDebugShowObjIdx].paramDefs,
+                             NULL, objv[0]);
       }
     
     return NsfDebugShowObj(interp, objv[1]);
@@ -1873,9 +2006,9 @@ NsfDefinitionNamespaceCmdStub(ClientData clientData, Tcl_Interp *interp, int obj
     
 
       if (unlikely(objc != 1)) {
-	return NsfArgumentError(interp, "too many arguments:",
-			     method_definitions[NsfDefinitionNamespaceCmdIdx].paramDefs,
-			     NULL, objv[0]);
+        return NsfArgumentError(interp, "too many arguments:",
+                             method_definitions[NsfDefinitionNamespaceCmdIdx].paramDefs,
+                             NULL, objv[0]);
       }
     
     return NsfDefinitionNamespaceCmd(interp);
@@ -2173,9 +2306,9 @@ NsfMethodRegisteredCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, 
     
 
       if (objc != 2) {
-	return NsfArgumentError(interp, "wrong # of arguments:",
-			     method_definitions[NsfMethodRegisteredCmdIdx].paramDefs,
-			     NULL, objv[0]);
+        return NsfArgumentError(interp, "wrong # of arguments:",
+                             method_definitions[NsfMethodRegisteredCmdIdx].paramDefs,
+                             NULL, objv[0]);
       }
     
     return NsfMethodRegisteredCmd(interp, objv[1]);
@@ -2255,9 +2388,9 @@ NsfNextCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *con
     
 
       if (objc < 1 || objc > 2) {
-	return NsfArgumentError(interp, "wrong # of arguments:",
-			     method_definitions[NsfNextCmdIdx].paramDefs,
-			     NULL, objv[0]);
+        return NsfArgumentError(interp, "wrong # of arguments:",
+                             method_definitions[NsfNextCmdIdx].paramDefs,
+                             NULL, objv[0]);
       }
     
     return NsfNextCmd(interp, objc == 2 ? objv[1] : NULL);
@@ -2293,9 +2426,9 @@ NsfObjectExistsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
     
 
       if (objc != 2) {
-	return NsfArgumentError(interp, "wrong # of arguments:",
-			     method_definitions[NsfObjectExistsCmdIdx].paramDefs,
-			     NULL, objv[0]);
+        return NsfArgumentError(interp, "wrong # of arguments:",
+                             method_definitions[NsfObjectExistsCmdIdx].paramDefs,
+                             NULL, objv[0]);
       }
     
     return NsfObjectExistsCmd(interp, objv[1]);
@@ -2331,9 +2464,9 @@ NsfObjectQualifyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
     
 
       if (objc != 2) {
-	return NsfArgumentError(interp, "wrong # of arguments:",
-			     method_definitions[NsfObjectQualifyCmdIdx].paramDefs,
-			     NULL, objv[0]);
+        return NsfArgumentError(interp, "wrong # of arguments:",
+                             method_definitions[NsfObjectQualifyCmdIdx].paramDefs,
+                             NULL, objv[0]);
       }
     
     return NsfObjectQualifyCmd(interp, objv[1]);
@@ -2500,9 +2633,9 @@ NsfProfileClearDataStubStub(ClientData clientData, Tcl_Interp *interp, int objc,
     
 
       if (unlikely(objc != 1)) {
-	return NsfArgumentError(interp, "too many arguments:",
-			     method_definitions[NsfProfileClearDataStubIdx].paramDefs,
-			     NULL, objv[0]);
+        return NsfArgumentError(interp, "too many arguments:",
+                             method_definitions[NsfProfileClearDataStubIdx].paramDefs,
+                             NULL, objv[0]);
       }
     
     return NsfProfileClearDataStub(interp);
@@ -2516,9 +2649,9 @@ NsfProfileGetDataStubStub(ClientData clientData, Tcl_Interp *interp, int objc, T
     
 
       if (unlikely(objc != 1)) {
-	return NsfArgumentError(interp, "too many arguments:",
-			     method_definitions[NsfProfileGetDataStubIdx].paramDefs,
-			     NULL, objv[0]);
+        return NsfArgumentError(interp, "too many arguments:",
+                             method_definitions[NsfProfileGetDataStubIdx].paramDefs,
+                             NULL, objv[0]);
       }
     
     return NsfProfileGetDataStub(interp);
@@ -2598,9 +2731,9 @@ NsfSelfCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *con
     
 
       if (unlikely(objc != 1)) {
-	return NsfArgumentError(interp, "too many arguments:",
-			     method_definitions[NsfSelfCmdIdx].paramDefs,
-			     NULL, objv[0]);
+        return NsfArgumentError(interp, "too many arguments:",
+                             method_definitions[NsfSelfCmdIdx].paramDefs,
+                             NULL, objv[0]);
       }
     
     return NsfSelfCmd(interp);
@@ -2614,9 +2747,9 @@ NsfShowStackCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
     
 
       if (unlikely(objc != 1)) {
-	return NsfArgumentError(interp, "too many arguments:",
-			     method_definitions[NsfShowStackCmdIdx].paramDefs,
-			     NULL, objv[0]);
+        return NsfArgumentError(interp, "too many arguments:",
+                             method_definitions[NsfShowStackCmdIdx].paramDefs,
+                             NULL, objv[0]);
       }
     
     return NsfShowStackCmd(interp);
@@ -2630,9 +2763,9 @@ NsfUnsetUnknownArgsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, 
     
 
       if (unlikely(objc != 1)) {
-	return NsfArgumentError(interp, "too many arguments:",
-			     method_definitions[NsfUnsetUnknownArgsCmdIdx].paramDefs,
-			     NULL, objv[0]);
+        return NsfArgumentError(interp, "too many arguments:",
+                             method_definitions[NsfUnsetUnknownArgsCmdIdx].paramDefs,
+                             NULL, objv[0]);
       }
     
     return NsfUnsetUnknownArgsCmd(interp);
@@ -2787,9 +2920,9 @@ NsfOCgetMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
     
 
       if (objc != 2) {
-	return NsfArgumentError(interp, "wrong # of arguments:",
-			     method_definitions[NsfOCgetMethodIdx].paramDefs,
-			     NULL, objv[0]);
+        return NsfArgumentError(interp, "wrong # of arguments:",
+                             method_definitions[NsfOCgetMethodIdx].paramDefs,
+                             NULL, objv[0]);
       }
     
     return NsfOCgetMethod(interp, object, objv[1]);
@@ -2807,9 +2940,9 @@ NsfOClassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
     
 
       if (objc < 1 || objc > 2) {
-	return NsfArgumentError(interp, "wrong # of arguments:",
-			     method_definitions[NsfOClassMethodIdx].paramDefs,
-			     NULL, objv[0]);
+        return NsfArgumentError(interp, "wrong # of arguments:",
+                             method_definitions[NsfOClassMethodIdx].paramDefs,
+                             NULL, objv[0]);
       }
     
     return NsfOClassMethod(interp, object, objc == 2 ? objv[1] : NULL);
@@ -2827,9 +2960,9 @@ NsfOCleanupMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
     
 
       if (unlikely(objc != 1)) {
-	return NsfArgumentError(interp, "too many arguments:",
-			     method_definitions[NsfOCleanupMethodIdx].paramDefs,
-			     NULL, objv[0]);
+        return NsfArgumentError(interp, "too many arguments:",
+                             method_definitions[NsfOCleanupMethodIdx].paramDefs,
+                             NULL, objv[0]);
       }
     
     return NsfOCleanupMethod(interp, object);
@@ -2871,9 +3004,9 @@ NsfODestroyMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
     
 
       if (unlikely(objc != 1)) {
-	return NsfArgumentError(interp, "too many arguments:",
-			     method_definitions[NsfODestroyMethodIdx].paramDefs,
-			     NULL, objv[0]);
+        return NsfArgumentError(interp, "too many arguments:",
+                             method_definitions[NsfODestroyMethodIdx].paramDefs,
+                             NULL, objv[0]);
       }
     
     return NsfODestroyMethod(interp, object);
@@ -2989,9 +3122,9 @@ NsfONoinitMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
     
 
       if (unlikely(objc != 1)) {
-	return NsfArgumentError(interp, "too many arguments:",
-			     method_definitions[NsfONoinitMethodIdx].paramDefs,
-			     NULL, objv[0]);
+        return NsfArgumentError(interp, "too many arguments:",
+                             method_definitions[NsfONoinitMethodIdx].paramDefs,
+                             NULL, objv[0]);
       }
     
     return NsfONoinitMethod(interp, object);
@@ -3009,9 +3142,9 @@ NsfORequireNamespaceMethodStub(ClientData clientData, Tcl_Interp *interp, int ob
     
 
       if (unlikely(objc != 1)) {
-	return NsfArgumentError(interp, "too many arguments:",
-			     method_definitions[NsfORequireNamespaceMethodIdx].paramDefs,
-			     NULL, objv[0]);
+        return NsfArgumentError(interp, "too many arguments:",
+                             method_definitions[NsfORequireNamespaceMethodIdx].paramDefs,
+                             NULL, objv[0]);
       }
     
     return NsfORequireNamespaceMethod(interp, object);
@@ -3101,9 +3234,9 @@ NsfOVolatile1MethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
     
 
       if (unlikely(objc != 1)) {
-	return NsfArgumentError(interp, "too many arguments:",
-			     method_definitions[NsfOVolatile1MethodIdx].paramDefs,
-			     NULL, objv[0]);
+        return NsfArgumentError(interp, "too many arguments:",
+                             method_definitions[NsfOVolatile1MethodIdx].paramDefs,
+                             NULL, objv[0]);
       }
     
     return NsfOVolatile1Method(interp, object);
@@ -3121,9 +3254,9 @@ NsfOVolatileMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
     
 
       if (unlikely(objc != 1)) {
-	return NsfArgumentError(interp, "too many arguments:",
-			     method_definitions[NsfOVolatileMethodIdx].paramDefs,
-			     NULL, objv[0]);
+        return NsfArgumentError(interp, "too many arguments:",
+                             method_definitions[NsfOVolatileMethodIdx].paramDefs,
+                             NULL, objv[0]);
       }
     
     return NsfOVolatileMethod(interp, object);
@@ -3141,9 +3274,9 @@ NsfObjInfoBaseclassMethodStub(ClientData clientData, Tcl_Interp *interp, int obj
     
 
       if (unlikely(objc != 1)) {
-	return NsfArgumentError(interp, "too many arguments:",
-			     method_definitions[NsfObjInfoBaseclassMethodIdx].paramDefs,
-			     NULL, objv[0]);
+        return NsfArgumentError(interp, "too many arguments:",
+                             method_definitions[NsfObjInfoBaseclassMethodIdx].paramDefs,
+                             NULL, objv[0]);
       }
     
     return NsfObjInfoBaseclassMethod(interp, object);
@@ -3186,9 +3319,9 @@ NsfObjInfoClassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, T
     
 
       if (unlikely(objc != 1)) {
-	return NsfArgumentError(interp, "too many arguments:",
-			     method_definitions[NsfObjInfoClassMethodIdx].paramDefs,
-			     NULL, objv[0]);
+        return NsfArgumentError(interp, "too many arguments:",
+                             method_definitions[NsfObjInfoClassMethodIdx].paramDefs,
+                             NULL, objv[0]);
       }
     
     return NsfObjInfoClassMethod(interp, object);
@@ -3328,9 +3461,9 @@ NsfObjInfoHasnamespaceMethodStub(ClientData clientData, Tcl_Interp *interp, int 
     
 
       if (unlikely(objc != 1)) {
-	return NsfArgumentError(interp, "too many arguments:",
-			     method_definitions[NsfObjInfoHasnamespaceMethodIdx].paramDefs,
-			     NULL, objv[0]);
+        return NsfArgumentError(interp, "too many arguments:",
+                             method_definitions[NsfObjInfoHasnamespaceMethodIdx].paramDefs,
+                             NULL, objv[0]);
       }
     
     return NsfObjInfoHasnamespaceMethod(interp, object);
@@ -3397,9 +3530,9 @@ NsfObjInfoLookupMethodMethodStub(ClientData clientData, Tcl_Interp *interp, int 
     
 
       if (objc != 2) {
-	return NsfArgumentError(interp, "wrong # of arguments:",
-			     method_definitions[NsfObjInfoLookupMethodMethodIdx].paramDefs,
-			     NULL, objv[0]);
+        return NsfArgumentError(interp, "wrong # of arguments:",
+                             method_definitions[NsfObjInfoLookupMethodMethodIdx].paramDefs,
+                             NULL, objv[0]);
       }
     
     return NsfObjInfoLookupMethodMethod(interp, object, objv[1]);
@@ -3637,9 +3770,9 @@ NsfObjInfoNameMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
     
 
       if (unlikely(objc != 1)) {
-	return NsfArgumentError(interp, "too many arguments:",
-			     method_definitions[NsfObjInfoNameMethodIdx].paramDefs,
-			     NULL, objv[0]);
+        return NsfArgumentError(interp, "too many arguments:",
+                             method_definitions[NsfObjInfoNameMethodIdx].paramDefs,
+                             NULL, objv[0]);
       }
     
     return NsfObjInfoNameMethod(interp, object);
@@ -3657,9 +3790,9 @@ NsfObjInfoParentMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, 
     
 
       if (unlikely(objc != 1)) {
-	return NsfArgumentError(interp, "too many arguments:",
-			     method_definitions[NsfObjInfoParentMethodIdx].paramDefs,
-			     NULL, objv[0]);
+        return NsfArgumentError(interp, "too many arguments:",
+                             method_definitions[NsfObjInfoParentMethodIdx].paramDefs,
+                             NULL, objv[0]);
       }
     
     return NsfObjInfoParentMethod(interp, object);

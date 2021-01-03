@@ -6,35 +6,35 @@
 
 #if defined(USE_NSF_STUBS)
 int Nsf_ConvertTo_Boolean(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
-			  ClientData *clientData, Tcl_Obj **outObjPtr) {
+                          ClientData *clientData, Tcl_Obj **outObjPtr) {
   return Nsf_ConvertToBoolean(interp, objPtr, pPtr, clientData, outObjPtr);
 }
 int Nsf_ConvertTo_Class(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
-			  ClientData *clientData, Tcl_Obj **outObjPtr) {
+                          ClientData *clientData, Tcl_Obj **outObjPtr) {
   return Nsf_ConvertToClass(interp, objPtr, pPtr, clientData, outObjPtr);
 }
 int Nsf_ConvertTo_Int32(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
-			  ClientData *clientData, Tcl_Obj **outObjPtr) {
+                          ClientData *clientData, Tcl_Obj **outObjPtr) {
   return Nsf_ConvertToInt32(interp, objPtr, pPtr, clientData, outObjPtr);
 }
 int Nsf_ConvertTo_Integer(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
-			  ClientData *clientData, Tcl_Obj **outObjPtr) {
+                          ClientData *clientData, Tcl_Obj **outObjPtr) {
   return Nsf_ConvertToInteger(interp, objPtr, pPtr, clientData, outObjPtr);
 }
 int Nsf_ConvertTo_Object(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
-			  ClientData *clientData, Tcl_Obj **outObjPtr) {
+                          ClientData *clientData, Tcl_Obj **outObjPtr) {
   return Nsf_ConvertToObject(interp, objPtr, pPtr, clientData, outObjPtr);
 }
 int Nsf_ConvertTo_Pointer(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
-			  ClientData *clientData, Tcl_Obj **outObjPtr) {
+                          ClientData *clientData, Tcl_Obj **outObjPtr) {
   return Nsf_ConvertToPointer(interp, objPtr, pPtr, clientData, outObjPtr);
 }
 int Nsf_ConvertTo_String(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
-			  ClientData *clientData, Tcl_Obj **outObjPtr) {
+                          ClientData *clientData, Tcl_Obj **outObjPtr) {
   return Nsf_ConvertToString(interp, objPtr, pPtr, clientData, outObjPtr);
 }
 int Nsf_ConvertTo_Tclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
-			  ClientData *clientData, Tcl_Obj **outObjPtr) {
+                          ClientData *clientData, Tcl_Obj **outObjPtr) {
   return Nsf_ConvertToTclobj(interp, objPtr, pPtr, clientData, outObjPtr);
 }
 #else
@@ -64,15 +64,19 @@ int Nsf_ConvertTo_Tclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *
 
 
 
-typedef enum {GridfilesourceNULL, GridfilesourceFileIdx, GridfilesourceStringIdx} GridfilesourceIdx_t;
+typedef enum {GridfilesourceNULL=0x0u, GridfilesourceFileIdx=1, GridfilesourceStringIdx=2} GridfilesourceIdx_t;
 
 static int ConvertToGridfilesource(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
-			    ClientData *clientData, Tcl_Obj **outObjPtr) {
-  int pos, result;
-  static const char *opts[] = {"file", "string", NULL};
+                            ClientData *clientData, Tcl_Obj **outObjPtr) {
+  int pos=0, result;
+  static const  Nsf_ObjvTable opts[] = {
+    {"file", 1},
+    {"string", 2},
+    {NULL, 0u}
+  };
   (void)pPtr;
-  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "gridfilesource", 0, &pos);
-  *clientData = (ClientData) INT2PTR(pos + 1);
+  result = Tcl_GetIndexFromObjStruct(interp, objPtr, opts, sizeof(Nsf_ObjvTable), "gridfilesource", 0, &pos);
+  *clientData = (ClientData) INT2PTR(opts[pos].value);
   *outObjPtr = objPtr;
   return result;
 }
@@ -642,7 +646,7 @@ NsfMongoGridFileCreateStub(ClientData clientData, Tcl_Interp *interp, int objc, 
                      method_definitions[NsfMongoGridFileCreateIdx].paramDefs,
                      method_definitions[NsfMongoGridFileCreateIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
-    GridfilesourceIdx_t withSource = (GridfilesourceIdx_t )pc.clientData[0];
+    GridfilesourceIdx_t withSource = (GridfilesourceIdx_t )PTR2INT(pc.clientData[0]);
     mongoc_gridfs_t *gfsPtr = (mongoc_gridfs_t *)pc.clientData[1];
     const char *value = (const char *)pc.clientData[2];
     const char *name = (const char *)pc.clientData[3];
@@ -809,9 +813,9 @@ NsfMongoJsonGenerateStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
     
 
       if (objc != 2) {
-	return NsfArgumentError(interp, "wrong # of arguments:",
-			     method_definitions[NsfMongoJsonGenerateIdx].paramDefs,
-			     NULL, objv[0]);
+        return NsfArgumentError(interp, "wrong # of arguments:",
+                             method_definitions[NsfMongoJsonGenerateIdx].paramDefs,
+                             NULL, objv[0]);
       }
     
     return NsfMongoJsonGenerate(interp, objv[1]);
@@ -825,9 +829,9 @@ NsfMongoJsonParseStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
     
 
       if (objc != 2) {
-	return NsfArgumentError(interp, "wrong # of arguments:",
-			     method_definitions[NsfMongoJsonParseIdx].paramDefs,
-			     NULL, objv[0]);
+        return NsfArgumentError(interp, "wrong # of arguments:",
+                             method_definitions[NsfMongoJsonParseIdx].paramDefs,
+                             NULL, objv[0]);
       }
     
     return NsfMongoJsonParse(interp, objv[1]);

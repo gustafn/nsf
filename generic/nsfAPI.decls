@@ -506,10 +506,13 @@ objectInfoMethod lookupfilters NsfObjInfoLookupFiltersMethod {
 objectInfoMethod lookupmethod NsfObjInfoLookupMethodMethod {
   {-argName "name" -required 1 -type tclobj}
 }
+
+set methodType "all=NSF_METHODTYPE_ALL|scripted=NSF_METHODTYPE_SCRIPTED|builtin=NSF_METHODTYPE_BUILTIN|alias=NSF_METHODTYPE_ALIAS|forwarder=NSF_METHODTYPE_FORWARDER|object=NSF_METHODTYPE_OBJECT|setter=NSF_METHODTYPE_SETTER|nsfproc=NSF_METHODTYPE_NSFPROC"
+
 objectInfoMethod lookupmethods NsfObjInfoLookupMethodsMethod {
   {-argName "-callprotection" -typeName "callprotection" -type "all|public|protected|private" -default all}
   {-argName "-incontext" -nrargs 0 -type switch}
-  {-argName "-type" -typeName "methodtype" -type "all|scripted|builtin|alias|forwarder|object|setter|nsfproc"}
+  {-argName "-type" -typeName "methodtype" -type $::methodType}
   {-argName "-nomixins" -nrargs 0 -type switch}
   {-argName "-path" -nrargs 0 -type switch}
   {-argName "-source" -typeName "definitionsource" -type "all|application|system" -default all}
@@ -530,7 +533,7 @@ objectInfoMethod method NsfObjInfoMethodMethod {
 }
 objectInfoMethod methods NsfObjInfoMethodsMethod {
   {-argName "-callprotection" -typeName "callprotection" -type "all|public|protected|private" -default all}
-  {-argName "-type"  -typeName "methodtype" -type "all|scripted|builtin|alias|forwarder|object|setter|nsfproc"}
+  {-argName "-type"  -typeName "methodtype" -type $::methodType}
   {-argName "-path" -nrargs 0 -type switch}
   {-argName "pattern" -required 0}
 }
@@ -588,7 +591,7 @@ classInfoMethod method NsfClassInfoMethodMethod {
 classInfoMethod methods NsfClassInfoMethodsMethod {
   {-argName "-callprotection" -typeName "callprotection" -type "all|public|protected|private" -default all}
   {-argName "-closure" -nrargs 0 -type switch}
-  {-argName "-type" -nrargs 1 -typeName "methodtype" -type "all|scripted|builtin|alias|forwarder|object|setter|nsfproc"}
+  {-argName "-type" -nrargs 1 -typeName "methodtype" -type $::methodType}
   {-argName "-path" -nrargs 0 -type switch}
   {-argName "-source" -nrargs 1 -typeName "definitionsource" -type "all|application|system" -default all}
   {-argName "pattern"}

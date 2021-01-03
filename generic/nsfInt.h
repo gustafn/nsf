@@ -1392,5 +1392,5 @@ char *strnstr(const char *buffer, const char *needle, size_t buffer_len) NSF_pur
 #define NsfCallStackFindLastInvocation(interp, offset, framePtrPtr) \
   NsfCallStackFindCallingContext((interp), (offset), (framePtrPtr), NULL)
 
-EXTERN const char *Nsf_Configureoption[];
+EXTERN const Nsf_ObjvTable Nsf_Configureoption[];
 #endif /* NSF_INCLUDE_nsf_int_h_ */

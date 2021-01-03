@@ -304,6 +304,12 @@ typedef struct {
   const char *domain;
 } Nsf_EnumeratorConverterEntry;
 
+typedef struct Nsf_ObjvTable {
+    const char      *key;
+    unsigned int     value;
+} Nsf_ObjvTable;
+
+
 EXTERN Nsf_TypeConverter Nsf_ConvertToBoolean, Nsf_ConvertToClass,
   Nsf_ConvertToInteger, Nsf_ConvertToInt32,
   Nsf_ConvertToObject, Nsf_ConvertToParameter,
