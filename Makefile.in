@@ -164,7 +164,9 @@ CFLAGS_DEFAULT	= @CFLAGS_DEFAULT@
 # useful for debugging:
 #CFLAGS_DEFAULT	= -pedantic -g -std=c99 -DTCL_NO_DEPRECATED -Wconversion -Wsign-conversion -Wfloat-conversion -Wsign-compare
 CFLAGS_CONVERSION= -Wconversion -Wsign-conversion -Wsign-compare
-CFLAGS_DEFINITION= -Wwrite-strings -Wextra -Wdeclaration-after-statement -Wendif-labels -Wshadow -Wmissing-prototypes -Wstrict-prototypes -Wpacked -Wredundant-decls
+CFLAGS_DEFINITION= -Wwrite-strings -Wextra -Wdeclaration-after-statement -Wendif-labels -Wshadow -Wmissing-prototypes -Wstrict-prototypes -Wpacked -Wno-redundant-decls -Wno-zero-length-array
+# -Wredundant-decls is currently not possible due to stubs interface
+# -Wzero-length-array is currently not possible due to TCLFLEXARRAY in Tcl 8.6.11
 CFLAGS_TIDY      = -Wmissing-braces -Wmissing-declarations -Wundef -Wunreachable-code -Wswitch-enum -Wpointer-arith -Wold-style-definition -Wmissing-format-attribute -Wformat-security
 #CFLAGS_DEFAULT	= -pedantic -g -std=c99 -DTCL_NO_DEPRECATED $(CFLAGS_CONVERSION) $(CFLAGS_DEFINITION) $(CFLAGS_TIDY)
 CFLAGS_WARNING	= @CFLAGS_WARNING@
@@ -320,6 +322,18 @@ libraries: libraries-pkgindex
 cppcheck:
 	$(CPPCHECK) --enable=all generic/*.c $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) \
 		-DNDEBUG=1 -I/usr/include -D__x86_64__
+
+#CLANG_TIDY_CHECKS=-checks=-*,modernize-*,performance-*,portability-*,cert-*
+#CLANG_TIDY_CHECKS=-checks=-*,bugprone-*
+CLANG_TIDY_CHECKS=
+clang-tidy:
+	clang-tidy-mp-11 \
+		generic/nsf.c generic/nsfError.c generic/nsfObjectData.c generic/nsfProfile.c \
+		generic/nsfDebug.c generic/nsfUtil.c generic/nsfObj.c generic/nsfPointer.c \
+		generic/nsfEnumerationType.c generic/nsfCmdDefinitions.c generic/nsfFunPtrHashTable.c \
+		generic/nsfShadow.c generic/nsfCompile.c generic/aolstub.c \
+		$(CLANG_TIDY_CHECKS) -header-filter=.* -- \
+		$(INCLUDES) -I/usr/include $(DEFS)
 
 etags:
 	etags --language=none \
