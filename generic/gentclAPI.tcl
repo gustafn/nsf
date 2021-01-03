@@ -6,7 +6,7 @@
 # handling of input argument types, consistent error messages in case
 # of failures and eases documentation.
 #
-#   Copyright (C) 2009-2014 Gustaf Neumann
+#   Copyright (C) 2009-2021 Gustaf Neumann
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation files
@@ -47,10 +47,19 @@ proc createconverter {type typename isGlobal} {
   if {[info exists ::createdConverter($name)]} {
     return ""
   }
-  set domain [split $type |]
+  set value 0; set values {}; set domain {}; set table {}
+  foreach d [split $type |] {
+    if {![regexp {^(.*)=(.*)$} $d . d v]} {
+      set v [incr value]
+    }
+    lappend values $v
+    lappend domain $d
+    lappend table "{\"$d\", $v}"
+  }
+  lappend table "{NULL, 0u}"
 
   set localOpts [set globalOpts ""]
-  
+
   if {!$isGlobal} {
     set storageClass "static "
     set optsName "opts"
@@ -60,26 +69,29 @@ proc createconverter {type typename isGlobal} {
     set optsName "Nsf_${name}"
     set scope "globalOpts"
   }
-  set $scope "${storageClass}const char *$optsName\[\] = {\"[join $domain {", "}]\", NULL};"
-  set ::createdConverter($name) "ConvertTo${name}, \"$type\""
+  set $scope "${storageClass}const  Nsf_ObjvTable $optsName\[\] = {\n    [join $table ",\n    "]\n  };"
+  set ::createdConverter($name) "ConvertTo${name}, \"[join $domain |]\""
 
-  set enums [list ${name}NULL]
-  foreach d $domain {lappend enums $name[string totitle [string map [list - _] $d]]Idx}
+  # always add NULL entry
+  set enums [list ${name}NULL=0x0u]
+  foreach d $domain v $values {
+    lappend enums $name[string totitle [string map [list - _] $d]]Idx=$v
+  }
   set enums [join $enums {, }]
 
   set bindings [list @enums@ $enums @name@ $name @globalOpts@ $globalOpts \
                     @localOpts@ $localOpts @optsName@ $optsName @typeName@ $typename]
-  
+
   string map $bindings {
 typedef enum {@enums@} @name@Idx_t;
 @globalOpts@
 static int ConvertTo@name@(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param const *pPtr,
-			    ClientData *clientData, Tcl_Obj **outObjPtr) {
-  int pos, result;
+                            ClientData *clientData, Tcl_Obj **outObjPtr) {
+  int pos=0, result;
   @localOpts@
   (void)pPtr;
-  result = Tcl_GetIndexFromObj(interp, objPtr, @optsName@, "@typeName@", 0, &pos);
-  *clientData = (ClientData) INT2PTR(pos + 1);
+  result = Tcl_GetIndexFromObjStruct(interp, objPtr, @optsName@, sizeof(Nsf_ObjvTable), "@typeName@", 0, &pos);
+  *clientData = (ClientData) INT2PTR(@optsName@[pos].value);
   *outObjPtr = objPtr;
   return result;
 }
@@ -95,17 +107,16 @@ proc genifd {parameterDefinitions} {
   #puts stderr $parameterDefinitions
   set l [list]
   foreach parameterDefinition $parameterDefinitions {
-    array unset ""
-    array set "" {-flags 0}
-    array set "" {-global 0}
-    array set "" $parameterDefinition
-    switch $(-type) {
+    set p [dict merge {-flags 0 -global 0} $parameterDefinition]
+    switch [dict get $p -type] {
       "" {set type NULL}
-      default {set type $(-type)}
+      default {set type [dict get $p -type]}
     }
-    set flags $(-flags)
-    if {$(-required)} {addFlags flags "NSF_ARG_REQUIRED"}
-    set argName $(-argName)
+    set flags [dict get $p -flags]
+    if {[dict get $p -required]} {
+      addFlags flags "NSF_ARG_REQUIRED"
+    }
+    set argName [dict get $p -argName]
     switch -glob $type {
       "NULL"       {set converter String}
       "boolean"    {set converter Boolean}
@@ -121,17 +132,19 @@ proc genifd {parameterDefinitions} {
       "virtualclassargs" {set converter Nothing}
       "objpattern" {set converter Objpattern}
       *|* {
-	if {![info exists (-typeName)]} {set (-typeName) $(-argName)}
-        set converter [convertername $type $(-typeName)]
-        append ::converter [createconverter $type $(-typeName) $(-global)]
+        if {![dict exists $p -typeName]} {
+          dict set p -typeName [dict get $p -argName]
+        }
+        set converter [convertername $type [dict get $p -typeName]]
+        append ::converter [createconverter $type [dict get $p -typeName] [dict get $p -global]]
         addFlags flags "NSF_ARG_IS_ENUMERATION"
       }
       default {
-	if {[info exists ::ptrConverter($type)]} {
-	  set converter Pointer
-	} else {
-	  error "unknown type $type"
-	}
+        if {[info exists ::ptrConverter($type)]} {
+          set converter Pointer
+        } else {
+          error "unknown type $type"
+        }
       }
     }
     if {$converter in {Tclobj Integer Int32 Boolean String Class Object Pointer}} {
@@ -139,16 +152,16 @@ proc genifd {parameterDefinitions} {
     } else {
       set conv ConvertTo$converter
     }
-    switch -glob -- $(-type) {
+    switch -glob -- [dict get $p -type] {
       "*|*" -
       "tclobj" -
       "args" -
       "" {set typeString NULL}
       default {
-	set typeString "\"$(-type)\""
+        set typeString "\"[dict get $p -type]\""
       }
     }
-    lappend l "{\"$argName\", $flags, $(-nrargs), $conv, NULL,NULL,$typeString,NULL,NULL,NULL,NULL,NULL}"
+    lappend l "{\"$argName\", $flags, [dict get $p -nrargs], $conv, NULL,NULL,$typeString,NULL,NULL,NULL,NULL,NULL}"
   }
   if {[llength $l] == 0} {
     return "{NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}"
@@ -174,8 +187,8 @@ proc varName {type name} {
 
 
 proc gencall {methodName fn parameterDefinitions clientData
-	      cDefsVar ifDefVar arglistVar preVar postVar introVar nnVar cleanupVar
-	    } {
+              cDefsVar ifDefVar arglistVar preVar postVar introVar nnVar cleanupVar
+            } {
   upvar $cDefsVar cDefs $ifDefVar ifDef $arglistVar arglist $preVar pre $postVar post \
       $introVar intro $nnVar nn $cleanupVar cleanup
   set c [list]
@@ -214,22 +227,22 @@ proc gencall {methodName fn parameterDefinitions clientData
     }
   }
   foreach parameterDefinition $parameterDefinitions {
-    array set "" $parameterDefinition
+    set p $parameterDefinition
     set ifSet 0
     set cVar 1
-    set (-argName) [string map [list - _] $(-argName)]
-    if {[regexp {^_(.*)$} $(-argName) _ switchName]} {
+    dict set p -argName [string map [list - _] [dict get $p -argName]]
+    if {[regexp {^_(.*)$} [dict get $p -argName] _ switchName]} {
       #
       # non positional args
       #
-      set varName [varName $(-type) $switchName]
+      set varName [varName [dict get $p -type] $switchName]
       if {$varName eq $switchName} {
         set varName with[string totitle $switchName]
       }
       set calledArg $varName
       set type "int "
-      if {$(-nrargs) == 1} {
-        switch -glob $(-type) {
+      if {[dict get $p -nrargs] == 1} {
+        switch -glob [dict get $p -type] {
           ""           {set type "const char *"}
           "class"      {set type "NsfClass *"}
           "object"     {set type "NsfObject *"}
@@ -238,22 +251,22 @@ proc gencall {methodName fn parameterDefinitions clientData
           "int32"      {set type "int "}
           "boolean"    {set type "int "}
           "*|*"        {
-            if {![info exists (-typeName)]} {
-              set (-typeName) $(-argName)
+            if {![dict exists $p -typeName]} {
+              dict set p -typeName [dict get $p -argName]
             }
-            set type "[convertername $(-type) $(-typeName)]Idx_t "
-            #puts stderr "nonpos: (-typeName) <$(-typeName)> (-type) <$(-type)>    ==> type=<$type>"
+            set type "[convertername [dict get $p -type] [dict get $p -typeName]]Idx_t "
+            #puts stderr "nonpos: -typeName <[dict get $p -typeName]> -type <[dict get $p -type]>    ==> type=<$type>"
           }
-          default      {error "type '$(-type)' not allowed for parameter"}
+          default      {error "type '[dict get $p -type]' not allowed for parameter"}
         }
       }
     } else {
       #
       # positionals
       #
-      set varName [varName $(-type) $(-argName)]
+      set varName [varName [dict get $p -type] [dict get $p -argName]]
       set calledArg $varName
-      switch -glob $(-type) {
+      switch -glob [dict get $p -type] {
         ""           {set type "const char *"}
         "boolean"    {set type "int "}
         "int32"      {set type "int "}
@@ -290,40 +303,42 @@ proc gencall {methodName fn parameterDefinitions clientData
       return TCL_OK;
     }
           }]
-	  append post [subst -nocommands {
+          append post [subst -nocommands {
     if (${varName}) {
       DECR_REF_COUNT2("patternObj", ${varName});
     }
          }]
           set cleanup [subst -nocommands {$type$varName = ($type)pc.clientData[$i];}]
           append cleanup \n$post
-	  # end of obj pattern
+          # end of obj pattern
         }
         *|* {
-          if {![info exists (-typeName)]} {set (-typeName) $(-argName)}
-          set type "[convertername $(-type) $(-typeName)]Idx_t "
+          if {![dict exists $p -typeName]} {dict set p -typeName [dict get $p -argName]}
+          set type "[convertername [dict get $p -type] [dict get $p -typeName]]Idx_t "
         }
         default  {
-	  if {[info exists ::ptrConverter($(-type))]} {
-	    set type "$(-type) *"
-	    set varName "${varName}Ptr"
-	    set calledArg $varName
-	    if {$(-withObj)} {
-	      append calledArg [subst -nocommands {,pc.objv[$i]}]
-	      lappend if "$type$varName" "Tcl_Obj *$(-argName)Obj"
-	      set ifSet 1
-	    }
-	  } else {
-	    error "type '$(-type)' not allowed for argument"
-	  }
+          if {[info exists ::ptrConverter([dict get $p -type])]} {
+            set type "[dict get $p -type] *"
+            set varName "${varName}Ptr"
+            set calledArg $varName
+            if {[dict get $p -withObj]} {
+              append calledArg [subst -nocommands {,pc.objv[$i]}]
+              lappend if "$type$varName" "Tcl_Obj *[dict get $p -argName]Obj"
+              set ifSet 1
+            }
+          } else {
+            error "type '[dict get $p -type]' not allowed for argument"
+          }
         }
       }
     }
 
-    if {[string match {*[*]*} $type] && $(-required)} {
+   if {[string match {*[*]*} $type] && [dict get $p -required]} {
       append nn " NSF_nonnull($argNum)"
     }
-    if {!$ifSet} {lappend if "$type$varName"}
+    if {!$ifSet} {
+      lappend if "$type$varName"
+    }
     if {$cVar} {
       if {$type eq "int " || [string match "*Idx_t " $type]} {
         lappend c [subst -nocommands {$type$varName = ($type)PTR2INT(pc.clientData[$i]);}]
@@ -405,7 +420,7 @@ proc genstubs {} {
     set nn ""
 
     gencall $d(methodName) $d(stub) $d(parameterDefinitions) $d(clientData) \
-	cDefs ifDef arglist pre post intro nn cleanup
+        cDefs ifDef arglist pre post intro nn cleanup
 
     #
     # Check, if spec tells us to pass the original "objv[0]" as an
@@ -450,9 +465,9 @@ proc genstubs {} {
   } elseif {$nrParams == 0} {
     append pre [subst -nocommands {
       if (unlikely(objc != 1)) {
-	return NsfArgumentError(interp, "too many arguments:",
-			     method_definitions[$d(idx)].paramDefs,
-			     NULL, objv[0]);
+        return NsfArgumentError(interp, "too many arguments:",
+                             method_definitions[$d(idx)].paramDefs,
+                             NULL, objv[0]);
       }
     }]
     append fns [genSimpleStub $d(stub) $intro $d(idx) $cDefs $pre $call $post $cleanup]
@@ -470,9 +485,9 @@ proc genstubs {} {
     }
     append pre [subst -nocommands {
       if ($op) {
-	return NsfArgumentError(interp, "wrong # of arguments:",
-			     method_definitions[$d(idx)].paramDefs,
-			     NULL, objv[0]);
+        return NsfArgumentError(interp, "wrong # of arguments:",
+                             method_definitions[$d(idx)].paramDefs,
+                             NULL, objv[0]);
       }
     }]
 
@@ -549,10 +564,11 @@ proc methodDefinition {methodName methodType implementation parameterDefinitions
   }
   set completed [list]
   foreach parameterDefinition $parameterDefinitions {
-    array unset ""
-    array set "" {-required 0 -nrargs 1 -type "" -withObj 0}
-    array set "" $parameterDefinition
-    lappend completed [array get ""]
+    set p [dict merge {-required 0 -nrargs 1 -type "" -withObj 0} $parameterDefinition]
+    if {[string match {$::*} [dict get $p -type]]} {
+      dict set p -type [subst [dict get $p -type]]
+    }
+    lappend completed $p
   }
   set d(parameterDefinitions) $completed
   set ::definitions($d(methodType)-$d(implementation)-$d(methodName)) [array get d]
@@ -593,35 +609,35 @@ puts {
 
 #if defined(USE_NSF_STUBS)
 int Nsf_ConvertTo_Boolean(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
-			  ClientData *clientData, Tcl_Obj **outObjPtr) {
+                          ClientData *clientData, Tcl_Obj **outObjPtr) {
   return Nsf_ConvertToBoolean(interp, objPtr, pPtr, clientData, outObjPtr);
 }
 int Nsf_ConvertTo_Class(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
-			  ClientData *clientData, Tcl_Obj **outObjPtr) {
+                          ClientData *clientData, Tcl_Obj **outObjPtr) {
   return Nsf_ConvertToClass(interp, objPtr, pPtr, clientData, outObjPtr);
 }
 int Nsf_ConvertTo_Int32(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
-			  ClientData *clientData, Tcl_Obj **outObjPtr) {
+                          ClientData *clientData, Tcl_Obj **outObjPtr) {
   return Nsf_ConvertToInt32(interp, objPtr, pPtr, clientData, outObjPtr);
 }
 int Nsf_ConvertTo_Integer(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
-			  ClientData *clientData, Tcl_Obj **outObjPtr) {
+                          ClientData *clientData, Tcl_Obj **outObjPtr) {
   return Nsf_ConvertToInteger(interp, objPtr, pPtr, clientData, outObjPtr);
 }
 int Nsf_ConvertTo_Object(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
-			  ClientData *clientData, Tcl_Obj **outObjPtr) {
+                          ClientData *clientData, Tcl_Obj **outObjPtr) {
   return Nsf_ConvertToObject(interp, objPtr, pPtr, clientData, outObjPtr);
 }
 int Nsf_ConvertTo_Pointer(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
-			  ClientData *clientData, Tcl_Obj **outObjPtr) {
+                          ClientData *clientData, Tcl_Obj **outObjPtr) {
   return Nsf_ConvertToPointer(interp, objPtr, pPtr, clientData, outObjPtr);
 }
 int Nsf_ConvertTo_String(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
-			  ClientData *clientData, Tcl_Obj **outObjPtr) {
+                          ClientData *clientData, Tcl_Obj **outObjPtr) {
   return Nsf_ConvertToString(interp, objPtr, pPtr, clientData, outObjPtr);
 }
 int Nsf_ConvertTo_Tclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param const *pPtr,
-			  ClientData *clientData, Tcl_Obj **outObjPtr) {
+                          ClientData *clientData, Tcl_Obj **outObjPtr) {
   return Nsf_ConvertToTclobj(interp, objPtr, pPtr, clientData, outObjPtr);
 }
 #else
