@@ -1406,8 +1406,13 @@ namespace eval ::nx {
         if {[${:domain} ::nsf::methods::class::info::method exists ${:name}]} {
           ::nsf::method::delete ${:domain} ${:name}
         }
+      } elseif {[::nsf::is object ${:domain}]} {
+        nsf::log warning "ignore improper domain ${:domain} during destroy (maybe per-object not set?)"
       } else {
-        nsf::log Warning "ignore improper domain ${:domain} during destroy (maybe per-object not set?)"
+        #
+        # Depending on the deletion order, the object denoted in
+        # ${:domain} might be already deleted.
+        #
       }
     }
     ::nsf::next
