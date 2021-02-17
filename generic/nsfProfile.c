@@ -221,7 +221,7 @@ NsfProfileDebugExit(Tcl_Interp *interp, NsfObject *object, NsfClass *class, cons
   }
   Tcl_DStringAppend(dsPtr, "} {", 3);
   NsfProfileMethodLabel(dsPtr, class, methodName);
-  Tcl_DStringAppend(dsPtr, "} ", 1);
+  Tcl_DStringAppend(dsPtr, "} ", 2);
   Tcl_DStringAppendElement(dsPtr, ObjStr(Tcl_GetObjResult(interp)));
 
   if (startSec != 0 || startUsec != 0) {
@@ -230,7 +230,7 @@ NsfProfileDebugExit(Tcl_Interp *interp, NsfObject *object, NsfClass *class, cons
     Tcl_GetTime(&trt);
     Nsf_DStringPrintf(dsPtr, " %ld ", (trt.sec - startSec) * 1000000 + (trt.usec - startUsec));
   } else {
-    Tcl_DStringAppend(dsPtr, " {}", 4);
+    Tcl_DStringAppend(dsPtr, " {}", 3);
   }
 
   NsfDStringEval(interp, &ds, "debug exit", (NSF_EVAL_DEBUG|NSF_EVAL_SAVE|NSF_EVAL_NOPROFILE));
