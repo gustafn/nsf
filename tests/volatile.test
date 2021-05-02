@@ -92,6 +92,37 @@ nx::test case procs-procs {
   ::foon
 }
 
+nx::test case self-context-volatile {
+
+  xotcl::Class create C 
+  xotcl::Class create M
+  M instproc configure args {
+    next
+  }
+  
+  
+  C instproc destroy-after-run {} {
+    my volatile
+
+    set o2 [xotcl::Object new -volatile]
+    xotcl::Object instmixin ::M
+    set o3 [xotcl::Object new -volatile]
+    xotcl::Object instmixin {}
+    ? [info commands [self]] [self]
+    ? [info commands $o2] $o2
+    ? [info commands $o3] $o3
+    return [list [self] $o2 $o3]
+  }
+
+  set c [C new]
+  lassign [$c destroy-after-run] obj1 obj2 obj3
+  ? [list info commands $obj1] ""
+  ? [list info commands $obj2] ""
+  ? [list info commands $obj3] ""
+}
+
+
+
 #
 # Local variables:
 #    mode: tcl

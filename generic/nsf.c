@@ -32964,7 +32964,9 @@ VolatileMethod(Tcl_Interp *interp, NsfObject *object, bool shallow) {
          * e.g. overloaded internally called methods like "configure".
          */
         /*fprintf(stderr, "compare object %p == %p\n", (void*)object, (void*)cscPtr->self);*/
-        if (cscPtr->self == object) {
+        if (cscPtr->self == object &&
+            strcmp(osPtr->methodNames[NSF_o_configure_idx],
+                   Tcl_GetCommandName(interp, cscPtr->cmdPtr)) == 0) {
           invocationFrame =  Tcl_CallFrame_callerPtr(invocationFrame);
           /*fprintf(stderr, "same object, continue with %p\n", (void*)invocationFrame);*/
           continue;
