@@ -32949,8 +32949,10 @@ VolatileMethod(Tcl_Interp *interp, NsfObject *object, bool shallow) {
 
       if (((unsigned int)Tcl_CallFrame_isProcCallFrame(invocationFrame) & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) != 0u) {
         NsfCallStackContent *cscPtr;
+        const char *cmdName;
 
         cscPtr = ((NsfCallStackContent *)Tcl_CallFrame_clientData(invocationFrame));
+        cmdName = Tcl_GetCommandName(interp, cscPtr->cmdPtr);
         /*
          * We were not called from an NSF frame.
          */
@@ -32965,6 +32967,7 @@ VolatileMethod(Tcl_Interp *interp, NsfObject *object, bool shallow) {
          */
         /*fprintf(stderr, "compare object %p == %p\n", (void*)object, (void*)cscPtr->self);*/
         if (cscPtr->self == object &&
+            *osPtr->methodNames[NSF_o_configure_idx] == *cmdName &&
             strcmp(osPtr->methodNames[NSF_o_configure_idx],
                    Tcl_GetCommandName(interp, cscPtr->cmdPtr)) == 0) {
           invocationFrame =  Tcl_CallFrame_callerPtr(invocationFrame);
@@ -32986,7 +32989,9 @@ VolatileMethod(Tcl_Interp *interp, NsfObject *object, bool shallow) {
          * from an "unknown" method, skip this frame as well.
          */
         /*fprintf(stderr, "cmd %s\n", Tcl_GetCommandName(interp, cscPtr->cmdPtr));*/
-        if (strcmp(osPtr->methodNames[NSF_o_unknown_idx], Tcl_GetCommandName(interp, cscPtr->cmdPtr)) == 0) {
+        if (*osPtr->methodNames[NSF_o_unknown_idx] == *cmdName &&
+            strcmp(osPtr->methodNames[NSF_o_unknown_idx],
+                   Tcl_GetCommandName(interp, cscPtr->cmdPtr)) == 0) {
           invocationFrame =  Tcl_CallFrame_callerPtr(invocationFrame);
           /*fprintf(stderr, "have unknown, continue with %p\n", (void*)invocationFrame);*/
           continue;
