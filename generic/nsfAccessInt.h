@@ -107,3 +107,25 @@
 #if !defined(Tcl_HashSize)
 # define Tcl_HashSize(tablePtr) ((tablePtr)->numEntries)
 #endif
+
+/*
+ * Starting with [ebe34426255bef25], in Sep 2020, the macro
+ * CMD_IS_DELETED has been replaced by CMD_DYING.
+ * 
+ * See also: 
+ *
+ * https://core.tcl-lang.org/tcl/info/ebe34426255bef25
+ *
+ * https://github.com/tcltk/tcl/commit/23d0bb6cb4e614f464b8e217aa4c7891479e29ff#diff-f9e920c8cca3df7e99caa9e277d717cd736481f4bc54d7df5014a59712ca6397L1731
+ *
+ */
+
+#if TCL_MAJOR_VERSION==8 && TCL_MINOR_VERSION>6 && defined(CMD_DYING)
+#define TclIsCommandDeleted(cmdPtr)  (((unsigned int)Tcl_Command_flags((cmdPtr)) & CMD_DYING) != 0u)
+#else
+#define TclIsCommandDeleted(cmdPtr)  (((unsigned int)Tcl_Command_flags((cmdPtr)) & CMD_IS_DELETED) != 0u)
+#endif
+
+
+
+

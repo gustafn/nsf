@@ -7731,7 +7731,7 @@ CallStackDoDestroy(Tcl_Interp *interp, NsfObject *object) {
 
   /*
    * The oid might be freed already, we can't even use
-   * (((Command *)oid)->flags & CMD_IS_DELETED)
+   * TclIsCommandDeleted(oid)
    */
   if (object->teardown != NULL && oid != NULL) {
     /*
@@ -8078,8 +8078,8 @@ CmdListRemoveFromList(NsfCmdList **cmdList, NsfCmdList *delCL) {
  * CmdListRemoveDeleted --
  *
  *      Remove all command pointers from a command list which are marked
- *    "deleted". The condition for deletion is the presence of the flag
- *      CMD_IS_DELETED, with the flag bit being set by
+ *      "deleted". The condition for deletion is the presence of the flag
+ *      CMD_DYING (previously, CMD_IS_DELETED), with the flag bit being set by
  *      Tcl_DeleteCommandFromToken().
  *
  * Results:
@@ -8103,14 +8103,14 @@ CmdListRemoveDeleted(NsfCmdList **cmdList, NsfFreeCmdListClientData *freeFct) {
   f = *cmdList;
   while (f != NULL) {
     /*
-     * HIDDEN OBJECTS: For supporting hidden mixins, we cannot rely on
-     * the cmdEpoch as indicator of the deletion status of a cmd because
-     * the epoch counters of hidden and re-exposed commands are
-     * bumped. Despite of this, their object structures remain valid. We
-     * resort to the use of the per-cmd flag CMD_IS_DELETED, set upon
+     * HIDDEN OBJECTS: For supporting hidden mixins, we cannot rely on the
+     * cmdEpoch as indicator of the deletion status of a cmd because the epoch
+     * counters of hidden and re-exposed commands are bumped. Despite of this,
+     * their object structures remain valid. We resort to the use of the
+     * per-cmd flag CMD_DYING (previously, CMD_IS_DELETED), set upon
      * processing a command in Tcl_DeleteCommandFromToken().
      */
-    if (((unsigned int)Tcl_Command_flags(f->cmdPtr) & CMD_IS_DELETED) != 0u)  {
+    if (TclIsCommandDeleted(f->cmdPtr))  {
       del = f;
       f = f->nextPtr;
       del = CmdListRemoveFromList(cmdList, del);
@@ -9245,7 +9245,7 @@ MixinAdd(Tcl_Interp *interp, NsfCmdList **mixinList, Tcl_Obj *nameObj) {
       NsfCmdList *new;
 
       assert(mixinCl != NULL);
-      assert(((unsigned int)Tcl_Command_flags(mixinCl->object.id) & CMD_IS_DELETED) == 0);
+      assert(!TclIsCommandDeleted(mixinCl->object.id));
 
       new = CmdListAdd(mixinList, mixinCl->object.id, NULL,
                        /*noDuplicates*/ NSF_TRUE, NSF_TRUE);
@@ -9654,7 +9654,7 @@ GetAllObjectMixinsOf(
       /*
        * There should be no deleted commands in the list.
        */
-      assert(((unsigned int)Tcl_Command_flags(m->cmdPtr) & CMD_IS_DELETED) == 0);
+      assert(!TclIsCommandDeleted(m->cmdPtr));
 
       class = NsfGetClassFromCmdPtr(m->cmdPtr);
       assert(class != NULL);
@@ -9678,7 +9678,7 @@ GetAllObjectMixinsOf(
       /*
        * There should not be deleted commands in the list.
        */
-      assert(((unsigned int)Tcl_Command_flags(m->cmdPtr) & CMD_IS_DELETED) == 0);
+      assert(!TclIsCommandDeleted(m->cmdPtr));
 
       object = NsfGetObjectFromCmdPtr(m->cmdPtr);
       assert(object != NULL);
@@ -9748,7 +9748,7 @@ AddClassListEntriesToMixinsOfSet(
     /*
      * We must not have deleted commands in the list
      */
-    assert(((unsigned int)Tcl_Command_flags(m->cmdPtr) & CMD_IS_DELETED) == 0);
+    assert(!TclIsCommandDeleted(m->cmdPtr));
 
     class = NsfGetClassFromCmdPtr(m->cmdPtr);
     assert(class != NULL);
@@ -9938,7 +9938,7 @@ GetAllClassMixins(
       /*
        * Make sure, there are no deleted commands in the list.
        */
-      assert(((unsigned int)Tcl_Command_flags(m->cmdPtr) & CMD_IS_DELETED) == 0);
+      assert(!TclIsCommandDeleted(m->cmdPtr));
 
       class = NsfGetClassFromCmdPtr(m->cmdPtr);
       assert(class != NULL);
@@ -10535,7 +10535,7 @@ MixinSearchProc(
       /*
        * Ignore deleted commands
        */
-      if (((unsigned int)Tcl_Command_flags(cmdList->cmdPtr) & CMD_IS_DELETED) != 0u) {
+      if (TclIsCommandDeleted(cmdList->cmdPtr)) {
         continue;
       }
 
@@ -10590,7 +10590,7 @@ MixinSearchProc(
       /*
        * Ignore deleted commands
        */
-      if (((unsigned int)Tcl_Command_flags(cmdList->cmdPtr) & CMD_IS_DELETED) != 0u) {
+      if (TclIsCommandDeleted(cmdList->cmdPtr)) {
         continue;
       }
       class = NsfGetClassFromCmdPtr(cmdList->cmdPtr);
@@ -19201,8 +19201,7 @@ NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const 
 
   /*fprintf(stderr, "NsfProcStub %s is called, tcd %p, paramDefs %p\n", ObjStr(objv[0]), tcd, tcd ? tcd->paramDefs : NULL);*/
 
-  if ((((unsigned int)Tcl_Command_flags(tcd->cmd) & CMD_IS_DELETED) == 0u) ||
-      Tcl_Command_cmdEpoch(tcd->cmd) != 0) {
+  if (!TclIsCommandDeleted(tcd->cmd) || Tcl_Command_cmdEpoch(tcd->cmd) != 0) {
     /*
      * It seems as if the (cached) command was deleted (e.g., rename), or
      * someone messed around with the shadowed proc.
@@ -27401,8 +27400,8 @@ AliasRefetch(Tcl_Interp *interp, NsfObject *object, const char *methodName, Alia
     /*fprintf(stderr, "cmd %p epoch %d deleted %.6x\n",
       cmd,
       Tcl_Command_cmdEpoch(cmd),
-      Tcl_Command_flags(cmd) & CMD_IS_DELETED);*/
-    if (((unsigned int)Tcl_Command_flags(cmd) & CMD_IS_DELETED) != 0u) {
+      TclIsCommandDeleted(cmd));*/
+    if (TclIsCommandDeleted(cmd)) {
       cmd = NULL;
     }
   }
@@ -35308,15 +35307,15 @@ FreeAllNsfObjectsAndClasses(
       /*
        * The list of the instances should contain only alive objects, without
        * duplicates. We would recognize duplicates since a deletion of one
-       * object would trigger the CMD_IS_DELETED flag of the cmdPtr of the
-       * duplicate.
+       * object would result in the CMD_DYING (previously, CMD_IS_DELETED)
+       * flag becoming set on the cmdPtr of the duplicate.
        */
-      assert(((unsigned int)Tcl_Command_flags(entry->cmdPtr) & CMD_IS_DELETED) == 0u);
+      assert(!TclIsCommandDeleted(entry->cmdPtr));
 
       if (object != NULL && !NsfObjectIsClass(object) && !ObjectHasChildren(object)) {
         /*fprintf(stderr, "check %p obj->flags %.6x cmd %p deleted %d\n",
                 object, object->flags, entry->cmdPtr,
-                Tcl_Command_flags(entry->cmdPtr) & CMD_IS_DELETED); */
+                TclIsCommandDeleted(entry->cmdPtr)); */
         assert(object->id != NULL);
         /*fprintf(stderr, "  ... delete object %s %p, class=%s id %p ns %p\n",
           ObjectName(object), object,

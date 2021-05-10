@@ -587,7 +587,7 @@ NsfMixinregGet(
      * We got a mixin with an included cmd, but both might have been deleted already.
      */
     if ((mixinRegPtr->mixin->object.flags & NSF_DELETED) != 0u
-        || (Tcl_Command_flags(mixinRegPtr->mixin->object.id) & CMD_IS_DELETED) != 0u) {
+        || TclIsCommandDeleted(mixinRegPtr->mixin->object.id)) {
 
       /*
        * The cmd is deleted. Try to refetch it.
