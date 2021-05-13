@@ -1,0 +1,100 @@
+name: Build
+on: [push]
+jobs:
+  nsf:
+    runs-on: ${{ matrix.os }}
+    env:
+      CC: ${{ matrix.compiler }}
+    strategy:
+      fail-fast: false
+      matrix:
+        #tcltag: [core-8-branch, core-8-6-branch, core-8-5-branch, core-8-5-19, core-8-6-11, core-8-7-a3]
+        # cfgopt:
+        #   - ""
+        include:
+          - os: macos-latest
+            compiler: gcc-10
+            tcltag: core-8-6-branch
+            experimental: [true]
+          - os: macos-latest
+            compiler: clang-11
+            tcltag: core-8-6-branch
+            experimental: [true]
+          - os: ubuntu-latest
+            compiler: gcc-10
+            tcltag: core-8-6-branch
+            experimental: [true]
+          - os: ubuntu-latest
+            compiler: clang-11
+            tcltag: core-8-6-branch
+            experimental: [true]
+          - os: ubuntu-latest
+            compiler: gcc-10
+            tcltag: core-8-branch
+            experimental: [true]
+          - os: ubuntu-latest
+            compiler: gcc-10
+            tcltag: core-8-5-branch
+            experimental: [true]
+          - os: ubuntu-latest
+            compiler: gcc-10
+            tcltag: core-8-5-19
+            experimental: [false]
+          - os: ubuntu-latest
+            compiler: gcc-10
+            tcltag: core-8-6-11
+            experimental: [false]
+          - os: ubuntu-latest
+            compiler: gcc-10
+            tcltag: core-8-7-a3
+            experimental: [false]
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Install Linux dependencies (debugging)
+        if: ${{ env.ACT }} && startsWith(matrix.os, 'ubuntu')
+        run: |
+          sudo apt install -y software-properties-common
+          sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+          sudo apt-get update
+          sudo apt-get install -y ${CC}
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          repository: nm-wu/nsf
+          token: ${{ secrets.PAT }}
+      - name: Download Tcl tarball
+        run: |
+          curl -L -k -o tcl.tar.gz https://core.tcl-lang.org/tcl/tarball/tcl.tar.gz?uuid=${TCLTAG}
+          tar -xzf tcl.tar.gz
+        env:
+          TCLTAG: ${{ matrix.tcltag }}
+      - name: Configure ${{ matrix.cfgopt }}
+        run: |
+          mkdir "${GITHUB_WORKSPACE}/build"
+          ./configure ${CFGOPT} --prefix=${GITHUB_WORKSPACE}/tcl/unix  --exec-prefix=${GITHUB_WORKSPACE}/tcl/unix || (cat config.log && exit 1)
+        working-directory: tcl/unix
+        env:
+          CFGOPT: ${{ matrix.cfgopt }}
+          TCLTAG: ${{ matrix.tcltag }}
+      - name: Build + install
+        run: |
+          make all
+          make install
+        working-directory: tcl/unix
+      - name: Configure ${{ matrix.cfgopt }}
+        run: |
+          ls -la /Users/ssoberni/Documents/dev/nsf/tcl/unix/lib/
+          ls -la ${GITHUB_WORKSPACE}/tcl/unix/lib
+          ./configure ${CFGOPT} --prefix=${GITHUB_WORKSPACE}/build --with-tcl=${GITHUB_WORKSPACE}/tcl/unix/lib || (cat config.log && exit 1)
+        env:
+          CFGOPT: ${{ matrix.cfgopt }}
+      - name: Build + tests (debugging)
+        if: ${{ env.ACT }}
+        run: |
+          make test-nohttp
+      - name: Build + tests (production)
+        if: ${{ !env.ACT }}
+        run: |
+          make test
