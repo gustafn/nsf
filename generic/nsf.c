@@ -7692,7 +7692,7 @@ AutonameIncr(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfObject *object,
  *      objects can only be deleted physically, when these are not
  *      activate anymore. This logic is implemented by
  *      CallStackDestroyObject() and CallStackDoDestroy(), where the
- *      latter is responsible for the finaly deletion.
+ *      latter is responsible for the final deletion.
  *
  * Results:
  *      None.
@@ -17556,13 +17556,17 @@ ParamOptionParse(Tcl_Interp *interp, const char *argString,
   /*fprintf(stderr, "ParamOptionParse name %s, option '%s' (%ld) disallowed %.6x\n",
     paramPtr->name, option, start, disallowedOptions);*/
 
-  if (firstChar == 'r' && strncmp(option, "required", NsfMax(3, optionLength)) == 0) {
+  /*
+   * Allow user to abbreviate "required", "optional" and "int" to 3 chars.
+   */
+  if (firstChar == 'r' && optionLength <= 8 && strncmp(option, "required", NsfMax(3, optionLength)) == 0) {
     paramPtr->flags |= NSF_ARG_REQUIRED;
 
-  } else if (firstChar == 'o' && strncmp(option, "optional",  NsfMax(3, optionLength)) == 0) {
+  } else if (firstChar == 'o' && optionLength <= 8 && strncmp(option, "optional",  NsfMax(3, optionLength)) == 0) {
     paramPtr->flags &= ~NSF_ARG_REQUIRED;
 
   } else if (firstChar == 's'
+             && optionLength == 12
              && strncmp(option, "substdefault", 12) == 0
              ) {
     int  substDefaultFlags = 0;
@@ -17583,40 +17587,40 @@ ParamOptionParse(Tcl_Interp *interp, const char *argString,
     paramPtr->flags |= NSF_ARG_SUBST_DEFAULT;
     paramPtr->flags |= ((unsigned int)substDefaultFlags << 28);
 
-  } else if (firstChar == 'c' && strncmp(option, "convert", 7) == 0) {
+  } else if (firstChar == 'c' && optionLength == 7 && strncmp(option, "convert", 7) == 0) {
     paramPtr->flags |= NSF_ARG_IS_CONVERTER;
 
-  } else if (firstChar == 'i' && strncmp(option, "initcmd", 7) == 0) {
+  } else if (firstChar == 'i' && optionLength == 7 && strncmp(option, "initcmd", 7) == 0) {
     if (unlikely((paramPtr->flags & (NSF_ARG_CMD|NSF_ARG_ALIAS|NSF_ARG_FORWARD)) != 0u)) {
       return NsfPrintError(interp, "parameter option 'initcmd' not valid in this option combination");
     }
     paramPtr->flags |= NSF_ARG_INITCMD;
 
-  } else if (firstChar == 'c' && strncmp(option, "cmd", 3) == 0) {
+  } else if (firstChar == 'c' && optionLength == 3 && strncmp(option, "cmd", 3) == 0) {
     if (unlikely((paramPtr->flags & (NSF_ARG_INITCMD|NSF_ARG_ALIAS|NSF_ARG_FORWARD)) != 0u)) {
       return NsfPrintError(interp, "parameter option 'cmd' not valid in this option combination");
     }
     paramPtr->flags |= NSF_ARG_CMD;
 
-  } else if (firstChar == 'a' && strncmp(option, "alias", 5) == 0) {
+  } else if (firstChar == 'a' && optionLength == 5 && strncmp(option, "alias", 5) == 0) {
     if (unlikely((paramPtr->flags & (NSF_ARG_INITCMD|NSF_ARG_CMD|NSF_ARG_FORWARD)) != 0u)) {
       return NsfPrintError(interp, "parameter option 'alias' not valid in this option combination");
     }
     paramPtr->flags |= NSF_ARG_ALIAS;
 
-  } else if (firstChar == 'f' && strncmp(option, "forward", 7) == 0) {
+  } else if (firstChar == 'f' && optionLength == 7 && strncmp(option, "forward", 7) == 0) {
     if (unlikely((paramPtr->flags & (NSF_ARG_INITCMD|NSF_ARG_CMD|NSF_ARG_ALIAS)) != 0u)) {
       return NsfPrintError(interp, "parameter option 'forward' not valid in this option combination");
     }
     paramPtr->flags |= NSF_ARG_FORWARD;
 
-  } else if (firstChar == 's' && strncmp(option, "slotset", 7) == 0) {
+  } else if (firstChar == 's' && optionLength == 7 && strncmp(option, "slotset", 7) == 0) {
     if (unlikely(paramPtr->slotObj == NULL)) {
       return NsfPrintError(interp, "parameter option 'slotset' must follow 'slot='");
     }
     paramPtr->flags |= NSF_ARG_SLOTSET;
 
-  } else if (firstChar == 's' && strncmp(option, "slotinitialize", 14) == 0) {
+  } else if (firstChar == 's' && optionLength == 14 && strncmp(option, "slotinitialize", 14) == 0) {
     if (unlikely(paramPtr->slotObj == NULL)) {
       return NsfPrintError(interp, "parameter option 'slotinit' must follow 'slot='");
     }
@@ -17645,26 +17649,26 @@ ParamOptionParse(Tcl_Interp *interp, const char *argString,
       return NsfPrintError(interp, "upper bound of multiplicity in %s not supported", argString);
     }
 
-  } else if (firstChar == 'n' && strncmp(option, "noarg", 5) == 0) {
+  } else if (firstChar == 'n' && optionLength == 5 && strncmp(option, "noarg", 5) == 0) {
     if ((paramPtr->flags & NSF_ARG_ALIAS) == 0u) {
       return NsfPrintError(interp, "parameter option \"noarg\" only allowed for parameter type \"alias\"");
     }
     paramPtr->flags |= NSF_ARG_NOARG;
     paramPtr->nrArgs = 0;
 
-  } else if (firstChar == 'n' && strncmp(option, "nodashalnum", 11) == 0) {
+  } else if (firstChar == 'n' && optionLength == 11 && strncmp(option, "nodashalnum", 11) == 0) {
     if (*paramPtr->name == '-') {
       return NsfPrintError(interp, "parameter option 'nodashalnum' only allowed for positional parameters");
     }
     paramPtr->flags |= NSF_ARG_NODASHALNUM;
 
-  } else if (firstChar == 'n' && strncmp(option, "noconfig", 8) == 0) {
+  } else if (firstChar == 'n' && optionLength == 8 && strncmp(option, "noconfig", 8) == 0) {
     if (disallowedOptions != NSF_DISALLOWED_ARG_OBJECT_PARAMETER) {
       return NsfPrintError(interp, "parameter option 'noconfig' only allowed for object parameters");
     }
     paramPtr->flags |= NSF_ARG_NOCONFIG;
 
-  } else if (firstChar == 'a' && strncmp(option, "args", 4) == 0) {
+  } else if (firstChar == 'a' && optionLength == 4 && strncmp(option, "args", 4) == 0) {
     if ((paramPtr->flags & NSF_ARG_ALIAS) == 0u) {
       return NsfPrintError(interp, "parameter option \"args\" only allowed for parameter type \"alias\"");
     }
@@ -17687,7 +17691,7 @@ ParamOptionParse(Tcl_Interp *interp, const char *argString,
     }
     INCR_REF_COUNT(paramPtr->converterArg);
 
-  } else if (firstChar == 's' && strncmp(option, "switch", 6) == 0) {
+  } else if (firstChar == 's' && optionLength == 6 && strncmp(option, "switch", 6) == 0) {
     if (*paramPtr->name != '-') {
       return NsfPrintError(interp,
                            "invalid parameter type \"switch\" for argument \"%s\"; "
@@ -17703,36 +17707,36 @@ ParamOptionParse(Tcl_Interp *interp, const char *argString,
     paramPtr->defaultValue = Tcl_NewBooleanObj(0);
     INCR_REF_COUNT(paramPtr->defaultValue);
 
-  } else if (firstChar == 'i' && strncmp(option, "integer", NsfMax(3, optionLength)) == 0) {
+  } else if (firstChar == 'i' && optionLength <= 7 && strncmp(option, "integer", NsfMax(3, optionLength)) == 0) {
     result = ParamOptionSetConverter(interp, paramPtr, "integer", Nsf_ConvertToInteger);
 
-  } else if (firstChar == 'i' && strncmp(option, "int32", 5) == 0) {
+  } else if (firstChar == 'i' && optionLength == 5 && strncmp(option, "int32", 5) == 0) {
     result = ParamOptionSetConverter(interp, paramPtr, "int32", Nsf_ConvertToInt32);
 
-  } else if (firstChar == 'b' && strncmp(option, "boolean", 7) == 0) {
+  } else if (firstChar == 'b' && optionLength == 7 && strncmp(option, "boolean", 7) == 0) {
     result = ParamOptionSetConverter(interp, paramPtr, "boolean", Nsf_ConvertToBoolean);
 
-  } else if (firstChar == 'o' && strncmp(option, "object", 6) == 0) {
+  } else if (firstChar == 'o' && optionLength == 6 && strncmp(option, "object", 6) == 0) {
     result = ParamOptionSetConverter(interp, paramPtr, "object", Nsf_ConvertToObject);
 
-  } else if (firstChar == 'c' && strncmp(option, "class", 5) == 0) {
+  } else if (firstChar == 'c' && optionLength == 5 && strncmp(option, "class", 5) == 0) {
     result = ParamOptionSetConverter(interp, paramPtr, "class", Nsf_ConvertToClass);
 
-  } else if (firstChar == 'm' && strncmp(option, "metaclass", 9) == 0) {
+  } else if (firstChar == 'm' && optionLength == 9 && strncmp(option, "metaclass", 9) == 0) {
     result = ParamOptionSetConverter(interp, paramPtr, "class", Nsf_ConvertToClass);
     paramPtr->flags |= NSF_ARG_METACLASS;
 
-  } else if (firstChar == 'b' && strncmp(option, "baseclass", 9) == 0) {
+  } else if (firstChar == 'b' && optionLength == 9 && strncmp(option, "baseclass", 9) == 0) {
     result = ParamOptionSetConverter(interp, paramPtr, "class", Nsf_ConvertToClass);
     paramPtr->flags |= NSF_ARG_BASECLASS;
 
-  } else if (firstChar == 'm' && strncmp(option, "mixinreg", 8) == 0) {
+  } else if (firstChar == 'm' && optionLength == 8 && strncmp(option, "mixinreg", 8) == 0) {
     result = ParamOptionSetConverter(interp, paramPtr, "mixinreg", Nsf_ConvertToMixinreg);
 
-  } else if (firstChar == 'f' && strncmp(option, "filterreg", 9) == 0) {
+  } else if (firstChar == 'f' && optionLength == 9 && strncmp(option, "filterreg", 9) == 0) {
     result = ParamOptionSetConverter(interp, paramPtr, "filterreg", Nsf_ConvertToFilterreg);
 
-  } else if (firstChar == 'p' && strncmp(option, "parameter", 9) == 0) {
+  } else if (firstChar == 'p' && optionLength == 9 && strncmp(option, "parameter", 9) == 0) {
     result = ParamOptionSetConverter(interp, paramPtr, "parameter", Nsf_ConvertToParameter);
 
   } else if (firstChar == 't' && optionLength >= 6 && strncmp(option, "type=", 5) == 0) {
