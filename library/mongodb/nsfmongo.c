@@ -26,6 +26,11 @@
 #define USE_CLIENT_POOL 1
 
 /*
+ * Size of handle as used by Nsf_PointerAdd()
+ */
+#define POINTER_HANDLE_SIZE 80u
+
+/*
  * Define the counters to generate nice symbols for pointer converter
  */
 static int gridfileCount = 0;
@@ -85,7 +90,7 @@ NsfMongoGlobalStrings[] = {
 static Tcl_Obj **NsfMongoGlobalObjs = NULL;
 
 static Tcl_Obj *BsonToList(Tcl_Interp *interp, const bson_t *data , int depth);
-static bson_type_t BsonTagToType(Tcl_Interp *interp, const char *tag);
+static bson_type_t BsonTagToType(Tcl_Interp *interp, Tcl_Obj *tagObj);
 
 extern Tcl_PackageInitProc Nsfmongo_SafeInit;
 extern Tcl_PackageInitProc Nsfmongo_Init;
@@ -339,9 +344,10 @@ BsonToList(Tcl_Interp *interp, const bson_t *data , int depth)
  *----------------------------------------------------------------------
  */
 bson_type_t
-BsonTagToType(Tcl_Interp *interp, const char *tag)
+BsonTagToType(Tcl_Interp *interp, Tcl_Obj *tagObj)
 {
-  char firstChar = *tag;
+  const char *tag = ObjStr(tagObj);
+  char        firstChar = *tag;
 
   switch (firstChar) {
   case 'a': /* array */   return BSON_TYPE_ARRAY;
@@ -389,19 +395,21 @@ BsonTagToType(Tcl_Interp *interp, const char *tag)
  *----------------------------------------------------------------------
  */
 static int
-BsonAppend(Tcl_Interp *interp, bson_t *bbPtr, const char *name, const char *tag, Tcl_Obj *value)
+BsonAppend(Tcl_Interp *interp, bson_t *bbPtr, Tcl_Obj *nameObj, Tcl_Obj *tagObj, Tcl_Obj *value)
 {
   int         result = TCL_OK;
-  bson_type_t t = BsonTagToType(interp, tag);
-  int         keyLength = (int)strlen(name);
+  bson_type_t t = BsonTagToType(interp, tagObj);
+  int         keyLength;
+  const char *name = Tcl_GetStringFromObj(nameObj, &keyLength);
 
   /*fprintf(stderr, "BsonAppend: add name %s tag %s value '%s'\n", name, tag, ObjStr(value));*/
 
   switch ( t ){
   case BSON_TYPE_UTF8: {
-    const char* string = ObjStr(value);
+    int         stringLength;
+    const char* string = Tcl_GetStringFromObj(value, &stringLength);
 
-    bson_append_utf8(bbPtr, name, keyLength, string, (int)strlen(string));
+    bson_append_utf8(bbPtr, name, keyLength, string, stringLength);
     break;
   }
   case BSON_TYPE_INT32: {
@@ -500,7 +508,8 @@ BsonAppend(Tcl_Interp *interp, bson_t *bbPtr, const char *name, const char *tag,
 
     result = Tcl_ListObjGetElements(interp, value, &objc, &objv);
     if (result != TCL_OK || ((objc % 3) != 0)) {
-      return NsfPrintError(interp, "invalid %s value contain multiple of 3 elements %s", tag, ObjStr(value));
+      return NsfPrintError(interp, "invalid %s value contain multiple of 3 elements %s",
+                           ObjStr(tagObj), ObjStr(value));
     }
 
     if (t == BSON_TYPE_DOCUMENT) {
@@ -511,7 +520,7 @@ BsonAppend(Tcl_Interp *interp, bson_t *bbPtr, const char *name, const char *tag,
     for (i = 0; i< objc; i += 3) {
       /*fprintf(stderr, "value %s, i %d, [0]: %s, [1]: %s, [2]: %s\n", ObjStr(value), i,
         ObjStr(objv[i]),  ObjStr(objv[i+1]), ObjStr(objv[i+2]));*/
-      result = BsonAppend(interp, childPtr, ObjStr(objv[i]),  ObjStr(objv[i+1]), objv[i+2]);
+      result = BsonAppend(interp, childPtr, objv[i], objv[i+1], objv[i+2]);
       if (result != TCL_OK) break;
     }
 
@@ -540,7 +549,7 @@ BsonAppend(Tcl_Interp *interp, bson_t *bbPtr, const char *name, const char *tag,
   case BSON_TYPE_CODE:
   case BSON_TYPE_SYMBOL:
   case BSON_TYPE_CODEWSCOPE:
-    return NsfPrintError(interp, "tag %s not handled yet", tag);
+    return NsfPrintError(interp, "tag %s not handled yet", ObjStr(tagObj));
     break;
 
   case BSON_TYPE_UNDEFINED:
@@ -574,12 +583,9 @@ BsonAppendObjv(Tcl_Interp *interp, bson_t *bPtr, int objc, Tcl_Obj **objv)
 
   bson_init(bPtr);
   for (i = 0; i < objc; i += 3) {
-    char    *name = ObjStr(objv[i]);
-    char    *tag = ObjStr(objv[i+1]);
-    Tcl_Obj *value = objv[i+2];
-
-    /*fprintf(stderr, "adding pair '%s' (%s) '%s'\n", name, tag, ObjStr(value));*/
-    result = BsonAppend(interp, bPtr, name, tag, value);
+    /*fprintf(stderr, "adding pair '%s' (%s) '%s'\n",
+      ObjStr(objv[i]), ObjStr(objv[i+1]), ObjStr(objv[i+2]));*/
+    result = BsonAppend(interp, bPtr, objv[i], objv[i+1], objv[i+2]);
     if (result != TCL_OK) {
       break;
     }
@@ -678,7 +684,7 @@ NsfMongoClose(Tcl_Interp *UNUSED(interp), mongoc_client_t *connPtr, Tcl_Obj *con
 static int
 NsfMongoConnect(Tcl_Interp *interp, const char *uri)
 {
-  char             channelName[80];
+  char             channelName[POINTER_HANDLE_SIZE];
   mongoc_client_t *clientPtr;
 
   if (uri == NULL) {
@@ -708,7 +714,7 @@ NsfMongoConnect(Tcl_Interp *interp, const char *uri)
    * Make an entry in the symbol table and return entry name it as
    * result.
    */
-  if (Nsf_PointerAdd(interp, channelName, 80u, "mongoc_client_t", clientPtr) != TCL_OK) {
+  if (Nsf_PointerAdd(interp, channelName, sizeof(channelName), "mongoc_client_t", clientPtr) != TCL_OK) {
     mongoc_client_destroy(clientPtr);
     return TCL_ERROR;
   }
@@ -805,9 +811,9 @@ NsfCollectionOpen(Tcl_Interp *interp,
 
   collectionPtr = mongoc_client_get_collection(clientPtr, dbName, collectionName);
   if (collectionPtr != NULL) {
-    char buffer[80];
+    char buffer[POINTER_HANDLE_SIZE];
 
-    if (Nsf_PointerAdd(interp, buffer, 80u, "mongoc_collection_t", collectionPtr) == TCL_OK) {
+    if (Nsf_PointerAdd(interp, buffer, sizeof(buffer), "mongoc_collection_t", collectionPtr) == TCL_OK) {
       Tcl_SetObjResult(interp, Tcl_NewStringObj(buffer, -1));
       result = TCL_OK;
     } else {
@@ -1028,12 +1034,8 @@ static int NsfMongoCollectionInsert(Tcl_Interp *interp,
   bson_append_oid(bsonPtr, "_id", 3, &oid);
 
   for (i = 0; i < objc; i += 3) {
-    const char *name  = ObjStr(objv[i]);
-    const char *tag   = ObjStr(objv[i+1]);
-    Tcl_Obj    *value = objv[i+2];
-
-    /*fprintf(stderr, "adding pair '%s' (%s) '%s'\n", name, tag, ObjStr(value));*/
-    BsonAppend(interp, bsonPtr, name, tag, value);
+    /*fprintf(stderr, "adding pair '%s' (%s) '%s'\n", ObjStr(name), ObjStr(tag), ObjStr(value));*/
+    BsonAppend(interp, bsonPtr, objv[i], objv[i+1], objv[i+2]);
   }
 
   success = mongoc_collection_insert(collectionPtr, insertFlags, bsonPtr, writeConcern, &bsonError);
@@ -1283,9 +1285,9 @@ NsfMongoCursorAggregate(Tcl_Interp *interp,
                                        pipelinePtr, optionsPtr,
                                        readPrefsPtr);
   if (cursor != NULL) {
-    char buffer[80];
+    char buffer[POINTER_HANDLE_SIZE];
 
-    if (Nsf_PointerAdd(interp, buffer, 80u, "mongoc_cursor_t", cursor) == TCL_OK) {
+    if (Nsf_PointerAdd(interp, buffer, sizeof(buffer), "mongoc_cursor_t", cursor) == TCL_OK) {
       Tcl_SetObjResult(interp, Tcl_NewStringObj(buffer, -1));
     } else {
       mongoc_cursor_destroy( cursor );
@@ -1344,8 +1346,8 @@ NsfMongoCursorFind(Tcl_Interp *interp,
                                              readPrefsPtr);
 
   if (cursor != NULL) {
-    char buffer[80];
-    if (Nsf_PointerAdd(interp, buffer, 80u, "mongoc_cursor_t", cursor) == TCL_OK) {
+    char buffer[POINTER_HANDLE_SIZE];
+    if (Nsf_PointerAdd(interp, buffer, sizeof(buffer), "mongoc_cursor_t", cursor) == TCL_OK) {
       Tcl_SetObjResult(interp, Tcl_NewStringObj(buffer, -1));
     } else {
       mongoc_cursor_destroy( cursor );
@@ -1426,7 +1428,7 @@ static int
 NsfMongoGridFSOpen(Tcl_Interp *interp, mongoc_client_t *clientPtr,
                    const char *dbname, const char *prefix)
 {
-  char             buffer[80];
+  char             buffer[POINTER_HANDLE_SIZE];
   int              result = TCL_OK;
   bson_error_t     bsonError;
   mongoc_gridfs_t *gfsPtr;
@@ -1437,7 +1439,7 @@ NsfMongoGridFSOpen(Tcl_Interp *interp, mongoc_client_t *clientPtr,
     result = NsfPrintError(interp, "mongo::gridfs::open: error: %s", bsonError.message);
   }
 
-  if (Nsf_PointerAdd(interp, buffer, 80u, "mongoc_gridfs_t", gfsPtr) == TCL_OK) {
+  if (Nsf_PointerAdd(interp, buffer, sizeof(buffer), "mongoc_gridfs_t", gfsPtr) == TCL_OK) {
     Tcl_SetObjResult(interp, Tcl_NewStringObj(buffer, -1));
   } else {
     mongoc_gridfs_destroy(gfsPtr);
@@ -1468,7 +1470,8 @@ static int
 NsfMongoGridFileCreate(Tcl_Interp *interp,
                        GridfilesourceIdx_t withSource,
                        mongoc_gridfs_t *gridfsPtr,
-                       const char *value, const char *name,
+                       const char *value,
+                       const char *name,
                        const char *contenttype,
                        Tcl_Obj *withMetadata
                        )
@@ -1515,7 +1518,7 @@ NsfMongoGridFileCreate(Tcl_Interp *interp,
       return NsfPrintError(interp, "nsf::gridfile::create: cannot open file '%s' for reading", value);
     }
 
-    for (;; ) {
+    for (;;) {
       ssize_t n = read(fd, iov.iov_base, MONGOC_GRIDFS_READ_CHUNK);
 
       if (n > 0) {
@@ -1646,9 +1649,9 @@ NsfMongoGridFileOpen(Tcl_Interp *interp,
   gridFilePtr = mongoc_gridfs_find_one_with_opts(gridfsPtr, filterPtr, NULL, &bsonError);
 
   if (gridFilePtr != NULL) {
-    char buffer[80];
+    char buffer[POINTER_HANDLE_SIZE];
 
-    if (Nsf_PointerAdd(interp, buffer, 80u, "mongoc_gridfs_file_t", gridFilePtr) == TCL_OK) {
+    if (Nsf_PointerAdd(interp, buffer, sizeof(buffer), "mongoc_gridfs_file_t", gridFilePtr) == TCL_OK) {
       Tcl_SetObjResult(interp, Tcl_NewStringObj(buffer, -1));
     } else {
       mongoc_gridfs_file_destroy(gridFilePtr);
