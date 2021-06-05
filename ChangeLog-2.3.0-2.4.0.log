@@ -1,0 +1,514 @@
+2021-05-25  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsf.c (ParamOptionParse): Do not support predefined parameter
+	options spelled with trailing content This change makes argument
+	type checking more strict by rejecting names as synonyms which are
+	longer than the specified values.  Background: Previous versions
+	did not handle cases correctly where an application type name
+	starts with the same characters as a built-in type. So it was not
+	possible to define a type "object_id", since a a spec of the form
+	"x:object_id" was interpreted as "x:object". [9bc1a996]
+
+2021-05-13  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* build.yml: clang 11 is default on macos-latest runners; add remaining macos configs
+	[f29f3c69]
+
+	* build.yml: Fix expressions
+	[cf79aef0]
+
+	* build.yml: Remove artifacts from workflow
+	[4f7b34fe]
+
+	* build.yml: Added initial GitHub Actions workflow enabling Linux and macOS builds
+	[e372b812]
+
+2021-05-12  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* appveyor.yml: Bump build matrix to include the tag 8.6.11
+	[7bb2abc4]
+
+2021-05-11  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* nsfAccessInt.h (TclIsCommandDeleted), nsf.c, nsfObj.c: More recent Tcl 8.7 (starting Sep 2020) has replaced the macro CMD_IS_DELETED by CMD_DYING.
+	[e01e3055]
+
+2021-05-05  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* nsf.c (ParamOptionParse): Simplify option parsing for substdefault; Tcl_GetInt knows how to handle 0b binary constants, no expr call needed.
+	[9e705a33]
+
+	* nsf.c (VolatileMethod): Save a little by checking first chars
+	[eb3b441c]
+
+2021-05-02  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* nsf.c (VolatileMethod), volatile.test: Fix volatile for XOTcl 2: frame skipping must be limited to configure, otherwise, for self calls (e.g., 'my volatile'), the sentinal variable plus unset trace become created in the wrong callframe context (leading to corruption of any non-proc callframe); added test cases
+	[3916bf00]
+
+2021-02-17  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	fix provided length values for string arguments
+	[460ae16a]
+
+2021-02-06  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	whitespace cleanup (replace tabs)
+	[75f60be7]
+
+	make warning message more precise about unexpected slot structures during delete
+	[473a993c]
+
+2021-01-03  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	added target for clang-tidy, fine-tuning of compile flags
+	[e3c98331]
+
+	added enumeration values
+	[f0f87b41]
+
+	added support for enumeration values replaced anonymous arrays by dicts
+	[91a7b7d1]
+
+2021-01-02  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	improve type safety of generated code
+	[deed56d5]
+
+	Reduced usage of reserved identifiers [cert-dcl37-c,cert-dcl51-cpp]
+	[65d1c0f8]
+
+	improve comments and spelling
+	[84ebec01]
+
+	improve regularity and linebreaking in comments (mostly function headers)
+	[42dbfd5d]
+
+2021-01-01  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	whitespace changes: more consistent indentation of comments
+	[83e2a1bc]
+
+	improve spelling
+	[18b65162]
+
+2020-10-28  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	add one more test to sanity check
+	[a4cc4075]
+
+	added debugging output for a case, where a Tcl cmd looks perfectly fine, but its procPtr (scripted cases) contains invalid data
+	[57eb831d]
+
+	reduce debugging output
+	[226d979a]
+
+2020-10-27  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	make clean compile, when TRACE flags are defined
+	[a422e30c]
+
+2020-10-21  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	reduce verbosity, silence checker
+	[77a6f178]
+
+	improve spelling
+	[be71d48c]
+
+	Use memmove() instead of strncat() since the former supports overlapping buffers
+	[c72f84a5]
+
+2020-08-31  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	do not try to initialize Tcl_TomMath_InitStubs when TCL_MAJOR_VERSION > 8 || TCL_MINOR_VERSION > 6
+	[4bd7db4e]
+
+	include for Tcl 8.5 tclTomMath.h to define the mp_int type
+	[61c07a2b]
+
+	check, if the flag MP_INT_DECLARED is defined in 8.7* builds
+	[f3258689]
+
+	avoid creation of Tcl_NewBignumObj() when argument is already of the bignum type
+	[9d4daad1]
+
+	added mp_int type definion for tcl >= 8.7
+	see: https://core.tcl-lang.org/tcl/tktview/4663e0636f7a24b9363e67c7a3dd25e9e495be17
+	[e157ce6c]
+
+	get rid of mp_free (we still need the type for mp_int)
+	[0e957261]
+
+2020-08-30  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* win/rules.vc: Starting with recent 8.7, there is no 't' suffix appended to binaries and libs anymore, to indicate a threaded build. [skip travis]
+	[c5097786]
+
+2020-08-28  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* appveyor.yml: Permissions of deploy key are broker under new image; attempt #3 (use OpenSSH as provided by MSYS2) [skip travis]
+	[9647540c]
+
+	* appveyor.yml: Permissions of deploy key are broker under new image; attempt #3 [skip travis]
+	[7c4a1425]
+
+	* appveyor.yml: Permissions of deploy key are broker under new image; attempt #2 [skip travis]
+	[d8bc09f6]
+
+	* appveyor.yml: Permissions of deploy key are broker under new image; attempt #1 [skip travis]
+	[db9147b0]
+
+	* appveyor.yml: Fix path to setup script [skip travis]
+	[8d4ac524]
+
+	* appveyor.yml: Use newer VS image [skip travis]
+	[77053610]
+
+2020-08-19  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	Added readme document for profiling
+	[e40a0652]
+
+	improve spelling
+	[dc6b2eb2]
+
+	avoid overly short method names
+	[c493c042]
+
+2020-08-07  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	improve spelling
+	[d25e6ec7]
+
+2020-07-02  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	improve spelling: move closer to the linux documentation recommendations
+	[78c12b94]
+
+	reduce useless output of "make test"
+	[754d1562]
+
+2020-06-11  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	improve spelling
+	[30864532]
+
+2020-05-29  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	nsf.c (Nsf_ConvertToInteger): Use Jan's hot fix TCL_NO_TOMMATH_H, not yet integrated into Tcl's 8.7 branch.
+	[0aae1296]
+
+2020-05-15  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	Force use of internal libtommath (TIP 538) in 8.7 builds
+	[5a80e290]
+
+	Bump Travis macOS image and use gcc-9
+	[6259567b]
+
+2020-03-21  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	make sure, variable is always initialized
+	[6ef097d5]
+
+	make sure, result is alway initialized
+	[053960da]
+
+2020-03-09  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	improve spelling
+	[5bcb005e]
+
+2020-02-18  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	improve spelling
+	[10011595]
+
+2020-02-06  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	add object level method "dict" similar to "array" for larger symmetry of commands
+	[34c85637]
+
+2019-12-09  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	improve spelling
+	[a11d866d]
+
+	remove redundant tests
+	[a77455e1]
+
+2019-11-25  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	Fix [skip travis]
+	[d2a20690]
+
+	Fix typo in Appveyor descriptor [skip-travis]
+	[e1be9ee9]
+
+	Update build descriptors to incorporate recent Tcl releases.
+	[9808a2f3]
+
+2019-11-21  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	improve spelling
+	[cd6385e4]
+
+2019-11-06  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	improve spelling
+	[f10f6e08]
+
+	reduce debugging output
+	[eef40b99]
+
+2019-10-08  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* Makefile.in: Avoid pathnames as targets and target dependencies, as   they may break make in presence of colons or whitespaces in   pathnames as set by autoconf (e.g.,   --prefix=/data/bin-2019-10-04:19:39:35 or   --exec-prefix=/tmp/data/bin-2019-10-04:19:39:35). Thanks to Héctor   Romojaro for reporting.
+	[8eebb7d3]
+
+	* nsf.c, testx.xotcl: Substitute tab-based indentation (1x) for space-based one (8x) for 'required argument' error msg.
+	[5a31aba4]
+
+2019-10-06  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	Fix potential crash, whe nsf::parseargs is called with a non-empty argspec and empty argv
+	Extended regression test to cover such cases.
+	[f69d5326]
+
+2019-10-05  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	add missing EXTERN declarations
+	[37833d29]
+
+	typographic changes, most prominently, more consistent comma settings
+	https://onlinewritingtraining.com.au/however-therefore-furthermore/
+	[9e281d51]
+
+2019-09-27  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	remove "default" from fully initialized switches. initialize variable to slience compiler warnings
+	[3493340e]
+
+2019-09-23  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	improve spelling
+	[8024df76]
+
+	use newer m4 file
+	[a4a0ad0e]
+
+	use newer .m4 file
+	[7792a2a9]
+
+	remove redundant test
+	[d32646c8]
+
+2019-08-20  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	fix indentation
+	[83d91f91]
+
+2019-08-20  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* nsf.c (NSDeleteChildren): Remove redundant check on NSDeleteChild, leading to endless loop.
+	[84a79b3f]
+
+	* appveyor.yml: Fix MinGW, ultimate attempt, long story [skip travis]
+	[5c433a50]
+
+2019-08-20  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	avoid dangerous and potentially recursive macro definition "pure"
+	[7ad03f0f]
+
+2019-08-19  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* appveyor.yml: Fix MAKE, Nth attempt [skip travis]
+	[df7f1017]
+
+	* appveyor.yml: Fix MAKE, Nth attempt [skip travis]
+	[72cd24a2]
+
+	* appveyor.yml: Fix MAKE, Nth attempt [skip travis]
+	[757b2fcc]
+
+	* appveyor.yml: Fix MAKE, th attempt [skip travis]
+	[24714c3b]
+
+	 * appveyor.yml: Fix MAKE, th attempt [skip travis]
+	[831a01f7]
+
+	 * appveyor.yml: Fix MAKE, 5th attempt [skip travis]
+	[ddc11506]
+
+	 * appveyor.yml: Fix MAKE, 4th attempt [skip travis]
+	[7ff1d6ee]
+
+	 * appveyor.yml: Fix MAKE, 3rd attempt [skip travis]
+	[25366baf]
+
+	 * appveyor.yml: Fix MAKE, 2nd attempt [skip travis]
+	[f63350c7]
+
+	 * appveyor.yml: Fix MAKE [skip travis]
+	[4512fb55]
+
+	 * appveyor.yml: Fix paths [skip travis]
+	[6af065c4]
+
+	 * appveyor.yml: Sign, needs more debugging [skip travis]
+	[ce0feaa3]
+
+	 * appveyor.yml: Trying to fix MinGW builds [skip travis]
+	[0ac89591]
+
+2019-08-16  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	fix compilation issues with recent version of the Tcl core-8.branch (aka newest Tcl 8.7 branch)
+	[8f7c25f9]
+
+2019-08-13  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	improve spelling
+	[3c7374ae]
+
+2019-08-10  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	improve spelling
+	[f817725e]
+
+2019-08-09  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	improve spelling
+	[f35ab630]
+
+2019-08-08  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	don't preallocate elements in Tcl_NewListObj with 2nd arg NULL (deprecated) nsf::__db_get_obj: make sure, the returned dict is valid
+	[febe765f]
+
+2019-08-06  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	trying to understand AppVeyor behavior
+	[1e698728]
+
+	still trying to understand AppVeyor behavior
+	[9e6766c4]
+
+	take care on reference count on error message
+	[63c904a4]
+
+	debugging beahvior under AppVeyor
+	[8e725616]
+
+	attempt to understand AppVeyor results
+	[faa3eeb7]
+
+2019-08-05  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	fix shadowing of variable names
+	[114f2ea7]
+
+	fine-tuning of gcc warnings
+	[89894f47]
+
+	fix version number
+	[c1612273]
+
+2019-07-21  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* tests/submethods.test: Test for various conditions of unknown   handling for ensemble methods of varying depth; also covers the   crash condition reported on c.l.t, introduced with [156a37f]
+	[37735fae]
+
+2019-07-21  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	fix but on top-level shell on unknown ensemble submethods
+	[5368627b]
+
+2019-07-07  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* nx.tcl, pkgIndex.tcl: Fix version number to include patch level: x.y.z
+	[31adfd57]
+
+	 * properties.test: Add a case to test for the bug on cget/configure NsfFlagObjType sharing
+	[13ac2740]
+
+2019-07-06  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	let developer control NDEBUG via Makefile (Tcl seems to define it nowadays)
+	[1fb16685]
+
+	- fix for the reported by "manfred" on comp.lang.tcl
+	[94a8ea7c]
+
+	improve cleanness of compilation
+	[172a32e2]
+
+	improve fall-through markup for case statements
+	[3a4c6144]
+
+2019-06-26  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	 * appveyor.yml: Fix tclkit URL for win.
+	[2b4d1bca]
+
+2019-06-19  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* apps/build.tcl: Fallback to curl, in case we run under a non-TLS-enabled Tcl environment.
+	[cc4c9b92]
+
+2019-06-17  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	Fix build environment to be able to fetch Tcl tarballs via https; updated tclkits for linux, macos, and win.
+	[1544e5c0]
+
+2019-06-16  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	silence gcc7+: use attribute based approach for denoting fall through in case statements
+	[ec5702da]
+
+2019-05-25  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	make unused argument explicitly as unused.
+	[937c6deb]
+
+	improve cleanness of compilation when compiled without threads
+	[51302024]
+
+	fix missed version bump
+	[641f75e3]
+
+	Fix endless loop at exit, when compiled without thread support
+	Many thanks to Pavel Demin for reporting this bug.
+	[8dbedb9a]
+
+2019-05-14  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	Eliminate TCL_INTERP_DESTROYED flag (as suggested by TIP #543)
+	[e2349563]
+
+	cleanup after merge
+	[6fc1fe6c]
+
+	add hints for re-tagging
+	[10211dca]
+
+2019-05-13  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	Fix version bump
+	[c80b57b9]
+
+	Bump version number to 2.4.0
+	[39197485]
+
+	Added CI entries to README.release [skip ci]
+	[8c195577]
+
+	Update branch settings in CI descriptors
+	[717b102a]
+
+2019-05-12  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* .travis.yml, appveyor.yml: Update branch settings in CI
+	descriptors [4ee2e547]
