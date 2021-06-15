@@ -23,7 +23,7 @@ New Features
   
 - XOTcl:
 
-  * ...
+  * dict is now available as a per-object method, similar to array.
 
 - MongoDB:
 
@@ -50,9 +50,12 @@ New Features
 
   * Tcl 8.7:
 
-    Support for the upcoming Tcl 8.7a5
+    o Support for the upcoming Tcl 8.7a5
     (core.tcl-lang.org/tcl branch "core-8-branch"). NSF compiles and its
     regression tests execute successfully (including TCL_NO_DEPRECATE).
+
+    o NSF is now TIP-538 ready (Tcl starting relying on on libtommath
+    as an extrinsic dependency).
 
   * Misc (esp. NSF/C): Ran valgrind checks ...
 

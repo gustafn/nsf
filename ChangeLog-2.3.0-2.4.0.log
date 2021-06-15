@@ -183,7 +183,7 @@
 
 2020-07-02  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	improve spelling: move closer to the linux documentation recommendations
+	improve spelling: move closer to the Linux documentation recommendations
 	[78c12b94]
 
 	reduce useless output of "make test"
@@ -191,75 +191,79 @@
 
 2020-06-11  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	improve spelling
-	[30864532]
+	* doc/next-migration.txt, doc/next-tutorial/next-tutorial.txt,
+	library/lib/make.tcl, tests/parameters.test: Improve spelling [30864532]
 
 2020-05-29  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-	nsf.c (Nsf_ConvertToInteger): Use Jan's hot fix TCL_NO_TOMMATH_H, not yet integrated into Tcl's 8.7 branch.
+	* nsf.c (Nsf_ConvertToInteger): Use Jan's hot fix
+	TCL_NO_TOMMATH_H, not yet integrated into Tcl's 8.7 branch.
 	[0aae1296]
 
 2020-05-15  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-	Force use of internal libtommath (TIP 538) in 8.7 builds
+	* build.tcl: Force use of internal libtommath (TIP 538) in 8.7 builds
 	[5a80e290]
 
-	Bump Travis macOS image and use gcc-9
+	* .travis.yml: Bump Travis macOS image and use gcc-9
 	[6259567b]
 
 2020-03-21  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	make sure, variable is always initialized
-	[6ef097d5]
-
-	make sure, result is alway initialized
-	[053960da]
+	* nsf.c (NsfMethodAliasCmd, ProtectionMatches): Make sure,
+	variable is always initialized [6ef097d5, 053960da]
 
 2020-03-09  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	improve spelling
-	[5bcb005e]
+	* generic/nsf.c, generic/nsfEnumerationType.c,
+	generic/nsfPointer.c, generic/nsfStack.c, tests/methods.test,
+	tests/nsf-cmd.test, tests/parameters.test: Improve spelling [5bcb005e]
 
 2020-02-18  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	improve spelling
+	* generic/nsf.c, library/lib/nx-zip.tcl: Improve spelling
 	[10011595]
 
 2020-02-06  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	add object level method "dict" similar to "array" for larger symmetry of commands
-	[34c85637]
+	* xotcl2.tcl: Add object level method "dict" similar to "array"
+	for larger symmetry of commands [34c85637]
 
 2019-12-09  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	improve spelling
-	[a11d866d]
+	* doc/example-scripts/rosetta-constraint-genericity.tcl,
+	doc/example-scripts/rosetta-delegates.tcl,
+	doc/example-scripts/ruby-mixins.tcl, doc/next-migration.txt,
+	doc/next-tutorial/next-tutorial.txt, generic/nsf.c,
+	library/xotcl/library/xotcl2.tcl: Improve spelling [a11d866d]
 
-	remove redundant tests
+	* nsfDebug.c (NsfStackDump): Remove redundant tests
 	[a77455e1]
 
 2019-11-25  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-	Fix [skip travis]
-	[d2a20690]
-
-	Fix typo in Appveyor descriptor [skip-travis]
-	[e1be9ee9]
-
-	Update build descriptors to incorporate recent Tcl releases.
-	[9808a2f3]
+	* .travis.yml, appveyor.xml: Updates to build descriptors
+	(incl. new Tcl release tags)
+	[d2a20690, e1be9ee9, 9808a2f3]
 
 2019-11-21  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	improve spelling
-	[cd6385e4]
+	* library/nx/nx.tcl, library/xotcl/doc/langRef.xotcl,
+	library/xotcl/tests/slottest.xotcl,
+	library/xotcl/tests/testx.xotcl: Improve spelling [cd6385e4]
 
 2019-11-06  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	improve spelling
-	[f10f6e08]
+	* doc/Object.3, library/mongodb/tests/nsf-mongo.test,
+	library/mongodb/tests/nx-mongo.test,
+	library/xotcl/apps/utils/xo-daemon,
+	library/xotcl/doc/Announce-1.3.6,
+	library/xotcl/doc/Announce-1.4.0,
+	library/xotcl/library/comm/Access.xotcl,
+	library/xotcl/library/comm/PCache.xotcl, tests/alias.test,
+	tests/parameters.test: Improve spelling [f10f6e08]
 
-	reduce debugging output
+	* nsf.c (NsfParseArgsCmd): Reduce debugging output
 	[eef40b99]
 
 2019-10-08  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
@@ -364,7 +368,8 @@
 
 2019-08-05  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	* nsfShadow.c: Fix shadowing of variable names [114f2ea7]
+	* nsfShadow.c (Nsf_RenameObjCmd, Nsf_InfoBodyObjCmd): Fix
+	shadowing of variable names [114f2ea7]
 
 	* Makefile.in: fine-tuning of gcc warnings [89894f47]
 
