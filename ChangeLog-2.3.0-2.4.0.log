@@ -167,27 +167,37 @@
 
 2020-08-19  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	Added readme document for profiling
+	* README.profile: Added readme document for profiling
 	[e40a0652]
 
-	improve spelling
+	* Connection.xotcl, xodoc.xotcl: Improve spelling
 	[dc6b2eb2]
 
-	avoid overly short method names
+	* slottest.xotcl, testx.xotcl: Avoid overly short method names
 	[c493c042]
 
 2020-08-07  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	improve spelling
-	[d25e6ec7]
+	* doc/next-tutorial/next-tutorial.txt, generic/asm/nsfAssemble.c,
+	generic/nsfError.c: Improve spelling [d25e6ec7]
 
 2020-07-02  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	improve spelling: move closer to the Linux documentation recommendations
-	[78c12b94]
+	* doc/example-scripts/per-object-mixins.tcl,
+	doc/example-scripts/rosetta-add-variable.tcl,
+	doc/example-scripts/rosetta-multiple-distinct.tcl,
+	doc/next-migration.txt, doc/next-tutorial/next-tutorial.txt,
+	generic/nsf.c, generic/nsfInt.h, generic/nsfStack.c,
+	library/lib/nx-shell.tcl, library/lib/nx-zip.tcl,
+	library/mongodb/nsfmongo.c, library/mongodb/tests/nsf-gridfs.test,
+	library/serialize/serializer.tcl, tests/alias.test,
+	tests/disposition.test, tests/doc.test, tests/methods.test,
+	tests/parameters.test, tests/shells.test, tests/tcloo.test:
+	Improve spelling by moving closer to the Linux documentation
+	recommendations [78c12b94]
 
-	reduce useless output of "make test"
-	[754d1562]
+	* Makefile.in, library/mongodb/Makefile.in: Reduce useless output
+	of "make test" [754d1562]
 
 2020-06-11  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
