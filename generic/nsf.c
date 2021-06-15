@@ -15585,8 +15585,17 @@ ObjectDispatch(
                            ObjectName_(object), methodName);
     }
   }
+
+
+  /* TODO: Is this guarding too excessive, or just fine? */
   methodObjTypePtr = methodObj->typePtr;
-  ccCtxPtr = methodObj->internalRep.twoPtrValue.ptr2;
+  if (methodObjTypePtr == Nsf_OT_tclCmdNameType
+      || methodObjTypePtr == &NsfInstanceMethodObjType
+      || methodObjTypePtr == &NsfObjectMethodObjType) {
+    ccCtxPtr = methodObj->internalRep.twoPtrValue.ptr2;
+  } else {
+    ccCtxPtr = NULL;
+  }
 
 
 #if 1
