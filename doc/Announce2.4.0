@@ -1,0 +1,81 @@
+Dear Community,
+
+We are pleased to announce the availability of the Next Scripting
+Framework (NSF) 2.4.0. The changes are mostly perfective improvements
+in terms of bug fixes, API consistency, and backwards
+compatibility. See below for the details.
+
+
+Diff stats since 2.3.0:
+   YYY
+
+Major changes relative to 2.3.0 are:
+
+New Features
+
+- NSF:
+
+  * ...
+
+- NX:
+
+  * ...
+  
+- XOTcl:
+
+  * dict is now available as a per-object method, similar to array.
+
+- MongoDB:
+
+  * ...
+  * Fixed test suite; tested the NSF MongoDB binding against latest
+    stable releases of MongoDB (4.0.9) and MongoDB-C driver (1.14.0).
+
+
+- Documentation:
+
+  * ...
+
+
+- Maintenance & bug fixes:
+
+  * Prefer using Tcl_InterpDeleted() over explicitly checking bitmask
+    flags internal to Tcl.
+
+  * Exiting non-threaded NSF builds will not hang anymore.
+
+  * Fix crashes due internal cache mis-management of flag names
+    processed by configure/ cget. See
+    https://groups.google.com/g/comp.lang.tcl/c/F9cn_Ah4js4/m/eL22xbQaCgAJ
+
+  * Tcl 8.7:
+
+    o Support for the upcoming Tcl 8.7a5
+    (core.tcl-lang.org/tcl branch "core-8-branch"). NSF compiles and its
+    regression tests execute successfully (including TCL_NO_DEPRECATE).
+
+    o NSF is now TIP-538 ready (Tcl starting relying on on libtommath
+    as an extrinsic dependency).
+
+  * Misc (esp. NSF/C): Ran valgrind checks ...
+
+- Build environments, automated builds:
+
+  * Render makefile more robust in light of filepaths containing
+    whitespace characters
+  
+  * Due to Travis becoming unavailable, we moved to GitHub Actions for
+    automated builds on Linux and macOS. Windows builds are still
+    served by AppVeyor.
+
+The detailed changelog is available at
+https://next-scripting.org/xowiki/download/file/ChangeLog-2.3.0-2.4.0.log
+
+The Next Scripting Framework 2.4.0 (containing NX 2.4.0 and XOTcl
+2.4.0) can be obtained from https://next-scripting.org/. Please report
+issues and wishes by opening a ticket at
+https://sourceforge.net/p/next-scripting/tickets/.
+
+Best regards
+- Gustaf Neumann
+- Stefan Sobernig

@@ -35792,12 +35792,17 @@ Nsf_Init(
   Nsf_OT_byteArrayType = Tcl_GetObjType("bytearray");
   assert(Nsf_OT_byteArrayType != NULL);
 
-  { mp_int bignumValue;
+  {
+    mp_int bignumValue;
+    Tcl_Obj *bigNumObj;
 
     tmpObj = Tcl_NewStringObj("10000000000000000000000", -1);
     Tcl_GetBignumFromObj(NULL, tmpObj, &bignumValue);
     Nsf_OT_bignumType =  tmpObj->typePtr;
     assert(Nsf_OT_bignumType != NULL);
+    /* Make sure mp_int is actually cleared (w/o using mp_clear). */
+    bigNumObj = Tcl_NewBignumObj(&bignumValue);
+    Tcl_DecrRefCount(bigNumObj);
     Tcl_DecrRefCount(tmpObj);
   }
 

@@ -167,279 +167,251 @@
 
 2020-08-19  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	Added readme document for profiling
+	* README.profile: Added readme document for profiling
 	[e40a0652]
 
-	improve spelling
+	* Connection.xotcl, xodoc.xotcl: Improve spelling
 	[dc6b2eb2]
 
-	avoid overly short method names
+	* slottest.xotcl, testx.xotcl: Avoid overly short method names
 	[c493c042]
 
 2020-08-07  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	improve spelling
-	[d25e6ec7]
+	* doc/next-tutorial/next-tutorial.txt, generic/asm/nsfAssemble.c,
+	generic/nsfError.c: Improve spelling [d25e6ec7]
 
 2020-07-02  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	improve spelling: move closer to the linux documentation recommendations
-	[78c12b94]
+	* doc/example-scripts/per-object-mixins.tcl,
+	doc/example-scripts/rosetta-add-variable.tcl,
+	doc/example-scripts/rosetta-multiple-distinct.tcl,
+	doc/next-migration.txt, doc/next-tutorial/next-tutorial.txt,
+	generic/nsf.c, generic/nsfInt.h, generic/nsfStack.c,
+	library/lib/nx-shell.tcl, library/lib/nx-zip.tcl,
+	library/mongodb/nsfmongo.c, library/mongodb/tests/nsf-gridfs.test,
+	library/serialize/serializer.tcl, tests/alias.test,
+	tests/disposition.test, tests/doc.test, tests/methods.test,
+	tests/parameters.test, tests/shells.test, tests/tcloo.test:
+	Improve spelling by moving closer to the Linux documentation
+	recommendations [78c12b94]
 
-	reduce useless output of "make test"
-	[754d1562]
+	* Makefile.in, library/mongodb/Makefile.in: Reduce useless output
+	of "make test" [754d1562]
 
 2020-06-11  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	improve spelling
-	[30864532]
+	* doc/next-migration.txt, doc/next-tutorial/next-tutorial.txt,
+	library/lib/make.tcl, tests/parameters.test: Improve spelling [30864532]
 
 2020-05-29  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-	nsf.c (Nsf_ConvertToInteger): Use Jan's hot fix TCL_NO_TOMMATH_H, not yet integrated into Tcl's 8.7 branch.
+	* nsf.c (Nsf_ConvertToInteger): Use Jan's hot fix
+	TCL_NO_TOMMATH_H, not yet integrated into Tcl's 8.7 branch.
 	[0aae1296]
 
 2020-05-15  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-	Force use of internal libtommath (TIP 538) in 8.7 builds
+	* build.tcl: Force use of internal libtommath (TIP 538) in 8.7 builds
 	[5a80e290]
 
-	Bump Travis macOS image and use gcc-9
+	* .travis.yml: Bump Travis macOS image and use gcc-9
 	[6259567b]
 
 2020-03-21  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	make sure, variable is always initialized
-	[6ef097d5]
-
-	make sure, result is alway initialized
-	[053960da]
+	* nsf.c (NsfMethodAliasCmd, ProtectionMatches): Make sure,
+	variable is always initialized [6ef097d5, 053960da]
 
 2020-03-09  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	improve spelling
-	[5bcb005e]
+	* generic/nsf.c, generic/nsfEnumerationType.c,
+	generic/nsfPointer.c, generic/nsfStack.c, tests/methods.test,
+	tests/nsf-cmd.test, tests/parameters.test: Improve spelling [5bcb005e]
 
 2020-02-18  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	improve spelling
+	* generic/nsf.c, library/lib/nx-zip.tcl: Improve spelling
 	[10011595]
 
 2020-02-06  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	add object level method "dict" similar to "array" for larger symmetry of commands
-	[34c85637]
+	* xotcl2.tcl: Add object level method "dict" similar to "array"
+	for larger symmetry of commands [34c85637]
 
 2019-12-09  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	improve spelling
-	[a11d866d]
+	* doc/example-scripts/rosetta-constraint-genericity.tcl,
+	doc/example-scripts/rosetta-delegates.tcl,
+	doc/example-scripts/ruby-mixins.tcl, doc/next-migration.txt,
+	doc/next-tutorial/next-tutorial.txt, generic/nsf.c,
+	library/xotcl/library/xotcl2.tcl: Improve spelling [a11d866d]
 
-	remove redundant tests
+	* nsfDebug.c (NsfStackDump): Remove redundant tests
 	[a77455e1]
 
 2019-11-25  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-	Fix [skip travis]
-	[d2a20690]
-
-	Fix typo in Appveyor descriptor [skip-travis]
-	[e1be9ee9]
-
-	Update build descriptors to incorporate recent Tcl releases.
-	[9808a2f3]
+	* .travis.yml, appveyor.xml: Updates to build descriptors
+	(incl. new Tcl release tags)
+	[d2a20690, e1be9ee9, 9808a2f3]
 
 2019-11-21  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	improve spelling
-	[cd6385e4]
+	* library/nx/nx.tcl, library/xotcl/doc/langRef.xotcl,
+	library/xotcl/tests/slottest.xotcl,
+	library/xotcl/tests/testx.xotcl: Improve spelling [cd6385e4]
 
 2019-11-06  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	improve spelling
-	[f10f6e08]
+	* doc/Object.3, library/mongodb/tests/nsf-mongo.test,
+	library/mongodb/tests/nx-mongo.test,
+	library/xotcl/apps/utils/xo-daemon,
+	library/xotcl/doc/Announce-1.3.6,
+	library/xotcl/doc/Announce-1.4.0,
+	library/xotcl/library/comm/Access.xotcl,
+	library/xotcl/library/comm/PCache.xotcl, tests/alias.test,
+	tests/parameters.test: Improve spelling [f10f6e08]
 
-	reduce debugging output
+	* nsf.c (NsfParseArgsCmd): Reduce debugging output
 	[eef40b99]
 
 2019-10-08  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-	* Makefile.in: Avoid pathnames as targets and target dependencies, as   they may break make in presence of colons or whitespaces in   pathnames as set by autoconf (e.g.,   --prefix=/data/bin-2019-10-04:19:39:35 or   --exec-prefix=/tmp/data/bin-2019-10-04:19:39:35). Thanks to Héctor   Romojaro for reporting.
-	[8eebb7d3]
+	* Makefile.in: Avoid pathnames as targets and target dependencies,
+	as they may break make in presence of colons or whitespaces in
+	pathnames as set by autoconf (e.g.,
+	--prefix=/data/bin-2019-10-04:19:39:35 or
+	--exec-prefix=/tmp/data/bin-2019-10-04:19:39:35). Thanks to Héctor
+	Romojaro for reporting. [8eebb7d3]
 
-	* nsf.c, testx.xotcl: Substitute tab-based indentation (1x) for space-based one (8x) for 'required argument' error msg.
-	[5a31aba4]
+	* nsf.c, testx.xotcl: Substitute tab-based indentation (1x) for
+	space-based one (8x) for 'required argument' error msg. [5a31aba4]
 
 2019-10-06  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	Fix potential crash, whe nsf::parseargs is called with a non-empty argspec and empty argv
-	Extended regression test to cover such cases.
-	[f69d5326]
+	* nsf.c, parameters.test: Fix potential crash, whe nsf::parseargs
+	is called with a non-empty argspec and empty argv Extended
+	regression test to cover such cases. [f69d5326]
 
 2019-10-05  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	add missing EXTERN declarations
+	* gentclAPI.tcl: Add missing EXTERN declarations
 	[37833d29]
 
-	typographic changes, most prominently, more consistent comma settings
+	* nsf.c, nx-bi.test, contains.test, disposition.test,
+	method-parameter.test, nsf-cmd.test, tcl86.test: typographic
+	changes, most prominently, more consistent comma settings
 	https://onlinewritingtraining.com.au/however-therefore-furthermore/
 	[9e281d51]
 
 2019-09-27  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	remove "default" from fully initialized switches. initialize variable to slience compiler warnings
+	* nsf.c: Remove "default" from fully initialized
+	switches. initialize variable to slience compiler warnings
 	[3493340e]
 
 2019-09-23  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	improve spelling
-	[8024df76]
+	* Object.man, nsfAccessInt.h, webserver.xotcl, htmllib.xotcl,
+	makeDoc.xotcl, destroy.test, doc.test, info-method.test,
+	methods.test, object-system.test, protected.test, tcloo.test:
+	Improve spelling [8024df76]
 
-	use newer m4 file
-	[a4a0ad0e]
+	* tcl.m4: Use newer m4 file [a4a0ad0e, 7792a2a9]
 
-	use newer .m4 file
-	[7792a2a9]
-
-	remove redundant test
-	[d32646c8]
+	* nsf.c: Remove redundant test [d32646c8]
 
 2019-08-20  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	fix indentation
-	[83d91f91]
+	* nsf.c: Fix indentation [83d91f91]
 
 2019-08-20  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-	* nsf.c (NSDeleteChildren): Remove redundant check on NSDeleteChild, leading to endless loop.
-	[84a79b3f]
+	* nsf.c (NSDeleteChildren): Remove redundant check on
+	NSDeleteChild, leading to endless loop. [84a79b3f]
 
-	* appveyor.yml: Fix MinGW, ultimate attempt, long story [skip travis]
+	* appveyor.yml: Fix MinGW, ultimate attempt, long story
 	[5c433a50]
 
 2019-08-20  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	avoid dangerous and potentially recursive macro definition "pure"
+	* nsf.c, nsf.h, nsfInt.h, nsfStack.c: Avoid dangerous and
+	potentially recursive macro definition "pure"
 	[7ad03f0f]
 
 2019-08-19  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-	* appveyor.yml: Fix MAKE, Nth attempt [skip travis]
-	[df7f1017]
-
-	* appveyor.yml: Fix MAKE, Nth attempt [skip travis]
-	[72cd24a2]
-
-	* appveyor.yml: Fix MAKE, Nth attempt [skip travis]
-	[757b2fcc]
-
-	* appveyor.yml: Fix MAKE, th attempt [skip travis]
-	[24714c3b]
-
-	 * appveyor.yml: Fix MAKE, th attempt [skip travis]
-	[831a01f7]
-
-	 * appveyor.yml: Fix MAKE, 5th attempt [skip travis]
-	[ddc11506]
-
-	 * appveyor.yml: Fix MAKE, 4th attempt [skip travis]
-	[7ff1d6ee]
-
-	 * appveyor.yml: Fix MAKE, 3rd attempt [skip travis]
-	[25366baf]
-
-	 * appveyor.yml: Fix MAKE, 2nd attempt [skip travis]
-	[f63350c7]
-
-	 * appveyor.yml: Fix MAKE [skip travis]
-	[4512fb55]
-
-	 * appveyor.yml: Fix paths [skip travis]
-	[6af065c4]
-
-	 * appveyor.yml: Sign, needs more debugging [skip travis]
-	[ce0feaa3]
-
-	 * appveyor.yml: Trying to fix MinGW builds [skip travis]
-	[0ac89591]
+	* appveyor.yml: Fix MAKE, Nth attempt [0ac89591..df7f1017]
 
 2019-08-16  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	fix compilation issues with recent version of the Tcl core-8.branch (aka newest Tcl 8.7 branch)
+	* nsf.c, nsfAccessInt.h (FilterAddActive, ProcDispatchFinalize,
+	CallForwarder): Fix compilation issues with recent version of the
+	Tcl core-8.branch (aka newest Tcl 8.7 branch)
 	[8f7c25f9]
 
 2019-08-13  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	improve spelling
-	[3c7374ae]
+	* *.log, nx-zip.tcl, get-regression-nb.xotcl, Httpd.xotcl,
+	parameters.test, tcloo.test: Improve spelling [3c7374ae]
 
 2019-08-10  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	improve spelling
-	[f817725e]
+	* Class.3, Class.man, tutorial2.html: Improve spelling [f817725e]
 
 2019-08-09  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	improve spelling
-	[f35ab630]
+	* doc/example-scripts/*.html: Improve spelling [f35ab630]
 
 2019-08-08  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	don't preallocate elements in Tcl_NewListObj with 2nd arg NULL (deprecated) nsf::__db_get_obj: make sure, the returned dict is valid
-	[febe765f]
+	* nsf.c: Don't preallocate elements in Tcl_NewListObj with 2nd arg
+	NULL (deprecated) nsf::__db_get_obj: make sure, the returned dict
+	is valid [febe765f]
 
 2019-08-06  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	trying to understand AppVeyor behavior
-	[1e698728]
-
-	still trying to understand AppVeyor behavior
-	[9e6766c4]
-
-	take care on reference count on error message
-	[63c904a4]
-
-	debugging beahvior under AppVeyor
-	[8e725616]
-
-	attempt to understand AppVeyor results
-	[faa3eeb7]
+	* nsf.c, nx.tcl, object-system.test: Enable temporary debugging
+	output to investigate AppVeyor build failures
+	[1e698728, 9e6766c4, 63c904a4, 8e725616, faa3eeb7]
 
 2019-08-05  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	fix shadowing of variable names
-	[114f2ea7]
+	* nsfShadow.c (Nsf_RenameObjCmd, Nsf_InfoBodyObjCmd): Fix
+	shadowing of variable names [114f2ea7]
 
-	fine-tuning of gcc warnings
-	[89894f47]
+	* Makefile.in: fine-tuning of gcc warnings [89894f47]
 
-	fix version number
-	[c1612273]
+	* Serializer.xotcl: Fix version number [c1612273]
 
 2019-07-21  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-	* tests/submethods.test: Test for various conditions of unknown   handling for ensemble methods of varying depth; also covers the   crash condition reported on c.l.t, introduced with [156a37f]
-	[37735fae]
+	* tests/submethods.test: Test for various conditions of unknown
+	handling for ensemble methods of varying depth; also covers the
+	crash condition reported on c.l.t, introduced with [156a37f] [37735fae]
 
 2019-07-21  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	fix but on top-level shell on unknown ensemble submethods
-	[5368627b]
+	* nsf.c (NextSearchAndInvoke): Fix but on top-level shell on
+	unknown ensemble submethods [5368627b]
 
 2019-07-07  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-	* nx.tcl, pkgIndex.tcl: Fix version number to include patch level: x.y.z
-	[31adfd57]
+	* nx.tcl, pkgIndex.tcl: Fix version number to include patch level:
+	x.y.z [31adfd57]
 
-	 * properties.test: Add a case to test for the bug on cget/configure NsfFlagObjType sharing
-	[13ac2740]
+	* properties.test: Add a case to test for the bug on
+	cget/configure NsfFlagObjType sharing [13ac2740]
 
 2019-07-06  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	let developer control NDEBUG via Makefile (Tcl seems to define it nowadays)
+	* nsf.h: Let developer control NDEBUG via Makefile (Tcl seems to define it nowadays)
 	[1fb16685]
 
-	- fix for the reported by "manfred" on comp.lang.tcl
+	* nsf.c (ArgumentParse): Fix for a caching bug reported by Manfred
+	Stelzhammer at comp.lang.tcl. See
+	https://groups.google.com/g/comp.lang.tcl/c/F9cn_Ah4js4/m/eL22xbQaCgAJ
 	[94a8ea7c]
 
 	improve cleanness of compilation
@@ -455,58 +427,51 @@
 
 2019-06-19  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-	* apps/build.tcl: Fallback to curl, in case we run under a non-TLS-enabled Tcl environment.
+	* apps/build.tcl: Fallback to curl, in case we run under a
+	non-TLS-enabled Tcl environment.
 	[cc4c9b92]
 
 2019-06-17  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-	Fix build environment to be able to fetch Tcl tarballs via https; updated tclkits for linux, macos, and win.
-	[1544e5c0]
+	* .travis.yml, apps/build.tcl, appveyor.yml: Fix build environment
+	to be able to fetch Tcl tarballs via https; updated tclkits for
+	linux, macos, and win. [1544e5c0]
 
 2019-06-16  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	silence gcc7+: use attribute based approach for denoting fall through in case statements
-	[ec5702da]
+	* nsf.c, nsf.h, nsfFunPtrHashTable.c, nsfInt.h: Silence gcc7+ by
+	using attribute-based approach for denoting fall through in case
+	statements [ec5702da]
 
 2019-05-25  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	make unused argument explicitly as unused.
-	[937c6deb]
+	* nsf.c: Code gardening (make unused argument explicitly as
+	unused, cleanness of compilation when compiled without threads)
+	[937c6deb, 51302024]
 
-	improve cleanness of compilation when compiled without threads
-	[51302024]
-
-	fix missed version bump
+	* library/mongodb/pkgIndex.add: Fix missed version bump
 	[641f75e3]
 
-	Fix endless loop at exit, when compiled without thread support
-	Many thanks to Pavel Demin for reporting this bug.
-	[8dbedb9a]
+	* nsf.c (ObjectSystemsCleanup): Fix endless loop at exit, when
+	compiled without thread support. Many thanks to Pavel Demin for
+	reporting this bug. [8dbedb9a]
 
 2019-05-14  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	Eliminate TCL_INTERP_DESTROYED flag (as suggested by TIP #543)
-	[e2349563]
-
-	cleanup after merge
-	[6fc1fe6c]
-
-	add hints for re-tagging
-	[10211dca]
+	* nsf.c (NsfUnsetTrace): Eliminate TCL_INTERP_DESTROYED flag (as
+	suggested by TIP #543) [e2349563]
 
 2019-05-13  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-	Fix version bump
-	[c80b57b9]
+	* configure.ac, library/mongodb/configure.ac, nx-mongo.tcl,
+	nx.tcl, nx/pkgIndex.tcl, serialize/pkgIndex.tcl,
+	serialize/serializer.tcl, xotcl/library/pkgIndex.tcl,
+	xotcl/library/xotcl2.tcl: Bump version number to 2.4.0 	[39197485,
+	c80b57b9]
 
-	Bump version number to 2.4.0
-	[39197485]
-
-	Added CI entries to README.release [skip ci]
-	[8c195577]
-
-	Update branch settings in CI descriptors
-	[717b102a]
+        * .travis.yml, appveyor.yml: Update branch settings in CI
+	descriptors, Added CI entries to README.release
+	[8c195577, 717b102a]
 
 2019-05-12  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
