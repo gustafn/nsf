@@ -267,7 +267,7 @@
         - added "-typeName" for enumeration types that allows for
 	  disambiguation of enumerations with different argument
 	  names.  Before that, the argument name determined the c-type
-	  of the enumeration. Therefore it was not possible to use
+	  of the enumeration. Therefore, it was not possible to use
 	  argName "-type" for two different functions with a different
 	  list of enumerators.
 
@@ -518,7 +518,7 @@
 	  an ensemble named "object". The rational behind is
 	  essentially to use always the same info command to retrieve
 	  object specific methods, no matter whether these are defined
-	  on a plain object or an a class object (does not break the
+	  on a plain object or a class object (does not break the
 	  "contract" what e.g. "info method" returns).
 
  	 Now we define methods via:
@@ -733,7 +733,7 @@
 	  ..." (when slot=... is provided in the parameter spec) or it
 	  assumes that the method without argument returns the value
 	- added "::nsf::object::property /obj/ volatile" to query whether
-	  a object is volatile or not
+	  an object is volatile or not
 	- "/obj/ cget -volatile" returns now the volatile state of the
 	  object
 	- factored out ParameterMethodDispatch() from OConfigureMethod()
@@ -1160,7 +1160,7 @@
 
 2012-05-13  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	- start error messages with a lower case word for consistency and to
+	- start error messages with a lowercase word for consistency and to
 	  follow closer to Tcl's conventions
 	- added "private property foo"
 	- extended regression test

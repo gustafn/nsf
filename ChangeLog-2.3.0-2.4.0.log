@@ -43,7 +43,7 @@
 
 2021-05-02  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-	* nsf.c (VolatileMethod), volatile.test: Fix volatile for XOTcl 2: frame skipping must be limited to configure, otherwise, for self calls (e.g., 'my volatile'), the sentinal variable plus unset trace become created in the wrong callframe context (leading to corruption of any non-proc callframe); added test cases
+	* nsf.c (VolatileMethod), volatile.test: Fix volatile for XOTcl 2: frame skipping must be limited to configure, otherwise, for self calls (e.g., 'my volatile'), the sentinel variable plus unset trace become created in the wrong callframe context (leading to corruption of any non-proc callframe); added test cases
 	[3916bf00]
 
 2021-02-17  Gustaf Neumann  <neumann@wu-wien.ac.at>
@@ -291,7 +291,7 @@
 2019-10-06  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
 	* nsf.c, parameters.test: Fix potential crash, whe nsf::parseargs
-	is called with a non-empty argspec and empty argv Extended
+	is called with a nonempty argspec and empty argv Extended
 	regression test to cover such cases. [f69d5326]
 
 2019-10-05  Gustaf Neumann  <neumann@wu-wien.ac.at>

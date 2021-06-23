@@ -180,7 +180,7 @@
 
 	* win/rules.vc: Remove artifact from OPTDEFINES. [a7d6bf4]
 
-	* win/rules.vc: Avoid type-cast warnings under 64bit MSVC (MSVC >
+	* win/rules.vc: Avoid type-cast warnings under 64-bit MSVC (MSVC >
 	1300) toolchains due to compiler flags missing from Tcl headers
 	and from rules' OPTDEFINES. Reported as
 	http://core.tcl.tk/tclconfig/tktview?name=ab69a602bf. [ccc0e58]
@@ -208,7 +208,7 @@
 	before executing the traces and callbacks had the potential of
 	caching the cmd under in Tcl_Objs beyond its deletion (at least in
 	our code path). In July 2017 for 8.7a (commit 54fac92610d3bdd9),
-	this potential realised by removing a guard expression
+	this potential realized by removing a guard expression
 	on CMD_IS_DELETED in the Tcl_Obj cache invalidation logic, which
 	had protected from such invalid caches as a side effect. As of
 	today (8.7a, commit 71fa1f9c91), the underlying timing problem of
@@ -241,7 +241,7 @@
 	* nsf.c (ObjectDispatchFinalize): Address potential crash when a
 	filter calls a filter which calls unknown. [641d41d]
 
-	* nsfInt.h: Prefer lower case "U" suffix to improve readability.
+	* nsfInt.h: Prefer lowercase "U" suffix to improve readability.
 	[4b4a734]
 
 2016-11-02  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
@@ -681,7 +681,7 @@
 2016-07-25  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
 	* nsf.c, tcl86.test: Continued work on cmd resolvers: Fix test,
-	when OS specific cmd resolver is used from a
+	when OS specific cmd resolver is used from an
 	NSF_CSC_CALL_IS_COMPILE frame; improved output from __db_show_obj:
 	put results into one line instead of multiple lines; new debug
 	function __db_get_obj: return into about a tcl_obj in form of a
@@ -993,7 +993,7 @@
 	(NsfDStringEval): Make sure to reset prevPreventRecursionFlags to
 	value before the call. [7ca41c6]
 	(NsfDStringEval): Changed interface of to control behavior via
-	bitflags (this is after all more readable than a argument list of
+	bitflags (this is after all more readable than an argument list of
 	"0" and "1"s); added optional recursion prevention for functions
 	called via NsfDStringEval (handling NSF_EVAL_DEBUG, NSF_EVAL_LOG,
 	NSF_EVAL_DEPRECATED); added regression tests for potential

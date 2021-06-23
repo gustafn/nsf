@@ -324,7 +324,7 @@
 	with "... callinglevel" in case no NSF frame is found [d5f0e46c]
 	* nsf.c: Fix typos and make spelling more uniform. [c465bb71]
 	* methods.test: Add regression test for testing the behavior of
-	:upvar from toplevel tclsh with and without filters [85eec46a]
+	:upvar from top-level tclsh with and without filters [85eec46a]
 	* nsf.c (ComputeLevelObj): Conservative fix for "current
 	callinglevel"; probably more to come [587c2fab]
 
