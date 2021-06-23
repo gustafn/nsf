@@ -30039,6 +30039,7 @@ NsfNextCmd(Tcl_Interp *interp, Tcl_Obj *argumentsObj) {
                             &nobjc, &nobjv, &freeArgumentVector);
   if (likely(result == TCL_OK)) {
     assert(cscPtr != NULL);
+    assert(methodName != NULL);
     result = NextSearchAndInvoke(interp, methodName, nobjc, nobjv, cscPtr, freeArgumentVector);
   }
   return result;
@@ -31127,8 +31128,8 @@ NsfCurrentCmd(Tcl_Interp *interp, CurrentoptionIdx_t option) {
   case CurrentoptionNextmethodIdx: {
     Tcl_Obj *methodHandle;
 
-    cscPtr = CallStackGetTopFrame(interp, &framePtr);
-    assert(cscPtr != NULL);
+    /* cscPtr = */ (void) CallStackGetTopFrame(interp, &framePtr);
+    /*assert(cscPtr != NULL);*/
 
     methodHandle = FindNextMethod(interp, framePtr);
     if (methodHandle == NULL) {
@@ -32045,7 +32046,10 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *co
       if (unlikely(varObj == NULL)) {
         Tcl_Obj *paramDefsObj = NsfParamDefsSyntax(interp, paramDefs->paramsPtr, object, NULL);
 
-        NsfPrintError(interp, "required argument '%s' is missing, should be:\n        %s%s%s %s", (paramPtr->nameObj != NULL) ? ObjStr(paramPtr->nameObj) : paramPtr->name, (pc.object != NULL) ? ObjectName(pc.object) : "", (pc.object != NULL) ? " " : "",
+        NsfPrintError(interp, "required argument '%s' is missing, should be:\n        %s%s%s %s",
+                      (paramPtr->nameObj != NULL) ? ObjStr(paramPtr->nameObj) : paramPtr->name,
+                      (pc.object != NULL) ? ObjectName(pc.object) : "",
+                      (pc.object != NULL) ? " " : "",
                       ObjStr(pc.full_objv[0]),
                       ObjStr(paramDefsObj));
         DECR_REF_COUNT2("paramDefsObj", paramDefsObj);
@@ -32119,11 +32123,11 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *co
           if (varObj == NULL) {
             /*
              * The variable is not set. Therefore, we assume, we have to
-             * execute the initcmd. On success, we note the execution in the NSF_ARRAY_INITCMD
-             * variable (usually __initcmd(name))
+             * execute the initcmd. On success, we note the execution in the
+             * NSF_ARRAY_INITCMD variable (usually __initcmd(name))
              */
             result = ParameterMethodDispatch(interp, object, paramPtr, paramPtr->defaultValue,
-                                             uplevelVarFramePtr, initString,
+                                             uplevelVarFramePtr, ObjStr(paramPtr->defaultValue) /*initString*/,
                                              (Tcl_Obj **)&objv[pc.lastObjc],
                                              objc - pc.lastObjc);
 
