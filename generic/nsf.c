@@ -18775,6 +18775,12 @@ MakeProc(
                             NSF_DISALLOWED_ARG_METHOD_PARAMETER, NSF_FALSE,
                             &parsedParam,
                             nsPtr1 != NULL ? nsPtr1->fullName : NULL);
+  } else {
+    /*
+     * Strictly speaking, the following assignment is not necessary. However,
+     * it avoids a false positive from facbook infer.
+     */
+    parsedParam.paramDefs = NULL;
   }
 
   if (unlikely(result != TCL_OK)) {
