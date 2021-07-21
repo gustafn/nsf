@@ -129,7 +129,7 @@
 2014-10-21  ssoberni  <stefan.sobernig@wu-wien.ac.at>
 
 	- Adding man pages for shell wrappers
-	- Adjust file extension for nroff files to reflect manpage section
+	- Adjust file extension for nroff files to reflect man page section
 
 2014-10-20  ssoberni  <stefan.sobernig@wu-wien.ac.at>
 
@@ -364,7 +364,7 @@
 	nsf.c:
 	- define means to protect "undefined" internally-directly
 	  called methods __alloc and __dealloc in nx. This is
-	  achieved mostly via a an additional value in a method
+	  achieved mostly via an additional value in a method
 	  declaration in ::nsf::objectsystem::create. Example:
 	  -class.dealloc {__dealloc ::nsf::methods::class::dealloc
 	  1}
@@ -690,7 +690,7 @@
 	  about all kind of method handles, which might be
 	 - scripted and c-based methods
 	 - nsf::procs
-	 - plain tcl procs
+	 - plain Tcl procs
 	 - cmds (with and without parameter definitions)
 	- make results of ListMethod() robust against missing
 	 information (e.g. plain tcl cmds, missing object registrations,
@@ -960,7 +960,7 @@
 	  "forwardername" to specify a different forwarder target
 	  method (e.g. in case of object-mixins). The method is
 	  used both in "configure" and "cget".
-	- allow method name to consist of max tow words in relation slots (e.g.
+	- allow method name to consist of max two words in relation slots (e.g.
 	  "-methodname {mixin set}"}
 
 2014-05-17  Gustaf Neumann  <neumann@wu-wien.ac.at>
@@ -1474,7 +1474,7 @@
 
 2014-02-14  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	- fix bug in interaction between up-level method from tcl procs
+	- fix bug in interaction between up-level method from Tcl procs
 
 	-nsf.c:
 	- fix bug in interaction between uplevel method and
@@ -1658,7 +1658,7 @@
 2013-08-01  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
 	mongodb:
-	- integrated configuration of mongodb into toplevel
+	- integrated configuration of mongodb into top-level
 	  configfile option:
 	  --with-mongodb=MONGO_INCLUDE_DIR,MONGO_LIB_DIR
 	- added regression test files for mongodb support (low-level
@@ -1691,7 +1691,7 @@
 
 2013-07-15  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	- prepare for providing nx as a tcl module (.tm file). this is just a
+	- prepare for providing nx as a Tcl module (.tm file). this is just a
 	  preparation, since for testing, one cannot set up a path that prefers
 	  a local copy over a global installed one (the global tcl-site is
 	  preferred over the one specified in e.g. TCL8_5_TM_PATH)

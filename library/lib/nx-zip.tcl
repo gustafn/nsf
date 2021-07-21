@@ -19,7 +19,7 @@ if {[info commands ::zlib] eq ""} {
   package require Trf
 }
 
-package provide nx::zip 1.2
+package provide nx::zip 1.3
 
 namespace eval ::nx::zip {
 
@@ -36,6 +36,9 @@ namespace eval ::nx::zip {
     #    - writeToStream     (for already opened and configured
     #                        output streams
     #
+
+    :property name ;# so far not used internally, but useful for
+                    # applications to pass the name around
 
     #
     # Add a file from the filesystem to the zip archive
@@ -73,13 +76,25 @@ namespace eval ::nx::zip {
     # return the added files via aolserver/NaviServer to the client
     #
     :public method ns_returnZipFile {zipFileName} {
-      ns_write "HTTP/1.0 200 OK\r\nContent-type: application/zip\r\n"
-      ns_write "Content-Disposition: attachment;filename=\"$zipFileName\"\r\n"
-      ns_write "\r\n"
-      set channel [ns_conn channel]
-      fconfigure $channel -translation binary
-      :writeToStream $channel
-      # AOLserver/NaviServer closes the channel automatically
+      append header \
+          "HTTP/1.0 200 OK\r\nContent-type: application/zip\r\n" \
+          "Content-Disposition: attachment;filename=\"$zipFileName\"\r\n" \
+          "\r\n"
+
+      if {[info commands ns_connchan] != "" } {
+        set channel [ns_connchan detach]
+        set :writer [list ns_connchan write $channel]
+        ns_connchan write $channel $header
+        :writeToStream $channel
+        ns_connchan close $channel
+      } else {
+        ns_write $header
+        set channel [ns_conn channel]
+        fconfigure $channel -translation binary
+        set :writer [list puts -nonewline $channel]
+        :writeToStream $channel
+        # AOLserver closes the channel automatically
+      }
     }
 
     #
@@ -321,7 +336,7 @@ namespace eval ::nx::zip {
     # Write the provided integer in binary form as a long value (32 bit)
     #
     :method writeLong {long:integer} {
-      puts -nonewline ${:outputStream} [binary format i $long]
+      {*}${:writer} [binary format i $long]
       incr :written 4
     }
 
@@ -329,7 +344,7 @@ namespace eval ::nx::zip {
     # Write the provided integer in binary form as a short value (16 bit)
     #
     :method writeShort {short:integer} {
-      puts -nonewline ${:outputStream} [binary format s $short]
+      {*}${:writer} [binary format s $short]
       incr :written 2
     }
 
@@ -337,7 +352,7 @@ namespace eval ::nx::zip {
     # Write the provided integer in binary form as a single byte (8 bit)
     #
     :method writeByte {byte:integer} {
-      puts -nonewline ${:outputStream} [binary format c $byte]
+      {*}${:writer} [binary format c $byte]
       incr :written 1
     }
 
@@ -346,11 +361,11 @@ namespace eval ::nx::zip {
     # byte counter.
     #
     :method writeString {string} {
-      puts -nonewline ${:outputStream} $string
+      {*}${:writer} $string
       incr :written [string length $string]
     }
     :method writeStringBytes {string} {
-      puts -nonewline ${:outputStream} $string
+      {*}${:writer} $string
       incr :written [string bytelength $string]
     }
 
