@@ -61,9 +61,18 @@ Steps for a beta release:
       * Summarize changes since the last release in doc/Announce-VERSION
         As source use e.g.
             git log --date-order --date=short|less
-	    ~/scripts/git-changelog2  -- 2.2.0..HEAD --no-merges > ChangeLog-2.2.0-HEAD
-        Diffstats
-            git diff --stat  2.2.0..HEAD
+
+	    ~/scripts/git-changelog2  -- 2.3.0..HEAD --no-merges > ChangeLog-2.3.0-HEAD
+
+	    Get:
+	       https://git.savannah.gnu.org/gitweb/?p=gnulib.git;a=blob_plain;f=build-aux/gitlog-to-changelog;hb=HEAD
+	       curl -Lo ../git-changelog 'https://git.savannah.gnu.org/gitweb/?p=gnulib.git;a=blob_plain;f=build-aux/gitlog-to-changelog;hb=HEAD'
+	    Run:
+	    ../git-changelog 2.3.0..HEAD --format=%s%n%b[%h] -- --no-merges > ChangeLog-2.3.0-HEAD
+
+        Diffstats:
+            git diff --stat  2.3.0..HEAD
+	    
       * Run spell checker over announcement + ChangeLog
       * git add announcement 
 
