@@ -11,17 +11,15 @@
 
 2021-05-13  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-	* build.yml: clang 11 is default on macos-latest runners; add remaining macos configs
-	[f29f3c69]
+	* build.yml: clang 11 is default on macos-latest runners; add
+	remaining macos configs [f29f3c69]
 
-	* build.yml: Fix expressions
-	[cf79aef0]
+	* build.yml: Fix expressions [cf79aef0]
 
-	* build.yml: Remove artifacts from workflow
-	[4f7b34fe]
+	* build.yml: Remove artifacts from workflow [4f7b34fe]
 
-	* build.yml: Added initial GitHub Actions workflow enabling Linux and macOS builds
-	[e372b812]
+	* build.yml: Added initial GitHub Actions workflow enabling Linux
+	and macOS builds [e372b812]
 
 2021-05-12  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
@@ -30,144 +28,132 @@
 
 2021-05-11  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-	* nsfAccessInt.h (TclIsCommandDeleted), nsf.c, nsfObj.c: More recent Tcl 8.7 (starting Sep 2020) has replaced the macro CMD_IS_DELETED by CMD_DYING.
-	[e01e3055]
+	* nsfAccessInt.h (TclIsCommandDeleted), nsf.c, nsfObj.c: More
+	recent Tcl 8.7 (starting Sep 2020) has replaced the macro
+	CMD_IS_DELETED by CMD_DYING. [e01e3055]
 
 2021-05-05  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-	* nsf.c (ParamOptionParse): Simplify option parsing for substdefault; Tcl_GetInt knows how to handle 0b binary constants, no expr call needed.
-	[9e705a33]
+	* nsf.c (ParamOptionParse): Simplify option parsing for
+	substdefault; Tcl_GetInt knows how to handle 0b binary constants,
+	no expr call needed. [9e705a33]
 
 	* nsf.c (VolatileMethod): Save a little by checking first chars
 	[eb3b441c]
 
 2021-05-02  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-	* nsf.c (VolatileMethod), volatile.test: Fix volatile for XOTcl 2: frame skipping must be limited to configure, otherwise, for self calls (e.g., 'my volatile'), the sentinal variable plus unset trace become created in the wrong callframe context (leading to corruption of any non-proc callframe); added test cases
+	* nsf.c (VolatileMethod), volatile.test: Fix volatile for XOTcl 2:
+	frame skipping must be limited to configure, otherwise, for self
+	calls (e.g., 'my volatile'), the sentinal variable plus unset
+	trace become created in the wrong callframe context (leading to
+	corruption of any non-proc callframe); added test cases
 	[3916bf00]
 
 2021-02-17  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	fix provided length values for string arguments
-	[460ae16a]
+	* nsfProfile.c (NsfProfileDebugExit): Fix provided length values
+	for string arguments [460ae16a]
 
 2021-02-06  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	whitespace cleanup (replace tabs)
-	[75f60be7]
+	* nx.tcl: Whitespace cleanup (replace tabs) [75f60be7]
 
-	make warning message more precise about unexpected slot structures during delete
-	[473a993c]
+	* nx.tcl: Make warning message more precise about unexpected slot
+	structures during delete [473a993c]
 
 2021-01-03  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	added target for clang-tidy, fine-tuning of compile flags
+	* Makefile.in: Added target for clang-tidy, fine-tuning of compile flags
 	[e3c98331]
 
-	added enumeration values
-	[f0f87b41]
+	* generic/nsf.c, generic/nsf.h, generic/nsfAPI.decls,
+	generic/nsfAPI.h, generic/nsfInt.h, library/mongodb/mongoAPI.h:
+	Added enumeration values [f0f87b41]
 
-	added support for enumeration values replaced anonymous arrays by dicts
-	[91a7b7d1]
+	* gentclAPI.tcl: Added support for enumeration values replaced
+	anonymous arrays by dicts [91a7b7d1]
 
 2021-01-02  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	improve type safety of generated code
-	[deed56d5]
+	* generic/gentclAPI.tcl, generic/nsfAPI.h: Improve type safety of
+	generated code [deed56d5]
 
-	Reduced usage of reserved identifiers [cert-dcl37-c,cert-dcl51-cpp]
-	[65d1c0f8]
+	* generic/*/*.h: Reduced usage of reserved identifiers:
+	cert-dcl37-c, cert-dcl51-cpp [65d1c0f8]
 
-	improve comments and spelling
+	* generic/aolstub.c, generic/asm/asmAssembleTemplate.c,
+	generic/asm/nsfAsmAssemble.c, generic/nsf.c, generic/nsfObj.c,
+	generic/nsfProfile.c, generic/nsfStack.c: Improve comments and spelling
 	[84ebec01]
 
-	improve regularity and linebreaking in comments (mostly function headers)
-	[42dbfd5d]
+	* generic/*/*.c: Improve regularity and linebreaking in comments,
+	mostly in function headers [42dbfd5d]
 
 2021-01-01  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	whitespace changes: more consistent indentation of comments
+	* generic/*/*.c: Whitespace changes: more consistent indentation of comments
 	[83e2a1bc]
 
-	improve spelling
-	[18b65162]
+	* doc/next-migration.txt, doc/next-tutorial/next-tutorial.txt,
+	generic/predefined_part1.tcl, generic/predefined_part2.tcl:
+	Improve spelling [18b65162]
 
 2020-10-28  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	add one more test to sanity check
-	[a4cc4075]
+	* nsf.c (ObjectDispatch): Add one more test to sanity check
+	[a4cc4075]; added debugging output for a case, where a Tcl cmd
+	looks perfectly fine, but its procPtr (scripted cases) contains
+	invalid data [57eb831d]
 
-	added debugging output for a case, where a Tcl cmd looks perfectly fine, but its procPtr (scripted cases) contains invalid data
-	[57eb831d]
-
-	reduce debugging output
-	[226d979a]
+	* nx.tcl: Reduce debugging output [226d979a]
 
 2020-10-27  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	make clean compile, when TRACE flags are defined
+	* nsf.c, nsf.h, nsfInt.h, nsfStubLib.c: Make clean compile, when
+	TRACE flags are defined
 	[a422e30c]
 
 2020-10-21  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	reduce verbosity, silence checker
-	[77a6f178]
+	* nsf.c (MethodDispatchCsc, ComputeLevelObj): Reduce verbosity,
+	silence checker [77a6f178]
 
-	improve spelling
-	[be71d48c]
+	* doc/*.man: Improve spelling [be71d48c]
 
-	Use memmove() instead of strncat() since the former supports overlapping buffers
-	[c72f84a5]
+	* nsf.c (NsfDebugGetDict): Use memmove() instead of strncat()
+	since the former supports overlapping buffers. [c72f84a5]
 
 2020-08-31  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	do not try to initialize Tcl_TomMath_InitStubs when TCL_MAJOR_VERSION > 8 || TCL_MINOR_VERSION > 6
-	[4bd7db4e]
+	* nsf.c (Nsf_Init): Do not try to initialize Tcl_TomMath_InitStubs when
+	TCL_MAJOR_VERSION > 8 || TCL_MINOR_VERSION > 6 [4bd7db4e]
 
-	include for Tcl 8.5 tclTomMath.h to define the mp_int type
-	[61c07a2b]
+	* nsf.c (Nsf_ConvertToInt32): Include for Tcl 8.5 tclTomMath.h to
+	define the mp_int type [61c07a2b]; check, if the flag MP_INT_DECLARED
+	is defined in 8.7* builds [f3258689]
 
-	check, if the flag MP_INT_DECLARED is defined in 8.7* builds
-	[f3258689]
-
-	avoid creation of Tcl_NewBignumObj() when argument is already of the bignum type
-	[9d4daad1]
-
-	added mp_int type definion for tcl >= 8.7
-	see: https://core.tcl-lang.org/tcl/tktview/4663e0636f7a24b9363e67c7a3dd25e9e495be17
-	[e157ce6c]
-
-	get rid of mp_free (we still need the type for mp_int)
+	* nsf.c (Nsf_ConvertToInteger): Avoid creation of
+	Tcl_NewBignumObj() when argument is already of the bignum type
+	[9d4daad1];  added mp_int type definion for Tcl >= 8.7
+	see:
+	https://core.tcl-lang.org/tcl/tktview/4663e0636f7a24b9363e67c7a3dd25e9e495be17 [e157ce6c]; getting rid of mp_free (we still need the type for mp_int)
 	[0e957261]
 
 2020-08-30  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-	* win/rules.vc: Starting with recent 8.7, there is no 't' suffix appended to binaries and libs anymore, to indicate a threaded build. [skip travis]
-	[c5097786]
+	* win/rules.vc: Starting with recent 8.7, there is no 't' suffix
+	appended to binaries and libs anymore, to indicate a threaded
+	build. [c5097786]
 
 2020-08-28  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-	* appveyor.yml: Permissions of deploy key are broker under new image; attempt #3 (use OpenSSH as provided by MSYS2) [skip travis]
-	[9647540c]
-
-	* appveyor.yml: Permissions of deploy key are broker under new image; attempt #3 [skip travis]
-	[7c4a1425]
-
-	* appveyor.yml: Permissions of deploy key are broker under new image; attempt #2 [skip travis]
-	[d8bc09f6]
-
-	* appveyor.yml: Permissions of deploy key are broker under new image; attempt #1 [skip travis]
-	[db9147b0]
-
-	* appveyor.yml: Fix path to setup script [skip travis]
-	[8d4ac524]
-
-	* appveyor.yml: Use newer VS image [skip travis]
-	[77053610]
+	* appveyor.yml: Use newer VS image
+	[77053610, 9647540c, 7c4a1425,d8bc09f6, db9147b0,8d4ac524]
 
 2020-08-19  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	* README.profile: Added readme document for profiling
+	* README.profile: Added readme document on profiling
 	[e40a0652]
 
 	* Connection.xotcl, xodoc.xotcl: Improve spelling
