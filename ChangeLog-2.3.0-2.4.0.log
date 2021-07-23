@@ -1,3 +1,45 @@
+2021-07-21  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* README.release: Add note on using gnulibs' gitlog-to-changelog
+	[999de5b9]
+
+2021-07-14  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nx-zip.tcl: Added support for returning streaming zip files via
+	HTTPS. The old version was just replying via ns_write, which can be
+	only used for plain TCP connections (no TLS). [4f198095]
+
+2021-07-08  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsf.c (MakeProc): Fixed false positive from facebook infer 1.1.0
+	[2b630211]
+
+2021-06-23  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* ChangeLog-*.log: Improved spelling [b431d2c0]
+
+	* nsf.c: Reduced warnings from clang12 static checker (null value
+	passed to non-null arguments, dead assignment, ...)
+	[e791865c]
+
+2021-06-09  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* build.yml, appveyor.yml: Add 8.7a5 branch to build matrices. [2a01cc6f]
+
+	* nsf.c (Nsf_Init): Plumb a small memory leak due to not clearing
+	mp_int data. Make sure _not_ to use mp_clear (TIP 538). [5338fea8]
+
+	* ChangeLog-2.3.0-2.4.0.log, Announce2.4.0: Continued work on
+	release files [63b2e82e]
+
+2021-06-05  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsfmongo.c, nsf.c: Update copyright dates [6b1f85df]
+
+	* nsfmongo.c: Minor cleanup: reduce strlen operations, reduce
+	hard-coded constants, perfer Tcl_Obj based interfaces of string
+	based ones (opens opportunities for special objtypes) [725dc72f]
+
 2021-05-25  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
 	* nsf.c (ParamOptionParse): Do not support predefined parameter
