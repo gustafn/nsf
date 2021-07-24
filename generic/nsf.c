@@ -15587,11 +15587,8 @@ ObjectDispatch(
   }
 
 
-  /* TODO: Is this guarding too excessive, or just fine? */
   methodObjTypePtr = methodObj->typePtr;
-  if (methodObjTypePtr == Nsf_OT_tclCmdNameType
-      || methodObjTypePtr == &NsfInstanceMethodObjType
-      || methodObjTypePtr == &NsfObjectMethodObjType) {
+  if (methodObjTypePtr == Nsf_OT_tclCmdNameType) {
     ccCtxPtr = methodObj->internalRep.twoPtrValue.ptr2;
   } else {
     ccCtxPtr = NULL;
