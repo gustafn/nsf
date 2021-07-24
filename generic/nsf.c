@@ -21286,10 +21286,10 @@ NsfUnsetTrace(
       Tcl_SetObjResult(interp, savedResultObj);  /* restore the result */
       DECR_REF_COUNT(savedResultObj);
     }
-    DECR_REF_COUNT(objPtr);
   } else {
-    /*fprintf(stderr, "omitting destroy on %s %p\n", name);*/
+    /* fprintf(stderr, "omitting destroy\n"); */
   }
+  DECR_REF_COUNT2("volatile", objPtr);
   return resultMsg;
 }
 
@@ -33030,7 +33030,7 @@ VolatileMethod(Tcl_Interp *interp, NsfObject *object, bool shallow) {
   CallStackRestoreSavedFrames(interp, &ctx);
 
   if (likely(result == TCL_OK)) {
-    INCR_REF_COUNT(objPtr);
+    INCR_REF_COUNT2("volatile", objPtr);
   }
   return result;
 }
