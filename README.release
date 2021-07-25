@@ -58,6 +58,9 @@ Steps for a beta release:
 	 2. Install VirtualBox: https://www.virtualbox.org/wiki/Downloads
          3. Check out newest box version: https://app.vagrantup.com/boxes/search?utf8=%E2%9C%93&sort=created&provider=&q=by+chef+bento%2Fubuntu-*+
 	 4. $ mkdir -p ~/VMs/ubuntu-21.04
+	 5. Add NSF as synced folder: Vagrantfile
+	    config.vm.synced_folder "/path/to/nsf", "/home/vagrant/nsf"
+	    config.vm.synced_folder "/path/to/tcl", "/home/vagrant/tcl"
 	 5. $ cd VMs/ubuntu-21.04
             $ vagrant init bento/ubuntu-21.04
             $ vagrant up
