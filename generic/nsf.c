@@ -15454,7 +15454,7 @@ CacheCmd(
 
     if (ccCtxPtr != NULL) {
       /*
-       * We had already a ccCtxPtr, so the values was invalidated before.
+       * We had already a ccCtxPtr, so the value was invalidated before.
        */
       ColonCmdCacheInvalidate(ccCtxPtr);
 
@@ -15539,7 +15539,7 @@ ObjectDispatch(
 ) {
   int                    result = TCL_OK, shift;
   bool                   isValidCsc = NSF_TRUE;
-  unsigned int           objflags;
+  unsigned int           objflags, nsfObjectMethodEpoch;
   unsigned short         frameType = NSF_CSC_TYPE_PLAIN;
   register NsfObject    *object;
   const char            *methodName, *calledName;
@@ -15559,6 +15559,7 @@ ObjectDispatch(
   object = (NsfObject *)clientData;
   cmdName = object->cmdName;
   rst = RUNTIME_STATE(interp);
+  nsfObjectMethodEpoch = rst->objectMethodEpoch;
 
   /*
    * None of the higher copy-flags must be passed
@@ -15603,15 +15604,17 @@ ObjectDispatch(
    * for scripted commands. In such cases, we do not trust the data obtained
    * from the Tcl_Obj.
    */
+
   if (ccCtxPtr != NULL
-      && (
-          methodObjTypePtr == Nsf_OT_tclCmdNameType
-          || methodObjTypePtr == &NsfInstanceMethodObjType
-          || methodObjTypePtr == &NsfObjectMethodObjType
-      )
-      && Tcl_Command_objProc(ccCtxPtr->cmd) == TclObjInterpProc) {
-    //fprintf(stderr, "cached scipted call %s (object %s class %s) \n",
-    //        methodName, ObjectName(object), ClassName(object->cl));
+      && ccCtxPtr->context == object
+      && ccCtxPtr->methodEpoch == nsfObjectMethodEpoch
+      && ccCtxPtr->flags == flags
+      && ccCtxPtr->cmd != NULL
+      && CmdIsProc(ccCtxPtr->cmd)) {
+
+    /* fprintf(stderr, "cached scipted call %s (object %s class %s) cmd %p (proc %p) cmdName %s \n",
+       methodName, ObjectName(object), ClassName(object->cl), ccCtxPtr->cmd, Tcl_Command_objClientData(ccCtxPtr->cmd), Tcl_GetCommandName(interp, ccCtxPtr->cmd));*/
+    
     Proc *procPtr = Tcl_Command_objClientData(ccCtxPtr->cmd);
 
     if ((Tcl_Interp *)procPtr->iPtr != interp
@@ -15833,7 +15836,6 @@ ObjectDispatch(
 
   if (likely(cmd == NULL)) {
     NsfMethodContext *mcPtr = methodObj->internalRep.twoPtrValue.ptr1;
-    unsigned int      nsfObjectMethodEpoch = rst->objectMethodEpoch;
 
     if (methodObjTypePtr == &NsfObjectMethodObjType
         && mcPtr->context == object
