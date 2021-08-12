@@ -1,7 +1,7 @@
 /*
  *  Next Scripting Framework
  *
- *  Copyright (C) 1999-2017 Gustaf Neumann (a) (b)
+ *  Copyright (C) 1999-2021 Gustaf Neumann (a) (b)
  *  Copyright (C) 1999-2007 Uwe Zdun (a) (b)
  *  Copyright (C) 2007-2008 Martin Matuska (b)
  *  Copyright (C) 2010-2017 Stefan Sobernig (b)
@@ -196,7 +196,11 @@
 # define NSF_DTRACE_METHOD_RETURN_PROBE(cscPtr,retCode) {}
 #endif
 
-#if defined(NSF_DEVELOPMENT_FULL) && !defined(NSF_DEVELOPMENT)
+/*
+ * When intense developent is activated, make sure that also the base
+ * level development mode is activated.
+ */
+#if defined(NSF_DEVELOPMENT_TEST) && !defined(NSF_DEVELOPMENT)
 # define NSF_DEVELOPMENT 1
 #endif
 

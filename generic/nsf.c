@@ -5347,9 +5347,11 @@ NsColonVarResolver(Tcl_Interp *interp, const char *varName, Tcl_Namespace *UNUSE
   unsigned int frameFlags;
   Tcl_Obj *key;
 
+#if defined(NSF_DEVELOPMENT)
   nonnull_assert(interp != NULL);
   nonnull_assert(varName != NULL);
   nonnull_assert(varPtr != NULL);
+#endif
 
 #if defined(VAR_RESOLVER_TRACE)
   fprintf(stderr, "NsColonVarResolver '%s' flags %.6x\n", varName, flags);
