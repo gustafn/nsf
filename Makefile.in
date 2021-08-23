@@ -160,7 +160,11 @@ INSTALL_DATA_DIR = ${INSTALL} -d -m 755
 PACKAGE_NAME	= @PACKAGE_NAME@
 PACKAGE_VERSION	= @PACKAGE_VERSION@
 CC		= @CC@
+CFLAGS_DEBUG    = @CFLAGS_DEBUG@
+CFLAGS_OPTIMIZE = @CFLAGS_OPTIMIZE@
+CFLAGS_WARNING  = @CFLAGS_WARNING@
 CFLAGS_DEFAULT	= @CFLAGS_DEFAULT@
+CFLAGS_DEFAULT	= -DNDEBUG
 # useful for debugging:
 #CFLAGS_DEFAULT	= -pedantic -g -std=c99 -DTCL_NO_DEPRECATED -Wconversion -Wsign-conversion -Wfloat-conversion -Wsign-compare
 CFLAGS_CONVERSION= -Wconversion -Wsign-conversion -Wsign-compare
@@ -169,7 +173,6 @@ CFLAGS_DEFINITION= -Wwrite-strings -Wextra -Wdeclaration-after-statement -Wendif
 # -Wzero-length-array is currently not possible due to TCLFLEXARRAY in Tcl 8.6.11
 CFLAGS_TIDY      = -Wmissing-braces -Wmissing-declarations -Wundef -Wunreachable-code -Wswitch-enum -Wpointer-arith -Wold-style-definition -Wmissing-format-attribute -Wformat-security
 #CFLAGS_DEFAULT	= -pedantic -g -std=c99 -DTCL_NO_DEPRECATED $(CFLAGS_CONVERSION) $(CFLAGS_DEFINITION) $(CFLAGS_TIDY)
-CFLAGS_WARNING	= @CFLAGS_WARNING@
 CLEANFILES	= @CLEANFILES@
 EXEEXT		= @EXEEXT@
 LDFLAGS_DEFAULT	= @LDFLAGS_DEFAULT@
@@ -247,7 +250,7 @@ CONFIG_CLEAN_FILES = @CONFIG_CLEAN_FILES@
 CPPFLAGS	= @CPPFLAGS@
 LIBS		= @PKG_LIBS@ @LIBS@
 AR		= @AR@
-CFLAGS		= @CFLAGS@
+CFLAGS		= $(CFLAGS_OPTIMIZE) $(CFLAGS_WARNING) @CFLAGS@
 COMPILE		= $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 
 #========================================================================
