@@ -80,12 +80,28 @@ namespace eval ::nx::zip {
           "HTTP/1.0 200 OK\r\nContent-type: application/zip\r\n" \
           "Content-Disposition: attachment;filename=\"$zipFileName\"\r\n" \
           "\r\n"
-
-      if {[info commands ns_connchan] != "" } {
+      #
+      # Check, if we have "ns_connchan status". If so, use ns_connchan
+      # to write to the client. This has the advantage that we can use
+      # the buffered "connchan write" method capable of handling
+      # partial writes also for HTTPS.
+      #
+      if {[info commands ::ns_connchan] ne ""
+          && [info commands ::acs::cmd_has_subcommand] ne ""
+          && [::acs::cmd_has_subcommand ns_connchan status]} {
         set channel [ns_connchan detach]
-        set :writer [list ns_connchan write $channel]
-        ns_connchan write $channel $header
+        set :writer [list ns_connchan write -buffered $channel]
+        ns_connchan write -buffered $channel $header
         :writeToStream $channel
+        while {1} {
+          set status [ns_connchan status $channel]
+          if {[dict get $status sendbuffer] > 0} {
+            ns_connchan write -buffered $channel ""
+            ns_sleep 1ms
+          } else {
+            break
+          }
+        }
         ns_connchan close $channel
       } else {
         ns_write $header
