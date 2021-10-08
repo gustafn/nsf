@@ -67,7 +67,8 @@ namespace eval ::nx::zip {
     #
     :public method writeToZipFile {zipFileName} {
       set fout [open $zipFileName w]
-      fconfigure $fout -translation binary -encoding binary
+      fconfigure $fout -translation binary
+      set :writer [list puts -nonewline $fout]
       :writeToStream $fout
       close $fout
     }
