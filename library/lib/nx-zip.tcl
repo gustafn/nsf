@@ -34,7 +34,7 @@ namespace eval ::nx::zip {
     #    - ns_returnZipFile  (return a zip file via AOLserver ns_return)
     #
     #    - writeToStream     (for already opened and configured
-    #                        output streams
+    #                        output streams)
     #
 
     :property name ;# so far not used internally, but useful for
