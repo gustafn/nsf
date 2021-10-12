@@ -127,5 +127,21 @@
 #endif
 
 
+/*
+ * Introduced by a name reform in [a722c92a11], in Oct 2021, the macro
+ * TclFreeIntRep has been replaced by TclFreeInternalRep.
+ * 
+ * See also: 
+ *
+ * https://core.tcl-lang.org/tcl/info/a722c92a1142be4f
+ *
+ * For Tcl 8.7+, we should better switch to using the public interface
+ * to manipulating the internal rep of Tcl_Objs.
+ */
+#if TCL_MAJOR_VERSION==8 && TCL_MINOR_VERSION>6 && defined(TclFreeInternalRep)
+#   define TclFreeIntRep(objPtr) TclFreeInternalRep((objPtr))
+#endif
+
+
 
 
