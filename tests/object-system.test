@@ -276,7 +276,7 @@ nx::Object create o {set :x 1}
 ? {o eval {set :x}} 1 "cmd dispatch without -frame object did not modify the instance variable"
 ::nsf::directdispatch ::o -frame object ::incr x
 ? {o eval {set :x}} 2 "cmd dispatch -frame object modifies the instance variable"
-? {catch {::nsf::dispatch ::o -frame object ::xxx x}} 1 "cmd dispatch with unknown command"
+? {catch {::nsf::directdispatch ::o -frame object ::xxx x}} 1 "cmd dispatch with unknown command"
 o destroy
 
 nx::Object create o {
