@@ -34,7 +34,7 @@ namespace eval ::nx::zip {
     #    - ns_returnZipFile  (return a zip file via AOLserver ns_return)
     #
     #    - writeToStream     (for already opened and configured
-    #                        output streams
+    #                        output streams)
     #
 
     :property name ;# so far not used internally, but useful for
@@ -67,7 +67,8 @@ namespace eval ::nx::zip {
     #
     :public method writeToZipFile {zipFileName} {
       set fout [open $zipFileName w]
-      fconfigure $fout -translation binary -encoding binary
+      fconfigure $fout -translation binary
+      set :writer [list puts -nonewline $fout]
       :writeToStream $fout
       close $fout
     }
