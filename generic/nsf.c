@@ -7770,9 +7770,9 @@ CallStackDoDestroy(Tcl_Interp *interp, NsfObject *object) {
  * CallStackDestroyObject --
  *
  *      See comments of CallStackDoDestroy() for the overall logic.  The
- *      function CallStackDestroyObject() checks, if an object is activ
- *      active on the call stack (via the activation count), and deletes
- *      only objects via CallStackDoDestroy() which are not activate.
+ *      function CallStackDestroyObject() checks, if an object is active
+ *      on the call stack (via the activation count). It deletes only
+ *      inactive objects via CallStackDoDestroy().
  *
  * Results:
  *      None.
