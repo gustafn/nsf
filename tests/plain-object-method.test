@@ -40,7 +40,7 @@ nx::test case plain-methods-1 {
     :variable -incremental v2:integer 1
   }
   ? {o info methods} "v2 p foo fwd a f"
-  ? {lsort [o info methods -callprotection protected]} "per-object-slot pm1 pm2"
+  ? {lsort [o info methods -callprotection protected]} "pm1 pm2"
   ? {lsort [o info methods -callprotection private]} "priv"
 
   ? {o info variables} "::o::per-object-slot::v2 ::o::per-object-slot::p"

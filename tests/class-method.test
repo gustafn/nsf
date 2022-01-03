@@ -50,11 +50,11 @@ nx::test case class-methods-1 {
     #
   }
   ? {::C info object methods} "v2 p foo fwd a f"
-  ? {lsort [::C info object methods -callprotection protected]} "per-object-slot pm1 pm2"
+  ? {lsort [::C info object methods -callprotection protected]} "pm1 pm2"
   ? {lsort [::C info object methods -callprotection private]} "priv"
 
   ? {::C class info methods} "v2 p foo fwd a f"
-  ? {lsort [::C class info methods -callprotection protected]} "per-object-slot pm1 pm2"
+  ? {lsort [::C class info methods -callprotection protected]} "pm1 pm2"
   ? {lsort [::C class info methods -callprotection private]} "priv"
 
   ? {::C class info variables} "::C::per-object-slot::v2 ::C::per-object-slot::p"

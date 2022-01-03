@@ -15616,7 +15616,7 @@ ObjectDispatch(
 
     /* fprintf(stderr, "cached scipted call %s (object %s class %s) cmd %p (proc %p) cmdName %s \n",
        methodName, ObjectName(object), ClassName(object->cl), ccCtxPtr->cmd, Tcl_Command_objClientData(ccCtxPtr->cmd), Tcl_GetCommandName(interp, ccCtxPtr->cmd));*/
-    
+
     Proc *procPtr = Tcl_Command_objClientData(ccCtxPtr->cmd);
 
     if ((Tcl_Interp *)procPtr->iPtr != interp
@@ -26748,7 +26748,7 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
     for (hPtr = Tcl_FirstHashEntry(tablePtr, &hSrch);
          hPtr != NULL;
          hPtr = Tcl_NextHashEntry(&hSrch)) {
-      NsfObject   *childObject;
+      NsfObject   *childObject = NULL, *directObject = NULL;
       Tcl_Command  origCmd;
 
       key = Tcl_GetHashKey(tablePtr, hPtr);
@@ -26763,10 +26763,28 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
        * NULL. Below, we are just interested on true sub-objects.
        */
       origCmd = GetOriginalCommand(cmd);
-      childObject = (isObject) ? NsfGetObjectFromCmdPtr(origCmd) : NULL;
+      if (isObject) {
+        childObject = NsfGetObjectFromCmdPtr(origCmd);
+        directObject = NsfGetObjectFromCmdPtr(cmd);
+      }
+
+      /*fprintf(stderr, "key <%s> isObject %d childObject %p directo %p ensemble %d prefixl %d ali %d ali2 %d hasChild %d\n",
+              key, isObject, (void*)childObject,(void*)directObject,
+              childObject ? ((childObject->flags & NSF_KEEP_CALLER_SELF) != 0u) : 0,
+              prefixLength, Tcl_Command_objProc(cmd) == NsfProcAliasMethod,
+              childObject ? AliasGet(interp, childObject->cmdName, key, withPer_object, NSF_FALSE) != NULL : 0,
+              childObject ? (childObject->nsPtr == NULL) : 0
+              );*/
 
       if (childObject != NULL) {
-        if (withPath) {
+        /*
+         * If we have a child object, check if we have an ensemble method,
+         * which we detect on the flag NSF_KEEP_CALLER_SELF.
+         */
+        if (withPath
+            && ((childObject->flags & NSF_KEEP_CALLER_SELF) != 0u)
+            && ((childObject->flags & NSF_PER_OBJECT_DISPATCH) != 0u)
+           ) {
           Tcl_HashTable *cmdTablePtr;
 
           if (childObject->nsPtr == NULL) {
@@ -26796,7 +26814,7 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
           }
 
           /*fprintf(stderr, "ListMethodKeys key %s append key space flags %.6x\n",
-            key, childObject->flags);*/
+                    key, childObject->flags);*/
           if (prefix == NULL) {
             Tcl_DString ds, *dsPtr = &ds;
 
@@ -26817,6 +26835,35 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
            */
           continue;
         }
+
+        if ((childObject->flags & NSF_IS_SLOT_CONTAINER) != 0u) {
+          /*
+           * Don't report slot container.
+           */
+          continue;
+        }
+
+        if (withPath && directObject != 0u) {
+          /*
+           * Don't report direct children when "-path" was requested
+           */
+          continue;
+        }
+
+#if 0
+        if (!withPath && directObject != NULL) {
+          /*
+           * Don't report true child objects if no "-path" was requested,
+           * unless these are from ensemble methods.
+           */
+          if (!(
+                  ((childObject->flags & NSF_KEEP_CALLER_SELF) != 0u)
+                  && ((childObject->flags & NSF_PER_OBJECT_DISPATCH) != 0u)
+             )) {
+            continue;
+          }
+        }
+#endif
       }
 
       if (((unsigned int)Tcl_Command_flags(cmd) & NSF_CMD_CLASS_ONLY_METHOD) != 0u
@@ -26828,6 +26875,7 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
           || (!methodTypeMatch)) {
         continue;
       }
+
 
       if (prefixLength != 0) {
         Tcl_DStringAppend(prefix, key, -1);

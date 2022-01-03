@@ -2820,7 +2820,10 @@ namespace eval ::nx {
 
         foreach m [$origin ::nsf::methods::object::info::methods -path -callprotection all] {
           set rest [lassign [$origin ::nsf::methods::object::info::method definition $m] . protection . what .]
-
+          #if {$what eq ""} {
+          #  puts stderr "COPY <$m> can't handle [$origin ::nsf::methods::object::info::method definition $m] -> what '$what'"
+          #  continue
+          #}
           # remove -returns from reported definitions
           set p [lsearch -exact $rest -returns];
           if {$p > -1} {set rest [lreplace $rest $p $p+1]}

@@ -2109,6 +2109,61 @@ nx::test case uplevel-backwards-compatibility {
   rename 1000 ""
 }
 
+nx::test case alias-to-object {
+  nsf::proc ::p {} {return p1}
+  nx::Object create o1 {
+    :public object method bar {} {return bar1}
+  }
+  nx::Class create C {
+    :alias A1 ::p
+    :alias A2 ::o1
+    :forward A3 ::o1
+  }
+  #
+  # We expect to see both, the alias to the proc and the alias to the
+  # object. We expect same results with and without "-path" specified.
+  #
+  ? {lsort [C ::nsf::methods::class::info::methods -callprotection all]} {A1 A2 A3}
+  ? {lsort [C ::nsf::methods::class::info::methods -callprotection all -path]} {A1 A2 A3}
+
+  nx::Class create D {
+    :method m {} {return m1}
+    :method "e f" {} {return e1}
+    :alias a ::o1
+    nx::Class create D::D1
+    nx::Object create D::d1 {
+      :public object method foo {} {return foo}
+    }
+
+    :public object method om {} {return om1}
+    :public object method "oe f" {} {return of1}
+    :public object alias oa ::o1
+    :public object alias op ::p
+  }
+  ? {D op} "p1"
+  ? {D om} "om1"
+  ? {D oe f} "of1"
+  ? {D oa bar} "bar1"
+  #
+  # Note that we use "d1" like a method although it is not listed as a
+  # method (it was not registered via a method defining command).
+  #
+  ? {D d1 foo} "foo"
+
+  ? {lsort [D ::nsf::methods::class::info::methods -callprotection all]} {a e m}
+  ? {lsort [D ::nsf::methods::class::info::methods -callprotection all -path]} {a {e f} m}
+
+  #
+  # For per-object methods, we see a difference when "-path" is set or
+  # not in the number of reported methods.
+  #
+  ? {lsort [D ::nsf::methods::object::info::methods -callprotection all]} {D1 d1 oa oe om op}
+  ? {lsort [D ::nsf::methods::object::info::methods -callprotection all -path]} {oa {oe f} om op}
+
+  rename ::p ""
+  o1 destroy
+  C destroy
+}
 
 
 # Local variables:
