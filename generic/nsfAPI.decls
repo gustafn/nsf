@@ -148,6 +148,7 @@ cmd parameter::specs NsfParameterSpecsCmd {
 }
 
 cmd parseargs NsfParseArgsCmd {
+  {-argName "-asdict" -nrargs 0 -required 0 -type switch}
   {-argName "argspec" -required 1 -type tclobj}
   {-argName "arglist" -required 1 -type tclobj}
 } {-nxdoc 0}

@@ -28728,12 +28728,13 @@ NsfIsCmd(Tcl_Interp *interp,
 
 /*
 cmd parseargs NsfParseArgsCmd {
+  {-argName "-asdict" -nrargs 0 -required 0 -type switch}
   {-argName "argspec" -required 1 -type tclobj}
   {-argName "arglist" -required 1 -type tclobj}
 } {-nxdoc 0}
 */
 static int
-NsfParseArgsCmd(Tcl_Interp *interp, Tcl_Obj *argspecObj, Tcl_Obj *arglistObj) {
+NsfParseArgsCmd(Tcl_Interp *interp, int withAsDict, Tcl_Obj *argspecObj, Tcl_Obj *arglistObj) {
   NsfParsedParam   parsedParam;
   Tcl_Obj        **objv;
   int              result, objc;
@@ -28766,17 +28767,31 @@ NsfParseArgsCmd(Tcl_Interp *interp, Tcl_Obj *argspecObj, Tcl_Obj *arglistObj) {
       Tcl_Obj   *resultObj;
       int        i;
 
+      if (withAsDict == 1) {
+        resultObj = Tcl_NewDictObj();
+      }
+
       for (i = 0, paramPtr = paramDefs->paramsPtr; paramPtr->name != NULL; paramPtr++, i++) {
         Tcl_Obj *valueObj = pc.objv[i];
 
         if (valueObj != NsfGlobalObjs[NSF___UNKNOWN__]) {
           /*fprintf(stderr, "param %s -> <%s>\n", paramPtr->name,  ObjStr(valueObj));*/
-          resultObj = Tcl_ObjSetVar2(interp, paramPtr->nameObj, NULL, valueObj, TCL_LEAVE_ERR_MSG);
-          if (resultObj == NULL) {
-            result = TCL_ERROR;
-            break;
+          if (withAsDict == 0) {
+            resultObj = Tcl_ObjSetVar2(interp, paramPtr->nameObj, NULL, valueObj, TCL_LEAVE_ERR_MSG);
+            if (resultObj == NULL) {
+              result = TCL_ERROR;
+              break;
+            }
+          } else {
+            result = Tcl_DictObjPut(interp, resultObj, paramPtr->nameObj, valueObj);
+            if (result == TCL_ERROR) {
+              break;
+            }
           }
         }
+      }
+      if (withAsDict == 1 && result == TCL_OK) {
+        Tcl_SetObjResult(interp, resultObj);
       }
     }
     ParamDefsRefCountDecr(paramDefs);
@@ -32447,7 +32462,7 @@ NsfOCgetMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj) {
           /*
            * The value exists.
            */
-          Tcl_SetObjResult(interp, resultObj);
+         Tcl_SetObjResult(interp, resultObj);
         }
       }
     }
