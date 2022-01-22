@@ -26843,7 +26843,7 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
           continue;
         }
 
-        if (withPath && directObject != 0u) {
+        if (withPath && directObject != NULL) {
           /*
            * Don't report direct children when "-path" was requested
            */
@@ -28764,34 +28764,42 @@ NsfParseArgsCmd(Tcl_Interp *interp, int withAsDict, Tcl_Obj *argspecObj, Tcl_Obj
 
     if (result == TCL_OK) {
       Nsf_Param *paramPtr;
-      Tcl_Obj   *resultObj;
-      int        i;
+      size_t     i;
 
       if (withAsDict == 1) {
+        Tcl_Obj   *resultObj;
+
         resultObj = Tcl_NewDictObj();
-      }
+        INCR_REF_COUNT2("resultDictObj", resultObj);
 
-      for (i = 0, paramPtr = paramDefs->paramsPtr; paramPtr->name != NULL; paramPtr++, i++) {
-        Tcl_Obj *valueObj = pc.objv[i];
+        for (i = 0u, paramPtr = paramDefs->paramsPtr; paramPtr->name != NULL; paramPtr++, i++) {
+          Tcl_Obj *valueObj = pc.objv[i];
 
-        if (valueObj != NsfGlobalObjs[NSF___UNKNOWN__]) {
-          /*fprintf(stderr, "param %s -> <%s>\n", paramPtr->name,  ObjStr(valueObj));*/
-          if (withAsDict == 0) {
-            resultObj = Tcl_ObjSetVar2(interp, paramPtr->nameObj, NULL, valueObj, TCL_LEAVE_ERR_MSG);
-            if (resultObj == NULL) {
-              result = TCL_ERROR;
-              break;
-            }
-          } else {
+          if (valueObj != NsfGlobalObjs[NSF___UNKNOWN__]) {
+            /*fprintf(stderr, "param %s -> <%s>\n", paramPtr->name,  ObjStr(valueObj));*/
             result = Tcl_DictObjPut(interp, resultObj, paramPtr->nameObj, valueObj);
             if (result == TCL_ERROR) {
               break;
             }
           }
         }
-      }
-      if (withAsDict == 1 && result == TCL_OK) {
-        Tcl_SetObjResult(interp, resultObj);
+        if (result == TCL_OK) {
+          Tcl_SetObjResult(interp, resultObj);
+        }
+        DECR_REF_COUNT2("resultDictObj", resultObj);
+
+      } else {
+        for (i = 0u, paramPtr = paramDefs->paramsPtr; paramPtr->name != NULL; paramPtr++, i++) {
+          Tcl_Obj *valueObj = pc.objv[i];
+
+          if (valueObj != NsfGlobalObjs[NSF___UNKNOWN__]) {
+            /*fprintf(stderr, "param %s -> <%s>\n", paramPtr->name,  ObjStr(valueObj));*/
+            if (Tcl_ObjSetVar2(interp, paramPtr->nameObj, NULL, valueObj, TCL_LEAVE_ERR_MSG) == NULL) {
+              result = TCL_ERROR;
+              break;
+            }
+          }
+        }
       }
     }
     ParamDefsRefCountDecr(paramDefs);
