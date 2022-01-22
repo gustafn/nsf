@@ -2080,7 +2080,7 @@ default value is a fresh instance of
 class +::D+. When the parameter option +substdefault+ is used
 default, all substitution kinds of Tcl are active: command, variable, and
 backslash substitution. +substdefault+ can be
-parametrized to include or to exclude any combination of substitution
+parameterized to include or to exclude any combination of substitution
 kinds by providing a bit mask:
 
 - +substdefault=0b111+: all substitutions active (default)
