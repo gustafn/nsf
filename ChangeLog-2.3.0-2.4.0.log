@@ -1,3 +1,86 @@
+2022-01-18  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+        * build.yml, appveyor.yml: Bumps to 8.6.12 and 8.7a5
+        [96f4eb32]
+
+2022-01-03  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+        * nsf.c (ListMethodKeys), nx.tcl, class-method.test, methods.test,
+	plain-object-method.test: Include alias to object in "info methods
+	-path" Previously, it was not possible to define an alias to an
+	object for NaviServer, since it was not returned by "info methods
+	-path" and was, therefore, not included into the blueprint. Extended
+	regression tests. [40b842e5]
+
+2021-12-03  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+        * nsf.c (CallStackDoDestroy): Improve function description [344ce3ff]
+
+2021-10-16  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+        * object-system.test: Fix broken test [8fe8acb5]
+
+2021-10-12  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+        * nsfAccessInt.h (TclFreeIntRep): A recent name reform requires an
+	explicit define for backwards compat. [7645e8f8]
+
+        * nx-zip.tcl: Add closing paren in comment [8bb94eca]
+
+2021-10-08  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+        * nx-zip.tcl (writeToZipFile): 'writeToStream' requires a command
+	prefixed defined by an object variable 'writer'. In a direct call
+	on 'writeToZipFile', this variable was not defined. Thanks to
+	Héctor Romojaro for the catch and patch. [2a99a6a1]
+
+2021-09-01  Gustaf Neumann  <neumann@wu-wien.ac.at>
+s
+        * nx-zip.tcl: Use buffered ns_connchan for writing to slow
+	channels for handling partial write operations properly [d82ed6ca]
+
+2021-08-23  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+        * Makefile.in: Make it possible to pass "CFLAGS_OPTIMIZE=..." to
+	Makefile [379ac9a3]
+
+2021-08-12  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+        * nsf.c, nsf.h (NsColonVarResolver): Remove relatively costly
+	asserts when not in development mode [f01f68ea]
+
+2021-07-26  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+        * README.release: Complete description of vagrant setup
+        [f826efe9]
+
+2021-07-25  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+        * nsf.c (ObjectDispatch): Fix another invalid read of a cached cmd
+	structure (NsfColonCommandContext) [da6d8cc3]
+
+2021-07-24  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+        * nsf.c (NsfUnsetTrace, VolatileMethod): Plug a post-mortem
+	memleak related to volatile objects (The Tcl_Obj carrying an
+	auto-qualified object name was not cleaned up properly during
+	interp shutdown because the matching decrement operations used to
+	be disabled during shutdown.) [fc14b058]
+
+        * nsf.c (ObjectDispatch): Fix invalid read as indicated by
+	valgrind by guarding access to intrep.
+        [a6e4b1ad]
+
+        * README.release: Describe valgrind via vagrant procedure
+        [304b0654]
+
+2021-07-23  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+        * nsf.c (ObjectDispatch): First attempt to fight valgrind warning
+	on cond/unintialized jump [f4077b42]
+
+        * ChangeLog-2.3.0-2.4.0.log: Completed changelog work [a3149d6b]
+
 2021-07-21  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
 	* README.release: Add note on using gnulibs' gitlog-to-changelog
