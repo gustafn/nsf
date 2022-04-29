@@ -791,8 +791,8 @@ static int NsfParameterInfoCmd(Tcl_Interp *interp, ParametersubcmdIdx_t subcmd, 
   NSF_nonnull(1) NSF_nonnull(3);
 static int NsfParameterSpecsCmd(Tcl_Interp *interp, int withConfigure, int withNonposargs, Tcl_Obj *slotobjsObj)
   NSF_nonnull(1) NSF_nonnull(4);
-static int NsfParseArgsCmd(Tcl_Interp *interp, Tcl_Obj *argspecObj, Tcl_Obj *arglistObj)
-  NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
+static int NsfParseArgsCmd(Tcl_Interp *interp, int withAsdict, Tcl_Obj *argspecObj, Tcl_Obj *arglistObj)
+  NSF_nonnull(1) NSF_nonnull(3) NSF_nonnull(4);
 static int NsfProcCmd(Tcl_Interp *interp, int withAd, int withCheckalways, int withDebug, int withDeprecated, Tcl_Obj *procNameObj, Tcl_Obj *argumentsObj, Tcl_Obj *bodyObj)
   NSF_nonnull(1) NSF_nonnull(6) NSF_nonnull(7) NSF_nonnull(8);
 static int NsfProfileClearDataStub(Tcl_Interp *interp)
@@ -2588,11 +2588,12 @@ NsfParseArgsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
                      method_definitions[NsfParseArgsCmdIdx].paramDefs,
                      method_definitions[NsfParseArgsCmdIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
-    Tcl_Obj *argspecObj = (Tcl_Obj *)pc.clientData[0];
-    Tcl_Obj *arglistObj = (Tcl_Obj *)pc.clientData[1];
+    int withAsdict = (int )PTR2INT(pc.clientData[0]);
+    Tcl_Obj *argspecObj = (Tcl_Obj *)pc.clientData[1];
+    Tcl_Obj *arglistObj = (Tcl_Obj *)pc.clientData[2];
 
     assert(pc.status == 0);
-    return NsfParseArgsCmd(interp, argspecObj, arglistObj);
+    return NsfParseArgsCmd(interp, withAsdict, argspecObj, arglistObj);
 
   } else {
     
@@ -4171,7 +4172,8 @@ static Nsf_methodDefinition method_definitions[121] = {
   {"-nonposargs", 0, 0, Nsf_ConvertTo_Boolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
   {"slotobjs", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
-{"::nsf::parseargs", NsfParseArgsCmdStub, 2, {
+{"::nsf::parseargs", NsfParseArgsCmdStub, 3, {
+  {"-asdict", 0, 0, Nsf_ConvertTo_Boolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
   {"argspec", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"arglist", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },

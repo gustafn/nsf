@@ -118,7 +118,7 @@ in the following respects:
 
 . *Orthogonal Parameterization:*
    The Next Scripting Language provides an _orthogonal framework for
-   parametrization_ of methods and objects.
+   parameterization_ of methods and objects.
    .. In NX, the same argument parser is used for
      * Scripted Methods
      * C-implemented methods and Tcl commands
@@ -1349,7 +1349,7 @@ to be passed to the constructor of the object.
 
 NX allows one to define _optional_ and _required_ configure parameters (as
 well as method parameters). Therefore, configure parameters can be used
-as the single mechanism to parametrize objects. It is in NX not
+as the single mechanism to parameterize objects. It is in NX not
 necessary (and per default not possible) to pass arguments to the
 constructor.
 
@@ -1479,7 +1479,7 @@ Foo create f1 -a 0
 |======================
 
 Since the slots are objects, the slot objects can be configured and
-parametrized like every other object in NX. Slot objects can be
+parameterized like every other object in NX. Slot objects can be
 provided with a scripted initialization as well. We show first the
 definition of properties similar to the functionality provided as well
 by XOTcl and show afterwards how to use value constraints, optional
@@ -2988,7 +2988,7 @@ working on the slots objects has to be adapted.
 === Obsolete Commands
 
 Parameter-classes were rarely used and have been replaced by the more
-general object parametrization. Therefore, `cl info parameterclass` has
+general object parameterization. Therefore, `cl info parameterclass` has
 been removed.
 
 === Stronger Checking
