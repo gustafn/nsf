@@ -67,6 +67,14 @@
 # define PRE86
 #endif
 
+#if TCL_MAJOR_VERSION==8 && TCL_MINOR_VERSION<7
+# define PRE87
+#endif
+
+#if TCL_MAJOR_VERSION==8
+# define PRE9
+#endif
+
 #if defined(PRE86)
 # define CONST86
 # define Tcl_GetErrorLine(interp) (interp)->errorLine
@@ -74,6 +82,17 @@
 # define NRE
 #endif
 
+#ifdef PRE87
+# define Tcl_LibraryInitProc Tcl_PackageInitProc
+# define Tcl_GetChild Tcl_GetSlave
+# define Tcl_GetParent Tcl_GetMaster
+#endif
+
+#ifdef PRE9
+# define TCL_SIZE_T int
+#else
+# define TCL_SIZE_T size_t
+#endif
 /*
  * Feature activation/deactivation
  */
@@ -512,7 +531,11 @@ EXTERN int  Nsf_CmdDefinitionRegister(Tcl_Interp *interp, Nsf_methodDefinition *
  * the stubs table.
  */
 #if defined(NRE)
-# include "stubs8.6/nsfDecls.h"
+# if defined(PRE9)
+#  include "stubs8.6/nsfDecls.h"
+# else
+#  include "stubs9.0/nsfDecls.h"
+# endif
 #else
 # include "stubs8.5/nsfDecls.h"
 #endif

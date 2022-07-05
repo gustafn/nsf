@@ -1,7 +1,7 @@
 # -*- tcl -*- $
 
 package provide xotcl::comm::httpAccess 2.0
-set httpAccessVersion [package present xotcl::comm::httpAccess]
+set ::httpAccessVersion [package present xotcl::comm::httpAccess]
 
 package require xotcl::comm::pcache
 package require xotcl::comm::mime
@@ -681,8 +681,8 @@ namespace eval ::xotcl::comm::httpAccess {
     Http set proxyhost    {}
     Http set proxyport    {}
     Http set accept       */*
-    if {[info exists argv0]} {
-	Http set useragent    "[file tail $argv0] httpAccess/$httpAccessVersion xotcl/$::xotcl::version ($os)"
+    if {[info exists ::argv0]} {
+	Http set useragent    "[file tail $::argv0] httpAccess/$::httpAccessVersion xotcl/$::xotcl::version ($os)"
     }
     Http proc proxyfilter {host phostv pportv} {
 	my instvar proxyfilter proxyhost proxyport

@@ -46,6 +46,19 @@
 #ifndef NSF_INCLUDE_nsf_int_h_
 #define NSF_INCLUDE_nsf_int_h_
 
+#ifndef EXTERN
+# ifdef __cplusplus
+#   define EXTERN extern "C" TCL_STORAGE_CLASS
+# else
+#   define EXTERN extern TCL_STORAGE_CLASS
+# endif
+#endif
+
+#ifndef CONST86
+# define CONST86 const
+#endif
+
+
 /*
  * Well behaved compiler with C99 support should define __STDC_VERSION__
  */
@@ -134,6 +147,10 @@ typedef int bool;
 #endif
 
 #include <tclInt.h>
+#ifndef TCL_INDEX_NONE
+# define TCL_INDEX_NONE -1
+#endif
+
 #include "nsf.h"
 
 #include <stdlib.h>
@@ -338,7 +355,7 @@ typedef struct NsfMemCounter {
 
 #if !defined(NDEBUG)
 # define ISOBJ(o) ((o) != NULL && ISOBJ_(o))
-# define ISOBJ_(o) ((o) != (void*)0xdeadbeaf && (((o)->typePtr != NULL) ? ((o)->typePtr->name != NULL) : ((o)->bytes != NULL)) && (((o)->bytes != NULL) ? (o)->length >= -1 : 1) && (o)->refCount >= 0)
+# define ISOBJ_(o) ((o) != (void*)0xdeadbeaf && (((o)->typePtr != NULL) ? ((o)->typePtr->name != NULL) : ((o)->bytes != NULL)) && (((o)->bytes != NULL) ? (o)->length >= 0 : 1) && (o)->refCount >= 0u)
 #else
 # define ISOBJ(o)
 #endif
@@ -356,10 +373,10 @@ typedef struct NsfMemCounter {
 
 #ifdef USE_TCL_STUBS
 # define DECR_REF_COUNT(A) \
-  MEM_COUNT_FREE("INCR_REF_COUNT" #A,(A)); assert((A)->refCount > -1);	\
+  MEM_COUNT_FREE("INCR_REF_COUNT" #A,(A)); assert((A)->refCount >= 0);	\
   Tcl_DecrRefCount(A)
 # define DECR_REF_COUNT2(name,A)					\
-  MEM_COUNT_FREE("INCR_REF_COUNT-" name,(A)); assert((A)->refCount > -1); \
+  MEM_COUNT_FREE("INCR_REF_COUNT-" name,(A)); assert((A)->refCount >= 0); \
   Tcl_DecrRefCount(A)
 #else
 # define DECR_REF_COUNT(A) \
@@ -830,7 +847,7 @@ EXTERN NsfClassOpt *NsfRequireClassOpt(NsfClass *class)
  * Next Scripting ShadowTclCommands
  */
 typedef struct NsfShadowTclCommandInfo {
-  TclObjCmdProcType proc;
+  Tcl_ObjCmdProc *proc;
   ClientData clientData;
   int nrArgs;
 } NsfShadowTclCommandInfo;
@@ -1103,7 +1120,11 @@ EXTERN void NsfCleanupObject_(NsfObject *object) nonnull(1);
  *
  */
 #if defined(NRE)
-# include "stubs8.6/nsfIntDecls.h"
+# if defined(PRE9)
+#  include "stubs8.6/nsfIntDecls.h"
+# else
+#  include "stubs9.0/nsfIntDecls.h"
+# endif
 #else
 # include "stubs8.5/nsfIntDecls.h"
 #endif

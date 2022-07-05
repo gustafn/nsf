@@ -275,7 +275,7 @@ Nsf_RenameObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, int objc, Tc
 
       Tcl_DStringInit(&fqNewName);
       Tcl_DStringAppend(&fqNewName, "::nsf::procs::", 14);
-      Tcl_DStringAppend(&fqNewName, newName, -1);
+      Tcl_DStringAppend(&fqNewName, newName, TCL_INDEX_NONE);
       
       /* fprintf(stderr, "oldName %s newName %s\n", ObjStr(tcd->procName), Tcl_DStringValue(&fqNewName));*/
       result = TclRenameCommand(interp, ObjStr(tcd->procName), Tcl_DStringValue(&fqNewName));
@@ -395,7 +395,7 @@ Nsf_InfoFrameObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, int objc,
       Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("method", 6));
       Tcl_ListObjAppendElement(interp, listObj,
                                (cscPtr->cmdPtr != NULL)
-                               ? Tcl_NewStringObj(Tcl_GetCommandName(interp, cscPtr->cmdPtr), -1)
+                               ? Tcl_NewStringObj(Tcl_GetCommandName(interp, cscPtr->cmdPtr), TCL_INDEX_NONE)
 			       : NsfGlobalObjs[NSF_EMPTY]);
       Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("frametype", 9));
       if (cscPtr->frameType == NSF_CSC_TYPE_PLAIN) {
@@ -409,7 +409,7 @@ Nsf_InfoFrameObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, int objc,
       } else {
         frameType = "unknown";
       }
-      Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj(frameType, -1));
+      Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj(frameType, TCL_INDEX_NONE));
       Tcl_SetObjResult(interp, listObj);
     } else if (frameFlags & (FRAME_IS_NSF_OBJECT)) {
       NsfObject *object = (NsfObject *)Tcl_CallFrame_clientData(varFramePtr);
@@ -532,7 +532,7 @@ NsfCallCommand(Tcl_Interp *interp, NsfGlobalNames name,
   if (objc > 1) {
     memcpy(ov+1, objv+1, sizeof(Tcl_Obj *) * ((size_t)objc - 1u));
   }
-  result = Tcl_NRCallObjProc(interp, ti->proc, ti->clientData, objc, objv);
+  result = Tcl_NRCallObjProc(interp, ti->proc, ti->clientData, (TCL_SIZE_T)objc, objv);
   FREE_ON_STACK(Tcl_Obj *, ov);
   return result;
 }

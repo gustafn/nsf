@@ -67,9 +67,9 @@ NsfProfileObjectLabel(Tcl_DString *dsPtr, NsfObject *object) {
   nonnull_assert(dsPtr != NULL);
   nonnull_assert(object != NULL);
 
-  Tcl_DStringAppend(dsPtr, ObjectName_(object), -1);
+  Tcl_DStringAppend(dsPtr, ObjectName_(object), TCL_INDEX_NONE);
   Tcl_DStringAppend(dsPtr, " ", 1);
-  Tcl_DStringAppend(dsPtr, ClassName(object->cl), -1);
+  Tcl_DStringAppend(dsPtr, ClassName(object->cl), TCL_INDEX_NONE);
 }
 
 /*
@@ -98,7 +98,7 @@ NsfProfileMethodLabel(Tcl_DString *dsPtr, NsfClass *class, const char *methodNam
   Tcl_DStringAppendElement(dsPtr, methodName);
   if (class != NULL) {
     Tcl_DStringAppend(dsPtr, " ", 1);
-    Tcl_DStringAppend(dsPtr, ObjStr(class->object.cmdName), -1);
+    Tcl_DStringAppend(dsPtr, ObjStr(class->object.cmdName), TCL_INDEX_NONE);
   }
 
 }
@@ -176,7 +176,7 @@ NsfProfileDebugCall(Tcl_Interp *interp, NsfObject *object, NsfClass *class, cons
   NsfProfileMethodLabel(&ds, class, methodName);
   Tcl_DStringAppend(&ds, "}", 1);
 
-  listObj = Tcl_NewListObj(objc, objv);
+  listObj = Tcl_NewListObj((TCL_SIZE_T)objc, objv);
   INCR_REF_COUNT(listObj);
   Nsf_DStringPrintf(&ds, " {%s}", ObjStr(listObj));
   DECR_REF_COUNT(listObj);
@@ -360,10 +360,10 @@ Nsf_ProfileFilterObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *co
     }
 
     Tcl_DStringInit(&ds);
-    Tcl_DStringAppend(&ds, fullMethodName, -1);
+    Tcl_DStringAppend(&ds, fullMethodName, TCL_INDEX_NONE);
     for (i = 1; i<=nrArgs; i++) {
       Tcl_DStringAppend(&ds, " ", 1);
-      Tcl_DStringAppend(&ds, ObjStr(objv[i]), -1);
+      Tcl_DStringAppend(&ds, ObjStr(objv[i]), TCL_INDEX_NONE);
     }
     label = ds.string;
   }
@@ -371,7 +371,7 @@ Nsf_ProfileFilterObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *co
   NsfProfileTraceCallAppend(interp, label);
 
   Tcl_GetTime(&start);
-  result = Tcl_NRCallObjProc(interp, ti->proc, ti->clientData, objc, objv);
+  result = Tcl_NRCallObjProc(interp, ti->proc, ti->clientData, (TCL_SIZE_T)objc, objv);
   NsfProfileRecordProcData(interp, label, start.sec, start.usec);
 
   if (label != fullMethodName) {
@@ -908,7 +908,7 @@ NsfProfileGetTable(Tcl_Interp *interp, Tcl_HashTable *table) {
     char           *key = Tcl_GetHashKey(table, hPtr);
     Tcl_Obj        *subList = Tcl_NewListObj(0, NULL);
 
-    Tcl_ListObjAppendElement(interp, subList, Tcl_NewStringObj(key, -1));
+    Tcl_ListObjAppendElement(interp, subList, Tcl_NewStringObj(key, TCL_INDEX_NONE));
     Tcl_ListObjAppendElement(interp, subList, Tcl_NewLongObj(value->microSec));
     Tcl_ListObjAppendElement(interp, subList, Tcl_NewLongObj(value->count));
     Tcl_ListObjAppendElement(interp, list, subList);

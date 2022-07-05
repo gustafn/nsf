@@ -232,8 +232,8 @@ BsonToList(Tcl_Interp *interp, const bson_t *data , int depth)
       tag = NSF_BSON_REGEX;
       regex = bson_iter_regex( &i, &options );
       elemObj = Tcl_NewListObj(0, NULL);
-      Tcl_ListObjAppendElement(interp, elemObj, Tcl_NewStringObj(regex, -1));
-      Tcl_ListObjAppendElement(interp, elemObj, Tcl_NewStringObj(options, -1));
+      Tcl_ListObjAppendElement(interp, elemObj, Tcl_NewStringObj(regex, TCL_INDEX_NONE));
+      Tcl_ListObjAppendElement(interp, elemObj, Tcl_NewStringObj(options, TCL_INDEX_NONE));
       break;
     }
     case BSON_TYPE_UTF8: {
@@ -250,7 +250,7 @@ BsonToList(Tcl_Interp *interp, const bson_t *data , int depth)
     case BSON_TYPE_OID: {
       tag = NSF_BSON_OID;
       bson_oid_to_string(bson_iter_oid(&i), oidhex);
-      elemObj = Tcl_NewStringObj(oidhex, -1);
+      elemObj = Tcl_NewStringObj(oidhex, TCL_INDEX_NONE);
       break;
     }
     case BSON_TYPE_TIMESTAMP: {
@@ -292,7 +292,7 @@ BsonToList(Tcl_Interp *interp, const bson_t *data , int depth)
       tag = NSF_BSON_DECIMAL128;
       bson_iter_decimal128( &i, &decimal128);
       bson_decimal128_to_string(&decimal128, string);
-      elemObj = Tcl_NewStringObj(string, -1);
+      elemObj = Tcl_NewStringObj(string, TCL_INDEX_NONE);
 
       break;
     }
@@ -317,7 +317,7 @@ BsonToList(Tcl_Interp *interp, const bson_t *data , int depth)
       NsfLog(interp, NSF_LOG_WARN, "BsonToList: unknown type %d", t);
     }
 
-    Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj(key, -1));
+    Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj(key, TCL_INDEX_NONE));
     Tcl_ListObjAppendElement(interp, resultObj, NsfMongoGlobalObjs[tag]);
     Tcl_ListObjAppendElement(interp, resultObj, elemObj);
   }
@@ -719,7 +719,7 @@ NsfMongoConnect(Tcl_Interp *interp, const char *uri)
     return TCL_ERROR;
   }
 
-  Tcl_SetObjResult(interp, Tcl_NewStringObj(channelName, -1));
+  Tcl_SetObjResult(interp, Tcl_NewStringObj(channelName, TCL_INDEX_NONE));
 
   return TCL_OK;
 }
@@ -814,7 +814,7 @@ NsfCollectionOpen(Tcl_Interp *interp,
     char buffer[POINTER_HANDLE_SIZE];
 
     if (Nsf_PointerAdd(interp, buffer, sizeof(buffer), "mongoc_collection_t", collectionPtr) == TCL_OK) {
-      Tcl_SetObjResult(interp, Tcl_NewStringObj(buffer, -1));
+      Tcl_SetObjResult(interp, Tcl_NewStringObj(buffer, TCL_INDEX_NONE));
       result = TCL_OK;
     } else {
       mongoc_collection_destroy(collectionPtr);
@@ -1288,7 +1288,7 @@ NsfMongoCursorAggregate(Tcl_Interp *interp,
     char buffer[POINTER_HANDLE_SIZE];
 
     if (Nsf_PointerAdd(interp, buffer, sizeof(buffer), "mongoc_cursor_t", cursor) == TCL_OK) {
-      Tcl_SetObjResult(interp, Tcl_NewStringObj(buffer, -1));
+      Tcl_SetObjResult(interp, Tcl_NewStringObj(buffer, TCL_INDEX_NONE));
     } else {
       mongoc_cursor_destroy( cursor );
       result = TCL_ERROR;
@@ -1348,7 +1348,7 @@ NsfMongoCursorFind(Tcl_Interp *interp,
   if (cursor != NULL) {
     char buffer[POINTER_HANDLE_SIZE];
     if (Nsf_PointerAdd(interp, buffer, sizeof(buffer), "mongoc_cursor_t", cursor) == TCL_OK) {
-      Tcl_SetObjResult(interp, Tcl_NewStringObj(buffer, -1));
+      Tcl_SetObjResult(interp, Tcl_NewStringObj(buffer, TCL_INDEX_NONE));
     } else {
       mongoc_cursor_destroy( cursor );
       result = TCL_ERROR;
@@ -1440,7 +1440,7 @@ NsfMongoGridFSOpen(Tcl_Interp *interp, mongoc_client_t *clientPtr,
   }
 
   if (Nsf_PointerAdd(interp, buffer, sizeof(buffer), "mongoc_gridfs_t", gfsPtr) == TCL_OK) {
-    Tcl_SetObjResult(interp, Tcl_NewStringObj(buffer, -1));
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(buffer, TCL_INDEX_NONE));
   } else {
     mongoc_gridfs_destroy(gfsPtr);
     result = TCL_ERROR;
@@ -1652,7 +1652,7 @@ NsfMongoGridFileOpen(Tcl_Interp *interp,
     char buffer[POINTER_HANDLE_SIZE];
 
     if (Nsf_PointerAdd(interp, buffer, sizeof(buffer), "mongoc_gridfs_file_t", gridFilePtr) == TCL_OK) {
-      Tcl_SetObjResult(interp, Tcl_NewStringObj(buffer, -1));
+      Tcl_SetObjResult(interp, Tcl_NewStringObj(buffer, TCL_INDEX_NONE));
     } else {
       mongoc_gridfs_file_destroy(gridFilePtr);
       result = TCL_ERROR;
@@ -1711,7 +1711,7 @@ NsfMongoGridFileGetContentlength(Tcl_Interp *interp, mongoc_gridfs_file_t* gridF
 static int
 NsfMongoGridFileGetContentType(Tcl_Interp *interp, mongoc_gridfs_file_t* gridFilePtr)
 {
-  Tcl_SetObjResult(interp, Tcl_NewStringObj(mongoc_gridfs_file_get_content_type(gridFilePtr), -1));
+  Tcl_SetObjResult(interp, Tcl_NewStringObj(mongoc_gridfs_file_get_content_type(gridFilePtr), TCL_INDEX_NONE));
 
   return TCL_OK;
 }
@@ -1885,7 +1885,7 @@ Nsfmongo_Init(Tcl_Interp * interp)
     NsfMongoGlobalObjs = (Tcl_Obj **)ckalloc(sizeof(Tcl_Obj*)*nr_elements(NsfMongoGlobalStrings));
 
     for (i = 0; i < nr_elements(NsfMongoGlobalStrings); i++) {
-      NsfMongoGlobalObjs[i] = Tcl_NewStringObj(NsfMongoGlobalStrings[i], -1);
+      NsfMongoGlobalObjs[i] = Tcl_NewStringObj(NsfMongoGlobalStrings[i], TCL_INDEX_NONE);
       Tcl_IncrRefCount(NsfMongoGlobalObjs[i]);
     }
 

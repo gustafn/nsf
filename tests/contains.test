@@ -3,6 +3,7 @@ package prefer latest
 package require nx
 
 set ::tcl86 [package vsatisfies [package req Tcl] 8.6]
+set ::tcl90 [package vsatisfies [package req Tcl] 9.0]
 
 #
 # Intentionally, we do not want to make a "namespace import" in this
@@ -183,7 +184,7 @@ set ::errorinfo $::errorInfo
 set ::errorcode $::errorCode
 ? {set ::errorMsg} {somethingwrong}
 
-if {$::tcl86} {
+if {$::tcl86 || $::tcl90} {
   set r {somethingwrong
     while executing
 "o contains { return -code error -errorcode {FOO bar baz} somethingwrong}"} 
@@ -193,6 +194,7 @@ if {$::tcl86} {
     invoked from within
 "o contains { return -code error -errorcode {FOO bar baz} somethingwrong}"}
 }
+
 ? {set ::errorinfo} $r
 ? {set ::errorcode} {FOO bar baz}
 

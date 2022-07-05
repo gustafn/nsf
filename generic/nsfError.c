@@ -76,9 +76,10 @@ Tcl_Obj *NsfParamDefsSyntax(
 
 void
 NsfDStringVPrintf(Tcl_DString *dsPtr, const char *fmt, va_list argPtr) {
-  int      result, avail, offset;
-  va_list  argPtrCopy;
-  bool     failure;
+  int        result;
+  TCL_SIZE_T avail, offset;
+  va_list    argPtrCopy;
+  bool       failure;
 
   /*
    * Tcl_DStringLength returns the current length *without* the
@@ -132,10 +133,10 @@ NsfDStringVPrintf(Tcl_DString *dsPtr, const char *fmt, va_list argPtr) {
     /*
      * vsnprintf() copied all content, adjust the Tcl_DString length.
      */
-    Tcl_DStringSetLength(dsPtr, offset + result);
+    Tcl_DStringSetLength(dsPtr, offset + (TCL_SIZE_T)result);
 
   } else {
-    int addedStringLength;
+    TCL_SIZE_T addedStringLength;
     /*
      * vsnprintf() could not copy all content, content was truncated.
      * Determine the required length (for MSVC), adjust the Tcl_DString
@@ -147,7 +148,7 @@ NsfDStringVPrintf(Tcl_DString *dsPtr, const char *fmt, va_list argPtr) {
     addedStringLength = _vscprintf(fmt, argPtrCopy);
     va_end(argPtrCopy);
 #else
-    addedStringLength = result;
+    addedStringLength = (TCL_SIZE_T)result;
 #endif
 
     Tcl_DStringSetLength(dsPtr, offset + addedStringLength);
@@ -171,7 +172,7 @@ NsfDStringVPrintf(Tcl_DString *dsPtr, const char *fmt, va_list argPtr) {
 #if defined(_MSC_VER)
     failure = (result == -1);
 #else
-    failure = (result == -1 || result >= avail);
+    failure = (result == -1 || (TCL_SIZE_T)result >= avail);
 #endif
 
 #if defined(NDEBUG)
@@ -303,7 +304,7 @@ NsfErrInProc(
   const char *cName, *space;
 
   Tcl_DStringInit(&errMsg);
-  Tcl_DStringAppend(&errMsg, "\n    ", -1);
+  Tcl_DStringAppend(&errMsg, "\n    ", TCL_INDEX_NONE);
   if (clName != NULL) {
     cName = ObjStr(clName);
     space = " ";
@@ -311,11 +312,11 @@ NsfErrInProc(
     cName = "";
     space = "";
   }
-  Tcl_DStringAppend(&errMsg, ObjStr(objName), -1);
-  Tcl_DStringAppend(&errMsg, space, -1);
-  Tcl_DStringAppend(&errMsg, cName, -1);
+  Tcl_DStringAppend(&errMsg, ObjStr(objName), TCL_INDEX_NONE);
+  Tcl_DStringAppend(&errMsg, space, TCL_INDEX_NONE);
+  Tcl_DStringAppend(&errMsg, cName, TCL_INDEX_NONE);
   Tcl_DStringAppend(&errMsg, "->", 2);
-  Tcl_DStringAppend(&errMsg, procName, -1);
+  Tcl_DStringAppend(&errMsg, procName, TCL_INDEX_NONE);
   Tcl_AddErrorInfo (interp, Tcl_DStringValue(&errMsg));
   Tcl_DStringFree(&errMsg);
   return TCL_ERROR;
@@ -353,7 +354,7 @@ NsfObjWrongArgs(
 
   Nsf_DStringPrintf(&ds, "%s should be \"", msg);
   if (cmdNameObj != NULL) {
-    Tcl_DStringAppend(&ds, ObjStr(cmdNameObj), -1);
+    Tcl_DStringAppend(&ds, ObjStr(cmdNameObj), TCL_INDEX_NONE);
     need_space = NSF_TRUE;
   }
 
@@ -363,7 +364,7 @@ NsfObjWrongArgs(
     }
 
     INCR_REF_COUNT(methodPathObj);
-    Tcl_DStringAppend(&ds, ObjStr(methodPathObj), -1);
+    Tcl_DStringAppend(&ds, ObjStr(methodPathObj), TCL_INDEX_NONE);
     DECR_REF_COUNT(methodPathObj);
 
     need_space = NSF_TRUE;
@@ -372,7 +373,7 @@ NsfObjWrongArgs(
     if (need_space) {
       Tcl_DStringAppend(&ds, " ", 1);
     }
-    Tcl_DStringAppend(&ds, arglist, -1);
+    Tcl_DStringAppend(&ds, arglist, TCL_INDEX_NONE);
   }
   Tcl_DStringAppend(&ds, "\"", 1);
 
@@ -491,8 +492,8 @@ NsfUnexpectedNonposArgumentError(
     if (pPtr->flags & NSF_ARG_NOCONFIG) {
       continue;
     }
-    Tcl_DStringAppend(dsPtr, pPtr->name, -1);
-    Tcl_DStringAppend(dsPtr, ", ", -1);
+    Tcl_DStringAppend(dsPtr, pPtr->name, TCL_INDEX_NONE);
+    Tcl_DStringAppend(dsPtr, ", ", TCL_INDEX_NONE);
   }
   Tcl_DStringSetLength(dsPtr, Tcl_DStringLength(dsPtr) - 2);
   Tcl_DStringAppend(dsPtr, ";\n", 2);
@@ -590,18 +591,18 @@ NsfObjErrType(
 ) {
   bool        isNamed     = (NsfObjErrType && (NsfObjErrType->flags & NSF_ARG_UNNAMED) == 0);
   int         returnValue = !isNamed && NsfObjErrType && (NsfObjErrType->flags & NSF_ARG_IS_RETURNVALUE);
-  int         errMsgLen;
+  TCL_SIZE_T  errMsgLen;
   const char *prevErrMsg  = Tcl_GetStringFromObj(Tcl_GetObjResult(interp), &errMsgLen);
   Tcl_DString ds;
 
   Tcl_DStringInit(&ds);
   if (errMsgLen > 0) {
     Tcl_DStringAppend(&ds, prevErrMsg, errMsgLen);
-    Tcl_DStringAppend(&ds, " 2nd error: ", -1);
+    Tcl_DStringAppend(&ds, " 2nd error: ", TCL_INDEX_NONE);
   }
 
   if (context != NULL) {
-    Tcl_DStringAppend(&ds, context, -1);
+    Tcl_DStringAppend(&ds, context, TCL_INDEX_NONE);
     Tcl_DStringAppend(&ds, ": ", 2);
   }
 
@@ -609,7 +610,7 @@ NsfObjErrType(
   if (isNamed) {
     Nsf_DStringPrintf(&ds, " for parameter \"%s\"", NsfObjErrType->name);
   } else if (returnValue != 0) {
-    Tcl_DStringAppend(&ds, " as return value", -1);
+    Tcl_DStringAppend(&ds, " as return value", TCL_INDEX_NONE);
   }
 
   Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_DStringValue(&ds), Tcl_DStringLength(&ds)));

@@ -268,13 +268,13 @@ NsfShowStack(Tcl_Interp *interp) {
       (frameFlags & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) ?
       ((NsfCallStackContent *)Tcl_CallFrame_clientData(framePtr)) : NULL;
 
-    fprintf(stderr, "... %16p %.6x %16p %3d %16p %s ov %s %d",
+    fprintf(stderr, "... %16p %.6x %16p %4lu %16p %s ov %s %ld",
             (void *)framePtr, frameFlags,
             Tcl_CallFrame_clientData(framePtr),
-            Tcl_CallFrame_level(framePtr),
+            (unsigned long)Tcl_CallFrame_level(framePtr),
             (void *)Tcl_CallFrame_nsPtr(framePtr), Tcl_CallFrame_nsPtr(framePtr)->fullName,
-            Tcl_CallFrame_objc(framePtr) > 0 ? ObjStr(Tcl_CallFrame_objv(framePtr)[0]) : "(null)",
-            Tcl_CallFrame_objc(framePtr) > 0 ? Tcl_CallFrame_objc(framePtr) : -1);
+            Tcl_CallFrame_objc(framePtr) > 0u ? ObjStr(Tcl_CallFrame_objv(framePtr)[0]) : "(null)",
+            Tcl_CallFrame_objc(framePtr) > 0u ? (unsigned long)Tcl_CallFrame_objc(framePtr) : 0u);
     if (cscPtr != NULL) {
       fprintf(stderr, " csc %p frameType %.4x flags %.6x (%s.%p %s)\n",
               (void *)cscPtr,
@@ -658,7 +658,7 @@ NsfCallStackFindCallingContext(const Tcl_Interp *interp,
 
   varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
   if (likely(varFramePtr != NULL)) {
-    int lvl = Tcl_CallFrame_level(varFramePtr);
+    unsigned long lvl = Tcl_CallFrame_level(varFramePtr);
 
     do {
       register unsigned int flags = (unsigned int)Tcl_CallFrame_isProcCallFrame(varFramePtr);
@@ -1025,7 +1025,7 @@ CallStackMethodPath(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
     }
 
     Tcl_ListObjAppendElement(interp, methodPathObj,
-                             Tcl_NewStringObj(Tcl_GetCommandName(interp, cscPtr->cmdPtr), -1));
+                             Tcl_NewStringObj(Tcl_GetCommandName(interp, cscPtr->cmdPtr), TCL_INDEX_NONE));
     elements++;
 
     /*

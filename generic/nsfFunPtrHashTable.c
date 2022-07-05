@@ -86,7 +86,12 @@ static Tcl_HashKeyType funPtrHashKeyType = {
  *----------------------------------------------------------------------
  */
 
-static unsigned int
+static
+#if defined TCL_HASH_TYPE
+    TCL_HASH_TYPE
+#else
+  unsigned int
+#endif
 FunPtrKey(
     Tcl_HashTable *UNUSED(tablePtr),      /* Hash table. */
     void *keyPtr                          /* Key from which to compute hash value. */

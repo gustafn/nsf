@@ -169,7 +169,7 @@ NsfMethodObjSet(
 #if defined(METHOD_OBJECT_TRACE)
     fprintf(stderr, "... NsfMethodObjSet frees old int rep %s\n", (objPtr->typePtr != NULL) ? objPtr->typePtr->name : "none");
 #endif
-    TclFreeIntRep(objPtr);
+    TclFreeInternalRep(objPtr);
     mcPtr = NEW(NsfMethodContext);
     /*fprintf(stderr, "NsfMethodObjSet allocated NsfMethodContext %p for %s\n", mcPtr, ObjStr(objPtr));*/
     objPtr->internalRep.twoPtrValue.ptr1 = (void *)mcPtr;
@@ -317,7 +317,7 @@ NsfFlagObjSet(
    * structure as internal representation.
    */
   if (objPtr->typePtr != &NsfFlagObjType) {
-    TclFreeIntRep(objPtr);
+    TclFreeInternalRep(objPtr);
     flagPtr = NEW(NsfFlag);
     assert(flagPtr != NULL);
     /*fprintf(stderr, "NsfFlagObjSet allocated NsfFlag %p for %s\n", flagPtr, ObjStr(objPtr));*/
@@ -541,7 +541,7 @@ MixinregSetFromAny(
        * Free the old internal representation and store own structure as internal
        * representation.
        */
-      TclFreeIntRep(objPtr);
+      TclFreeInternalRep(objPtr);
       objPtr->internalRep.twoPtrValue.ptr1 = (void *)mixinRegPtr;
       objPtr->internalRep.twoPtrValue.ptr2 = NULL;
       objPtr->typePtr = &NsfMixinregObjType;
@@ -821,7 +821,7 @@ FilterregSetFromAny(
    * Free the old internal representation and store own structure as internal
    * representation.
    */
-  TclFreeIntRep(objPtr);
+  TclFreeInternalRep(objPtr);
   objPtr->internalRep.twoPtrValue.ptr1 = (void *)filterregPtr;
   objPtr->internalRep.twoPtrValue.ptr2 = NULL;
   objPtr->typePtr = &NsfFilterregObjType;

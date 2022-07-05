@@ -74,7 +74,7 @@ Nsf_PointerAdd(Tcl_Interp *interp, char *buffer, size_t size, const char *typeNa
     int            isNew;
 
     Tcl_DStringInit(dsPtr);
-    Tcl_DStringAppend(dsPtr, typeName, -1);
+    Tcl_DStringAppend(dsPtr, typeName, TCL_INDEX_NONE);
     Tcl_DStringAppend(dsPtr, ":%d", 3);
     NsfMutexLock(&pointerMutex);
     snprintf(buffer, size, Tcl_DStringValue(dsPtr), (*counterPtr)++);

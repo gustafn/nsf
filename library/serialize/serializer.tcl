@@ -796,12 +796,15 @@ namespace eval ::nx::serializer {
           } else {
             lappend needed $regObj
           }
+        } else {
+          puts stderr "=== aliasedCmd $aliasedCmd has regObj <$regObj> x '$x' where '$where'"
+          #lappend needed $x
         }
       }
-      # if {[llength $needed]>0} {
-      #  puts stderr "aliases: $x needs $needed"
-      #  puts stderr "set alias-deps for $x - $handle - $needed"
-      # }
+      if {[llength $needed]>0} {
+        puts stderr "aliases: $x needs $needed"
+        puts stderr "set alias-deps for $x - $handle - $needed"
+      }
       set $handle $needed
       return $needed
     }

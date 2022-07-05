@@ -120,16 +120,16 @@
  *
  */
 
-#if TCL_MAJOR_VERSION==8 && TCL_MINOR_VERSION>6 && defined(CMD_DYING)
-#define TclIsCommandDeleted(cmdPtr)  (((unsigned int)Tcl_Command_flags((cmdPtr)) & CMD_DYING) != 0u)
-#else
+#if TCL_MAJOR_VERSION==8 && TCL_MINOR_VERSION<7 && defined(CMD_IS_DELETED)
 #define TclIsCommandDeleted(cmdPtr)  (((unsigned int)Tcl_Command_flags((cmdPtr)) & CMD_IS_DELETED) != 0u)
+#else
+#define TclIsCommandDeleted(cmdPtr)  (((unsigned int)Tcl_Command_flags((cmdPtr)) & CMD_DYING) != 0u)
 #endif
 
 
 /*
  * Introduced by a name reform in [a722c92a11], in Oct 2021, the macro
- * TclFreeIntRep has been replaced by TclFreeInternalRep.
+ * TclFreeInternalRep has been replaced by TclFreeInternalRep.
  * 
  * See also: 
  *
@@ -138,8 +138,8 @@
  * For Tcl 8.7+, we should better switch to using the public interface
  * to manipulating the internal rep of Tcl_Objs.
  */
-#if TCL_MAJOR_VERSION==8 && TCL_MINOR_VERSION>6 && defined(TclFreeInternalRep)
-#   define TclFreeIntRep(objPtr) TclFreeInternalRep((objPtr))
+#if TCL_MAJOR_VERSION==8 && TCL_MINOR_VERSION < 7 && defined(TclFreeIntRep)
+#   define TclFreeInternalRep(objPtr) TclFreeIntRep((objPtr))
 #endif
 
 
