@@ -1,4 +1,3 @@
-# core-8-7-a5-rc
 name: Build
 on: [push]
 jobs:
