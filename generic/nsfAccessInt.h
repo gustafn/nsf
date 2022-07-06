@@ -138,7 +138,7 @@
  * For Tcl 8.7+, we should better switch to using the public interface
  * to manipulating the internal rep of Tcl_Objs.
  */
-#if defined(TclFreeIntRep)
+#if !defined(PRE9) && !defined(TclFreeInternalRep)
 # define TclFreeInternalRep(objPtr) TclFreeIntRep((objPtr))
 #endif
 
