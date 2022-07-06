@@ -82,7 +82,7 @@
 # define NRE
 #endif
 
-#ifdef PRE87
+#ifdef PRE9
 # define Tcl_LibraryInitProc Tcl_PackageInitProc
 # define Tcl_GetChild Tcl_GetSlave
 # define Tcl_GetParent Tcl_GetMaster
