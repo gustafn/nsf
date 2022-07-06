@@ -83,9 +83,11 @@
 #endif
 
 #ifdef PRE9
-# define Tcl_LibraryInitProc Tcl_PackageInitProc
-# define Tcl_GetChild Tcl_GetSlave
-# define Tcl_GetParent Tcl_GetMaster
+# if !defined(Tcl_LibraryInitProc)
+#  define Tcl_LibraryInitProc Tcl_PackageInitProc
+#  define Tcl_GetChild Tcl_GetSlave
+#  define Tcl_GetParent Tcl_GetMaster
+# endif
 #endif
 
 #ifdef PRE9
