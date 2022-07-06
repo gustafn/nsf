@@ -23,10 +23,18 @@ jobs:
             experimental: [true]
           - os: ubuntu-latest
             compiler: gcc-10
+            tcltag: trunk
+            experimental: [true]
+          - os: ubuntu-latest
+            compiler: clang-12
+            tcltag: trunk
+            experimental: [true]
+          - os: ubuntu-latest
+            compiler: gcc-10
             tcltag: core-8-6-branch
             experimental: [true]
           - os: ubuntu-latest
-            compiler: clang-11
+            compiler: clang-12
             tcltag: core-8-6-branch
             experimental: [true]
           - os: macos-latest
