@@ -21,6 +21,14 @@ jobs:
             compiler: clang
             tcltag: core-8-6-branch
             experimental: [true]
+          - os: macos-latest
+            compiler: gcc
+            tcltag: trunk
+            experimental: [true]
+          - os: macos-latest
+            compiler: clang
+            tcltag: core-8-6-branch
+            experimental: [true]
           - os: ubuntu-latest
             compiler: gcc-10
             tcltag: trunk
