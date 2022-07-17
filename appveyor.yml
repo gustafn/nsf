@@ -33,10 +33,6 @@ environment:
     TOOLCHAIN: autoconf-tea
   #  - TCLTAG: core-8-5-19
   #    TOOLCHAIN: nmake-tea	
-  - TCLTAG: core-8-7-a3
-    TOOLCHAIN: autoconf-tea
-  - TCLTAG: core-8-7-a3
-    TOOLCHAIN: nmake-tea
   - TCLTAG: core-8-7-a5
     TOOLCHAIN: autoconf-tea
   - TCLTAG: core-8-7-a5
@@ -45,7 +41,10 @@ environment:
     TOOLCHAIN: autoconf-tea
   - TCLTAG: core-8-branch
     TOOLCHAIN: nmake-tea
-
+  - TCLTAG: trunk
+    TOOLCHAIN: autoconf-tea
+  - TCLTAG: trunk
+    TOOLCHAIN: nmake-tea
 matrix:
   allow_failures:
   - TCLTAG: core-8-6-branch
