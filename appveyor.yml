@@ -50,6 +50,7 @@ matrix:
   - TCLTAG: core-8-6-branch
   - TCLTAG: core-8-5-branch
   - TCLTAG: core-8-branch
+  - TCLTAG: trunk
   fast_finish: true
 
 install:
