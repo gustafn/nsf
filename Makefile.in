@@ -743,7 +743,7 @@ pkgIndex.tcl: $(PKG_LIB_FILE)
 	@echo "    package ifneeded nsf @PACKAGE_VERSION@ \\" >> pkgIndex.tcl
 	@echo "	    [list load [file join \$$dir @PKG_LIB_FILE8@] Nsf]" >> pkgIndex.tcl
 	@echo "}" >> pkgIndex.tcl
-	@echo "package provide nsf $(PACKAGE_VERSION)" >> pkgIndex.tcl
+#	@echo "package provide nsf $(PACKAGE_VERSION)" >> pkgIndex.tcl
 
 
 install-pkgIndex:
