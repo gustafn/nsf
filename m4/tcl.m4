@@ -3006,6 +3006,8 @@ TEA version not specified.])
 
     # This package name must be replaced statically for AC_SUBST to work
     AC_SUBST(PKG_LIB_FILE)
+    AC_SUBST(PKG_LIB_FILE8)
+    AC_SUBST(PKG_LIB_FILE9)
     # Substitute STUB_LIB_FILE in case package creates a stub library too.
     AC_SUBST(PKG_STUB_LIB_FILE)
 
@@ -3471,6 +3473,13 @@ print("manifest needed")
   # Use the double eval to make sure any variables in the suffix is
   # substituted. (@@@ Might not be necessary anymore)
   #--------------------------------------------------------------------
+  PACKAGE_LIB_PREFIX8="${PACKAGE_LIB_PREFIX}"
+  PACKAGE_LIB_PREFIX9="${PACKAGE_LIB_PREFIX}tcl9"
+  if test "${TCL_MAJOR_VERSION}" -gt 8 ; then
+	PACKAGE_LIB_PREFIX="${PACKAGE_LIB_PREFIX9}"
+  else
+	PACKAGE_LIB_PREFIX="${PACKAGE_LIB_PREFIX8}"
+  fi
   if test "${TEA_PLATFORM}" = "windows" ; then
 	  PRACTCL_NAME_LIBRARY="%LIBRARY_PREFIX%%LIBRARY_NAME%%LIBRARY_VERSION_NODOTS%"
 	  if test "${SHARED_BUILD}" = "1" ; then
@@ -3483,15 +3492,19 @@ print("manifest needed")
 	    if test "$GCC" = "yes"; then
         SHLIB_LD_LIBS="${SHLIB_LD_LIBS} -static-libgcc"
 	    fi
+	    eval eval "PKG_LIB_FILE8=${PACKAGE_LIB_PREFIX8}${PACKAGE_NAME}${SHARED_LIB_SUFFIX}"
+	    eval eval "PKG_LIB_FILE9=${PACKAGE_LIB_PREFIX9}${PACKAGE_NAME}${SHARED_LIB_SUFFIX}"
 	    eval eval "PKG_LIB_FILE=${PACKAGE_LIB_PREFIX}${PACKAGE_NAME}${SHARED_LIB_SUFFIX}"
 	  else
+	    eval eval "PKG_LIB_FILE8=${PACKAGE_LIB_PREFIX8}${PACKAGE_NAME}${UNSHARED_LIB_SUFFIX}"
+	    eval eval "PKG_LIB_FILE9=${PACKAGE_LIB_PREFIX9}${PACKAGE_NAME}${UNSHARED_LIB_SUFFIX}"
 	    eval eval "PKG_LIB_FILE=${PACKAGE_LIB_PREFIX}${PACKAGE_NAME}${UNSHARED_LIB_SUFFIX}"
 	    if test "$GCC" = "yes"; then
         PKG_LIB_FILE=lib${PKG_LIB_FILE}
 	    fi
 	  fi
 	  # Some packages build their own stubs libraries
-	  eval eval "PKG_STUB_LIB_FILE=${PACKAGE_LIB_PREFIX}${PACKAGE_NAME}stub${UNSHARED_LIB_SUFFIX}"
+	  eval eval "PKG_STUB_LIB_FILE=${PACKAGE_LIB_PREFIX8}${PACKAGE_NAME}stub${UNSHARED_LIB_SUFFIX}"
     if test "$GCC" = "yes"; then
       PKG_STUB_LIB_FILE=lib${PKG_STUB_LIB_FILE}
     fi
@@ -3506,13 +3519,17 @@ print("manifest needed")
       if test x"${TK_BIN_DIR}" != x ; then
         SHLIB_LD_LIBS="${SHLIB_LD_LIBS} ${TK_STUB_LIB_SPEC}"
       fi
+      eval eval "PKG_LIB_FILE8=lib${PACKAGE_LIB_PREFIX8}${PACKAGE_NAME}${SHARED_LIB_SUFFIX}"
+      eval eval "PKG_LIB_FILE9=lib${PACKAGE_LIB_PREFIX9}${PACKAGE_NAME}${SHARED_LIB_SUFFIX}"
       eval eval "PKG_LIB_FILE=lib${PACKAGE_LIB_PREFIX}${PACKAGE_NAME}${SHARED_LIB_SUFFIX}"
       RANLIB=:
     else
+      eval eval "PKG_LIB_FILE=lib${PACKAGE_LIB_PREFIX8}${PACKAGE_NAME}${UNSHARED_LIB_SUFFIX}"
+      eval eval "PKG_LIB_FILE=lib${PACKAGE_LIB_PREFIX9}${PACKAGE_NAME}${UNSHARED_LIB_SUFFIX}"
       eval eval "PKG_LIB_FILE=lib${PACKAGE_LIB_PREFIX}${PACKAGE_NAME}${UNSHARED_LIB_SUFFIX}"
     fi
     # Some packages build their own stubs libraries
-    eval eval "PKG_STUB_LIB_FILE=lib${PACKAGE_LIB_PREFIX}${PACKAGE_NAME}stub${UNSHARED_LIB_SUFFIX}"
+    eval eval "PKG_STUB_LIB_FILE=lib${PACKAGE_LIB_PREFIX8}${PACKAGE_NAME}stub${UNSHARED_LIB_SUFFIX}"
   fi
   
   # Store the raw CFLAGS before we add the trimmings
