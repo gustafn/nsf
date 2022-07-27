@@ -17,10 +17,12 @@ if {[info commands ::tcl::tm::roots] ne ""} {
 set verbose 0
 
 proc mkIndex {} {
-    if {$::verbose} {puts stderr "+++ mkIndex in [pwd]"}
+    if {$::verbose} {
+        puts stderr "+++ mkIndex in [pwd]"
+    }
     set fls {}
     foreach f [glob -nocomplain *tcl] {
-	if {![file isdirectory $f]} {
+	if {![file isdirectory $f] && $f ne "pkgIndex.tcl"} {
 	    set F [open $f]; set c [read $F]; close $F
 	    if {[string match "*package provide*" $c]} {
 		lappend fls $f 
@@ -40,7 +42,8 @@ proc mkIndex {} {
 
     set pkgIndex ""
     foreach pkg [lsort [array names pkg_file]] {
-	append pkgIndex "package ifneeded $pkg $pkg_version($pkg) \[list source \[file join \$dir $pkg_file($pkg)\]\]\n"
+	append pkgIndex "package ifneeded $pkg $pkg_version($pkg)\
+               \[list source \[file join \$dir $pkg_file($pkg)\]\]\n"
     }
 
     foreach addFile [glob -nocomplain *.add] {
@@ -53,7 +56,9 @@ proc mkIndex {} {
     }
     
     if {$pkgIndex ne ""} {
-	if {$::verbose} {puts stderr "Write [pwd]/pkgIndex.tcl"}
+	if {$::verbose} {
+            puts stderr "Write [pwd]/pkgIndex.tcl"
+        }
 	set OUT [open pkgIndex.tcl w]
 	puts -nonewline $OUT $pkgIndex
 	close $OUT
@@ -63,7 +68,9 @@ proc mkIndex {} {
 }
 
 proc inEachDir {path cmd} {
-    if {$::verbose} {puts stderr "[pwd] inEachDir $path (dir [file isdirectory $path]) $cmd"}
+    if {$::verbose} {
+        puts stderr "[pwd] inEachDir $path (dir [file isdirectory $path]) $cmd"
+    }
     if { [file isdirectory $path] 
          && ![string match *CVS $path]
          && ![string match *SCCS $path]
@@ -77,8 +84,12 @@ proc inEachDir {path cmd} {
 	}
 	set files [glob -nocomplain *]
 	cd $olddir
-	foreach p $files { inEachDir $path/$p $cmd }
-	if {$::verbose} {puts stderr "+++ change back to $olddir"}
+	foreach p $files {
+            inEachDir $path/$p $cmd
+        }
+	if {$::verbose} {
+            puts stderr "+++ change back to $olddir"
+        }
     }
 }
 
