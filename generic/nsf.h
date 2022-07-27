@@ -76,7 +76,9 @@
 #endif
 
 #if defined(PRE86)
-# define CONST86
+# ifndef CONST86
+#  define CONST86
+# endif
 # define Tcl_GetErrorLine(interp) (interp)->errorLine
 #else
 # define NRE
@@ -97,6 +99,11 @@
 #else
 # define TCL_SIZE_T size_t
 #endif
+
+#ifndef TCL_INDEX_NONE
+# define TCL_INDEX_NONE -1
+#endif
+
 /*
  * Feature activation/deactivation
  */

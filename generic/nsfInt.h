@@ -147,9 +147,6 @@ typedef int bool;
 #endif
 
 #include <tclInt.h>
-#ifndef TCL_INDEX_NONE
-# define TCL_INDEX_NONE -1
-#endif
 
 #include "nsf.h"
 
