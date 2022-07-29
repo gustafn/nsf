@@ -7236,7 +7236,7 @@ printf "%s\n" "found $CELIB_DIR" >&6; }
 
 		# Set defaults for common evc4/PPC2003 setup
 		# Currently Tcl requires 300+, possibly 420+ for sockets
-		CEVERSION=420; 	# could be 211 300 301 400 420 ...
+		CEVERSION=420; 		# could be 211 300 301 400 420 ...
 		TARGETCPU=ARMV4;	# could be ARMV4 ARM MIPS SH3 X86 ...
 		ARCH=ARM;		# could be ARM MIPS X86EM ...
 		PLATFORM="Pocket PC 2003"; # or "Pocket PC 2002"
@@ -7256,7 +7256,7 @@ printf "%s\n" "found $CELIB_DIR" >&6; }
 		    fi
 		fi
 		OSVERSION=WCE$CEVERSION;
-		if test "x${WCEROOT}" = "x" ; then
+	    	if test "x${WCEROOT}" = "x" ; then
 			WCEROOT="C:/Program Files/Microsoft eMbedded C++ 4.0"
 		    if test ! -d "${WCEROOT}" ; then
 			WCEROOT="C:/Program Files/Microsoft eMbedded Tools"
@@ -7345,7 +7345,7 @@ printf "%s\n" "found $CELIB_DIR" >&6; }
 		    defs="${ARCH} _${ARCH}_ ${arch} PALM_SIZE _MT _WINDOWS"
 		    if test "${SHARED_BUILD}" = "1" ; then
 			# Static CE builds require static celib as well
-		        	defs="${defs} _DLL"
+		    	defs="${defs} _DLL"
 		    fi
 		    for i in $defs ; do
 
@@ -7575,7 +7575,7 @@ then :
 			;;
 		    *)
 			# Make sure only first arg gets _r
-			CC=`echo "$CC" | sed -e 's/^\([^ ]*\)/\1_r/'`
+		    	CC=`echo "$CC" | sed -e 's/^\([^ ]*\)/\1_r/'`
 			;;
 		esac
 		{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: Using $CC for compiling with threads" >&5
@@ -8107,7 +8107,7 @@ then :
 		# The -pthread needs to go in the CFLAGS, not LIBS
 		LIBS=`echo $LIBS | sed s/-pthread//`
 		CFLAGS="$CFLAGS -pthread"
-		LDFLAGS="$LDFLAGS -pthread"
+	    	LDFLAGS="$LDFLAGS -pthread"
 
 fi
 	    ;;
@@ -8816,15 +8816,15 @@ fi
     if test "$SHARED_LIB_SUFFIX" = ""
 then :
 
-                # TEA specific: use PACKAGE_VERSION instead of VERSION
-                SHARED_LIB_SUFFIX='${PACKAGE_VERSION}${SHLIB_SUFFIX}'
+    # TEA specific: use PACKAGE_VERSION instead of VERSION
+    SHARED_LIB_SUFFIX='${PACKAGE_VERSION}${SHLIB_SUFFIX}'
 
 fi
     if test "$UNSHARED_LIB_SUFFIX" = ""
 then :
 
-                # TEA specific: use PACKAGE_VERSION instead of VERSION
-                UNSHARED_LIB_SUFFIX='${PACKAGE_VERSION}.a'
+    # TEA specific: use PACKAGE_VERSION instead of VERSION
+    UNSHARED_LIB_SUFFIX='${PACKAGE_VERSION}.a'
 
 fi
 
@@ -9679,7 +9679,7 @@ fi
         done
         TCLSH_PROG="${REAL_TCL_BIN_DIR}${TCLSH_PROG}"
       fi
-    fi
+		fi
     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: ${TCLSH_PROG}" >&5
 printf "%s\n" "${TCLSH_PROG}" >&6; }
 
