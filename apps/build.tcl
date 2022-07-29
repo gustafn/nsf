@@ -45,7 +45,8 @@ proc ::build {HOMEDIR BUILDDIR TCLTAG {TOOLCHAIN autoconf-tea}} {
       return -options $opts $e
     } finally {
       catch {close $fh}
-      exec >@stdout 2>@stderr bash -lc "ls -la"
+      exec >@stdout 2>@stderr bash -lc "ls -la tcl/"
+      exec >@stdout 2>@stderr bash -lc "pwd"
       file delete -force $tarball
     }
 
