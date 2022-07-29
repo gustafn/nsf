@@ -37,6 +37,8 @@ proc ::build {HOMEDIR BUILDDIR TCLTAG {TOOLCHAIN autoconf-tea}} {
       # zlib push gunzip $fh
       # ::tar::untar $fh -chan
 
+      puts TCLVER2=[package req Tcl],[info loaded],$::tcl_patchLevel,[catch {format %d 0777}],[catch {format %d 06440000000}]
+
       exec >@stdout 2>@stderr bash -lc "ls -la"
       exec >@stdout 2>@stderr bash -lc "7z x -so $tarball | 7z x -aoa -si -ttar"
       
