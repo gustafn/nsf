@@ -76,9 +76,6 @@
 #endif
 
 #if defined(PRE86)
-# ifndef CONST86
-#  define CONST86
-# endif
 # define Tcl_GetErrorLine(interp) (interp)->errorLine
 #else
 # define NRE

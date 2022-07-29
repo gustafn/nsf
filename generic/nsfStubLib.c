@@ -69,12 +69,12 @@
 
 #if defined(PRE86)
 extern NsfStubs *nsfStubsPtr;
+NsfStubs *nsfStubsPtr = NULL;
+NsfIntStubs *nsfIntStubsPtr = NULL;
 #else
-//MODULE_SCOPE const NsfStubs *nsfStubsPtr;
-//MODULE_SCOPE const NsfIntStubs *nsfIntStubsPtr;
-#endif
 CONST86 NsfStubs *nsfStubsPtr = NULL;
 CONST86 NsfIntStubs *nsfIntStubsPtr = NULL;
+#endif
 
 
 /*
@@ -114,7 +114,11 @@ Nsf_InitStubs(Tcl_Interp *interp, const char *version, int exact) {
                      (char*) 0L);
     actualVersion = NULL;
   } else {
+#ifdef PRE86
+    NsfStubs *stubsPtr;
+#else
     CONST86 NsfStubs *stubsPtr;
+#endif
 
     if (actualVersion != NULL) {
 
@@ -127,8 +131,11 @@ Nsf_InitStubs(Tcl_Interp *interp, const char *version, int exact) {
                       packageName, version, actualVersion, errMsg);
         actualVersion = NULL;
       } else {
+#ifdef PRE86
+        NsfIntStubs *intStubsPtr;
+#else
         CONST86 NsfIntStubs *intStubsPtr;
-
+#endif
         intStubsPtr = stubsPtr->hooks->nsfIntStubs;
 
         nsfStubsPtr = stubsPtr;
