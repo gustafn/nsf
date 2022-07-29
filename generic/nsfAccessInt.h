@@ -129,7 +129,7 @@
 
 /*
  * Introduced by a name reform in [a722c92a11], in Oct 2021, the macro
- * TclFreeInternalRep has been replaced by TclFreeInternalRep.
+ * TclFreeIntRep has been replaced by TclFreeInternalRep.
  * 
  * See also: 
  *
