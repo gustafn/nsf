@@ -37,13 +37,15 @@ proc ::build {HOMEDIR BUILDDIR TCLTAG {TOOLCHAIN autoconf-tea}} {
       # zlib push gunzip $fh
       # ::tar::untar $fh -chan
 
-      exec >@stdout 2>@stderr bash -lc "7z x $tarball -so | 7z x -aoa -si -ttar -otcl/"
+      exec >@stdout 2>@stderr bash -lc "ls -la"
+      exec >@stdout 2>@stderr bash -lc "7z x -so $tarball | 7z x -aoa -si -ttar -otcl/"
       
     } on error {e opts} {
       file delete -force tcl
       return -options $opts $e
     } finally {
       catch {close $fh}
+      exec >@stdout 2>@stderr bash -lc "ls -la"
       file delete -force $tarball
     }
 
