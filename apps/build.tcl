@@ -12,6 +12,9 @@ package require tar
 package require platform
 
 proc ::build {HOMEDIR BUILDDIR TCLTAG {TOOLCHAIN autoconf-tea}} {
+
+  puts TCLVER=[package req Tcl],[info loaded]
+  
   set tarball "tcl.tar.gz"
   set INSTALLDIR [file join $HOMEDIR install]
 
