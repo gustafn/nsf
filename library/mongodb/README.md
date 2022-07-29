@@ -40,10 +40,10 @@ and to compile the MongoDB driver for NX.
 
 ````
       cd /usr/local/src
-      wget https://github.com/mongodb/mongo-c-driver/releases/download/1.12.0/mongo-c-driver-1.12.0.tar.gz
-      tar zxvf  mongo-c-driver-1.12.0.tar.gz
+      wget https://github.com/mongodb/mongo-c-driver/releases/download/1.22.0/mongo-c-driver-1.22.0.tar.gz
+      tar zxvf mongo-c-driver-1.22.0.tar.gz
       rm -rf mongo-c-driver
-      ln -sf mongo-c-driver-1.12.0 mongo-c-driver
+      ln -sf mongo-c-driver-1.22.0 mongo-c-driver
       cd mongo-c-driver
       cmake .
       make
@@ -87,7 +87,7 @@ You will probably have to adjust the paths.
 ````
    ./configure --with-tcl=/usr/local/ns/lib/ --prefix=/usr/local/ns --with-nsf=../../ \
                --with-mongoc=/usr/local/include/libmongoc-1.0/,/usr/local/lib/ \
-               --with-bson=/usr/local/include/libbson-1.0,/usr/local/lib/ \
+               --with-bson=/usr/local/include/libbson-1.0/,/usr/local/lib/ \
 	       --enable-threads --enable-symbols
 ````
 
