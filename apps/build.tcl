@@ -32,29 +32,36 @@ proc ::build {HOMEDIR BUILDDIR TCLTAG {TOOLCHAIN autoconf-tea}} {
       ::http::geturl $URL \
           -binary true \
           -channel $fh
-      
-      seek $fh 0
-      zlib push gunzip $fh
-      ::tar::untar $fh -chan
+      close $fh
+      # seek $fh 0
+      # zlib push gunzip $fh
+      # ::tar::untar $fh -chan
+
+      exec >@stdout 2>@stderr bash -lc "7z x $tarball -so | 7z x -aoa -si -ttar -o tcl"
       
     } on error {e opts} {
       file delete -force tcl
       return -options $opts $e
     } finally {
-      close $fh
+      catch {close $fh}
       file delete -force $tarball
     }
+
+
+    
   } else {
 
     # fall back to using curl
     exec >@stdout 2>@stderr bash -lc "curl -L -k -o $tarball $URL"
 
-    set fh [open $tarball rb]
+    # set fh [open $tarball rb]
     try {
-      zlib push gunzip $fh
-      ::tar::untar $fh -chan
+      # zlib push gunzip $fh
+      # ::tar::untar $fh -chan
+      exec >@stdout 2>@stderr bash -lc "7z x $tarball -so | 7z x -aoa -si -ttar -o tcl"
+      
     } finally {
-      close $fh
+      # close $fh
       file delete -force $tarball
     }
   }

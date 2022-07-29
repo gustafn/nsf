@@ -61,7 +61,6 @@ install:
   - if not exist "%MINGW_ARCHIVE%" appveyor DownloadFile "%MINGW_URL%" -FileName "%MINGW_ARCHIVE%"
   - 7z x -y "%MINGW_ARCHIVE%" > nul
   - if not exist "%TCLKIT%" appveyor DownloadFile "%TCLKIT_URL%" -FileName "%TCLKIT%"
-  - echo PWD=%CD%
   - dir %MINGW_DIR%
 
 build_script:
@@ -75,6 +74,7 @@ build_script:
   - if "%TOOLCHAIN%" == "autoconf-tea" bash -lc "cd && echo \"export PATH=/c/projects/nsf-2ylk0/mingw64/bin:\$PATH; export MSYSTEM=MINGW64; export MINGW_PREFIX=/c; alias make='/c/msys64/usr/bin/make'; shopt -s expand_aliases; \" >> .profile"
   - if "%TOOLCHAIN%" == "autoconf-tea" bash -lc "sh --version"
   - if "%TOOLCHAIN%" == "autoconf-tea" bash -lc "make --version"
+  - dir %CD%
   - tclkit.exe apps/build.tcl %CD% %APPVEYOR_BUILD_FOLDER% %TCLTAG% %TOOLCHAIN%
 
 on_failure:
