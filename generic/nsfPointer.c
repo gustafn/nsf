@@ -153,10 +153,10 @@ Nsf_PointerGet(char *key, const char *prefix) {
  *
  *----------------------------------------------------------------------
  */
-static Tcl_HashEntry * Nsf_PointerGetHptr(void *valuePtr) nonnull(1);
+static Tcl_HashEntry * Nsf_PointerGetHptr(const void *valuePtr) nonnull(1);
 
 static Tcl_HashEntry *
-Nsf_PointerGetHptr(void *valuePtr) {
+Nsf_PointerGetHptr(const void *valuePtr) {
   Tcl_HashEntry *hPtr;
   Tcl_HashSearch hSrch;
 

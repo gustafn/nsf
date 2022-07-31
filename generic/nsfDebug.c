@@ -132,7 +132,7 @@ NsfStackDump(Tcl_Interp *interp) {
       fprintf(stderr, "caller %p ", (void *)Tcl_CallFrame_callerPtr(f));
       fprintf(stderr, "callerV %p ", (void *)Tcl_CallFrame_callerVarPtr(f));
       Tcl_GetCommandFullName(interp, (Tcl_Command)f->procPtr->cmdPtr, cmdObj);
-      fprintf(stderr, "%s (%p) lvl=%li\n", ObjStr(cmdObj), (void *)f->procPtr->cmdPtr,
+      fprintf(stderr, "%s (%p) lvl=%lu\n", ObjStr(cmdObj), (void *)f->procPtr->cmdPtr,
               (unsigned long)f->level);
     } else {
         if (f->varTablePtr != NULL) {
