@@ -902,11 +902,11 @@ WARNINGS		    = $(WARNINGS) -Wp64
 # DOTVERSION - set as (for example) 2.5
 # VERSION - set as (for example 25)
 #--------------------------------------------------------------
-
+!message >>> $(_TCL_H)
 !if [echo REM = This file is generated from rules.vc > versions.vc]
 !endif
 !if [echo TCL_MAJOR_VERSION = \>> versions.vc] \
-   && [nmakehlp -V "$(_TCL_H)" TCL_MAJOR_VERSION >> versions.vc]
+   && [nmakehlp -V "$(_TCL_H)" "define TCL_MAJOR_VERSION" >> versions.vc]
 !endif
 !if [echo TCL_MINOR_VERSION = \>> versions.vc] \
    && [nmakehlp -V "$(_TCL_H)" TCL_MINOR_VERSION >> versions.vc]
