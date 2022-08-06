@@ -521,7 +521,7 @@ $<
 $(OUT_DIR)\pkgIndex.tcl:
 	@set TCL_PKG_PREFER_LATEST=1
 	@echo package ifneeded $(PROJECT) $(DOTVERSION) \
-	    [list load [file join $$dir $(PRJLIBNAME)] $(PROJECT)] > $@
+	    [list load [file join $$dir $(PRJLIBNAME)]] > $@
 
 	@for /d %d in ($(LIBDIR)\*) do \
 		@pushd %d &\
