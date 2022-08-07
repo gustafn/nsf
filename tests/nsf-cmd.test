@@ -2,7 +2,7 @@ package prefer latest
 
 package require nx::test
 
-set ::tcl86 [package vsatisfies [package req Tcl] 8.6]
+set ::tcl86 [package vsatisfies [package req Tcl] 8.6-]
 
 nx::test case nsf-method-get-variants {
 

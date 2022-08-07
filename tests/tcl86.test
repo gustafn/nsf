@@ -259,7 +259,7 @@ nx::test case apply {
 #
 if {![package vsatisfies [package req Tcl] 8.6.7]} {return}
 
-set tcl87 [package vsatisfies [package req Tcl] 8.7]
+set tcl87 [package vsatisfies [package req Tcl] 8.7-]
 
 nx::test case bug-3418547 {
   #
