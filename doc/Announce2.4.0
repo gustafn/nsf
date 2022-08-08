@@ -9,7 +9,9 @@ compatibility. See below for the details.
 Diff stats since 2.3.0:
    YYY
 
-Major changes relative to 2.3.0 are:
+Major changes relative to 2.3.0 are: NSF now compiles and runs with
+Tcl 9 (core.tcl-lang.org/tcl main branch at the time of
+writing). Otherwise, this is a maintenance and bug-fix release.
 
 New Features
 
@@ -35,8 +37,7 @@ New Features
 - Documentation:
 
   * ...
-
-
+  
 - Maintenance & bug fixes:
 
   * Prefer using Tcl_InterpDeleted() over explicitly checking bitmask
@@ -50,12 +51,15 @@ New Features
 
   * Tcl 8.7:
 
-    o Support for the upcoming Tcl 8.7a5
+    o Support for the Tcl 8.7a5 release
     (core.tcl-lang.org/tcl branch "core-8-branch"). NSF compiles and its
     regression tests execute successfully (including TCL_NO_DEPRECATE).
 
     o NSF is now TIP-538 ready (Tcl starting relying on on libtommath
     as an extrinsic dependency).
+
+  * Tcl 9: For the first time, NSF now compiles and its test suite
+    completes with Tcl 9. Kudos to Jan Njitmans and Gustaf Neumann.
 
   * Misc (esp. NSF/C): Ran valgrind checks ...
 
