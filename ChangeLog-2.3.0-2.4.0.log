@@ -1,3 +1,142 @@
+2022-08-07  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* tcl86.test, nsf-cmd.test, forward.test, destroy.test: Make sure
+	to run all 8.6+/ 8.7+ specific tests also under Tcl 9
+	[982b1e8d]
+
+2022-08-06  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* rules.vc: Have TCL_MAJOR_VERSION properly picked up from newer
+	tcl.h via nmakehlp [d55aa4b7]
+
+	* makefile.vc: Make sure Tcl 9 handles TIP-595 guessing of the
+	_Init function, avoid third argument to load [58a12e0d]
+
+2022-07-31  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsfDebug.c, nsfPointer.c: Minor polishing [9f2bb394]
+
+2022-07-29  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* build.tcl: Turn on debugging (AppVeyor) [e4569ae5, 0f2f3c4f,
+	c18dacc8, 584687ed]
+
+2022-07-29  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* build.tcl: Turn on debugging (AppVeyor) [b59caea3, 01ff609d,
+	a0d10764, 58cb7088, 64ce7231]; try using 7z instead of internal
+	unpacking [00ac4c06]
+
+2022-07-29  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsfAccessInt.h: Fix comment [58c09af3]
+
+	* mongodb/m4/tcl.m4, tcl.m4: Revert back to earlier version of tcl.m4;
+	The version from head is not yet ready [d1bea33b]
+
+	* configure, mongodb/configure: Re-generated files [52070e0d]
+
+2022-07-29  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* build.tcl: Turn on more debugging output [dd6a0a0b]
+
+2022-07-29  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* mongodb/README.md: update README for mongoDB interface
+	[20b47273]
+
+	* mongodb/configure: re-generated file [28349668]
+
+	* Makefile.in: Fix line break [bbb3b835]
+
+	* tcl.m4, mongodb/m4/tcl.m4: Updated with upstream versions of
+	tcl.m4 [1ddf01fe, a817b85f, 3137543b, afda2d90]
+
+	* nsfStubLib.c (Nsf_InitStubs): Fix compilation hickups for Tcl
+	8.5 [8c0fd2cd]
+
+2022-07-27  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsf.h, nsfInt.h: Reduce warnings from redefined constants [fc37052d]
+
+	* configure, mongodb/configure: Re-generated files [fb1613b4]
+
+	* Makefile.in: Don't include "package provide" Tcl command in
+	pkgIndex.tcl file, since the binary performs the provide operation
+	[86365e57]
+
+	* mkIndex.tcl: Exclude pkgIndex.tcl from searched files,
+	whitespace changes [e2825dd0]
+
+2022-07-27  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* Makefile.in: Pack Tcl version into name for Tcl 9.* With Tcl 9,
+	it is possible to install NSF for 8.7 and 9.0 in parallel, in the same
+	directories. The trick is naming the shared library
+	"libtcl9nsf2.4.0.so" instead of "libnsf2.4.0.so" when compiled
+	with Tcl 9.0 (keeping the original name when compiled with Tcl
+	8.x).  Many thanks to Jan Nijtmans for the patch. [0b577d09]
+
+2022-07-20  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* appveyor.yml: Allow failures on trunk builds [a0e21882]
+
+2022-07-17  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* build.yml: Remove build jobs for 8-7-a3 (GH and AppVeyor); add
+	trunk builds for win (AppVeyor) [9a007250]
+
+2022-07-06  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* build.yml: Added github event for workflow dispatches
+	[42704e31]; cosmetic change to trigger workflow run [d661abd3];
+	added build for tcl9 under macOS [8515b3d2]; added build for Tcl 9 (branch trunk)
+	[1b526520]
+
+	* nsfAccessInt.h: Fix typo [5e66d95c]
+
+	* nsf.h, nsfAccessInt.h: Improve compatibility with core-8 branch
+	[2db70d13]; fix for Tcl versions having Tcl_LibraryInitProc()
+	already defined (core-8-branch) [4501d2e2]
+
+	* object-system.test: Report Tcl version at the begin of
+	regression test to ease reading output of Git workflows [f546d287]
+
+	* nsf.h: Provide compatibility for core-8-7-a3 [e7b25cd9]
+
+	* nsfAccessInt.h: fix compatibility with earlier versions of Tcl 8.7
+	[1a327d6a]
+
+	* nsf.c (ParseContextExtendObjv, AssertionCheck, ListMethod)
+	(NsfMethodPropertyCmd, NsfCurrentCmd, NsfRelationSetCmd),
+	nsfInt.h: Improve cleanness of compilation under gcc-11+ and
+	"-pedantic" + -Wextra" [958b24f9]
+
+2022-07-05  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* Makefile.in, generic/nsf*.c, generic/nsf*.h, generic/stubs9.0/*, nsfmongo.c: Added
+	support for compiling with Tcl 9.0 (Many Thanks to Jan Nijtmans
+	for first steps) This version compiles cleanly at least with Tcl
+	8.6.* and Tcl 9.0 (fossil main) having -pedantic and -Wextra defined. [e48161ab]
+
+2022-04-29  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* ChangeLog-2.3.0-2.4.0.log: Adding changelog entries since July/ August 2021.
+	[9b3cf1ba]
+
+2022-01-22  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* next-migration.txt, next-tutorial.txt: Improve spelling [a1996616]
+
+	* nsf.c (NsfParseArgsCmd): Cleanup to avoid memory leak in cases
+	the Tcl_DictObjPut fails [e3f1c112]
+
+2022-01-21  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsf.c (NsfParseArgsCmd): Added option "-asdict" to
+	nsf::parseargs. The new option makes it easier to process the
+	parsed argument in different contexts [b2781b9d]
+
 2022-01-18  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
         * build.yml, appveyor.yml: Bumps to 8.6.12 and 8.7a5
