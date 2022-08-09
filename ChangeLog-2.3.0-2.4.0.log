@@ -88,7 +88,7 @@
 
 2022-07-06  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	* build.yml: Added github event for workflow dispatches
+	* build.yml: Added GitHub event for workflow dispatches
 	[42704e31]; cosmetic change to trigger workflow run [d661abd3];
 	added build for tcl9 under macOS [8515b3d2]; added build for Tcl 9 (branch trunk)
 	[1b526520]
@@ -216,7 +216,7 @@ s
 2021-07-23  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
         * nsf.c (ObjectDispatch): First attempt to fight valgrind warning
-	on cond/unintialized jump [f4077b42]
+	on cond/uninitialized jump [f4077b42]
 
         * ChangeLog-2.3.0-2.4.0.log: Completed changelog work [a3149d6b]
 

@@ -183,7 +183,7 @@ Major changes relative to 1.4.0 are:
        + New snit-like utility functions:
             - ::xotcl::myvar varName: return the fully qualified variable name 
                of the specified variable.
-            - ::xotcl::myproc methodName ?args?: call an xotcl method without the need 
+            - ::xotcl::myproc methodName ?args?: call an XOTcl method without the need 
                of using "[list [self] methodName ...]"
             Both commands are namespace exported
 

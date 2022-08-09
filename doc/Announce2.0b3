@@ -57,7 +57,7 @@ Major changes relative to NSF 2.0b2 are:
          * error messages
          * implicit deletions
      - follow Tcl convention on error messages
-       (start always with lower case)
+       (start always with lowercase)
      - better handling of multiple errors in a single command.
      - return GMT dates in Httpd as RFCs require
 
