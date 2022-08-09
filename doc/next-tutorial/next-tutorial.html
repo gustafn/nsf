@@ -1,9 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
     "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 8.6.9" />
+<meta name="generator" content="AsciiDoc 10.1.3" />
 <title>Tutorial for the Next Scripting Language</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -535,6 +536,53 @@ body.manpage div.sectionbody {
 }
 
 
+@media print {
+
+body            {font-size: 10pt; text-align: justify;}
+#header         {text-align: left;}
+.nx             {font-size: 90%; color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
+table.nx        {border-collapse: collapse; border-spacing: 3px;}
+.nx-linenr      {font-size: 90%; border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D; font-style: italic;}
+.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
+.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
+.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
+.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
+.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
+
+.listingblock   {font-size: 80%;}
+div.toclevel1   {display: block;}
+div.toclevel2   {display: block;}
+div.toclevel3   {display: block;}
+div.toclevel4   {display: block;}
+
+div.tableblock table {
+    page-break-inside: avoid;
+}
+
+div.listingblock pre {
+    page-break-inside: avoid;
+}
+
+}
+
+@page {
+    size: A4;
+     /* DIV 15 for A4 paper */
+    margin: 19.80mm 14mm;
+
+    /* Not supported by Chrome, kept for later reference */
+    @top-center {
+	color: #717ab3;font-style: italic;
+	font-size: 80%;
+	content: string(chapter-title)
+    }
+    @bottom-center {
+	font-size: 80%;
+	color: #717ab3;
+        content: "-  " counter(page) "  -"
+    }
+}
+h2 { string-set: chapter-title content() }
 </style>
 <script type="text/javascript">
 /*<![CDATA[*/
@@ -718,8 +766,12 @@ install: function(toclevels) {
     clearInterval(timerId);
     reinstall();
   }
-    reinstall();
 
+  timerId = setInterval(reinstall, 500);
+  if (document.addEventListener)
+    document.addEventListener("DOMContentLoaded", reinstallAndRemoveTimer, false);
+  else
+    window.onload = reinstallAndRemoveTimer;
 }
 
 }
@@ -841,7 +893,7 @@ of the data structure that abstract from the actual implementation.</p></div>
 <div class="paragraph"><p>In our first example, we define a class named <code>Stack</code> with the methods
 <code>push</code> and <code>pop</code>. When an instance of the stack is created (e.g. a
 concrete stack <code>s1</code>) the stack will contain an instance variable named
-<code>things</code>, initialized with the an empty list.</p></div>
+<code>things</code>, initialized with an empty list.</p></div>
 <div class="paragraph" id="xmp-class-stack"><div class="title">Listing 2: Class Stack</div><p></p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
@@ -904,7 +956,7 @@ between square brackets. This means that the function <code>linsert</code> is ca
 a new list is returned, where the new element is inserted at the first
 position (index 0) in the list <code>things</code>. The result of the <code>linsert</code>
 function is assigned again to the instance variable <code>things</code>, which is
-updated this way.  Finally the method <code>push</code> returns the pushed thing
+updated this way.  Finally, the method <code>push</code> returns the pushed thing
 using the <code>return</code> statement.</p></div>
 <div class="paragraph"><p>The method <code>pop</code> returns the most recently stacked element and removes
 it from the stack. Therefore, it takes the first element from the list
@@ -1070,7 +1122,7 @@ methods provided by the class to objects is as well a difference. If
 the methods of the class are updated, all instances of the class will
 immediately get the modified behavior. However, this does not mean that
 the reuse for the methods of <code>stack</code> is not possible. NX allows for
-example to copy objects (similar to prototype based languages) or to
+example to copy objects (similar to prototype-based languages) or to
 reuse methods via e.g. aliases (more about this later).</p></div>
 <div class="paragraph"><p>Note that we use capitalized names for classes and lowercase names for
 instances. This is not required and a pure convention making it easier
@@ -1084,7 +1136,7 @@ stack under-runs (a stack under-run happens, when more <code>pop</code> than
 <code>push</code> operations are issued on a stack). Safety checking can be
 implemented mostly independent from the implementation details of the
 stack (usage of internal data structures). There are as well different
-ways of checking the safety. Therefore we say that safety checking is
+ways of checking the safety. Therefore, we say that safety checking is
 orthogonal to the stack core implementation.</p></div>
 <div class="paragraph"><p>With NX we can define stack-safety as a separate class using methods
 with the same names as the implementations before, and "mix" this
@@ -1186,7 +1238,7 @@ use introspection to query for the objects
 <code>s1</code> and <code>s2</code> in which order the involved classes are processed. This
 order is called the <code>precedence order</code> and is obtained via <code>info
 precedence</code>. We see that the mixin class <code>Safety</code> is only in use for
-<code>s2</code>, and takes there precedence over <code>Stack</code>. The common root class
+<code>s2</code>, and takes precedence over <code>Stack</code>. The common root class
 <code>nx::Object</code> is for both <code>s1</code> and <code>s2</code> the base class.</p></div>
 <div class="imageblock" id="img-per-object-mixin" style="text-align:center;">
 <div class="content">
@@ -1197,7 +1249,7 @@ precedence</code>. We see that the mixin class <code>Safety</code> is only in us
 <div class="paragraph"><p></p></div>
 <div class="paragraph"><p>Note that in <a href="#xmp-using-class-safety">Listing 8</a>,
 the class <code>Safety</code> is only mixed into a single object (here
-<code>s2</code>), therefore we refer to this case as a <em>per-object mixin</em>.
+<code>s2</code>), therefore, we refer to this case as a <em>per-object mixin</em>.
 <a href="#img-per-object-mixin">Figure 9</a> shows the class
 diagram, where the class <code>Safety</code> is used as a per-object mixin for
 <code>s2</code>.</p></div>
@@ -1266,7 +1318,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <pre class='nx'>Stack <span class='nx-keyword'>create</span> s4 {
 
   <span class='nx-comment'>#
-</span>  <span class='nx-comment'># Create a stack with a object-specific method
+</span>  <span class='nx-comment'># Create a stack with an object-specific method
 </span>  <span class='nx-comment'># to check the type of entries
 </span>  <span class='nx-comment'>#
 </span>
@@ -1283,7 +1335,7 @@ constraint in its argument list (<code>thing:integer</code>) that makes sure
 that only integers can be stacked. In case the argument is not an
 integer, an exception will be raised. Of course, one could perform the
 value constraint checking as well in the body of the method <code>proc</code> by
-accepting an generic argument and by performing the test for the value
+accepting a generic argument and by performing the test for the value
 in the body of the method. In the case, the passed value is an
 integer, the <code>push</code> method of <a href="#xmp-object-integer-stack">Listing 12</a> calls <code>next</code>, and therefore calls the
 shadowed generic definition of <code>push</code> as provided by <code>Stack</code>.</p></div>
@@ -1468,7 +1520,7 @@ variables (called <code>property</code>) and variables that are not configurable
 <div class="paragraph"><p>The term configurable means that (a) one can provide at creation time of
 an instance a value for this variable, and (b), one can query the
 value via the accessor function <code>cget</code> and (c), one can change the
-value of the variable via <code>configure</code> at runtime. Since the general
+value of the variable via <code>configure</code> at run time. Since the general
 accessor function <code>cget</code> and <code>configure</code> are available, an application
 developer does not have to program own accessor methods. When value
 checkers are provided, each time, the value of the variable is to be
@@ -1545,7 +1597,7 @@ and different superclasses might have different requirements in their
 constructors. The declarative approach in NX reduces the need for
 tailored constructor methods significantly.</p></div>
 <div class="paragraph"><p>Note that the property <code>matnr</code> of class <code>Student</code> is required. This
-means, that if we try to create an instance of <code>Student</code>, a runtime
+means, that if we try to create an instance of <code>Student</code>, a run time
 exception will be triggered. The property <code>oncamups</code> is boolean and
 contains a default value. Providing a default value means that
 whenever we create an instance of this class the object will contain
@@ -1695,7 +1747,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 named <code>bark</code>. The method body defines the code, which is executed when
 the method is invoked. In this example, the method <code>bar</code> prints out a
 line on the terminal starting with the object name (this is determined
-by the built in command <code>self</code>) followed by "Bark, bark, bark.".  This
+by the built-in command <code>self</code>) followed by "Bark, bark, bark.".  This
 method is defined on a class and applicable to instances of the class
 (here the instance <code>fido</code>).</p></div>
 </div>
@@ -1762,7 +1814,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span><span class='nx-comment'># the tail of fido
 </span>fido::tail length <span class='nx-keyword'>set</span> 10
 
-<span class='nx-comment'># Proving an invalid values will raise an error
+<span class='nx-comment'># Show that an invalid value raises an error
 </span>fido::tail length <span class='nx-keyword'>set</span> <span class='nx-string'>"Hello"</span></pre></div></div>
 <div class="paragraph"><p><a href="#xmp-fido2">Listing 22</a> shows an extended example, where every dog
 has a tail. The object <code>tail</code> is created as a subobject of the dog in
@@ -1964,12 +2016,12 @@ s1 foo 3 4     ;<span class='nx-comment'># returns 7
 </span>s1 bar 3 4     ;<span class='nx-comment'># returns 12
 </span>s1 helper 3 4  ;<span class='nx-comment'># raises error: unable to dispatch method helper</span></pre></div></div>
 <div class="paragraph"><p>The base class implements a public method <code>foo</code> using the helper
-method named <code>helper</code>. The derived class implements a as well a public
+method named <code>helper</code>. The derived class implements as well a public
 method <code>bar</code>, which is also using a helper method named <code>helper</code>. When
 an instance <code>s1</code> is created from the derived class, the method <code>foo</code>
 is invoked which uses in turn the private method of the base
 class. Therefore, the invocation <code>s1 foo 3 4</code> returns its sum. If
-the <code>local</code> flag had not beed used in helper, <code>s1</code> would
+the <code>local</code> flag had not been used in helper, <code>s1</code> would
 have tried to call the helper of <code>Sub</code>, which would be incorrect. For
 all other purposes, the private methods are "invisible" in all
 situations, e.g., when mixins are used, or within the <code>next</code>-path, etc.</p></div>
@@ -2081,7 +2133,7 @@ Object methods cannot be inherited from other objects.</p></div>
 instance <code>c1</code> of class <code>C</code>, and as well as the object specific method
 <code>baz</code> defined on the object <code>o1</code>. An object method is defined
 via <code>object method</code>.</p></div>
-<div class="paragraph"><p>Note that we can define a object method that shadows (redefines)
+<div class="paragraph"><p>Note that we can define an object method that shadows (redefines)
 for this object methods provided from classes.</p></div>
 <div class="paragraph" id="xmp-object-applicable1"><div class="title">Listing 29: Object Method</div><p></p></div>
 <div class="listingblock">
@@ -2158,11 +2210,11 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 }
 
 <span class='nx-comment'># Method "bar" is a class method of class "C"
-</span><span class='nx-comment'># therefore applicable on the class object "C"
+</span><span class='nx-comment'># therefore, applicable on the class object "C"
 </span>C bar
 
 <span class='nx-comment'># Method "foo" is an instance method of "C"
-</span><span class='nx-comment'># therefore applicable on instance "c1"
+</span><span class='nx-comment'># therefore, applicable on instance "c1"
 </span>c1 foo
 
 <span class='nx-comment'># When trying to invoke the class method on the
@@ -2182,7 +2234,7 @@ concept to Tcl&#8217;s ensemble commands.</p></div>
 <div class="paragraph"><p>An <strong>ensemble method</strong> is a form of a hierarchical method consisting of
 a container method and sub-methods. The first argument of the
 container method is interpreted as a selector (the sub-method). Every
-sub-method can be an container method as well.</p></div>
+sub-method can be a container method as well.</p></div>
 </div></div>
 <div class="paragraph"><p>Ensemble methods provide a means to group related commands together,
 and they are extensible in various ways. It is possible to add
@@ -2321,7 +2373,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 an extension of the previous example. We define here two additional
 classes <code>M1</code> and <code>M2</code> which are used as per-object and per-class
 mixins.  Both classes define the method <code>foo</code>, these methods shadow
-the definitions of the intrinsic class hierarchy. Therefore an
+the definitions of the intrinsic class hierarchy. Therefore, an
 invocation of <code>foo</code> on object <code>d1</code> causes first an invocation of
 method in the per-object mixin.</p></div>
 <div class="paragraph" id="xmp-method-resolution3"><div class="title">Listing 34: Method Invocation Flags</div><p></p></div>
@@ -2361,9 +2413,9 @@ name. These flags are used rather seldom but can be helpful in some
 situations.</p></div>
 <div class="paragraph"><p>The invocation flag <code>-local</code> means that the method has to be resolved
 from the same place, where the current method is defined. Since the
-current method is defined as a object method, <code>foo</code> is resolved as
-a object method. The effect is that the mixin definitions are
-ignored. The invocation flag <code>-local</code> was already introduced int the
+current method is defined as an object method, <code>foo</code> is resolved as
+an object method. The effect is that the mixin definitions are
+ignored. The invocation flag <code>-local</code> was already introduced in the
 section about method protection, where it was used to call <em>private</em>
 methods.</p></div>
 <div class="paragraph"><p>The invocation flag <code>-intrinsic</code> means that the method has to be resolved
@@ -2373,7 +2425,7 @@ effect is here the same as with the invocation flag <code>-local</code>.</p></di
 from basic - typically predefined - classes of the object system. This
 can be useful, when script overloads system methods, but still want to
 call the shadowed methods from the base classes. In our case, we have
-no definitions of <code>foo</code> on the base clases, therefore an error message
+no definitions of <code>foo</code> on the base sclasses, therefore, an error message
 is returned.</p></div>
 <div class="paragraph"><p>The output of <a href="#xmp-method-resolution3">Listing 34</a> is:</p></div>
 <div class="listingblock">
@@ -2496,14 +2548,14 @@ and <code>y</code> in the body of the method <code>bar</code> get the same value
 arguments. Method <code>baz</code> provides two non-positional parameter (<code>-y</code>
 and <code>-y</code>) and one positional parameter (namely <code>a</code>). The invocation in
 line 34 passes the value of <code>1</code> to <code>x</code> and the value of <code>100</code> to <code>a</code>.
-There is no value passed to <code>y</code>, therefore value of <code>y</code> will be
+There is no value passed to <code>y</code>, therefore, value of <code>y</code> will be
 undefined in the body of <code>baz</code>, <code>info exists y</code> checks for the
 existence of the variable <code>y</code> and returns <code>0</code>.</p></div>
 <div class="paragraph"><p>The invocation in line 35 passes only a value to the positional
 parameter. A more tricky case is in line 36, where we want to pass
 <code>-y</code> as a value to the positional parameter <code>a</code>. The case is more
 tricky since syntactically the argument parser might consider <code>-y</code> as
-the name of one of the non-positional parameter. Therefore we use <code>--</code>
+the name of one of the non-positional parameters. Therefore, we use <code>--</code>
 (double dash) to indicate the end of the block of the non-positional
 parameters and therefore the value of <code>-y</code> is passed to <code>a</code>.</p></div>
 </div>
@@ -2604,17 +2656,17 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span>o3 foo
 o3 bar</pre></div></div>
 <div class="paragraph"><p>In order to define a default value for a parameter, the parameter
-specification must be of the form of a 2 element list, where the
+specification must be of the form of a 2-element list, where the
 second argument is the default value. See for an example in
 <a href="#xmp-default-value">Listing 37</a>.</p></div>
 </div>
 <div class="sect3">
 <h4 id="_value_constraints">3.7.4. Value Constraints</h4>
 <div class="paragraph"><p>NX provides value constraints for all kind of parameters. By
-specifying value constraints a developer can restrict the permissible
+specifying value constraints, a developer can restrict the permissible
 values for a parameter and document the expected values in the source
 code. Value checking in NX is conditional, it can be turned on or off
-in general or on a per-usage level (more about this later). The same
+in general, or on a per-usage level (more about this later). The same
 mechanisms can be used not only for input value checking, but as well
 for return value checking (we will address this point as well later).</p></div>
 <div class="sect4">
@@ -2858,7 +2910,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <pre class='nx'><span class='nx-keyword'>nx::Object</span> <span class='nx-keyword'>create</span> o6 {
 
   <span class='nx-comment'>#
-</span>  <span class='nx-comment'># Positional parameter with an possibly empty
+</span>  <span class='nx-comment'># Positional parameter with a possibly empty
 </span>  <span class='nx-comment'># single value
 </span>  <span class='nx-comment'>#
 </span>  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>method</span> foo {x:integer,0..1} {
@@ -2866,7 +2918,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
   }
 
   <span class='nx-comment'>#
-</span>  <span class='nx-comment'># Positional parameter with an possibly empty
+</span>  <span class='nx-comment'># Positional parameter with a possibly empty
 </span>  <span class='nx-comment'># list of values value
 </span>  <span class='nx-comment'>#
 </span>  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>method</span> bar {x:integer,0..n} {
@@ -2874,7 +2926,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
   }
 
   <span class='nx-comment'>#
-</span>  <span class='nx-comment'># Positional parameter with a non-empty
+</span>  <span class='nx-comment'># Positional parameter with a nonempty
 </span>  <span class='nx-comment'># list of values
 </span>  <span class='nx-comment'>#
 </span>  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>method</span> baz {x:integer,1..n} {
@@ -2924,7 +2976,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> ::D
 <span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> ::C {
   <span class='nx-comment'>#
-</span>  <span class='nx-comment'># By default all substitutions (command, variable, control
+</span>  <span class='nx-comment'># By default, all substitutions (command, variable, control
 </span>  <span class='nx-comment'># characters) are active, when "substdefault" is used:
 </span>  <span class='nx-comment'>#
 </span>  <span class='nx-keyword'>:property</span> {d<span class='nx-keyword'>:object</span>,type=::D,substdefault {[::D <span class='nx-keyword'>new</span>]}}
@@ -2943,8 +2995,8 @@ default value is a fresh instance of
 class <code>::D</code>. When the parameter option <code>substdefault</code> is used
 default, all substitution kinds of Tcl are active: command, variable, and
 backslash substitution. <code>substdefault</code> can be
-parametrized to include or to exclude any combination of substitution
-kinds by providing a bitmask:</p></div>
+parameterized to include or to exclude any combination of substitution
+kinds by providing a bit mask:</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
@@ -3086,7 +3138,7 @@ definitions.</p></div>
 <div class="paragraph"><p></p></div>
 <div class="paragraph"><p>In NX, these definitions imply that instances of the class of <code>Person</code>
 have the properties <code>name</code> and <code>birthday</code> as <em>non-positional object
-parameters</em>.  Furthermore it implies that instances of <code>Student</code> will
+parameters</em>.  Furthermore, it implies that instances of <code>Student</code> will
 have the configure parameters of <code>Person</code> augmented with the object
 parameters from <code>Student</code> (namely <code>matnr</code> and <code>oncampus</code>).  Based on
 these configure parameters, we can create a <code>Person</code> named <code>Bob</code> and a
@@ -3142,7 +3194,7 @@ Configure parameter <span class='nx-keyword'>for</span> Student s1:
       ?-birthday <span class='nx-placeholder'>/value/</span>? ?-object-mixins /mixinreg .../? ?-class /<span class='nx-keyword'>class</span>/<span class='nx-placeholder'>?
       ?</span>-object-filters /filterreg .../? ?/__initblock/?</pre></div></div>
 <div class="paragraph"><p>The given parameter show, how (a) objects can be configured
-at runtime or (b) how new instances can be configured
+at run time or (b) how new instances can be configured
 at creation time via the <code>new</code> or <code>create</code> methods.
 Introspection can be used to obtain the configuration
 parameters from an object via
@@ -3167,7 +3219,7 @@ is the relation of the class to its superclass.In our example, we have
 specified, that <code>Student</code> has <code>Person</code> as superclass via the
 non-positional configure parameter <code>-superclass</code>. If no superclass is
 specified for a class, the default superclass is
-<code>nx::Object</code>. Therefore <code>nx::Object</code> is the default value for the
+<code>nx::Object</code>. Therefore, <code>nx::Object</code> is the default value for the
 parameter <code>superclass</code>.</p></div>
 <div class="paragraph"><p>Another frequently used parameter for classes is <code>-mixins</code> to denote
 per-class mixins (see e.g. the introductory Stack example in
@@ -3212,7 +3264,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <div class="sect3">
 <h4 id="_slot_classes_and_slot_objects">4.3.4. Slot Classes and Slot Objects</h4>
 <div class="paragraph"><p>In one of the previous sections, we defined scripted (application
-defined) checker methods on a class named <code>nx::Slot</code>.  In general NX
+defined) checker methods on a class named <code>nx::Slot</code>.  In general, NX
 offers the possibility to define value checkers not only for all
 usages of parameters but as well differently for method parameters or
 configure parameters</p></div>
@@ -3461,7 +3513,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <div id="footer">
 <div id="footer-text">
 Version 2.3.0<br />
-Last updated 2019-05-07 11:27:03 CEST
+Last updated
+ 2022-04-29 20:06:35 CEST
 </div>
 </div>
 </body>

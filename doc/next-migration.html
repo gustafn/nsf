@@ -1,9 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
     "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 8.6.9" />
+<meta name="generator" content="AsciiDoc 10.1.3" />
 <title>Migration Guide for the Next Scripting Language</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -535,6 +536,53 @@ body.manpage div.sectionbody {
 }
 
 
+@media print {
+
+body            {font-size: 10pt; text-align: justify;}
+#header         {text-align: left;}
+.nx             {font-size: 90%; color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
+table.nx        {border-collapse: collapse; border-spacing: 3px;}
+.nx-linenr      {font-size: 90%; border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D; font-style: italic;}
+.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
+.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
+.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
+.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
+.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
+
+.listingblock   {font-size: 80%;}
+div.toclevel1   {display: block;}
+div.toclevel2   {display: block;}
+div.toclevel3   {display: block;}
+div.toclevel4   {display: block;}
+
+div.tableblock table {
+    page-break-inside: avoid;
+}
+
+div.listingblock pre {
+    page-break-inside: avoid;
+}
+
+}
+
+@page {
+    size: A4;
+     /* DIV 15 for A4 paper */
+    margin: 19.80mm 14mm;
+
+    /* Not supported by Chrome, kept for later reference */
+    @top-center {
+	color: #717ab3;font-style: italic;
+	font-size: 80%;
+	content: string(chapter-title)
+    }
+    @bottom-center {
+	font-size: 80%;
+	color: #717ab3;
+        content: "-  " counter(page) "  -"
+    }
+}
+h2 { string-set: chapter-title content() }
 </style>
 <script type="text/javascript">
 /*<![CDATA[*/
@@ -719,7 +767,11 @@ install: function(toclevels) {
     reinstall();
   }
 
-    reinstall();
+  timerId = setInterval(reinstall, 500);
+  if (document.addEventListener)
+    document.addEventListener("DOMContentLoaded", reinstallAndRemoveTimer, false);
+  else
+    window.onload = reinstallAndRemoveTimer;
 }
 
 }
@@ -753,7 +805,7 @@ incompatibilities between XOTcl 1 and XOTcl 2.</p></div>
 </div></div>
 <div class="paragraph"><p>The Next Scripting Language (NX) is a successor of XOTcl 1 and is
 based on 10 years of experience with XOTcl in projects containing
-several hundert thousand lines of code. While XOTcl was the first
+several hundred thousand lines of code. While XOTcl was the first
 language designed to provide language support for design patterns, the
 focus of the Next Scripting Framework and NX are on combining this
 with Language Oriented Programming. In many respects, NX was designed
@@ -780,7 +832,7 @@ Next Scripting Environment: The goal was primarily to find ways to
 repackage the power of XOTcl in an easy to learn environment, highly
 orthogonal environment, which is better suited for large projects,
 trying to reduce maintenance costs.</p></div>
-<div class="paragraph"><p>We expect that many user will find it attractive to upgrade
+<div class="paragraph"><p>We expect that many users will find it attractive to upgrade
 from XOTcl 1 to XOTcl 2, and some other users will upgrade to NX.
 This document focuses mainly on the differences between XOTcl 1 and
 NX, but addresses as well potential incompatibilities between XOTcl 1
@@ -841,7 +893,7 @@ It is possible to use NX <code>alias</code> to register methods
 <li>
 <p>
 NX provides means for <em>method protection</em> (method modifiers
-     <code>public</code>, <code>protected</code>, and <code>private</code>). Therefore developers have
+     <code>public</code>, <code>protected</code>, and <code>private</code>). Therefore, developers have
      to define explicitly public interfaces in order to use methods
      from other objects.
 </p>
@@ -872,7 +924,7 @@ One can use in NX the same interface to query (introspect)
 <p>
 <strong>Orthogonal Parameterization:</strong>
    The Next Scripting Language provides an <em>orthogonal framework for
-   parametrization</em> of methods and objects.
+   parameterization</em> of methods and objects.
 </p>
 <div class="olist loweralpha"><ol class="loweralpha">
 <li>
@@ -991,7 +1043,7 @@ Significantly improved built-in profiling (results can be
 <li>
 <p>
 <strong>Significantly Improved Test Suite:</strong> The regression test suite of
-  Next Scripting Scripting framework contain now more than
+  Next Scripting framework contain now more than
   5.000 tests, and order of magnitude more than in XOTcl 1.6
 </p>
 </li>
@@ -1062,7 +1114,7 @@ just a quick overview. We will go into much more detailed comparison
 in the next sections.</p></div>
 <div class="paragraph"><p>NX supports a block syntax, where the methods are defined during the
 creation of the class. The XOTcl syntax is slightly more redundant,
-since every definition of a method is a single toplevel command
+since every definition of a method is a single top-level command
 starting with the class name (also NX supports the style used in
 XOTcl).  In NX, all methods are per default protected (XOTcl does not
 support protection). In NX methods are defined in the definition of
@@ -1202,13 +1254,13 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 
   <span class='nx-keyword'>package</span> <span class='nx-keyword'>require</span> XOTcl 2.0
 
-  <span class='nx-comment'># Define a class with a public method foo using XOTcl
+  <span class='nx-comment'># Define a class with a public method "foo" using XOTcl
 </span>  <span class='nx-keyword'>xotcl::Class</span> C1
   C1 instproc foo {} {<span class='nx-keyword'>puts</span> <span class='nx-string'>"hello world"</span>}
 
   <span class='nx-keyword'>package</span> <span class='nx-keyword'>require</span> nx
 
-  <span class='nx-comment'># Define a class with a public method foo using NX
+  <span class='nx-comment'># Define a class with a public method "foo" using NX
 </span>  <span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> C2 {
     <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> foo {} {<span class='nx-keyword'>puts</span> <span class='nx-string'>"hello world"</span>}
   }
@@ -1337,7 +1389,7 @@ introduces method protection, which is only supported by NX.</p></div>
 <h4 id="_scripted_methods_defined_in_the_init_block_of_a_class_object_or_with_separate_calls">2.2.1. Scripted Methods Defined in the Init-block of a Class/Object or with Separate Calls</h4>
 <div class="paragraph"><p>The following examples show the definition of a class and its methods
 in the init-block of a class (NX only), and the definition of methods
-via separate top level calls (XOTcl and NX).</p></div>
+via separate top-level calls (XOTcl and NX).</p></div>
 <div class="tableblock">
 <table rules="all"
 width="100%"
@@ -1366,7 +1418,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </style>
 <pre class='nx'><span class='nx-comment'># Define instance method 'foo' and object
 </span><span class='nx-comment'># method 'bar' for a Class 'C' with separate
-</span><span class='nx-comment'># toplevel commands
+</span><span class='nx-comment'># top-level commands
 </span>
 <span class='nx-keyword'>Class</span> C
 C instproc foo args {...}
@@ -1913,7 +1965,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <h3 id="_resolvers">2.3. Resolvers</h3>
 <div class="paragraph"><p>The Next Scripting Framework defines Tcl resolvers for method and
 variable names to implement object specific behavior. Within the
-bodies of scripted methods these resolver treat variable and function
+bodies of scripted methods these resolvers treat variable and function
 names starting with a colon <code>:</code> specially. In short, a colon-prefixed
 variable name refers to an instance variable, and a colon-prefixed
 function name refers to a method. The sub-sections below provide
@@ -2445,10 +2497,10 @@ in XOTcl to define multiple parameters via a list of parameter
 specifications.</p></div>
 <div class="paragraph"><p>Since the term "parameter" is underspecified, NX uses a more
 differentiated terminology. NX distinguishes between configurable
-instance variables (also called <em>properties</em>) and non configurable
+instance variables (also called <em>properties</em>) and non-configurable
 instance variables (called <em>variables</em>), which might have as well
 e.g. default values. The values of configurable properties can be
-queried at runtime via <code>cget</code>, and their values can be altered via
+queried at run time via <code>cget</code>, and their values can be altered via
 <code>configure</code>. When the value of a configure parameter is provided or
 changed, the value checkers from the variable definition are used to
 ensure, the value is permissible (i.e. it is for example an integer
@@ -2461,7 +2513,8 @@ uses the method <code>property</code>, for non-configurable variables, the metho
 an accessor is a method with the same name as the variable. In XOTcl,
 every <code>parameter</code> defined as well automatically a same-named accessor
 method, leading to potential name conflicts with other method names.</p></div>
-<div class="paragraph"><p>In the examples below we show the definition of configurable a non-configurable instance variables using <code>variable</code> and <code>property</code>
+<div class="paragraph"><p>In the examples below we show the definition of non-configurable
+instance variables using <code>variable</code> and <code>property</code>
 respectively.</p></div>
 <div class="tableblock">
 <table rules="all"
@@ -2590,7 +2643,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
 <pre class='nx'>
-<span class='nx-comment'># Define a object variable "V" with value 100 and
+<span class='nx-comment'># Define an object variable "V" with value 100 and
 </span><span class='nx-comment'># an instance variable "x". "V" is defined for the
 </span><span class='nx-comment'># class object Foo, "x" is defined in the
 </span><span class='nx-comment'># instances of the class. "object variable" works
@@ -2720,7 +2773,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span><span class='nx-comment'># value of instance variable "b"
 </span>f1 <span class='nx-keyword'>configure</span> -b 100
 
-<span class='nx-comment'># Return the (non substituted) value of
+<span class='nx-comment'># Return the (non-substituted) value of
 </span><span class='nx-comment'># parameter "c", and the substituted value
 </span><span class='nx-comment'># of parameter "d"
 </span>f1 <span class='nx-keyword'>cget</span> -c
@@ -2929,7 +2982,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span><span class='nx-comment'>#
 </span><span class='nx-comment'># User defined value constraints are possible.
 </span><span class='nx-comment'># All parameter value checkers can be turned on
-</span><span class='nx-comment'># and off at runtime.
+</span><span class='nx-comment'># and off at run time.
 </span><span class='nx-comment'>#
 </span><span class='nx-comment'># Define a required boolean property "a"
 </span><span class='nx-comment'># and an integer property "b" with a default.
@@ -2964,7 +3017,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 to be passed to the constructor of the object.</p></div>
 <div class="paragraph"><p>NX allows one to define <em>optional</em> and <em>required</em> configure parameters (as
 well as method parameters). Therefore, configure parameters can be used
-as the single mechanism to parametrize objects. It is in NX not
+as the single mechanism to parameterize objects. It is in NX not
 necessary (and per default not possible) to pass arguments to the
 constructor.</p></div>
 <div class="tableblock">
@@ -3036,7 +3089,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <div class="paragraph"><p>NX supports in contrary to XOTcl to define the <em>multiplicity</em> of values
 per parameter. In NX, one can specify that a parameter can accept the
 value "" (empty) in addition to e.g. an integer, or one can specify that the
-value is an empty or non-empty list of values via the multiplicity. For
+value is an empty or nonempty list of values via the multiplicity. For
 every specified value, the value checkers are applied.</p></div>
 <div class="tableblock">
 <table rules="all"
@@ -3079,7 +3132,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </style>
 <pre class='nx'><span class='nx-comment'># Parameter with multiplicity
 </span><span class='nx-comment'>#   ints is a list of integers, with default
-</span><span class='nx-comment'>#   objs is a non-empty list of objects
+</span><span class='nx-comment'>#   objs is a nonempty list of objects
 </span><span class='nx-comment'>#   obj is a single object, maybe empty
 </span>
 <span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> Foo -properties {
@@ -3203,7 +3256,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </table>
 </div>
 <div class="paragraph"><p>Since the slots are objects, the slot objects can be configured and
-parametrized like every other object in NX. Slot objects can be
+parameterized like every other object in NX. Slot objects can be
 provided with a scripted initialization as well. We show first the
 definition of properties similar to the functionality provided as well
 by XOTcl and show afterwards how to use value constraints, optional
@@ -3348,7 +3401,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <div class="paragraph"><p>Method parameters are used to specify the interface of a single method
 (what kind of values may be passed to a method, what default values
 are provided etc.).  The method parameters specifications in XOTcl 1
-were limited and allowed only value constraints for non positional
+were limited and allowed only value constraints for non-positional
 arguments.</p></div>
 <div class="paragraph"><p>NX and XOTcl 2 provide value constraints for all kind of method parameters.
 While XOTcl 1 required non-positional arguments to be listed in front of
@@ -3564,7 +3617,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span>  <span class='nx-keyword'>:forward</span> ++ -returns integer ::expr 1 +
 
  <span class='nx-comment'># Define a method that has to return a
-</span> <span class='nx-comment'># non-empty list of objects
+</span> <span class='nx-comment'># nonempty list of objects
 </span> <span class='nx-keyword'>:public</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>method</span> instances {} \
     -returns <span class='nx-keyword'>object</span>,1..n {
    <span class='nx-keyword'>return</span> [<span class='nx-keyword'>:info</span> instances]
@@ -4208,7 +4261,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </div>
 <div class="sect3">
 <h4 id="_list_callable_methods">2.6.5. List callable methods</h4>
-<div class="paragraph"><p>In order to obtain for an object the set of artefacts defined in the
+<div class="paragraph"><p>In order to obtain the set of artefacts for an object defined in the
  class hierarchy, NX uses <code>info lookup</code>. One can either lookup methods
  (via <code>info lookup methods</code>) or slots (via <code>info lookup slots</code>). The
  plural term refers to a potential set of return values.</p></div>
@@ -4472,7 +4525,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 methods and for obtaining more detailed information about these
 methods.</p></div>
 <div class="paragraph"><p>In NX, this list of <code>info</code> subcommands is much shorter and more
-orthogonal. For example <code>info method definition</code> can be used to obtain
+orthogonal. For example, <code>info method definition</code> can be used to obtain
 with a single command the full definition of a <em>scripted method</em>, and
 furthermore, it works as well the same way to obtain e.g. the
 definition of a <em>forwarder</em> or an <em>alias</em>.</p></div>
@@ -4745,7 +4798,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <h4 id="info_configure_parameter">2.6.8. List Configure Parameters</h4>
 <div class="paragraph"><p>The way, how newly created objects can be configured is determined in NX
 via properties. The configuration happens during creation via the
-methods <code>create</code> or <code>new</code> or during runtime via <code>configure</code>. These
+methods <code>create</code> or <code>new</code> or during run time via <code>configure</code>. These
 methods have therefore virtual argument lists, depending on the object
 or class on which they are applied.</p></div>
 <div class="tableblock">
@@ -6443,7 +6496,7 @@ working on the slots objects has to be adapted.</p></div>
 <div class="sect2">
 <h3 id="_obsolete_commands">3.4. Obsolete Commands</h3>
 <div class="paragraph"><p>Parameter-classes were rarely used and have been replaced by the more
-general object parametrization. Therefore, <code>cl info parameterclass</code> has
+general object parameterization. Therefore, <code>cl info parameterclass</code> has
 been removed.</p></div>
 </div>
 <div class="sect2">
@@ -6477,7 +6530,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <div id="footer">
 <div id="footer-text">
 Version 2.3.0<br />
-Last updated 2019-05-07 11:33:18 CEST
+Last updated
+ 2022-04-29 20:06:35 CEST
 </div>
 </div>
 </body>
