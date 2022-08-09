@@ -331,7 +331,7 @@ So far, the definition of the stack methods was pretty minimal.
 Suppose, we want to define "safe stacks" that protect e.g. against
 stack under-runs (a stack under-run happens, when more +pop+ than
 +push+ operations are issued on a stack). Safety checking can be
-implemented mostly independent from the implementation details of the
+implemented mostly independent of the implementation details of the
 stack (usage of internal data structures). There are as well different
 ways of checking the safety. Therefore, we say that safety checking is
 orthogonal to the stack core implementation.
