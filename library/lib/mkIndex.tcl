@@ -43,7 +43,8 @@ proc mkIndex {} {
     set pkgIndex ""
     foreach pkg [lsort [array names pkg_file]] {
 	append pkgIndex "package ifneeded $pkg $pkg_version($pkg)\
-               \[list source \[file join \$dir $pkg_file($pkg)\]\]\n"
+	       \"\[list source \[file join \$dir $pkg_file($pkg)\]\];\
+	       \[list package provide $pkg $pkg_version($pkg)\]\"\n"
     }
 
     foreach addFile [glob -nocomplain *.add] {
