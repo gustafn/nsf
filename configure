@@ -9999,9 +9999,9 @@ eval "NSF_INCLUDE_DIR=\"$includedir\""
 # target, defined in Makefile.in
 #--------------------------------------------------------------------
 
-CONFIG_CLEAN_FILES="Makefile ${srcdir}/nsfConfig.sh ${srcdir}/library/xotcl/xotclsh ${srcdir}/library/xotcl/xowish ${srcdir}/unix/pkgIndex.unix nxsh nxwish ${srcdir}/doc/version.inc autom4te.cache/"
+CONFIG_CLEAN_FILES="Makefile ${srcdir}/nsfConfig.sh ${srcdir}/library/xotcl/xotclsh ${srcdir}/library/xotcl/xowish nxsh nxwish ${srcdir}/doc/version.inc autom4te.cache/"
 
-ac_config_files="$ac_config_files Makefile ${srcdir}/nsfConfig.sh ${srcdir}/library/xotcl/xotclsh ${srcdir}/library/xotcl/xowish ${srcdir}/unix/pkgIndex.unix nxsh nxwish ${srcdir}/doc/version.inc"
+ac_config_files="$ac_config_files Makefile ${srcdir}/nsfConfig.sh ${srcdir}/library/xotcl/xotclsh ${srcdir}/library/xotcl/xowish nxsh nxwish ${srcdir}/doc/version.inc"
 
 
 #--------------------------------------------------------------------
@@ -10720,7 +10720,6 @@ do
     "${srcdir}/nsfConfig.sh") CONFIG_FILES="$CONFIG_FILES ${srcdir}/nsfConfig.sh" ;;
     "${srcdir}/library/xotcl/xotclsh") CONFIG_FILES="$CONFIG_FILES ${srcdir}/library/xotcl/xotclsh" ;;
     "${srcdir}/library/xotcl/xowish") CONFIG_FILES="$CONFIG_FILES ${srcdir}/library/xotcl/xowish" ;;
-    "${srcdir}/unix/pkgIndex.unix") CONFIG_FILES="$CONFIG_FILES ${srcdir}/unix/pkgIndex.unix" ;;
     "nxsh") CONFIG_FILES="$CONFIG_FILES nxsh" ;;
     "nxwish") CONFIG_FILES="$CONFIG_FILES nxwish" ;;
     "${srcdir}/doc/version.inc") CONFIG_FILES="$CONFIG_FILES ${srcdir}/doc/version.inc" ;;

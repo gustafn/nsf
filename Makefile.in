@@ -452,7 +452,7 @@ $(src_doc_dir)/%.pdf : $(src_doc_dir)/%.html
 	done;
 
 install:	install-binaries install-shells \
-		install-libraries install-doc \
+		install-libraries install-pkgIndex install-doc \
 		install-xotcl-shells \
 		install-xotcl-libraries
 	@if test ! "x$(subdirs)" = "x" ; then dirs="$(subdirs)" ; \
@@ -460,7 +460,7 @@ install:	install-binaries install-shells \
 	   if (cd $$dir; $(MAKE) $@) ; then true ; else exit 1 ; fi ; \
 	done; fi;
 
-install-binaries: binaries install-lib-binaries install-bin-binaries install-pkgIndex
+install-binaries: binaries install-lib-binaries install-bin-binaries
 
 install-aol: install-binaries install-libraries install-xotcl-libraries
 	@if test -d $(DESTDIR)/$(aol_prefix)/modules/tcl/; then \
@@ -504,9 +504,6 @@ install-libraries: libraries
 	       $(INSTALL_DATA) $$i $(DESTDIR)$(libdir)/tcl8/site-tcl/; \
 	    fi; \
 	done;
-	@echo "    Installing pkgIndex.tcl for nsf in $(DESTDIR)$(pkglibdir)/pkgIndex.tcl"
-	@echo "" >> $(DESTDIR)$(pkglibdir)/pkgIndex.tcl
-	@cat $(srcdir)/unix/pkgIndex.unix >> $(DESTDIR)$(pkglibdir)/pkgIndex.tcl
 	@$(INSTALL_DATA) $(srcdir)/nsfConfig.sh $(DESTDIR)$(libdir)/
 
 install-xotcl-libraries: install-libraries
@@ -743,23 +740,19 @@ VPATH = $(srcdir):$(srcdir)/generic:$(srcdir)/unix:$(srcdir)/win
 
 pkgIndex.tcl: $(PKG_LIB_FILE)
 	@echo "if {[package vsatisfies [package provide Tcl] 9]} {" > pkgIndex.tcl
-	@echo "    package ifneeded nsf @PACKAGE_VERSION@ \\" >> pkgIndex.tcl
-	@echo "	    [list load [file join \$$dir @PKG_LIB_FILE9@] Nsf]" >> pkgIndex.tcl
+	@echo "    package ifneeded @PACKAGE_NAME@ @PACKAGE_VERSION@ \\" >> pkgIndex.tcl
+	@echo "	    \"[list load [file join \$$dir @PKG_LIB_FILE9@]];" >> pkgIndex.tcl
+	@echo "             [list package provide @PACKAGE_NAME@ @PACKAGE_VERSION@]\"" >> pkgIndex.tcl
 	@echo "} else {" >> pkgIndex.tcl
-	@echo "    package ifneeded nsf @PACKAGE_VERSION@ \\" >> pkgIndex.tcl
-	@echo "	    [list load [file join \$$dir @PKG_LIB_FILE8@] Nsf]" >> pkgIndex.tcl
+	@echo "    package ifneeded @PACKAGE_NAME@ @PACKAGE_VERSION@ \\" >> pkgIndex.tcl
+	@echo "	    \"[list load [file join \$$dir @PKG_LIB_FILE8@]];" >> pkgIndex.tcl
+	@echo "             [list package provide @PACKAGE_NAME@ @PACKAGE_VERSION@]\"" >> pkgIndex.tcl
 	@echo "}" >> pkgIndex.tcl
-#	@echo "package provide nsf $(PACKAGE_VERSION)" >> pkgIndex.tcl
 
-
-install-pkgIndex:
-	@echo "if {[package vsatisfies [package provide Tcl] 9]} {" > pkgIndex.tcl
-	@echo "    package ifneeded nsf @PACKAGE_VERSION@ \\" >> pkgIndex.tcl
-	@echo "	    [list load [file join \$$dir @PKG_LIB_FILE9@] Nsf]" >> pkgIndex.tcl
-	@echo "} else {" >> pkgIndex.tcl
-	@echo "    package ifneeded nsf @PACKAGE_VERSION@ \\" >> pkgIndex.tcl
-	@echo "	    [list load [file join \$$dir @PKG_LIB_FILE8@] Nsf]" >> pkgIndex.tcl
-	@echo "}" >> pkgIndex.tcl
+install-pkgIndex: pkgIndex.tcl
+	@echo "    Adding to pkgIndex.tcl for @PACKAGE_NAME@ in $(DESTDIR)$(pkglibdir)/pkgIndex.tcl"
+	@echo "" >> $(DESTDIR)$(pkglibdir)/pkgIndex.tcl
+	@cat $< >> $(DESTDIR)$(pkglibdir)/pkgIndex.tcl
 
 #nxsh: tclAppInit.o $(PKG_OBJECTS) $(CONDITIONAL_STUB_OBJECTS)
 #	$(CC) -rdynamic -o $@ tclAppInit.o \

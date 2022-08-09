@@ -1,8 +1,0 @@
-if {[package vsatisfies [package provide Tcl] 9]} {
-    package ifneeded nsf @PACKAGE_VERSION@ \
-	    [list load [file join $dir @PKG_LIB_FILE9@] Nsf]
-} else {
-    package ifneeded nsf @PACKAGE_VERSION@ \
-	    [list load [file join $dir @PKG_LIB_FILE8@] Nsf]
-}
-

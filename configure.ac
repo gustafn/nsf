@@ -461,7 +461,7 @@ dnl
 dnl Change the value of -this- macro if you want to add or remove
 dnl such files.
 
-AC_DEFUN([CONFIG_OUTPUT_FILES], [[Makefile ${srcdir}/nsfConfig.sh ${srcdir}/library/xotcl/xotclsh ${srcdir}/library/xotcl/xowish ${srcdir}/unix/pkgIndex.unix nxsh nxwish ${srcdir}/doc/version.inc]])
+AC_DEFUN([CONFIG_OUTPUT_FILES], [[Makefile ${srcdir}/nsfConfig.sh ${srcdir}/library/xotcl/xotclsh ${srcdir}/library/xotcl/xowish nxsh nxwish ${srcdir}/doc/version.inc]])
 
 #--------------------------------------------------------------------
 # the value of this variable is set to the files which are to be
