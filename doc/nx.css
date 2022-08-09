@@ -1,3 +1,5 @@
+@media print {
+
 body            {font-size: 10pt; text-align: justify;}
 #header         {text-align: left;}
 .nx             {font-size: 90%; color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -15,13 +17,28 @@ div.toclevel2   {display: block;}
 div.toclevel3   {display: block;}
 div.toclevel4   {display: block;}
 
+div.tableblock table {
+    page-break-inside: avoid;
+}
+
+div.listingblock pre {
+    page-break-inside: avoid;
+}
+
+}
+
 @page {
-    @top { 
+    size: A4;
+     /* DIV 15 for A4 paper */
+    margin: 19.80mm 14mm;
+
+    /* Not supported by Chrome, kept for later reference */
+    @top-center { 
 	color: #717ab3;font-style: italic;
 	font-size: 80%;
 	content: string(chapter-title) 
     }
-    @bottom {
+    @bottom-center {
 	font-size: 80%;
 	color: #717ab3;
         content: "-  " counter(page) "  -"

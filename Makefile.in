@@ -207,6 +207,12 @@ else
   # Do nothing, use the environment variable as is.
 endif
 
+ifeq ($(CHROME),)
+  CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+else
+  # Do nothing, use the environment variable as is.
+endif
+
 
 #
 # Not used, but retained for reference of what libs Tcl required
@@ -373,16 +379,15 @@ full-doc: doc pdfdoc example-doc
 
 # for now, just the two doc files
 doc:
-	$(ASCIIDOC) $(src_doc_dir)/next-migration.txt
-	$(ASCIIDOC) $(src_doc_dir)/next-tutorial/next-tutorial.txt
+	$(ASCIIDOC) -a stylesheet=$(abspath $(src_doc_dir))/nx.css $(src_doc_dir)/next-migration.txt
+#$(ASCIIDOC) -a stylesheet=$(abspath $(src_doc_dir))/nx-small.css $(src_doc_dir)/next-tutorial/next-tutorial.txt
+	$(ASCIIDOC) -a stylesheet=$(abspath $(src_doc_dir))/nx.css $(src_doc_dir)/next-tutorial/next-tutorial.txt
 
 pdfdoc:
 	(cd $(src_doc_dir); \
-		prince --javascript --style=nx-small.css next-migration.html \
-		-o next-migration.pdf)
+		$(CHROME) --headless --disable-gpu --print-to-pdf-no-header --print-to-pdf=next-migration.pdf next-migration.html)
 	(cd $(src_doc_dir)/next-tutorial; \
-		prince --javascript --style=../nx.css next-tutorial.html \
-		-o next-tutorial.pdf)
+		$(CHROME) --headless --disable-gpu --print-to-pdf-no-header --print-to-pdf=next-tutorial.pdf next-tutorial.html)
 
 example-doc: $(EXAMPLE_SCRIPTS)
 
@@ -440,9 +445,10 @@ $(src_doc_dir)/%.3 : $(src_doc_dir)/%.man
 
 man-pdf: $(NX_MAN3:%.man=%.pdf)
 $(src_doc_dir)/%.pdf : $(src_doc_dir)/%.html
-	@for m in $(?F) ; do \
+	@files=$(basename $(?F)); \
+	for m in $$files ; do \
 	    echo "    Generating pdf manpage for $$m" ; \
-	    (cd $(src_doc_dir); prince -s man-princexml.css $$m) ; \
+	    (cd $(src_doc_dir); $(CHROME) --headless --disable-gpu --print-to-pdf-no-header --print-to-pdf=$$m.pdf $$m.html) ; \
 	done;
 
 install:	install-binaries install-shells \

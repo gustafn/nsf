@@ -1,4 +1,3 @@
-
 body {
     color: #252525;
     font: 13px/1.231 "Arial","Verdana", sans-serif;
@@ -206,3 +205,60 @@ hr {
     height: 1px;
     background: #89a618;
 }
+
+@media print {
+    body {
+	font-size: 13px !important;
+	/*prince-linebreak-magic: auto;*/
+    }
+    
+    pre.doctools_example {
+	font-size: 80% !important;
+	white-space: wrap !important;
+	page-break-inside: avoid;
+    }
+    
+    ul.syntax {
+	margin-left: 0 !important;
+	padding-left: 0 !important; 
+    }
+    
+    ul.syntax li {
+	text-indent: 1em hanging !important;
+    }
+    
+    h2 { string-set: chapter-title content() }
+}
+
+@page {
+    size: A4;
+    /* DIV 15 for A4 paper */
+    margin: 19.80mm 14mm;
+
+    /* Not supported by Chrome, kept for later reference */
+    @top-center {
+	font-family: "Arial","Verdana", sans-serif;
+	color: #666;
+	font-size: 80%;
+	content: string(chapter-title) 
+    }
+    
+    @bottom-center {
+	font-family: "Arial","Verdana", sans-serif;
+	font-size: 80%;
+	color: #666;
+        content: "-  " counter(page) "  -"
+    }
+}
+
+@page:first { 
+   @top { content: normal }
+}
+
+
+
+
+
+
+
+
