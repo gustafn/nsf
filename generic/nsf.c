@@ -1375,11 +1375,11 @@ VarHashTableCreate(void) {
  *
  *----------------------------------------------------------------------
  */
-static Tcl_HashEntry * Nsf_NextHashEntry(Tcl_HashTable *tablePtr, size_t expected, Tcl_HashSearch *hSrchPtr)
+static Tcl_HashEntry * Nsf_NextHashEntry(Tcl_HashTable *tablePtr, TCL_SIZE_T expected, Tcl_HashSearch *hSrchPtr)
   nonnull(1) nonnull(3);
 
 static Tcl_HashEntry *
-Nsf_NextHashEntry(Tcl_HashTable *tablePtr, size_t expected, Tcl_HashSearch *hSrchPtr) {
+Nsf_NextHashEntry(Tcl_HashTable *tablePtr, TCL_SIZE_T expected, Tcl_HashSearch *hSrchPtr) {
   Tcl_HashEntry *result;
 
   nonnull_assert(tablePtr != NULL);
@@ -1875,7 +1875,7 @@ static char *DStringAppendQualName(Tcl_DString *dsPtr, const Tcl_Namespace *nsPt
 
 static char *
 DStringAppendQualName(Tcl_DString *dsPtr, const Tcl_Namespace *nsPtr, const char *name) {
-  size_t oldLength;
+  TCL_SIZE_T oldLength;
 
   nonnull_assert(dsPtr != NULL);
   nonnull_assert(nsPtr != NULL);
@@ -2419,7 +2419,7 @@ void NewTclCommand(Tcl_Interp *interp, Tcl_DString *dsPtr)
 
 void
 NewTclCommand(Tcl_Interp *interp, Tcl_DString *dsPtr) {
-  size_t prefixLength;
+  TCL_SIZE_T prefixLength;
   NsfStringIncrStruct *iss;
 
   nonnull_assert(interp != NULL);
@@ -2431,7 +2431,7 @@ NewTclCommand(Tcl_Interp *interp, Tcl_DString *dsPtr) {
   while (1) {
 
     (void)NsfStringIncr(iss);
-    Tcl_DStringAppend(dsPtr, iss->start, (unsigned long)iss->length);
+    Tcl_DStringAppend(dsPtr, iss->start, (TCL_SIZE_T)iss->length);
     if (!Tcl_FindCommand(interp, Tcl_DStringValue(dsPtr), NULL, TCL_GLOBAL_ONLY)) {
       break;
     }
@@ -4928,10 +4928,10 @@ CompiledLocalsLookup(CallFrame *varFramePtr, const char *varName) {
   localCt = varFramePtr->numCompiledLocals;
   if (localCt > 0) {
     Tcl_Obj  **varNameObjPtr;
-    size_t     i, nameLength;
+    TCL_SIZE_T i, nameLength;
 
     varNameObjPtr = &varFramePtr->localCachePtr->varName0;
-    nameLength = strlen(varName);
+    nameLength = (TCL_SIZE_T)strlen(varName);
 
     /* fprintf(stderr, "=== compiled local search #local vars %d for <%s> flags %.8x\n",
        localCt, varName, varFramePtr->isProcCallFrame);
@@ -4990,10 +4990,10 @@ static Tcl_Var
 CompiledColonLocalsLookupBuildCache(CallFrame *varFramePtr, const char *varName,
                                     TCL_SIZE_T nameLength, Tcl_Obj **localNames,
                                     NsfProcContext *ctxPtr) {
-  int       nrColonVars = 0, j;
-  size_t    localCt, i;
-  Tcl_Var   result;
-  Tcl_Obj **varNameObjPtr;
+  int        nrColonVars = 0, j;
+  TCL_SIZE_T localCt, i;
+  Tcl_Var    result;
+  Tcl_Obj  **varNameObjPtr;
 
   nonnull_assert(varFramePtr != NULL);
   nonnull_assert(varName != NULL);
@@ -5708,13 +5708,13 @@ CompiledColonVarFree(Tcl_ResolvedVarInfo *vInfoPtr) {
  *
  *----------------------------------------------------------------------
  */
-static int InterpCompiledColonVarResolver(Tcl_Interp *interp, const char *name, size_t length,
+static int InterpCompiledColonVarResolver(Tcl_Interp *interp, const char *name, TCL_SIZE_T length,
                                           Tcl_Namespace *UNUSED(context), Tcl_ResolvedVarInfo **rPtr)
   nonnull(1) nonnull(2) nonnull(5);
 
 static int
 InterpCompiledColonVarResolver(Tcl_Interp *interp,
-                               const char *name, size_t length, Tcl_Namespace *UNUSED(context),
+                               const char *name, TCL_SIZE_T length, Tcl_Namespace *UNUSED(context),
                                Tcl_ResolvedVarInfo **rPtr) {
   /*
    *  The variable handler is registered, when we have an active Next
@@ -6531,7 +6531,7 @@ NSDeleteChildren(Tcl_Interp *interp, const Tcl_Namespace *nsPtr) {
   Tcl_HashTable       *cmdTablePtr = Tcl_Namespace_cmdTablePtr(nsPtr);
   Tcl_HashSearch       hSrch;
   const Tcl_HashEntry *hPtr;
-  size_t               expected;
+  TCL_SIZE_T           expected;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(nsPtr != NULL);
@@ -13308,13 +13308,13 @@ ParamDefsRefCountDecr(NsfParamDefs *paramDefs) {
  *----------------------------------------------------------------------
  */
 static void ParamDefsFormatOption(
-    Tcl_Obj *nameStringObj, const char *option, size_t optionLength,
+    Tcl_Obj *nameStringObj, const char *option, TCL_SIZE_T optionLength,
     int *colonWritten, int *firstOption
 ) nonnull(1) nonnull(2) nonnull(4) nonnull(5);
 
 static void
 ParamDefsFormatOption(
-    Tcl_Obj *nameStringObj, const char *option, size_t optionLength,
+    Tcl_Obj *nameStringObj, const char *option, TCL_SIZE_T optionLength,
     int *colonWritten, int *firstOption
 ) {
 
@@ -13438,7 +13438,7 @@ ParamDefsFormat(
           len ++;
         }
         buffer[len] = '\0';
-        ParamDefsFormatOption(nameStringObj, buffer, len, &colonWritten, &first);
+        ParamDefsFormatOption(nameStringObj, buffer, (TCL_SIZE_T)len, &colonWritten, &first);
 
       }
       if ((paramsPtr->flags & NSF_ARG_ALLOW_EMPTY) != 0u || (paramsPtr->flags & NSF_ARG_MULTIVALUED) != 0u) {
@@ -20484,8 +20484,8 @@ NextGetArguments(
      * ensemble, we have to insert the objs of the full ensemble name.
      */
     if (inEnsemble) {
-      methodNameLength = 1 + (size_t)cscPtr->objc - oc;
-      nobjc = (TCL_SIZE_T)objc + methodNameLength;
+      methodNameLength = 1 + (size_t)cscPtr->objc - (size_t)oc;
+      nobjc = (TCL_SIZE_T)objc + (TCL_SIZE_T)methodNameLength;
       nobjv = (Tcl_Obj **)ckalloc((unsigned)sizeof(Tcl_Obj *) * (unsigned)nobjc);
       MEM_COUNT_ALLOC("nextArgumentVector", nobjv);
       /*
@@ -20495,7 +20495,7 @@ NextGetArguments(
 
      } else {
       methodNameLength = 1;
-      nobjc = (TCL_SIZE_T)objc + methodNameLength;
+      nobjc = (TCL_SIZE_T)objc + (TCL_SIZE_T)methodNameLength;
       nobjv = (Tcl_Obj **)ckalloc((unsigned)sizeof(Tcl_Obj *) * (unsigned)nobjc);
       MEM_COUNT_ALLOC("nextArgumentVector", nobjv);
       /*
@@ -26755,7 +26755,7 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
     return TCL_OK;
 
   } else {
-    size_t prefixLength = (prefix != NULL) ? Tcl_DStringLength(prefix) : 0;
+    size_t prefixLength = (prefix != NULL) ? (size_t)Tcl_DStringLength(prefix) : 0u;
 
     /*
      * We have to iterate over the elements.

@@ -273,8 +273,8 @@ NsfShowStack(Tcl_Interp *interp) {
             Tcl_CallFrame_clientData(framePtr),
             (unsigned long)Tcl_CallFrame_level(framePtr),
             (void *)Tcl_CallFrame_nsPtr(framePtr), Tcl_CallFrame_nsPtr(framePtr)->fullName,
-            Tcl_CallFrame_objc(framePtr) > 0u ? ObjStr(Tcl_CallFrame_objv(framePtr)[0]) : "(null)",
-            Tcl_CallFrame_objc(framePtr) > 0u ? (unsigned long)Tcl_CallFrame_objc(framePtr) : 0u);
+            Tcl_CallFrame_objc(framePtr) > 0 ? ObjStr(Tcl_CallFrame_objv(framePtr)[0]) : "(null)",
+            Tcl_CallFrame_objc(framePtr) > 0 ? (unsigned long)Tcl_CallFrame_objc(framePtr) : 0u);
     if (cscPtr != NULL) {
       fprintf(stderr, " csc %p frameType %.4x flags %.6x (%s.%p %s)\n",
               (void *)cscPtr,
@@ -658,7 +658,7 @@ NsfCallStackFindCallingContext(const Tcl_Interp *interp,
 
   varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
   if (likely(varFramePtr != NULL)) {
-    unsigned long lvl = Tcl_CallFrame_level(varFramePtr);
+    TCL_SIZE_T lvl = Tcl_CallFrame_level(varFramePtr);
 
     do {
       register unsigned int flags = (unsigned int)Tcl_CallFrame_isProcCallFrame(varFramePtr);
