@@ -15608,7 +15608,7 @@ ObjectDispatch(
   }
 
 
-#if 1
+#if 0
   /*
    * This code block is purely for debugging erroneous behavior with broken
    * cached Tcl Command, where the command itself looks perfectly fine, but
