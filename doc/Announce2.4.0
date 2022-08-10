@@ -30,8 +30,10 @@ New Features
 - MongoDB:
 
   * ...
-  * Fixed test suite; tested the NSF MongoDB binding against latest
-    stable releases of MongoDB (4.0.9) and MongoDB-C driver (1.14.0).
+  * Fixed test test case for gridfs and file renamings
+  * Tested the NSF MongoDB binding against latest
+    stable releases of MongoDB (5.0.9) and
+    MongoDB-C driver (1.22.1).
 
 
 - Documentation:

@@ -13,7 +13,7 @@ of NSF.  The example shows how to use the source code generator from NSF to
 generate a C interface.
 
 -gustaf neumann    March 27, 2011
--stefan sobernig     May 6,      2019
+-stefan sobernig   May 6, 2019
 
 
 ## Ingredients: ##
@@ -24,9 +24,9 @@ generate a C interface.
 The current version of the NSF mongo binding is 2.2 and was
 tested with
 - Tcl 8.5, 8.6 and 8.7
-- MongoDB 4.0.9 (released April 16, 2019)
-- mongodb-c-driver 1.14.0 (released February 22, 2019)
-- libbson 1.14.0 (released February 22, 2019)
+- MongoDB 5.0.9 (released May 31, 2022)
+- mongodb-c-driver 1.22.1 (released August 2, 2022)
+- libbson 1.22.1 (released August 2, 2022)
 
 Follow the following steps to get MongoDB up and running
 and to compile the MongoDB driver for NX.
