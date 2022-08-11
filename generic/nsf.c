@@ -1542,7 +1542,11 @@ Nsf_ObjSetVar2(Nsf_Object *object, Tcl_Interp *interp, Tcl_Obj *name1, Tcl_Obj *
   nonnull_assert(name1 != NULL);
   nonnull_assert(valueObj != NULL);
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
   Nsf_PushFrameObj(interp, (NsfObject *)object, framePtr);
+#pragma GCC diagnostic pop
+
   if (((NsfObject *)object)->nsPtr != NULL) {
     flags |= TCL_NAMESPACE_ONLY;
   }
@@ -1562,8 +1566,12 @@ Nsf_ObjGetVar2(Nsf_Object *object, Tcl_Interp *interp, Tcl_Obj *name1, Tcl_Obj *
   nonnull_assert(interp != NULL);
   nonnull_assert(name1 != NULL);
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
   Nsf_PushFrameObj(interp, (NsfObject *)object, framePtr);
-  if (((NsfObject *)object)->nsPtr != NULL) {
+#pragma GCC diagnostic pop
+
+    if (((NsfObject *)object)->nsPtr != NULL) {
     flags |= TCL_NAMESPACE_ONLY;
   }
   result = Tcl_ObjGetVar2(interp, name1, name2, (int)flags);
@@ -1585,7 +1593,12 @@ Nsf_UnsetVar2(Nsf_Object *object, Tcl_Interp *interp,
   nonnull_assert(name2 != NULL);
 
   o = (NsfObject *) object;
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
   Nsf_PushFrameObj(interp, o, framePtr);
+#pragma GCC diagnostic pop
+
   if (o->nsPtr != NULL) {
     flags |= TCL_NAMESPACE_ONLY;
   }
@@ -7569,7 +7582,11 @@ AutonameIncr(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfObject *object,
   nonnull_assert(nameObj != NULL);
   nonnull_assert(object != NULL);
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
   Nsf_PushFrameObj(interp, object, framePtr);
+#pragma GCC diagnostic pop
+
   if (object->nsPtr != NULL) {
     flogs |= TCL_NAMESPACE_ONLY;
   }
@@ -8693,8 +8710,11 @@ AssertionCheckList(Tcl_Interp *interp, NsfObject *object,
 
     if (comment == 0) {
       CallFrame frame, *framePtr = &frame;
-      Nsf_PushFrameObj(interp, object, framePtr);
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+      Nsf_PushFrameObj(interp, (NsfObject *)object, framePtr);
+#pragma GCC diagnostic pop
       /*
        * Don't check assertions during the condition check.
        */
@@ -10925,7 +10945,11 @@ GuardCall(NsfObject *object, Tcl_Interp *interp, Tcl_Obj *guardObj, NsfCallStack
   if (cscPtr != NULL) {
     Nsf_PushFrameCsc(interp, cscPtr, framePtr);
   } else {
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
     Nsf_PushFrameObj(interp, object, framePtr);
+#pragma GCC diagnostic pop
   }
   result = GuardCheck(interp, guardObj);
 
@@ -12244,7 +12268,10 @@ VarExists(
   nonnull_assert(object != NULL);
   nonnull_assert(name1 != NULL);
 
-  Nsf_PushFrameObj(interp, object, framePtr);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+  Nsf_PushFrameObj(interp, (NsfObject *)object, framePtr);
+#pragma GCC diagnostic pop
 
   if ((flags & NSF_VAR_TRIGGER_TRACE) != 0u) {
     varPtr = TclVarTraceExists(interp, name1);
@@ -19580,7 +19607,10 @@ ProcessMethodArguments(ParseContext *pcPtr, Tcl_Interp *interp,
   nonnull_assert(objv != NULL);
 
   if (object != NULL && (processFlags & NSF_ARGPARSE_METHOD_PUSH) != 0u ) {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
     Nsf_PushFrameObj(interp, object, framePtr);
+#pragma GCC diagnostic pop
   }
 
 #if 0
@@ -22827,7 +22857,11 @@ ImportInstVarIntoCurrentScope(Tcl_Interp *interp, const char *cmdName, NsfObject
     return TCL_ERROR;
   }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
   Nsf_PushFrameObj(interp, object, framePtr);
+#pragma GCC diagnostic pop
+
   if (object->nsPtr != NULL) {
     flogs = flogs|TCL_NAMESPACE_ONLY;
   }
@@ -22968,7 +23002,10 @@ SetInstVar(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj, Tcl_Obj *val
   nonnull_assert(object != NULL);
   nonnull_assert(nameObj != NULL);
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
   Nsf_PushFrameObj(interp, object, framePtr);
+#pragma GCC diagnostic pop
 
   if ((flags & NSF_VAR_TRIGGER_TRACE) != 0u) {
     int tclVarFlags;
@@ -23053,7 +23090,10 @@ SetInstArray(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *arrayNameObj, Tcl_O
   nonnull_assert(object != NULL);
   nonnull_assert(arrayNameObj != NULL);
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
   Nsf_PushFrameObj(interp, object, framePtr);
+#pragma GCC diagnostic pop
 
   ov[0] = NsfGlobalObjs[NSF_ARRAY];
   ov[2] = arrayNameObj;
@@ -23112,7 +23152,11 @@ UnsetInstVar(Tcl_Interp *interp, int withNocomplain, NsfObject *object, const ch
     flags |= TCL_NAMESPACE_ONLY;
   }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
   Nsf_PushFrameObj(interp, object, framePtr);
+#pragma GCC diagnostic pop
+
   result = Tcl_UnsetVar2(interp, name, NULL, (int)flags);
   Nsf_PopFrameObj(interp, framePtr);
 
@@ -23629,7 +23673,12 @@ CallForwarder(ForwardCmdClientData *tcd, Tcl_Interp *interp, int objc, Tcl_Obj *
     DECR_REF_COUNT(cmd);
   }
   if (tcd->frame == FrameObjectIdx) {
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
     Nsf_PushFrameObj(interp, object, framePtr);
+#pragma GCC diagnostic pop
+
   }
   if (tcd->objProc != NULL) {
     /*fprintf(stderr, "CallForwarder Tcl_NRCallObjProc %p\n", tcd->clientData);*/
@@ -23973,7 +24022,11 @@ NsfObjscopedMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
   object = tcd->object;
   tcd->object = NULL;
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
   Nsf_PushFrameObj(interp, object, framePtr);
+#pragma GCC diagnostic pop
+
   result = Tcl_NRCallObjProc(interp, tcd->objProc, tcd->clientData, (TCL_SIZE_T)objc, objv);
   Nsf_PopFrameObj(interp, framePtr);
 
@@ -28441,8 +28494,13 @@ NsfDirectDispatchCmd(Tcl_Interp *interp, NsfObject *object, FrameIdx_t withFrame
    * pushed to make instance variables accessible for the command.
    */
   if (unlikely(withFrame == FrameObjectIdx)) {
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
     Nsf_PushFrameObj(interp, object, framePtr);
+#pragma GCC diagnostic pop
     flags = NSF_CSC_IMMEDIATE;
+
   }
   /*
    * Since we know, that we are always called with a full argument
@@ -32053,7 +32111,10 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *co
    * Push frame to allow for [self] and make instance variables of the object
    * accessible as locals.
    */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
   Nsf_PushFrameObj(interp, object, framePtr);
+#pragma GCC diagnostic pop
 
   /*
    * Process the actual arguments based on the parameter definitions.
@@ -32411,7 +32472,11 @@ NsfOCgetMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj) {
    * Push frame to allow invocations of [self] and make instance variables of
    * the object accessible as locals.
    */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
   Nsf_PushFrameObj(interp, object, framePtr);
+#pragma GCC diagnostic pop
+
   ParamDefsRefCountIncr(parsedParam.paramDefs);
 
   result = CGetParamLookup(interp, nameObj, parsedParam.paramDefs, &paramPtr);
