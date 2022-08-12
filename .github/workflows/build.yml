@@ -29,7 +29,7 @@ jobs:
             tcltag: core-8-6-branch
             experimental: [true]
           - os: ubuntu-latest
-            compiler: gcc-11
+            compiler: gcc-10
             tcltag: trunk
             experimental: [true]
           - os: ubuntu-latest
@@ -37,7 +37,7 @@ jobs:
             tcltag: trunk
             experimental: [true]
           - os: ubuntu-latest
-            compiler: gcc-11
+            compiler: gcc-10
             tcltag: core-8-6-branch
             experimental: [true]
           - os: ubuntu-latest
@@ -53,11 +53,11 @@ jobs:
             tcltag: core-8-5-branch
             experimental: [true]
           - os: ubuntu-latest
-            compiler: gcc-11
+            compiler: gcc-10
             tcltag: core-8-branch
             experimental: [true]
           - os: ubuntu-latest
-            compiler: gcc-11
+            compiler: gcc-10
             tcltag: core-8-5-branch
             experimental: [true]
           - os: macos-latest
@@ -73,15 +73,15 @@ jobs:
             tcltag: core-8-7-a5
             experimental: [false]
           - os: ubuntu-latest
-            compiler: gcc-11
+            compiler: gcc-10
             tcltag: core-8-5-19
             experimental: [false]
           - os: ubuntu-latest
-            compiler: gcc-11
+            compiler: gcc-10
             tcltag: core-8-6-12
             experimental: [false]
           - os: ubuntu-latest
-            compiler: gcc-11
+            compiler: gcc-10
             tcltag: core-8-7-a5
             experimental: [false]
     defaults:
