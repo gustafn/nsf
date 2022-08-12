@@ -713,17 +713,12 @@ s
 	* nsf.c (ArgumentParse): Fix for a caching bug reported by Manfred
 	Stelzhammer at comp.lang.tcl. See
 	https://groups.google.com/g/comp.lang.tcl/c/F9cn_Ah4js4/m/eL22xbQaCgAJ
-	[94a8ea7c]
-
-	improve cleanness of compilation
-	[172a32e2]
-
-	improve fall-through markup for case statements
-	[3a4c6144]
+	[94a8ea7c]; improve cleanness of compilation
+	[172a32e2];improve fall-through markup for case statements [3a4c6144]
 
 2019-06-26  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-	 * appveyor.yml: Fix tclkit URL for win.
+	* appveyor.yml: Fix tclkit URL for win.
 	[2b4d1bca]
 
 2019-06-19  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
