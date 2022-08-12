@@ -1,3 +1,54 @@
+2022-08-11  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+        * nsf.c (Nsf_ObjSetVar2): Address the maybe-uninitialized warnings.
+        I do not really like the approach based on pragmas, but i do even
+        less like the warnings, when compiled with -pedantic [c8791939]
+
+2022-08-10  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+        *Announce2.4.0: Tested with recent MongoDB (server 5.0.9, driver 1.22.1)
+        [f20c1eaf]
+
+        * nsf.c (VarHashTableCreate, DStringAppendQualName)
+	(NewTclCommand): Reduced compiler warnings when compiling against
+	Tcl 8.6* with TIDY settings. [286401d1]
+
+        * nsf.c (ObjectDispatch): Deactive block for double-checking
+	cached data for Tcl commands. Leave the code for potential future
+	debugging purposes. [4808f8e3]
+
+2022-08-09  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+        * next-tutorial.txt: Improve spelling [dc9c6c5d]
+
+        * ChangeLog-2.3.0-2.4.0.log, Announce2.0b3, Announce-1.3.5:
+	Improve spelling [e2998b4f]
+
+2022-08-09  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+        * next-tutorial, next-migration: Fix version number [51fc6ac1]
+
+        * mkIndex.tcl: Have mkIndex produce package-provide compliant
+	ifneeded scripts [5bd3de95]
+
+        * Makefile.in, configure: Re-worked pkgIndex.tcl handling [aa25ce85]
+
+        * README.release: Document changes to doc pipeline [8f63a682]
+
+        * doc/: Re-generated man pages and tutorials [f63b1bb9]
+
+        * Makefile.in, doc/*.css: Replace prince with Chrome headless for
+	PDF doc generation, PDF-specific CSS now organised as @media print
+	queries. [6f2b5aab]
+
+2022-08-08  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+        * doc/Announce2.4.0: Cont'd [skip ci]
+        [297884f8]
+
+        * ChangeLog-2.3.0-2.4.0.log: Added entries since late Jan 2021 [skip ci]
+        [af95cd6e]
+
 2022-08-07  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
 	* tcl86.test, nsf-cmd.test, forward.test, destroy.test: Make sure
