@@ -496,7 +496,7 @@
 2018-10-23  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
 	* Object.man: Improve spelling [bee99fc8]
-	* nsf.c: Help static analyser to parse statements [8d65f0a7]
+	* nsf.c: Help static analyzer to parse statements [8d65f0a7]
 
 2018-10-12  Gustaf Neumann  <neumann@wu-wien.ac.at>
 

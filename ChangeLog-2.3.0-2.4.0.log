@@ -13,7 +13,7 @@
 	(NewTclCommand): Reduced compiler warnings when compiling against
 	Tcl 8.6* with TIDY settings. [286401d1]
 
-        * nsf.c (ObjectDispatch): Deactive block for double-checking
+        * nsf.c (ObjectDispatch): Deactivate block for double-checking
 	cached data for Tcl commands. Leave the code for potential future
 	debugging purposes. [4808f8e3]
 
@@ -38,7 +38,7 @@
         * doc/: Re-generated man pages and tutorials [f63b1bb9]
 
         * Makefile.in, doc/*.css: Replace prince with Chrome headless for
-	PDF doc generation, PDF-specific CSS now organised as @media print
+	PDF doc generation, PDF-specific CSS now organized as @media print
 	queries. [6f2b5aab]
 
 2022-08-08  Stefan Sobernig  <stefan.sobernig@wu.ac.at>

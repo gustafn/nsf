@@ -527,7 +527,7 @@
 	* Documentation (rosetta-tokenizer.tcl): Added first additional
 	Rosetta example. [b689afd]
 
-	* source-highlight-with-pp: Make src highlighter independent from
+	* source-highlight-with-pp: Make src highlighter independent of
 	Tcl version. [8e929f8]
 
 2016-09-01  Stefan Sobernig  <stefan.sobernig@wu.ac.at>

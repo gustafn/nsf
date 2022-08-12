@@ -265,7 +265,7 @@
 	  [0e8f3a70]
 
 	* nx-test.tcl (run): Avoid use of [try], to render the test suite
-  	  independent from the presence of 8.6 or tcllib's try. This may be
+	  independent of the presence of 8.6 or tcllib's try. This may be
 	  reverted, once 8.5 support is dropped. [9ba75adb]
 
 2018-06-01  Gustaf Neumann  <neumann@wu-wien.ac.at>

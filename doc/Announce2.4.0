@@ -10,27 +10,15 @@ Diff stats since 2.3.0:
 
 Major changes relative to 2.3.0 are: NSF now compiles and runs with
 Tcl 9 (core.tcl-lang.org/tcl main branch at the time of writing,
-August 2022). This way, your NSF/NX/XOTcl program can execute on top
-of Tcl 8.5 through 9. Otherwise, this is a maintenance and bug-fix
-release.
-  
-- XOTcl:
+August 2022). This way, NSF/NX/XOTcl can be used with the Tcl 8.5.*
+series, Tcl 8.6.*, and Tcl 8.7.* and Tcl 9.* on Linux/Windows/macOS.
+One can see the results of the compilations and test runs on
 
-  * "dict" is now available as a per-object method, similar to
-    "array".
+    https://github.com/nm-wu/nsf/actions
+    https://ci.appveyor.com/project/mrcalvin/nsf-2ylk0/history
 
-- MongoDB:
+Selected changes worth mentioning:
 
-  * Tested the NSF MongoDB binding against latest
-    stable releases of MongoDB (5.0.9) and
-    MongoDB-C driver (1.22.1).
-  * Fixed test case for gridfs and file renamings
-
-- Documentation:
-
-  * Improved wording and corrected spelling in man pages, tutorials,
-    and examples.
-  
 - Maintenance & bug fixes:
 
   * Tcl 9: For the first time, NSF now compiles and its test suite
@@ -39,36 +27,55 @@ release.
   * Tcl 8.7:
 
     o Support for the Tcl 8.7a5 release
-    (core.tcl-lang.org/tcl branch "core-8-branch"). NSF compiles and its
-    regression tests execute successfully (including TCL_NO_DEPRECATE).
 
-    o NSF is now TIP-538 ready (Tcl starting relying on on libtommath
-    as an extrinsic dependency).
+      (core.tcl-lang.org/tcl branch "core-8-branch"). NSF compiles and
+      its regression tests execute successfully (including
+      TCL_NO_DEPRECATE).
+
+    o NSF is now TIP-538 ready (Tcl starting relying on libtommath
+      as an extrinsic dependency).
 
   * Plug a small memory leak when using mp_int (libtommath) data internally.
 
   * Fix a crash when using volatile combined with configure in XOTcl 2.
 
-  * Fix crashes due internal cache mis-management of flag names
+  * Fix crashes due to internal cache mismanagement of flag names
     processed by configure/ cget. See
     https://groups.google.com/g/comp.lang.tcl/c/F9cn_Ah4js4/m/eL22xbQaCgAJ
 
-  * Exiting non-threaded NSF builds will not hang anymore.
+  * Exit from non-threaded NSF builds will not hang anymore.
 
-  * Prefer using Tcl_InterpDeleted() over explicitly checking bitmask
+  * Prefer using Tcl_InterpDeleted() over explicitly checking bit mask
     flags internal to Tcl.
 
   * Misc (esp. NSF/C): Ran valgrind checks, as well as Facebook's/
     Meta's "infer".
-  
+
 - Build environments, automated builds:
 
-  * Render makefile more robust in light of filepaths containing
+  * Render Makefile more robust in light of file paths containing
     whitespace characters
-  
+
   * Due to Travis becoming unavailable, we moved to GitHub Actions for
     automated builds on Linux and macOS. Windows builds are still
     served by AppVeyor.
+
+- XOTcl:
+
+  * "dict" is now available as a per-object method, similar to
+    "array".
+
+- MongoDB:
+
+  * Tested the NSF MongoDB binding against latest stable releases of
+    MongoDB (5.0.9) and MongoDB-C driver (1.22.1).
+
+  * Fixed test case for gridfs and file renaming
+
+- Documentation:
+
+  * Improved wording and corrected spelling in man pages, tutorials,
+    and examples.
 
 The detailed changelog is available at
 https://next-scripting.org/xowiki/download/file/ChangeLog-2.3.0-2.4.0.log
