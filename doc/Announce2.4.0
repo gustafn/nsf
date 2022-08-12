@@ -5,51 +5,36 @@ Framework (NSF) 2.4.0. The changes are mostly perfective improvements
 in terms of bug fixes, API consistency, and backwards
 compatibility. See below for the details.
 
-
 Diff stats since 2.3.0:
-   YYY
+  182 files changed, 26811 insertions(+), 20333 deletions(-)
 
 Major changes relative to 2.3.0 are: NSF now compiles and runs with
-Tcl 9 (core.tcl-lang.org/tcl main branch at the time of
-writing). Otherwise, this is a maintenance and bug-fix release.
-
-New Features
-
-- NSF:
-
-  * ...
-
-- NX:
-
-  * ...
+Tcl 9 (core.tcl-lang.org/tcl main branch at the time of writing,
+August 2022). This way, your NSF/NX/XOTcl program can execute on top
+of Tcl 8.5 through 9. Otherwise, this is a maintenance and bug-fix
+release.
   
 - XOTcl:
 
-  * dict is now available as a per-object method, similar to array.
+  * "dict" is now available as a per-object method, similar to
+    "array".
 
 - MongoDB:
 
-  * ...
-  * Fixed test test case for gridfs and file renamings
   * Tested the NSF MongoDB binding against latest
     stable releases of MongoDB (5.0.9) and
     MongoDB-C driver (1.22.1).
-
+  * Fixed test case for gridfs and file renamings
 
 - Documentation:
 
-  * ...
+  * Improved wording and corrected spelling in man pages, tutorials,
+    and examples.
   
 - Maintenance & bug fixes:
 
-  * Prefer using Tcl_InterpDeleted() over explicitly checking bitmask
-    flags internal to Tcl.
-
-  * Exiting non-threaded NSF builds will not hang anymore.
-
-  * Fix crashes due internal cache mis-management of flag names
-    processed by configure/ cget. See
-    https://groups.google.com/g/comp.lang.tcl/c/F9cn_Ah4js4/m/eL22xbQaCgAJ
+  * Tcl 9: For the first time, NSF now compiles and its test suite
+    completes with Tcl 9. Kudos to Jan Njitmans and Gustaf Neumann.
 
   * Tcl 8.7:
 
@@ -60,11 +45,22 @@ New Features
     o NSF is now TIP-538 ready (Tcl starting relying on on libtommath
     as an extrinsic dependency).
 
-  * Tcl 9: For the first time, NSF now compiles and its test suite
-    completes with Tcl 9. Kudos to Jan Njitmans and Gustaf Neumann.
+  * Plug a small memory leak when using mp_int (libtommath) data internally.
 
-  * Misc (esp. NSF/C): Ran valgrind checks ...
+  * Fix a crash when using volatile combined with configure in XOTcl 2.
 
+  * Fix crashes due internal cache mis-management of flag names
+    processed by configure/ cget. See
+    https://groups.google.com/g/comp.lang.tcl/c/F9cn_Ah4js4/m/eL22xbQaCgAJ
+
+  * Exiting non-threaded NSF builds will not hang anymore.
+
+  * Prefer using Tcl_InterpDeleted() over explicitly checking bitmask
+    flags internal to Tcl.
+
+  * Misc (esp. NSF/C): Ran valgrind checks, as well as Facebook's/
+    Meta's "infer".
+  
 - Build environments, automated builds:
 
   * Render makefile more robust in light of filepaths containing
