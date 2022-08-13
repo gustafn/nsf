@@ -1154,9 +1154,12 @@ namespace eval ::nx {
     spec
     default:optional
   } {
-
     lassign [:parseParameterSpec -class $class -defaultopts $defaultopts -target $target $spec] \
         name parameterOptions class opts
+
+    if {[string first , $name] > -1} {
+      nsf::log warning "slot name '$name' contains suspicious characters"
+    }
 
     lappend opts -incremental $incremental
     if {[info exists default]} {
