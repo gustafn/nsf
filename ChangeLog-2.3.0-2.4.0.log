@@ -1,3 +1,36 @@
+2022-08-13  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsf.c: Reduce warnings for other compilers
+	[e733b10d]
+
+	* nsf.c: Reduce warnings for clang, as it has no
+          "-Wmaybe-uninitialized" flag [97767e2a]
+
+	* Announce2.4.0: Updated announce file [3fcd7b1d]
+
+	* nx.tcl (MetaSlot::createFromParameterSpec): Added a warning,
+	when a name of a slot contains characters hinting a typo
+	(missing ":") [a9bbc7c7]
+
+	* nsf-gridfs.test: Make test more generic. Previously, the
+	test failed, since the file, which was read, was changing its
+	size. Now, the number of expected chunks is computed depending
+	on the actual file size. [a3b62596]
+
+2022-08-12  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* build.yml: Use gcc-11 only for macos, but not for ubuntu-latest
+	[0b679a94, 0129b8b8]
+
+	* Release work [58af8a71]
+
+2022-08-12  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* Announce2.4.0: Completed draft [74dfe595]
+
+	* ChangeLog-2.3.0-2.4.0.log: Improve wording, formatting
+	[e99b56fe, e600d293]
+
 2022-08-11  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
         * nsf.c (Nsf_ObjSetVar2): Address the maybe-uninitialized warnings.
