@@ -37,6 +37,7 @@ set dir [file dirname [file dirname [info script]]]
 set fn [glob -tails -directory $dir -- README.md]
 ? {llength $fn} 1
 ? {file readable [file join $dir $fn]} 1
+set fileSize [file size $fn]
 
 # gridfs::remove_file removes all files with the specified name
 # multiple store operations create "revisions" with different uploadDates
@@ -74,7 +75,7 @@ set mongoColl [mongo::collection::open $mongoConn myfs fs.files]
     }
   }
   set chunks
-} 6
+} [expr {$fileSize/1000 + 1}]
 ? {mongo::gridfile::close $f} ""
 
 #
