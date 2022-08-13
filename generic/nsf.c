@@ -1543,7 +1543,7 @@ Nsf_ObjSetVar2(Nsf_Object *object, Tcl_Interp *interp, Tcl_Obj *name1, Tcl_Obj *
   nonnull_assert(valueObj != NULL);
 
 #pragma GCC diagnostic push
-#ifndef __clang__
+#if defined(__GNUC__) && !defined(__clang__)
 # pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #endif
   Nsf_PushFrameObj(interp, (NsfObject *)object, framePtr);
@@ -1569,7 +1569,7 @@ Nsf_ObjGetVar2(Nsf_Object *object, Tcl_Interp *interp, Tcl_Obj *name1, Tcl_Obj *
   nonnull_assert(name1 != NULL);
 
 #pragma GCC diagnostic push
-#ifndef __clang__
+#if defined(__GNUC__) && !defined(__clang__)
 # pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #endif
   Nsf_PushFrameObj(interp, (NsfObject *)object, framePtr);
@@ -1599,7 +1599,7 @@ Nsf_UnsetVar2(Nsf_Object *object, Tcl_Interp *interp,
   o = (NsfObject *) object;
 
 #pragma GCC diagnostic push
-#ifndef __clang__
+#if defined(__GNUC__) && !defined(__clang__)
 # pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #endif
   Nsf_PushFrameObj(interp, o, framePtr);
@@ -7589,7 +7589,7 @@ AutonameIncr(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfObject *object,
   nonnull_assert(object != NULL);
 
 #pragma GCC diagnostic push
-#ifndef __clang__
+#if defined(__GNUC__) && !defined(__clang__)
 # pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #endif
   Nsf_PushFrameObj(interp, object, framePtr);
@@ -8720,7 +8720,7 @@ AssertionCheckList(Tcl_Interp *interp, NsfObject *object,
       CallFrame frame, *framePtr = &frame;
 
 #pragma GCC diagnostic push
-#ifndef __clang__
+#if defined(__GNUC__) && !defined(__clang__)
 # pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #endif
       Nsf_PushFrameObj(interp, (NsfObject *)object, framePtr);
@@ -10957,7 +10957,7 @@ GuardCall(NsfObject *object, Tcl_Interp *interp, Tcl_Obj *guardObj, NsfCallStack
   } else {
 
 #pragma GCC diagnostic push
-#ifndef __clang__
+#if defined(__GNUC__) && !defined(__clang__)
 # pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #endif
     Nsf_PushFrameObj(interp, object, framePtr);
@@ -12281,7 +12281,7 @@ VarExists(
   nonnull_assert(name1 != NULL);
 
 #pragma GCC diagnostic push
-#ifndef __clang__
+#if defined(__GNUC__) && !defined(__clang__)
 # pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #endif
   Nsf_PushFrameObj(interp, (NsfObject *)object, framePtr);
@@ -19622,7 +19622,7 @@ ProcessMethodArguments(ParseContext *pcPtr, Tcl_Interp *interp,
 
   if (object != NULL && (processFlags & NSF_ARGPARSE_METHOD_PUSH) != 0u ) {
 #pragma GCC diagnostic push
-#ifndef __clang__
+#if defined(__GNUC__) && !defined(__clang__)
 # pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #endif
     Nsf_PushFrameObj(interp, object, framePtr);
@@ -22874,7 +22874,7 @@ ImportInstVarIntoCurrentScope(Tcl_Interp *interp, const char *cmdName, NsfObject
   }
 
 #pragma GCC diagnostic push
-#ifndef __clang__
+#if defined(__GNUC__) && !defined(__clang__)
 # pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #endif
   Nsf_PushFrameObj(interp, object, framePtr);
@@ -23021,7 +23021,7 @@ SetInstVar(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj, Tcl_Obj *val
   nonnull_assert(nameObj != NULL);
 
 #pragma GCC diagnostic push
-#ifndef __clang__
+#if defined(__GNUC__) && !defined(__clang__)
 # pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #endif
   Nsf_PushFrameObj(interp, object, framePtr);
@@ -23111,7 +23111,7 @@ SetInstArray(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *arrayNameObj, Tcl_O
   nonnull_assert(arrayNameObj != NULL);
 
 #pragma GCC diagnostic push
-#ifndef __clang__
+#if defined(__GNUC__) && !defined(__clang__)
 # pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #endif
   Nsf_PushFrameObj(interp, object, framePtr);
@@ -23175,7 +23175,7 @@ UnsetInstVar(Tcl_Interp *interp, int withNocomplain, NsfObject *object, const ch
   }
 
 #pragma GCC diagnostic push
-#ifndef __clang__
+#if defined(__GNUC__) && !defined(__clang__)
 # pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #endif
   Nsf_PushFrameObj(interp, object, framePtr);
@@ -23699,7 +23699,7 @@ CallForwarder(ForwardCmdClientData *tcd, Tcl_Interp *interp, int objc, Tcl_Obj *
   if (tcd->frame == FrameObjectIdx) {
 
 #pragma GCC diagnostic push
-#ifndef __clang__
+#if defined(__GNUC__) && !defined(__clang__)
 # pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #endif
     Nsf_PushFrameObj(interp, object, framePtr);
@@ -24049,7 +24049,7 @@ NsfObjscopedMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
   tcd->object = NULL;
 
 #pragma GCC diagnostic push
-#ifndef __clang__
+#if defined(__GNUC__) && !defined(__clang__)
 # pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #endif
   Nsf_PushFrameObj(interp, object, framePtr);
@@ -28524,7 +28524,7 @@ NsfDirectDispatchCmd(Tcl_Interp *interp, NsfObject *object, FrameIdx_t withFrame
   if (unlikely(withFrame == FrameObjectIdx)) {
 
 #pragma GCC diagnostic push
-#ifndef __clang__
+#if defined(__GNUC__) && !defined(__clang__)
 # pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #endif
     Nsf_PushFrameObj(interp, object, framePtr);
@@ -32142,7 +32142,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *co
    * accessible as locals.
    */
 #pragma GCC diagnostic push
-#ifndef __clang__
+#if defined(__GNUC__) && !defined(__clang__)
 # pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #endif
   Nsf_PushFrameObj(interp, object, framePtr);
@@ -32505,7 +32505,7 @@ NsfOCgetMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj) {
    * the object accessible as locals.
    */
 #pragma GCC diagnostic push
-#ifndef __clang__
+#if defined(__GNUC__) && !defined(__clang__)
 # pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #endif
   Nsf_PushFrameObj(interp, object, framePtr);
