@@ -22,7 +22,7 @@ Selected changes worth mentioning:
 - Maintenance & bug fixes:
 
   * Tcl 9: For the first time, NSF now compiles and its test suite
-    completes with Tcl 9. Kudos to Jan Njitmans and Gustaf Neumann.
+    completes with Tcl 9. Kudos to Jan Njitmans.
 
   * Tcl 8.7:
 
@@ -35,25 +35,30 @@ Selected changes worth mentioning:
     o NSF is now TIP-538 ready (Tcl starting relying on libtommath
       as an extrinsic dependency).
 
-  * Plug a small memory leak when using mp_int (libtommath) data internally.
+   * Fixed type name abbreviation bug: Previous versions did not
+     handle cases correctly where an application type name starts with
+     the same character sequence as a built-in type. So it was not
+     possible to define a type "object_id", since a a spec of the form
+     "x:object_id" was interpreted as "x:object" ("object" is a
+     predefined type). Now, such type name abbreviations are not
+     allowed.
 
-  * Fix a crash when using volatile combined with configure in XOTcl 2.
+  * Plugged a small memory leak when using mp_int (libtommath) data internally.
 
-  * Fix crashes due to internal cache mismanagement of flag names
+  * Fixed a crash when using volatile combined with method "configure"
+    in XOTcl 2.
+
+  * Fixed crashes due to internal cache mismanagement of flag names
     processed by configure/ cget. See
     https://groups.google.com/g/comp.lang.tcl/c/F9cn_Ah4js4/m/eL22xbQaCgAJ
 
-  * Exit from non-threaded NSF builds will not hang anymore.
+  * Fixed exit from non-threaded NSF builds (will not hang anymore).
 
-  * Prefer using Tcl_InterpDeleted() over explicitly checking bit mask
-    flags internal to Tcl.
-
-  * Misc (esp. NSF/C): Ran valgrind checks, as well as Facebook's/
-    Meta's "infer".
+  * Added a warning when a slot name hints a typing error.
 
 - Build environments, automated builds:
 
-  * Render Makefile more robust in light of file paths containing
+  * Made "Makefile" more robust in light of file paths containing
     whitespace characters
 
   * Due to Travis becoming unavailable, we moved to GitHub Actions for
