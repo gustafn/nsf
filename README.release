@@ -109,34 +109,34 @@ Steps for a beta release:
    - build test-tar-file
        * make tar
        * check content of tar file
-         tar ztvf ../nsf2.3.0.tar.gz |sort -rn -k 5,6|less
+         tar ztvf ../nsf2.4.0.tar.gz |sort -rn -k 5,6|less
 
    - create branch entries for CI systems (Travis, AppVeyor)
-      add 2.3 to branches/only sections
+      add 2.4 to branches/only sections
       commit that change
       (continue with tagging)
 
    - tag version in git and commit
-       git tag -a 2.3.0 -m 2.3.0
+       git tag -a 2.4.0 -m 2.4.0
        git push --tags
        # git push --follow-tags
        # git push commit
 
        In case retagging is necessary:
-         git tag -d 2.3.0
-         git tag -a 2.3.0 -m 2.3.0
+         git tag -d 2.4.0
+         git tag -a 2.4.0 -m 2.4.0
          git push origin -f --tags
 
    - create branches for CI systems (Travis, AppVeyor)
-     git checkout -b 2.3 2.3.0
-     git push origin 2.3
+     git checkout -b 2.4 2.4.0
+     git push origin 2.4
      register a cron task for the new branch on Travis (website)
 
    - build tar
        * (make sure accurate COMMIT file is present, e.g., run ./configure once?)
        * make tar
        * check content of tar file
-         tar ztvf ../nsf2.3.0.tar.gz |sort -rn -k 5,6|less
+         tar ztvf ../nsf2.4.0.tar.gz |sort -rn -k 5,6|less
 
 
   -  put NX API and shell onto sourceforge:
@@ -155,7 +155,7 @@ Steps for a beta release:
      * Stefan, please add recommended steps here
 
    - prepare next release:
-       rename folder containing nsf (e.g. to nsf2.3.0)
+       rename folder containing nsf (e.g. to nsf2.4.0)
        update version number in 
          * configure.ac (NsfVersion, NSF_MAJOR_VERSION, NSF_MINOR_VERSION)
 	 * library/nx/nx.tcl

@@ -2,11 +2,12 @@ Dear Community,
 
 We are pleased to announce the availability of the Next Scripting
 Framework (NSF) 2.4.0. The changes are mostly perfective improvements
-in terms of bug fixes, API consistency, and backwards
-compatibility. See below for the details.
+in terms of bug fixes, Tcl version compatibility, and API consistency.
+See below for the details.
 
 Diff stats since 2.3.0:
-  182 files changed, 26811 insertions(+), 20333 deletions(-)
+
+    182 files changed, 26862 insertions(+), 20338 deletions(-)
 
 Major changes relative to 2.3.0 are: NSF now compiles and runs with
 Tcl 9 (core.tcl-lang.org/tcl main branch at the time of writing,
