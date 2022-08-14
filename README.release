@@ -140,6 +140,8 @@ Steps for a beta release:
 
 
   -  put NX API and shell onto sourceforge:
+      * (Make sure to have performed ./configure once, so that
+        version.inc is in place!)
       * cd doc/
       * dtplite -o /tmp/doc/ -style man.css -header header.html.inc html .
       * mv /tmp/doc/toc.html /tmp/doc/index.html
