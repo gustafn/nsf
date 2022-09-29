@@ -19,7 +19,7 @@ if {[info commands ::zlib] eq ""} {
   package require Trf
 }
 
-package provide nx::zip 1.3
+package provide nx::zip 1.4
 
 namespace eval ::nx::zip {
 
@@ -31,7 +31,7 @@ namespace eval ::nx::zip {
     #   - addString  (add the file-content from a string to the archive)
     #
     #    - writeToZipFile    (produce a Zip file)
-    #    - ns_returnZipFile  (return a zip file via AOLserver ns_return)
+    #    - ns_returnZipFile  (return a zip file via NaviServer ns_return)
     #
     #    - writeToStream     (for already opened and configured
     #                        output streams)
@@ -73,6 +73,23 @@ namespace eval ::nx::zip {
       close $fout
     }
 
+    :public method flushBuffer {channel } {
+      #
+      # When using ns_connchan, flush the internal buffer.
+      #
+      if {[string match *ns_connchan* ${:writer}]} {
+        while {1} {
+          set status [ns_connchan status $channel]
+          if {[dict get $status sendbuffer] > 0} {
+            ns_connchan write -buffered $channel ""
+            ns_sleep 1ms
+          } else {
+            break
+          }
+        }
+      }
+    }
+
     #
     # return the added files via aolserver/NaviServer to the client
     #
@@ -94,15 +111,7 @@ namespace eval ::nx::zip {
         set :writer [list ns_connchan write -buffered $channel]
         ns_connchan write -buffered $channel $header
         :writeToStream $channel
-        while {1} {
-          set status [ns_connchan status $channel]
-          if {[dict get $status sendbuffer] > 0} {
-            ns_connchan write -buffered $channel ""
-            ns_sleep 1ms
-          } else {
-            break
-          }
-        }
+        :flushBuffer $channel
         ns_connchan close $channel
       } else {
         ns_write $header
@@ -126,6 +135,16 @@ namespace eval ::nx::zip {
       set descriptionList [list]
       foreach {type in fnOut} ${:files} {
         lappend descriptionList [:addSingleFile $type $in $fnOut]
+        #
+        # The max size of an int is 2147483647 under tcl 8.*, which is
+        # as well the limit of a Tcl_DString. Since channel buffer
+        # leftovers from partial write operations, it can be that two
+        # files slightly smaller than the size limit are written in
+        # sequence, which requires a buffering of larger content which
+        # might lead to integer overruns in Tcl. To avoid such
+        # situations, we flush the send buffer after every file.
+        #
+        :flushBuffer $outputStream
       }
       #
       # we have no
