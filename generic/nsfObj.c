@@ -61,6 +61,9 @@ Tcl_ObjType NsfInstanceMethodObjType = {
     MethodDupInternalRep,	/* dupIntRepProc */
     NULL,			/* updateStringProc */
     NULL			/* setFromAnyProc */
+#ifdef TCL_OBJTYPE_V0
+   ,TCL_OBJTYPE_V0
+#endif
 };
 Tcl_ObjType NsfObjectMethodObjType = {
     "nsfObjectMethod",		/* name */
@@ -68,6 +71,9 @@ Tcl_ObjType NsfObjectMethodObjType = {
     MethodDupInternalRep,	/* dupIntRepProc */
     NULL,			/* updateStringProc */
     NULL			/* setFromAnyProc */
+#ifdef TCL_OBJTYPE_V0
+   ,TCL_OBJTYPE_V0
+#endif
 };
 
 /*
@@ -220,6 +226,9 @@ Tcl_ObjType NsfFlagObjType = {
     FlagDupInternalRep,		/* dupIntRepProc */
     NULL,			/* updateStringProc */
     NULL			/* setFromAnyProc */
+#ifdef TCL_OBJTYPE_V0
+   ,TCL_OBJTYPE_V0
+#endif
 };
 
 /*
@@ -380,6 +389,9 @@ Tcl_ObjType NsfMixinregObjType = {
     MixinregDupInternalRep,		/* dupIntRepProc */
     NULL,				/* updateStringProc */
     MixinregSetFromAny			/* setFromAnyProc */
+#ifdef TCL_OBJTYPE_V0
+   ,TCL_OBJTYPE_V0
+#endif
 };
 
 /*
@@ -680,6 +692,9 @@ Tcl_ObjType NsfFilterregObjType = {
     FilterregDupInternalRep,		/* dupIntRepProc */
     NULL,				/* updateStringProc */
     FilterregSetFromAny			/* setFromAnyProc */
+#ifdef TCL_OBJTYPE_V0
+   ,TCL_OBJTYPE_V0
+#endif
 };
 
 /*

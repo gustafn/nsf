@@ -31563,6 +31563,9 @@ static Tcl_ObjType paramObjType = {
     ParamDupInteralRep,                  /* dupIntRepProc */
     ParamUpdateString,                   /* updateStringProc */
     ParamSetFromAny                      /* setFromAnyProc */
+#ifdef TCL_OBJTYPE_V0
+   ,TCL_OBJTYPE_V0
+#endif
 };
 
 static void
