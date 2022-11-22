@@ -84,6 +84,14 @@ jobs:
             compiler: gcc-10
             tcltag: core-8-7-a5
             experimental: [false]
+          - os: ubuntu-latest
+            compiler: gcc-10
+            tcltag: core-8-6-13-rc
+            experimental: [true]
+          - os: macos-latest
+            compiler: gcc-11
+            tcltag: core-8-6-13-rc
+            experimental: [true]
     defaults:
       run:
         shell: bash

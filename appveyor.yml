@@ -41,16 +41,21 @@ environment:
     TOOLCHAIN: autoconf-tea
   - TCLTAG: core-8-branch
     TOOLCHAIN: nmake-tea
-  - TCLTAG: trunk
+  - TCLTAG: main
     TOOLCHAIN: autoconf-tea
-  - TCLTAG: trunk
+  - TCLTAG: main
+    TOOLCHAIN: nmake-tea
+  - TCLTAG: core-8-6-13-rc
+    TOOLCHAIN: autoconf-tea
+  - TCLTAG: core-8-6-13-rc
     TOOLCHAIN: nmake-tea
 matrix:
   allow_failures:
   - TCLTAG: core-8-6-branch
   - TCLTAG: core-8-5-branch
   - TCLTAG: core-8-branch
-  - TCLTAG: trunk
+  - TCLTAG: core-8-6-13-rc
+  - TCLTAG: main
   fast_finish: true
 
 install:
