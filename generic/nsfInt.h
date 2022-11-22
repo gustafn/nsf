@@ -184,7 +184,7 @@ typedef int bool;
 #define nonnull_assert(assertion) assert((assertion))
 
 /*
- * Trie to use gcc __attribute__ unused and mangle the name, so the
+ * Try to use gcc __attribute__ "unused" and mangle the name, so the
  * attribute could not be used, if declared as unused.
  */
 #ifdef UNUSED
@@ -194,6 +194,10 @@ typedef int bool;
 # define UNUSED(x) /*@unused@*/ (x)
 #else
 # define UNUSED(x) (x)
+#endif
+
+#ifndef CHARTTYPE
+# define CHARTYPE(what,c)           (is ## what ((int)((unsigned char)(c))))
 #endif
 
 #if defined(NSF_DTRACE)

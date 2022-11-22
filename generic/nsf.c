@@ -7643,7 +7643,7 @@ AutonameIncr(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfObject *object,
       const char *nextChars = ObjStr(nameObj);
 
       firstChar = *(nextChars ++);
-      if (isupper((int)firstChar)) {
+      if (CHARTYPE(upper, firstChar) != 0) {
         char buffer[1];
 
         buffer[0] = (char)tolower((int)firstChar);
@@ -16822,7 +16822,7 @@ Nsf_ConvertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr,
 
       if (unlikely(*value == '-'
                    && (pPtr->flags & NSF_ARG_CHECK_NONPOS) != 0u
-                   && isalpha(*(value+1))
+                   && CHARTYPE(alpha, (*(value+1))) != 0
                    && strchr(value+1, ' ') == NULL)
           ) {
         /*
@@ -18087,7 +18087,7 @@ ParamDefinitionParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, uns
     /*
      * Skip space at begin
      */
-    for (start = j+1; start<length && isspace((int)argString[start]); start++) {
+    for (start = j+1; start<length && CHARTYPE(space, argString[start]) != 0; start++) {
       ;
     }
 
@@ -18104,7 +18104,9 @@ ParamDefinitionParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, uns
         /*
          * Skip space from end.
          */
-        for (end = l; end > 0 && isspace((int)argString[end-1]); end--);
+        for (end = l; end > 0 && CHARTYPE(space, argString[end-1]) != 0; end--) {
+          ;
+        }
         result = ParamOptionParse(interp, argString, start, end-start, disallowedFlags, paramPtr, unescape,
                                   qualifier);
         unescape = NSF_FALSE;
@@ -18115,7 +18117,7 @@ ParamDefinitionParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, uns
         /*
          * Skip space from begin.
          */
-        for (start = l; start<length && isspace((int)argString[start]); start++) {
+        for (start = l; start<length && CHARTYPE(space, argString[start]) != 0; start++) {
           ;
         }
       }
@@ -18123,8 +18125,9 @@ ParamDefinitionParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, uns
     /*
      * skip space from end
      */
-    for (end = l; end > 0 && isspace((int)argString[end-1]); end--);
-
+    for (end = l; end > 0 && CHARTYPE(space, argString[end-1]) != 0; end--) {
+      ;
+    }
     /*
      * process last option
      */
@@ -24109,7 +24112,7 @@ IsDashArg(Tcl_Interp *interp, Tcl_Obj *obj, int isFirstArg, const char **methodN
   flag = ObjStr(obj);
   /*fprintf(stderr, "we have a scalar '%s' isFirstArg %d\n", flag, isFirstArg);*/
 
-  if ((*flag == '-') && isalpha(*((flag)+1))) {
+  if ((*flag == '-') && CHARTYPE(alpha, *((flag)+1)) != 0) {
     if (isFirstArg == 1) {
       /*
        * If the argument contains a space, try to split.
