@@ -104,7 +104,7 @@ nextCompile(Tcl_Interp *interp, Tcl_Parse *parsePtr,
   assert(envPtr != NULL);
 
   if (parsePtr->numWords != 1) {
-    return TCL_OUT_LINE_COMPILE;
+    return TCL_ERROR;
   }
   TclEmitOpcode(instructions[INST_NEXT].bytecode, envPtr);
   envPtr->maxStackDepth = 0;
@@ -124,7 +124,7 @@ selfCompile(Tcl_Interp *interp, Tcl_Parse *parsePtr,
   assert(envPtr != NULL);
 
   if (parsePtr->numWords != 1) {
-    return TCL_OUT_LINE_COMPILE;
+    return TCL_ERROR;
   }
   TclEmitOpcode(instructions[INST_SELF].bytecode, envPtr);
   envPtr->maxStackDepth = 0;
@@ -152,7 +152,7 @@ selfDispatchCompile(Tcl_Interp *interp, Tcl_Parse *parsePtr,
   */
 
   if (parsePtr->numWords > 255) {
-    return TCL_OUT_LINE_COMPILE;
+    return TCL_ERROR;
   }
   /*TclEmitOpcode(instructions[INST_SELF].bytecode, envPtr);*/
 
