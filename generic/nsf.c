@@ -16727,13 +16727,11 @@ Nsf_ConvertToTclObjType(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *p
   nonnull_assert(pPtr != NULL);
   nonnull_assert(clientData != NULL);
 
-  fprintf(stderr, "Nsf_ConvertToTclObjType: converterArg %p\n", (void*)pPtr->converterArg);
   if (unlikely(pPtr->converterArg != NULL)) {
     const Tcl_ObjType *tclObjType = pPtr->converterArg->internalRep.twoPtrValue.ptr1;
 
     if (tclObjType != NULL) {
       result = Tcl_ConvertToType(interp, objPtr, tclObjType);
-      fprintf(stderr, "Nsf_ConvertToTclObjType:type  %p -> %d\n", (void*)tclObjType, result);
 
       if (result != TCL_OK) {
         Tcl_ResetResult(interp);
@@ -16794,8 +16792,14 @@ Nsf_ConvertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr,
   nonnull_assert(clientData != NULL);
 
   if (unlikely(pPtr->converterArg != NULL)) {
-    Tcl_Obj *objv[4];
-    /*fprintf(stderr, "ConvertToTclobj %s (must be %s)\n", ObjStr(objPtr), ObjStr(pPtr->converterArg));*/
+    /*
+     * Using "string is ..." as value checker.
+     */
+    Tcl_Obj *objv[4], *resultObj;
+    /* fprintf(stderr, "ConvertToTclobj %s (must be %s)\n", ObjStr(objPtr), ObjStr(pPtr->converterArg));*/
+
+    resultObj = Tcl_GetObjResult(interp);
+    Tcl_IncrRefCount(resultObj);
 
     objv[0] = NULL;
     objv[1] = pPtr->converterArg;
@@ -16805,14 +16809,23 @@ Nsf_ConvertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr,
     result = NsfCallCommand(interp, NSF_STRING_IS, 4, objv);
     if (likely(result == TCL_OK)) {
       int success;
+
       Tcl_GetIntFromObj(interp, Tcl_GetObjResult(interp), &success);
       if (success == 1) {
         *clientData = objPtr;
+        /*
+         * Restore the original result, which was clobbered by the "string is"
+         * command. Restoring is necessary in cases, where this function is
+         * used as result value function of a method.
+         */
+        Tcl_SetObjResult(interp, resultObj);
       } else {
         Tcl_ResetResult(interp);
         result = NsfObjErrType(interp, NULL, objPtr, ObjStr(pPtr->converterArg), (Nsf_Param *)pPtr);
       }
     }
+    Tcl_DecrRefCount(resultObj);
+
   } else {
     result = TCL_OK;
 
@@ -31939,7 +31952,9 @@ ParameterCheck(
     }
   }
   paramPtr = paramWrapperPtr->paramPtr;
-  if (paramPtrPtr != NULL) *paramPtrPtr = paramPtr;
+  if (paramPtrPtr != NULL) {
+    *paramPtrPtr = paramPtr;
+  }
 
   if (isNamed) {
     paramPtr->flags &= ~NSF_ARG_UNNAMED;
@@ -31947,6 +31962,7 @@ ParameterCheck(
 
   RUNTIME_STATE(interp)->doClassConverterOmitUnknown = 1;
   outObjPtr = NULL;
+
   result = ArgumentCheck(interp, valueObj, paramPtr, doCheckArguments, &flags, &checkedData, &outObjPtr);
   RUNTIME_STATE(interp)->doClassConverterOmitUnknown = 0;
 
