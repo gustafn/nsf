@@ -42,7 +42,7 @@ static CONST char *asmStatementStoreType[]       = {"instruction", "argv", NULL}
 
 static AsmStatementInfo asmStatementInfo[] = {
   /* asmObjProcIdx, */
-  {ASM_INFO_PAIRS|ASM_INFO_SKIP1, NULL, 2, -1, NR_PAIRS1},
+  {ASM_INFO_PAIRS|ASM_INFO_SKIP1, NULL, 2, TCL_INDEX_NONE, NR_PAIRS1},
   $STATEMENT_INFO
 };
 
@@ -108,13 +108,13 @@ AsmAssemble(ClientData cd, Tcl_Interp *interp, Tcl_Obj *nameObj,
 			   ObjStr(lineObj));
     }
 
-    if (asmStatementInfo[index].minArgs > -1
+    if (asmStatementInfo[index].minArgs != TCL_INDEX_NONE
 	&& wordOc < asmStatementInfo[index].minArgs) {
       return NsfPrintError(interp, "Asm: statement must contain at least %d words: %s",
 			   asmStatementInfo[index].minArgs, ObjStr(lineObj));
     }
 
-    if (asmStatementInfo[index].maxArgs > -1
+    if (asmStatementInfo[index].maxArgs != TCL_INDEX_NONE
 	&& wordOc > asmStatementInfo[index].maxArgs) {
       return NsfPrintError(interp, "Asm: statement must contain at most %d words: %s",
 			   asmStatementInfo[index].maxArgs, ObjStr(lineObj));

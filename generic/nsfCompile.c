@@ -81,7 +81,7 @@ initProcNsCompile(Tcl_Interp *interp, Tcl_Parse *parsePtr,
   if (parsePtr->numWords != 1) {
 	Tcl_ResetResult(interp);
 	Tcl_AppendToObj(Tcl_GetObjResult(interp),
-	        "wrong # args: should be '::nsf::initProcNS'", -1);
+	        "wrong # args: should be '::nsf::initProcNS'", TCL_INDEX_NONE);
 	envPtr->maxStackDepth = 0;
 	return TCL_ERROR;
     }

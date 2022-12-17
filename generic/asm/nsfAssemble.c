@@ -23,8 +23,8 @@ typedef void (* InstLabel)();
 typedef struct AsmStatementInfo {
   int flags;
   CONST char **argTypes;
-  int minArgs;
-  int maxArgs;
+  TCL_SIZE_T minArgs;
+  TCL_SIZE_T maxArgs;
   int cArgs;
 } AsmStatementInfo;
 
