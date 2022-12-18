@@ -9,9 +9,9 @@
 <- handle change in tcl 8.5.8: http://tcl.cvs.sourceforge.net/viewvc/tcl/tcl/generic/tclObj.c?sortby=date&r1=1.139.2.1&r2=1.139.2.2&pathrev=core-8-5-branch
   in xotcl:
    * when e.g. the parent namespace is deleted with a "namespace delete", the change
-     above causes, the no xotcl methods could be resolved (and called) anymore.
+     above causes, the no XOTcl methods could be resolved (and called) anymore.
   * therefore, e.g. a "C dealloc c1" did not work, since dealloc passes
-    c1 via tcl_obj, and the tcl_obj is as well converted to an xotcl object via
+    c1 via tcl_obj, and the tcl_obj is as well converted to an XOTcl object via
     Tcl_GetCommandFromObj(), which fails as well.
 - to bypass this problem, xotcl has now a C-function DoDealloc(), which
    is called, when this situation is detected.
@@ -31,7 +31,7 @@
 - regression test works again
 
 - get rid of rst->deallocCalled (not needed due to reference counting
-   on xotcl objects)
+   on XOTcl objects)
 - reduce verbosity
 
 - reactivated XOTclErrInProc()
@@ -219,7 +219,7 @@ vor methodName: alias forward method methodproperty setter
 
 - add calltype to tcl85showStack
 
-- keep orignial objc/objc in call stack context such that
+- keep original objc/objc in call stack context such that
    next/self args works with canonical args (allow e.g.
    different order of nonpos args in a next)
 - make naming in xotcl.c more consistent
@@ -281,9 +281,9 @@ vor methodName: alias forward method methodproperty setter
 - some cleanup
 - extend regression test
 
-valuecheck.001:	  5.27 mms, ::xotcl::valuecheck object o1
+valuecheck.001:   5.27 mms, ::xotcl::valuecheck object o1
 valuecheck.002: ::xotcl::valuecheck object 1 ok
-valuecheck.003:	  3.06 mms, ::xotcl::is o1 object
+valuecheck.003:   3.06 mms, ::xotcl::is o1 object
 
 - new cmd "::xotcl::valuecheck <valueConstraints> <value>"
   where "valueConstraints" is whatever is allowed in e.g. parameters
@@ -338,7 +338,7 @@ valuecheck.003:	  3.06 mms, ::xotcl::is o1 object
 - new methods in ObjectParameterSlot "toParameterSyntax" and
   "createFromParameterSyntax"
 - some more cleanup
-- removed legacy syntax for "-parmeters"
+- removed legacy syntax for "-parameters"
 
 - moved slot optimizer from ::xotcl::ObjectParameterSlot::Optimizer to
   ::xotcl::Attribute::Optimizer
@@ -429,7 +429,7 @@ valuecheck.003:	  3.06 mms, ::xotcl::is o1 object
 - changed semantic of ::xotcl::valuecheck: per default,
   valuecheck raises an error or returns true.
   If "-nocomplain" is used, valuecheck returns
-  0 or 1 like implemented befor this change
+  0 or 1 like implemented before this change
 - extended regression test
 
 - added parameter "incremental" to ::xotcl::Attribute:
@@ -451,7 +451,7 @@ valuecheck.003:	  3.06 mms, ::xotcl::is o1 object
 - ::xotcl::valuecheck: moved "-nocomplain" to first position
   (similar to e.g. unset)
 
-- experimental: allow to shadow built-in types provided that
+- experimental: allow one to shadow built-in types provided that
   a) slot= is specified explicitly, and
   b) the specified slot is not the default slot.
   This should guarantee that we do not interfere with
@@ -585,7 +585,7 @@ valuecheck.003:	  3.06 mms, ::xotcl::is o1 object
 
 - enable compilation with assertion turned on (via NDEBUG)
 - fix potentially uninitialized flags for ArgumentCheck()
-- some further cleanup, tested with 32 bit under Mac OS X 10.6
+- some further cleanup, tested with 32 bit under macOS 10.6
 
 - removed obsolete generic/xotclAppInit.c
 - changed loading method in xotclsh from Xotcl_Init() to Tcl_PkgRequire()
@@ -631,7 +631,7 @@ valuecheck.003:	  3.06 mms, ::xotcl::is o1 object
   speed by up to 15%
 - allocate namespaces for objects less eager
 - make naming more consistent
-  (change newObj into newObject when variable is an xotcl object)
+  (change newObj into newObject when variable is an XOTcl object)
 
 - get rid of misleading RCS: lines
 - passing --prefix to subdirs
@@ -762,7 +762,7 @@ valuecheck.003:	  3.06 mms, ::xotcl::is o1 object
           .next
           .nxt
 
-    file names:
+    filenames:
        composite words with - instead of capitalization
 
     package names
@@ -889,7 +889,7 @@ do we need:
 - some indentation/spacing improvements on xotcl.c
 - let ".... info method .... METHOD" return values,
   when METHOD contains namespace prefix. This can be
-  used to obtain the parmeter definitions from nx::core
+  used to obtain the parameter definitions from nx::core
 - get forward definition from the original command
 
 - created own directory structure xotcl under library
@@ -1100,7 +1100,7 @@ _ added option noforwarder to RelationSlots
 - changed __invalidateobjectparameter from a method of class
   to framework primitiv ::nsf::invalidateobjectparameter
 
-- experimental method-property "class-only": this allows to
+- experimental method-property "class-only": this allows one to
   make object save against per-object mixins of meta-classes.
   the flag is only used in the mixin-resolver
 - used for the time being in nx only for Class.info,
@@ -1317,7 +1317,7 @@ _ added option noforwarder to RelationSlots
 - [::nx::Object info method parameter info] returns now empty instead of error.
 - extended regression test
 
-- splitted "info callable" into an ensemble
+- split "info callable" into an ensemble
   (submethods have quite different signatures)
 - added "info callable slots" with functionality of "info slotobjects"
 - removed "info slotobjects"
@@ -1492,7 +1492,7 @@ _ added option noforwarder to RelationSlots
 - simplification and unification of unknown handling and method finalization
 - some cleanup
 
-- make "createobjectsystem" more robust (allow to provided not fully
+- make "createobjectsystem" more robust (allow one to provided not fully
   qualified names).
 - added tcl-cool as an additional sample-object-system for nsf
 
@@ -1582,7 +1582,7 @@ _ added option noforwarder to RelationSlots
 
 - slots:
   * change name "initcmd" of "experimental slot features" to
-    "defaultcmd" to avoid naming conflict the the initcmd executed
+    "defaultcmd" to avoid naming conflict the initcmd executed
     at the initialization of a slot object (effects XOTcl as well)
   * make defaultcmd/valuecmd/valuechangedcmd working for nx
     (absence of trace method)
@@ -1599,8 +1599,7 @@ _ added option noforwarder to RelationSlots
 - fix potential crash in
   ::nx::Object info method definition ::nsf::methods::object::instvar
 
-- "info method submethods": return all submethods, independent
-  from protection
+- "info method submethods": return all submethods, independent of protection
 - serializer: experimental code to serialize submethods
 
 - new option "-expand" for "obj|class info methods" to
@@ -1710,7 +1709,7 @@ _ added option noforwarder to RelationSlots
   on shadowCommands, but this does not work, when variable is
   bytecompiled. deactivated for now.
 
-- added support for aolserver (essentially Makefile + aol-xotcl.tcl)
+- added support for AOLserver (essentially Makefile + aol-xotcl.tcl)
 - removed unneeded content from serializer output
 
 - the two flags "-objscope" and "-nonleaf" are for adding frames,
@@ -1781,7 +1780,7 @@ _ added option noforwarder to RelationSlots
 
 - made handling of unstacked entries optional by defining
   macro CHECK_ACTIVATION_COUNTS)
-- added macro NSF_DEVELOPMENT for toplevel handling
+- added macro NSF_DEVELOPMENT for top-level handling
   if NDEBUG and CHECK_ACTIVATION_COUNTS
 - cleanup of method-modifiers.tcl
 - updated next migration guide
@@ -1832,7 +1831,7 @@ _ added option noforwarder to RelationSlots
 - removed debugging from CscFinish when compiled without DEVELOPMENT
 
 - changed CallStackGetActiveProcFrame() to return also CMETHD frames
-  This allows to execute :volatile in a initcmd and to delete the
+  This allows one to execute :volatile in a initcmd and to delete the
   object at its end. As a consequence, code like
      [CopyHandler new -volatile] copy [::nsf::self] $newName
   has to be changed to
@@ -1981,7 +1980,7 @@ _ added option noforwarder to RelationSlots
 - make handling of redefinitions in system methods more robust
 - follow Tcl naming convention (uppercase functions)
 
-- Don't allow to call objects as methods (for the time being) via
+- Don't allow one to call objects as methods (for the time being) via
   absolute names. Otherwise, in line {2} below, ::State is
   interpreted as an ensemble object, and the method "unknown"
   won't be called (in the XOTcl tradition).
@@ -2024,7 +2023,7 @@ _ added option noforwarder to RelationSlots
 
 - make "... info children ?pattern?" compliant with XOTcl 1;
   if pattern contains no wildcard and is no absolute path, nsf completes it.
-  (eg. Object create o; Object create o:x; o info children x" will return ::o::x)
+  (e.g. Object create o; Object create o:x; o info children x" will return ::o::x)
 - extended regression test
 
 - introduced a few forms of multiplicity
@@ -2129,7 +2128,7 @@ text
    NSF_WITH_ASSERTIONS
 - added flag NSF_WITH_VALUE_WARNINGS
 
-- defined nsf::deprecated as tcl proc, using ::nsf::log
+- defined nsf::deprecated as Tcl proc, using ::nsf::log
 - some minor refactoring
 
 - "info parameter": return :switch as parameteroption for
@@ -2197,7 +2196,7 @@ text
 - added first version of next-tutorial.[txt|html]
 
 - xotcl2.tcl: defined ::xotcl::MetaSlot
-- make sure, that classes of the intrinsic class hierarchy are
+- make sure that classes of the intrinsic class hierarchy are
   of the same object system
 - add regression test
 
@@ -2226,7 +2225,7 @@ text
 - add explicit reference counting for oacs-style flag value passing
 
 - parameter specs: use "arg=" in object parameter type "method" as
-  name of a called method to allow to call unregistered methods
+  name of a called method to allow one to call unregistered methods
 - eliminate protected method "noinit" for nx and allow it just as an
   object parameter
 
@@ -2407,7 +2406,7 @@ sudo make install
    * make quality checks (missing documentation, ...) optional?
      how to deal with non-resolvable quality checks?
    * provide a renderer for XOTcl @-notation to produce object structure
-     for the new doctool (makes the old documentation usable, eg. for XOTcl2)
+     for the new doctool (makes the old documentation usable, e.g. for XOTcl2)
 
 - first steps towards DTrace support
 - DTrace:
@@ -2482,7 +2481,7 @@ sudo make install
 
   * make explicit that "method ... require" returns a method-handle
 
-  * removed misleading reference in error message, when a class-spefic
+  * removed misleading reference in error message, when a class-specific
     method was called on an object; solution is somewhat dangerous for
     potentially unknown client data
 
@@ -2774,7 +2773,7 @@ nsf:
 - extend regression test
 
 - nx.tcl:
-  * splitted method "delete" into a "delete method" and
+  * split method "delete" into a "delete method" and
     "delete attribute"
   * remove flag "-per-object" in method "delete"
   * delete per-object methods of classes with
@@ -2819,7 +2818,7 @@ nsf:
   * included "delete attribute"
 
 - nsf.c: NsfRelationCmd() returns per default list of actual
-  values, therefore mixin add|... return now as well the
+  values, therefore, mixin add|... return now as well the
   actual values
 
 - nx.tcl: added "info parameter slot" to return slotobject(s)
@@ -2984,7 +2983,7 @@ nsf:
   * added new types for "gridfs" and "gridfile"
   * added new example file example-nsf-gridfs.tcl
 
-- nsf.c: no good reason to disallow user defined types for for alias,
+- nsf.c: no good reason to disallow user defined types for alias,
   forward or initcmd
 
 - library/nx/nx-zip.tcl: added a zip file generator as package
@@ -3194,7 +3193,7 @@ nsf.c:
   incremented, when D is redefined, but in other cases not.  In the
   script below the method D.init is compiled by tcl, since it has a
   trivial body. Therefore, a redefinition of D will remove this
-  compiled body and all its potential usages. Therefore the
+  compiled body and all its potential usages. Therefore, the
   interp->epoch is incremented. If the body is e.g.  "return", the
   epoch is not incremented (observed with Tcl 8.5.10)
 
@@ -3558,8 +3557,7 @@ Test run; exit
 - extend regression test
 nsf.c:
   - reform of argument parse. new parser uses NsfFlagObjType
-    to reuse earlier parse results. Improved speed for
-    for methods with primitive bodies: 5%-25%.
+    to reuse earlier parse results. Improved speed for methods with primitive bodies: 5%-25%.
   - added regression tests for argument parsing
 
 - nsf.c
@@ -3570,8 +3568,7 @@ nsf.c:
 nsf.c:
   - reform of method lookup. new code uses
     NsfInstanceMethodObjType and NsfObjectMethodObjType
-    to reuse earlier lookup results. Improved speed for
-    for methods with primitive bodies (over version before
+    to reuse earlier lookup results. Improved speed for methods with primitive bodies (over version before
     argument parse reform: 10%-43%.
   - additional compile-time option: METHOD_OBJECT_TRACE
   - experimentation version of unknown handler for non-pos args
@@ -3635,9 +3632,9 @@ noleadingdash handling:
 
      nx::Test case ensemble-next-with-colon-prefix {
        nx::Object create obj {
-	 :public method foo {} { return [:info class] }
-	 #:public method bar {} { return [:info] }
-	 :method info {} {;}
+         :public method foo {} { return [:info class] }
+         #:public method bar {} { return [:info] }
+         :method info {} {;}
        }
        ? {obj foo} {wrong # args: should be ":info"}
      }
@@ -3675,14 +3672,14 @@ noleadingdash handling:
 - altered default handling to honor side effects of aliased object
   parameters. This slows down evaluation a little. Side-effects from
   aliased parameters are discouraged, since the order of the
-  evaluation should not matter of an declarative evaluation of the
+  evaluation should not matter of a declarative evaluation of the
   argument vector.
 - extended regression test
 
 - library/mongo:
   * updated interface to current nx
   * updated to mongo-c-driver 0.4 (current version)
-  * The mongo c-driver does not allow to add DBRefs, since
+  * The mongo c-driver does not allow one to add DBRefs, since
     it refuses to accept field names with leading '$'. So we skip these
     tests for the time being.
 
@@ -3858,11 +3855,11 @@ nsf.c:
    - aliases to objects are always dispatch-able, no matter, how
      allowmethoddispatch is set.
    - direct sub-objects of objects are currently on dispatch-able
-     when allowmethoddispatch is set. Note, that this could
+     when allowmethoddispatch is set. Note that this could
      be seen as a method-property of the method-name, which
      could be made "private" as well to avoid such direct dispatches.
 
-- nsf.c: start all error messages with a lower case word for consistency
+- nsf.c: start all error messages with a lowercase word for consistency
   and to follow closer to Tcl's conventions
 
 - deactivate for the time being allowmethoddispatch
@@ -3963,7 +3960,7 @@ nsf.c:
 - added compile macro NSF_STACKCHECK to provide stack monitoring/debugging
   (especially useful for multi threaded programs, where stack
   is more limited)
-- make ::nsf::log more robust for aolserver/naviserver, since ::ns_log is
+- make ::nsf::log more robust for AOLserver/naviserver, since ::ns_log is
   not always around when an output is needed
 
 - serializer:
@@ -4007,7 +4004,7 @@ nsf.c:
 nx.tcl:
 - added "private property foo"
 - extended regression test
-- start error messages with a lower case word for consistency
+- start error messages with a lowercase word for consistency
   and to follow closer to Tcl's conventions
 
 Documentation:
@@ -4021,7 +4018,7 @@ Documentation:
 
 nsfShadow.c
 - bump MethodEpoch when a tcl ::rename command happens
-  on a nsf method (which might be cached in a Tcl_Obj)
+  on an NSF method (which might be cached in a Tcl_Obj)
   This fixes a crash reported by Arthur Schreiber
 nsf.c:
 - make NsfInstanceMethodEpochIncr() and NsfObjectMethodEpochIncr()
@@ -4060,7 +4057,7 @@ nx::test:
 nsf.c
 - rename nx::Object.configure to nx::Object.__configure
   to free method name "configure" for an e.g. tk-like configure
-- refactored code to allow to parameterize handling of required flag for parameters
+- refactored code to allow one to parameterize handling of required flag for parameters
 - don't flag an error when configure is called on an initialized object
   (logic: if the object is initialized, configure must have been called
    before, and the required action must have been already taken).
@@ -4113,7 +4110,7 @@ nx.tcl:
 - remove debugging output
 
 nsf.c:
-- fixed parmeter syntax for required nonpos args
+- fixed parameter syntax for required nonpos args
 - deactivate deletion of methods via nsf::object::delete
   during shutdown to avoid missing slot forwarders called from
   destructors
@@ -4245,7 +4242,7 @@ nsf.c
   "/slot/ get ..." (when slot=... is provided in the parameter spec)
   or it assumes that the method without argument returns the value
 - added "::nsf::object::property /obj/ volatile" to query
-  whether a object is volatile or not
+  whether an object is volatile or not
 - "/obj/ cget -volatile" returns now the volatile state of the object
 - factored out ParameterMethodDispatch() from OConfigureMethod()
 - extended regression test
@@ -4285,7 +4282,7 @@ Object-method Reform:
   ensemble named "object". The rational behind is essentially
   to use always the same info command to retrieve object
   specific methods, no matter whether these are defined
-  on a plain object or an a class object (does not break
+  on a plain object or a class object (does not break
   the "contract" what e.g. "info method" returns).
 
  Now we define methods via:
@@ -4395,7 +4392,7 @@ Method and configure parameter reform:
 
    "... method syntax" and "... configure syntax" return the full method/configure call,
   and not only the parameters as in previous versions. Therefore, providing a pattern
-  could lead to unexpected results, therefore the argument was dropped.
+  could lead to unexpected results, therefore, the argument was dropped.
 
 - Replacements relative to 2.0b4:
 
@@ -4482,7 +4479,7 @@ Method and configure parameter reform, Part 3:
 - C-code Generator: added "-typeName" for enumeration types that
   allows for disambiguation of enumerations with different argument
   names.  Before that, the argument name determined the c-type of the
-  enumeration.  Therefore it was not possible to use argName "-type"
+  enumeration.  Therefore, it was not possible to use argName "-type"
   for two different functions with a different list of enumerators.
 
 - changed "-methodtype" to simply "-type" in
@@ -4547,7 +4544,7 @@ nx.tcl:
 - renamed initblock parameter from __initcmd to __initblock
 - renamed nsf::configure parameter from "keepinitcmds" to "keepcmds"
 - saving "keepcmds" in an associative array named "__cmd(/parameternName)"
-  to allow saving of multiple parmeters with less name clash danger
+  to allow saving of multiple parameters with less name clash danger
   (when application stays away from variables stating with double
   underscore)
 
@@ -4577,7 +4574,7 @@ nx.tcl:
   "/obj/ info configure" to re-enable semantics
   of the plain configure method, even when called without
   arguments. "/obj/ info configure" is actually a
-  convenience method to allow to write
+  convenience method to allow one to write
      o1 info configure
   instead of
      o1 info lookup configure syntax
@@ -4591,7 +4588,7 @@ nx.tcl:
   to make its intention clearer
 
 - changed multiplicity of mixin, object-mixin, filter, object-filter
-  from 1..n to 0..n; rationale: when one has a list of eg. mixins,
+  from 1..n to 0..n; rationale: when one has a list of e.g. mixins,
   which should be passed, one has to test for the length before
   passing it, otherwise the empty list would generate an error.
   Allowing 0..n makes the usage simpler and the program shorter.
@@ -4603,15 +4600,15 @@ warning does not show up.
   for arg vectors with a delimiting "--"; right now, this gives a warning:
 
   Object create o {
-  	 :public object method foo {-np1 -np2 p1} {
-	     return $p1
-	  }
+         :public object method foo {-np1 -np2 p1} {
+             return $p1
+          }
   }
 
   ? {o foo -np1 1 -np2 2 -- -X} "-X"
 
 nsf.c:
-- when creation with an required configure parameter failed,
+- when creation with a required configure parameter failed,
   delete the half-baked object to avoid confusing states.
 
 - improved handling of required configure parameters
@@ -4695,19 +4692,19 @@ nsf.c:
  - build tar etc. as in README.release
 
 nsf.c:
-- dont't use the default of a invocation parameter in "configure"
+- don't't use the default of a invocation parameter in "configure"
   when the object is already initialized. The default is in
   general only used when the parameter is not specified. We do not want
   e.g. superclass to be reset to ::nx::Object, when configure is
   called on a class without arguments.
 - extended regression test
 
-- prepare for providing nx as a tcl module (.tm file).
+- prepare for providing nx as a Tcl module (.tm file).
   this is just a preparation, since for testing, one cannot set up a path
   that prefers a local copy over a global installed one (the global tcl-site is
   preferred over the one specified in e.g. TCL8_5_TM_PATH)
 
-  Moving to tcl modules works in essence via
+  Moving to Tcl modules works in essence via
   git mv library/nx/nx.tcl tcl8/site-tcl/nx-2.0b5.tm
 
   This is really usable, when
@@ -4723,7 +4720,7 @@ mongodb:
 - added sample script doc/example-scripts/tk-geo.tcl
 
 mongodb:
-- integrated configuration of mongodb into toplevel config file
+- integrated configuration of mongodb into top-level config file
   option: --with-mongodb=MONGO_INCLUDE_DIR,MONGO_LIB_DIR
 - added regression test files for mongodb support
   (low-level (tcl-only) and highlevel (nx based oo support))
@@ -4843,7 +4840,7 @@ nx-mongo:
 
 -nsf.c:
 - fix bug in interaction between uplevel method and interceptor transparency
-- fix bug in interaction between uplevel method from tcl procs
+- fix bug in interaction between uplevel method from Tcl procs
 - extend regression test
 
 build-system:
@@ -4860,7 +4857,7 @@ nx-mongo:
 - improve performance of mongo->tcl conversion by using predefined global strings
 
 nx-monogo:
-- Updated the mongo-c-driver and libbson to the actual tip version from github
+- Updated the mongo-c-driver and libbson to the actual tip version from GitHub
   (this is a significant change, since 10gen essentially changed the
   officially supported c-driver of MongoDB)
 - mongo-c-driver was more or less new-implementation, since structure and
@@ -4868,7 +4865,7 @@ nx-monogo:
   were added, several were dropped. The new interface supports now
   e.g. mongo URIs, and should be faster (by using collection objects
   instead of connection handles)
-- Although the low-level nsf interface changed significantly, the high level
+- Although the low-level nsf interface changed significantly, the high-level
   (nx level) interface remained unaffected.
 - Configure has now --with-mongoc=... and --with-bson instead of --with-mongodb
 - New commands:
@@ -4887,7 +4884,7 @@ nx-monogo:
   https://github.com/mongodb/mongo-c-driver/blob/master/doc/mongoc_uri.txt
 - The gridfs interface allows now to store multiple revisions of a file
 - The gridfs interface allows now upload files from a string
-- The gridfs interface allows to refer to files by other attributes than
+- The gridfs interface allows one to refer to files by other attributes than
   just the filename (e.g. the mongo id).
 - Modified/new gridfile functions
      mongo::gridfile::create ?-source file|string? /gridfs/ /value/ /name/ /contentType/
@@ -4921,14 +4918,14 @@ nx::traits:
 nx-mongo:
 - optional support for mongodb connection pools (compile time macro
   USE_CLIENT_POOL controls this, per default, this is on)
-- allow to pass "-metadata" to gridfile::create to ease metadata attachment
+- allow one to pass "-metadata" to gridfile::create to ease metadata attachment
   to gridfiles
 - some convenience improvements in nx-mongo.tcl (ability to ignore
   attributes in "bson encode", ability to unset attributes in gridfs, ...)
 - bump version numbers of nsfmongo to 0.3 and nx-monogo to 0.5
 - represent BSON_TYPE_REGEX as pairs (regex + options) in the Tcl
   representation to preserve regular expression options
-- update to newest version of mongo-c-driver and libbson from github
+- update to newest version of mongo-c-driver and libbson from GitHub
 - tested with mongodb-c-driver 0.93.0
 
 nx-mongo:
@@ -4944,7 +4941,7 @@ nx-mongo:
 nsf.c:
 - fix case, where NsfDStringPrintf() failed (when print llength including
   \0 was 1 byte longer than print buffer)
-- make sure, that the list kept for the cached parameter is just built
+- make sure that the list kept for the cached parameter is just built
   from unshared objects; otherwise Tcl append will abort
 
 nx.tcl:
@@ -5043,7 +5040,7 @@ nsf.c:
       "/obj/ /prop/ get" and  "/obj/ /prop/ set /value/"
       to achieve better orthogonality with e.g. incremental properties
     - allow parameter option "method=" for slotassign as well. rationale:
-      this allows to use the parameter "forwardername" to specify a
+      this allows one to use the parameter "forwardername" to specify a
       different forwarder target method (e.g. in case of object-mixins).
       The method is used both in "configure" and "cget".
     - allow methodname to consist of max two words in relation slots
@@ -5133,7 +5130,7 @@ nx.tcl:
   filters|mixins.
 
 nsfObj.c:
-- allow to omit "-guard" within arguments to flag
+- allow one to omit "-guard" within arguments to flag
   definition of a filter/mixin guard
 - extended regression test
 
@@ -5184,7 +5181,7 @@ nsf.c:
   about all kind of method handles, which might be
    - scripted and c-based methods
    - nsf::procs
-   - plain tcl procs
+   - plain Tcl procs
    - cmds (with and without parameter definitions)
 - make results of ListMethod() robust against missing
   information (e.g. plain tcl cmds, missing object registrations,
@@ -5254,8 +5251,8 @@ moved block here for keeping arguments
   Given:
 
     nx::Class create Person {
-	:property name
-	:create p1
+        :property name
+        :create p1
     }
 
     Person info configure            says, how object "Person" can be configured
@@ -5368,7 +5365,7 @@ nsf.c:
   DependentSubClasses(). With the new implementation,
   NsfParameterCacheClassInvalidateCmd() is as efficient as before without
   to MostGeneralSuperclass optimization (but being complete now) when
-  working on the root classes (an more efficient on subclasses).
+  working on the root classes (a more efficient on subclasses).
 - added experimental code feature CYCLIC_MIXIN_ERROR
 
 nsf.c:
@@ -5436,7 +5433,7 @@ nsf.c:
 
 nsf.c:
 - define means to protect "undefined" internally-directly called methods
-  __alloc and __dealloc in nx. This is achieved mostly via a an
+  __alloc and __dealloc in nx. This is achieved mostly via an
   additional value in a method declaration in ::nsf::objectsystem::create.
   Example:
     -class.dealloc {__dealloc ::nsf::methods::class::dealloc 1}
@@ -5571,7 +5568,7 @@ build system:
 - Is NsfParamDefs.slotObj obsolete?
 
   Right now, the slot objs responsible for (method) parameters are
-  stored along with each Nsf_Param, and not as a
+  stored along with each Nsf_Param, and not as an
   NsfParamDefs.slotObj. NsfParamDefs.slotObj is not used actively,
   ::nsf::method::property slotobj is dysfunctional (expects extra
   argument, which cannot be provided + control-flow issue CID 88767).
@@ -5739,7 +5736,7 @@ serializer:
 
 - fix potential memory corruption bug in NsfDStringVPrintf()
 
-- replace all remaning ObjectName and ClassName with variant with
+- replace all remaining ObjectName and ClassName with variant with
   trailing "_" when appropriate
 - allow nsf::procs with zero arguments or plain arguments (when
   "-debug" is used
@@ -5751,20 +5748,20 @@ serializer:
   in NsfDStringEval()
 - added results in debug exit calls
 - changed interface of NsfDStringEval to control behavior via bitflags
-  (this is after all more readable than a argument list of "0" and "1"s)
+  (this is after all more readable than an argument list of "0" and "1"s)
 - added optional recursion prevention for functions called via NsfDStringEval
   (handling NSF_EVAL_DEBUG, NSF_EVAL_LOG, NSF_EVAL_DEPRECATED)
 - added regression tests for potential recursive calls
 
-- added flags "-debug" and "-deprecated" to XOTcl 2 "instproc", "proc", 
+- added flags "-debug" and "-deprecated" to XOTcl 2 "instproc", "proc",
   "instforward" and "forward" methods
 
 - turned all for-loops controlled over a nonnull value into while loops
 - updated TODO, copyright notices, version number
 
 - Let nsf create classes with ::nsf::object::unknown handler in the fly, when
-  c-function are called with objects of type class. This is necessary for 
-  triggering creation attempts in ttrace via 
+  c-function are called with objects of type class. This is necessary for
+  triggering creation attempts in ttrace via
       ::nsf::object::alloc SOMECLASS SOMEOBJ
 
 - added Tcl_HashKeyType cmdPtrHashKeyType for command pointers
@@ -5779,7 +5776,7 @@ serializer:
       } while (foo != NULL);
 
     will raise a warning, despite of the fact that foo is overwritten.
-    
+
     This was reported and confirmed as a false positive; to be fixed
     in future gcc6.
 
@@ -5790,14 +5787,14 @@ serializer:
 - Extend regression test
 
 xotcl2:
-- added "-returns" flag to XOTcl's instprocs/procs and methods, 
+- added "-returns" flag to XOTcl's instprocs/procs and methods,
   very similar to "-returns" in nx
 - extended serializer to handle "-returns" flag
 - extended regression test
 
 cmd resolver work
 - fix test, when OS specific cmd resolver is used
-  from a NSF_CSC_CALL_IS_COMPILE frame
+  from an NSF_CSC_CALL_IS_COMPILE frame
 - improved output from __db_show_obj: put results into one line
   instead of multiple lines
 - new debug function __db_get_obj: return into about a tcl_obj in form
@@ -5815,7 +5812,7 @@ remove various code smells:
 - don't pass non-initialized value in an array on index [0]
 - reduce variable scope
 - prefer single returns statements in functions
-- dont't use CONST unless defined by Tcl-API
+- don't't use CONST unless defined by Tcl-API
 
 code generator changes:
 - create enum types instead of enum values for nsf API
@@ -5825,7 +5822,7 @@ code generator changes:
   (print logging messages which have a severity larger equal the then given value;
   so; "nsf::configure debugLevel 0" will print everything, and
   "nsf::configure debugLevel 3" will print just error messages and omit warnings etc.)
-- this is not a change in sematics, but removes some confusion in the code.
+- this is not a change in semantics, but removes some confusion in the code.
   therefore the configure name was not changed
 - Remove occurrences of deprecated Tcl Call Tcl_AppendResult() in overall code
 
@@ -5847,7 +5844,7 @@ code generator changes:
 
 Object new {
     :object method foo {a b c args} { puts --[current method]}
-    {*}[list :foo 1 2 3 4 5 6]; 
+    {*}[list :foo 1 2 3 4 5 6];
     : {*}[list foo 1 2 3 4 5 6];
     catch {:{*}[list foo 1 2 3 4 5 6]} msg; puts msg=$msg
 }
@@ -5861,7 +5858,7 @@ catch {={*}[list foo 1 2 3 4 5 6]} msg; puts msg=$msg
 - make nsf compilable with "-DTCL_NO_DEPRECATED"
 
 - Why is the following warning popping up?
-  
+
   % Object info method parameters configure x*
   Warning: Could not find value checker type=virtualobjectargs defined on ::nx::methodParameterSlot
 
@@ -5872,14 +5869,14 @@ catch {={*}[list foo 1 2 3 4 5 6]} msg; puts msg=$msg
 
 - Added Rosetta example: https://rosettacode.org/wiki/Inheritance/Single
 
-- new subcommand "nsf::current level", returns empty, if we are not on a nsf frame/level.
+- new subcommand "nsf::current level", returns empty, if we are not on an NSF frame/level.
 - improve sanity test in ISOBJ(): obj->bytes might only be NULL when type is given.
 
 - under core-8-5-branch, nxsh yields on exit:
   % exit
   Warning: RefCount for obj 0x7fc98a050890 4 (name ::nx::shell2) > 1
 
-- don't call tcl eval operations from NsfLog() in phyical destroy round
+- don't call Tcl eval operations from NsfLog() in phyical destroy round
 - extend regression test for shell with tests in [info nameofexecutable] rather than in nxhs
 
 - hint:
@@ -5900,7 +5897,7 @@ catch {={*}[list foo 1 2 3 4 5 6]} msg; puts msg=$msg
     that users are confused, if they want to create an instance, but they receive just
     an error message. Mybe on the longer range, we can drop the hint.
     For the time being, I've made the hint even more verbose.
- 
+
 
 - Investigate NsfMethodContext mem-bookkeeping/ possible leak: Turned
   out to be false positives due to Tcl history retaining references
@@ -5909,7 +5906,7 @@ catch {={*}[list foo 1 2 3 4 5 6]} msg; puts msg=$msg
   no way around that. But at least for exit-free scripts in tclshs, we
   should be fine.
 
-  $ tclsh 
+  $ tclsh
   % package req nx; nx::Object new
   ::nsf::__#0
   % exit
@@ -5939,7 +5936,7 @@ TODO:
   all times, and then move upwards as requested:
 
   /obj/ uplevel 1 set x 1
-  
+
   should be equal to
 
   /obj/ uplevel {uplevel 1 set x 1}
@@ -5947,18 +5944,18 @@ TODO:
   It is rather pointless to provide for TclObjGetFrame resolution in
   uplevel/upvar methods, because then this use is just unnecessary
   sugar for using uplevel/ upvar commands directly. However, this
-  would be a change that potentially breaks exisiting client code.
+  would be a change that potentially breaks existing client code.
 
 - add value=isSet as a new VariableSlot method, to wrap around [info exists] and others.
 
 - DTrace: --with-dtrace vs. --enable-dtrace (as in Tcl)? generate
   header file only for distributions, auto-generated otherwise? -G
-  option not supported anymore on Mac OS X (although man dtrace
+  option not supported anymore on macOS (although man dtrace
   maintains references to it?)
 
 - coloncmd reform:
   * memcheck
-  * use free list rather then obj list for freeing NsfColonCmdContext 
+  * use free list rather than obj list for freeing NsfColonCmdContext
     since the Tcl_Obj might be changed
   * maybe merge approach with Tcl obj type nsfInstanceMethod (and nsfObjectMethod)
 
@@ -5970,8 +5967,8 @@ TODO:
   "expected object of type ::C but got "::nsf::__#6" for parameter "s2""
 
   one could report
-  
-  "expected object of type ::C but got "::nsf::__#6" of type ::D (::A ::B ::C ::nx::Object) for parameter "s2""	
+
+  "expected object of type ::C but got "::nsf::__#6" of type ::D (::A ::B ::C ::nx::Object) for parameter "s2""
   Otherwise, the instance name ::nsf::__#6 can be easily confused for
   the (sought) type name.
 
@@ -5986,7 +5983,7 @@ TODO:
 
 % ::nsf::proc x
 required argument 'arguments' is missing, should be:
-	::nsf::proc ?-ad? ?-checkalways? ?-debug? ?-deprecated? /procName/ /arguments/ /body/
+        ::nsf::proc ?-ad? ?-checkalways? ?-debug? ?-deprecated? /procName/ /arguments/ /body/
 % nsf::proc x {-a:integer} -returns alnum {;}
 invalid argument 'alnum', maybe too many arguments; should be "nsf::proc ?-ad? ?-checkalways? ?-debug? ?-deprecated? /procName/ /arguments/ /body/"
 
@@ -6010,18 +6007,18 @@ invalid argument 'alnum', maybe too many arguments; should be "nsf::proc ?-ad? ?
       2.1.0
     % nsf::parseargs a:foo b
       non-existing slot object "::nx::methodParameterSlot"
-    
+
 - Refactor: on the property/variable-creation paths,
   parseParameterSpec is currently called twice. once before
   createFromParameterSpec, once within. This should not be needed.  -
-  
+
   1. extract the parseParameterSpec call out, and pass a parse result
    to createFromParameterSpec?
 
   2. handle all cases requiring the early call to parseParameterSpec
      in createFromParameterSpec?
 
-  My preference is 1. 
+  My preference is 1.
 
 - various on slots:
   * RelationSlot value=delete -nocomplain is dead API.
@@ -6050,7 +6047,7 @@ invalid argument 'alnum', maybe too many arguments; should be "nsf::proc ?-ad? ?
 
   b) change the value=* method generator from hardcoding 'value' to substitute ${:name}, e.g.:
 
-        set vspec [:namedParameterSpec {} ${:name} $options_single] 
+        set vspec [:namedParameterSpec {} ${:name} $options_single]
 
   in any way, this will require changing many test for errorm essages
   in the test suite.
@@ -6077,7 +6074,7 @@ Some background: NextSearchAndInvoke() on a filter next does not check
 for dispatches based on object commands (as ObjectDispatch() *after*
 filter processing), but introducing a:
 
- if (cmd != NULL && CmdIsNsfObject(cmd)) { /* ... */ cmd = NULL; } 
+ if (cmd != NULL && CmdIsNsfObject(cmd)) { /* ... */ cmd = NULL; }
 
 leads to unwanted interactions with ensemble objects/methods.
 
@@ -6177,7 +6174,7 @@ Stefan: doc items
 - MixinComputeOrderFullList() could receive a flag to store
   source classes in checkList
 
-- if the check on eg. info-heritage-circular in test/info.method.tcl
+- if the check on e.g. info-heritage-circular in test/info.method.tcl
   reports a warning on exit, if we get an exception.
 
 - what to do with metadata analyzer?
@@ -6266,7 +6263,7 @@ Stefan: doc items
 
     * NextScriptingLanguage/index.html: glossary entries in nsf.nxd
       should be sorted (in the source) ...... Maybe, a single glossary.nxd
-      file?  SS: Right now, the name of the nxd file derives from the the
+      file?  SS: Right now, the name of the nxd file derives from the
       script name. I mark this as TODO for the future.
 
     * doc/langRef2.xotcl vs library/xotcl/doc/langRef.xotcl
@@ -6280,7 +6277,7 @@ Stefan: doc items
 - nsf::proc
    * check, if there are parameter types that should not be applicable
      for nsf::proc
-   * toplevel (object less) introspection
+   * top-level (object less) introspection
 
 - documentation
    * migration guide
@@ -6474,7 +6471,7 @@ For future releases (after first alpha/beta release)
      - extend coro regression test
      - coro-enable nsf::proc
 
-  * reenable/translate deleted XOTcl demo scripts, such as
+  * re-enable/translate deleted XOTcl demo scripts, such as
     e.g. those from library/xotcl/apps/scripts
 
 
