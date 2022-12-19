@@ -357,8 +357,8 @@ nx::test case converting-returns {
 
 }
 
-::nx::test case int-returns-string-checks {
-  ::nx::Class create TestOK {
+::nx::test case returns-string-checks {
+  ::nx::Class create C {
     #
     # strings test with "string is alpha" checker
     #
@@ -385,6 +385,38 @@ nx::test case converting-returns {
   ? {a get6} {expected integer but got "a" as return value}
   ? {a get7} {1 2 3}
   ? {a get8} {invalid value in "1 2 a": expected integer but got "a" as return value}
+
+
+  nsf::proc ::foo1 {-a:integer} {return ok}
+  ? ::foo1 "ok"
+
+  nsf::proc ::foo2 {-a:integer} -returns integer {return ok}
+  ? ::foo2 {expected integer but got "ok" as return value}
+
+  nsf::proc ::foo2b {-a:integer} -returns boolean {return ok}
+  ? ::foo2b {expected boolean but got "ok" as return value}
+
+  nsf::proc ::foo3 {-a:integer} -returns integer {return 1}
+  ? ::foo3 1
+
+  nsf::proc ::foo4 {-a:integer} -returns alpha {return 1}
+  ? ::foo4 {expected alpha but got "1" as return value}
+
+  nsf::proc ::foo5 {-a:integer} -returns alpha {return abc}
+  ? ::foo5 abc
+
+  nsf::proc ::foo6 {-a:integer} -returns alpha,1..n {return {a b c}}
+  ? ::foo6 {a b c}
+
+  nsf::proc ::foo7 {-a:integer} -returns alpha,1..n {return {a 2 c}}
+  ? ::foo7 {invalid value in "a 2 c": expected alpha but got "2" as return value}
+
+  nsf::proc ::foo8 {-a:integer} -returns integer,1..n {return {1 2}}
+  ? ::foo8 {1 2}
+
+  nsf::proc ::foo9 {-a:integer} -returns integer,1..n {return {a 2 c}}
+  ? ::foo9 {invalid value in "a 2 c": expected integer but got "a" as return value}
+
 }
 
 

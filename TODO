@@ -5979,14 +5979,6 @@ TODO:
   in most cases.  And we gain a more unified interface (stripping away
   one unique path to Param* machinery)?
 
-- nsf::proc should also have a -returns option, right?
-
-% ::nsf::proc x
-required argument 'arguments' is missing, should be:
-        ::nsf::proc ?-ad? ?-checkalways? ?-debug? ?-deprecated? /procName/ /arguments/ /body/
-% nsf::proc x {-a:integer} -returns alnum {;}
-invalid argument 'alnum', maybe too many arguments; should be "nsf::proc ?-ad? ?-checkalways? ?-debug? ?-deprecated? /procName/ /arguments/ /body/"
-
 - nsf::parseargs would need some more love:
   * what is the intended behavior, in these edge cases?
 

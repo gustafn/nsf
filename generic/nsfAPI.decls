@@ -301,6 +301,7 @@ cmd proc NsfProcCmd {
   {-argName "-deprecated"  -required 0 -nrargs 0 -type switch}
   {-argName "procName"     -required 1 -type tclobj}
   {-argName "arguments"    -required 1 -type tclobj}
+  {-argName "-returns"     -required 0 -type tclobj}
   {-argName "body"         -required 1 -type tclobj}
 } {-nxdoc 1}
 

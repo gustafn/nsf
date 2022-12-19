@@ -12855,6 +12855,48 @@ ParamDefsGetReturns(const Tcl_Command cmdPtr) {
   return resultObj;
 }
 
+/*----------------------------------------------------------------------
+ * ParamDefsSetReturns --
+ *
+ *      Set the "returns" value in a NsfProcContext.  If the member is already
+ *      in use, release the old value first.
+ *
+ * Results:
+ *      None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+NSF_INLINE static void ParamDefsSetReturns(
+    Tcl_Command cmdPtr, Tcl_Obj *returnsObj
+) nonnull(1);
+
+NSF_INLINE static void
+ParamDefsSetReturns(Tcl_Command cmd, Tcl_Obj *returnsObj) {
+  NsfProcContext *pCtx;
+  const char     *valueString;
+
+  nonnull_assert(cmd != NULL);
+
+  pCtx = ProcContextRequire(cmd);
+  valueString = returnsObj != NULL ? Tcl_GetString(returnsObj) : NULL;
+
+  if (pCtx->returnsObj != NULL) {
+    DECR_REF_COUNT2("returnsObj", pCtx->returnsObj);
+  }
+  if (valueString == NULL || *valueString == '\0') {
+    /*
+     * Set returnsObj to NULL
+     */
+    pCtx->returnsObj = NULL;
+  } else {
+    pCtx->returnsObj = returnsObj;
+    INCR_REF_COUNT2("returnsObj", pCtx->returnsObj);
+  }
+}
+
 
 /*----------------------------------------------------------------------
  * NsfParamDefsNonposLookup --
@@ -14088,6 +14130,7 @@ static int
 ProcDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
   ParseContext *pcPtr;
   Tcl_Time     *ttPtr;
+  Tcl_Command   wrapperCmd;
 
   nonnull_assert(data != NULL);
   nonnull_assert(interp != NULL);
@@ -14097,6 +14140,32 @@ ProcDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
 
   pcPtr = data[1];
   ttPtr = data[2];
+  assert(pcPtr != NULL);
+
+  /*
+   * Hacking alert: We have just 4 data arguments in Tcl_NRAddCallback for the
+   * finalize context. Since we do not want to allocate/manage additional
+   * structures for finalize data, and the pcPtr->object member is unused for
+   * nsfProcs, we reuse the pcPtr->object member for the wrapperCmd.
+   */
+
+  wrapperCmd = (Tcl_Command)pcPtr->object;
+
+  if ((result == TCL_OK) && (Tcl_Command_cmdEpoch(wrapperCmd) == 0)) {
+    Tcl_Obj *returnsObj = ParamDefsGetReturns(wrapperCmd);
+
+    if (returnsObj != NULL) {
+      Tcl_Obj         *valueObj = Tcl_GetObjResult(interp);
+      NsfRuntimeState *rst = RUNTIME_STATE(interp);
+
+      Tcl_IncrRefCount(returnsObj);
+      result = ParameterCheck(interp, returnsObj, valueObj, "return-value:",
+                              rst->doCheckResults, NSF_FALSE, NSF_FALSE, NULL,
+                              NULL);
+      Tcl_DecrRefCount(returnsObj);
+    }
+  }
+
 
   if (ttPtr != NULL) {
     const char      *methodName = data[0];
@@ -16990,7 +17059,7 @@ Nsf_ConvertToInteger(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr
   nonnull_assert(clientData != NULL);
 
   /*
-   * Try to short_cut common cases to avoid conversion to bignums, since
+   * Short-cut common cases to avoid conversion to bignums, since
    * Tcl_GetBignumFromObj returns a value, which has to be freed.
    */
   if (objPtr->typePtr == Nsf_OT_intType || objPtr->typePtr == Nsf_OT_bignumType) {
@@ -16998,9 +17067,10 @@ Nsf_ConvertToInteger(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr
      * We know already that the value is an int
      */
     result = TCL_OK;
-  } else if (objPtr->typePtr == Nsf_OT_doubleType) {
+
+  } else if ((objPtr->typePtr == NULL && objPtr->length < 1) || (objPtr->typePtr == Nsf_OT_doubleType)) {
     /*
-     * We know already that the value is not an int
+     * We know that the value is not an integer
      */
     result = TCL_ERROR;
   } else {
@@ -17016,7 +17086,7 @@ Nsf_ConvertToInteger(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr
 
     /*if (objPtr->typePtr != NULL) {
       fprintf(stderr, "### type is on call %p %s value %s \n",
-              objPtr->typePtr, ObjTypeStr(objPtr), ObjStr(objPtr));
+              (void*)objPtr->typePtr, ObjTypeStr(objPtr), ObjStr(objPtr));
               }*/
 
     if ((result = Tcl_GetLongFromObj(interp, objPtr, &longValue)) == TCL_OK) {
@@ -19192,7 +19262,7 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj,
 
   fullMethodName = ObjStr(procNameObj);
   CheckCStack(interp, "nsfProc", fullMethodName);
-  /* fprintf(stderr, "=== InvokeShadowedProc %s objc %d\n", fullMethodName, objc); */
+  /* fprintf(stderr, "=== InvokeShadowedProc %s objc %d cmd %p\n", fullMethodName, objc, (void*)cmd); */
 
   /*
    * The code below is derived from the scripted method dispatch and just
@@ -19210,7 +19280,9 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj,
                           fullMethodName);
   }
   if (unlikely(result != TCL_OK)) {
-    /* todo: really? error msg? */
+    /*
+     * The error message is assumed to be provided by the called cmd
+     */
     return result;
   }
 
@@ -19241,10 +19313,11 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj,
      ObjStr(objv[0]), fullMethodName, procNameObj, ObjStr(procNameObj)); */
 
   Tcl_NRAddCallback(interp, ProcDispatchFinalize,
-                    (ClientData)fullMethodName, pcPtr,
+                    (ClientData)fullMethodName,
+                    pcPtr,
                     (ClientData)ttPtr,
                     (ClientData)UINT2PTR(cmdFlags)
-                    );
+                   );
   result = TclNRInterpProcCore(interp, procNameObj, 1, &MakeProcError);
 #else
   {
@@ -19381,8 +19454,17 @@ NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const 
       NsfDeprecatedCmd(interp, "proc", ObjStr(objv[0]), "");
     }
 
+  /*
+   * Hacking alert: We have just 4 data arguments in Tcl_NRAddCallback for the
+   * finalize context. Since we do not want to allocate/manage additional
+   * structures for finalize data, and the pcPtr->object member is unused for
+   * nsfProcs, we reuse the pcPtr->object member for the wrapperCmd.
+   */
+    pcPtr->object = (NsfObject *)tcd->wrapperCmd;
+
     result = InvokeShadowedProc(interp, tcd->procName, tcd->cmd, pcPtr, &trt,
                                 cmdFlags, Tcl_Command_nsPtr(cmd));
+
 
   } else {
     /*
@@ -19421,13 +19503,13 @@ NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const 
  *----------------------------------------------------------------------
  */
 static int NsfProcAdd(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
-                      const char *procName, Tcl_Obj *body,
+                      const char *procName, Tcl_Obj *returnsObj, Tcl_Obj *body,
                       int with_ad, int with_checkAlways, int with_Debug, int with_Deprecated)
-  nonnull(1) nonnull(2) nonnull(3) nonnull(4);
+  nonnull(1) nonnull(2) nonnull(3) nonnull(5);
 
 static int
 NsfProcAdd(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
-           const char *procName, Tcl_Obj *body,
+           const char *procName, Tcl_Obj *returnsObj, Tcl_Obj *body,
            int with_ad, int with_checkAlways, int with_Debug, int with_Deprecated) {
   NsfParamDefs      *paramDefs;
   NsfProcClientData *tcd;
@@ -19482,6 +19564,10 @@ NsfProcAdd(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
   paramDefs = parsedParamPtr->paramDefs;
   ParamDefsStore(cmd, paramDefs, checkAlwaysFlag, NULL);
 
+  if (returnsObj != NULL) {
+    ParamDefsSetReturns(cmd, returnsObj);
+  }
+
   /*fprintf(stderr, "NsfProcAdd procName '%s' define cmd '%s' %p in namespace %s\n",
     procName, Tcl_GetCommandName(interp, cmd), cmd, cmdNsPtr->fullName);*/
 
@@ -19521,7 +19607,7 @@ NsfProcAdd(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
   tcd->flags = (checkAlwaysFlag != 0u ? NSF_PROC_FLAG_CHECK_ALWAYS : 0u) | (with_ad != 0 ? NSF_PROC_FLAG_AD : 0u);
   tcd->cmd = NULL;
   tcd->wrapperCmd = cmd;  /* TODO should we preserve? */
-  tcd->interp = interp; /* for deleting the shadowed proc */
+  tcd->interp = interp;   /* For deleting the shadowed proc */
 
   /*fprintf(stderr, "NsfProcAdd %s tcd %p paramdefs %p\n",
     ObjStr(procNameObj), tcd, tcd->paramDefs);*/
@@ -24506,6 +24592,7 @@ ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, const struct Nsf_Param *pPtr,
     }
   } else {
     assert(objPtr == *outObjPtr);
+
     if ((pPtr->flags & NSF_ARG_ALLOW_EMPTY) != 0u && *(ObjStr(objPtr)) == '\0') {
       result = Nsf_ConvertToString(interp, objPtr, pPtr, clientData, outObjPtr);
     } else {
@@ -24515,7 +24602,7 @@ ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, const struct Nsf_Param *pPtr,
     /*fprintf(stderr, "ArgumentCheck param %s type %s is converter %d flags %.6x "
             "outObj changed %d (%p %p) isok %d\n",
             pPtr->name, pPtr->type, pPtr->flags & NSF_ARG_IS_CONVERTER, pPtr->flags,
-            objPtr != *outObjPtr, objPtr, *outObjPtr, result == TCL_OK);*/
+            objPtr != *outObjPtr, (void*)objPtr, (void*)*outObjPtr, result == TCL_OK);*/
 
     if (unlikely((pPtr->flags & NSF_ARG_IS_CONVERTER) != 0u) && objPtr != *outObjPtr) {
       *flags |= NSF_PC_MUST_DECR;
@@ -26325,6 +26412,9 @@ ListMethod(Tcl_Interp *interp,
                                                   Tcl_DStringLength(dsPtr)));
         ListCmdParams(interp, cmd, NULL, NULL, Tcl_DStringValue(dsPtr), NSF_PARAMS_PARAMETER);
         Tcl_ListObjAppendElement(interp, resultObj, Tcl_GetObjResult(interp));
+
+        AppendReturnsClause(interp, resultObj, cmd);
+
         ListProcBody(interp, tProcPtr);
         Tcl_ListObjAppendElement(interp, resultObj, Tcl_GetObjResult(interp));
         Tcl_SetObjResult(interp, resultObj);
@@ -29638,27 +29728,7 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
         /*
          * Set the value of "returns".
          */
-        const char *valueString = ObjStr(valueObj);
-
-        if (pCtx == NULL) {
-          pCtx = ProcContextRequire(cmd);
-        }
-
-        /*
-         * Set a new value; if there is already a value, free it.
-         */
-        if (pCtx->returnsObj != NULL) {
-          DECR_REF_COUNT2("returnsObj", pCtx->returnsObj);
-        }
-        if (*valueString == '\0') {
-          /*
-           * Set returnsObj to NULL
-           */
-          pCtx->returnsObj = NULL;
-        } else {
-          pCtx->returnsObj = valueObj;
-          INCR_REF_COUNT2("returnsObj", pCtx->returnsObj);
-        }
+        ParamDefsSetReturns(cmd, valueObj);
       }
     }
     break;
@@ -30706,12 +30776,13 @@ cmd proc NsfProcCmd {
   {-argName "-deprecated"  -required 0 -nrargs 0 -type switch}
   {-argName "procName"     -required 1 -type tclobj}
   {-argName "arguments"    -required 1 -type tclobj}
+  {-argName "-returns"     -required 0 -type tclobj}
   {-argName "body"         -required 1 -type tclobj}
 }
 */
 static int
 NsfProcCmd(Tcl_Interp *interp, int withAd, int withCheckalways, int withDebug, int withDeprecated,
-           Tcl_Obj *procNameObj, Tcl_Obj *argumentsObj, Tcl_Obj *bodyObj) {
+           Tcl_Obj *procNameObj, Tcl_Obj *argumentsObj, Tcl_Obj *returnsObj, Tcl_Obj *bodyObj) {
   NsfParsedParam parsedParam;
   int result;
 
@@ -30731,13 +30802,17 @@ NsfProcCmd(Tcl_Interp *interp, int withAd, int withCheckalways, int withDebug, i
     return result;
   }
 
-  if (parsedParam.paramDefs != NULL || withDebug != 0 || withDeprecated != 0) {
+  if (parsedParam.paramDefs != NULL
+      || withDebug != 0
+      || withDeprecated != 0
+      || returnsObj != NULL
+     ) {
     /*
      * We need parameter handling. In such cases, a thin C-based layer
      * is added which handles the parameter passing and calls the proc
      * later.
      */
-    result = NsfProcAdd(interp, &parsedParam, ObjStr(procNameObj), bodyObj,
+    result = NsfProcAdd(interp, &parsedParam, ObjStr(procNameObj), returnsObj, bodyObj,
                         withAd, withCheckalways, withDebug, withDeprecated);
 
   } else {
@@ -31893,9 +31968,10 @@ GetObjectParameterDefinition(
  *      doCheckArguments is true. This function is used e.g. by nsf::is,
  *      where only the right-hand side of a parameter specification
  *      (after the colon) is specified. The argument Name (before the
- *      colon in a parameter spec) is provided via argNamePrefix. The
- *      converted parameter structure is returned optionally via the
- *      last argument.
+ *      colon in a parameter spec) is provided via argNamePrefix.
+ *
+ *      The converted parameter structure is returned optionally via the last
+ *      argument.
  *
  * Results:
  *      A standard Tcl result and parsed structure in last argument.
@@ -31924,8 +32000,8 @@ ParameterCheck(
   nonnull_assert(paramObjPtr != NULL);
   nonnull_assert(valueObj != NULL);
 
-  /* fprintf(stderr, "ParameterCheck %s value %p %s\n",
-     ObjStr(paramObjPtr), valueObj, ObjStr(valueObj)); */
+  /*fprintf(stderr, "ParameterCheck %s value %p %s refCount %d\n",
+    ObjStr(paramObjPtr), (void*)valueObj, ObjStr(valueObj),  valueObj->refCount); */
 
   if (paramObjPtr->typePtr == &paramObjType) {
     paramWrapperPtr = (NsfParamWrapper *) paramObjPtr->internalRep.twoPtrValue.ptr1;

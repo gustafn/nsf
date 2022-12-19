@@ -158,7 +158,7 @@ nx::test case nsf-method-get-variants {
   ? {bar a b} "a-b"
 
   #
-  # redefine bar with debug flag
+  # redefine "bar" with debug flag
   #
   nsf::proc -debug bar {a b} {return $a-$b}
   set ::handle ::bar
@@ -181,27 +181,26 @@ nx::test case nsf-method-get-variants {
   ? {bar a b} "a-b"
 
   #
-  # Define a proc with zero arguments
+  # redefine "foo" with "-returns" checker.
   #
-  nsf::proc -debug zero {} {return 333}
-  set ::handle ::zero
+  nsf::proc ::foo {{-x 1} y:optional} -returns integer {return $y}
 
-  ? {nsf::cmd::info args $::handle} ""
-  ? {nsf::cmd::info body $::handle} {return 333}
-  ? {nsf::cmd::info definition $::handle} {::nsf::proc -debug ::zero {} {return 333}}
+  set ::handle ::foo
+
+  ? {nsf::cmd::info args $::handle} "x y"
+  ? {nsf::cmd::info body $::handle} {return $y}
+  ? {nsf::cmd::info definition $::handle} {::nsf::proc ::foo {{-x 1} y:optional} -returns integer {return $y}}
   ? {nsf::cmd::info exists $::handle} 1
   ? {nsf::cmd::info registrationhandle $::handle} ""
   ? {nsf::cmd::info definitionhandle $::handle} ""
   ? {nsf::cmd::info origin $::handle} ""
-  ? {nsf::cmd::info parameter $::handle} ""
-  ? {nsf::cmd::info syntax $::handle} {}
+  ? {nsf::cmd::info parameter $::handle} "{-x 1} y:optional"
+  ? {nsf::cmd::info syntax $::handle} {?-x /value/? ?/y/?}
   ? {nsf::cmd::info type $::handle} "nsfproc"
   ? {nsf::cmd::info precondition $::handle} ""
   ? {nsf::cmd::info postcondition $::handle} ""
   ? {nsf::cmd::info submethods $::handle} ""
-  ? {nsf::cmd::info returns $::handle} ""
-  ? {nsf::method::property ::nx::Object $handle debug 1} 1
-  ? {zero} "333"
+  ? {nsf::cmd::info returns $::handle} "integer"
 
   #
   # A Tcl cmd implemented in C
@@ -293,7 +292,7 @@ nx::test case nsf-method-property {
       {expected object but got "::TestMe" for parameter "object"}
 
   nx::Class create ::TestMe
-  
+
   ? {::nsf::method::property ::TestMe -per-object missing call-protected true} \
       {cannot lookup object method 'missing' for ::TestMe}
   ? {::nsf::method::property ::TestMe missing call-protected true} \
@@ -526,7 +525,7 @@ nx::test case nsf-proc-rename-delete {
   } else {
     ? {::ns1::foo -x ok} {invalid command name "::ns1::foo"}
   }
-  
+
   nsf::proc ::ns1::foo {
     {-x:required}
   } { return 1-$x }
@@ -549,7 +548,7 @@ nx::test case nsf-proc-rename-delete {
   } else {
     ? {::ns1::foo -x ok} {invalid command name "::ns1::foo"}
   }
-  
+
   namespace eval ::ns1 {}
 }
 
@@ -559,13 +558,13 @@ nx::test case nsf-proc-ns-delete {
   ? {info commands ::nsf::procs::ns1::foo} ""
   ? {info procs ::ns1::foo} ""
   ? {info procs ::nsf::procs::ns1::foo} ""
-  
+
   if {${::tcl86}} {
     ? {::ns1::foo -x ok} {TCL LOOKUP COMMAND ::ns1::foo} {invalid command name "::ns1::foo"}
   } else {
     ? {::ns1::foo -x ok} {invalid command name "::ns1::foo"}
   }
-  
+
   nsf::proc ::ns1::foo {
     {-x:required}
   } { return 1-$x }
@@ -573,33 +572,33 @@ nx::test case nsf-proc-ns-delete {
   ? {info commands ::nsf::procs::ns1::foo} "::nsf::procs::ns1::foo"
   ? {info procs ::ns1::foo} ""
   ? {info procs ::nsf::procs::ns1::foo} "::nsf::procs::ns1::foo"
-  
+
   ? {::ns1::foo -x ok} "1-ok"
-  
+
   namespace delete ::ns1
-  
+
   ? {info commands ::ns1::foo} ""
   ? {info commands ::nsf::procs::ns1::foo} ""
   ? {info procs ::ns1::foo} ""
   ? {info procs ::nsf::procs::ns1::foo} ""
-  
+
   if {${::tcl86}} {
     ? {::ns1::foo -x ok} {TCL LOOKUP COMMAND ::ns1::foo} {invalid command name "::ns1::foo"}
   } else {
     ? {::ns1::foo -x ok} {invalid command name "::ns1::foo"}
   }
-  
+
 }
 
 nx::test case nsf-proc-rename-redefine {
   namespace eval ::ns1 {}
-  
+
   nsf::proc ns1::foo {
     {-x:required}
   } { return 1-$x }
 
   ? {ns1::foo -x ok} 1-ok
-  
+
   rename ns1::foo ns1::foo.orig
 
   nsf::proc ns1::foo {
@@ -613,13 +612,13 @@ nx::test case nsf-proc-rename-redefine {
 
 nx::test case nsf-proc-rename-redefine-call {
   namespace eval ::ns1 {}
-  
+
   nsf::proc ns1::foo {
     {-x:required}
   } { return 1-$x }
 
   ? {ns1::foo -x ok} 1-ok
-  
+
   rename ns1::foo ns1::foo.orig
 
   nsf::proc ns1::foo {
@@ -645,7 +644,7 @@ nx::test case nsf-proc-backstage-rename {
   } else {
     ? {::ns1::foo -x ok} {invalid command name "::ns1::foo"}
   }
-  
+
   nsf::proc ::ns1::foo {
     {-x:required}
   } { return 1-$x }
@@ -677,7 +676,7 @@ nx::test case nsf-proc-backstage-rename {
   } else {
     ? {::ns1::foo -x ok} {invalid command name "::ns1::foo"}
   }
-  
+
   namespace eval ::ns1 {}
 }
 
@@ -693,7 +692,7 @@ nx::test case nsf-proc-backstage-rename-2 {
   } else {
     ? {::ns1::foo -x ok} {invalid command name "::ns1::foo"}
   }
-  
+
   nsf::proc ::ns1::foo {
     {-x:required}
   } { return 1-$x }
@@ -711,7 +710,7 @@ nx::test case nsf-proc-backstage-rename-2 {
   ? {info commands ::nsf::procs::ns1::foo} "::nsf::procs::ns1::foo"
   ? {info procs ::ns1::foo} ""
   ? {info procs ::nsf::procs::ns1::foo} ""
-  
+
   ? {::ns1::foo -x ok} \
       {command '::nsf::procs::ns1::foo' is not a proc}
 
@@ -728,7 +727,7 @@ nx::test case nsf-proc-backstage-rename-2 {
   } else {
     ? {::ns1::foo -x ok} {invalid command name "::ns1::foo"}
   }
-  
+
   namespace eval ::ns1 {}
   rename ::nsf::procs::ns1::foo ""
 }
@@ -737,12 +736,12 @@ nx::test case nsf-proc-preexisting {
   namespace eval ::ns1 {}
   ? {info commands ::ns1::foo} ""
   ? {info commands ::nsf::procs::ns1::foo} ""
- 
+
   proc ::nsf::procs::ns1::foo {x} { return 0-$x}
 
   ? {info commands ::ns1::foo} ""
   ? {info commands ::nsf::procs::ns1::foo} "::nsf::procs::ns1::foo"
- 
+
   ? {nsf::proc ::ns1::foo {
     {-x:required}
   } { return 1-$x }} ""
@@ -756,12 +755,12 @@ nx::test case nsf-proc-preexisting-rename {
   namespace eval ::ns1 {}
   ? {info commands ::ns1::foo} ""
   ? {info commands ::nsf::procs::ns1::foo} ""
- 
+
   proc ::nsf::procs::ns1::foo.orig {x} { return 0-$x}
 
   ? {info commands ::ns1::foo.orig} ""
   ? {info commands ::nsf::procs::ns1::foo.orig} "::nsf::procs::ns1::foo.orig"
- 
+
   ? {nsf::proc ::ns1::foo {
     {-x:required}
   } { return 1-$x }} ""
@@ -773,7 +772,7 @@ nx::test case nsf-proc-preexisting-rename {
   } else {
     ? {rename ns1::foo ns1::foo.orig} {can't rename to "::nsf::procs::ns1::foo.orig": command already exists}
   }
-  
+
 
   namespace delete ::ns1
 }

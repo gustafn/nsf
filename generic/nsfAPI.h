@@ -793,8 +793,8 @@ static int NsfParameterSpecsCmd(Tcl_Interp *interp, int withConfigure, int withN
   NSF_nonnull(1) NSF_nonnull(4);
 static int NsfParseArgsCmd(Tcl_Interp *interp, int withAsdict, Tcl_Obj *argspecObj, Tcl_Obj *arglistObj)
   NSF_nonnull(1) NSF_nonnull(3) NSF_nonnull(4);
-static int NsfProcCmd(Tcl_Interp *interp, int withAd, int withCheckalways, int withDebug, int withDeprecated, Tcl_Obj *procNameObj, Tcl_Obj *argumentsObj, Tcl_Obj *bodyObj)
-  NSF_nonnull(1) NSF_nonnull(6) NSF_nonnull(7) NSF_nonnull(8);
+static int NsfProcCmd(Tcl_Interp *interp, int withAd, int withCheckalways, int withDebug, int withDeprecated, Tcl_Obj *procNameObj, Tcl_Obj *argumentsObj, Tcl_Obj *returnsObj, Tcl_Obj *bodyObj)
+  NSF_nonnull(1) NSF_nonnull(6) NSF_nonnull(7) NSF_nonnull(9);
 static int NsfProfileClearDataStub(Tcl_Interp *interp)
   NSF_nonnull(1);
 static int NsfProfileGetDataStub(Tcl_Interp *interp)
@@ -2616,10 +2616,11 @@ NsfProcCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *con
     int withDeprecated = (int )PTR2INT(pc.clientData[3]);
     Tcl_Obj *procNameObj = (Tcl_Obj *)pc.clientData[4];
     Tcl_Obj *argumentsObj = (Tcl_Obj *)pc.clientData[5];
-    Tcl_Obj *bodyObj = (Tcl_Obj *)pc.clientData[6];
+    Tcl_Obj *returnsObj = (Tcl_Obj *)pc.clientData[6];
+    Tcl_Obj *bodyObj = (Tcl_Obj *)pc.clientData[7];
 
     assert(pc.status == 0);
-    return NsfProcCmd(interp, withAd, withCheckalways, withDebug, withDeprecated, procNameObj, argumentsObj, bodyObj);
+    return NsfProcCmd(interp, withAd, withCheckalways, withDebug, withDeprecated, procNameObj, argumentsObj, returnsObj, bodyObj);
 
   } else {
     
@@ -4177,13 +4178,14 @@ static Nsf_methodDefinition method_definitions[121] = {
   {"argspec", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"arglist", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
-{"::nsf::proc", NsfProcCmdStub, 7, {
+{"::nsf::proc", NsfProcCmdStub, 8, {
   {"-ad", 0, 0, Nsf_ConvertTo_Boolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
   {"-checkalways", 0, 0, Nsf_ConvertTo_Boolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
   {"-debug", 0, 0, Nsf_ConvertTo_Boolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
   {"-deprecated", 0, 0, Nsf_ConvertTo_Boolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
   {"procName", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"arguments", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-returns", 0, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"body", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::__profile_clear", NsfProfileClearDataStubStub, 0, {
