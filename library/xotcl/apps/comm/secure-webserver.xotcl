@@ -6,7 +6,7 @@ package require XOTcl 2.0; namespace import -force xotcl::*
     This small secure web server that provides its documents
     via SSL (https, port 8443) and plain http (port 8086).
     <br>
-    This file requires TLS. If you experice problems with 
+    This file requires TLS. If you experience problems with 
     versions obtained from the Web, contact gustaf.neumann@wu-wien.ac.at
     for a patch.
   }

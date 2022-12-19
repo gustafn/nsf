@@ -67,7 +67,7 @@ nx::Class create D {
   :public method foox {} [string map [list bar :bar] [info body ::foox]]
   :public method foon {} [string map [list bar :bar] [info body ::foon]]
   #
-  # call volatile in tcl proc bar
+  # call volatile in Tcl proc bar
   #
   :public method foox2 {} [info body ::foox]
   :public method foon2 {} [info body ::foon]
@@ -85,7 +85,7 @@ nx::test case methods-procs {
 }
 
 #
-# Call just in tcl procs
+# Call just in Tcl procs
 #
 nx::test case procs-procs {
   ::foox

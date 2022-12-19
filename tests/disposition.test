@@ -124,7 +124,7 @@ nx::test case basics {
       [list X Y]
 
   #
-  # Passing multiple arguments as a list, passed to a args argument
+  # Passing multiple arguments as a list, passed to an args argument
   # list.
   #
   C setObjectParams {{-multi-args:alias}}

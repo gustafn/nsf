@@ -1421,7 +1421,7 @@ nx::test case uplevel+interceptor-transparency {
 nx::test case uplevel+tcl-transparency {
   #
   # A real-world case from OpenACS + from the database abstraction
-  # layer. Frequently, nsf based methods are called from tcl procs
+  # layer. Frequently, nsf based methods are called from Tcl procs
   # (and tcl-upleveled code). In order to preserve interceptor
   # transparency (i.e. to be able to use a mixin on the tcl-called nsf
   # method), the uplevel method has to behave like tcl-uplevel when the
@@ -1548,11 +1548,11 @@ nx::test case eval-next {
 #   Setup 2: when filters are used
 #   Setup 3: when filters + guards are used
 #
-# Forall setups, we test on the tclsh toplevel and from a proc.
+# Forall setups, we test on the tclsh top-level and from a proc.
 #
 
 nx::test configure -count 1
-nx::test case callinglevel-toplevel-setup1
+nx::test case callinglevel-top-level-setup1
 
 nx::Class create AbstractFile {
   :public method filterCall {args} {
@@ -1587,7 +1587,7 @@ proc foo {} {
 #
 # Setup 2 (with filter)
 #
-nx::test case callinglevel-toplevel-setup2
+nx::test case callinglevel-top-level-setup2
 
 AbstractFile filters add filterCall
 
@@ -1599,7 +1599,7 @@ array unset a1
 #
 # Setup 3 (with filter and guard)
 #
-nx::test case callinglevel-toplevel-setup3
+nx::test case callinglevel-top-level-setup3
 
 AbstractFile filters guard filterCall { [current calledproc] eq "lstat" }
 

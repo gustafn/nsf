@@ -12858,7 +12858,7 @@ ParamDefsGetReturns(const Tcl_Command cmdPtr) {
 /*----------------------------------------------------------------------
  * ParamDefsSetReturns --
  *
- *      Set the "returns" value in a NsfProcContext.  If the member is already
+ *      Set the "returns" value in an NsfProcContext.  If the member is already
  *      in use, release the old value first.
  *
  * Results:
@@ -15734,7 +15734,7 @@ ObjectDispatch(
       && ccCtxPtr->cmd != NULL
       && CmdIsProc(ccCtxPtr->cmd)) {
 
-    /* fprintf(stderr, "cached scipted call %s (object %s class %s) cmd %p (proc %p) cmdName %s \n",
+    /* fprintf(stderr, "cached scripted call %s (object %s class %s) cmd %p (proc %p) cmdName %s \n",
        methodName, ObjectName(object), ClassName(object->cl), ccCtxPtr->cmd, Tcl_Command_objClientData(ccCtxPtr->cmd), Tcl_GetCommandName(interp, ccCtxPtr->cmd));*/
 
     Proc *procPtr = Tcl_Command_objClientData(ccCtxPtr->cmd);

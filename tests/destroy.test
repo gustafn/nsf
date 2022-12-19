@@ -149,7 +149,7 @@ c1 foo
 ? "set ::ObjectDestroy" 0 "ObjectDestroy called"
 
 #
-# cmd rename other xotcl object to current, 
+# cmd rename other XOTcl object to current, 
 # xotcl's rename invokes a move 
 #
 set case "cmd rename object to current"
@@ -280,7 +280,7 @@ test::c1 foo
 
 ? {::nsf::object::exists test::c1} 0  "$::case object still exists after proc"
 ? "set ::firstDestroy" 1 "firstDestroy called"
-? "set ::ObjectDestroy" 0 "ObjectDestroy called"  ;# toplevel destroy was blocked
+? "set ::ObjectDestroy" 0 "ObjectDestroy called"  ;# top-level destroy was blocked
 
 #
 # controlled namespace delete: xotcl has its own namespace cleanup,
@@ -733,10 +733,10 @@ nx::test case destroy-during-init {
 
 nx::test case nested-ordered-composite {
   # The following test case an explicit deletion/redefinition of an
-  # toplevel object (o1) will cause the implicit deletion of a nested
+  # top-level object (o1) will cause the implicit deletion of a nested
   # object o1::o2. The object o2 has as well several included objects,
   # containing an "ordered composite". The deletion of the ordered
-  # compostite causes the (explicit) deletion of its siblings (all
+  # composite causes the (explicit) deletion of its siblings (all
   # children of o1::o2). This is actually a stress test for the deletion
   # of o2's namespace, since the loop over its children will be
   # confronted with the deletion of indirectly deleted items (deleted by

@@ -30,12 +30,12 @@ namespace eval ::xotcl::trace {
       write to trace stream.
     }
   }
-  @ Trace proc openTraceFile {name "file name"} {
+  @ Trace proc openTraceFile {name "filename"} {
     Description {
       Redirect trace output to file.
     }
   }
-  @ Trace proc closeTraceFile {name "file name"} {
+  @ Trace proc closeTraceFile {name "filename"} {
     Description {
       Close trace  file and redirect output to stderr.
     }

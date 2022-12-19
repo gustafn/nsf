@@ -37,7 +37,7 @@ package require nx::test
     set class [self class]
   }
   
-  # When creating an instance of the xotcl class "xowiki::Link", the
+  # When creating an instance of the XOTcl class "xowiki::Link", the
   # constructor "init" is compiled. In this step the command literal
   # "self" in the constructor has to be resolved against the
   # underlying object system (here xotcl::self) without interacting
@@ -85,7 +85,7 @@ package require nx::test
 
   #
   # Bytecompile and execute the "foo" methods containing the cmd
-  # literals "self" and "next" in the xotcl classes
+  # literals "self" and "next" in the XOTcl classes
   #
   ? {[xowiki::X2 new] foo 1 2} 1-2-::xowiki::X1
 

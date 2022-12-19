@@ -395,7 +395,7 @@ C public method FOO {} {}
 ? {info exists ::nsf::alias(::o,BAR,1)} 0 "::o::BAR is not an alias"
 
 # AliasDelete in AddInstanceMethod
-? {info exists ::nsf::alias(::C,BAR,0)} 1 "delete alias via redefinition of a an instance method"
+? {info exists ::nsf::alias(::C,BAR,0)} 1 "delete alias via redefinition of an instance method"
 ::C public method BAR {} {;}
 ? {info exists ::nsf::alias(::C,BAR,0)} 0
 ? {info commands ::o::BAR} ::o::BAR "a command ::o::BAR does not exist"
@@ -659,7 +659,7 @@ nx::test case alias-precompiled-proc {
   ? {::foo 1} 1
   
   #
-  # Register an already used tcl proc.  Byte compilation happened
+  # Register an already used Tcl proc.  Byte compilation happened
   # without nsf context. If the byte code is not invalidated, the
   # compiled var resolver would not kick in, we would not be able to
   # set an instance variable.
@@ -668,7 +668,7 @@ nx::test case alias-precompiled-proc {
   ? {c1 vars} {a 2}
   
   #
-  # Register an unused tcl proc.  Byte compilation happens within nsf
+  # Register an unused Tcl proc.  Byte compilation happens within nsf
   # context, compiled var resolver works as expected.
   ::nsf::method::alias ::C bar ::bar
   ? {c1 bar 2} 2
