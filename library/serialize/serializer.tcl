@@ -139,7 +139,7 @@ namespace eval ::nx::serializer {
   }
 
   ###########################################################################
-  # Serializer Class, independent from Object System
+  # Serializer Class, independent of Object System
   ###########################################################################
 
   Class create Serializer {

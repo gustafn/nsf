@@ -313,7 +313,7 @@ namespace eval ::nx::zip {
       # version needed to extract
       :writeShort 20
 
-      # general pupose bit flag
+      # general purpose bit flag
       :writeShort [expr {1<<11}]
       #:writeShort 0
 

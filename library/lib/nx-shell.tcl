@@ -179,7 +179,7 @@ nx::Object create ::nx::shell {
         }
         # watch out for on-return handlers
         if {$i < $l - 3 && [lindex $args $i] eq "on" && [lindex $args $j] in {return 2}} {
-          # imputate a wrapped return script
+          # inputate a wrapped return script
           set idx [expr {$i + 3}]
           set returnScript [lindex $args $idx]
           lset args $idx [list [current] onHandler $returnScript]
