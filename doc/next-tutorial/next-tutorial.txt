@@ -1764,13 +1764,14 @@ second argument is the default value. See for an example in
 
 ==== Value Constraints
 
-NX provides value constraints for all kind of parameters. By
-specifying value constraints, a developer can restrict the permissible
-values for a parameter and document the expected values in the source
-code. Value checking in NX is conditional, it can be turned on or off
-in general, or on a per-usage level (more about this later). The same
-mechanisms can be used not only for input value checking, but as well
-for return value checking (we will address this point as well later).
+NX provides value constraints for all kind of parameters and for
+return values. By specifying value constraints, a developer can
+restrict the permissible values and document the expected values in
+the source code. Value checking in NX is optional, it can be turned on
+or off in general, or on a per-usage level (more about this
+later). The same mechanisms can be used not only for input value
+checking, but as well for return value checking (we will address this
+point as well later).
 
 ===== Built-in Value Constraints
 
@@ -1814,7 +1815,16 @@ nx::Object create o4 {
   #
   :public object method bar {{-x:integer 10} {-verbose:boolean false}} {
     puts "x=$x verbose=$verbose"
+    return $x
   }
+
+  #
+  # Value constraints for return value
+  #
+  :public object method baz {} -returns integer {
+    return 123
+  }
+
 }
 
 # The following invocation raises an exception, since the

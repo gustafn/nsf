@@ -1,4 +1,4 @@
-[comment {-*- Tcl -*- xotclsh manpage}]
+[comment {-*- Tcl -*- xotclsh man page}]
 
 [include version.inc]
 [manpage_begin xotclsh 1 [vset VERSION]]

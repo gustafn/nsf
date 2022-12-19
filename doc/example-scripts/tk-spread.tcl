@@ -34,7 +34,7 @@ package require nx::trait
    :require trait nx::trait::callback
    
    #
-   # The method "cell" hides the internal respresentation and sets a
+   # The method "cell" hides the internal representation and sets a
    # cell to a value.
    #
    :method cell {pair value} {
