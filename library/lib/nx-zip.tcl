@@ -90,23 +90,38 @@ namespace eval ::nx::zip {
       }
     }
 
-    #
-    # return the added files via aolserver/NaviServer to the client
-    #
-    :public method ns_returnZipFile {zipFileName} {
+    :public method ns_returnZipFile {{-channel} zipFileName} {
+      #
+      # Return the previously added files via NaviServer/AOLserver to
+      # the client, using the provided "zipFileName" as name of the
+      # download file.
+      #
+      # When the optional parameter "channel" is provided, it has to
+      # be a previously opened connection channel (connchan). This
+      # option is useful for background operations. Using connection
+      # channels is only possible in connection with NaviServer.
+      #
       append header \
           "HTTP/1.0 200 OK\r\nContent-type: application/zip\r\n" \
           "Content-Disposition: attachment;filename=\"$zipFileName\"\r\n" \
           "\r\n"
       #
-      # Check, if we have "ns_connchan status". If so, use ns_connchan
-      # to write to the client. This has the advantage that we can use
-      # the buffered "connchan write" method capable of handling
-      # partial writes also for HTTPS.
+      # Check, if we have "ns_connchan status". If so, use
+      # "ns_connchan" to write to the client. This has the advantage
+      # that we can use the buffered "connchan write" method capable
+      # of handling partial writes also for HTTPS.
       #
       if {[info commands ::ns_connchan] ne ""
           && [info commands ::acs::cmd_has_subcommand] ne ""
           && [::acs::cmd_has_subcommand ns_connchan status]} {
+
+        if {![info exists channel]} {
+          #
+          # If no channel is provided, use the current connection as a
+          # channel.
+          #
+          set channel [ns_connchan detach]
+        }
         set channel [ns_connchan detach]
         set :writer [list ns_connchan write -buffered $channel]
         ns_connchan write -buffered $channel $header
