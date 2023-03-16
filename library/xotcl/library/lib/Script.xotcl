@@ -30,7 +30,7 @@ namespace eval ::xotcl::script {
 	eval next $args
     }
     Script instproc unknown args {
-	puts stderr "$::argv0: Unknown option ´-$args´ provided"
+	puts stderr "$::argv0: Unknown option Â´-$argsÂ´ provided"
     }
 
     namespace export Script
