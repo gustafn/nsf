@@ -5,21 +5,21 @@
  *      for supporting language-oriented programming.  For details, see
  *      https://next-scripting.org/.
  *
- * Copyright (C) 1999-2021 Gustaf Neumann (a) (b)
+ * Copyright (C) 1999-2022 Gustaf Neumann (a) (b)
  * Copyright (C) 1999-2007 Uwe Zdun (a) (b)
  * Copyright (C) 2007-2008 Martin Matuska (b)
  * Copyright (C) 2010-2019 Stefan Sobernig (b)
  *
  *
  * (a) University of Essen
- *      Specification of Software Systems
- *      Altendorferstrasse 97-101
- *      D-45143 Essen, Germany
+ *     Specification of Software Systems
+ *     Altendorferstrasse 97-101
+ *     D-45143 Essen, Germany
  *
  * (b) Vienna University of Economics and Business
- *      Institute of Information Systems and New Media
- *      A-1020, Welthandelsplatz 1
- *      Vienna, Austria
+ *     Institute of Information Systems and New Media
+ *     A-1020, Welthandelsplatz 1
+ *     Vienna, Austria
  *
  * This work is licensed under the MIT License
  * https://www.opensource.org/licenses/MIT
