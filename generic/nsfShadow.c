@@ -370,8 +370,8 @@ Nsf_InfoFrameObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, TCL_OBJC_
       NsfCallStackContent *cscPtr =
         ((NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr));
       const char *frameType;
-      Tcl_Obj *listObj, **ov;
-      TCL_OBJC_T oc, i;
+      Tcl_Obj    *listObj, **ov;
+      TCL_SIZE_T  oc, i;
 
       listObj = Tcl_NewListObj(0, NULL);
       

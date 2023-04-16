@@ -487,8 +487,9 @@ MixinregSetFromAny(
     Tcl_Obj *objPtr	/* The object to convert. */
 ) {
   NsfClass  *mixin = NULL;
-  TCL_OBJC_T        oc, result;
+  TCL_SIZE_T oc;
   Tcl_Obj  **ov;
+  int        result;
 
   result = Tcl_ListObjGetElements(interp, objPtr, &oc, &ov);
   if (likely(result == TCL_OK)) {
@@ -646,8 +647,9 @@ NsfMixinregInvalidate(
     Tcl_Interp *interp,
     Tcl_Obj *obj
 ) {
-  int i, result, oc = 0;
-  Tcl_Obj **objv;
+  Tcl_Obj  **objv;
+  TCL_SIZE_T oc, i;
+  int        result;
 
   result = Tcl_ListObjGetElements(interp, obj, &oc, &objv);
 
@@ -793,7 +795,8 @@ FilterregSetFromAny(
 ) {
   Tcl_Obj *guardObj = NULL, *filterObj;
   Filterreg *filterregPtr;
-  TCL_OBJC_T oc; Tcl_Obj **ov;
+  TCL_SIZE_T oc;
+  Tcl_Obj  **ov;
 
   if (Tcl_ListObjGetElements(interp, objPtr, &oc, &ov) == TCL_OK) {
     if (oc == 1) {

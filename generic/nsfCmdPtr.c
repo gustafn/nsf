@@ -50,13 +50,43 @@ NsfGetClientDataFromCmdPtr(const Tcl_Command cmd) {
 
   nonnull_assert(cmd != NULL);
 
-  /*fprintf(stderr, "objProc=%p %p\n", TCL_COMMAND_OBJPROC(cmd), NsfObjDispatch);*/
+  /*  
+   * When we activate NS_TCL_HAVE_TIP629 (TIP supporting > 2^31
+   * elements in object vectors), Tcl defines different objProcs
+   * (Tcl_ObjCmdProc and Tcl_ObjCmdProc2) where the usage of these
+   * depends on a cmdWrapperProc. Unfortunately, the resolving of
+   * these are performed via CmdWrapperInfo, which is not exported. We
+   * have to think how to resolve these to make this working as with
+   * prior Tcl versions.
+   *
+  (lldb) p *(Command*)cmd
+  (Command) $1 = {
+    hPtr = 0x00000001048175d0
+    nsPtr = 0x00000001018b8410
+    refCount = 2
+    cmdEpoch = 0
+    compileProc = 0x0000000000000000
+    objProc = 0x00000001005e5bc0 (libtcl9.0.dylib`cmdWrapperProc at tclBasic.c:2663)
+    objClientData = 0x000000010105d5d0
+    proc = 0x00000001005e1e24 (libtcl9.0.dylib`TclInvokeObjectCommand at tclBasic.c:2991)
+    clientData = 0x0000000101057910
+    deleteProc = 0x00000001005e5c2c (libtcl9.0.dylib`cmdWrapperDeleteProc at tclBasic.c:2671)
+    deleteData = 0x000000010105d5d0
+    flags = 0
+    importRefPtr = NULL
+    tracePtr = NULL
+    nreProc = 0x00000001005eb1c0 (libtcl9.0.dylib`cmdWrapperNreProc at tclBasic.c:8559)
+    } 
+    */
+  
+  /*fprintf(stderr, "NsfGetClientDataFromCmdPtr objProc=%p %p\n",
+    (void*)TCL_COMMAND_OBJPROC(cmd), (void*)NsfObjDispatch);*/
   if (likely((TCL_OBJCMDPROC_T*)Tcl_Command_objProc(cmd) == NsfObjDispatch)) {
     result = Tcl_Command_objClientData(cmd);
 
   } else {
     Tcl_Command cmd1 = TclGetOriginalCommand(cmd);
-
+    
     if (likely(cmd1 != NULL) && unlikely((TCL_OBJCMDPROC_T*)Tcl_Command_objProc(cmd1) == NsfObjDispatch)) {
       result = Tcl_Command_objClientData(cmd1);
     } else {

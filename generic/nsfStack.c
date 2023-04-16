@@ -981,7 +981,7 @@ CallStackNextFrameOfType(Tcl_CallFrame *framePtr, unsigned int flags) {
  */
 static Tcl_Obj*
 CallStackMethodPath(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
-  TCL_OBJC_T elements;
+  ptrdiff_t  elements;
   Tcl_Obj   *resultObj, *methodPathObj = Tcl_NewListObj(0, NULL);
 
   nonnull_assert(interp != NULL);
@@ -1044,7 +1044,8 @@ CallStackMethodPath(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
    *  arguments, reverse the list to obtain the right order.
    */
   if (elements > 1) {
-    TCL_OBJC_T oc, i;
+    TCL_SIZE_T oc;
+    ptrdiff_t  i;
     Tcl_Obj  **ov;
 
     INCR_REF_COUNT(methodPathObj);
