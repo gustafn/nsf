@@ -810,6 +810,7 @@ nsf.$(OBJEXT):	$(PKG_HEADERS) \
 		$(src_generic_dir)/nsfAccessInt.h \
 		$(src_generic_dir)/nsfAPI.h \
 		$(src_generic_dir)/nsfStack.c \
+		$(src_generic_dir)/nsfCmdPtr.c \
 		$(src_generic_dir)/asm/nsfAssemble.c \
 		$(src_generic_dir)/asm/nsfAsmExecuteCallThreading.c \
 		$(src_generic_dir)/asm/nsfAsmExecuteLabelThreading.c \
