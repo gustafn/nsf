@@ -50,14 +50,14 @@ NsfGetClientDataFromCmdPtr(const Tcl_Command cmd) {
 
   nonnull_assert(cmd != NULL);
 
-  /*fprintf(stderr, "objProc=%p %p\n", Tcl_Command_objProc(cmd), NsfObjDispatch);*/
-  if (likely(Tcl_Command_objProc(cmd) == NsfObjDispatch)) {
+  /*fprintf(stderr, "objProc=%p %p\n", TCL_COMMAND_OBJPROC(cmd), NsfObjDispatch);*/
+  if (likely((TCL_OBJCMDPROC_T*)Tcl_Command_objProc(cmd) == NsfObjDispatch)) {
     result = Tcl_Command_objClientData(cmd);
 
   } else {
     Tcl_Command cmd1 = TclGetOriginalCommand(cmd);
 
-    if (likely(cmd1 != NULL) && unlikely(Tcl_Command_objProc(cmd1) == NsfObjDispatch)) {
+    if (likely(cmd1 != NULL) && unlikely((TCL_OBJCMDPROC_T*)Tcl_Command_objProc(cmd1) == NsfObjDispatch)) {
       result = Tcl_Command_objClientData(cmd1);
     } else {
       result = NULL;

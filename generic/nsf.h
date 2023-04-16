@@ -75,10 +75,45 @@
 # define PRE9
 #endif
 
+#ifndef NS_TCL_PRE87
+# if TCL_MAJOR_VERSION<=8 && TCL_MINOR_VERSION>=7 && TCL_RELEASE_SERIAL>=6
+#  define NS_TCL_HAVE_TIP629
+# elif (TCL_MAJOR_VERSION>=9)
+#  define NS_TCL_HAVE_TIP629
+/*
+# else
+#  define XSTR(x) STR(x)
+#  define STR(x) #x
+#  pragma message "The value of ABC: " XSTR(TCL_MAJOR_VERSION)
+*/
+# endif
+#endif
+
 #if defined(PRE86)
 # define Tcl_GetErrorLine(interp) (interp)->errorLine
 #else
 # define NRE
+#endif
+
+#ifndef NS_TCL_HAVE_TIP629
+# define TCL_OBJC_T           int
+# define TCL_OBJCMDPROC_T     Tcl_ObjCmdProc
+# define TCL_CREATEOBJCOMMAND Tcl_CreateObjCommand
+# define TCL_NRCREATECOMMAND  Tcl_NRCreateCommand
+# define TCL_NRCALLOBJPROC    Tcl_NRCallObjProc
+# define TCL_COMMAND_OBJPROC  Tcl_Command_objProc
+
+#else
+/*
+ * Support for TIP 627
+ * https://core.tcl-lang.org/tips/doc/trunk/tip/627.md
+*/
+# define TCL_OBJC_T           size_t
+# define TCL_OBJCMDPROC_T     Tcl_ObjCmdProc2
+# define TCL_CREATEOBJCOMMAND Tcl_CreateObjCommand2
+# define TCL_NRCREATECOMMAND  Tcl_NRCreateCommand2
+# define TCL_NRCALLOBJPROC    Tcl_NRCallObjProc2
+# define TCL_COMMAND_OBJPROC  (TCL_OBJCMDPROC_T*)Tcl_Command_objProc
 #endif
 
 #ifdef PRE9
@@ -215,9 +250,9 @@
 # define NSF_DTRACE_METHOD_RETURN_PROBE(cscPtr,retCode) \
   if (cscPtr->cmdPtr && NSF_DTRACE_METHOD_RETURN_ENABLED()) {		\
     NSF_DTRACE_METHOD_RETURN(ObjectName((cscPtr)->self),		\
-			     (cscPtr)->cl ? ClassName((cscPtr)->cl) : ObjectName((cscPtr)->self), \
-			     (char *)(cscPtr)->methodName,		\
-			     (retCode));				\
+                             (cscPtr)->cl ? ClassName((cscPtr)->cl) : ObjectName((cscPtr)->self), \
+                             (char *)(cscPtr)->methodName,		\
+                             (retCode));				\
   }
 #else
 # define NSF_DTRACE_METHOD_RETURN_PROBE(cscPtr,retCode) {}
@@ -325,10 +360,10 @@ typedef struct Nsf_ParseContext {
 
 struct Nsf_Param;
 typedef int (Nsf_TypeConverter)(Tcl_Interp *interp,
-				 Tcl_Obj *obj,
-				 struct Nsf_Param const *pPtr,
-				 ClientData *clientData,
-				 Tcl_Obj **outObjPtr);
+                                 Tcl_Obj *obj,
+                                 struct Nsf_Param const *pPtr,
+                                 ClientData *clientData,
+                                 Tcl_Obj **outObjPtr);
 
 typedef struct {
   Nsf_TypeConverter *converter;
@@ -363,49 +398,49 @@ typedef struct Nsf_Param {
 } Nsf_Param;
 
 /* Argument parse processing flags */
-#define NSF_ARGPARSE_CHECK		     0x0001
-#define NSF_ARGPARSE_FORCE_REQUIRED	     0x0002
-#define NSF_ARGPARSE_BUILTIN		     (NSF_ARGPARSE_CHECK|NSF_ARGPARSE_FORCE_REQUIRED)
-#define NSF_ARGPARSE_START_ZERO		     0x0010
+#define NSF_ARGPARSE_CHECK                   0x0001
+#define NSF_ARGPARSE_FORCE_REQUIRED          0x0002
+#define NSF_ARGPARSE_BUILTIN                 (NSF_ARGPARSE_CHECK|NSF_ARGPARSE_FORCE_REQUIRED)
+#define NSF_ARGPARSE_START_ZERO              0x0010
 /* Special flags for process method arguments */
-#define NSF_ARGPARSE_METHOD_PUSH	     0x0100
+#define NSF_ARGPARSE_METHOD_PUSH             0x0100
 
 
 /* flags for NsfParams */
 
-#define NSF_ARG_REQUIRED		  0x00000001u
-#define NSF_ARG_MULTIVALUED		  0x00000002u
-#define NSF_ARG_NOARG			  0x00000004u
-#define NSF_ARG_NOCONFIG		  0x00000008u
-#define NSF_ARG_CURRENTLY_UNKNOWN	  0x00000010u
-#define NSF_ARG_SUBST_DEFAULT		  0x00000020u
-#define NSF_ARG_ALLOW_EMPTY		  0x00000040u
-#define NSF_ARG_INITCMD			  0x00000080u
-#define NSF_ARG_CMD			  0x00000100u
-#define NSF_ARG_ALIAS			  0x00000200u
-#define NSF_ARG_FORWARD			  0x00000400u
-#define NSF_ARG_SWITCH			  0x00000800u
-#define NSF_ARG_BASECLASS		  0x00001000u
-#define NSF_ARG_METACLASS		  0x00002000u
-#define NSF_ARG_HAS_DEFAULT		  0x00004000u
-#define NSF_ARG_IS_CONVERTER		  0x00008000u
-#define NSF_ARG_IS_ENUMERATION		  0x00010000u
-#define NSF_ARG_CHECK_NONPOS		  0x00020000u
-#define NSF_ARG_SET			  0x00040000u
-#define NSF_ARG_WARN			  0x00080000u
-#define NSF_ARG_UNNAMED			  0x00100000u
-#define NSF_ARG_IS_RETURNVALUE		  0x00200000u
-#define NSF_ARG_NODASHALNUM		  0x00400000u
-#define NSF_ARG_SLOTSET			  0x00800000u
-#define NSF_ARG_SLOTINITIALIZE		  0x01000000u
-#define NSF_ARG_SUBST_DEFAULT_COMMANDS	  0x10000000u
+#define NSF_ARG_REQUIRED                  0x00000001u
+#define NSF_ARG_MULTIVALUED               0x00000002u
+#define NSF_ARG_NOARG                     0x00000004u
+#define NSF_ARG_NOCONFIG                  0x00000008u
+#define NSF_ARG_CURRENTLY_UNKNOWN         0x00000010u
+#define NSF_ARG_SUBST_DEFAULT             0x00000020u
+#define NSF_ARG_ALLOW_EMPTY               0x00000040u
+#define NSF_ARG_INITCMD                   0x00000080u
+#define NSF_ARG_CMD                       0x00000100u
+#define NSF_ARG_ALIAS                     0x00000200u
+#define NSF_ARG_FORWARD                   0x00000400u
+#define NSF_ARG_SWITCH                    0x00000800u
+#define NSF_ARG_BASECLASS                 0x00001000u
+#define NSF_ARG_METACLASS                 0x00002000u
+#define NSF_ARG_HAS_DEFAULT               0x00004000u
+#define NSF_ARG_IS_CONVERTER              0x00008000u
+#define NSF_ARG_IS_ENUMERATION            0x00010000u
+#define NSF_ARG_CHECK_NONPOS              0x00020000u
+#define NSF_ARG_SET                       0x00040000u
+#define NSF_ARG_WARN                      0x00080000u
+#define NSF_ARG_UNNAMED                   0x00100000u
+#define NSF_ARG_IS_RETURNVALUE            0x00200000u
+#define NSF_ARG_NODASHALNUM               0x00400000u
+#define NSF_ARG_SLOTSET                   0x00800000u
+#define NSF_ARG_SLOTINITIALIZE            0x01000000u
+#define NSF_ARG_SUBST_DEFAULT_COMMANDS    0x10000000u
 #define NSF_ARG_SUBST_DEFAULT_VARIABLES   0x20000000u
 #define NSF_ARG_SUBST_DEFAULT_BACKSLASHES 0x40000000u
 #define NSF_ARG_SUBST_DEFAULT_ALL         0x70000000u
 
 #if defined __GNUC__ && defined __GNUC_MINOR__
 # define NSF__GNUC_PREREQ(maj, min) \
-	((__GNUC__ << 16) + __GNUC_MINOR__ >= ((maj) << 16) + (min))
+        ((__GNUC__ << 16) + __GNUC_MINOR__ >= ((maj) << 16) + (min))
 #else
 # define NSF__GNUC_PREREQ(maj, min) (0)
 #endif
@@ -448,13 +483,13 @@ typedef struct Nsf_Param {
 /*
 EXTERN int
 NsfArgumentError(Tcl_Interp *interp, const char *errorMsg, Nsf_Param const *paramPtr,
-		 Tcl_Obj *cmdNameObj, Tcl_Obj *methodPathObj)
+                 Tcl_Obj *cmdNameObj, Tcl_Obj *methodPathObj)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
 */
 
 EXTERN int
 NsfDispatchClientDataError(Tcl_Interp *interp, ClientData clientData,
-			   const char *what, const char *methodName)
+                           const char *what, const char *methodName)
   NSF_nonnull(1) NSF_nonnull(3) NSF_nonnull(4);
 
 EXTERN int
@@ -463,17 +498,17 @@ NsfNoCurrentObjectError(Tcl_Interp *interp, const char *methodName)
 
 EXTERN int
 NsfUnexpectedArgumentError(Tcl_Interp *interp, const char *argumentString,
-			   Nsf_Object *object, Nsf_Param const *paramPtr,
-			   Tcl_Obj *methodPathObj)
+                           Nsf_Object *object, Nsf_Param const *paramPtr,
+                           Tcl_Obj *methodPathObj)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(4) NSF_nonnull(5);
 
 EXTERN int
 NsfUnexpectedNonposArgumentError(Tcl_Interp *interp,
-				 const char *argumentString,
-				 Nsf_Object *object,
-				 Nsf_Param const *currentParamPtr,
-				 Nsf_Param const *paramPtr,
-				 Tcl_Obj *methodPathObj)
+                                 const char *argumentString,
+                                 Nsf_Object *object,
+                                 Nsf_Param const *currentParamPtr,
+                                 Nsf_Param const *paramPtr,
+                                 Tcl_Obj *methodPathObj)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(4) NSF_nonnull(5) NSF_nonnull(6);
 
 /*
@@ -514,10 +549,10 @@ EXTERN int Nsf_PointerTypeRegister(Tcl_Interp *interp, const char* typeName, int
  */
 
 typedef struct Nsf_methodDefinition {
-  const char     *methodName;
-  Tcl_ObjCmdProc *proc;
-  int             nrParameters;
-  Nsf_Param       paramDefs[12];
+  const char       *methodName;
+  TCL_OBJCMDPROC_T *proc;
+  TCL_OBJC_T        nrParameters;
+  Nsf_Param         paramDefs[12];
 } Nsf_methodDefinition;
 
 /*

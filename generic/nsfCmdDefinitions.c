@@ -142,7 +142,7 @@ Nsf_CmdDefinitionRegister(Tcl_Interp *interp, Nsf_methodDefinition *definitionRe
  *----------------------------------------------------------------------
  */
 Nsf_methodDefinition *
-Nsf_CmdDefinitionGet(Tcl_ObjCmdProc *proc) {
+Nsf_CmdDefinitionGet(TCL_OBJCMDPROC_T *proc) {
   Tcl_HashEntry *hPtr;
 
   nonnull_assert(proc != NULL);

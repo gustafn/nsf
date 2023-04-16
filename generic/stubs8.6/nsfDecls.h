@@ -143,12 +143,12 @@ EXTERN int		NsfAddClassMethod(Tcl_Interp *interp,
 				unsigned int flags);
 /* 24 */
 EXTERN int		NsfCreate(Tcl_Interp *interp, Nsf_Class *class,
-				Tcl_Obj *nameObj, int objc,
+				Tcl_Obj *nameObj, TCL_OBJC_T objc,
 				Tcl_Obj *const objv[]);
 /* 25 */
-EXTERN int		Nsf_ArgumentParse(Tcl_Interp *interp, int objc,
-				Tcl_Obj *const objv[], Nsf_Object *object,
-				Tcl_Obj *procNameObj,
+EXTERN int		Nsf_ArgumentParse(Tcl_Interp *interp,
+				TCL_OBJC_T objc, Tcl_Obj *const objv[],
+				Nsf_Object *object, Tcl_Obj *procNameObj,
 				Nsf_Param const *paramPtr, int nrParams,
 				int serial, unsigned int processFlags,
 				Nsf_ParseContext *pcPtr);
@@ -244,8 +244,8 @@ typedef struct NsfStubs {
     int (*nsfCallMethodWithArgs) (Tcl_Interp *interp, Nsf_Object *object, Tcl_Obj *methodObj, Tcl_Obj *arg1, int givenObjc, Tcl_Obj *const objv[], unsigned int flags); /* 21 */
     int (*nsfAddObjectMethod) (Tcl_Interp *interp, struct Nsf_Object *object, const char *methodName, Tcl_ObjCmdProc *proc, ClientData clientData, Tcl_CmdDeleteProc *dp, unsigned int flags); /* 22 */
     int (*nsfAddClassMethod) (Tcl_Interp *interp, struct Nsf_Class *class, const char *methodName, Tcl_ObjCmdProc *proc, ClientData clientData, Tcl_CmdDeleteProc *dp, unsigned int flags); /* 23 */
-    int (*nsfCreate) (Tcl_Interp *interp, Nsf_Class *class, Tcl_Obj *nameObj, int objc, Tcl_Obj *const objv[]); /* 24 */
-    int (*nsf_ArgumentParse) (Tcl_Interp *interp, int objc, Tcl_Obj *const objv[], Nsf_Object *object, Tcl_Obj *procNameObj, Nsf_Param const *paramPtr, int nrParams, int serial, unsigned int processFlags, Nsf_ParseContext *pcPtr); /* 25 */
+    int (*nsfCreate) (Tcl_Interp *interp, Nsf_Class *class, Tcl_Obj *nameObj, TCL_OBJC_T objc, Tcl_Obj *const objv[]); /* 24 */
+    int (*nsf_ArgumentParse) (Tcl_Interp *interp, TCL_OBJC_T objc, Tcl_Obj *const objv[], Nsf_Object *object, Tcl_Obj *procNameObj, Nsf_Param const *paramPtr, int nrParams, int serial, unsigned int processFlags, Nsf_ParseContext *pcPtr); /* 25 */
     void (*nsfLog) (Tcl_Interp *interp, int requiredLevel, const char *fmt, ...); /* 26 */
     int (*nsf_PointerAdd) (Tcl_Interp *interp, char *buffer, size_t size, const char *typeName, void *valuePtr); /* 27 */
     int (*nsf_PointerDelete) (const char *key, void *valuePtr, int free); /* 28 */

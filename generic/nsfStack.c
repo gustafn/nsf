@@ -981,8 +981,8 @@ CallStackNextFrameOfType(Tcl_CallFrame *framePtr, unsigned int flags) {
  */
 static Tcl_Obj*
 CallStackMethodPath(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
-  int      elements;
-  Tcl_Obj *resultObj, *methodPathObj = Tcl_NewListObj(0, NULL);
+  TCL_OBJC_T elements;
+  Tcl_Obj   *resultObj, *methodPathObj = Tcl_NewListObj(0, NULL);
 
   nonnull_assert(interp != NULL);
   nonnull_assert(framePtr != NULL);
@@ -1044,8 +1044,8 @@ CallStackMethodPath(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
    *  arguments, reverse the list to obtain the right order.
    */
   if (elements > 1) {
-    int       oc, i;
-    Tcl_Obj **ov;
+    TCL_OBJC_T oc, i;
+    Tcl_Obj  **ov;
 
     INCR_REF_COUNT(methodPathObj);
     Tcl_ListObjGetElements(interp, methodPathObj, &oc, &ov);
@@ -1241,9 +1241,9 @@ CallStackPopAll(Tcl_Interp *interp) {
 static NsfCallStackContent *
 CscAlloc(Tcl_Interp *interp, NsfCallStackContent *cscPtr, const Tcl_Command cmd) {
 #if defined(NRE)
-  Tcl_ObjCmdProc *proc = (cmd != NULL) ? Tcl_Command_objProc(cmd) : NULL;
+  TCL_OBJCMDPROC_T *proc = (cmd != NULL) ? TCL_COMMAND_OBJPROC(cmd) : NULL;
 
-  if (proc == TclObjInterpProc) {
+  if (proc == (TCL_OBJCMDPROC_T*)TclObjInterpProc) {
     cscPtr = (NsfCallStackContent *) NsfTclStackAlloc(interp, sizeof(NsfCallStackContent), "csc");
     cscPtr->flags = NSF_CSC_CALL_IS_NRE;
   } else {

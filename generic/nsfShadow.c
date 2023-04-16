@@ -40,10 +40,10 @@
 #include "nsfAccessInt.h"
 #include "nsfCmdPtr.c"
 
-static Tcl_ObjCmdProc Nsf_InfoFrameObjCmd;
-EXTERN Tcl_ObjCmdProc NsfProcStub;
-static Tcl_ObjCmdProc Nsf_InfoBodyObjCmd;
-static Tcl_ObjCmdProc Nsf_RenameObjCmd;
+static TCL_OBJCMDPROC_T Nsf_InfoFrameObjCmd;
+EXTERN TCL_OBJCMDPROC_T NsfProcStub;
+static TCL_OBJCMDPROC_T Nsf_InfoBodyObjCmd;
+static TCL_OBJCMDPROC_T Nsf_RenameObjCmd;
 
 /*
  *----------------------------------------------------------------------
@@ -73,7 +73,7 @@ NsfReplaceCommandCleanup(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfShadowTclComma
   /*fprintf(stderr, " cleanup for %s  ti=%p in %p\n", NsfGlobalStrings[name], ti, interp);*/
   cmd = Tcl_GetCommandFromObj(interp, nameObj);
   if (cmd != NULL) {
-    Tcl_Command_objProc(cmd) = ti->proc;
+    Tcl_Command_objProc(cmd) = (Tcl_ObjCmdProc*)ti->proc;
     if (ti->clientData != NULL) {
       Tcl_Command_objClientData(cmd) = ti->clientData;
     }
@@ -101,12 +101,12 @@ NsfReplaceCommandCleanup(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfShadowTclComma
  *
  *----------------------------------------------------------------------
  */
-static void NsfReplaceCommandCheck(Tcl_Interp *interp, Tcl_Obj *nameObj, Tcl_ObjCmdProc *proc,
+static void NsfReplaceCommandCheck(Tcl_Interp *interp, Tcl_Obj *nameObj, TCL_OBJCMDPROC_T *proc,
                                    NsfShadowTclCommandInfo *ti)
   nonnull(1) nonnull(2) nonnull(3) nonnull(4);
 
 static void
-NsfReplaceCommandCheck(Tcl_Interp *interp, Tcl_Obj *nameObj, Tcl_ObjCmdProc *proc,
+NsfReplaceCommandCheck(Tcl_Interp *interp, Tcl_Obj *nameObj, TCL_OBJCMDPROC_T *proc,
                        NsfShadowTclCommandInfo *ti) {
   Tcl_Command cmd;
 
@@ -117,14 +117,14 @@ NsfReplaceCommandCheck(Tcl_Interp *interp, Tcl_Obj *nameObj, Tcl_ObjCmdProc *pro
 
   cmd = Tcl_GetCommandFromObj(interp, nameObj);
 
-  if (cmd != NULL && ti->proc && Tcl_Command_objProc(cmd) != proc) {
+  if (cmd != NULL && ti->proc && TCL_COMMAND_OBJPROC(cmd) != proc) {
     /*
     fprintf(stderr, "we have to do something about %s %p %p\n",
-	    NsfGlobalStrings[name], Tcl_Command_objProc(cmd), proc);
+	    NsfGlobalStrings[name], TCL_COMMAND_OBJPROC(cmd), proc);
     */
-    ti->proc = Tcl_Command_objProc(cmd);
+    ti->proc = TCL_COMMAND_OBJPROC(cmd);
     ti->clientData = Tcl_Command_objClientData(cmd);
-    Tcl_Command_objProc(cmd) = proc;
+    Tcl_Command_objProc(cmd) = (Tcl_ObjCmdProc*)proc;
   }
 }
 
@@ -146,7 +146,7 @@ NsfReplaceCommandCheck(Tcl_Interp *interp, Tcl_Obj *nameObj, Tcl_ObjCmdProc *pro
  */
 int
 NsfReplaceCommand(Tcl_Interp *interp, Tcl_Obj *nameObj,
-                  Tcl_ObjCmdProc *nsfReplacementProc,
+                  TCL_OBJCMDPROC_T *nsfReplacementProc,
                   ClientData cd,
                   NsfShadowTclCommandInfo *ti) {
   Tcl_Command cmd;
@@ -162,12 +162,12 @@ NsfReplaceCommand(Tcl_Interp *interp, Tcl_Obj *nameObj,
   if (cmd == NULL) {
     result = TCL_ERROR;
   } else {
-    Tcl_ObjCmdProc *objProc = Tcl_Command_objProc(cmd);
+    TCL_OBJCMDPROC_T *objProc = TCL_COMMAND_OBJPROC(cmd);
     if (nsfReplacementProc != objProc) {
       ti->proc = objProc;
       ti->clientData = Tcl_Command_objClientData(cmd);
       if (nsfReplacementProc != NULL) {
-	Tcl_Command_objProc(cmd) = nsfReplacementProc;
+        Tcl_Command_objProc(cmd) = (Tcl_ObjCmdProc*)nsfReplacementProc;
       }
       if (cd != NULL) {
         Tcl_Command_objClientData(cmd) = cd;
@@ -200,7 +200,7 @@ NsfReplaceCommand(Tcl_Interp *interp, Tcl_Obj *nameObj,
  */
 
 static int
-Nsf_InfoBodyObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+Nsf_InfoBodyObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, TCL_OBJC_T objc, Tcl_Obj *const objv[]) {
   Tcl_Command cmd;
 
   nonnull_assert(interp != NULL);
@@ -213,7 +213,7 @@ Nsf_InfoBodyObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, int objc, 
 
   cmd = Tcl_FindCommand(interp, ObjStr(objv[1]), (Tcl_Namespace *)NULL, 0);
   if (cmd != NULL) {
-    Tcl_ObjCmdProc *proc =  Tcl_Command_objProc(cmd);
+    TCL_OBJCMDPROC_T *proc =  TCL_COMMAND_OBJPROC(cmd);
     ClientData      procClientData = Tcl_Command_objClientData(cmd);
     if (proc == NsfProcStub && procClientData != NULL) {
       NsfProcClientData *tcd = procClientData;
@@ -250,7 +250,7 @@ Nsf_InfoBodyObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, int objc, 
  */
 
 static int
-Nsf_RenameObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+Nsf_RenameObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, TCL_OBJC_T objc, Tcl_Obj *const objv[]) {
   Tcl_Command cmd;
 
   if (objc != 3) {
@@ -261,7 +261,7 @@ Nsf_RenameObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, int objc, Tc
   /* if an obj/cl should be renamed => call the Nsf move method */
   cmd = Tcl_FindCommand(interp, ObjStr(objv[1]), (Tcl_Namespace *)NULL, 0);
   if (cmd != NULL) {
-    Tcl_ObjCmdProc *proc =  Tcl_Command_objProc(cmd);
+    TCL_OBJCMDPROC_T *proc =  TCL_COMMAND_OBJPROC(cmd);
     ClientData      procClientData = Tcl_Command_objClientData(cmd);
     NsfObject      *object = NsfGetObjectFromCmdPtr(cmd);
     Tcl_Command     parentCmd;
@@ -333,7 +333,7 @@ Nsf_RenameObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, int objc, Tc
  */
 
 static int
-Nsf_InfoFrameObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+Nsf_InfoFrameObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, TCL_OBJC_T objc, Tcl_Obj *const objv[]) {
   int result;
 
   result = NsfCallCommand(interp, NSF_INFO_FRAME, objc, objv);
@@ -371,7 +371,7 @@ Nsf_InfoFrameObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, int objc,
         ((NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr));
       const char *frameType;
       Tcl_Obj *listObj, **ov;
-      int oc, i;
+      TCL_OBJC_T oc, i;
 
       listObj = Tcl_NewListObj(0, NULL);
       
@@ -516,7 +516,7 @@ NsfShadowTclCommands(Tcl_Interp *interp, NsfShadowOperations load) {
  */
 int
 NsfCallCommand(Tcl_Interp *interp, NsfGlobalNames name,
-               int objc, Tcl_Obj *const objv[]) {
+               TCL_OBJC_T objc, Tcl_Obj *const objv[]) {
   int result;
   NsfShadowTclCommandInfo *ti = &RUNTIME_STATE(interp)->tclCommands[name-NSF_EXPR];
   ALLOC_ON_STACK(Tcl_Obj*, objc, ov);
@@ -532,7 +532,7 @@ NsfCallCommand(Tcl_Interp *interp, NsfGlobalNames name,
   if (objc > 1) {
     memcpy(ov+1, objv+1, sizeof(Tcl_Obj *) * ((size_t)objc - 1u));
   }
-  result = Tcl_NRCallObjProc(interp, ti->proc, ti->clientData, (TCL_SIZE_T)objc, objv);
+  result = TCL_NRCALLOBJPROC(interp, ti->proc, ti->clientData, (TCL_SIZE_T)objc, objv);
   FREE_ON_STACK(Tcl_Obj *, ov);
   return result;
 }

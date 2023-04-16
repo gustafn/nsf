@@ -123,7 +123,7 @@ typedef struct {
   unsigned int  flags_static[PARSE_CONTEXT_PREALLOC+1];
   unsigned int  status;
   int           lastObjc;     /* points to the first "unprocessed" argument */
-  int           objc;
+  TCL_OBJC_T           objc;
   NsfObject    *object;
   int           varArgs;      /* does the parameter end with some kind of "args" */
 } ParseContext;
@@ -165,7 +165,7 @@ typedef struct {
 #endif
 
 
-static int ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[],
+static int ArgumentParse(Tcl_Interp *interp, TCL_OBJC_T objc, Tcl_Obj *const objv[],
                          NsfObject *obj, Tcl_Obj *procName,
                          Nsf_Param const *paramPtr, int nrParameters, int serial,
                          unsigned int processFlags, ParseContext *pc) {
@@ -464,7 +464,7 @@ BsonAppend(Tcl_Interp *interp, bson_t *bbPtr, Tcl_Obj *nameObj, Tcl_Obj *tagObj,
     break;
   }
   case BSON_TYPE_REGEX: {
-    int       objc = 0;
+    TCL_OBJC_T       objc = 0;
     Tcl_Obj **objv;
 
     result = Tcl_ListObjGetElements(interp, value, &objc, &objv);
@@ -577,7 +577,7 @@ BsonAppend(Tcl_Interp *interp, bson_t *bbPtr, Tcl_Obj *nameObj, Tcl_Obj *tagObj,
  *----------------------------------------------------------------------
  */
 static int
-BsonAppendObjv(Tcl_Interp *interp, bson_t *bPtr, int objc, Tcl_Obj **objv)
+BsonAppendObjv(Tcl_Interp *interp, bson_t *bPtr, TCL_OBJC_T objc, Tcl_Obj **objv)
 {
   int i, result = TCL_OK;
 
@@ -856,7 +856,7 @@ NsfMongoCollectionCount(Tcl_Interp *interp,
                         mongoc_collection_t *collectionPtr,
                         Tcl_Obj *queryObj)
 {
-  int          objc, result;
+  TCL_OBJC_T          objc, result;
   int64_t      count;
   Tcl_Obj    **objv;
   bson_t       query, *queryPtr = &query;
@@ -898,7 +898,7 @@ NsfMongoCollectionDelete(Tcl_Interp *interp,
                          mongoc_collection_t *collectionPtr,
                          Tcl_Obj *conditionObj)
 {
-  int                           objc, result, success;
+  TCL_OBJC_T                           objc, result, success;
   Tcl_Obj                     **objv;
   bson_t                        query, *queryPtr = &query;
   bson_error_t                  bsonError;
@@ -945,7 +945,7 @@ NsfMongoCollectionIndex(Tcl_Interp *interp,
                         int withTtl,
                         int withUnique)
 {
-  int                objc, result, success = 0;
+  TCL_OBJC_T                objc, result, success = 0;
   Tcl_Obj          **objv;
   bson_t             keys, *keysPtr = &keys;
   bson_error_t       bsonError;
@@ -1121,7 +1121,7 @@ NsfMongoCollectionStats(Tcl_Interp *interp,
                         mongoc_collection_t *collectionPtr,
                         Tcl_Obj *optionsObj)
 {
-  int          objc = 0, success, result;
+  TCL_OBJC_T          objc = 0, success, result;
   Tcl_Obj    **objv = NULL;
   bson_t       options, *optionsPtr = NULL;
   bson_t       stats, *statsPtr = &stats;
@@ -1194,7 +1194,7 @@ NsfMongoCollectionUpdate(Tcl_Interp *interp,
   mongoc_update_flags_t         updateFlags =  MONGOC_UPDATE_NO_VALIDATE; /* for dbrefs */
   bson_error_t                  bsonError;
   bson_t                        cond, *condPtr = &cond, values, *valuesPtr = &values;
-  int                           objc, result, success;
+  TCL_OBJC_T                           objc, result, success;
   Tcl_Obj                     **objv;
 
   result = Tcl_ListObjGetElements(interp, conditionObj, &objc, &objv);
@@ -1489,7 +1489,7 @@ NsfMongoGridFileCreate(Tcl_Interp *interp,
 
   if (withMetadata != NULL) {
     Tcl_Obj **objv;
-    int objc;
+    TCL_OBJC_T objc;
 
     result = Tcl_ListObjGetElements(interp, withMetadata, &objc, &objv);
     if (result != TCL_OK || ((objc % 3) != 0)) {
@@ -1567,7 +1567,7 @@ NsfMongoGridFileDelete(Tcl_Interp *interp,
   const bson_t        *nextPtr;
   bson_iter_t          it;
   Tcl_Obj            **objv;
-  int                  objc, result;
+  TCL_OBJC_T                  objc, result;
   mongoc_read_prefs_t *readPrefsPtr = NULL; /* TODO: not handled */
 
   result = Tcl_ListObjGetElements(interp, queryObj, &objc, &objv);
@@ -1916,7 +1916,7 @@ Nsfmongo_Init(Tcl_Interp * interp)
    * Create all method commands (will use the namespaces above)
    */
   for (i = 0; i < nr_elements(method_definitions)-1; i++) {
-    Tcl_CreateObjCommand(interp, method_definitions[i].methodName, method_definitions[i].proc, 0, 0);
+    TCL_CREATEOBJCOMMAND(interp, method_definitions[i].methodName, method_definitions[i].proc, 0, 0);
   }
 
   Tcl_SetIntObj(Tcl_GetObjResult(interp), 1);

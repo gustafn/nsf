@@ -633,7 +633,7 @@ typedef struct NsfStringIncrStruct {
 
 typedef struct NsfParamDefs {
   Nsf_Param *paramsPtr;
-  int nrParams;
+  TCL_OBJC_T nrParams;
   int refCount;
   int serial;
 } NsfParamDefs;
@@ -856,7 +856,7 @@ EXTERN NsfClassOpt *NsfRequireClassOpt(NsfClass *class)
  * Next Scripting ShadowTclCommands
  */
 typedef struct NsfShadowTclCommandInfo {
-  Tcl_ObjCmdProc *proc;
+  TCL_OBJCMDPROC_T *proc;
   ClientData clientData;
   int nrArgs;
 } NsfShadowTclCommandInfo;
@@ -867,7 +867,7 @@ typedef enum {NSF_PARAMS_NAMES, NSF_PARAMS_LIST,
 	      NSF_PARAMS_PARAMETER, NSF_PARAMS_SYNTAX} NsfParamsPrintStyle;
 
 int NsfCallCommand(Tcl_Interp *interp, NsfGlobalNames name,
-		     int objc, Tcl_Obj *const objv[])
+		     TCL_OBJC_T objc, Tcl_Obj *const objv[])
   nonnull(1) nonnull(4);
 
 int NsfShadowTclCommands(Tcl_Interp *interp, NsfShadowOperations load)
@@ -880,7 +880,7 @@ int NsfReplaceCommandCleanup(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfShadowTclC
   nonnull(1) nonnull(2) nonnull(3);
 
 int NsfReplaceCommand(Tcl_Interp *interp, Tcl_Obj *nameObj,
-		      Tcl_ObjCmdProc *nsfReplacementProc,
+		      TCL_OBJCMDPROC_T *nsfReplacementProc,
 		      ClientData cd,
 		      NsfShadowTclCommandInfo *ti)
   nonnull(1) nonnull(2) nonnull(5);
@@ -895,7 +895,7 @@ typedef struct NsfCallStackContent {
   Tcl_Command cmdPtr;
   NsfFilterStack *filterStackEntry;
   Tcl_Obj *const* objv;
-  int objc;
+  TCL_OBJC_T objc;
   unsigned int flags;
 #if defined(NSF_PROFILE) || defined(NSF_DTRACE)
   long int startUsec;
@@ -1097,7 +1097,7 @@ NsfFreeObjectData(NsfClass *class)
 /*
  * Prototypes for method definitions
  */
-EXTERN Tcl_ObjCmdProc NsfObjDispatch;
+EXTERN TCL_OBJCMDPROC_T NsfObjDispatch;
 
 /*
  *  NsfObject Reference Accounting
@@ -1148,7 +1148,7 @@ EXTERN void NsfProfileDeprecatedCall(Tcl_Interp *interp, NsfObject *object, NsfC
 				     const char *methodName, const char *altMethod)
   nonnull(1) nonnull(2) nonnull(4) nonnull(5);
 EXTERN void NsfProfileDebugCall(Tcl_Interp *interp, NsfObject *object, NsfClass *class, const char *methodName,
-				int objc, Tcl_Obj **objv)
+				TCL_OBJC_T objc, Tcl_Obj **objv)
   nonnull(1) nonnull(4);
 EXTERN void NsfProfileDebugExit(Tcl_Interp *interp, NsfObject *object, NsfClass *class, const char *methodName,
 		    long startSec, long startUsec)
@@ -1216,18 +1216,18 @@ typedef struct NsfCompEnv {
   int bytecode;
   Command *cmdPtr;
   CompileProc *compileProc;
-  Tcl_ObjCmdProc *callProc;
+  TCL_OBJCMDPROC_T *callProc;
 } NsfCompEnv;
 
 typedef enum {INST_INITPROC, INST_NEXT, INST_SELF, INST_SELF_DISPATCH,
 	      LAST_INSTRUCTION} NsfByteCodeInstructions;
 
-Tcl_ObjCmdProc NsfInitProcNSCmd, NsfSelfDispatchCmd,
+TCL_OBJCMDPROC_T NsfInitProcNSCmd, NsfSelfDispatchCmd,
   NsfNextObjCmd, NsfGetSelfObjCmd;
 
 EXTERN NsfCompEnv *NsfGetCompEnv(void);
 int NsfDirectSelfDispatch(ClientData cd, Tcl_Interp *interp,
-		     int objc, Tcl_Obj *const objv[])
+		     TCL_OBJC_T objc, Tcl_Obj *const objv[])
   nonnull(1) nonnull(2);
 #endif
 
@@ -1246,7 +1246,7 @@ EXTERN const char *NsfMethodName(Tcl_Obj *methodObj)
 EXTERN void NsfInitPkgConfig(Tcl_Interp *interp)
   nonnull(1);
 
-EXTERN void NsfDStringArgv(Tcl_DString *dsPtr, int objc, Tcl_Obj *const objv[])
+EXTERN void NsfDStringArgv(Tcl_DString *dsPtr, TCL_OBJC_T objc, Tcl_Obj *const objv[])
   nonnull(1) nonnull(3);
 
 EXTERN Tcl_Obj *NsfMethodNamePath(Tcl_Interp *interp,
@@ -1374,7 +1374,7 @@ EXTERN const char *Nsf_EnumerationTypeGetDomain(Nsf_TypeConverter *converter)
  */
 EXTERN void Nsf_CmdDefinitionInit(void);
 EXTERN void Nsf_CmdDefinitionRelease(void);
-EXTERN Nsf_methodDefinition *Nsf_CmdDefinitionGet(Tcl_ObjCmdProc *proc)
+EXTERN Nsf_methodDefinition *Nsf_CmdDefinitionGet(TCL_OBJCMDPROC_T *proc)
   nonnull(1);
 
 
@@ -1421,6 +1421,8 @@ char *strnstr(const char *buffer, const char *needle, size_t buffer_len) NSF_pur
 
 #define NsfCallStackFindLastInvocation(interp, offset, framePtrPtr) \
   NsfCallStackFindCallingContext((interp), (offset), (framePtrPtr), NULL)
+
+typedef void (*nsf_funcptr_t)(void);
 
 EXTERN const Nsf_ObjvTable Nsf_Configureoption[];
 #endif /* NSF_INCLUDE_nsf_int_h_ */

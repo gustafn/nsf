@@ -156,7 +156,7 @@ NsfProfileDeprecatedCall(Tcl_Interp *interp, NsfObject *UNUSED(object), NsfClass
  */
 void
 NsfProfileDebugCall(Tcl_Interp *interp, NsfObject *object, NsfClass *class, const char *methodName,
-                    int objc, Tcl_Obj **objv) {
+                    TCL_OBJC_T objc, Tcl_Obj **objv) {
   NsfRuntimeState *rst;
   Tcl_Obj         *listObj;
   Tcl_DString      ds;
@@ -338,7 +338,7 @@ NsfProfileFillTable(Tcl_HashTable *table, const char *keyStr, double totalMicroS
  *----------------------------------------------------------------------
  */
 static int
-Nsf_ProfileFilterObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+Nsf_ProfileFilterObjCmd(ClientData cd, Tcl_Interp *interp, TCL_OBJC_T objc, Tcl_Obj *const objv[]) {
   NsfShadowTclCommandInfo *ti;
   int             result;
   struct Tcl_Time start;
@@ -371,7 +371,7 @@ Nsf_ProfileFilterObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *co
   NsfProfileTraceCallAppend(interp, label);
 
   Tcl_GetTime(&start);
-  result = Tcl_NRCallObjProc(interp, ti->proc, ti->clientData, (TCL_SIZE_T)objc, objv);
+  result = TCL_NRCALLOBJPROC(interp, ti->proc, ti->clientData, (TCL_SIZE_T)objc, objv);
   NsfProfileRecordProcData(interp, label, start.sec, start.usec);
 
   if (label != fullMethodName) {

@@ -1,1 +1,1 @@
-package ifneeded nsf::mongo 2.4.0 [list load [file join $dir libnsfmongo2.4.0.dylib]]
+package ifneeded nsf::mongo 2.4.0 [list load [file join $dir libtcl9nsfmongo2.4.0.dylib]]

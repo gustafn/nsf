@@ -230,13 +230,14 @@ Nsf_DStringPrintf(Tcl_DString *dsPtr, const char *fmt, ...)
 void
 NsfDStringArgv(
     Tcl_DString *dsPtr,
-    int objc, Tcl_Obj *const objv[]
+    TCL_OBJC_T objc, Tcl_Obj *const objv[]
 ) {
   nonnull_assert(dsPtr != NULL);
   nonnull_assert(objv != NULL);
 
   if (objc > 0) {
-    int i;
+    TCL_OBJC_T i;
+
     Tcl_DStringAppendElement(dsPtr, NsfMethodName(objv[0]));
     for (i = 1; i < objc; i++) {
       Tcl_DStringAppendElement(dsPtr, ObjStr(objv[i]));

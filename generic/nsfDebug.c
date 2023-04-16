@@ -176,10 +176,10 @@ NsfStackDump(Tcl_Interp *interp) {
  *----------------------------------------------------------------------
  */
 
-void NsfPrintObjv(char *string, int objc, Tcl_Obj *CONST objv[]) nonnull(1) nonnull(3);
+void NsfPrintObjv(char *string, TCL_OBJC_T objc, Tcl_Obj *CONST objv[]) nonnull(1) nonnull(3);
 
 void
-NsfPrintObjv(char *string, int objc, Tcl_Obj *CONST objv[]) {
+NsfPrintObjv(char *string, TCL_OBJC_T objc, Tcl_Obj *CONST objv[]) {
   int j;
 
   nonnull_assert(string != NULL);
