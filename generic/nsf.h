@@ -75,6 +75,7 @@
 # define PRE9
 #endif
 
+#if 0
 #ifndef NS_TCL_PRE87
 # if TCL_MAJOR_VERSION<=8 && TCL_MINOR_VERSION>=7 && TCL_RELEASE_SERIAL>=6
 #  define NS_TCL_HAVE_TIP629
@@ -87,6 +88,7 @@
 #  pragma message "The value of ABC: " XSTR(TCL_MAJOR_VERSION)
 */
 # endif
+#endif
 #endif
 
 #if defined(PRE86)
