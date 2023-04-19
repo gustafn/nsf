@@ -54,7 +54,7 @@ matrix:
   - TCLTAG: core-8-6-branch
   - TCLTAG: core-8-5-branch
   - TCLTAG: core-8-branch
-  - TCLTAG: core-8-6-13-rc
+  - TCLTAG: core-9-0-a3
   - TCLTAG: main
   fast_finish: true
 
