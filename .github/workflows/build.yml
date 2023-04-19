@@ -66,7 +66,7 @@ jobs:
             experimental: [false]
           - os: macos-latest
             compiler: gcc-11
-            tcltag: core-8-6-12
+            tcltag: core-8-6-13
             experimental: [false]
           - os: macos-latest
             compiler: gcc-11
@@ -78,7 +78,7 @@ jobs:
             experimental: [false]
           - os: ubuntu-latest
             compiler: gcc-10
-            tcltag: core-8-6-12
+            tcltag: core-8-6-13
             experimental: [false]
           - os: ubuntu-latest
             compiler: gcc-10
@@ -86,12 +86,12 @@ jobs:
             experimental: [false]
           - os: ubuntu-latest
             compiler: gcc-10
-            tcltag: core-8-6-13-rc
-            experimental: [true]
+            tcltag: core-9-0-a3
+            experimental: [false]
           - os: macos-latest
             compiler: gcc-11
-            tcltag: core-8-6-13-rc
-            experimental: [true]
+            tcltag: core-9-0-a3
+            experimental: [false]
     defaults:
       run:
         shell: bash
