@@ -89,7 +89,7 @@ after_build:
 - ps: $env:DATESTRING=(get-date -UFormat "%Y%m%d").ToString()
 - set TARBALL="nsf_%APPVEYOR_REPO_BRANCH%_%TCLTAG%_win_%TOOLCHAIN%_%DATESTRING%_%APPVEYOR_BUILD_NUMBER%.zip"
 - if exist "%CD%\install" 7z a %TARBALL% %CD%\install\* 
-- if exist "%TARBALL%" C:\msys64\usr\bin\scp.exe -v -oStrictHostKeyChecking=no -i deploy_key %TARBALL% "sobernig@alice.wu.ac.at:/home/sobernig/builds"
+- if exist "%TARBALL%" C:\msys64\usr\bin\scp.exe -v -O -oStrictHostKeyChecking=no -i deploy_key %TARBALL% "sobernig@alice.wu.ac.at:/home/sobernig/builds"
 
 cache:
   - tclkit.exe -> appveyor.yml
