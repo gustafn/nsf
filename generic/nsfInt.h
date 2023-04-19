@@ -354,13 +354,8 @@ typedef struct NsfMemCounter {
 # include <alloca.h>
 #endif
 
-#ifdef PRE9
-# define NSF_PLAUSIBLE_REFCOUNT(A) ((A)->refCount >= 0)
-# define NSF_PLAUSIBLE_LENGTH(A) ((A)->length >= 0)
-#else
-# define NSF_PLAUSIBLE_REFCOUNT(A) ((A)->refCount < (size_t)-100)
-# define NSF_PLAUSIBLE_LENGTH(A) ((A)->length < (size_t)-100)
-#endif
+#define NSF_PLAUSIBLE_REFCOUNT(A) ((A)->refCount >= 0)
+#define NSF_PLAUSIBLE_LENGTH(A) ((A)->length >= 0)
 
 #if !defined(NDEBUG)
 # define ISOBJ(o) ((o) != NULL && ISOBJ_(o))

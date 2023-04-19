@@ -34660,7 +34660,7 @@ NsfObjInfoVarsMethod(Tcl_Interp *interp, NsfObject *object, const char *pattern)
 
     Tcl_ListObjLength(interp, varList, &length);
     for (i = 0; i < length; i++) {
-      Tcl_ListObjIndex(interp, varList, (TCL_SIZE_T)i, &element);
+      Tcl_ListObjIndex(interp, varList, i, &element);
       if (VarExists(interp, object, ObjStr(element), NULL, NSF_VAR_REQUIRE_DEFINED)) {
         Tcl_ListObjAppendElement(interp, okList, element);
       } else {

@@ -131,7 +131,7 @@
 #ifdef PRE9
 # define TCL_SIZE_T int
 #else
-# define TCL_SIZE_T size_t
+# define TCL_SIZE_T Tcl_Size
 #endif
 
 #ifndef TCL_INDEX_NONE
