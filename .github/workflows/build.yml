@@ -87,11 +87,11 @@ jobs:
           - os: ubuntu-latest
             compiler: gcc-10
             tcltag: core-9-0-a3
-            experimental: [false]
+            experimental: [true]
           - os: macos-latest
             compiler: gcc-11
             tcltag: core-9-0-a3
-            experimental: [false]
+            experimental: [true]
     defaults:
       run:
         shell: bash
