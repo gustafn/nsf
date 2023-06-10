@@ -31685,13 +31685,6 @@ ParamUpdateString(Tcl_Obj *objPtr) {
             objPtr->typePtr->name);
 }
 
-static void
-ParamDupInteralRep(Tcl_Obj *srcPtr, Tcl_Obj *UNUSED(dupPtr)) {
-  nonnull_assert(srcPtr != NULL);
-  Tcl_Panic("%s of type %s should not be called", "dupStringProc",
-            srcPtr->typePtr->name);
-}
-
 static Tcl_ObjType paramObjType = {
     "nsfParam",                          /* name */
     ParamFreeInternalRep,                /* freeIntRepProc */
@@ -31704,6 +31697,38 @@ static Tcl_ObjType paramObjType = {
 };
 
 static void
+ParamDupInteralRep(Tcl_Obj *srcPtr, Tcl_Obj *dupPtr) {
+  NsfParamWrapper *srcParamWrapperPtr, *dupParamWrapperPtr;
+
+  nonnull_assert(srcPtr != NULL);
+
+  srcParamWrapperPtr = (NsfParamWrapper *)srcPtr->internalRep.twoPtrValue.ptr1;
+  if (srcParamWrapperPtr != NULL) {
+    /*fprintf(stderr, "ParamDupInteralRep src %p copy wrapper %p paramPtr %p refCount %d canFree %d\n",
+            (void*)srcPtr,
+            (void*)srcParamWrapperPtr,
+            (void*)srcParamWrapperPtr->paramPtr,
+            srcParamWrapperPtr->refCount,
+            srcParamWrapperPtr->canFree);*/
+
+    dupParamWrapperPtr = srcParamWrapperPtr;
+    dupPtr->internalRep.twoPtrValue.ptr1 = dupParamWrapperPtr;
+    dupPtr->typePtr = &paramObjType;
+    dupParamWrapperPtr->refCount ++;
+    dupParamWrapperPtr->canFree = NSF_FALSE;
+
+    /*fprintf(stderr, "ParamDupInteralRep dup %p .... wrapper %p paramPtr %p refCount %d canFree %d\n",
+            (void*)dupPtr,
+            (void*)dupParamWrapperPtr,
+            (void*)dupParamWrapperPtr->paramPtr,
+            dupParamWrapperPtr->refCount,
+            dupParamWrapperPtr->canFree);*/
+  }
+
+}
+
+
+static void
 ParamFreeInternalRep(
     register Tcl_Obj *objPtr)   /* Param structure object with internal
                                  * representation to free. */
@@ -31714,9 +31739,17 @@ ParamFreeInternalRep(
 
   paramWrapperPtr = (NsfParamWrapper *)objPtr->internalRep.twoPtrValue.ptr1;
   if (paramWrapperPtr != NULL) {
-    /* fprintf(stderr, "ParamFreeInternalRep freeing wrapper %p paramPtr %p refCount %dcanFree %d\n",
-            paramWrapperPtr, paramWrapperPtr->paramPtr, paramWrapperPtr->refCount,
+    /*fprintf(stderr, "ParamFreeInternalRep obj %p type %p '%s' freeing wrapper %p paramPtr %p refCount %d canFree %d\n",
+            (void*)objPtr,
+            (void*)objPtr->typePtr,
+            (void*)objPtr->typePtr == NULL ? "None" : objPtr->typePtr->name,
+            (void*)paramWrapperPtr,
+            (void*)paramWrapperPtr->paramPtr,
+            paramWrapperPtr->refCount,
             paramWrapperPtr->canFree);*/
+    if (paramWrapperPtr->refCount < 0) {
+      char *p = NULL; *p=0;
+    }
 
     if (paramWrapperPtr->canFree) {
       ParamsFree(paramWrapperPtr->paramPtr);
@@ -31789,14 +31822,26 @@ ParamSetFromAny2(
     if (*(paramWrapperPtr->paramPtr->name) == 'r') {
       paramWrapperPtr->paramPtr->flags |= NSF_ARG_IS_RETURNVALUE;
     }
+    /*fprintf(stderr, "ParamSetFromAny2 frees interprep for obj %p type %p \n",
+            (void*)objPtr,
+            (void*)objPtr->typePtr);*/
+
     TclFreeInternalRep(objPtr);
     objPtr->internalRep.twoPtrValue.ptr1 = (void *)paramWrapperPtr;
     objPtr->internalRep.twoPtrValue.ptr2 = NULL;
     objPtr->typePtr = &paramObjType;
+
+    /*fprintf(stderr, "ParamSetFromAny2 obj %p creates wrapper %p paramPtr %p refCount %d canFree %d\n",
+            (void*)objPtr,
+            (void*)paramWrapperPtr,
+            (void*)paramWrapperPtr->paramPtr,
+            paramWrapperPtr->refCount,
+            paramWrapperPtr->canFree);*/
   } else {
     /*
      * In error cases, free manually memory allocated by this function.
      */
+    /*fprintf(stderr, "ParamSetFromAny2 obj %p error case\n", (void*)objPtr);*/
     ParamsFree(paramWrapperPtr->paramPtr);
     FREE(NsfParamWrapper, paramWrapperPtr);
   }
