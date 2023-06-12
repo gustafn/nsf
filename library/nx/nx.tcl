@@ -1598,7 +1598,7 @@ namespace eval ::nx {
   }
 
   ObjectParameterSlot public method definition {} {
-    set options [:getParameterOptions -withMultiplicity true]
+    set options [:getParameterOptions -withMultiplicity true -forInfo true]
     if {[info exists :positional]} {lappend options positional}
     #if {!${:configurable}} {lappend options noconfig}
     return [:getPropertyDefinitionOptions [:namedParameterSpec -map-private "" ${:name} $options]]
@@ -1958,13 +1958,14 @@ namespace eval ::nx {
     {-withMultiplicity 0}
     {-withSubstdefault 1}
     {-forObjectParameter 0}
+    {-forInfo 0}
   } {
     set options ""
     set slotObject ""
 
     if {[info exists :type]} {
       set type ${:type}
-      if {$type eq "switch" && !$forObjectParameter} {set type boolean}
+      if {$type eq "switch" && !$forInfo && !$forObjectParameter} {set type boolean}
       if {$type in {cmd initcmd}} {
         lappend options $type
       } elseif {[string match ::* $type]} {
@@ -1972,11 +1973,11 @@ namespace eval ::nx {
       } else {
         lappend options $type
         if {$type ni [list "" \
-                             "boolean" "integer" "object" "class" \
-                             "metaclass" "baseclass" "parameter" \
-                             "alnum" "alpha" "ascii" "control" "digit" "double" \
-                             "false" "graph" "lower" "print" "punct" "space" "true" \
-                             "wideinteger" "wordchar" "xdigit" ]} {
+                          "boolean" "switch" "integer" "object" "class" \
+                          "metaclass" "baseclass" "parameter" \
+                          "alnum" "alpha" "ascii" "control" "digit" "double" \
+                          "false" "graph" "lower" "print" "punct" "space" "true" \
+                          "wideinteger" "wordchar" "xdigit" ]} {
           lappend options slot=[::nsf::self]
         }
       }
@@ -2074,7 +2075,7 @@ namespace eval ::nx {
   ::nx::VariableSlot public method parameter {} {
     # This is a shortened "lightweight" version of "getParameterSpec"
     # returning less (implicit) details. Used e.g. by "info variable parameter"
-    set options [:getParameterOptions -withMultiplicity true]
+    set options [:getParameterOptions -withMultiplicity true -forInfo true]
     set spec [:namedParameterSpec -map-private "" ${:name} $options]
     if {[info exists :default]} {lappend spec ${:default}}
     return $spec

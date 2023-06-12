@@ -777,6 +777,22 @@ nx::test case nsf-proc-preexisting-rename {
   namespace delete ::ns1
 }
 
+nx::test case switch-info {
+  namespace eval ::ns1 {}
+  set handle ::n1::foo
+
+  set params [list -p1:boolean -p2:switch args]
+  set def [list ::nsf::proc $handle $params return]
+  {*}$def
+
+  ? [list nsf::cmd::info args $handle] "p1 p2 args"
+  ? [list nsf::cmd::info definition $handle] $def
+  ? [list nsf::cmd::info exists $handle] 1
+  ? [list nsf::cmd::info parameter $handle] $params
+  ? [list nsf::cmd::info syntax $handle] "?-p1 /boolean/? ?-p2? ?/arg .../?"
+  
+  namespace delete ::ns1
+}
 
 
 # - TO-DO: interp hide/expose

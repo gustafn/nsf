@@ -207,6 +207,31 @@ q"
 
 }
 
+nx::test case switch-params {
+
+  set ::p1 "p1:boolean"
+  set ::p2 "p2:switch"
+  
+  set cls [nx::Class new {
+    :property $::p1
+    :property $::p2
+  }]
+
+  ? [list lmap p [$cls info variables] "[list $cls info variable parameter] \$p"] \
+      [list $::p1 $::p2]
+
+  ? [list lmap p [$cls info variables] "[list $cls info variable definition] \$p"] \
+      [list [list $cls property -accessor none $::p1] \
+           [list $cls property -accessor none $::p2]]
+
+  set obj [$cls new]
+  set ::lookupParams [$obj info lookup parameters configure]
+  ? {expr {"-$::p1" in $::lookupParams}} 1
+  ? {expr {"-$::p2" in $::lookupParams}} 1
+
+  ? [list string match "?-p1 /boolean/? ?-p2? *" [$obj info lookup syntax configure]] 1
+}
+
 nx::test case object-variables {
   nx::Class create Bar {
     :property {p 9}
