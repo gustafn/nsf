@@ -163,9 +163,11 @@ nx::test case class-level {
 
   set unknowns "valid are: {assign definition destroy get getParameterSpec getPropertyDefinitionOptions onError parameter reconfigure setCheckedInstVar}"
   ? {c1 b add x} {property b of ::C is not multivalued}
+  ? {c1 b delete x} {property b of ::C is not multivalued}
   #? {c1 b add x} "method 'add' unknown for slot ::C::slot::b; $unknowns"
   ? {c1 c add x} {::c1: unable to dispatch method 'c'}
   ? {c1 eval {:c add x}} {property c of ::C is not multivalued}
+  ? {c1 eval {:c delete x}} {property c of ::C is not multivalued}
   #? {c1 eval {:c add x}} "method 'add' unknown for slot ::C::slot::c; $unknowns"
   ? {c1 d add x} {::c1: unable to dispatch method 'd'}
   ? {c1 eval {:d add x}} {::c1: unable to dispatch method 'd'}
@@ -178,9 +180,11 @@ nx::test case class-level {
 
   ? {c1 va add x} {::c1: unable to dispatch method 'va'}
   ? {c1 vb add x} {property vb of ::C is not multivalued}
+  ? {c1 vb delete x} {property vb of ::C is not multivalued}
   #? {c1 vb add x} "method 'add' unknown for slot ::C::slot::vb; $unknowns"
   ? {c1 vc add x} {::c1: unable to dispatch method 'vc'}
   ? {c1 eval {:vc add x}} {property vc of ::C is not multivalued}
+  ? {c1 eval {:vc delete x}} {property vc of ::C is not multivalued}
   #? {c1 eval {:vc add x}} "method 'add' unknown for slot ::C::slot::vc; $unknowns"
   ? {c1 vd add x} {::c1: unable to dispatch method 'vd'}
   ? {c1 eval {:vd add x}} {::c1: unable to dispatch method 'vd'}

@@ -6,80 +6,228 @@ package req nx::test
 nx::test configure -count 1
 
 nx::test case setter-variants {
-    nx::Class create C {
-	:property {p1a 1}
-	:property {p1b 1} {
-	    :public object method value=set {obj prop value} {
-		nx::var::set $obj $prop [incr value]
-	    }
-	}
-	:property -accessor public {p2a 2}
-	:property -accessor public {p2b 2} {
-	    :public object method value=set {obj prop value} {
-		nx::var::set $obj $prop [incr value]
-	    }
-	}
-
-	:property -incremental {p3a 3}
-	:property -incremental {p3b 3} {
-	    :public object method value=set {obj prop value} {
-		nx::var::set $obj $prop [incr value]
-	    }
-	}
-
-	:create c1
+  nx::Class create C {
+    :property {p1a 1}
+    :property {p1b 1} {
+      :public object method value=set {obj prop value} {
+        nx::var::set $obj $prop [incr value]
+      }
+    }
+    :property -accessor public {p2a 2}
+    :property -accessor public {p2b 2} {
+      :public object method value=set {obj prop value} {
+        nx::var::set $obj $prop [incr value]
+      }
     }
 
-    puts [C info method definition p1a]
-    ? {c1 cget -p1a} 1
-    ? {c1 configure -p1a 1} ""
+    :property -incremental {p3a 3}
+    :property -incremental {p3b 3} {
+      :public object method value=set {obj prop value} {
+        nx::var::set $obj $prop [incr value]
+      }
+    }
 
-    puts [C info method definition p1b]
-    ? {c1 cget -p1b} 2
-    ? {c1 configure -p1b 3} ""
-    ? {c1 cget -p1b} 4
+    :create c1
+  }
 
-    puts [C info method definition p2a]
-    ? {c1 cget -p2a} 2
-    ? {c1 p2a get} 2
-    ? {c1 configure -p2a 2} ""
-    ? {c1 p2a set 2} 2
-    ? {c1 p2a unset} ""
-    ? {c1 cget -p2a} {can't read "p2a": no such variable}
-    ? {c1 p2a unset} {can't unset "p2a": no such variable}
-    ? {c1 p2a unset -nocomplain} ""
+  puts [C info method definition p1a]
+  ? {c1 cget -p1a} 1
+  ? {c1 configure -p1a 1} ""
 
-    puts [C info method definition p2b]
-    ? {c1 cget -p2b} 3
-    ? {c1 p2b get} 3
-    ? {c1 configure -p2b 2} ""
-    ? {c1 p2b set 2} 3
-    ? {c1 p2b unset} ""
-    ? {c1 cget -p2b} {can't read "p2b": no such variable}
+  puts [C info method definition p1b]
+  ? {c1 cget -p1b} 2
+  ? {c1 configure -p1b 3} ""
+  ? {c1 cget -p1b} 4
 
-    puts [C info method definition p3a]
+  puts [C info method definition p2a]
+  ? {c1 cget -p2a} 2
+  ? {c1 p2a get} 2
+  ? {c1 configure -p2a 2} ""
+  ? {c1 p2a set 2} 2
+  ? {c1 p2a unset} ""
+  ? {c1 cget -p2a} {can't read "p2a": no such variable}
+  ? {c1 p2a unset} {can't unset "p2a": no such variable}
+  ? {c1 p2a unset -nocomplain} ""
 
-    ? {c1 cget -p3a} 3
-    ? {c1 p3a get} 3
-    ? {c1 configure -p3a 3} ""
-    ? {c1 p3a get 3} {invalid argument '3', maybe too many arguments; should be "value=get ?-array? ?-notrace? /object/ /varName/"}
-    ? {c1 p3a set 3} 3
-    ? {c1 p3a unset} ""
-    ? {c1 cget -p3a} {can't read "p3a": no such variable}
+  puts [C info method definition p2b]
+  ? {c1 cget -p2b} 3
+  ? {c1 p2b get} 3
+  ? {c1 configure -p2b 2} ""
+  ? {c1 p2b set 2} 3
+  ? {c1 p2b unset} ""
+  ? {c1 cget -p2b} {can't read "p2b": no such variable}
 
-    puts [C info method definition p3b]
+  puts [C info method definition p3a]
 
-    ? {c1 cget -p3b} 4
-    ? {c1 p3b get} 4
-    ? {c1 configure -p3b 4} ""
-    ? {c1 p3b get} 5
-    ? {c1 p3b set 4} 5
-    ? {c1 p3b get} 5
-    ? {c1 p3b set 4} 5
-    ? {c1 p3b get} 5
+  ? {c1 cget -p3a} 3
+  ? {c1 p3a get} 3
+  ? {c1 configure -p3a 3} ""
+  ? {c1 p3a get 3} {invalid argument '3', maybe too many arguments; should be "value=get ?-array? ?-notrace? /object/ /varName/"}
+  ? {c1 p3a set 3} 3
+  ? {c1 p3a unset} ""
+  ? {c1 cget -p3a} {can't read "p3a": no such variable}
 
-    ? {c1 p3b unset} ""
-    ? {c1 cget -p3b} {can't read "p3b": no such variable}
+  puts [C info method definition p3b]
+
+  ? {c1 cget -p3b} 4
+  ? {c1 p3b get} 4
+  ? {c1 configure -p3b 4} ""
+  ? {c1 p3b get} 5
+  ? {c1 p3b set 4} 5
+  ? {c1 p3b get} 5
+  ? {c1 p3b set 4} 5
+  ? {c1 p3b get} 5
+
+  ? {c1 p3b unset} ""
+  ? {c1 cget -p3b} {can't read "p3b": no such variable}
 
 }
 
+nx::test case incremental-slot-override-wo-type {
+  nx::Class create C {
+    :property -accessor public c1a
+    :property -incremental c1b
+    :property -incremental c1c {
+      :public object method value=set {obj args} {
+        $obj eval [list lappend :trace [nx::current method]]
+        next
+      }
+      :public object method value=add {obj args} {
+        $obj eval [list lappend :trace [nx::current method]]
+        next
+      }
+      :public object method value=delete {obj args} {
+        $obj eval [list lappend :trace [nx::current method]]
+        next
+      }
+    }
+
+    :create c2
+  }
+
+  # WITHOUT incremental being set: add + delete from base class are present, but CANNOT be called;
+  set slotObj1 [c2 info lookup variables c1a]
+  foreach m {value=set value=add value=delete value=get value=unset value=exists} {
+    ? [list $slotObj1 info lookup method $m] ::nsf::classes::nx::VariableSlot::$m
+  }
+  ? {c2 c1a add 0}    "property c1a of ::C is not multivalued"
+  ? {c2 c1a delete 0} "property c1a of ::C is not multivalued"
+
+  # WITH incremental being set: add + delete from base class are present, and CAN be called;
+  set slotObj2 [c2 info lookup variables c1b]
+  foreach m {value=set value=add value=delete value=get value=unset value=exists} {
+    ? [list $slotObj2 info lookup method $m] ::nsf::classes::nx::VariableSlot::$m
+  }
+  ? {c2 c1b add 1}    "1"
+  ? {c2 c1b get}      "1"
+  ? {c2 c1b delete 1} ""
+  ? {c2 c1b get}      ""
+  ? {c2 c1b unset}      ""
+
+  # WITH incremental being set: add + delete from slot are present, override base methods, and CAN be called;
+  set slotObj3 [c2 info lookup variables c1c]
+  foreach m {value=set value=add value=delete} {
+    ? [list $slotObj3 info lookup method $m] ${slotObj3}::$m
+  }
+  foreach m {value=get value=unset value=exists} {
+    ? [list $slotObj3 info lookup method $m] ::nsf::classes::nx::VariableSlot::$m
+  }
+  ? {c2 info vars}    ""
+  ? {c2 c1c add 1}    "1"
+  ? {c2 c1c get}      "1"
+  ? {c2 c1c delete 1} ""
+  ? {c2 c1c get}      ""
+  ? {c2 c1c unset}      ""
+  ? {c2 info vars}    "trace"
+  ? {c2 eval {expr {"value=add" in ${:trace}}}} 1
+  ? {c2 eval {expr {"value=delete" in ${:trace}}}} 1
+  ? {c2 eval {expr {"value=set" in ${:trace}}}} 0
+
+  
+}
+
+nx::test case incremental-slot-override-with-type {
+  nx::Class create C {
+    :property -accessor public c1a:object
+    :property -incremental c1b:object
+    :property -incremental c1c:object {
+      :public object method value=set {obj prop value:object args} {
+        $obj eval [list lappend :trace [nx::current method]]
+        next
+      }
+      :public object method value=add {obj prop value:object args} {
+        $obj eval [list lappend :trace [nx::current method]]
+        next
+      }
+      :public object method value=delete {obj prop value:object args} {
+        $obj eval [list lappend :trace [nx::current method]]
+        next
+      }
+    }
+
+    :create c3
+  }
+  
+  # WITHOUT incremental being set: set is overriden internally and becomes type-aware; add + delete
+  # from base class are present, but CANNOT be called;
+  set slotObj1 [c3 info lookup variables c1a]
+  foreach m {value=add value=delete value=get value=unset value=exists} {
+    ? [list $slotObj1 info lookup method $m] ::nsf::classes::nx::VariableSlot::$m
+  }
+  ? [list $slotObj1 info lookup method value=set] ${slotObj1}::value=set
+
+  ? {c3 c1a add 0}    "property c1a of ::C is not multivalued"
+  ? {c3 c1a delete 0} "property c1a of ::C is not multivalued"
+  ? {c3 c1a set 0}     {expected object but got "0" for parameter "value"}
+  ? {c3 c1a set [c3]}  [c3]
+  ? {c3 c1a unset}     ""
+
+  # WITH incremental being set: set + add + delete are overriden INTERNALLY to make them type-aware;
+  set slotObj2 [c3 info lookup variables c1b]
+  foreach m {value=set value=add value=delete} {
+    ? [list $slotObj2 info lookup method $m] ${slotObj2}::$m
+  }
+  foreach m {value=get value=unset value=exists} {
+    ? [list $slotObj2 info lookup method $m] ::nsf::classes::nx::VariableSlot::$m
+  }
+
+  ? {c3 c1b add 1}    {expected object but got "1" for parameter "value"}
+  ? {c3 c1b delete 1} {expected object but got "1" for parameter "value"}
+  ? {c3 c1b set 1}    {invalid value in "1": expected object but got "1" for parameter "value"}
+  ? {c3 c1b add [c3]} [c3]
+  ? {c3 c1b delete [c3]} ""
+  ? {c3 c1b get} ""
+  ? {c3 c1b unset} ""
+
+  # WITH incremental being set: set + add + delete are overriden by
+  # the slot (Note: type-awareness must be taken care of explicitly, lost otherwise);
+  set slotObj3 [c3 info lookup variables c1c]
+  foreach m {value=set value=add value=delete} {
+    ? [list $slotObj3 info lookup method $m] ${slotObj3}::$m
+  }
+  foreach m {value=get value=unset value=exists} {
+    ? [list $slotObj3 info lookup method $m] ::nsf::classes::nx::VariableSlot::$m
+  }
+  ? {c3 info vars}       ""
+  ? {c3 c1c add 1}       {expected object but got "1" for parameter "value"}
+  ? {c3 c1c delete 1}    {expected object but got "1" for parameter "value"}
+  ? {c3 c1c set 1}       {expected object but got "1" for parameter "value"}
+  ? {c3 c1c add [c3]}    [c3]
+  ? {c3 c1c delete [c3]} ""
+  ? {c3 c1c get}         ""
+  ? {c3 c1c unset}       ""
+  ? {c3 info vars}       "trace"
+  
+  ? {c3 eval {expr {"value=add" in ${:trace}}}}    1
+  ? {c3 eval {expr {"value=delete" in ${:trace}}}} 1
+  ? {c3 eval {expr {"value=set" in ${:trace}}}}    0
+  ? {c3 c1c set [c3]}                              [c3]
+  ? {c3 eval {expr {"value=set" in ${:trace}}}}    1
+}
+
+
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

@@ -2130,17 +2130,36 @@ namespace eval ::nx {
       set args [list obj var [:namedParameterSpec {} value $options]]
       :public object method value=set $args {::nsf::var::set $obj $var $value}
     }
-    if {[:isMultivalued] && [:info lookup method value=add] eq "::nsf::classes::nx::VariableSlot::value=add"} {
-      set slotObj "slot=[::nsf::self]"
-      # lappend options_single slot=[::nsf::self]
-      if {$slotObj ni $options_single} {lappend options_single $slotObj}
-      set vspec [:namedParameterSpec {} value $options_single]
-      set addArgs [list obj prop $vspec {pos 0}]
-      :public object method value=add $addArgs {::nsf::next [list $obj $prop $value $pos]}
-      set delArgs [list obj prop -nocomplain:switch $vspec]
-      :public object method value=delete $delArgs {::nsf::next [list $obj $prop -nocomplain=$nocomplain $value]}
-    } else {
-      # TODO should we deactivate add/delete?
+
+    if {[:isMultivalued]} {
+      set baseMethods [lmap m {value=add value=delete} {
+        set mh [:info lookup method $m]
+        if {[string match "::nsf::classes::nx::VariableSlot::*" $mh]} {
+          set m
+        } else {
+          continue
+        }
+      }]
+
+      if {[llength $baseMethods]} {
+        set slotObj "slot=[::nsf::self]"
+        # lappend options_single slot=[::nsf::self]
+        if {$slotObj ni $options_single} {lappend options_single $slotObj}
+        set vspec [:namedParameterSpec {} value $options_single]
+        if {"value=add" in $baseMethods} {
+          set addArgs [list obj prop $vspec {pos 0}]
+          :public object method value=add $addArgs {::nsf::next [list $obj $prop $value $pos]}
+        }
+        
+        if {"value=delete" in $baseMethods} {
+          set delArgs [list obj prop -nocomplain:switch $vspec]
+          :public object method value=delete $delArgs \
+              {::nsf::next [list $obj $prop -nocomplain=$nocomplain $value]}
+        }
+      } else {
+        # TODO should we deactivate add/delete?
+      }
+  
     }
   }
 
@@ -2300,6 +2319,9 @@ namespace eval ::nx {
   }
 
   ::nx::VariableSlot public method value=delete {obj prop -nocomplain:switch value} {
+    if {![:isMultivalued]} {
+      return -code error "property $prop of [set :domain] is not multivalued"
+    }
     set old [::nsf::var::get $obj $prop]
     set p [lsearch -glob $old $value]
     if {$p > -1} {
