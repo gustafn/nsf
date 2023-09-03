@@ -2150,7 +2150,7 @@ namespace eval ::nx {
           set addArgs [list obj prop $vspec {pos 0}]
           :public object method value=add $addArgs {::nsf::next [list $obj $prop $value $pos]}
         }
-        
+
         if {"value=delete" in $baseMethods} {
           set delArgs [list obj prop -nocomplain:switch $vspec]
           :public object method value=delete $delArgs \
@@ -2159,7 +2159,7 @@ namespace eval ::nx {
       } else {
         # TODO should we deactivate add/delete?
       }
-  
+
     }
   }
 

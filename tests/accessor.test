@@ -143,7 +143,7 @@ nx::test case incremental-slot-override-wo-type {
   ? {c2 eval {expr {"value=delete" in ${:trace}}}} 1
   ? {c2 eval {expr {"value=set" in ${:trace}}}} 0
 
-  
+
 }
 
 nx::test case incremental-slot-override-with-type {
@@ -167,7 +167,7 @@ nx::test case incremental-slot-override-with-type {
 
     :create c3
   }
-  
+
   # WITHOUT incremental being set: set is overriden internally and becomes type-aware; add + delete
   # from base class are present, but CANNOT be called;
   set slotObj1 [c3 info lookup variables c1a]
@@ -217,7 +217,7 @@ nx::test case incremental-slot-override-with-type {
   ? {c3 c1c get}         ""
   ? {c3 c1c unset}       ""
   ? {c3 info vars}       "trace"
-  
+
   ? {c3 eval {expr {"value=add" in ${:trace}}}}    1
   ? {c3 eval {expr {"value=delete" in ${:trace}}}} 1
   ? {c3 eval {expr {"value=set" in ${:trace}}}}    0
