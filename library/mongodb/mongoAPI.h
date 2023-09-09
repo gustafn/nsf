@@ -89,7 +89,7 @@ static int ConvertToGridfilesource(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Para
     
 
 /* just to define the symbol */
-static Nsf_methodDefinition method_definitions[31];
+static Nsf_methodDefinition method_definitions[32];
   
 static const char *method_command_namespace_names[] = {
   "::mongo"
@@ -149,6 +149,8 @@ static int NsfMongoGridFileSeekStub(ClientData clientData, Tcl_Interp *interp, T
 static int NsfMongoJsonGenerateStub(ClientData clientData, Tcl_Interp *interp, TCL_OBJC_T objc, Tcl_Obj *const* objv)
   NSF_nonnull(2) NSF_nonnull(4);
 static int NsfMongoJsonParseStub(ClientData clientData, Tcl_Interp *interp, TCL_OBJC_T objc, Tcl_Obj *const* objv)
+  NSF_nonnull(2) NSF_nonnull(4);
+static int NsfMongoOidGettimestampStub(ClientData clientData, Tcl_Interp *interp, TCL_OBJC_T objc, Tcl_Obj *const* objv)
   NSF_nonnull(2) NSF_nonnull(4);
 static int NsfMongoRunCmdStub(ClientData clientData, Tcl_Interp *interp, TCL_OBJC_T objc, Tcl_Obj *const* objv)
   NSF_nonnull(2) NSF_nonnull(4);
@@ -211,6 +213,8 @@ static int NsfMongoJsonGenerate(Tcl_Interp *interp, Tcl_Obj *listObj)
   NSF_nonnull(1) NSF_nonnull(2);
 static int NsfMongoJsonParse(Tcl_Interp *interp, Tcl_Obj *jsonObj)
   NSF_nonnull(1) NSF_nonnull(2);
+static int NsfMongoOidGettimestamp(Tcl_Interp *interp, const char *oid)
+  NSF_nonnull(1) NSF_nonnull(2);
 static int NsfMongoRunCmd(Tcl_Interp *interp, int withNocomplain, mongoc_client_t *connPtr, const char *db, Tcl_Obj *cmdObj)
   NSF_nonnull(1) NSF_nonnull(3) NSF_nonnull(4) NSF_nonnull(5);
 static int NsfMongoStatus(Tcl_Interp *interp, mongoc_client_t *connPtr, Tcl_Obj *connObj)
@@ -245,6 +249,7 @@ EXTERN enum {
  NsfMongoGridFileSeekIdx,
  NsfMongoJsonGenerateIdx,
  NsfMongoJsonParseIdx,
+ NsfMongoOidGettimestampIdx,
  NsfMongoRunCmdIdx,
  NsfMongoStatusIdx
 } NsfMethods;
@@ -839,6 +844,26 @@ NsfMongoJsonParseStub(ClientData clientData, Tcl_Interp *interp, TCL_OBJC_T objc
 }
 
 static int
+NsfMongoOidGettimestampStub(ClientData clientData, Tcl_Interp *interp, TCL_OBJC_T objc, Tcl_Obj *const* objv) {
+  ParseContext pc;
+  (void)clientData;
+
+  if (likely(ArgumentParse(interp, objc, objv, NULL, objv[0],
+                     method_definitions[NsfMongoOidGettimestampIdx].paramDefs,
+                     method_definitions[NsfMongoOidGettimestampIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
+                     &pc) == TCL_OK)) {
+    const char *oid = (const char *)pc.clientData[0];
+
+    assert(pc.status == 0);
+    return NsfMongoOidGettimestamp(interp, oid);
+
+  } else {
+    
+    return TCL_ERROR;
+  }
+}
+
+static int
 NsfMongoRunCmdStub(ClientData clientData, Tcl_Interp *interp, TCL_OBJC_T objc, Tcl_Obj *const* objv) {
   ParseContext pc;
   (void)clientData;
@@ -881,7 +906,7 @@ NsfMongoStatusStub(ClientData clientData, Tcl_Interp *interp, TCL_OBJC_T objc, T
   }
 }
 
-static Nsf_methodDefinition method_definitions[31] = {
+static Nsf_methodDefinition method_definitions[32] = {
 {"::mongo::collection::close", NsfCollectionCloseStub, 1, {
   {"collection", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Pointer, NULL,NULL,"mongoc_collection_t",NULL,NULL,NULL,NULL,NULL}}
 },
@@ -1001,6 +1026,9 @@ static Nsf_methodDefinition method_definitions[31] = {
 },
 {"::mongo::json::parse", NsfMongoJsonParseStub, 1, {
   {"json", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+},
+{"::mongo::oid::gettimestamp", NsfMongoOidGettimestampStub, 1, {
+  {"oid", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::mongo::run", NsfMongoRunCmdStub, 4, {
   {"-nocomplain", 0, 0, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},

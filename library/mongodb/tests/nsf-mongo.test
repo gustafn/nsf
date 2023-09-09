@@ -273,7 +273,8 @@ if {[llength $stats] % 3 == 0} {
   puts [C bson pp $stats]
 }
 
-
+puts stderr "Creation time of 64f9ce9eb84de6be1f06e967 in epoch value"
+? {::mongo::oid::gettimestamp 64f9ce9eb84de6be1f06e967} "1694092958"
 
 puts stderr "\nStatus"
 set status [::mongo::status $mongoConn]

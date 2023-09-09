@@ -24,6 +24,11 @@ cmd json::parse NsfMongoJsonParse {
   {-argName "json" -required 1 -type tclobj}
 }
 
+# returns the timestamp portion of the ObjectId in form of an epoch
+cmd oid::gettimestamp NsfMongoOidGettimestamp {
+  {-argName "oid" -required 1}
+}
+
 cmd close NsfMongoClose {
   {-argName "conn" -required 1 -type mongoc_client_t -withObj 1}
 }

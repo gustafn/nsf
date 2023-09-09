@@ -659,6 +659,31 @@ NsfMongoJsonParse(Tcl_Interp *interp, Tcl_Obj *jsonObj)
 }
 
 /*
+  cmd oid::gettimestamp NsfMongoOidGettimestamp {
+  {-argName "oid" -required 1}
+  }
+*/
+static int NsfMongoOidGettimestamp(Tcl_Interp *interp, const char *oid)
+{
+  int        result;
+
+  if (strlen(oid) < 24) {
+    result = NsfPrintError(interp, "mongo::oid::gettimestamp:"
+                           "the input string MUST be 24 characters or more in length");
+  } else {
+    bson_oid_t oid_value;
+    time_t     t;
+
+    bson_oid_init_from_string (&oid_value, oid);
+    t = bson_oid_get_time_t(&oid_value);
+    fprintf (stderr, "The OID was generated at %u\n", (unsigned) t);
+    Tcl_SetObjResult(interp, Tcl_NewWideIntObj((Tcl_WideInt)t));
+    result = TCL_OK;
+  }
+  return result;
+}
+
+/*
   cmd close NsfMongoClose {
   {-argName "conn" -required 1 -type mongoc_client_t -withObj 1}
   }
@@ -1664,6 +1689,7 @@ NsfMongoGridFileOpen(Tcl_Interp *interp,
   bson_destroy(filterPtr);
   return result;
 }
+
 
 
 /***********************************************************************
