@@ -400,8 +400,9 @@ GetPair(Tcl_Interp *interp, Tcl_Obj *objPtr, int verbose, Tcl_Obj **nameObjPtr, 
 
 static int
 GetPair(Tcl_Interp *interp, Tcl_Obj *objPtr, int verbose, Tcl_Obj **nameObjPtr, int *nrArgsPtr) {
-  int result = TCL_OK, oc;
-  Tcl_Obj **ov;
+  int        result = TCL_OK;
+  TCL_SIZE_T oc;
+  Tcl_Obj  **ov;
 
   if (Tcl_ListObjGetElements(interp, objPtr, &oc, &ov) != TCL_OK) {
     if (verbose) {
@@ -451,7 +452,8 @@ int
 NsfProfileTrace(Tcl_Interp *interp, int withEnable, int withVerbose, int withDontsave, Tcl_Obj *builtinObjs) {
   NsfRuntimeState *rst;
   NsfProfile      *profilePtr;
-  int              oldProfileState, oc;
+  int              oldProfileState;
+  TCL_SIZE_T       oc;
   Tcl_Obj        **ov;
 
   nonnull_assert(interp != NULL);

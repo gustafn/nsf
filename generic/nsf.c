@@ -27904,13 +27904,13 @@ NsfDebugShowObj(Tcl_Interp *interp, Tcl_Obj *obj) {
   } else if ((obj->typePtr == Nsf_OT_byteArrayType)
              || (obj->typePtr == Nsf_OT_properByteArrayType)) {
     const char *bytes;
-    int         i, length;
+    TCL_SIZE_T  i, length;
 
     bytes = (char *)Tcl_GetByteArrayFromObj(obj, &length);
 
-    fprintf(stderr, "bytearray proper %d length %d string rep %p: ",
+    fprintf(stderr, "bytearray proper %d length %ld string rep %p: ",
             (obj->typePtr == Nsf_OT_properByteArrayType),
-            length, (void*)obj->bytes);
+            (long)length, (void*)obj->bytes);
     for (i = 0; i < length; i++) {
       fprintf(stderr, "%.2x", (unsigned)(*(bytes+i)) & 0xff);
     }
