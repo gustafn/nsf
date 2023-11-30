@@ -28997,7 +28997,10 @@ NsfParseArgsCmd(Tcl_Interp *interp, int withAsDict, Tcl_Obj *argspecObj, Tcl_Obj
     ParamDefsRefCountIncr(paramDefs);
     result = ArgumentParse(interp, (TCL_OBJC_T)objc, objv, NULL, NsfGlobalObjs[NSF_PARSE_ARGS],
                            paramDefs->paramsPtr, paramDefs->nrParams, paramDefs->serial,
-                           processFlags|NSF_ARGPARSE_START_ZERO|RUNTIME_STATE(interp)->doCheckArguments,
+                           processFlags
+                           |NSF_ARGPARSE_START_ZERO
+                           |NSF_ARGPARSE_FORCE_REQUIRED
+                           |RUNTIME_STATE(interp)->doCheckArguments,
                            &pc);
 
     if (result == TCL_OK) {
