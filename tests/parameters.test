@@ -201,7 +201,7 @@ nx::test case param-manager {
   ? {::nsf::is -complain sex,slot=::paramManager female} "1"
 }
 #######################################################
-# cononical feature table
+# canonical feature table
 #######################################################
 #
 # parameter options
@@ -2700,7 +2700,7 @@ nx::test case object-parameter-switch {
   ? {c3 eval {set :foo}} {false}
 
   # In the inverted case, the switch has a default of "true". If the
-  # switch is specified, the valus is "false"
+  # switch is specified, the value is "false"
   C property {foo2:switch 1}
   C create c4
   ? {lsort [c4 info vars]} {foo foo2}

@@ -783,7 +783,7 @@ nx::test case refount-destroy-delete2 {
 }
 
 #
-# Testing cylcic alias
+# Testing cyclic alias
 #
 nx::test case cyclic-alias {
   nx::Object create o {

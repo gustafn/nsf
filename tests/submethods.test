@@ -1127,7 +1127,7 @@ nx::Class create C {
 # unknown at the 3rd ensemble level w/o trailer : 'c' vs. 'z'
 ? {c foo a b z} {unable to dispatch sub-method "z" of ::c foo a b; valid are: foo a b c}
 ? [list return -level 0 [catch {c foo a b z} msg; set msg]] {unable to dispatch sub-method "z" of ::c foo a b; valid are: foo a b c}
-# unknown at the 3nd ensemble level w trailer : 'c' vs. 'z'
+# unknown at the 3rd ensemble level w trailer : 'c' vs. 'z'
 ? {c foo a b z d} {unable to dispatch sub-method "z" of ::c foo a b; valid are: foo a b c}
 ? [list return -level 0 [catch {c foo a b z d} msg; set msg]] {unable to dispatch sub-method "z" of ::c foo a b; valid are: foo a b c}
 

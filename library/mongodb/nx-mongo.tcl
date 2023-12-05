@@ -434,7 +434,7 @@ namespace eval ::nx::mongo {
     # For interaction with bson structures, we provide on the class
     # level "bson cond" (a small dsl for a more convenient syntax in
     # bson queries), "bson opts" (options like e.g.  ordering), "bson
-    # atts (a simplifed property selection) and "bson parameter" which
+    # atts (a simplified property selection) and "bson parameter" which
     # translates from a bson structure (tuple) into a dashed parameter
     # list used in object creation.
     #

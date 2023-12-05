@@ -9,7 +9,7 @@ namespace eval ::xotcl::staticMetadataAnalyzer {
   @ @File {
     description {
       XOTcl file static analyzer for @ metadata. E.g. used for 
-      doumentation with xoDoc. I.e. allows for reading in a 
+      documentation with xoDoc. I.e. allows for reading in a
       file and evaluating the metadata-related info only.
     }
   }

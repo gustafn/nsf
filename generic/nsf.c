@@ -18299,7 +18299,7 @@ ParamDefinitionParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, uns
   /*
    * Check for application specific value checkers and converters
    */
-  /*fprintf(stderr, "parm %s: slotObj %p viaCmd? %d\n",
+  /*fprintf(stderr, "parameter %s: slotObj %p viaCmd? %d\n",
           paramPtr->name, paramPtr->slotObj, paramPtr->converter == ConvertViaCmd);*/
 
   if ((paramPtr->slotObj || paramPtr->converter == ConvertViaCmd) && paramPtr->type) {
@@ -25418,7 +25418,7 @@ ArgumentParse(
      * Not all parameter processed, make sure varags is set.
      */
 
-    /*fprintf(stderr, ".... not all parms processed, pPtr '%s' j %ld nrParams %d last '%s' varArgs %d dashdash %d\n",
+    /*fprintf(stderr, ".... not all parameters processed, pPtr '%s' j %ld nrParams %d last '%s' varArgs %d dashdash %d\n",
             currentParamPtr->name, currentParamPtr - paramPtr, nrParams, lastParamPtr->name,
             pcPtr->varArgs, (int)dashdash);*/
 
@@ -25793,7 +25793,7 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd,  NsfObject *contextObject,
 
   /*
    * In case, we failed so far to obtain a result, try to use the
-   * object-system implementors definitions in the global array
+   * object-system implementers definitions in the global array
    * ::nsf::parametersyntax. Note that we can only obtain the
    * parameter syntax this way.
    */

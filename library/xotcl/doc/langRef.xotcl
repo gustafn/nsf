@@ -290,7 +290,7 @@ if {$::tcl_version >= 8.6} {
     dash-notation at arbitrary times:
     <@pre class='code'>    o configure -set x 4</@pre>
 
-    Note that if '-' is followed by a numerical, the arument is
+    Note that if '-' is followed by a numerical, the argument is
     interpreted as a negative number (and not as a method).  If a
     value of a method called this way starts with a "-", the call can
     be placed safely into a list (e.g. "Class c [list -strangearg -a-]

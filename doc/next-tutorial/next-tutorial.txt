@@ -1131,7 +1131,7 @@ used here as well +:method helper ...+, since the default method
 call-protection is already protected.
 
 The method call-protection of +private+ goes one step further and
-helps to hide implementation details also for implementors of
+helps to hide implementation details also for implementers of
 subclasses. Private methods are a means for avoiding unanticipated name
 clashes. Consider the following example:
 

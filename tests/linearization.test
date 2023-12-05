@@ -58,7 +58,7 @@ proc local-order-constraints {obj} {
   set constraints ""
   foreach c [$obj info precedence] {
 
-    # compute vor every class its subclasses
+    # compute for every class its subclasses
     set subclasses [$c info subclasses -closure]
 
     # subclasses must be before classes

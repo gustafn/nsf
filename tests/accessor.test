@@ -168,7 +168,7 @@ nx::test case incremental-slot-override-with-type {
     :create c3
   }
 
-  # WITHOUT incremental being set: set is overriden internally and becomes type-aware; add + delete
+  # WITHOUT incremental being set: set is overridden internally and becomes type-aware; add + delete
   # from base class are present, but CANNOT be called;
   set slotObj1 [c3 info lookup variables c1a]
   foreach m {value=add value=delete value=get value=unset value=exists} {
@@ -182,7 +182,7 @@ nx::test case incremental-slot-override-with-type {
   ? {c3 c1a set [c3]}  [c3]
   ? {c3 c1a unset}     ""
 
-  # WITH incremental being set: set + add + delete are overriden INTERNALLY to make them type-aware;
+  # WITH incremental being set: set + add + delete are overridden INTERNALLY to make them type-aware;
   set slotObj2 [c3 info lookup variables c1b]
   foreach m {value=set value=add value=delete} {
     ? [list $slotObj2 info lookup method $m] ${slotObj2}::$m
@@ -199,7 +199,7 @@ nx::test case incremental-slot-override-with-type {
   ? {c3 c1b get} ""
   ? {c3 c1b unset} ""
 
-  # WITH incremental being set: set + add + delete are overriden by
+  # WITH incremental being set: set + add + delete are overridden by
   # the slot (Note: type-awareness must be taken care of explicitly, lost otherwise);
   set slotObj3 [c3 info lookup variables c1c]
   foreach m {value=set value=add value=delete} {

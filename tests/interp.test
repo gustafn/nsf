@@ -134,7 +134,7 @@ nx::test case hidden-cmds {
   # 
   # For testing, we shutdown the NSF object systems in our slave
   # interp by using nsf::finalize; to do some smoke testing of the
-  # cleanup results. As for the cleanup procedre, this is equivalent
+  # cleanup results. As for the cleanup procedure, this is equivalent
   # to: interp delete $i
 
 

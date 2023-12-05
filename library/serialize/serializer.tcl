@@ -40,7 +40,7 @@ namespace eval ::nx::serializer {
       Do not serialize any instance variable named b (of any object).<p>
       <@pre class='code'>Serializer all -ignoreVarsRE {^::o1::.*text.*$|^::o2::x$}</@pre>
       Do not serialize any variable of c1 whose name contains
-      the string "text" and do not serialze the variable x of o2.<p>
+      the string "text" and do not serialize the variable x of o2.<p>
       <@pre class='code'>Serializer all -ignore obj1 obj2 ... </@pre>
       do not serizalze the specified objects
     }
@@ -90,7 +90,7 @@ namespace eval ::nx::serializer {
                                    } {
     Description {
       Serialize the specified method. In order to serialize
-      an instproc, <@tt>prefix</@tt> should be 'inst'; to serialze
+      an instproc, <@tt>prefix</@tt> should be 'inst'; to serialize
       procs, it should be empty.<p>
 
       Examples:

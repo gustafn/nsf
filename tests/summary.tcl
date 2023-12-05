@@ -1,7 +1,7 @@
 # -*- Tcl -*-
 #
 # This script computes the regression test summary displayed at the
-# end of the regression test. It aggreates the content of the test log
+# end of the regression test. It aggregates the content of the test log
 # provided via arg "-testlog".
 
 array set opt {-title ""}

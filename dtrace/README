@@ -29,7 +29,7 @@ SIP is fully disabled: Run "csrutil disable" only, omit the fourth
 step.)
 
 DTrace requires normally that the dtrace command is run with root
-permissions. In case the provided sample scrips in the dtrace
+permissions. In case the provided sample scripts in the dtrace
 directory don't work out of the box, the following hints might help:
 
 * Make sure that a "package require nx" works for root as well

@@ -28,7 +28,7 @@ package req nx::test
 # case the method to be exported or to be unexported has not yet been
 # defined (on the exporting or unexporting object or class). These
 # "extension methods", however, are mere method stubs, they do not
-# contain a method implementation (a proc). Without any invokable
+# contain a method implementation (a proc). Without any invokeable
 # method impl, they are skipped during method dispatch (as in an
 # implicit next call). Using the method stubs, the public interface
 # (i.e., the interface dispatchable through an object's Tcl_command)
