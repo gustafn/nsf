@@ -500,8 +500,8 @@ objectvariables proc run {{n 100}} {
 
   avar2 proc trace {var ops} {
     my instvar $var
-    ::trace variable $var $ops "avar2 traceproc"
-    #puts stderr "::trace variable $var $ops avar2 traceproc"
+    ::trace add variable $var $ops "avar2 traceproc"
+    #puts stderr "::trace add variable $var $ops avar2 traceproc"
   }
 
   avar2 proc traceproc {maj min op} {
@@ -517,15 +517,15 @@ objectvariables proc run {{n 100}} {
   global guide trail
   set trail {}
   set guide {}
-  avar2 trace array wu
+  avar2 trace array {write unset}
 
   for {set i 0} {$i < $n} {incr i} {
 
-    avar2 trace scalar$i wu
+    avar2 trace scalar$i {write unset}
     avar2 set scalar$i $i
-    lappend guide [list scalar$i {} w]
+    lappend guide [list scalar$i {} write]
     avar2 set array($i) [avar2 set scalar$i]
-    lappend guide [list array $i w]
+    lappend guide [list array $i write]
   }
   if {$guide != $trail} then {
     error "FAILED [self] - trace: expected $guide, got $trail"
@@ -535,9 +535,9 @@ objectvariables proc run {{n 100}} {
   #
   set trail {}
   set guide {}
-  lappend guide [list array {} u]
+  lappend guide [list array {} unset]
   for {set i 0} {$i < $n} {incr i} {
-    lappend guide [list scalar$i {} u]
+    lappend guide [list scalar$i {} unset]
   }
 
   avar2 killSelf
