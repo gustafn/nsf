@@ -1125,7 +1125,7 @@ if {$::tcl_version >= 8.6} {
       without the optional arguments, or with the <@TT>pattern</@TT>
       or with <@TT>-definition name</@TT>. When the <@TT>pattern</@TT> is specified
       only the matching instforwarders are returned. When the <@TT>definition</@TT>
-      option is used together with a name of a isntforwarder, the definition
+      option is used together with a name of a instforwarder, the definition
       of the instforwarder with all flags is returned in a way that
       can be used e.g. for registering the instforwarder on another class.
 
