@@ -1,4 +1,4 @@
-# 
+#
 # Copyright 1993 Massachusetts Institute of Technology
 #
 # Permission to use, copy, modify, distribute, and sell this software and its
@@ -16,8 +16,8 @@ package require XOTcl 2.0; namespace import ::xotcl::*
 
 @ @File {description {
   This is a class which provides regression test objects
-  for the OTcl derived features of the XOTcl - Language. 
-  This script is based upon the test.tcl script of the OTcl distribution 
+  for the OTcl-derived features of the XOTcl-Language.
+  This script is based upon the test.tcl script of the OTcl distribution
   and adopted for XOTcl.
   }
 }
@@ -50,12 +50,12 @@ objectdispatch proc run {{n 50}} {
     set i [llength $args]
     foreach a $args {
       if {$a != $i} then {
-	error "wrong order in arguments: $l $n $args"
+        error "wrong order in arguments: $l $n $args"
       }
       incr i -1
     }
     incr l
-    
+
     set ukn [eval [list [self]] $args]
     if {$ukn != $args} then {
       error "wrong order in unknown: $ukns"
@@ -78,22 +78,22 @@ TestSuite paperexamples
 
 paperexamples proc example1 {} {
   Object astack
-  
+
   astack set things {}
-  
+
   astack proc put {thing} {
     my instvar things
     set things [concat [list $thing] $things]
     return $thing
   }
-  
+
   astack proc get {} {
     my instvar things
     set top [lindex $things 0]
     set things [lrange $things 1 end]
     return $top
   }
-  
+
   astack put bagel
   astack get
   astack destroy
@@ -101,47 +101,47 @@ paperexamples proc example1 {} {
 
 paperexamples proc example2 {} {
   Class Safety
-  
+
   Safety instproc init {} {
     next
     my set count 0
   }
-  
+
   Safety instproc put {thing} {
     my instvar count
     incr count
     next
   }
-  
+
   Safety instproc get {} {
     my instvar count
     if {$count == 0} then { return {empty!} }
     incr count -1
     next
   }
-  
+
   Class Stack
-  
+
   Stack instproc init {} {
     next
     my set things {}
   }
-  
+
   Stack instproc put {thing} {
     my instvar things
     set things [concat [list $thing] $things]
     return $thing
   }
-  
+
   Stack instproc get {} {
     my instvar things
     set top [lindex $things 0]
     set things [lrange $things 1 end]
     return $top
   }
-  
+
   Class SafeStack -superclass {Safety Stack}
-  
+
   SafeStack s
   s put bagel
   s get
@@ -179,10 +179,10 @@ classcreate proc factorgraph {{n 3600}} {
       # factors become subclasses, direct or indirect
       #
       if {[TestClass info instances $i] eq ""} then {
-	my factorgraph $i
-	$i superclass $n
+        my factorgraph $i
+        $i superclass $n
       } elseif {[$i info superclass $n] == 0} then {
-	$i superclass [concat [$i info superclass] $n]
+        $i superclass [concat [$i info superclass] $n]
       }
     }
   }
@@ -222,11 +222,11 @@ inheritance proc superclass {} {
   foreach i [TestClass info instances] {
     set s [$i info superclass]
     set h [$i info heritage]
-    
+
     #
     # superclasses should mesh with heritage
     #
-    
+
     my meshes $s $h
   }
 }
@@ -236,13 +236,13 @@ inheritance proc combination {} {
     #
     # combination should mesh with heritage
     #
-    
+
     $i anumber
     set obj [lrange [anumber combineforobj] 1 end]
     set h [$i info heritage]
     my meshes $obj $h
     anumber destroy
-    
+
     if {[$i info procs combineforclass] ne ""} then {
       set cls [lrange [$i combineforclass] 1 end]
       my meshes $cls $h
@@ -266,7 +266,7 @@ inheritance proc run {} {
       return [concat [list [self class]] [next]]
     }
   }
-  
+
   #
   # and to Object as a fallback
   #
@@ -277,7 +277,7 @@ inheritance proc run {} {
   Object proc combineforclass {} {
     return [concat [list [self class]] [next]]
   }
-  
+
   my superclass
   my combination
 
@@ -292,7 +292,7 @@ inheritance proc run {} {
 TestSuite classdestroy
 
 classdestroy proc run {} {
-  
+
   #
   # remove half of the graph at a time
   #
@@ -309,38 +309,38 @@ classdestroy proc run {} {
       #
       # quarter dies directly, quarter indirectly, quarter renamed
       #
-    
+
       if {($i % 2) == 0} then {
-	global TCdestroy
-	set sb [$o info subclass]
+        global TCdestroy
+        set sb [$o info subclass]
 
-	if {[info tclversion] >= 7.4 && ($i % 4) == 0} then {
-	  $o move ""
-	} else {
-	  $o destroy
-	}
-	if {[catch {set TCdestroy}] || $TCdestroy != $o} then {
-	  error "FAILED [self] - destroy instproc not run for $o"
-	}
-	if {[info commands $o] ne ""} then {
-	  error "FAILED [self] - $o not removed from interpreter"
-	}
-	unset TCdestroy
+        if {[info tclversion] >= 7.4 && ($i % 4) == 0} then {
+          $o move ""
+        } else {
+          $o destroy
+        }
+        if {[catch {set TCdestroy}] || $TCdestroy != $o} then {
+          error "FAILED [self] - destroy instproc not run for $o"
+        }
+        if {[info commands $o] ne ""} then {
+          error "FAILED [self] - $o not removed from interpreter"
+        }
+        unset TCdestroy
 
-	#
-	# but everyone must still have a superclass
-	#
-	foreach j $sb {
-	  if {[$j info superclass] eq ""} then {
-	    $j superclass Object
-	  }
-	}
+        #
+        # but everyone must still have a superclass
+        #
+        foreach j $sb {
+          if {[$j info superclass] eq ""} then {
+            $j superclass Object
+          }
+        }
       } elseif {[info tclversion] >= 7.4 && ($i % 3) == 0} then {
         $o move $o.$i
       }
 
     }
-    
+
     inheritance superclass
     inheritance combination
   }
@@ -369,7 +369,7 @@ objectinits proc prepare {n} {
 
   for {set i 1} {$i < $n} {incr i} {
     TestClass $i -superclass [expr {$i-1}]
-    
+
     #
     # record the reverse order of inits
     #
@@ -385,12 +385,12 @@ objectinits proc prepare {n} {
     #
 
     $i instproc m$i.set {val} {
-      my instvar  [namespace tail [self class]] 
+      my instvar  [namespace tail [self class]]
       set [namespace tail [self class]] [self proc].$val
     }
   }
 }
-  
+
 objectinits proc run {{n 15}} {
   my prepare $n
 
@@ -407,20 +407,20 @@ objectinits proc run {{n 15}} {
       # create obj of increasing class with increasing options
       #
       if {[catch {eval $i m$i.$j $args} msg] != 0} then {
-	error "FAILED [self] - $msg"
+        error "FAILED [self] - $msg"
       }
       if {[m$i.$j set order] != $il} then {
-	error "FAILED [self] - inited order was wrong"
+        error "FAILED [self] - inited order was wrong"
       }
       set vl [lsort -decreasing -integer [m$i.$j info vars {[0-9]*}]]
 
       if {$vl != $al} then {
-	error "FAILED [self] - wrong instvar names: $vl : $al"
+        error "FAILED [self] - wrong instvar names: $vl : $al"
       }
       foreach k $vl {
-	if {[m$i.$j set $k] != "m$k.set.$k"} then {
-	  error "FAILED [self] - wrong instvar values"
-	}
+        if {[m$i.$j set $k] != "m$k.set.$k"} then {
+          error "FAILED [self] - wrong instvar values"
+        }
       }
     }
   }
@@ -436,7 +436,7 @@ objectvariables proc run {{n 100}} {
   Variables avar
 
   foreach obj {avar Variables TestClass xotcl::Class xotcl::Object} {
-    
+
     #
     # set up some variables
     #
@@ -448,7 +448,7 @@ objectvariables proc run {{n 100}} {
     #
     # mess with them recursively
     #
-    
+
     $obj proc recurse {n} {
       my instvar scalar array
       incr scalar
@@ -458,8 +458,8 @@ objectvariables proc run {{n 100}} {
       incr n -1
       my instvar unset.$n
       set unset.$n [array names array]
-      if {$n > 0} then { 
-	my recurse $n
+      if {$n > 0} then {
+        my recurse $n
       }
     }
 
@@ -468,7 +468,7 @@ objectvariables proc run {{n 100}} {
     #
     # check the result and clean up
     #
-    
+
     if {[$obj set scalar] != $n} then {
       error "FAILED [self] - scalar [$obj set scalar] != $n"
     }
@@ -477,7 +477,7 @@ objectvariables proc run {{n 100}} {
 
     for {set i $n} {$i > 0} {incr i -1} {
       if {[$obj set array($i)] != $i} then {
-	error "FAILED [self] - array"
+        error "FAILED [self] - array"
       }
     }
     $obj unset array
@@ -490,7 +490,7 @@ objectvariables proc run {{n 100}} {
   # trace variables
   #
   Variables avar2
-  
+
   proc ::traceproc {maj min op} {
     set majTmp [namespace tail "$maj"]
     #puts stderr ...TRACE
@@ -547,7 +547,7 @@ objectvariables proc run {{n 100}} {
   }
 
   Variables destroy
-  
+
   return "PASSED [self]"
 }
 
@@ -605,4 +605,3 @@ puts [time {TestSuite run} 1]
 # mode: tcl
 # tcl-indent-level: 2
 # End:
-
