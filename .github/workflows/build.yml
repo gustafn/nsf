@@ -33,7 +33,7 @@ jobs:
             tcltag: trunk
             experimental: [true]
           - os: ubuntu-latest
-            compiler: clang-12
+            compiler: clang-13
             tcltag: trunk
             experimental: [true]
           - os: ubuntu-latest
@@ -41,7 +41,7 @@ jobs:
             tcltag: core-8-6-branch
             experimental: [true]
           - os: ubuntu-latest
-            compiler: clang-12
+            compiler: clang-13
             tcltag: core-8-6-branch
             experimental: [true]
           - os: macos-latest
