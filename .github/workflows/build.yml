@@ -3,6 +3,7 @@ on: [push, workflow_dispatch]
 jobs:
   nsf:
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
     env:
       CC: ${{ matrix.compiler }}
     strategy:
@@ -131,4 +132,8 @@ jobs:
       - name: Build + tests (production)
         if: ${{ !env.ACT }}
         run: |
+          if [ "$RUNNER_OS" == "macOS" ]; then
+            # Make "localhost" DNS entry available; see https://github.com/actions/runner-images/issues/6383
+            sudo networksetup -setdnsservers Ethernet 9.9.9.9
+          fi
           make test
