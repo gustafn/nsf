@@ -17981,7 +17981,7 @@ ParamOptionParse(Tcl_Interp *interp, const char *argString,
       return TCL_ERROR;
     }
 
-    /*fprintf(stderr, "HAV TYPE converter for <%s> ?\n", option);*/
+    /*fprintf(stderr, "HAVE TYPE converter for <%s> ?\n", option);*/
 
     if (Nsf_PointerTypeLookup(Tcl_DStringValue(dsPtr))) {
       /*

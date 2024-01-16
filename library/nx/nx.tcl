@@ -334,7 +334,7 @@ namespace eval ::nx {
     }
   }
 
-  # Provide a placeholder for objectparameter during the bootup
+  # Provide a placeholder for objectparameter during the boot-up
   # process. The real definition is based on slots, which are not
   # available at this point.
 
