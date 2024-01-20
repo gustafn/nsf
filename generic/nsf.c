@@ -20958,8 +20958,10 @@ NextSearchAndInvoke(
     topCscPtr = CallStackGetTopFrame(interp, &varFramePtr);
     if (topCscPtr == NULL) {
       /*
-       * This might happen, when after a filter chain the method to be called
-       * is not found.
+       * This might happen, when the end of the filter chain is reached and
+       * the method to be called is not found. Also, aside from filter chains,
+       * the ensemble method lookup requires an existing topCscPtr and would
+       * crash without it.
        */
       /* fprintf(stderr, "no topCscPtr, unknown %d result %d\n", rst->unknown, result);*/
       goto next_search_and_invoke_cleanup;
