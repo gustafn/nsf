@@ -1094,6 +1094,9 @@ namespace eval ::nx {
       set parameterOptions [string range $spec [expr {$colonPos+1}] end]
       set name [string range $spec 0 [expr {$colonPos -1}]]
       foreach property [split $parameterOptions ,] {
+        if {[string trim $property] eq ""} {
+          return -code error "invalid parameter spec '$spec'"
+        }
         if {$property in [list "required" "convert" "noarg" "nodashalnum"]} {
           if {$property eq "convert" } {set class [:requireClass ::nx::VariableSlot $class]}
           lappend opts -$property 1
@@ -1965,8 +1968,9 @@ namespace eval ::nx {
 
     if {[info exists :type]} {
       set type ${:type}
-      if {$type eq "switch" && !$forInfo && !$forObjectParameter} {set type boolean}
-      if {$type in {cmd initcmd}} {
+      if {$type eq "switch" && !$forInfo && !$forObjectParameter} {
+        set type boolean
+      } elseif {$type in {cmd initcmd}} {
         lappend options $type
       } elseif {[string match ::* $type]} {
         lappend options [expr {[::nsf::is metaclass $type] ? "class" : "object"}] type=$type
