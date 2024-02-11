@@ -1,17 +1,17 @@
 #
-# == Rosetta Example: Respond to an unknown method call 
+# == Rosetta Example: Respond to an unknown method call
 # For details see https://rosettacode.org/wiki/Respond_to_an_unknown_method_call
 #
 package req nx
 package req nx::test
 
 #
-# Define a class Example modelled after the 
-# Python version of Rosetta:
+# Define a class "Example" modeled after the
+# Python version in the Rosetta examples.
 #
 
 nx::Class create Example {
-  
+
   :public method foo {} {return "This is foo."}
   :public method bar {} {return "This is bar."}
 
@@ -24,7 +24,7 @@ nx::Class create Example {
   }
 }
 
-# === Demonstrating the behavior in a shell: 
+# === Demonstrating the behavior in a shell:
 #
 # Create an instance of the class Example:
 ? {set e [Example new]} "::nsf::__#0"
