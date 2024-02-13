@@ -4403,6 +4403,19 @@ o proc test {} {
 }
 
 o test
+o destroy
+
+Object create o
+
+o proc f1 {} { return 1 }
+o proc f2 {} { return 2 }
+o filter {{f1 -guard {
+    [self calledproc] == "c"
+}}}
+
+errorCheck [o f2] 2 "call existing method after all guards failed"
+errorCheck [catch {o XXXXX} errorMsg] 1 "call non-existing method after all guards failed -> error"
+errorCheck $errorMsg "::o: unable to dispatch method 'XXXXX'" "call non-existing method after all guards failed -> errorMsg"
 
 puts "PASSED ::topLevelCommands"
 

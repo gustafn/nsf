@@ -10877,7 +10877,7 @@ GuardCheck(Tcl_Interp *interp, Tcl_Obj *guardObj) {
   result = CheckConditionInScope(interp, guardObj);
   rst->guardCount--;
 
-  /*fprintf(stderr, "checking guard **%s** returned rc=%d\n", ObjStr(guardObj), rc);*/
+  /*fprintf(stderr, "checking guard **%s** returned rc=%d\n", ObjStr(guardObj), result);*/
 
   if (likely(result == TCL_OK)) {
     /* fprintf(stderr, " +++ OK\n"); */
@@ -14295,9 +14295,11 @@ ProcMethodDispatch(
            * stack, we pass it already to search-and-invoke.
            */
 
-          /*fprintf(stderr, "... calling nextmethod cscPtr %p\n", (void *)cscPtr);*/
+          cscPtr->flags |= NSF_CSC_CALL_IS_GUARD;
+          /*fprintf(stderr, "... guard fail calling nextmethod for '%s' cscPtr %p\n", methodName, (void *)cscPtr);*/
           result = NextSearchAndInvoke(interp, methodName, objc, objv, cscPtr, NSF_FALSE);
-          /*fprintf(stderr, "... after nextmethod result %d\n", result);*/
+          /*fprintf(stderr, "... guard fail nextmethod for '%s' result %d\n", methodName, result);*/
+          cscPtr->flags &= ~ NSF_CSC_CALL_IS_GUARD;
         }
 
         /*
@@ -14386,6 +14388,7 @@ ProcMethodDispatch(
                       NULL);
     cscPtr->flags |= NSF_CSC_CALL_IS_NRE;
     result = TclNRInterpProcCore(interp, objv[0], 1, &MakeProcError);
+
 #else
     ClientData data[3] = {
       (releasePc ? pcPtr : NULL),
@@ -15269,7 +15272,7 @@ ObjectDispatchFinalize(Tcl_Interp *interp, NsfCallStackContent *cscPtr,
   flags = cscPtr->flags;
   rst = RUNTIME_STATE(interp);
 
-  /*fprintf(stderr, "ObjectDispatchFinalize %p %s flags %.6x (%d) frame %.6x unk %d m %s\n",
+  /*fprintf(stderr, "ObjectDispatchFinalize %p %s flags %.6x (result %d) frame %.6x unk %d m %s\n",
           (void*)cscPtr, ObjectName(object), flags,
           result, cscPtr->frameType, RUNTIME_STATE(interp)->unknown,
           (cscPtr->cmdPtr != NULL) ? Tcl_GetCommandName(interp, cscPtr->cmdPtr) : "");*/
@@ -15829,7 +15832,7 @@ ObjectDispatch(
 
         cmd = FilterSearchProc(interp, object, &object->filterStack->currentCmdPtr, &class);
         if (cmd != NULL) {
-          /*fprintf(stderr, "*** filterSearchProc returned cmd %p\n", cmd);*/
+          /*fprintf(stderr, "*** filterSearchProc returned cmd %p\n", (void*)cmd);*/
           frameType = NSF_CSC_TYPE_ACTIVE_FILTER;
           methodName = (char *)Tcl_GetCommandName(interp, cmd);
           flags |= NSF_CM_IGNORE_PERMISSIONS;
@@ -16511,8 +16514,10 @@ DispatchUnknownMethod(Tcl_Interp *interp, NsfObject *object,
   unknownObj = NsfMethodObj(object, NSF_o_unknown_idx);
 
   /*fprintf(stderr, "compare unknownObj %p with methodObj %p '%s' %p %p %s -- %s\n",
-    unknownObj, methodObj, ObjStr(methodObj), callInfoObj, (callInfoObj != NULL) ?objv[1]:NULL, (callInfoObj != NULL) ?ObjStr(objv[1]) : NULL,
-    methodName);*/
+          unknownObj, methodObj, ObjStr(methodObj), callInfoObj,
+          (callInfoObj != NULL) ? objv[1] : NULL,
+          (callInfoObj != NULL) ? ObjStr(objv[1]) : NULL,
+          methodName);*/
 
   if ((unknownObj != NULL)
       && (methodObj != unknownObj)
@@ -17976,7 +17981,7 @@ ParamOptionParse(Tcl_Interp *interp, const char *argString,
       return TCL_ERROR;
     }
 
-    /*fprintf(stderr, "HAV TYPE converter for <%s> ?\n", option);*/
+    /*fprintf(stderr, "HAVE TYPE converter for <%s> ?\n", option);*/
 
     if (Nsf_PointerTypeLookup(Tcl_DStringValue(dsPtr))) {
       /*
@@ -20455,7 +20460,7 @@ NextSearchMethod(
         endOfChain = NSF_TRUE;
         *endOfFilterChain = NSF_TRUE;
         *classPtr = NULL;
-        /*fprintf(stderr, "EndOfChain resetting cl\n");*/
+        /*fprintf(stderr, "EndOfChain resetting cl, new methodName '%s'\n", *methodNamePtr);*/
       }
     } else {
       *methodNamePtr = (char *) Tcl_GetCommandName(interp, *cmdPtr);
@@ -20553,7 +20558,7 @@ NextSearchMethod(
                                   (cscPtr->frameType == NSF_CSC_TYPE_ACTIVE_FILTER) != 0u)
                                  ? 0 : NSF_CMD_CALL_PRIVATE_METHOD);
     } else {
-    *classPtr = NULL;
+      *classPtr = NULL;
     }
 
   } else {
@@ -20823,8 +20828,14 @@ NextSearchAndInvoke(
 #if 0
   Tcl_ResetResult(interp); /* needed for bytecode support */
 #endif
-  if (cmd != NULL) {
+
+  if (likely(cmd != NULL)
+      || ( endOfFilterChain
+           && (cscPtr->objv != NULL)
+           && (cscPtr->flags & NSF_CSC_CALL_IS_GUARD) != 0u )
+     ) {
     unsigned short frameType = NSF_CSC_TYPE_PLAIN;
+
 
     /*
      * Change mixin state.
@@ -20845,9 +20856,10 @@ NextSearchAndInvoke(
     /*
      * Change filter state
      */
+
     if (object->filterStack != NULL) {
       if (cscPtr->frameType == NSF_CSC_TYPE_ACTIVE_FILTER) {
-        /*fprintf(stderr, "next changes filter state\n");*/
+        /*fprintf(stderr, "next changes filter state cmd %p\n", (void*)cmd);*/
         cscPtr->frameType = NSF_CSC_TYPE_INACTIVE_FILTER;
       }
 
@@ -20859,6 +20871,19 @@ NextSearchAndInvoke(
         frameType = NSF_CSC_TYPE_ACTIVE_FILTER;
         object->filterStack->currentCmdPtr = currentCmd;
       }
+    }
+
+    if (cmd == NULL) {
+      /*
+       * The cmd was not found by NextSearchMethod(). In case of
+       * end-of-filterchain in a filter guard call, we have to call the "unknown"
+       * method, since otherwise we cannot flag unknown methods behind
+       * filters.
+       */
+      result = DispatchUnknownMethod(interp, object,
+                                     cscPtr->objc, cscPtr->objv, NULL, cscPtr->objv[0],
+                                     (cscPtr->flags & NSF_CSC_CALL_NO_UNKNOWN)|NSF_CSC_IMMEDIATE);
+      goto next_search_and_invoke_cleanup;
     }
 
     /*
@@ -20931,7 +20956,17 @@ NextSearchAndInvoke(
     /* NsfShowStack(interp);*/
 
     topCscPtr = CallStackGetTopFrame(interp, &varFramePtr);
-    assert(topCscPtr != NULL);
+    if (topCscPtr == NULL) {
+      /*
+       * This might happen, when the end of the filter chain is reached and
+       * the method to be called is not found. Also, aside from filter chains,
+       * the ensemble method lookup requires an existing topCscPtr and would
+       * crash without it.
+       */
+      /* fprintf(stderr, "no topCscPtr, unknown %d result %d\n", rst->unknown, result);*/
+      goto next_search_and_invoke_cleanup;
+    }
+
     assert(varFramePtr != NULL);
 
     /*
@@ -31376,7 +31411,9 @@ NsfCurrentCmd(Tcl_Interp *interp, CurrentoptionIdx_t option) {
       Tcl_SetObjResult(interp,
                        Tcl_NewStringObj(MethodName(cscPtr->filterStackEntry->calledProc), TCL_INDEX_NONE));
     } else {
-      result = NsfPrintError(interp, "called from outside of a filter");
+        NsfShowStack(interp);
+
+      result = NsfPrintError(interp, "called from outside of a filter 1");
     }
     break;
 

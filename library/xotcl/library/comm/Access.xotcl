@@ -1082,7 +1082,7 @@ namespace eval ::xotcl::comm::httpAccess {
 	#my showMsg "c [my set currentsize]== t [[self set totalsize]]"
 	if {$currentsize == $totalsize && 
 	    [my exists S] && [$S exists persistent]} {
-	    #my showMsg "PERSITENT, end of entity reached"
+	    #my showMsg "PERSISTENT, end of entity reached"
 	    #my set state eof
 	    my finish
 	    set block ""

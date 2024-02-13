@@ -334,7 +334,7 @@ namespace eval ::nx {
     }
   }
 
-  # Provide a placeholder for objectparameter during the bootup
+  # Provide a placeholder for objectparameter during the boot-up
   # process. The real definition is based on slots, which are not
   # available at this point.
 
@@ -1093,43 +1093,46 @@ namespace eval ::nx {
     } else {
       set parameterOptions [string range $spec [expr {$colonPos+1}] end]
       set name [string range $spec 0 [expr {$colonPos -1}]]
-      foreach property [split $parameterOptions ,] {
-        if {$property in [list "required" "convert" "noarg" "nodashalnum"]} {
-          if {$property eq "convert" } {set class [:requireClass ::nx::VariableSlot $class]}
-          lappend opts -$property 1
-        } elseif {$property eq "noconfig"} {
+      foreach parameterOption [split $parameterOptions ,] {
+        if {[string trim $parameterOption] eq ""} {
+          return -code error "invalid parameter spec '$spec'"
+        }
+        if {$parameterOption in [list "required" "convert" "noarg" "nodashalnum"]} {
+          if {$parameterOption eq "convert" } {set class [:requireClass ::nx::VariableSlot $class]}
+          lappend opts -$parameterOption 1
+        } elseif {$parameterOption eq "noconfig"} {
           set opt(-configurable) 0 ;# TODO
-        } elseif {$property eq "incremental"} {
+        } elseif {$parameterOption eq "incremental"} {
           return -code error "parameter option incremental must not be used; use non-positional argument -incremental instead"
-        } elseif {[string match "type=*" $property]} {
+        } elseif {[string match "type=*" $parameterOption]} {
           set class [:requireClass ::nx::VariableSlot $class]
-          set type [string range $property 5 end]
+          set type [string range $parameterOption 5 end]
           if {$type eq ""} {
             unset type
           } elseif {![string match "::*" $type]} {
             set type [namespace qualifier $target]::$type
           }
-        } elseif {[string match "arg=*" $property]} {
-          set argument [string range $property 4 end]
+        } elseif {[string match "arg=*" $parameterOption]} {
+          set argument [string range $parameterOption 4 end]
           lappend opts -arg $argument
-        } elseif {[string match "substdefault*" $property]} {
-          if {[string match "substdefault=*" $property]} {
-            set argument [string range $property 13 end]
+        } elseif {[string match "substdefault*" $parameterOption]} {
+          if {[string match "substdefault=*" $parameterOption]} {
+            set argument [string range $parameterOption 13 end]
           } else {
             set argument 0b111
           }
           lappend opts -substdefault $argument
-        } elseif {[string match "method=*" $property]} {
-          lappend opts -methodname [string range $property 7 end]
-        } elseif {$property eq "optional"} {
+        } elseif {[string match "method=*" $parameterOption]} {
+          lappend opts -methodname [string range $parameterOption 7 end]
+        } elseif {$parameterOption eq "optional"} {
           lappend opts -required 0
-        } elseif {$property in [list "alias" "forward" "cmd" "initcmd"]} {
-          lappend opts -disposition $property
+        } elseif {$parameterOption in [list "alias" "forward" "cmd" "initcmd"]} {
+          lappend opts -disposition $parameterOption
           set class [:requireClass ::nx::ObjectParameterSlot $class]
-        } elseif {[regexp {([01])[.][.]([1n*])} $property _ minOccurrence maxOccurrence]} {
-          lappend opts -multiplicity $property
+        } elseif {[regexp {([01])[.][.]([1n*])} $parameterOption _ minOccurrence maxOccurrence]} {
+          lappend opts -multiplicity $parameterOption
         } else {
-          set type $property
+          set type $parameterOption
         }
       }
     }
@@ -1965,8 +1968,9 @@ namespace eval ::nx {
 
     if {[info exists :type]} {
       set type ${:type}
-      if {$type eq "switch" && !$forInfo && !$forObjectParameter} {set type boolean}
-      if {$type in {cmd initcmd}} {
+      if {$type eq "switch" && !$forInfo && !$forObjectParameter} {
+        set type boolean
+      } elseif {$type in {cmd initcmd}} {
         lappend options $type
       } elseif {[string match ::* $type]} {
         lappend options [expr {[::nsf::is metaclass $type] ? "class" : "object"}] type=$type
