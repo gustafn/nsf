@@ -12,4 +12,4 @@ fisheye-job:
   script: 
     - echo "Triggering Fisheye hook"
     - |
-        curl -X PUT -H 'X-Api-Key: $FISHEYE_KEY' -H "Content-Type: application/json" -m 20 http://fisheye.openacs.org/rest-service-fecru/admin/repositories/nsf/incremental-index
+        curl -X PUT -H "X-Api-Key: $FISHEYE_KEY" -H "Content-Type: application/json" -m 20 http://fisheye.openacs.org/rest-service-fecru/admin/repositories/nsf/incremental-index
