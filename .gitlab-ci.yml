@@ -7,6 +7,8 @@ fisheye-job:
   stage: deploy
   rules:
     - if: $CI_PIPELINE_SOURCE == "push"
+  before_script:
+    - apt-get update && apt-get install -y curl 
   script: 
     - echo "Triggering Fisheye hook"
     - |
