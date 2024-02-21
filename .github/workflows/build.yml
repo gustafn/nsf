@@ -134,7 +134,8 @@ jobs:
         run: |
           if [ "$RUNNER_OS" == "macOS" ]; then
             # Make "localhost" DNS entry available; see https://github.com/actions/runner-images/issues/6383
-            sudo networksetup -setdnsservers Ethernet 9.9.9.9
+            # sudo networksetup -setdnsservers Ethernet 9.9.9.9
+            echo -e "$(ipconfig getifaddr en0) $(hostname -f) $(hostname -s)" | sudo tee -a /etc/hosts 
             echo `sudo lsof -PiTCP -sTCP:LISTEN`
           fi
           make test
