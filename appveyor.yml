@@ -21,9 +21,9 @@ environment:
     TOOLCHAIN: autoconf-tea
   - TCLTAG: core-8-6-branch
     TOOLCHAIN: nmake-tea
-  - TCLTAG: core-8-6-13
+  - TCLTAG: core-8-6-14
     TOOLCHAIN: autoconf-tea
-  - TCLTAG: core-8-6-13
+  - TCLTAG: core-8-6-14
     TOOLCHAIN: nmake-tea
   - TCLTAG: core-8-5-branch
     TOOLCHAIN: autoconf-tea
@@ -33,9 +33,9 @@ environment:
     TOOLCHAIN: autoconf-tea
   #  - TCLTAG: core-8-5-19
   #    TOOLCHAIN: nmake-tea	
-  - TCLTAG: core-8-7-a5
+  - TCLTAG: core-9-0-b1
     TOOLCHAIN: autoconf-tea
-  - TCLTAG: core-8-7-a5
+  - TCLTAG: core-9-0-b1
     TOOLCHAIN: nmake-tea
   - TCLTAG: core-8-branch
     TOOLCHAIN: autoconf-tea
@@ -44,17 +44,13 @@ environment:
   - TCLTAG: main
     TOOLCHAIN: autoconf-tea
   - TCLTAG: main
-    TOOLCHAIN: nmake-tea
-  - TCLTAG: core-9-0-a3
-    TOOLCHAIN: autoconf-tea
-  - TCLTAG: core-9-0-a3
     TOOLCHAIN: nmake-tea
 matrix:
   allow_failures:
   - TCLTAG: core-8-6-branch
   - TCLTAG: core-8-5-branch
   - TCLTAG: core-8-branch
-  - TCLTAG: core-9-0-a3
+  - TCLTAG: core-9-0-b1
   - TCLTAG: main
   fast_finish: true
 
