@@ -2230,7 +2230,7 @@ GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
       const char  *alias_cmd_name, *qualifiedObjName;
       Tcl_Obj     *nameObj = objPtr;
       Tcl_Obj    **alias_ov;
-      int          alias_oc = 0;
+      TCL_OBJC_T   alias_oc = 0;
 
       if (!isAbsolutePath(objName)) {
         nameObj = NameInNamespaceObj(objName, CallingNameSpace(interp));
