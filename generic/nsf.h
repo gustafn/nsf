@@ -103,7 +103,6 @@
 #endif
 
 #ifndef NS_TCL_HAVE_TIP629
-no
 # define TCL_OBJC_T           int
 # define TCL_OBJCMDPROC_T     Tcl_ObjCmdProc
 # define TCL_CREATEOBJCOMMAND Tcl_CreateObjCommand
