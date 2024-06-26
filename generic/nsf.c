@@ -2230,7 +2230,17 @@ GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
       const char  *alias_cmd_name, *qualifiedObjName;
       Tcl_Obj     *nameObj = objPtr;
       Tcl_Obj    **alias_ov;
-      TCL_OBJC_T   alias_oc = 0;
+      /*
+       * The "right" type here is TCL_OBJC_T, which can be obtained when we
+       * activate NS_TCL_HAVE_TIP629 (TIP supporting > 2^31 elements in object
+       * vectors). However, Tcl defines different objProcs (Tcl_ObjCmdProc vs
+       * Tcl_ObjCmdProc2) whith different client data, which we have not
+       * addressed yet (for details, see nsfCmdPtr.c). Note, that in the
+       * meantime, we might run into problems, when we get here commands with
+       * more that 2^21 arguments).
+       */
+      /* TCL_OBJC_T   alias_oc = 0;*/
+      TCL_SIZE_T   alias_oc = 0;
 
       if (!isAbsolutePath(objName)) {
         nameObj = NameInNamespaceObj(objName, CallingNameSpace(interp));

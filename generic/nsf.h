@@ -92,7 +92,7 @@
 #endif
 
 #ifndef PRE9
-# define NS_TCL_HAVE_TIP629
+//# define NS_TCL_HAVE_TIP629
 #endif
 
 
