@@ -38,8 +38,8 @@ package require xotcl::trace
 #::xotcl::package require xotcl::comm::ftp
 #::xotcl::package require xotcl::trace
 
-set hostport localhost:8086
-set protectedhostport localhost:9096
+set hostport 127.0.0.1:8086
+set protectedhostport 127.0.0.1:9096
 
 set slowURL "http://quote.yahoo.com/q?s=^DJI&d=1d"
 set ftpURL "ftp://mohegan.wi-inf.uni-essen.de/welcome.msg"

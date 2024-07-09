@@ -3,6 +3,7 @@ on: [push, workflow_dispatch]
 jobs:
   nsf:
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
     env:
       CC: ${{ matrix.compiler }}
     strategy:
@@ -33,7 +34,7 @@ jobs:
             tcltag: trunk
             experimental: [true]
           - os: ubuntu-latest
-            compiler: clang-12
+            compiler: clang-13
             tcltag: trunk
             experimental: [true]
           - os: ubuntu-latest
@@ -41,7 +42,7 @@ jobs:
             tcltag: core-8-6-branch
             experimental: [true]
           - os: ubuntu-latest
-            compiler: clang-12
+            compiler: clang-13
             tcltag: core-8-6-branch
             experimental: [true]
           - os: macos-latest
@@ -66,11 +67,11 @@ jobs:
             experimental: [false]
           - os: macos-latest
             compiler: gcc-11
-            tcltag: core-8-6-13
+            tcltag: core-8-6-14
             experimental: [false]
           - os: macos-latest
             compiler: gcc-11
-            tcltag: core-8-7-a5
+            tcltag: core-9-0-b2
             experimental: [false]
           - os: ubuntu-latest
             compiler: gcc-10
@@ -78,11 +79,11 @@ jobs:
             experimental: [false]
           - os: ubuntu-latest
             compiler: gcc-10
-            tcltag: core-8-6-13
+            tcltag: core-8-6-14
             experimental: [false]
           - os: ubuntu-latest
             compiler: gcc-10
-            tcltag: core-8-7-a5
+            tcltag: core-9-0-b2
             experimental: [false]
     defaults:
       run:
@@ -131,4 +132,10 @@ jobs:
       - name: Build + tests (production)
         if: ${{ !env.ACT }}
         run: |
+          if [ "$RUNNER_OS" == "macOS" ]; then
+            # Make "localhost" DNS entry available; see https://github.com/actions/runner-images/issues/6383
+            # sudo networksetup -setdnsservers Ethernet 9.9.9.9
+            echo -e "$(ipconfig getifaddr en0) $(hostname -f) $(hostname -s)" | sudo tee -a /etc/hosts 
+            echo `sudo lsof -PiTCP -sTCP:LISTEN`
+          fi
           make test
