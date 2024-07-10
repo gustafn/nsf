@@ -4,7 +4,7 @@ image: Visual Studio 2019
 
 branches:
   only:
-    - master
+    - main
     - 2.2
     - 2.3
 
@@ -33,9 +33,9 @@ environment:
     TOOLCHAIN: autoconf-tea
   #  - TCLTAG: core-8-5-19
   #    TOOLCHAIN: nmake-tea	
-  - TCLTAG: core-9-0-b1
+  - TCLTAG: core-9-0-b2
     TOOLCHAIN: autoconf-tea
-  - TCLTAG: core-9-0-b1
+  - TCLTAG: core-9-0-b2
     TOOLCHAIN: nmake-tea
   - TCLTAG: core-8-branch
     TOOLCHAIN: autoconf-tea
@@ -50,7 +50,7 @@ matrix:
   - TCLTAG: core-8-6-branch
   - TCLTAG: core-8-5-branch
   - TCLTAG: core-8-branch
-  - TCLTAG: core-9-0-b1
+  - TCLTAG: core-9-0-b2
   - TCLTAG: main
   fast_finish: true
 
@@ -81,11 +81,12 @@ build_script:
 on_failure:
   - if "%TOOLCHAIN%" == "autoconf-tea" cat tcl\win\config.log
 
-after_build:
-- ps: $env:DATESTRING=(get-date -UFormat "%Y%m%d").ToString()
-- set TARBALL="nsf_%APPVEYOR_REPO_BRANCH%_%TCLTAG%_win_%TOOLCHAIN%_%DATESTRING%_%APPVEYOR_BUILD_NUMBER%.zip"
-- if exist "%CD%\install" 7z a %TARBALL% %CD%\install\* 
-- if exist "%TARBALL%" C:\msys64\usr\bin\scp.exe -v -O -oStrictHostKeyChecking=no -i deploy_key %TARBALL% "sobernig@alice.wu.ac.at:/home/sobernig/builds"
+# after_build:
+# - ps: $env:DATESTRING=(get-date -UFormat "%Y%m%d").ToString()
+# - set TARBALL="nsf_%APPVEYOR_REPO_BRANCH%_%TCLTAG%_win_%TOOLCHAIN%_%DATESTRING%_%APPVEYOR_BUILD_NUMBER%.zip"
+# - if exist "%CD%\install" 7z a %TARBALL% %CD%\install\* 
+# - if exist "%TARBALL%" C:\msys64\usr\bin\scp.exe -v -O
+# -oStrictHostKeyChecking=n# o -i deploy_key %TARBALL% "sobernig@alice.wu.ac.at:/home/sobernig/builds"
 
 cache:
   - tclkit.exe -> appveyor.yml
