@@ -33,9 +33,9 @@ environment:
     TOOLCHAIN: autoconf-tea
   #  - TCLTAG: core-8-5-19
   #    TOOLCHAIN: nmake-tea	
-  - TCLTAG: core-9-0-b2
+  - TCLTAG: core-9-0-b3
     TOOLCHAIN: autoconf-tea
-  - TCLTAG: core-9-0-b2
+  - TCLTAG: core-9-0-b3
     TOOLCHAIN: nmake-tea
   - TCLTAG: core-8-branch
     TOOLCHAIN: autoconf-tea
@@ -50,7 +50,7 @@ matrix:
   - TCLTAG: core-8-6-branch
   - TCLTAG: core-8-5-branch
   - TCLTAG: core-8-branch
-  - TCLTAG: core-9-0-b2
+  - TCLTAG: core-9-0-b3
   - TCLTAG: main
   fast_finish: true
 

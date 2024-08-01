@@ -71,7 +71,7 @@ jobs:
             experimental: [false]
           - os: macos-latest
             compiler: gcc-11
-            tcltag: core-9-0-b2
+            tcltag: core-9-0-b3
             experimental: [false]
           - os: ubuntu-latest
             compiler: gcc-10
@@ -83,7 +83,7 @@ jobs:
             experimental: [false]
           - os: ubuntu-latest
             compiler: gcc-10
-            tcltag: core-9-0-b2
+            tcltag: core-9-0-b3
             experimental: [false]
     defaults:
       run:
