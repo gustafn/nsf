@@ -14,7 +14,7 @@ jobs:
         #   - ""
         include:
           - os: macos-latest
-            compiler: gcc-11
+            compiler: gcc-12
             tcltag: core-8-6-branch
             experimental: [true]
           - os: macos-latest
@@ -46,11 +46,11 @@ jobs:
             tcltag: core-8-6-branch
             experimental: [true]
           - os: macos-latest
-            compiler: gcc-11
+            compiler: gcc-12
             tcltag: core-8-branch
             experimental: [true]
           - os: macos-latest
-            compiler: gcc-11
+            compiler: gcc-12
             tcltag: core-8-5-branch
             experimental: [true]
           - os: ubuntu-latest
@@ -62,15 +62,15 @@ jobs:
             tcltag: core-8-5-branch
             experimental: [true]
           - os: macos-latest
-            compiler: gcc-11
+            compiler: gcc-12
             tcltag: core-8-5-19
             experimental: [false]
           - os: macos-latest
-            compiler: gcc-11
+            compiler: gcc-12
             tcltag: core-8-6-15
             experimental: [false]
           - os: macos-latest
-            compiler: gcc-11
+            compiler: gcc-12
             tcltag: core-9-0-0
             experimental: [false]
           - os: ubuntu-latest
