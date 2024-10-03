@@ -2500,7 +2500,7 @@ namespace eval ::nx {
     }
     set traceSpec [expr {[info exists trace] ? [list -trace $trace] : ""}]
 
-    set r [[self] object variable \
+    set r [:object variable \
                -accessor $accessor \
                -incremental=$incremental \
                -class $class \
