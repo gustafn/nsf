@@ -1,0 +1,53 @@
+Dear Community,
+
+We are pleased to announce the availability of the Next Scripting
+Framework (NSF) 2.4.1. This release makes NSF, NX, and XOTcl support
+Tcl 9. Further changes are mostly perfective improvements in terms of
+bug fixes.  See below for the details.
+
+Diff stats since 2.4.0:
+
+    ...
+
+Major changes relative to 2.4.0 are: NSF now compiles and runs with
+Tcl 9 as released. This way, NSF/NX/XOTcl can be used with the Tcl
+8.5, Tcl 8.6, and Tcl 9 on Linux, Windows, and macOS.  One can see the
+results of the compilations and test runs on
+
+    https://github.com/nm-wu/nsf/actions
+    https://ci.appveyor.com/project/mrcalvin/nsf-2ylk0/history
+
+Selected changes worth mentioning:
+
+- Maintenance & bug fixes:
+
+  * Tcl 9: ...
+
+- NSF:
+
+  * ::nsf::proc now supports "-returns"
+  * ::nsf::parseargs now honours "required" properly
+
+- XOTcl:
+
+  * ...
+
+- MongoDB:
+
+  * New proc: ::mongo::oid::gettimestamp
+
+- Documentation:
+
+  * ...
+
+The detailed changelog is available at
+https://next-scripting.org/xowiki/download/file/ChangeLog-2.4.0-2.4.1.log
+
+The Next Scripting Framework 2.4.1 (containing NX 2.4.1 and XOTcl
+2.4.1) can be obtained from https://next-scripting.org/. Please report
+issues and wishes by opening a ticket at
+https://sourceforge.net/p/next-scripting/tickets/.
+
+Best regards
+- Gustaf Neumann
+- Stefan Sobernig
