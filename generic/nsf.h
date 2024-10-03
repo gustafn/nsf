@@ -102,6 +102,18 @@
 # define NRE
 #endif
 
+#ifdef PRE9
+typedef int Nsf_Tcl_Size_t;
+#else
+typedef Tcl_Size Nsf_Tcl_Size_t;
+#endif
+
+# define TCL_SIZE_T Nsf_Tcl_Size_t
+
+#ifndef TCL_INDEX_NONE
+# define TCL_INDEX_NONE -1
+#endif
+
 #ifndef NS_TCL_HAVE_TIP629
 # define TCL_OBJC_T           int
 # define TCL_OBJCMDPROC_T     Tcl_ObjCmdProc
@@ -131,12 +143,6 @@
 #  define Tcl_GetChild Tcl_GetSlave
 #  define Tcl_GetParent Tcl_GetMaster
 # endif
-#endif
-
-#ifdef PRE9
-# define TCL_SIZE_T int
-#else
-# define TCL_SIZE_T Tcl_Size
 #endif
 
 #ifndef TCL_INDEX_NONE

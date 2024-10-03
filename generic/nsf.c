@@ -117,7 +117,7 @@ typedef struct NsfProcContext {
   ClientData          oldDeleteData;
   Tcl_CmdDeleteProc  *oldDeleteProc;
   NsfParamDefs       *paramDefs;
-  long               *colonLocalVarCache;
+  Nsf_Tcl_Size_t     *colonLocalVarCache;
   unsigned int        checkAlwaysFlag;
   Tcl_Namespace      *execNsPtr;
   Tcl_Obj            *returnsObj;
@@ -5061,7 +5061,7 @@ CompiledColonLocalsLookupBuildCache(CallFrame *varFramePtr, const char *varName,
    * Allocate colonLocalVarCache in the proper size (keep space for a
    * terminating element).
    */
-  ctxPtr->colonLocalVarCache = NEW_ARRAY(long, nrColonVars+1);
+  ctxPtr->colonLocalVarCache = NEW_ARRAY(Nsf_Tcl_Size_t, nrColonVars+1);
   varNameObjPtr = &varFramePtr->localCachePtr->varName0;
 
   /*
@@ -5090,9 +5090,9 @@ CompiledColonLocalsLookupBuildCache(CallFrame *varFramePtr, const char *varName,
 
         /* fprintf(stderr, ".. insert %s (%d) on pos %d; check j %d entries \n", localName, i, j, j); */
         for (k = 0; k < j; k++) {
-          int         cmp;
-          long        idx;
-          const char *cachedName;
+          int            cmp;
+          Nsf_Tcl_Size_t idx;
+          const char    *cachedName;
 
           idx = ctxPtr->colonLocalVarCache[k];
           cachedName = Tcl_GetStringFromObj(localNames[idx], &len);
@@ -5114,7 +5114,7 @@ CompiledColonLocalsLookupBuildCache(CallFrame *varFramePtr, const char *varName,
             break;
           }
         }
-        ctxPtr->colonLocalVarCache[k] = (long)i;
+        ctxPtr->colonLocalVarCache[k] = i;
 
         j++;
         if (j == nrColonVars) {
@@ -5188,7 +5188,7 @@ CompiledColonLocalsLookup(CallFrame *varFramePtr, const char *varName) {
       result = CompiledColonLocalsLookupBuildCache(varFramePtr, varName, nameLength, localNames, ctxPtr);
 
     } else {
-      long i, j;
+      Nsf_Tcl_Size_t i, j;
 
       /*
        * We have a colonLocalVarCache.
@@ -13128,7 +13128,7 @@ NsfProcDeleteProc(
   }
   if (ctxPtr->colonLocalVarCache != NULL) {
     /*fprintf(stderr, "free colonLocalVarCache %p\n", (void*)ctxPtr->colonLocalVarCache);*/
-    FREE(long*, ctxPtr->colonLocalVarCache);
+    FREE(Nsf_Tcl_Size_t*, ctxPtr->colonLocalVarCache);
   }
   if (ctxPtr->returnsObj != NULL) {
     DECR_REF_COUNT2("returnsObj", ctxPtr->returnsObj);
