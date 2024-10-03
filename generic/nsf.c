@@ -31708,7 +31708,6 @@ NsfVarUnsetCmd(Tcl_Interp *interp, int withNocomplain, NsfObject *object, Tcl_Ob
 typedef struct NsfParamWrapper {
   Nsf_Param *paramPtr;
   int refCount;
-  bool canFree;
 } NsfParamWrapper;
 
 static Tcl_DupInternalRepProc      ParamDupInteralRep;
@@ -31754,25 +31753,22 @@ ParamDupInteralRep(Tcl_Obj *srcPtr, Tcl_Obj *dupPtr) {
 
   srcParamWrapperPtr = (NsfParamWrapper *)srcPtr->internalRep.twoPtrValue.ptr1;
   if (srcParamWrapperPtr != NULL) {
-    /*fprintf(stderr, "ParamDupInteralRep src %p copy wrapper %p paramPtr %p refCount %d canFree %d\n",
+    /*fprintf(stderr, "ParamDupInteralRep src %p copy wrapper %p paramPtr %p refCount %d\n",
             (void*)srcPtr,
             (void*)srcParamWrapperPtr,
             (void*)srcParamWrapperPtr->paramPtr,
-            srcParamWrapperPtr->refCount,
-            srcParamWrapperPtr->canFree);*/
+            srcParamWrapperPtr->refCount);*/
 
     dupParamWrapperPtr = srcParamWrapperPtr;
     dupPtr->internalRep.twoPtrValue.ptr1 = dupParamWrapperPtr;
     dupPtr->typePtr = &paramObjType;
     dupParamWrapperPtr->refCount ++;
-    dupParamWrapperPtr->canFree = NSF_FALSE;
-
-    /*fprintf(stderr, "ParamDupInteralRep dup %p .... wrapper %p paramPtr %p refCount %d canFree %d\n",
+   
+    /*fprintf(stderr, "ParamDupInteralRep dup %p .... wrapper %p paramPtr %p refCount %d\n",
             (void*)dupPtr,
             (void*)dupParamWrapperPtr,
             (void*)dupParamWrapperPtr->paramPtr,
-            dupParamWrapperPtr->refCount,
-            dupParamWrapperPtr->canFree);*/
+            dupParamWrapperPtr->refCount);*/
   }
 
 }
@@ -31789,19 +31785,15 @@ ParamFreeInternalRep(
 
   paramWrapperPtr = (NsfParamWrapper *)objPtr->internalRep.twoPtrValue.ptr1;
   if (paramWrapperPtr != NULL) {
-    /*fprintf(stderr, "ParamFreeInternalRep obj %p type %p '%s' freeing wrapper %p paramPtr %p refCount %d canFree %d\n",
+    /*fprintf(stderr, "ParamFreeInternalRep obj %p type %p '%s' freeing wrapper %p paramPtr %p refCount %d\n",
             (void*)objPtr,
             (void*)objPtr->typePtr,
             (void*)objPtr->typePtr == NULL ? "None" : objPtr->typePtr->name,
             (void*)paramWrapperPtr,
             (void*)paramWrapperPtr->paramPtr,
-            paramWrapperPtr->refCount,
-            paramWrapperPtr->canFree);*/
-    if (paramWrapperPtr->refCount < 0) {
-      char *p = NULL; *p=0;
-    }
+            paramWrapperPtr->refCount);*/
 
-    if (paramWrapperPtr->canFree) {
+    if (paramWrapperPtr->refCount <= 1) {
       ParamsFree(paramWrapperPtr->paramPtr);
       FREE(NsfParamWrapper, paramWrapperPtr);
     } else {
@@ -31847,7 +31839,6 @@ ParamSetFromAny2(
 
   paramWrapperPtr->paramPtr = ParamsNew(1u);
   paramWrapperPtr->refCount = 1;
-  paramWrapperPtr->canFree = NSF_FALSE;
 
   Tcl_AppendLimitedToObj(fullParamObj, ObjStr(objPtr), TCL_INDEX_NONE, INT_MAX, NULL);
   INCR_REF_COUNT(fullParamObj);
@@ -31881,12 +31872,11 @@ ParamSetFromAny2(
     objPtr->internalRep.twoPtrValue.ptr2 = NULL;
     objPtr->typePtr = &paramObjType;
 
-    /*fprintf(stderr, "ParamSetFromAny2 obj %p creates wrapper %p paramPtr %p refCount %d canFree %d\n",
+    /*fprintf(stderr, "ParamSetFromAny2 obj %p creates wrapper %p paramPtr %p refCount %d\n",
             (void*)objPtr,
             (void*)paramWrapperPtr,
             (void*)paramWrapperPtr->paramPtr,
-            paramWrapperPtr->refCount,
-            paramWrapperPtr->canFree);*/
+            paramWrapperPtr->refCount);*/
   } else {
     /*
      * In error cases, free manually memory allocated by this function.
@@ -32182,11 +32172,10 @@ ParameterCheck(
   result = ArgumentCheck(interp, valueObj, paramPtr, doCheckArguments, &flags, &checkedData, &outObjPtr);
   RUNTIME_STATE(interp)->doClassConverterOmitUnknown = 0;
 
-  /*fprintf(stderr, "ParameterCheck paramPtr %p final refCount of wrapper %d can free %d flags %.6x\n",
-    paramPtr, paramWrapperPtr->refCount,  paramWrapperPtr->canFree, flags);*/
+  /*fprintf(stderr, "ParameterCheck paramPtr %p final refCount of wrapper %d flags %.6x\n",
+    paramPtr, paramWrapperPtr->refCount, flags);*/
 
   assert(paramWrapperPtr->refCount > 0);
-  paramWrapperPtr->canFree = NSF_TRUE;
 
   if ((flags & NSF_PC_MUST_DECR) != 0u) {
     DECR_REF_COUNT2("valueObj", outObjPtr);
