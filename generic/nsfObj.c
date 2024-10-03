@@ -102,6 +102,7 @@ MethodFreeInternalRep(
     /*
      * ... and free structure
      */
+    /*fprintf(stderr, "MethodFreeInternalRep frees NsfMethodContext %p\n", (void *)mcPtr);*/
     FREE(NsfMethodContext, mcPtr);
     objPtr->internalRep.twoPtrValue.ptr1 = NULL;
     objPtr->typePtr = NULL;
@@ -130,7 +131,7 @@ MethodDupInternalRep(
 #endif
 
   dstMcPtr = NEW(NsfMethodContext);
-  /*fprintf(stderr, "MethodDupInternalRep allocated NsfMethodContext %p for %s\n", dstMcPtr, ObjStr(srcObjPtr));*/
+  /*fprintf(stderr, "MethodDupInternalRep allocated NsfMethodContext %p for %s\n", (void *)dstMcPtr, ObjStr(srcObjPtr));*/
   memcpy(dstMcPtr, srcMcPtr, sizeof(NsfMethodContext));
 
   dstObjPtr->typePtr = srcObjPtr->typePtr;
@@ -177,7 +178,7 @@ NsfMethodObjSet(
 #endif
     TclFreeInternalRep(objPtr);
     mcPtr = NEW(NsfMethodContext);
-    /*fprintf(stderr, "NsfMethodObjSet allocated NsfMethodContext %p for %s\n", mcPtr, ObjStr(objPtr));*/
+    /*fprintf(stderr, "NsfMethodObjSet allocated NsfMethodContext %p for %s\n", (void *)mcPtr, ObjStr(objPtr));*/
     objPtr->internalRep.twoPtrValue.ptr1 = (void *)mcPtr;
     objPtr->internalRep.twoPtrValue.ptr2 = NULL;
     objPtr->typePtr = objectType;
