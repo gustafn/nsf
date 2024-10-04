@@ -31763,7 +31763,7 @@ ParamDupInteralRep(Tcl_Obj *srcPtr, Tcl_Obj *dupPtr) {
     dupPtr->internalRep.twoPtrValue.ptr1 = dupParamWrapperPtr;
     dupPtr->typePtr = &paramObjType;
     dupParamWrapperPtr->refCount ++;
-   
+
     /*fprintf(stderr, "ParamDupInteralRep dup %p .... wrapper %p paramPtr %p refCount %d\n",
             (void*)dupPtr,
             (void*)dupParamWrapperPtr,
@@ -35962,20 +35962,28 @@ ExitHandler(ClientData clientData) {
   CallStackPopAll(interp);
 
 #if defined(NSF_MEM_COUNT)
-  /* The Tcl history list (which internally stores commands and scripts in the
-   * array ::tcl::history) can retain Tcl_Obj references beyond the scope of
-   * our shutdown procedures (::nsf::finalize, ExitHandler). Therefore, on
-   * MEM_COUNT_RELEASE(), we might see unbalanced refcounts which are false
-   * positives. Therefore, we aim at clearing the history list at this point.
-   *
-   * See also Tcl bug report 1ae12987cb.
-  */
+  if ((flags & DELETED) == 0u) {
+    /* The Tcl history list (which internally stores commands and scripts in the
+     * array ::tcl::history) can retain Tcl_Obj references beyond the scope of
+     * our shutdown procedures (::nsf::finalize, ExitHandler). Therefore, on
+     * MEM_COUNT_RELEASE(), we might see unbalanced refcounts which are false
+     * positives. Therefore, we aim at clearing the history list at this point.
+     *
+     * See also Tcl bug report 1ae12987cb.
+     */
+    Tcl_Command historyCmdPtr = Tcl_FindCommand(interp, "::history", NULL, TCL_GLOBAL_ONLY);
 
-  if (unlikely(Tcl_Eval(interp, "::history clear") != TCL_OK)) {
-    NsfLog(interp, NSF_LOG_WARN, "Clearing the Tcl history list failed! "
-           "Memcounts could be reported as unbalanced on MEM_COUNT_RELEASE(). "
-           "Error: %s\n",
-           ObjStr(Tcl_GetObjResult(interp)));
+    if (historyCmdPtr != NULL) {
+      if (unlikely(Tcl_Eval(interp, "::history clear") != TCL_OK)) {
+        NsfLog(interp, NSF_LOG_WARN, "Clearing the Tcl history list failed! "
+               "Memcounts could be reported as unbalanced on MEM_COUNT_RELEASE(). "
+               "Error: %s\n",
+               ObjStr(Tcl_GetObjResult(interp)));
+      }
+    } else {
+      NsfLog(interp, NSF_LOG_WARN, "exit interp %p: command '::history' is not defined",  (void*)interp);
+      /* Tcl_Eval(interp, "puts stderr \"get ::tcl::history: [array get ::tcl::history]\""); */
+    }
   }
 #endif
 
