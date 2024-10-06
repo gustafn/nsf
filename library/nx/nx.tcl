@@ -802,6 +802,16 @@ namespace eval ::nx {
     :alias "info parent"                ::nsf::methods::object::info::parent
     :alias "info precedence"            ::nsf::methods::object::info::precedence
     :alias "info vars"                  ::nsf::methods::object::info::vars
+    if {$::tcl_version > 8} {
+      :method "info consts" {{pattern ""}} {
+        lmap v [:info vars {*}$pattern] {
+          if {![::info constant :$v]} continue
+          set v
+        }
+      }
+    } else {
+      :method "info consts" {{pattern ""}} { return {} }
+    }
     :method "info variable definition" {handle:object,type=::nx::VariableSlot}  {
       return [$handle definition]
     }

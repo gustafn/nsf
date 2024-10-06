@@ -243,7 +243,7 @@ nx::test case ensemble-partial-next {
   # defaultcmd has to return also subcmds of other shadowed ensembles
   ? {lsort [o1 info has]} "valid submethods of ::o1 info has: mixin namespace something type"
   ? {lsort [o1 info]} \
-      "valid submethods of ::o1 info: baseclass children class has info lookup name object parent precedence variable vars"
+      "valid submethods of ::o1 info: baseclass children class consts has info lookup name object parent precedence variable vars"
 
   # returning methodpath in ensemble
   ? {o1 info has something path} "info has something path"
