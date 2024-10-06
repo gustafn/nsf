@@ -1454,7 +1454,7 @@ namespace eval ::xotcl {
   ::xotcl::Object create ::xotcl::@
   ::xotcl::@ proc unknown args {}
 
-  set ::xotcl::confdir ~/.xotcl
+  set ::xotcl::confdir [file join [expr {$::tcl_version < 9 ? "~" : [file home]}] .xotcl]
   set ::xotcl::logdir $::xotcl::confdir/log
   namespace import ::nsf::tmpdir
 

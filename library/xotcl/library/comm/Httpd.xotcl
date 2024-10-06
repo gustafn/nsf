@@ -817,7 +817,7 @@ namespace eval ::xotcl::comm::httpd {
   #
   # example usage:
 
-  #Httpd h1 -port 8081 -root [glob ~/wafe]
+  #Httpd h1 -port 8081 -root [glob [file join [expr {$::tcl_version < 9 ? "~" : [file home]}] wafe]]
   #Httpd h2 -port 9086 -root $root \
       -mixin {Httpd::Responder Httdp::BasicAccessControl} \
       -addRealmEntry test {test test} -protectDir test "" {} \
