@@ -66,7 +66,7 @@
 2024-02-11  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
 	* nx.tcl: Fixed handling of invalid parameter specs
-	This bug was occuring e.g. with an invalid parameter spec as in
+	This bug was occurring e.g. with an invalid parameter spec as in
 
 	   :property {fiscalyear:integer, required}
 
