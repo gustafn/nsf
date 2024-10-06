@@ -252,13 +252,17 @@ NsfMemCountAlloc(const char *id, const void *p) {
   nonnull_assert(id != NULL);
 
   if (!*tableInitialized) {
-    fprintf(stderr, "+++ alloc %s %p\n", id, p);
+    fprintf(stderr, "+++ alloc %s %p (table not initialized)\n", id, p);
     return;
   }
 
   hPtr = Tcl_CreateHashEntry(tablePtr, id, &new);
 #ifdef NSF_MEM_TRACE
-  fprintf(stderr, "+++ alloc %s %p\n", id, p);
+  if (*id == 'I' && strncmp("INCR_REF_COUNT", id, 14) == 0) {
+    fprintf(stderr, "+++ alloc %s %p (%ld)\n", id, p, ((Tcl_Obj*)p)->refCount);
+  } else {
+    fprintf(stderr, "+++ alloc %s %p\n", id, p);
+  }
 #endif
   if (new != 0) {
     entry = (NsfMemCounter*)ckalloc(sizeof(NsfMemCounter));
@@ -305,7 +309,12 @@ NsfMemCountFree(const char *id, const void *p) {
     return;
   }
 #ifdef NSF_MEM_TRACE
-  fprintf(stderr, "+++ free %s %p\n", id, p);
+    if (*id == 'I' && strncmp("INCR_REF_COUNT", id, 14) == 0) {
+    fprintf(stderr, "+++ free %s %p (%ld)\n", id, p, ((Tcl_Obj*)p)->refCount);
+  } else {
+      fprintf(stderr, "+++ free %s %p\n", id, p);
+  }
+
 #endif
 
   hPtr = Tcl_FindHashEntry(tablePtr, id);

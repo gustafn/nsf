@@ -6568,8 +6568,8 @@ NSDeleteChildren(Tcl_Interp *interp, const Tcl_Namespace *nsPtr) {
   nonnull_assert(nsPtr != NULL);
 
 #ifdef OBJDELETION_TRACE
-  fprintf(stderr, "NSDeleteChildren %p %s activationCount %d\n",
-          (void *)nsPtr, nsPtr->fullName, Tcl_Namespace_activationCount(nsPtr));
+  fprintf(stderr, "NSDeleteChildren %p %s activationCount %ld\n",
+          (void *)nsPtr, nsPtr->fullName, (long)Tcl_Namespace_activationCount(nsPtr));
 #endif
 
   /*
@@ -15785,8 +15785,8 @@ ObjectDispatch(
   assert(object->teardown != NULL);
 
 #if defined(METHOD_OBJECT_TRACE)
-  fprintf(stderr, "method %p/%d '%s' type %p <%s>\n",
-          (void*)methodObj, methodObj->refCount, methodName, (void*)methodObjTypePtr,
+  fprintf(stderr, "method %p/%ld '%s' type %p <%s>\n",
+          (void*)methodObj, (long)methodObj->refCount, methodName, (void*)methodObjTypePtr,
           (methodObjTypePtr != NULL) ? methodObjTypePtr->name : "");
 #endif
   /*fprintf(stderr, "==== ObjectDispatch obj = %s objc = %d 0=%s methodName=%s method-obj-type %s cmd %p shift %d\n",
@@ -16058,8 +16058,8 @@ ObjectDispatch(
       unsigned int        nsfInstanceMethodEpoch = rst->instanceMethodEpoch;
 
 #if defined(METHOD_OBJECT_TRACE)
-      fprintf(stderr, "... method %p/%d '%s' type %p %s type? %d context? %d nsfMethodEpoch %d => %d\n",
-              (void*)methodObj, methodObj->refCount, ObjStr(methodObj),
+      fprintf(stderr, "... method %p/%ld '%s' type %p %s type? %d context? %d nsfMethodEpoch %d => %d\n",
+              (void*)methodObj, (long)methodObj->refCount, ObjStr(methodObj),
               (void*)methodObjTypePtr, (methodObjTypePtr != NULL) ? methodObjTypePtr->name : "NONE",
               methodObjTypePtr == &NsfInstanceMethodObjType,
               methodObjTypePtr == &NsfInstanceMethodObjType ? mcPtr0->context == currentClass : 0,
@@ -21813,8 +21813,8 @@ PrimitiveODestroy(ClientData clientData) {
 
 #ifdef OBJDELETION_TRACE
     {Command *cmdPtr = (Command*)object->id;
-      fprintf(stderr, "  physical delete of %p id=%p (cmd->refCount %d) destroyCalled=%d '%s'\n",
-              (void *)object, (void *)object->id, cmdPtr->refCount,
+      fprintf(stderr, "  physical delete of %p id=%p (cmd->refCount %ld) destroyCalled=%d '%s'\n",
+              (void *)object, (void *)object->id, (long)cmdPtr->refCount,
               (object->flags & NSF_DESTROY_CALLED), ObjectName(object));
     }
 #endif
@@ -35355,7 +35355,7 @@ DeleteProcsAndVars(
   nonnull_assert(interp != NULL);
   nonnull_assert(nsPtr != NULL);
 
-  /* fprintf(stderr, "DeleteProcsAndVars in %s\n", nsPtr->fullName); */
+  /*fprintf(stderr, "==== DeleteProcsAndVars in %s\n", nsPtr->fullName);*/
 
   varTablePtr = (Tcl_HashTable *)Tcl_Namespace_varTablePtr(nsPtr);
   cmdTablePtr = Tcl_Namespace_cmdTablePtr(nsPtr);
@@ -35400,6 +35400,8 @@ DeleteProcsAndVars(
       Tcl_DeleteCommandFromToken(interp, cmd);
     }
   }
+  /*fprintf(stderr, "==== DeleteProcsAndVars in %s DONE\n", nsPtr->fullName);*/
+
 }
 #endif
 
@@ -35667,7 +35669,7 @@ FreeAllNsfObjectsAndClasses(
   nonnull_assert(interp != NULL);
   nonnull_assert(instances != NULL);
 
-  /*fprintf(stderr, "FreeAllNsfObjectsAndClasses in %p\n", interp);*/
+  /*fprintf(stderr, "=== FreeAllNsfObjectsAndClasses in %p\n", interp);*/
 
   RUNTIME_STATE(interp)->exitHandlerDestroyRound = NSF_EXITHANDLER_ON_PHYSICAL_DESTROY;
 
@@ -35897,6 +35899,8 @@ FreeAllNsfObjectsAndClasses(
       }
     }
   }
+  /*fprintf(stderr, "=== FreeAllNsfObjectsAndClasses in %p DONE\n", interp);*/
+
 }
 
 #endif /* DO_CLEANUP */

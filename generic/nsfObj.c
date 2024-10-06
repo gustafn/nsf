@@ -106,6 +106,8 @@ MethodFreeInternalRep(
     FREE(NsfMethodContext, mcPtr);
     objPtr->internalRep.twoPtrValue.ptr1 = NULL;
     objPtr->typePtr = NULL;
+  } else {
+    fprintf(stderr, "NSF Warning: MethodFreeInternalRep of '%s' has no internal rep\n", Tcl_GetString(objPtr));
   }
 }
 
@@ -183,7 +185,7 @@ NsfMethodObjSet(
     objPtr->internalRep.twoPtrValue.ptr2 = NULL;
     objPtr->typePtr = objectType;
 #if defined(METHOD_OBJECT_TRACE)
-    fprintf(stderr, "alloc %p methodContext %p methodEpoch %d type <%s> %s refCount %d\n",
+    fprintf(stderr, "methodObj alloc %p methodContext %p methodEpoch %d type <%s> %s refCount %d\n",
             (void *)objPtr, (void *)mcPtr,
             methodEpoch, objectType->name, ObjStr(objPtr), objPtr->refCount);
 #endif
