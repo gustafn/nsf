@@ -31794,6 +31794,11 @@ ParamFreeInternalRep(
             paramWrapperPtr->refCount);*/
 
     if (paramWrapperPtr->refCount <= 1) {
+      /*
+       * Sanity check: When refCount < 0, something is broken.
+       */
+      assert(paramWrapperPtr->refCount >= 0);
+
       ParamsFree(paramWrapperPtr->paramPtr);
       FREE(NsfParamWrapper, paramWrapperPtr);
     } else {
