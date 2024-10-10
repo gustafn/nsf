@@ -34,7 +34,8 @@ Selected changes worth mentioning:
 
 - Maintenance & bug fixes:
 
-  * Tcl 9: ...
+  * Tcl 9: Refcounting
+  * Tcl 9: file home vs. ~
 
 - NSF:
 
@@ -43,7 +44,18 @@ Selected changes worth mentioning:
 
 - NX:
 
-  * "info consts": ...
+  * "info consts":
+
+    nx::Object create o {
+	      #
+	      # Create a "const" instance variable
+	      #
+	      const :x 1
+	      set :y 2
+	      # ...
+     }
+     puts [o info consts]
+     puts [o info vars]	
 
 - XOTcl:
 

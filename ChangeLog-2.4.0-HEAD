@@ -1,3 +1,110 @@
+2024-10-08  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	reduce verbosity
+	[2b4b817c]
+
+2024-10-08  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* doc/Announce2.5.0: Adding to announcement: 2.5.0 and 25th
+	anniversary [b27afbdc]
+
+2024-10-06  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* ChangeLog-2.0.0-2.1.0.log, ChangeLog-2.4.0-HEAD: Improved
+	spelling [87ba4a57]
+
+	* xotcl2.tcl, Httpd.xotcl, Mime.xotclTcl 9 fix: fixed handling of
+	leading "~" in file paths.  In the Unix shell tradition, leading
+	"~" in file paths denotes to the home directory. In Tcl9, we have
+	to use [file home] instead.
+	[d861f735]
+
+2024-10-06  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nx.tcl: Added method nx::Object->"info consts" A "const" is a
+	variable that cannot be altered later.  So far, such constant
+	variables have to be created via the Tcl 9 "const" cmd, like in the
+	example below.  The introspection method "/obj/ info consts" is
+	very similar to "/obj/ info vars", but it lists only unmodifiable
+	variables. [0ca02a31]
+
+2024-10-06  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	fixed typo (space was missing)
+	[f56a27fa]
+
+	re-establish sanity check
+	[be661e5a]
+
+	minor cleanup of debug and log messages
+	[27f3f462]
+
+2024-10-04  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	Remove CI/CD support for the Tcl 8.5.19 release. See ticket #2
+	[24542a2e]
+
+2024-10-04  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	improved warning message, when Tcl command "::history" is not defined
+	[6862550e]
+
+	updated year in comment
+	[15dbd946]
+
+2024-10-04  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	fixed false positive in memcount statistics
+	Before this fix, we saw messages like the following accompanied with wrong memcount
+	statistics, when running library/xotcl/tests/testo.xotcl
+
+	******** MEM COUNT ALERT: Trying to free 0x14f91fc10 <Tcl_Obj* *>, but was not allocated
+	[7ce64a20]
+
+2024-10-04  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	regression test: increased independency of test cases
+	[59dadd01]
+
+2024-10-04  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* doc/Announce2.4.1, ChangeLog-2.4.0-HEAD: Add Announce2.4.1 and
+	ChangeLog-2.4.0-HEAD drafts [deebac4d]
+
+2024-10-03  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* nsf.c (NsfParamWrapper, ParamDupInteralRep): Tcl 9 reform:
+	Refcounting nsfParam intrep was simplified and fixed by removing
+	the canFree flag, now relying purely on the refcounts. This fixes
+	a memory leak when a Tcl_Obj holding an nsfParam intrep gets
+	duplicated. [0361c4b0]
+
+2024-10-03  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsfObj.c (MethodFreeInternalRep): Added casts to debug output
+	[5ee4c3c7]
+
+	* nsf.c, nsf.h (CompiledColonLocalsLookupBuildCache): Make
+	handling of colonLocalVarCache more type-safe Since the usual
+	macro TCL_SIZE_T does not work together with the macros for the
+	memcount macros, a new typedef "Nsf_Tcl_Size_t" was
+	introduced. Using a typedef is better and eases maintenance. The
+	new typedef has a "Nsf_" prefix, since it is defined in nsf.h.
+	[64ee56cd]
+
+	* nx.tcl: Address leak of NsfMethodContext with Tcl 9. This is not
+	a fully satisfying fix, since it just fixes the symptom, not the
+	cause.  Also the old variant is supposed to run free of this
+	issue. However, we are talking here about a single Tcl_Obj inside
+	the NX object system, so the harm is very limited. More details in
+	the ticket. [3dcb0fb1]
+
+	* Makefile.in: Removed mostly obsolete hint on AOLServer [1c2a0be9]
+
+	* nsf.c (NsfProcDeleteProc): Fix memcounting by adjusting type
+	spec, otherwise leading to a wrong false positive on memcount
+	tests [0922b668]
+
 2024-09-27  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
 	* nsf.c: Tcl 9 reform: One needs 'Tcl_InitStubs(interp,
