@@ -1,7 +1,6 @@
 2024-10-08  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	reduce verbosity
-	[2b4b817c]
+	* serializer.tcl: Reduce verbosity [2b4b817c]
 
 2024-10-08  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
@@ -30,41 +29,35 @@
 
 2024-10-06  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	fixed typo (space was missing)
+	* tutorial2.html: Fixed typo (space was missing)
 	[f56a27fa]
 
-	re-establish sanity check
+	* nsf.c (ParamFreeInternalRep): Re-establish sanity check
 	[be661e5a]
 
-	minor cleanup of debug and log messages
+	* nsf.c, nsfObj.c: minor cleanup of debug and log messages
 	[27f3f462]
 
-2024-10-04  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+2024-10-04  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	Remove CI/CD support for the Tcl 8.5.19 release. See ticket #2
-	[24542a2e]
+	* nsf.c (ExitHandler): Improved warning message, when Tcl command
+	"::history" is not defined [6862550e]
+
+	* nsf.c: Updated year in comment [15dbd946]
 
 2024-10-04  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	improved warning message, when Tcl command "::history" is not defined
-	[6862550e]
+	* nsfInt.h: Fix for otherwise false positive in memcount
+	statistics. Before, we saw messages like the following
+	accompanied with wrong memcount statistics, when running
+	library/xotcl/tests/testo.xotcl [7ce64a20]
 
-	updated year in comment
-	[15dbd946]
-
-2024-10-04  Gustaf Neumann  <neumann@wu-wien.ac.at>
-
-	fixed false positive in memcount statistics
-	Before this fix, we saw messages like the following accompanied with wrong memcount
-	statistics, when running library/xotcl/tests/testo.xotcl
-
-	******** MEM COUNT ALERT: Trying to free 0x14f91fc10 <Tcl_Obj* *>, but was not allocated
-	[7ce64a20]
+	******** MEM COUNT ALERT: Trying to free 0x14f91fc10 <Tcl_Obj* *>,
+	but was not allocated
 
 2024-10-04  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	regression test: increased independency of test cases
-	[59dadd01]
+	* parameters.test: improved decoupling of test cases [59dadd01]
 
 2024-10-04  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
@@ -107,10 +100,10 @@
 
 2024-09-27  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	* nsf.c: Tcl 9 reform: One needs 'Tcl_InitStubs(interp,
+	* nsf.c (Nsf_Init): Tcl 9 reform: One needs 'Tcl_InitStubs(interp,
 	"8.5-",...)' instead of 'Tcl_InitStubs(interp, "8.5",...)', since
 	the semantics are seemingly the same as in "package require
-	...".
+	...". [3ba8209e]
 
 	Without this change, we see in the NaviServer regression test the
 	following error message:
