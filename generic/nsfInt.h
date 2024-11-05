@@ -942,8 +942,9 @@ typedef struct NsfCallStackContent {
 #define NSF_VAR_ISARRAY          4
 
 /*
- * Tcl uses 01 and 02, TclOO uses 04 and 08, so leave some space free
- * for further extensions of Tcl and tcloo...
+ * Tcl8 uses 01 and 02, TclOO uses 04 and 08 as frame flags, Tcl9 adds
+ * 0x10. Leave some space free for further extensions of Tcl and
+ * tcloo and define NSF specific flags above it.
  */
 #define FRAME_IS_NSF_OBJECT  0x10000u
 #define FRAME_IS_NSF_METHOD  0x20000u
