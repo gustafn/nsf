@@ -8,14 +8,14 @@ package require nx::test
 
 namespace eval ::nx::var1 {
   namespace ensemble create -map {
-    exists ::nsf::var::exists 
-    import ::nsf::var::import 
+    exists ::nsf::var::exists
+    import ::nsf::var::import
     set ::nsf::var::set
   }
 }
 
 ::nx::Object create ::nx::var2 {
-  :object alias exists ::nsf::var::exists 
+  :object alias exists ::nsf::var::exists
   :object alias import ::nsf::var::import
   :object alias set ::nsf::var::set
 }
@@ -23,7 +23,7 @@ namespace eval ::nx::var1 {
 
 nx::test case set+array {
   nx::Object create o1
-  
+
   # first set a scalar variable
   ? {nsf::var::set o1 x 100} "100"
   ? {nsf::var::set o1 x} "100"
@@ -39,7 +39,7 @@ nx::test case set+array {
   # "x" is a variable, but not an array
   ? {nsf::var::exists o1 x} 1
   ? {nsf::var::exists -array o1 x} 0
-  
+
   # "a" is a variable and an array
   ? {nsf::var::exists -array o1 a} 1
   ? {nsf::var::exists o1 a} 1
@@ -90,7 +90,7 @@ nx::test case dummy {
       incr x
     }
   }
-  
+
   ? {::nsf::var::set o x} 1
   ? {::nsf::var::exists o x} 1
   ? {::nsf::var::exists o y} 0
@@ -118,6 +118,49 @@ nx::test case dummy {
   ? {::nsf::var::set o x} 40005
 }
 
+#
+# "const" was introduced into Tcl9 via TIP 677 (June 23)
+#
+if {[package vsatisfies [package req Tcl] 9.0-]} {
+  nx::test configure -count 10000
+  nx::test case consts {
+    nx::Object create o {
+      #
+      # Create a "const" instance variable
+      #
+      const :x 1
+      #
+      # Create a classical (modifiable) instance variable
+      #
+      set :y 1
+      const :x1 11
+      #
+      # Access a "const" value as an instance variable
+      # from a method.
+      #
+      :object method access-const {} {return ${:x}}
+
+      #
+      # Try to modify a "const" value in a method
+      #
+      :object method modify-const {} {set :x 2}
+
+      #
+      # Test "info constant" in the object scope
+      #
+      :object method info-constant {} {list [::info constant :x] [::info constant :y]}
+    }
+
+    ? {o access-const}  1
+    ? {o modify-const}  {can't set ":x": variable is a constant}
+    ? {o info-constant}          {1 0}
+    ? {lsort [o info vars]}      {x x1 y}
+    ? {lsort [o info vars x*]}   {x x1}
+    ? {lsort [o info consts]}    {x x1}
+    ? {lsort [o info consts x*]} {x x1}
+    ? {lsort [o info consts x1]} {x1}
+  }
+}
 
 #
 # Local variables:

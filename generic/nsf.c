@@ -5,7 +5,7 @@
  *      for supporting language-oriented programming.  For details, see
  *      https://next-scripting.org/.
  *
- * Copyright (C) 1999-2022 Gustaf Neumann (a) (b)
+ * Copyright (C) 1999-2024 Gustaf Neumann (a) (b)
  * Copyright (C) 1999-2007 Uwe Zdun (a) (b)
  * Copyright (C) 2007-2008 Martin Matuska (b)
  * Copyright (C) 2010-2019 Stefan Sobernig (b)
@@ -117,7 +117,7 @@ typedef struct NsfProcContext {
   ClientData          oldDeleteData;
   Tcl_CmdDeleteProc  *oldDeleteProc;
   NsfParamDefs       *paramDefs;
-  long               *colonLocalVarCache;
+  Nsf_Tcl_Size_t     *colonLocalVarCache;
   unsigned int        checkAlwaysFlag;
   Tcl_Namespace      *execNsPtr;
   Tcl_Obj            *returnsObj;
@@ -5061,7 +5061,7 @@ CompiledColonLocalsLookupBuildCache(CallFrame *varFramePtr, const char *varName,
    * Allocate colonLocalVarCache in the proper size (keep space for a
    * terminating element).
    */
-  ctxPtr->colonLocalVarCache = NEW_ARRAY(long, nrColonVars+1);
+  ctxPtr->colonLocalVarCache = NEW_ARRAY(Nsf_Tcl_Size_t, nrColonVars+1);
   varNameObjPtr = &varFramePtr->localCachePtr->varName0;
 
   /*
@@ -5090,9 +5090,9 @@ CompiledColonLocalsLookupBuildCache(CallFrame *varFramePtr, const char *varName,
 
         /* fprintf(stderr, ".. insert %s (%d) on pos %d; check j %d entries \n", localName, i, j, j); */
         for (k = 0; k < j; k++) {
-          int         cmp;
-          long        idx;
-          const char *cachedName;
+          int            cmp;
+          Nsf_Tcl_Size_t idx;
+          const char    *cachedName;
 
           idx = ctxPtr->colonLocalVarCache[k];
           cachedName = Tcl_GetStringFromObj(localNames[idx], &len);
@@ -5114,7 +5114,7 @@ CompiledColonLocalsLookupBuildCache(CallFrame *varFramePtr, const char *varName,
             break;
           }
         }
-        ctxPtr->colonLocalVarCache[k] = (long)i;
+        ctxPtr->colonLocalVarCache[k] = i;
 
         j++;
         if (j == nrColonVars) {
@@ -5188,7 +5188,7 @@ CompiledColonLocalsLookup(CallFrame *varFramePtr, const char *varName) {
       result = CompiledColonLocalsLookupBuildCache(varFramePtr, varName, nameLength, localNames, ctxPtr);
 
     } else {
-      long i, j;
+      Nsf_Tcl_Size_t i, j;
 
       /*
        * We have a colonLocalVarCache.
@@ -6568,8 +6568,8 @@ NSDeleteChildren(Tcl_Interp *interp, const Tcl_Namespace *nsPtr) {
   nonnull_assert(nsPtr != NULL);
 
 #ifdef OBJDELETION_TRACE
-  fprintf(stderr, "NSDeleteChildren %p %s activationCount %d\n",
-          (void *)nsPtr, nsPtr->fullName, Tcl_Namespace_activationCount(nsPtr));
+  fprintf(stderr, "NSDeleteChildren %p %s activationCount %ld\n",
+          (void *)nsPtr, nsPtr->fullName, (long)Tcl_Namespace_activationCount(nsPtr));
 #endif
 
   /*
@@ -13131,7 +13131,7 @@ NsfProcDeleteProc(
   }
   if (ctxPtr->colonLocalVarCache != NULL) {
     /*fprintf(stderr, "free colonLocalVarCache %p\n", (void*)ctxPtr->colonLocalVarCache);*/
-    FREE(int*, ctxPtr->colonLocalVarCache);
+    FREE(Nsf_Tcl_Size_t*, ctxPtr->colonLocalVarCache);
   }
   if (ctxPtr->returnsObj != NULL) {
     DECR_REF_COUNT2("returnsObj", ctxPtr->returnsObj);
@@ -15788,8 +15788,8 @@ ObjectDispatch(
   assert(object->teardown != NULL);
 
 #if defined(METHOD_OBJECT_TRACE)
-  fprintf(stderr, "method %p/%d '%s' type %p <%s>\n",
-          (void*)methodObj, methodObj->refCount, methodName, (void*)methodObjTypePtr,
+  fprintf(stderr, "method %p/%ld '%s' type %p <%s>\n",
+          (void*)methodObj, (long)methodObj->refCount, methodName, (void*)methodObjTypePtr,
           (methodObjTypePtr != NULL) ? methodObjTypePtr->name : "");
 #endif
   /*fprintf(stderr, "==== ObjectDispatch obj = %s objc = %d 0=%s methodName=%s method-obj-type %s cmd %p shift %d\n",
@@ -16061,8 +16061,8 @@ ObjectDispatch(
       unsigned int        nsfInstanceMethodEpoch = rst->instanceMethodEpoch;
 
 #if defined(METHOD_OBJECT_TRACE)
-      fprintf(stderr, "... method %p/%d '%s' type %p %s type? %d context? %d nsfMethodEpoch %d => %d\n",
-              (void*)methodObj, methodObj->refCount, ObjStr(methodObj),
+      fprintf(stderr, "... method %p/%ld '%s' type %p %s type? %d context? %d nsfMethodEpoch %d => %d\n",
+              (void*)methodObj, (long)methodObj->refCount, ObjStr(methodObj),
               (void*)methodObjTypePtr, (methodObjTypePtr != NULL) ? methodObjTypePtr->name : "NONE",
               methodObjTypePtr == &NsfInstanceMethodObjType,
               methodObjTypePtr == &NsfInstanceMethodObjType ? mcPtr0->context == currentClass : 0,
@@ -21816,8 +21816,8 @@ PrimitiveODestroy(ClientData clientData) {
 
 #ifdef OBJDELETION_TRACE
     {Command *cmdPtr = (Command*)object->id;
-      fprintf(stderr, "  physical delete of %p id=%p (cmd->refCount %d) destroyCalled=%d '%s'\n",
-              (void *)object, (void *)object->id, cmdPtr->refCount,
+      fprintf(stderr, "  physical delete of %p id=%p (cmd->refCount %ld) destroyCalled=%d '%s'\n",
+              (void *)object, (void *)object->id, (long)cmdPtr->refCount,
               (object->flags & NSF_DESTROY_CALLED), ObjectName(object));
     }
 #endif
@@ -31711,7 +31711,6 @@ NsfVarUnsetCmd(Tcl_Interp *interp, int withNocomplain, NsfObject *object, Tcl_Ob
 typedef struct NsfParamWrapper {
   Nsf_Param *paramPtr;
   int refCount;
-  bool canFree;
 } NsfParamWrapper;
 
 static Tcl_DupInternalRepProc      ParamDupInteralRep;
@@ -31757,25 +31756,22 @@ ParamDupInteralRep(Tcl_Obj *srcPtr, Tcl_Obj *dupPtr) {
 
   srcParamWrapperPtr = (NsfParamWrapper *)srcPtr->internalRep.twoPtrValue.ptr1;
   if (srcParamWrapperPtr != NULL) {
-    /*fprintf(stderr, "ParamDupInteralRep src %p copy wrapper %p paramPtr %p refCount %d canFree %d\n",
+    /*fprintf(stderr, "ParamDupInteralRep src %p copy wrapper %p paramPtr %p refCount %d\n",
             (void*)srcPtr,
             (void*)srcParamWrapperPtr,
             (void*)srcParamWrapperPtr->paramPtr,
-            srcParamWrapperPtr->refCount,
-            srcParamWrapperPtr->canFree);*/
+            srcParamWrapperPtr->refCount);*/
 
     dupParamWrapperPtr = srcParamWrapperPtr;
     dupPtr->internalRep.twoPtrValue.ptr1 = dupParamWrapperPtr;
     dupPtr->typePtr = &paramObjType;
     dupParamWrapperPtr->refCount ++;
-    dupParamWrapperPtr->canFree = NSF_FALSE;
 
-    /*fprintf(stderr, "ParamDupInteralRep dup %p .... wrapper %p paramPtr %p refCount %d canFree %d\n",
+    /*fprintf(stderr, "ParamDupInteralRep dup %p .... wrapper %p paramPtr %p refCount %d\n",
             (void*)dupPtr,
             (void*)dupParamWrapperPtr,
             (void*)dupParamWrapperPtr->paramPtr,
-            dupParamWrapperPtr->refCount,
-            dupParamWrapperPtr->canFree);*/
+            dupParamWrapperPtr->refCount);*/
   }
 
 }
@@ -31792,19 +31788,20 @@ ParamFreeInternalRep(
 
   paramWrapperPtr = (NsfParamWrapper *)objPtr->internalRep.twoPtrValue.ptr1;
   if (paramWrapperPtr != NULL) {
-    /*fprintf(stderr, "ParamFreeInternalRep obj %p type %p '%s' freeing wrapper %p paramPtr %p refCount %d canFree %d\n",
+    /*fprintf(stderr, "ParamFreeInternalRep obj %p type %p '%s' freeing wrapper %p paramPtr %p refCount %d\n",
             (void*)objPtr,
             (void*)objPtr->typePtr,
             (void*)objPtr->typePtr == NULL ? "None" : objPtr->typePtr->name,
             (void*)paramWrapperPtr,
             (void*)paramWrapperPtr->paramPtr,
-            paramWrapperPtr->refCount,
-            paramWrapperPtr->canFree);*/
-    if (paramWrapperPtr->refCount < 0) {
-      char *p = NULL; *p=0;
-    }
+            paramWrapperPtr->refCount);*/
 
-    if (paramWrapperPtr->canFree) {
+    if (paramWrapperPtr->refCount <= 1) {
+      /*
+       * Sanity check: When refCount < 0, something is broken.
+       */
+      assert(paramWrapperPtr->refCount >= 0);
+
       ParamsFree(paramWrapperPtr->paramPtr);
       FREE(NsfParamWrapper, paramWrapperPtr);
     } else {
@@ -31850,7 +31847,6 @@ ParamSetFromAny2(
 
   paramWrapperPtr->paramPtr = ParamsNew(1u);
   paramWrapperPtr->refCount = 1;
-  paramWrapperPtr->canFree = NSF_FALSE;
 
   Tcl_AppendLimitedToObj(fullParamObj, ObjStr(objPtr), TCL_INDEX_NONE, INT_MAX, NULL);
   INCR_REF_COUNT(fullParamObj);
@@ -31884,12 +31880,11 @@ ParamSetFromAny2(
     objPtr->internalRep.twoPtrValue.ptr2 = NULL;
     objPtr->typePtr = &paramObjType;
 
-    /*fprintf(stderr, "ParamSetFromAny2 obj %p creates wrapper %p paramPtr %p refCount %d canFree %d\n",
+    /*fprintf(stderr, "ParamSetFromAny2 obj %p creates wrapper %p paramPtr %p refCount %d\n",
             (void*)objPtr,
             (void*)paramWrapperPtr,
             (void*)paramWrapperPtr->paramPtr,
-            paramWrapperPtr->refCount,
-            paramWrapperPtr->canFree);*/
+            paramWrapperPtr->refCount);*/
   } else {
     /*
      * In error cases, free manually memory allocated by this function.
@@ -32185,11 +32180,10 @@ ParameterCheck(
   result = ArgumentCheck(interp, valueObj, paramPtr, doCheckArguments, &flags, &checkedData, &outObjPtr);
   RUNTIME_STATE(interp)->doClassConverterOmitUnknown = 0;
 
-  /*fprintf(stderr, "ParameterCheck paramPtr %p final refCount of wrapper %d can free %d flags %.6x\n",
-    paramPtr, paramWrapperPtr->refCount,  paramWrapperPtr->canFree, flags);*/
+  /*fprintf(stderr, "ParameterCheck paramPtr %p final refCount of wrapper %d flags %.6x\n",
+    paramPtr, paramWrapperPtr->refCount, flags);*/
 
   assert(paramWrapperPtr->refCount > 0);
-  paramWrapperPtr->canFree = NSF_TRUE;
 
   if ((flags & NSF_PC_MUST_DECR) != 0u) {
     DECR_REF_COUNT2("valueObj", outObjPtr);
@@ -35369,7 +35363,7 @@ DeleteProcsAndVars(
   nonnull_assert(interp != NULL);
   nonnull_assert(nsPtr != NULL);
 
-  /* fprintf(stderr, "DeleteProcsAndVars in %s\n", nsPtr->fullName); */
+  /*fprintf(stderr, "==== DeleteProcsAndVars in %s\n", nsPtr->fullName);*/
 
   varTablePtr = (Tcl_HashTable *)Tcl_Namespace_varTablePtr(nsPtr);
   cmdTablePtr = Tcl_Namespace_cmdTablePtr(nsPtr);
@@ -35414,6 +35408,8 @@ DeleteProcsAndVars(
       Tcl_DeleteCommandFromToken(interp, cmd);
     }
   }
+  /*fprintf(stderr, "==== DeleteProcsAndVars in %s DONE\n", nsPtr->fullName);*/
+
 }
 #endif
 
@@ -35681,7 +35677,7 @@ FreeAllNsfObjectsAndClasses(
   nonnull_assert(interp != NULL);
   nonnull_assert(instances != NULL);
 
-  /*fprintf(stderr, "FreeAllNsfObjectsAndClasses in %p\n", interp);*/
+  /*fprintf(stderr, "=== FreeAllNsfObjectsAndClasses in %p\n", interp);*/
 
   RUNTIME_STATE(interp)->exitHandlerDestroyRound = NSF_EXITHANDLER_ON_PHYSICAL_DESTROY;
 
@@ -35911,6 +35907,8 @@ FreeAllNsfObjectsAndClasses(
       }
     }
   }
+  /*fprintf(stderr, "=== FreeAllNsfObjectsAndClasses in %p DONE\n", interp);*/
+
 }
 
 #endif /* DO_CLEANUP */
@@ -35976,20 +35974,28 @@ ExitHandler(ClientData clientData) {
   CallStackPopAll(interp);
 
 #if defined(NSF_MEM_COUNT)
-  /* The Tcl history list (which internally stores commands and scripts in the
-   * array ::tcl::history) can retain Tcl_Obj references beyond the scope of
-   * our shutdown procedures (::nsf::finalize, ExitHandler). Therefore, on
-   * MEM_COUNT_RELEASE(), we might see unbalanced refcounts which are false
-   * positives. Therefore, we aim at clearing the history list at this point.
-   *
-   * See also Tcl bug report 1ae12987cb.
-  */
+  if ((flags & DELETED) == 0u) {
+    /* The Tcl history list (which internally stores commands and scripts in the
+     * array ::tcl::history) can retain Tcl_Obj references beyond the scope of
+     * our shutdown procedures (::nsf::finalize, ExitHandler). Therefore, on
+     * MEM_COUNT_RELEASE(), we might see unbalanced refcounts which are false
+     * positives. Therefore, we aim at clearing the history list at this point.
+     *
+     * See also Tcl bug report 1ae12987cb.
+     */
+    Tcl_Command historyCmdPtr = Tcl_FindCommand(interp, "::history", NULL, TCL_GLOBAL_ONLY);
 
-  if (unlikely(Tcl_Eval(interp, "::history clear") != TCL_OK)) {
-    NsfLog(interp, NSF_LOG_WARN, "Clearing the Tcl history list failed! "
-           "Memcounts could be reported as unbalanced on MEM_COUNT_RELEASE(). "
-           "Error: %s\n",
-           ObjStr(Tcl_GetObjResult(interp)));
+    if (historyCmdPtr != NULL) {
+      if (unlikely(Tcl_Eval(interp, "::history clear") != TCL_OK)) {
+        NsfLog(interp, NSF_LOG_WARN, "Clearing the Tcl history list failed! "
+               "Memcounts could be reported as unbalanced on MEM_COUNT_RELEASE(). "
+               "Error: %s\n",
+               ObjStr(Tcl_GetObjResult(interp)));
+      }
+    } else {
+      NsfLog(interp, NSF_LOG_WARN, "exit interp %p: command '::history' is not defined",  (void*)interp);
+      /* Tcl_Eval(interp, "puts stderr \"get ::tcl::history: [array get ::tcl::history]\""); */
+    }
   }
 #endif
 

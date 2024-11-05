@@ -447,6 +447,21 @@ Returns the fully qualified name of the current [cmd nx::Class] of
 returned class will be different from the [cmd nx::Class] from which [arg obj] was
 originally instantiated using [method create] or [method new].
 
+
+[call [arg obj] [method {info consts}] [opt [arg pattern]]]
+
+Returns a list of unmodifiable Tcl variable names created and defined
+for the scope of [arg obj], i.e., object variables.  The command is
+very similar to the [method {info vars}] method,
+but returns variables defined with the Tcl command [cmd const] only.
+Like for [method {info vars}] rhe result list
+can be filtered via the [arg pattern] argument.  The [arg pattern]
+string can contain special string matching characters
+(see [cmd "string match"]). Since the Tcl command [cmd const] was introduced via TIP 677
+(June 23) to Tcl9, the command returns for earlier versions of Tcl the
+empty list.
+
+
 [call [arg obj] [method "info has"] [opt "[method mixin] | [method namespace] | [method type]"] [opt "[arg arg] ..."]]
 
 [list_begin definitions]
@@ -610,10 +625,13 @@ eligible to (re-)define the given variable (e.g. using [method "[vset SCOPE] var
 
 [call [arg obj] [method {info vars}] [opt [arg pattern]]]
 
-Yields a list of Tcl variable names created and defined for the scope of
-[arg obj], i.e., object variables. The list can be limited to object variables whose names
-match [arg pattern]. The [arg pattern] string can contain special
-matching characters (see [cmd "string match"]).
+Returns a list of Tcl variable names created and defined for the scope
+of [arg obj], i.e., object variables. The result list can be filtered
+via the [arg pattern] argument. The [arg pattern] string can contain
+special string matching characters (see [cmd "string match"]).
+
+
+
 
 [list_end]
 

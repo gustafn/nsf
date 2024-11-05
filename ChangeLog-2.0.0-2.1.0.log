@@ -1211,7 +1211,7 @@
 	inside a block. [9e1cdbe]
 	(NextGetArguments): Address coverty CID 102646, second attempt.
 	[f3ca6a1]
-	(ObjectDispatch): Address covertiy CID 88773. [f90a7fa]
+	(ObjectDispatch): Address coverty CID 88773. [f90a7fa]
 
 	* gentclAPI.tcl, nsfAPI.h: Revert overeager part of the
 	change. Remove logically dead code as flagged by Coverity. Move

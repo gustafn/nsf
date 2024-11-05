@@ -54,7 +54,7 @@ namespace eval ::xotcl::comm::mime {
     } 
   }
   MimeTypeLoader instproc guessContentType {name} {
-    my loadMimeTypes ~/.mime.types
+    my loadMimeTypes [file join [expr {$::tcl_version < 9 ? "~" : [file home]}] .mime.types]
     my mixin {}
     return [next]
   }

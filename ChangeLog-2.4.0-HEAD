@@ -1,0 +1,311 @@
+2024-09-27  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsf.c: Tcl 9 reform: One needs 'Tcl_InitStubs(interp,
+	"8.5-",...)' instead of 'Tcl_InitStubs(interp, "8.5",...)', since
+	the semantics are seemingly the same as in "package require
+	...".
+
+	Without this change, we see in the NaviServer regression test the
+	following error message:
+
+	    version conflict for package "tcl": have 9.0.0, need 8.5
+	        while executing
+	    "load {} Nsf"
+	        invoked from within
+	    "ns_ictl update"
+	        (procedure "ns_cleanup" line 8)
+	        invoked from within
+
+2024-07-14  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* win/rules.vc: Tcl 9 reform: Tcl does not add a version infix to
+	the stub library name [7fd955bd]
+
+2024-07-11  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* appveyor.yml: Fix appveyor build descriptor [3702c134]
+
+2024-06-26  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsf.c, nsf.h: Fix for transitional bug due to NS_TCL_HAVE_TIP629
+	Deactivating NS_TCL_HAVE_TIP629, since this needs more work to
+	deal with the two different types of commands (before and after
+	the TIP) [19220221]
+
+	   * When we activate NS_TCL_HAVE_TIP629 (TIP supporting > 2^31
+	   * elements in object vectors), Tcl defines different objProcs
+	   * (Tcl_ObjCmdProc and Tcl_ObjCmdProc2) where the usage of these
+	   * depends on a cmdWrapperProc. Unfortunately, the resolving of
+	   * these are performed via CmdWrapperInfo, which is not exported. We
+	   * have to think how to resolve these to make this working as with
+	   * prior Tcl versions.
+
+2024-06-19  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	removed debugging output for NS_TCL_HAVE_TIP629
+	[6a3286e8]
+
+2024-06-19  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* nsf.h: Remove leftover in header file [6baa11e7]
+
+2024-06-18  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsf.c, nsf.h: Tcl 9 reform: Improved cleanness of compilation [083692dd]
+
+2024-05-03  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsf.c, nsf.h: Tcl 9 reform: Improved cleanness of compilation [a9ab0550]
+
+2024-02-11  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* rosetta-unknown-method.tcl: Improved spelling [e34b17e5]
+
+	* nx.tcl: Fixed misleading name of variable [285f60aa]
+
+2024-02-11  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nx.tcl: Fixed handling of invalid parameter specs
+	This bug was occurring e.g. with an invalid parameter spec as in
+
+	   :property {fiscalyear:integer, required}
+
+	where an additional space was introduced. The bug was reported by
+	Maksym Zinchenko on the xotcl mailing list (many thanks for that!)
+	and lead to an attempt of adding an empty parameter option.
+	Now, an error is generated in this case. [32fd4c6b]
+
+2024-01-20  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsf.c: Improved comment [f2bfddf1]
+
+2024-01-16  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsf.c, nx.tcl, Access.xotcl: improved spelling [3234688f]
+
+	* nsf.c, testx.xotcl: Fix potential crash and swallowed error.
+	The change fixes 2 bugs:
+	- When a non-existing method was called in a situation where
+	   * a filter with guards is registered, and
+	   * all guards are failing, and
+	   * the method to be called after the filter does not exist
+	  nsf was crashing
+	- There was no code to produce the proper error message in such
+	situations [91e563ce]
+
+2023-12-05  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsf.c, tests/*.test: Improved spelling [43373d98]
+
+	* langRef.xotcl: Fix typo [c5416441]
+
+	* testo.xotcl: Tcl 9 reform: TIP 673 removed "trace variable",
+	which was deprecated since the release of Tcl 8.4. However, since
+	Tcl does not warn about deprecations, so it was not detected until
+	TIP #673 removed the command for Tcl9. [c2980f95] Whitespace
+	changes [5f06502c]
+
+2023-11-30  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsf.c: nsf:parseargs: honor "required" settings. The previous
+	version was accepting e.g.:
+
+	    nsf::parseargs -asdict {
+	      {-state:wordchar,required}
+	      {-revision_id:integer,required}
+	      {-return_url:localurl "."}
+	    } {}
+
+	i.e. passing empty argument list where the first two arguments are required.
+	Now, the error is flagged properly [ef60fd6e]
+
+2023-11-17  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsf.c, nsfProfile.c: Tcl 9 reform: Provide clean compilation for current Tcl 9
+	[7c55d2af]
+
+2023-11-14  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsf.h: Tcl 9 reform: reflect type change of Tcl TIP 666 (use
+	Tcl_Size for object count in TIP 627) [a24fe86a]
+
+2023-09-09  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* mongoAPI.h, nsfmongo.c (mongo::oid::gettimestamp): New API call
+	to obtain creation timestamp from OID [7fd68223]
+
+2023-09-03  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nx.tcl, accessor.test: Whitespace cleanup [bdae7a1f]
+
+2023-08-23  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* accessor.test: Added tests to document the behaviour for
+	internally generated per-slot accessor methods
+	* nx.tcl (VariableSlot), properties.test: Make sure that calling
+	delete on a single-valued property/ variable errors out, like
+	calling add * nx.tcl (defineIncrementalOperations): Rewrite to
+	avoid repetitive computations
+	* nx.tcl: First take on fixing definition of incremental slot
+	operations, in presence of custom provided ones
+	(esp. value=delete) [83355de2]
+
+2023-06-12  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* nx.tcl: Make sure to return "switch" for object parameters via
+	info-introspection. Added some tests. [65d13b7b]
+
+2023-06-10  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsf.c: Provided a Tcl_DupInternalRepProc() function for
+	Tcl_ObjType "nsfParam" Recent versions of Tcl9 call
+	Tcl_DupInternalRepProc() for Tcl_ObjType "nsfParam", which was a
+	placeholder function before, leading to a Tcl_Abort(). The
+	provided implementation provides now a basic logic for "duplicating"
+	internal representations of parameter lists based on refcounts
+	(somewhat similar to ProcBodyDup), but it has to be tested
+	further, with a proper test case.
+
+	The call of the Tcl_DupInternalRepProc function happens so far during
+	the startup of NaviServer compiled with Tcl9. It might be necessary to
+	overthink the competing logics of the "canFree" member and the
+	reference count. For now, the intention is to get the NaviServer +
+	Tcl9 regression test stop from aborting [d7a71fbd]
+
+2023-04-19  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsf.c, nsf.h, nsfInt.h: Cleanup after TIP 660 [6f3bbd8f]
+
+2023-04-18  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* appveyor.yml: Force use of SCP in newer OpenSSH > 9 releases,
+	otherwise defaulting to SFTP [cf765c0d]
+
+2023-04-16  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsf.c, nsfCmdPtr.c, nsfObj.c: Fixed warnings detected with
+	branch "disabletcl8api" The Tcl9 native interface is based on
+	"Tcl_Size" instead of "int", but the default mode hides these
+	differences via some macro-magic. Typical such cases are API calls
+	like:
+
+	   Tcl_ListObjLength(interp, methodObj, &length);
+	   Tcl_ListObjGetElements(interp, methodObj, &oc, &ov)
+
+	The macro-magic queries the size of the provided parameters and uses
+	the old or new interface depending on it (while hiding some more
+	potential problems, a compiler can detect). The branch
+	"disabletcl8api" removes the macro-magic and reveals the potential
+	problem areas, where the code is still depending on the old 32bit
+	interface.
+
+	This commit fixes such cases and the collateral damage. [10f06c20]
+
+2023-04-16  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsf.h: Tcl 9 reform: Deactivate support of TIP 629 for the time being When
+	NS_TCL_HAVE_TIP629 (TIP supporting > 2^31 elements in object
+	vectors) is activated, Tcl defines different objProcs
+	(Tcl_ObjCmdProc and Tcl_ObjCmdProc2) for the old and new API,
+	where the usage of these depends on a
+	cmdWrapperProc. Unfortunately, the resolving of these API calls is
+	performed through the wrapper via CmdWrapperInfo, which is not
+	exported. We have to think how to resolve these to make this
+	working as with prior Tcl versions. [4b2efda0]
+
+	* Makefile.in: Added missing dependency for forcing recompilation
+	[818bfb7f]
+
+2023-04-16  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsf.c, nsfAPI.h, mongoAPI.h: Tcl 9 reform: Provide support for
+	TIP 627 (Tcl 8.7a6+ and Tcl 9) TIP 627 introduces support for >
+	2^31 elements in object vectors (e.g., number of words in a single
+	Tcl command). For details, see https://core.tcl-lang.org/tips/doc/trunk/tip/627.md
+
+	To provide also backwards compatibility, this change uses the
+	macros TCL_COMMAND_OBJPROC, TCL_CREATEOBJCOMMAND,
+	TCL_NRCALLOBJPROC, TCL_NRCREATECOMMAND, TCL_OBJCMDPROC_T, and
+	TCL_OBJC_T. [745c46b4]
+
+2023-04-15  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsf.c: Updated copyright notice [d9d5b503]
+
+2023-03-16  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* Script.xotcl: changed file  encoding to UTF-8 to improve
+	robustness in various Tcl9 variants (e.g. TIP 657) [6f1b0bd8]
+
+2023-01-03  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nx-zip.tcl (returnZipFile): Added optional parameter channel to
+	returnZipFile to ease usage in the background Many thanks to
+	Antonio Pisano for the suggestion! [7dbbd336]
+
+2022-12-19  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* asmAssembleTemplate.c, nsfAsmAssemble.c, nsf.c, secure-webserver.xotcl, trace.xotcl, tests/*.test: improve spelling [3e1001ff]
+
+2022-12-19  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsf.c, nsf-cmd.test, returns.test: Added support
+	for return value checker for nsf::proc One can now specify
+	"-returns ...." in nsf::proc commands the same way as in nx/XOTcl2
+	methods.
+
+	   nsf::proc ... /procName/ /arguments/ ?-returns /valueconstraint/? /body/
+
+	When return value checkers are defined, these are returned by the
+	usual introspection interface.
+
+	  % nsf::proc ::foo {-a:integer} -returns integer {return 1}
+
+	  % nsf::cmd::info definition ::foo
+	  ::nsf::proc ::foo -a:integer -returns integer {return 1}
+
+	  % nsf::cmd::info returns ::foo
+	  integer
+
+	The regression test was extended to cover these cases. [b44ba341]
+
+2022-12-19  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nx-shell.tcl, nx-zip.tcl, serializer.tcl, doc/*.man: Improved
+	spelling [84277b25,da2688b9]
+
+2022-12-17  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* doc/next-tutorial/value-checkers*: Fixed omission of checkers in
+	graphic [f308a675]
+
+	* nsfCompile.c, nsfAssemble.c, asmAssembleTemplate.c, nsfAsmAssemble.c, asmAssembleTemplate.c:  Tcl 9 reform (cont'd) [fcfefac7]
+
+	* nsf.c (Nsf_ConvertToTclObjType), returns.test: Fix bug, where
+	Tcl's "string is" checker modified result, when used as a return
+	value checker. The new code saves and restores the original result
+	value.  The regression test was extended.  Many thanks to Antonio
+	Pisano for pointing out this issue. [07564105]
+
+2022-11-22  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsfInt.h (CHARTYPE): generalize handling of "is <type>" calls by
+	defining CHARTTYPE.  The macro was developed earlier on
+	NaviServer, and is used in nsf for "upper", "space" and "alpha"
+	character checkers [f0bca18a]
+
+	* nsf.c, nsfObj.c (TCL_OBJTYPE_V0): Tcl 9 reform: Provide an
+	initializer for the new size_t field of Tcl_ObjType [a2f1d967]
+
+	* nsfCompile.c: Tcl 9 reform: Avoid macro TCL_OUT_LINE_COMPILE (many thanks to Jan Nijtmans) [30e90f77]
+
+2022-09-29  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nx-zip.tcl (flushBuffer): In NaviServer mode, flush buffers
+	after every file. This avoid potential interger overruns in Tcl,
+	when sending many large files over slow lines. [94dce307]
+
+2022-08-15  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* README.release: Clarify how to produce HTML documentation for
+	sourceforge.io [a7fcb6d4]

@@ -1764,6 +1764,9 @@ nx::test case check-arguments {
 # initialized object state.
 #
 nx::test case don't-reset-to-defaults {
+
+  ::nsf::method::require nx::Object __configure
+
   nx::Class create C {
     :property -accessor public {a 1}
     :create c1
@@ -2149,6 +2152,9 @@ nx::test case parameter-object-mixin-dependency {
 # (case with per-object property)
 #
 nx::test case parameter-object-mixin-dependency-object-property {
+
+  ::nsf::method::require nx::Object __configure
+
   nx::Class create C {
     :property a1
     :create c1 {
@@ -2228,6 +2234,7 @@ nx::test case bignums {
     ? {o foo [expr {2 ** 64}]} "18446744073709551616"
     ? {o foo [expr {2 ** 128}]} "340282366920938463463374607431768211456"
 
+    ? {expr {wide(2 ** 63)}} "-9223372036854775808"
     ? {o foo [expr {wide(2 ** 63)}]} "-9223372036854775808"
 
     ? {o foo [expr {2.0}]} {expected integer but got "2.0" for parameter "x"}

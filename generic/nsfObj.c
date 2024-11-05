@@ -102,9 +102,12 @@ MethodFreeInternalRep(
     /*
      * ... and free structure
      */
+    /*fprintf(stderr, "MethodFreeInternalRep frees NsfMethodContext %p\n", (void *)mcPtr);*/
     FREE(NsfMethodContext, mcPtr);
     objPtr->internalRep.twoPtrValue.ptr1 = NULL;
     objPtr->typePtr = NULL;
+  } else {
+    fprintf(stderr, "NSF Warning: MethodFreeInternalRep of '%s' has no internal rep\n", Tcl_GetString(objPtr));
   }
 }
 
@@ -130,7 +133,7 @@ MethodDupInternalRep(
 #endif
 
   dstMcPtr = NEW(NsfMethodContext);
-  /*fprintf(stderr, "MethodDupInternalRep allocated NsfMethodContext %p for %s\n", dstMcPtr, ObjStr(srcObjPtr));*/
+  /*fprintf(stderr, "MethodDupInternalRep allocated NsfMethodContext %p for %s\n", (void *)dstMcPtr, ObjStr(srcObjPtr));*/
   memcpy(dstMcPtr, srcMcPtr, sizeof(NsfMethodContext));
 
   dstObjPtr->typePtr = srcObjPtr->typePtr;
@@ -177,12 +180,12 @@ NsfMethodObjSet(
 #endif
     TclFreeInternalRep(objPtr);
     mcPtr = NEW(NsfMethodContext);
-    /*fprintf(stderr, "NsfMethodObjSet allocated NsfMethodContext %p for %s\n", mcPtr, ObjStr(objPtr));*/
+    /*fprintf(stderr, "NsfMethodObjSet allocated NsfMethodContext %p for %s\n", (void *)mcPtr, ObjStr(objPtr));*/
     objPtr->internalRep.twoPtrValue.ptr1 = (void *)mcPtr;
     objPtr->internalRep.twoPtrValue.ptr2 = NULL;
     objPtr->typePtr = objectType;
 #if defined(METHOD_OBJECT_TRACE)
-    fprintf(stderr, "alloc %p methodContext %p methodEpoch %d type <%s> %s refCount %d\n",
+    fprintf(stderr, "methodObj alloc %p methodContext %p methodEpoch %d type <%s> %s refCount %d\n",
             (void *)objPtr, (void *)mcPtr,
             methodEpoch, objectType->name, ObjStr(objPtr), objPtr->refCount);
 #endif
