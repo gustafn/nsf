@@ -247,6 +247,7 @@ static Tcl_ExitProc ExitHandler;
 
 #if defined(TCL_THREADS)
 static Tcl_ExitProc Nsf_ThreadExitProc;
+static pthread_t main_thread_id = NULL;
 #endif
 
 
@@ -36074,8 +36075,23 @@ ExitHandler(ClientData clientData) {
 #endif
 
   Tcl_Interp_flags(interp) = flags;
-  Tcl_Release(interp);
 
+#if defined(TCL_THREADS)
+  /*
+   * The interpreter of the main thread has to be deleted by Tcl. Otherwise we
+   * see fatal errors like the following from NaviServer, when exiting from
+   * the call "nsd -c":
+   *
+   *    Fatal: Tcl_AsyncDelete: async handler deleted by the wrong thread
+   */
+  /*fprintf(stderr, "+++ ExiHandler interp %p main_thread_id %p current %p\n",
+    (void*)interp, (void*) main_thread_id, pthread_self());*/
+  if (main_thread_id == pthread_self()) {
+    Tcl_Release(interp);
+  }
+#else
+  Tcl_Release(interp);
+#endif
   MEM_COUNT_RELEASE();
 }
 
@@ -36193,6 +36209,7 @@ Nsf_Init(
   }
 #endif
 
+
 #if defined(TCL_MEM_DEBUG)
   TclDumpMemoryInfo((ClientData) stderr, 0);
 #endif
@@ -36222,6 +36239,19 @@ Nsf_Init(
    * Init global variables for Tcl_Obj types.
    */
   NsfMutexLock(&initMutex);
+
+#if defined(TCL_THREADS)
+  /*
+   * Keep the main thread id. Actually, we assume that the first thread is the
+   * main thread, although there is no guarantee for this. However, this
+   * avoids fatal errors when used in NaviServer.
+   */
+  if (main_thread_id  == NULL) {
+    main_thread_id = pthread_self();
+    /*fprintf(stderr, "+++ Init interp %p main_thread %p\n", (void*)interp, (void*) main_thread_id);*/
+  }
+#endif
+
   Nsf_OT_byteCodeType = Tcl_GetObjType("bytecode");
   assert(Nsf_OT_byteCodeType != NULL);
 
