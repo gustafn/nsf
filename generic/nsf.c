@@ -12456,8 +12456,8 @@ ByteCompiled(
 #endif
 
     *flagsPtr |= NSF_CSC_CALL_IS_COMPILE;
-    /*fprintf(stderr, "compiling '%s' with ns %s\n", procName, nsPtr->name);*/
-
+    /*fprintf(stderr, "compiling '%s' proc %p with namespace '%s' compiledLocals %ld\n",
+      procName, (void*)procPtr, nsPtr->name, procPtr->numCompiledLocals);*/
     /*
      * Tcl's bytecode compiler (TclCompileScript & friends) will access the
      * proc command's namespace as resolution context for command lookups
@@ -12486,7 +12486,7 @@ ByteCompiled(
  * PushProcCallFrame --
  *
  *      Set up and push a new call frame for the procedure invocation.
- *      call-frame. The proc is passed via clientData.
+ *      The proc is passed via clientData.
  *
  * Results:
  *      A standard Tcl result.
@@ -12545,13 +12545,16 @@ PushProcCallFrame(
     Tcl_CallFrame_procPtr(framePtr) = procPtr;
     Tcl_CallFrame_clientData(framePtr) = cscPtr;
 
-    /*fprintf(stderr, "Stack Frame %p procPtr %p compiledLocals %p firstLocal %p\n",
-      (void *)framePtr, (void *)procPtr, (void *)Tcl_CallFrame_compiledLocals(framePtr),
-      (void *)procPtr->firstLocalPtr);*/
+    /*fprintf(stderr, "Proc %s Stack Frame %p procPtr %p compiledLocals %p firstLocal %p\n",
+            ObjStr(objv[0]), (void *)framePtr, (void *)procPtr, (void *)Tcl_CallFrame_compiledLocals(framePtr),
+            (void *)procPtr->firstLocalPtr);*/
 
     result = ByteCompiled(interp, &cscPtr->flags, procPtr, (Namespace *)execNsPtr, ObjStr(objv[0]));
-  }
 
+    /*fprintf(stderr, "Proc %s Stack Frame %p procPtr %p compiledLocals %p  proc->numCompiledLocals %ld firstLocal %p\n",
+            ObjStr(objv[0]), (void *)framePtr, (void *)procPtr, (void *)Tcl_CallFrame_compiledLocals(framePtr),
+            procPtr->numCompiledLocals, (void *)procPtr->firstLocalPtr);*/
+  }
   return result;
 }
 
@@ -19791,10 +19794,10 @@ ProcessMethodArguments(ParseContext *pcPtr, Tcl_Interp *interp,
         toArg = pcPtr->objc;
       }
       for (i = fromArg; i < toArg; i++) {
-        fprintf(stderr, "... pcPtr %p [%d] obj %p refCount %d (%s) flags %.6x & %p\n",
+        fprintf(stderr, "... pcPtr %p [%d] obj %p refCount %ld (%s) flags %.6x & %p\n",
                 (void*)pcPtr, i,
                 pcPtr->objv[i] ? (void*)pcPtr->objv[i] : NULL,
-                pcPtr->objv[i] ? pcPtr->objv[i]->refCount : -1,
+                pcPtr->objv[i] ? (long)pcPtr->objv[i]->refCount : -1,
                 pcPtr->objv[i] ? ObjStr(pcPtr->objv[i]) : "(null)", pcPtr->flags[i],
                 (void*)&(pcPtr->flags[i]));
       }
@@ -19806,16 +19809,16 @@ ProcessMethodArguments(ParseContext *pcPtr, Tcl_Interp *interp,
     Nsf_PopFrameObj(interp, framePtr);
   }
 
-  /*
-   * Set objc of the parse context to the number of defined parameters.
-   * pcPtr->objc and paramDefs->nrParams will be equivalent in cases
-   * where argument values are passed to the call in absence of var
-   * args ('args'). Treating "args is more involved (see below).
-   */
-
   if (unlikely(result != TCL_OK)) {
     return result;
   }
+
+  /*
+   * Varargs handling: Set objc of the parse context to the number of defined
+   * parameters.  pcPtr->objc and paramDefs->nrParams will be equivalent in
+   * cases where argument values are passed to the call in absence of varargs
+   * ('args'). Treating "args is more involved (see below).
+   */
 
   if (pcPtr->varArgs) {
     /*
