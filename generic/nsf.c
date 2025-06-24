@@ -247,7 +247,9 @@ static Tcl_ExitProc ExitHandler;
 
 #if defined(TCL_THREADS)
 static Tcl_ExitProc Nsf_ThreadExitProc;
-static pthread_t main_thread_id = NULL;
+#if !defined(_WIN32) && !defined(_WIN64)
+static pthread_t main_thread_id = 0;
+#endif
 #endif
 
 
@@ -36079,7 +36081,7 @@ ExitHandler(ClientData clientData) {
 
   Tcl_Interp_flags(interp) = flags;
 
-#if defined(TCL_THREADS)
+#if defined(TCL_THREADS) && !defined(_WIN32) && !defined(_WIN64)
   /*
    * The interpreter of the main thread has to be deleted by Tcl. Otherwise we
    * see fatal errors like the following from NaviServer, when exiting from
@@ -36243,13 +36245,13 @@ Nsf_Init(
    */
   NsfMutexLock(&initMutex);
 
-#if defined(TCL_THREADS)
+#if defined(TCL_THREADS) && !defined(_WIN32) && !defined(_WIN64)
   /*
    * Keep the main thread id. Actually, we assume that the first thread is the
    * main thread, although there is no guarantee for this. However, this
    * avoids fatal errors when used in NaviServer.
    */
-  if (main_thread_id  == NULL) {
+  if (main_thread_id  == 0) {
     main_thread_id = pthread_self();
     /*fprintf(stderr, "+++ Init interp %p main_thread %p\n", (void*)interp, (void*) main_thread_id);*/
   }
