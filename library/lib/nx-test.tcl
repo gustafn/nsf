@@ -50,7 +50,7 @@ namespace eval ::nx {
     }
     :public object method destroy {} {
       lappend msg \
-	  Test-set [file rootname [file tail ${:testfile}]] \
+	  Script ${:testfile}.test \
 	  tests [expr {${:success} + ${:failure}}] \
 	  success ${:success} \
 	  failure ${:failure} \

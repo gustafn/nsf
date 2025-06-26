@@ -1,16 +1,16 @@
 Dear Community,
 
 We are pleased to announce the availability of the Next Scripting
-Framework (NSF) 2.5.0. This release makes NSF, NX, and XOTcl support
-Tcl 9 and its features. The release also marks the 25th anniversary of
+Framework (NSF) 2.5.0. This release provides NSF, NX, and XOTcl support
+for Tcl 9. The release also marks the 25th anniversary of
 XOTcl, the predecessor of NX and one of the parents of TclOO. In May
 1999, the first paper on XOTcl was presented at the 5th USENIX
 Conference on Object-Oriented Technologies and Systems (COOTS '99):
 
-Gustaf Neumann & Uwe Zdun: Filters as a Language Support for Design
-Patterns in Object-Oriented Scripting Languages, in: Proc. of
-COOTS'99, San Diego, California, USA, May, 1999, URL:
-https://www.usenix.org/legacy/events/coots99/full_papers/neumann/neumann.pdf
+   Gustaf Neumann & Uwe Zdun: Filters as a Language Support for Design
+   Patterns in Object-Oriented Scripting Languages, in: Proc. of
+   COOTS'99, San Diego, California, USA, May, 1999, URL:
+   https://www.usenix.org/legacy/events/coots99/full_papers/neumann/neumann.pdf
 
 Further changes are mostly perfective improvements in terms of
 bug fixes.  See below for the details.
@@ -19,7 +19,7 @@ Diff stats since 2.4.0:
 
     ...
 
-Major changes relative to 2.4.0 are: NSF now compiles and runs with
+The major changes relative to 2.4.0 are: NSF now compiles and runs with
 Tcl 9 as released. This way, NSF/NX/XOTcl can be used with the Tcl
 8.5, Tcl 8.6, and Tcl 9 on Linux, Windows, and macOS.  One can see the
 results of the compilations and test runs on
@@ -30,7 +30,7 @@ results of the compilations and test runs on
 Hint: As for Tcl 8.5, NSF is only tested with (unreleased) Tcl 8.5
 revisions taken from `core-8-5-branch` at https://core.tcl-lang.org/tcl/.
 
-Selected changes worth mentioning:
+Further selected changes worth noting:
 
 - Maintenance & bug fixes:
 
@@ -72,7 +72,7 @@ Selected changes worth mentioning:
 The detailed changelog is available at
 https://next-scripting.org/xowiki/download/file/ChangeLog-2.4.0-2.5.0.log
 
-The Next Scripting Framework 2.5.0 (containing NX 2.5.0 and XOTcl
+The Next Scripting Framework version 2.5.0 (containing NX 2.5.0 and XOTcl
 2.5.0) can be obtained from https://next-scripting.org/. Please report
 issues and wishes by opening a ticket at
 https://sourceforge.net/p/next-scripting/tickets/.
