@@ -247,9 +247,6 @@ static Tcl_ExitProc ExitHandler;
 
 #if defined(TCL_THREADS)
 static Tcl_ExitProc Nsf_ThreadExitProc;
-#if !defined(_WIN32) && !defined(_WIN64)
-static pthread_t main_thread_id = 0;
-#endif
 #endif
 
 
@@ -35940,6 +35937,9 @@ ExitHandler(ClientData clientData) {
   Tcl_Interp      *interp = (Tcl_Interp *)clientData;
   int              flags;
   NsfRuntimeState *rst;
+#if defined(TCL_THREADS) && !defined(_WIN32) && !defined(_WIN64)
+  Tcl_ThreadId     interpThreadId = Tcl_Interp_threadId(interp);
+#endif
 
   nonnull_assert(clientData != NULL);
 
@@ -36083,15 +36083,15 @@ ExitHandler(ClientData clientData) {
 
 #if defined(TCL_THREADS) && !defined(_WIN32) && !defined(_WIN64)
   /*
-   * The interpreter of the main thread has to be deleted by Tcl. Otherwise we
+   * Delete interpreters only by the thread that owns them. Otherwise we
    * see fatal errors like the following from NaviServer, when exiting from
    * the call "nsd -c":
    *
    *    Fatal: Tcl_AsyncDelete: async handler deleted by the wrong thread
    */
-  /*fprintf(stderr, "+++ ExiHandler interp %p main_thread_id %p current %p\n",
-    (void*)interp, (void*) main_thread_id, pthread_self());*/
-  if (main_thread_id == pthread_self()) {
+  /*fprintf(stderr, "+++ ExitHandler interp %p current %p owned by %p\n",
+    (void*)interp, pthread_self(), interpThreadId);*/
+  if (pthread_equal((pthread_t)interpThreadId, pthread_self()) != 0) {
     Tcl_Release(interp);
   }
 #else
@@ -36244,18 +36244,6 @@ Nsf_Init(
    * Init global variables for Tcl_Obj types.
    */
   NsfMutexLock(&initMutex);
-
-#if defined(TCL_THREADS) && !defined(_WIN32) && !defined(_WIN64)
-  /*
-   * Keep the main thread id. Actually, we assume that the first thread is the
-   * main thread, although there is no guarantee for this. However, this
-   * avoids fatal errors when used in NaviServer.
-   */
-  if (main_thread_id  == 0) {
-    main_thread_id = pthread_self();
-    /*fprintf(stderr, "+++ Init interp %p main_thread %p\n", (void*)interp, (void*) main_thread_id);*/
-  }
-#endif
 
   Nsf_OT_byteCodeType = Tcl_GetObjType("bytecode");
   assert(Nsf_OT_byteCodeType != NULL);
