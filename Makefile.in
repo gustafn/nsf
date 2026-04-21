@@ -749,7 +749,10 @@ pkgIndex.tcl: $(PKG_LIB_FILE)
 	@echo "             [list package provide @PACKAGE_NAME@ @PACKAGE_VERSION@]\"" >> pkgIndex.tcl
 	@echo "}" >> pkgIndex.tcl
 
-install-pkgIndex: pkgIndex.tcl
+# install-libraries copies library/pkgIndex.tcl into $(pkglibdir).
+# Run this first so the generated package stanza appended below is not
+# overwritten during parallel installs.
+install-pkgIndex: install-libraries pkgIndex.tcl
 	@echo "    Adding to pkgIndex.tcl for @PACKAGE_NAME@ in $(DESTDIR)$(pkglibdir)/pkgIndex.tcl"
 	@echo "" >> $(DESTDIR)$(pkglibdir)/pkgIndex.tcl
 	@cat $< >> $(DESTDIR)$(pkglibdir)/pkgIndex.tcl
