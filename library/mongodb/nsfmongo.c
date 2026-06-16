@@ -692,7 +692,9 @@ static int
 NsfMongoClose(Tcl_Interp *UNUSED(interp), mongoc_client_t *connPtr, Tcl_Obj *connObj)
 {
 #if defined(USE_CLIENT_POOL)
+  NsfMutexLock(&poolMutex);
   mongoc_client_pool_push(mongoClientPool, connPtr);
+  NsfMutexUnlock(&poolMutex);
 #else
   mongoc_client_destroy(connPtr);
 #endif
@@ -724,9 +726,8 @@ NsfMongoConnect(Tcl_Interp *interp, const char *uri)
     NsfLog(interp, NSF_LOG_NOTICE, "nsf::mongo::connect: creating pool with uri %s", uri);
     mongoClientPool = mongoc_client_pool_new(mongoUri);
   }
-
-  NsfMutexUnlock(&poolMutex);
   clientPtr = mongoc_client_pool_pop(mongoClientPool);
+  NsfMutexUnlock(&poolMutex);
 #else
   clientPtr = mongoc_client_new(uri);
 #endif
