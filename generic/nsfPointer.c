@@ -123,7 +123,7 @@ Nsf_PointerGet(char *key, const char *prefix) {
     Tcl_HashEntry *hPtr;
 
     NsfMutexLock(&pointerMutex);
-    hPtr = Tcl_CreateHashEntry(pointerHashTablePtr, key, NULL);
+    hPtr = NsfFindHashEntry(pointerHashTablePtr, key);
 
     if (hPtr != NULL) {
       valuePtr = Tcl_GetHashValue(hPtr);
@@ -200,7 +200,7 @@ Nsf_PointerDelete(const char *key, void *valuePtr, int free) {
 
   NsfMutexLock(&pointerMutex);
   hPtr = (key != NULL)
-    ? Tcl_CreateHashEntry(pointerHashTablePtr, key, NULL)
+    ? NsfFindHashEntry(pointerHashTablePtr, key)
     : Nsf_PointerGetHptr(valuePtr);
   if (hPtr != NULL) {
     if (free != 0) {
@@ -320,7 +320,7 @@ Nsf_PointerTypeLookup(const char* typeName) {
   nonnull_assert(typeName != NULL);
 
   NsfMutexLock(&pointerMutex);
-  hPtr = Tcl_CreateHashEntry(pointerHashTablePtr, typeName, NULL);
+  hPtr = NsfFindHashEntry(pointerHashTablePtr, typeName);
   NsfMutexUnlock(&pointerMutex);
 
   if (hPtr != NULL) {

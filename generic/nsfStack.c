@@ -1244,7 +1244,7 @@ CscAlloc(Tcl_Interp *interp, NsfCallStackContent *cscPtr, const Tcl_Command cmd)
 #if defined(NRE)
   TCL_OBJCMDPROC_T *proc = (cmd != NULL) ? TCL_COMMAND_OBJPROC(cmd) : NULL;
 
-  if (proc == (TCL_OBJCMDPROC_T*)TclObjInterpProc) {
+  if (proc == TCL_OBJINTERPPROC) {
     cscPtr = (NsfCallStackContent *) NsfTclStackAlloc(interp, sizeof(NsfCallStackContent), "csc");
     cscPtr->flags = NSF_CSC_CALL_IS_NRE;
   } else {

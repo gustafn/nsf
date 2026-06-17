@@ -762,9 +762,19 @@ nx::test case nsf-interp-basics {
   ? {$i eval {info commands ::nsf::is}} "::nsf::is"
   ? {interp issafe $i} 0
   ? {::nsf::interp create zzz} "zzz"
-  set i [::nsf::interp create -safe]
-  ? {$i eval {info commands ::nsf::is}} "::nsf::is"
-  ? {interp issafe $i} 1
+
+
+  #
+  # TODO for TCL 9.1: "nsf::interp create -safe" does not work
+  #
+  set ::tcl91 [package vsatisfies [package req Tcl] 9.1-]
+
+  if {!$::tcl91} {
+    set i [::nsf::interp create -safe]
+    ? {interp exists $i} 1
+    ? {$i eval {info commands ::nsf::is}} "::nsf::is"
+    ? {interp issafe $i} 1
+  }
 }
 
 

@@ -1328,8 +1328,7 @@ VarHashCreateVar(TclVarHashTable *tablePtr, const Tcl_Obj *key, int *newPtr) {
   nonnull_assert(tablePtr != NULL);
   nonnull_assert(key != NULL);
 
-  hPtr = Tcl_CreateHashEntry((Tcl_HashTable *) tablePtr,
-                             (char *) key, newPtr);
+  hPtr = Tcl_CreateHashEntry((Tcl_HashTable *)tablePtr, (char *)key, newPtr);
   if (likely(hPtr != NULL)) {
     varPtr = TclVarHashGetValue(hPtr);
   } else {
@@ -1764,9 +1763,9 @@ ObjTrace(const char *string, NsfObject *object) {
   nonnull_assert(string != NULL);
   nonnull_assert(object != NULL);
 
-  fprintf(stderr, "--- %s Tcl %p %s (%d %p) nsf %p (%d) %s \n", string,
+  fprintf(stderr, "--- %s Tcl %p %s (%ld %p) nsf %p (%d) %s \n", string,
           (void *)object->cmdName, ObjTypeStr(object->cmdName),
-          object->cmdName->refCount, object->cmdName->internalRep.twoPtrValue.ptr1,
+          (long)(object->cmdName->refCount), object->cmdName->internalRep.twoPtrValue.ptr1,
           (void *)object, object->refCount, ObjectName(object));
 }
 #else
@@ -3583,7 +3582,7 @@ RemoveInstance(const NsfObject *object, NsfClass *class) {
            "The class %s, from which an instance is to be removed, is currently under deletion",
             ObjStr((class)->object.cmdName));
   } else {
-    Tcl_HashEntry *hPtr = Tcl_CreateHashEntry(&class->instances, (char *)object, NULL);
+    Tcl_HashEntry *hPtr = NsfFindHashEntry(&class->instances, (char *)object);
 
     /*if (hPtr == NULL) {
       fprintf(stderr, "instance %s is not an instance of %s\n", ObjectName(object), ClassName(class));
@@ -4071,7 +4070,7 @@ CmdIsProc(const Tcl_Command cmd) {
    * below.
    */
   nonnull_assert(cmd != NULL);
-  return (TCL_COMMAND_OBJPROC(cmd) == (TCL_OBJCMDPROC_T*)TclObjInterpProc);
+  return (TCL_COMMAND_OBJPROC(cmd) == TCL_OBJINTERPPROC);
 }
 
 /*
@@ -4117,12 +4116,12 @@ static Proc *GetTclProcFromCommand(const Tcl_Command cmd)
 
 static Proc *
 GetTclProcFromCommand(const Tcl_Command cmd) {
-  Tcl_ObjCmdProc *proc;
-  Proc           *result;
+  TCL_OBJCMDPROC_T *proc;
+  Proc             *result;
 
   nonnull_assert(cmd != NULL);
-  proc = Tcl_Command_objProc(cmd);
-  if (proc == TclObjInterpProc) {
+  proc = TCL_COMMAND_OBJPROC(cmd);
+  if (proc == TCL_OBJINTERPPROC) {
     result = (Proc *)Tcl_Command_objClientData(cmd);
   } else {
     result = NULL;
@@ -4156,8 +4155,11 @@ FindMethod(
   nonnull_assert(nsPtr != NULL);
   nonnull_assert(methodName != NULL);
 
-  if ((entryPtr = Tcl_CreateHashEntry(Tcl_Namespace_cmdTablePtr(nsPtr), methodName, NULL))) {
+  entryPtr = NsfFindHashEntry(Tcl_Namespace_cmdTablePtr(nsPtr), methodName);
+
+  if (entryPtr != NULL) {
     result = (Tcl_Command) Tcl_GetHashValue(entryPtr);
+    assert(result != NULL);
   } else {
     result = NULL;
   }
@@ -4233,10 +4235,14 @@ SearchPLMethod0(
    */
   do {
     register const Tcl_HashEntry *entryPtr =
-      Tcl_CreateHashEntry(Tcl_Namespace_cmdTablePtr(pl->cl->nsPtr), methodName, NULL);
+      NsfFindHashEntry(Tcl_Namespace_cmdTablePtr(pl->cl->nsPtr), methodName);
 
     if (entryPtr != NULL) {
-      *cmdPtr = (Tcl_Command) Tcl_GetHashValue(entryPtr);
+      Tcl_Command cmd = (Tcl_Command)Tcl_GetHashValue(entryPtr);
+
+      assert(cmd != NULL);
+
+      *cmdPtr = cmd;
       return pl->cl;
     }
     pl = pl->nextPtr;
@@ -4260,10 +4266,12 @@ SearchPLMethod(
    */
   do {
     register const Tcl_HashEntry *entryPtr =
-      Tcl_CreateHashEntry(Tcl_Namespace_cmdTablePtr(pl->cl->nsPtr), methodName, NULL);
+      NsfFindHashEntry(Tcl_Namespace_cmdTablePtr(pl->cl->nsPtr), methodName);
 
     if (entryPtr != NULL) {
       Tcl_Command cmd = (Tcl_Command) Tcl_GetHashValue(entryPtr);
+
+      assert(cmd != NULL);
 
       if (likely(((unsigned int)Tcl_Command_flags(cmd) & flags) == 0u)) {
         *cmdPtr = cmd;
@@ -6137,7 +6145,7 @@ InterpColonCmdResolver(Tcl_Interp *interp, const char *cmdName, Tcl_Namespace *U
         osPtr = GetObjectSystem(object);
         cmd = osPtr->rootClass->object.id;
         cmdTablePtr = Tcl_Namespace_cmdTablePtr(((Command *)cmd)->nsPtr);
-        entryPtr = Tcl_CreateHashEntry(cmdTablePtr, cmdName, NULL);
+        entryPtr = NsfFindHashEntry(cmdTablePtr, cmdName);
         /*fprintf(stderr, "InterpColonCmdResolver OS specific resolver tried to lookup %s for os %s in ns %s\n",
           cmdName, ClassName(osPtr->rootClass), ((Command *)cmd)->nsPtr->fullName);*/
 
@@ -6145,9 +6153,11 @@ InterpColonCmdResolver(Tcl_Interp *interp, const char *cmdName, Tcl_Namespace *U
           /*fprintf(stderr, "InterpColonCmdResolver OS specific resolver found %s::%s frameFlags %.6x\n",
             ((Command *)cmd)->nsPtr->fullName, cmdName, frameFlags);*/
           *cmdPtr = Tcl_GetHashValue(entryPtr);
-
-          return TCL_OK;
-        }
+          assert(*cmdPtr != NULL);
+          
+          if (*cmdPtr != NULL) {
+            return TCL_OK;
+          }        }
       }
 #endif
     }
@@ -8575,7 +8585,7 @@ AssertionFindProcs(NsfAssertionStore *aStore, const char *name) {
   nonnull_assert(aStore != NULL);
   nonnull_assert(name != NULL);
 
-  hPtr = Tcl_CreateHashEntry(&aStore->procs, name, NULL);
+  hPtr = NsfFindHashEntry(&aStore->procs, name);
   if (hPtr == NULL) {
     return NULL;
   }
@@ -8592,7 +8602,7 @@ AssertionRemoveProc(NsfAssertionStore *aStore, const char *name) {
   nonnull_assert(aStore != NULL);
   nonnull_assert(name != NULL);
 
-  hPtr = Tcl_CreateHashEntry(&aStore->procs, name, NULL);
+  hPtr = NsfFindHashEntry(&aStore->procs, name);
   if (hPtr != NULL) {
     NsfProcAssertion *procAss = (NsfProcAssertion *) Tcl_GetHashValue(hPtr);
 
@@ -11235,7 +11245,7 @@ FilterIsActive(Tcl_Interp *interp, const char *methodName) {
   nonnull_assert(interp != NULL);
   nonnull_assert(methodName != NULL);
 
-  hPtr = Tcl_CreateHashEntry(&RUNTIME_STATE(interp)->activeFilterTablePtr, methodName, NULL);
+  hPtr = NsfFindHashEntry(&RUNTIME_STATE(interp)->activeFilterTablePtr, methodName);
   return (hPtr != NULL);
 }
 
@@ -15017,7 +15027,7 @@ MethodDispatchCsc(
   nonnull_assert(validCscPtr != NULL);
 
   cp = Tcl_Command_objClientData(cmd);
-  proc = (TCL_OBJCMDPROC_T*)Tcl_Command_objProc(cmd);
+  proc = TCL_COMMAND_OBJPROC(cmd);
   object = cscPtr->self;
 
   /*
@@ -15049,7 +15059,7 @@ MethodDispatchCsc(
    * finishes.
    */
 
-  if (likely((Tcl_ObjCmdProc*)proc == TclObjInterpProc)) {
+  if (likely(proc == TCL_OBJINTERPPROC)) {
     int           result;
 #if defined(NRE)
     NRE_callback *rootPtr = TOP_CB(interp);
@@ -15448,7 +15458,7 @@ CmdObjProcName(
     result = "setter";
   } else if (proc == NsfAsmProc) {
     result = "asm";
-  } else if (proc == (TCL_OBJCMDPROC_T*)TclObjInterpProc) {
+  } else if (proc == TCL_OBJINTERPPROC) {
     result = "alt proc";
 #if 0
   } else if (proc == (TCL_OBJCMDPROC_T*)Tcl_ApplyObjCmd) {
@@ -20150,7 +20160,7 @@ ForwardProcessOptions(Tcl_Interp *interp, Tcl_Obj *nameObj,
       goto forward_process_options_exit;
     }
     if (CmdIsNsfObject(cmd)     /* don't do direct invoke on nsf objects */
-        || TCL_COMMAND_OBJPROC(cmd) == (TCL_OBJCMDPROC_T*)TclObjInterpProc  /* don't do direct invoke on Tcl procs */
+        || TCL_COMMAND_OBJPROC(cmd) == TCL_OBJINTERPPROC  /* don't do direct invoke on Tcl procs */
         ) {
       /*
        * Silently ignore earlybinding flag
@@ -25343,8 +25353,8 @@ ArgumentParse(
 
 
 #if defined(PARSE_TRACE_FULL)
-      fprintf(stderr, "... args found o %d objc %d is dashdash %d [%ld] <%s>\n",
-              o, objc, (int)dashdash, j, ObjStr(argumentObj));
+      fprintf(stderr, "... args found o %ld objc %d is dashdash %d [%ld] <%s>\n",
+              (long)o, objc, (int)dashdash, j, ObjStr(argumentObj));
 #endif
       break;
 
@@ -25355,8 +25365,8 @@ ArgumentParse(
       currentParamPtr ++;
 
 #if defined(PARSE_TRACE_FULL)
-      fprintf(stderr, "... positional arg o %d objc %d, nrArgs %d next paramPtr %s\n",
-              o, objc, pPtr->nrArgs, currentParamPtr->name);
+      fprintf(stderr, "... positional arg o %ld objc %ld, nrArgs %d next paramPtr %s\n",
+              (long)o, (long)objc, pPtr->nrArgs, currentParamPtr->name);
 #endif
 
       if (unlikely(pPtr->nrArgs == 0)) {
@@ -25416,8 +25426,8 @@ ArgumentParse(
       }
     }
 
-    /*fprintf(stderr, "... non-positional pcPtr %p check [%d] obj %p flags %.6x & %p\n",
-      pcPtr, j, pcPtr->objv[j], pcPtr->flags[j], &(pcPtr->flags[j]));        */
+    /*fprintf(stderr, "... non-positional pcPtr %p check [%ld] obj %p flags %.6x & %p\n",
+      pcPtr, (long)j, pcPtr->objv[j], pcPtr->flags[j], &(pcPtr->flags[j]));        */
 
     /*
      * Provide warnings for double-settings.
@@ -25531,7 +25541,7 @@ ListVarKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr, const char *pattern) {
     Tcl_Obj *patternObj = Tcl_NewStringObj(pattern, TCL_INDEX_NONE);
 
     INCR_REF_COUNT(patternObj);
-    hPtr = (tablePtr != NULL) ? Tcl_CreateHashEntry(tablePtr, (char *)patternObj, NULL) : NULL;
+    hPtr = (tablePtr != NULL) ? NsfFindHashEntry(tablePtr, (char *)patternObj) : NULL;
     if (hPtr != NULL) {
       const Var *val = TclVarHashGetValue(hPtr);
 
@@ -25810,7 +25820,7 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd,  NsfObject *contextObject,
      * If a command is not found for the object|class, check whether we
      * find the parameter definitions for the C-defined method.
      */
-    Nsf_methodDefinition *mdPtr = Nsf_CmdDefinitionGet((TCL_OBJCMDPROC_T*)((Command *)cmd)->objProc);
+    Nsf_methodDefinition *mdPtr = Nsf_CmdDefinitionGet(TCL_COMMAND_OBJPROC(cmd));
     if (mdPtr != NULL) {
       NsfParamDefs localParamDefs = {mdPtr->paramDefs, mdPtr->nrParameters, 1, 0};
       Tcl_Obj     *list = ListParamDefs(interp, localParamDefs.paramsPtr, contextObject, pattern, printStyle);
@@ -25821,7 +25831,7 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd,  NsfObject *contextObject,
     }
   }
 
-  if ((TCL_OBJCMDPROC_T*)((Command *)cmd)->objProc == NsfSetterMethod) {
+  if (TCL_COMMAND_OBJPROC(cmd) == NsfSetterMethod) {
     SetterCmdClientData *cd = (SetterCmdClientData *)Tcl_Command_objClientData(cmd);
 
     if (cd != NULL && cd->paramsPtr) {
@@ -26970,7 +26980,7 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
      * We have a pattern that can be used for direct lookup; no need
      * to iterate.
      */
-    hPtr = Tcl_CreateHashEntry(tablePtr, pattern, NULL);
+    hPtr = NsfFindHashEntry(tablePtr, pattern);
     if (hPtr != NULL) {
       NsfObject   *childObject;
       Tcl_Command  origCmd;
@@ -27300,7 +27310,7 @@ ListForward(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
   nonnull_assert(tablePtr != NULL);
 
   if (withDefinition != 0) {
-    const Tcl_HashEntry *hPtr = (pattern != NULL) ? Tcl_CreateHashEntry(tablePtr, pattern, NULL) : NULL;
+    const Tcl_HashEntry *hPtr = (pattern != NULL) ? NsfFindHashEntry(tablePtr, pattern) : NULL;
     /*
      * Notice: we don't use pattern for wildcard matching here; pattern can
      * only contain wildcards when used without "-definition".
@@ -27930,7 +27940,7 @@ NsfDebugShowObj(Tcl_Interp *interp, Tcl_Obj *obj) {
     fprintf(stderr, "   method epoch %u max %u cmd %p objProc 0x%" PRIxPTR " flags %.6x",
             mcPtr->methodEpoch, currentMethodEpoch,
             (void *)cmd,
-            (cmd != NULL) ? (unsigned long)PTR2UINT(((Command *)cmd)->objProc) : 0ul,
+            (cmd != NULL) ? (unsigned long)PTR2UINT(TCL_COMMAND_OBJPROC(cmd)) : 0ul,
             mcPtr->flags);
     if (cmd != NULL) {
       fprintf(stderr, "... cmd %p flags %.6x\n", (void *)cmd, Tcl_Command_flags(cmd));
@@ -28681,7 +28691,7 @@ NsfDirectDispatchCmd(Tcl_Interp *interp, NsfObject *object, FrameIdx_t withFrame
   }
 
   proc = TCL_COMMAND_OBJPROC(cmd);
-  if (proc == (TCL_OBJCMDPROC_T*)TclObjInterpProc ||
+  if (proc == TCL_OBJINTERPPROC ||
       proc == NsfForwardMethod ||
       proc == NsfObjscopedMethod ||
       proc == NsfSetterMethod ||
@@ -28866,7 +28876,6 @@ NsfFinalizeCmd(Tcl_Interp *interp, int withKeepvars) {
   }
 
   ObjectSystemsCleanup(interp, withKeepvars ? NSF_TRUE : NSF_FALSE);
-
 
 #ifdef DO_CLEANUP
   {
@@ -29143,7 +29152,7 @@ NsfMethodAliasCmd(
    *
    * 1. NsfObjDispatch: a command representing a Next Scripting object
    *
-   * 2. TclObjInterpProc: a cmd standing for a Tcl proc (including
+   * 2. TCL_OBJINTERPPROC: a cmd standing for a Tcl proc (including
    *    Next Scripting methods), verified through CmdIsProc() -> to be
    *    wrapped by NsfProcAliasMethod()
    *
@@ -29166,6 +29175,13 @@ NsfMethodAliasCmd(
    * object-alias under the given methodName.
    */
   class = (withPer_object || ! NsfObjectIsClass(object)) ? NULL : (NsfClass *)object;
+
+  /*fprintf(stderr,
+          "cmd=%p objProc=%p clientData=%p flags=0x%x\n",
+          (void *)cmd,
+          cmd ? (void *)TCL_COMMAND_OBJPROC(cmd) : NULL,
+          cmd ? (void *)Tcl_Command_objClientData(cmd) : NULL,
+          cmd ? Tcl_Command_flags(cmd) : 0);*/
 
   nsPtr = (class != NULL) ? class->nsPtr : object->nsPtr;
   oldCmd = (nsPtr != NULL) ? FindMethod(nsPtr, methodName) : NULL;
@@ -29222,7 +29238,7 @@ NsfMethodAliasCmd(
      */
     newObjProc = NsfProcAliasMethod;
 
-    if (objProc == (TCL_OBJCMDPROC_T*)TclObjInterpProc) {
+    if (objProc == TCL_OBJINTERPPROC) {
       /*
        * We have an alias to a Tcl proc;
        */

@@ -283,30 +283,30 @@ typedef struct NsfMemCounter {
 
 #define isAbsolutePath(m) (*(m) == ':' && (m)[1] == ':')
 #define isArgsString(m) (\
-	*(m)   == 'a' && (m)[1] == 'r' && (m)[2] == 'g' && (m)[3] == 's' && \
-	(m)[4] == '\0')
+        *(m)   == 'a' && (m)[1] == 'r' && (m)[2] == 'g' && (m)[3] == 's' && \
+        (m)[4] == '\0')
 #define isBodyString(m) (\
-	*(m)   == 'b' && (m)[1] == 'o' && (m)[2] == 'd' && (m)[3] == 'y' && \
-	(m)[4] == '\0')
+        *(m)   == 'b' && (m)[1] == 'o' && (m)[2] == 'd' && (m)[3] == 'y' && \
+        (m)[4] == '\0')
 #define isCheckString(m) (\
-	*(m)   == 'c' && (m)[1] == 'h' && (m)[2] == 'e' && (m)[3] == 'c' && \
-	(m)[4] == 'k' && (m)[5] == '\0')
+        *(m)   == 'c' && (m)[1] == 'h' && (m)[2] == 'e' && (m)[3] == 'c' && \
+        (m)[4] == 'k' && (m)[5] == '\0')
 #define isCheckObjString(m) (\
-	*(m)   == 'c' && (m)[1] == 'h' && (m)[2] == 'e' && (m)[3] == 'c' && \
-	(m)[4] == 'k' && (m)[5] == 'o' && (m)[6] == 'b' && (m)[7] == 'j' && \
-	(m)[8] == '\0')
+        *(m)   == 'c' && (m)[1] == 'h' && (m)[2] == 'e' && (m)[3] == 'c' && \
+        (m)[4] == 'k' && (m)[5] == 'o' && (m)[6] == 'b' && (m)[7] == 'j' && \
+        (m)[8] == '\0')
 #define isCreateString(m) (\
-	*(m)   == 'c' && (m)[1] == 'r' && (m)[2] == 'e' && (m)[3] == 'a' && \
-	(m)[4] == 't' && (m)[5] == 'e' && (m)[6] == '\0')
+        *(m)   == 'c' && (m)[1] == 'r' && (m)[2] == 'e' && (m)[3] == 'a' && \
+        (m)[4] == 't' && (m)[5] == 'e' && (m)[6] == '\0')
 #define isTypeString(m) (\
-	*(m)   == 't' && (m)[1] == 'y' && (m)[2] == 'p' && (m)[3] == 'e' && \
-	(m)[4] == '\0')
+        *(m)   == 't' && (m)[1] == 'y' && (m)[2] == 'p' && (m)[3] == 'e' && \
+        (m)[4] == '\0')
 #define isObjectString(m) (\
-	*(m)   == 'o' && (m)[1] == 'b' && (m)[2] == 'j' && (m)[3] == 'e' && \
-	(m)[4] == 'c' && (m)[5] == 't' && (m)[6] == '\0')
+        *(m)   == 'o' && (m)[1] == 'b' && (m)[2] == 'j' && (m)[3] == 'e' && \
+        (m)[4] == 'c' && (m)[5] == 't' && (m)[6] == '\0')
 #define isClassString(m) (\
-	*(m)   == 'c' && (m)[1] == 'l' && (m)[2] == 'a' && (m)[3] == 's' && \
-	(m)[4] == 's' && (m)[5] == '\0')
+        *(m)   == 'c' && (m)[1] == 'l' && (m)[2] == 'a' && (m)[3] == 's' && \
+        (m)[4] == 's' && (m)[5] == '\0')
 
 #if (defined(sun) || defined(__hpux)) && !defined(__GNUC__)
 #  define USE_ALLOCA
@@ -404,9 +404,9 @@ typedef struct NsfMemCounter {
 #ifdef OBJDELETION_TRACE
 # define PRINTOBJ(ctx,object) \
   fprintf(stderr, "  %s %p %s oid=%p teardown=%p destroyCalled=%d\n", \
-	  (ctx),(void *)(object),(object)->teardown?ObjStr((object)->cmdName):"(deleted)", \
-	  (void *)(object)->id, (void *)(object)->teardown,                                \
-	  ((object)->flags & NSF_DESTROY_CALLED))
+          (ctx),(void *)(object),(object)->teardown?ObjStr((object)->cmdName):"(deleted)", \
+          (void *)(object)->id, (void *)(object)->teardown,                                \
+          ((object)->flags & NSF_DESTROY_CALLED))
 #else
 # define PRINTOBJ(ctx,object)
 #endif
@@ -435,9 +435,9 @@ typedef struct NsfMemCounter {
 #define NsfConfigEnabled__caller(macro, args) macro args
 #define NsfConfigEnabled__helper_1 NsfConfigEnabled__close NsfConfigEnabled__open 1
 #define NsfConfigEnabled__(x) (NsfConfigEnabled__caller(NsfConfigEnabled__NOOP, \
-						       NsfConfigEnabled__open \
-						       NsfConfigEnabled__helper_##x \
-						       NsfConfigEnabled__close) + 0)
+                                                       NsfConfigEnabled__open \
+                                                       NsfConfigEnabled__helper_##x \
+                                                       NsfConfigEnabled__close) + 0)
 #define NsfConfigEnabled_(x) NsfConfigEnabled__(x)
 #define NsfConfigEnabled(x) NsfConfigEnabled_(NSF_##x)
 
@@ -489,8 +489,8 @@ typedef enum { /* powers of 2; add to ALL, if default; */
 } CheckOptions;
 
 void NsfAssertionRename(Tcl_Interp *interp, Tcl_Command cmd,
-			  NsfAssertionStore *as,
-			  char *oldSimpleCmdName, char *newName);
+                          NsfAssertionStore *as,
+                          char *oldSimpleCmdName, char *newName);
 /*
  * mixins
  */
@@ -613,19 +613,19 @@ typedef struct NsfStringIncrStruct {
 
 
 #define NsfObjectSetClass(object) \
-	(object)->flags |= NSF_IS_CLASS
+        (object)->flags |= NSF_IS_CLASS
 #define NsfObjectClearClass(object) \
-	(object)->flags &= ~NSF_IS_CLASS
+        (object)->flags &= ~NSF_IS_CLASS
 #define NsfObjectIsClass(object) \
-	((object)->flags & NSF_IS_CLASS)
+        ((object)->flags & NSF_IS_CLASS)
 #define NsfObjectToClass(object) \
-	(NsfClass *)((((NsfObject *)object)->flags & NSF_IS_CLASS) ? object : NULL)
+        (NsfClass *)((((NsfObject *)object)->flags & NSF_IS_CLASS) ? object : NULL)
 
 
 /*
  * object and class internals
  */
-
+#
 typedef struct NsfParamDefs {
   Nsf_Param *paramsPtr;
   TCL_OBJC_T nrParams;
@@ -853,16 +853,19 @@ EXTERN NsfClassOpt *NsfRequireClassOpt(NsfClass *class)
 typedef struct NsfShadowTclCommandInfo {
   TCL_OBJCMDPROC_T *proc;
   ClientData clientData;
+#if defined(NRE)
+  TCL_OBJCMDPROC_T *nreProc;
+#endif
   int nrArgs;
 } NsfShadowTclCommandInfo;
 typedef enum {SHADOW_LOAD=1, SHADOW_UNLOAD=0, SHADOW_REFETCH=2} NsfShadowOperations;
 
 
 typedef enum {NSF_PARAMS_NAMES, NSF_PARAMS_LIST,
-	      NSF_PARAMS_PARAMETER, NSF_PARAMS_SYNTAX} NsfParamsPrintStyle;
+              NSF_PARAMS_PARAMETER, NSF_PARAMS_SYNTAX} NsfParamsPrintStyle;
 
 int NsfCallCommand(Tcl_Interp *interp, NsfGlobalNames name,
-		     TCL_OBJC_T objc, Tcl_Obj *const objv[])
+                     TCL_OBJC_T objc, Tcl_Obj *const objv[])
   nonnull(1) nonnull(4);
 
 int NsfShadowTclCommands(Tcl_Interp *interp, NsfShadowOperations load)
@@ -875,9 +878,9 @@ int NsfReplaceCommandCleanup(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfShadowTclC
   nonnull(1) nonnull(2) nonnull(3);
 
 int NsfReplaceCommand(Tcl_Interp *interp, Tcl_Obj *nameObj,
-		      TCL_OBJCMDPROC_T *nsfReplacementProc,
-		      ClientData cd,
-		      NsfShadowTclCommandInfo *ti)
+                      TCL_OBJCMDPROC_T *nsfReplacementProc,
+                      ClientData cd,
+                      NsfShadowTclCommandInfo *ti)
   nonnull(1) nonnull(2) nonnull(5);
 
 
@@ -1104,7 +1107,7 @@ EXTERN void NsfCleanupObject_(NsfObject *object) nonnull(1);
 # define NsfObjectRefCountIncr(object)		\
   ((NsfObject *)(object))->refCount++;		\
   fprintf(stderr, "RefCountIncr %p count=%d %s\n", (void *)(object), ((NsfObject *)(object))->refCount, \
-	  ((NsfObject *)object)->cmdName?ObjStr(((NsfObject *)(object))->cmdName):"no name");   \
+          ((NsfObject *)object)->cmdName?ObjStr(((NsfObject *)(object))->cmdName):"no name");   \
   MEM_COUNT_ALLOC("NsfObject.refCount", (object))
 # define NsfObjectRefCountDecr(object)					\
   (object)->refCount--;							\
@@ -1141,13 +1144,13 @@ EXTERN void NsfCleanupObject_(NsfObject *object) nonnull(1);
 EXTERN void NsfDeprecatedCmd(Tcl_Interp *interp, const char *what, const char *oldCmd, const char *newCmd)
   nonnull(1) nonnull(2) nonnull(3) nonnull(4);
 EXTERN void NsfProfileDeprecatedCall(Tcl_Interp *interp, NsfObject *object, NsfClass *class,
-				     const char *methodName, const char *altMethod)
+                                     const char *methodName, const char *altMethod)
   nonnull(1) nonnull(2) nonnull(4) nonnull(5);
 EXTERN void NsfProfileDebugCall(Tcl_Interp *interp, NsfObject *object, NsfClass *class, const char *methodName,
-				TCL_OBJC_T objc, Tcl_Obj **objv)
+                                TCL_OBJC_T objc, Tcl_Obj **objv)
   nonnull(1) nonnull(4);
 EXTERN void NsfProfileDebugExit(Tcl_Interp *interp, NsfObject *object, NsfClass *class, const char *methodName,
-		    long startSec, long startUsec)
+                    long startSec, long startUsec)
   nonnull(1) nonnull(4);
 
 #if defined(NSF_PROFILE)
@@ -1164,7 +1167,7 @@ EXTERN int NsfProfileTrace(Tcl_Interp *interp, int withEnable, int withVerbose, 
 EXTERN void NsfProfileTraceCall(Tcl_Interp *interp, NsfObject *object, NsfClass *class, const char *methodName)
   nonnull(1) nonnull(2) nonnull(4);
 EXTERN void NsfProfileTraceExit(Tcl_Interp *interp, NsfObject *object, NsfClass *class, const char *methodName,
-				struct Tcl_Time *callTime)
+                                struct Tcl_Time *callTime)
   nonnull(1) nonnull(2) nonnull(4) nonnull(5);
 EXTERN void NsfProfileTraceCallAppend(Tcl_Interp *interp, const char *label)
   nonnull(1) nonnull(2);
@@ -1216,24 +1219,24 @@ typedef struct NsfCompEnv {
 } NsfCompEnv;
 
 typedef enum {INST_INITPROC, INST_NEXT, INST_SELF, INST_SELF_DISPATCH,
-	      LAST_INSTRUCTION} NsfByteCodeInstructions;
+              LAST_INSTRUCTION} NsfByteCodeInstructions;
 
 TCL_OBJCMDPROC_T NsfInitProcNSCmd, NsfSelfDispatchCmd,
   NsfNextObjCmd, NsfGetSelfObjCmd;
 
 EXTERN NsfCompEnv *NsfGetCompEnv(void);
 int NsfDirectSelfDispatch(ClientData cd, Tcl_Interp *interp,
-		     TCL_OBJC_T objc, Tcl_Obj *const objv[])
+                     TCL_OBJC_T objc, Tcl_Obj *const objv[])
   nonnull(1) nonnull(2);
 #endif
 
 EXTERN int NsfGetClassFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr,
-			      NsfClass **classPtr, bool withUnknown)
+                              NsfClass **classPtr, bool withUnknown)
   nonnull(1) nonnull(2) nonnull(3);
 
 EXTERN int NsfObjWrongArgs(Tcl_Interp *interp, const char *msg,
-			   Tcl_Obj *cmdNameObj, Tcl_Obj *methodPathObj,
-			   const char *arglist)
+                           Tcl_Obj *cmdNameObj, Tcl_Obj *methodPathObj,
+                           const char *arglist)
   nonnull(1) nonnull(2);
 
 EXTERN const char *NsfMethodName(Tcl_Obj *methodObj)
@@ -1246,12 +1249,12 @@ EXTERN void NsfDStringArgv(Tcl_DString *dsPtr, TCL_OBJC_T objc, Tcl_Obj *const o
   nonnull(1) nonnull(3);
 
 EXTERN Tcl_Obj *NsfMethodNamePath(Tcl_Interp *interp,
-				  Tcl_CallFrame *framePtr,
-				  const char *methodName)
+                                  Tcl_CallFrame *framePtr,
+                                  const char *methodName)
   nonnull(1) nonnull(3) returns_nonnull;
 
 EXTERN int NsfDStringEval(Tcl_Interp *interp, Tcl_DString *dsPtr, const char *context,
-			  unsigned int traceEvalFlags)
+                          unsigned int traceEvalFlags)
   nonnull(1) nonnull(2) nonnull(3);
 
 
@@ -1281,12 +1284,12 @@ EXTERN int NsfDStringEval(Tcl_Interp *interp, Tcl_DString *dsPtr, const char *co
  */
 EXTERN Tcl_ObjType NsfFlagObjType;
 EXTERN int NsfFlagObjSet(Tcl_Interp      *UNUSED(interp),
-			 Tcl_Obj         *objPtr,
-			 Nsf_Param const *baseParamPtr,
-			 int              serial,
-			 Nsf_Param const *paramPtr,
-			 Tcl_Obj         *payload,
-			 unsigned int     flags);
+                         Tcl_Obj         *objPtr,
+                         Nsf_Param const *baseParamPtr,
+                         int              serial,
+                         Nsf_Param const *paramPtr,
+                         Tcl_Obj         *payload,
+                         unsigned int     flags);
 typedef struct {
   const Nsf_Param *signature;
   Nsf_Param const *paramPtr;

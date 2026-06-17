@@ -2163,7 +2163,6 @@ NsfMethodAliasCmdStub(ClientData clientData, Tcl_Interp *interp, TCL_OBJC_T objc
     FrameIdx_t withFrame = (FrameIdx_t )PTR2INT(pc.clientData[3]);
     ProtectionIdx_t withProtection = (ProtectionIdx_t )PTR2INT(pc.clientData[4]);
     Tcl_Obj *cmdNameObj = (Tcl_Obj *)pc.clientData[5];
-
     assert(pc.status == 0);
     return NsfMethodAliasCmd(interp, object, withPer_object, methodName, withFrame, withProtection, cmdNameObj);
 

@@ -73,7 +73,13 @@
 
 #if TCL_MAJOR_VERSION==8
 # define PRE9
+# define PRE91
 #endif
+
+#if TCL_MAJOR_VERSION==9 && TCL_MINOR_VERSION<1
+# define PRE91
+#endif
+
 
 #if 0
 #ifndef NS_TCL_PRE87
@@ -91,8 +97,8 @@
 #endif
 #endif
 
-#ifndef PRE9
-//# define NS_TCL_HAVE_TIP629
+#ifndef PRE91
+# define NS_TCL_HAVE_TIP629
 #endif
 
 
@@ -114,14 +120,20 @@ typedef Tcl_Size Nsf_Tcl_Size_t;
 # define TCL_INDEX_NONE -1
 #endif
 
+/*
+ * Historical NSF code used Tcl_CreateHashEntry(..., NULL) as a fast
+ * lookup idiom.  With Tcl 9.1 this is unsafe for Tcl-owned command
+ * tables, since empty entries are treated as existing commands.
+ */
 #ifndef NS_TCL_HAVE_TIP629
 # define TCL_OBJC_T           int
 # define TCL_OBJCMDPROC_T     Tcl_ObjCmdProc
 # define TCL_CREATEOBJCOMMAND Tcl_CreateObjCommand
 # define TCL_NRCREATECOMMAND  Tcl_NRCreateCommand
 # define TCL_NRCALLOBJPROC    Tcl_NRCallObjProc
-# define TCL_COMMAND_OBJPROC  Tcl_Command_objProc
-
+# define TCL_OBJINTERPPROC    TclObjInterpProc
+# define TCL_COMMAND_OBJPROC(cmd) Tcl_Command_objProc(cmd)
+# define NsfFindHashEntry(tablePtr, key) Tcl_CreateHashEntry((tablePtr), (key), NULL)
 #else
 /*
  * Support for TIP 627
@@ -132,7 +144,9 @@ typedef Tcl_Size Nsf_Tcl_Size_t;
 # define TCL_CREATEOBJCOMMAND Tcl_CreateObjCommand2
 # define TCL_NRCREATECOMMAND  Tcl_NRCreateCommand2
 # define TCL_NRCALLOBJPROC    Tcl_NRCallObjProc2
-# define TCL_COMMAND_OBJPROC  (TCL_OBJCMDPROC_T*)Tcl_Command_objProc
+# define TCL_OBJINTERPPROC    TclObjInterpProc2
+# define TCL_COMMAND_OBJPROC(cmd) Tcl_Command_objProc2(cmd)
+# define NsfFindHashEntry(tablePtr, key) Tcl_FindHashEntry((tablePtr), (key))
 #endif
 
 #ifdef PRE9
