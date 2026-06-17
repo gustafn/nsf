@@ -97,8 +97,16 @@
 #endif
 #endif
 
+/*
+ * Historical NSF code used Tcl_CreateHashEntry(..., NULL) as a fast
+ * lookup idiom.  With Tcl 9.1 this is unsafe for Tcl-owned command
+ * tables, since empty entries are treated as existing commands.
+ */
 #ifndef PRE91
 # define NS_TCL_HAVE_TIP629
+# define NsfFindHashEntry(tablePtr, key) Tcl_FindHashEntry((tablePtr), (key))
+#else
+# define NsfFindHashEntry(tablePtr, key) Tcl_CreateHashEntry((tablePtr), (key), NULL)
 #endif
 
 
@@ -120,11 +128,6 @@ typedef Tcl_Size Nsf_Tcl_Size_t;
 # define TCL_INDEX_NONE -1
 #endif
 
-/*
- * Historical NSF code used Tcl_CreateHashEntry(..., NULL) as a fast
- * lookup idiom.  With Tcl 9.1 this is unsafe for Tcl-owned command
- * tables, since empty entries are treated as existing commands.
- */
 #ifndef NS_TCL_HAVE_TIP629
 # define TCL_OBJC_T           int
 # define TCL_OBJCMDPROC_T     Tcl_ObjCmdProc
@@ -133,7 +136,6 @@ typedef Tcl_Size Nsf_Tcl_Size_t;
 # define TCL_NRCALLOBJPROC    Tcl_NRCallObjProc
 # define TCL_OBJINTERPPROC    TclObjInterpProc
 # define TCL_COMMAND_OBJPROC(cmd) Tcl_Command_objProc(cmd)
-# define NsfFindHashEntry(tablePtr, key) Tcl_CreateHashEntry((tablePtr), (key), NULL)
 #else
 /*
  * Support for TIP 627
@@ -146,7 +148,6 @@ typedef Tcl_Size Nsf_Tcl_Size_t;
 # define TCL_NRCALLOBJPROC    Tcl_NRCallObjProc2
 # define TCL_OBJINTERPPROC    TclObjInterpProc2
 # define TCL_COMMAND_OBJPROC(cmd) Tcl_Command_objProc2(cmd)
-# define NsfFindHashEntry(tablePtr, key) Tcl_FindHashEntry((tablePtr), (key))
 #endif
 
 #ifdef PRE9
