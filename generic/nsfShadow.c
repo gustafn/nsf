@@ -73,10 +73,14 @@ NsfReplaceCommandCleanup(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfShadowTclComma
   /*fprintf(stderr, " cleanup for %s  ti=%p in %p\n", NsfGlobalStrings[name], ti, interp);*/
   cmd = Tcl_GetCommandFromObj(interp, nameObj);
   if (cmd != NULL) {
-    Tcl_Command_objProc(cmd) = (Tcl_ObjCmdProc*)ti->proc;
+    Tcl_Command_objProc(cmd) = ti->proc;
     if (ti->clientData != NULL) {
       Tcl_Command_objClientData(cmd) = ti->clientData;
     }
+#if defined(NRE)
+    Tcl_Command_nreProc(cmd) = ti->nreProc;
+    ti->nreProc = NULL;
+#endif
     ti->proc = NULL;
     ti->clientData = NULL;
   } else {
@@ -120,11 +124,17 @@ NsfReplaceCommandCheck(Tcl_Interp *interp, Tcl_Obj *nameObj, TCL_OBJCMDPROC_T *p
   if (cmd != NULL && ti->proc && TCL_COMMAND_OBJPROC(cmd) != proc) {
     /*
     fprintf(stderr, "we have to do something about %s %p %p\n",
-	    NsfGlobalStrings[name], TCL_COMMAND_OBJPROC(cmd), proc);
+            NsfGlobalStrings[name], TCL_COMMAND_OBJPROC(cmd), proc);
     */
     ti->proc = TCL_COMMAND_OBJPROC(cmd);
     ti->clientData = Tcl_Command_objClientData(cmd);
-    Tcl_Command_objProc(cmd) = (Tcl_ObjCmdProc*)proc;
+
+#if defined(NRE)
+    ti->nreProc = Tcl_Command_nreProc(cmd);
+    Tcl_Command_nreProc(cmd) = NULL;
+#endif
+
+    Tcl_Command_objProc(cmd) = proc;
   }
 }
 
@@ -156,7 +166,7 @@ NsfReplaceCommand(Tcl_Interp *interp, Tcl_Obj *nameObj,
   nonnull_assert(nameObj != NULL);
   nonnull_assert(ti != NULL);
 
-  /* fprintf(stderr, "NsfReplaceCommand %s\n", ObjStr(nameObj)); */
+  /*fprintf(stderr, "NsfReplaceCommand %s\n", ObjStr(nameObj));*/
   cmd = Tcl_GetCommandFromObj(interp, nameObj);
 
   if (cmd == NULL) {
@@ -166,8 +176,13 @@ NsfReplaceCommand(Tcl_Interp *interp, Tcl_Obj *nameObj,
     if (nsfReplacementProc != objProc) {
       ti->proc = objProc;
       ti->clientData = Tcl_Command_objClientData(cmd);
+
+#if defined(NRE)
+      ti->nreProc = Tcl_Command_nreProc(cmd);
+      Tcl_Command_nreProc(cmd) = NULL;
+#endif
       if (nsfReplacementProc != NULL) {
-        Tcl_Command_objProc(cmd) = (Tcl_ObjCmdProc*)nsfReplacementProc;
+        Tcl_Command_objProc(cmd) = nsfReplacementProc;
       }
       if (cd != NULL) {
         Tcl_Command_objClientData(cmd) = cd;
@@ -266,7 +281,7 @@ Nsf_RenameObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, TCL_OBJC_T o
     NsfObject      *object = NsfGetObjectFromCmdPtr(cmd);
     Tcl_Command     parentCmd;
     char           *newName = ObjStr(objv[2]);
-    
+
     if (proc == NsfProcStub && procClientData != NULL &&
         *newName != '\0') {
       Tcl_DString fqNewName;
@@ -276,10 +291,10 @@ Nsf_RenameObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, TCL_OBJC_T o
       Tcl_DStringInit(&fqNewName);
       Tcl_DStringAppend(&fqNewName, "::nsf::procs::", 14);
       Tcl_DStringAppend(&fqNewName, newName, TCL_INDEX_NONE);
-      
+
       /* fprintf(stderr, "oldName %s newName %s\n", ObjStr(tcd->procName), Tcl_DStringValue(&fqNewName));*/
       result = TclRenameCommand(interp, ObjStr(tcd->procName), Tcl_DStringValue(&fqNewName));
-      
+
       if (result == TCL_OK) {
         DECR_REF_COUNT2("procNameObj", tcd->procName);
         tcd->procName = Tcl_NewStringObj(Tcl_DStringValue(&fqNewName),
@@ -292,10 +307,10 @@ Nsf_RenameObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, TCL_OBJC_T o
       if (result != TCL_OK) {
         return TCL_ERROR;
       }
-      
+
     } else if (object != NULL) {
       Tcl_Obj *methodObj = NsfMethodObj(object, NSF_o_move_idx);
-      
+
       if (methodObj) {
         return NsfCallMethodWithArgs(interp, (Nsf_Object *)object,
                                      methodObj, objv[2], 1, 0,
@@ -345,7 +360,7 @@ Nsf_InfoFrameObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, TCL_OBJC_
     CallFrame   *varFramePtr = Tcl_Interp_varFramePtr(interp);
     Tcl_Obj     *resultObj = Tcl_GetObjResult(interp);
 
-    /* 
+    /*
      * Level must be ok, otherwise we would not have a TCL_OK.
      */
     Tcl_GetIntFromObj(interp, objv[1], &level);
@@ -374,29 +389,29 @@ Nsf_InfoFrameObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, TCL_OBJC_
       TCL_SIZE_T  oc, i;
 
       listObj = Tcl_NewListObj(0, NULL);
-      
-      /* 
+
+      /*
        * Remove "proc" element from list, if provided.
        */
       Tcl_ListObjGetElements(interp, resultObj, &oc, &ov);
       for (i=0; i<oc; i += 2) {
-	if (!strcmp(ObjStr(ov[i]), "proc")) {
-	  continue;
-	}
-	Tcl_ListObjAppendElement(interp, listObj, ov[i]);
-	Tcl_ListObjAppendElement(interp, listObj, ov[i+1]);
+        if (!strcmp(ObjStr(ov[i]), "proc")) {
+          continue;
+        }
+        Tcl_ListObjAppendElement(interp, listObj, ov[i]);
+        Tcl_ListObjAppendElement(interp, listObj, ov[i+1]);
       }
 
       Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("object", 6));
       Tcl_ListObjAppendElement(interp, listObj, cscPtr->self->cmdName);
       Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("class", 5));
       Tcl_ListObjAppendElement(interp, listObj, (cscPtr->cl != NULL) ? cscPtr->cl->object.cmdName
-			       : NsfGlobalObjs[NSF_EMPTY]);
+                               : NsfGlobalObjs[NSF_EMPTY]);
       Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("method", 6));
       Tcl_ListObjAppendElement(interp, listObj,
                                (cscPtr->cmdPtr != NULL)
                                ? Tcl_NewStringObj(Tcl_GetCommandName(interp, cscPtr->cmdPtr), TCL_INDEX_NONE)
-			       : NsfGlobalObjs[NSF_EMPTY]);
+                               : NsfGlobalObjs[NSF_EMPTY]);
       Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("frametype", 9));
       if (cscPtr->frameType == NSF_CSC_TYPE_PLAIN) {
         frameType = "intrinsic";
@@ -457,7 +472,7 @@ NsfShadowTclCommands(Tcl_Interp *interp, NsfShadowOperations load) {
   nonnull_assert(interp != NULL);
 
   rst = RUNTIME_STATE(interp);
- 
+
   if (load == SHADOW_LOAD) {
 
     assert(rst->tclCommands == NULL);
@@ -523,7 +538,7 @@ NsfCallCommand(Tcl_Interp *interp, NsfGlobalNames name,
   /*
    {int i;
     fprintf(stderr, "calling %s (%p %p) in %p, objc=%d ",
-	    NsfGlobalStrings[name], ti, ti->proc, interp, objc);
+            NsfGlobalStrings[name], ti, ti->proc, interp, objc);
             for(i=0;i<objc;i++){fprintf(stderr, "'%s' ", ObjStr(objv[i]));}
     fprintf(stderr, "\n");
   }

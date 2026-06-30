@@ -26,6 +26,7 @@ puts stderr "available versions of nsf: [package versions nsf]"
 ? {string first [nsf::pkgconfig get version] [nsf::pkgconfig get patchLevel]} 0
 
 package require nx
+puts stderr "======================= DEBUG NX loaded"
 
 ::nsf::configure dtrace on
 

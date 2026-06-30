@@ -71,12 +71,20 @@
 /* the following items could be obtained from
    Tcl_GetCommandInfoFromToken(cmd, infoPtr) */
 #define Tcl_Command_nsPtr(cmd)         ((Tcl_Namespace*)(((Command *)(cmd))->nsPtr))
-#define Tcl_Command_objProc(cmd)       ((Command *)(cmd))->objProc
-#define Tcl_Command_objProc2(cmd)      (TCL_OBJCMDPROC_T)((Command *)(cmd))->objProc
-#if defined(NRE)
-# define Tcl_Command_nreProc(cmd)       ((Command *)(cmd))->nreProc
+
+#ifndef PRE91
+# define Tcl_Command_objProc(cmd)       ((Command *)(cmd))->objProc2
+# define Tcl_Command_objClientData(cmd) ((Command *)(cmd))->objClientData2
+# define Tcl_Command_nreProc(cmd)       ((Command *)(cmd))->nreProc2
+# define Tcl_Command_objProc2(cmd)      ((Command *)(cmd))->objProc2
+#else
+# define Tcl_Command_objProc(cmd)       ((Command *)(cmd))->objProc
+# define Tcl_Command_objClientData(cmd) ((Command *)(cmd))->objClientData
+# if defined(NRE)
+#  define Tcl_Command_nreProc(cmd)      ((Command *)(cmd))->nreProc
+# endif
 #endif
-#define Tcl_Command_objClientData(cmd) ((Command *)(cmd))->objClientData
+
 #define Tcl_Command_proc(cmd)          ((Command *)(cmd))->proc
 #define Tcl_Command_clientData(cmd)    ((Command *)(cmd))->clientData
 #define Tcl_Command_deleteProc(cmd)    ((Command *)(cmd))->deleteProc
