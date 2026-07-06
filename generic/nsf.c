@@ -6154,10 +6154,11 @@ InterpColonCmdResolver(Tcl_Interp *interp, const char *cmdName, Tcl_Namespace *U
             ((Command *)cmd)->nsPtr->fullName, cmdName, frameFlags);*/
           *cmdPtr = Tcl_GetHashValue(entryPtr);
           assert(*cmdPtr != NULL);
-          
+
           if (*cmdPtr != NULL) {
             return TCL_OK;
-          }        }
+          }
+        }
       }
 #endif
     }
@@ -16005,11 +16006,11 @@ ObjectDispatch(
 #if defined(METHOD_OBJECT_TRACE)
       fprintf(stderr, "... use internal rep method %p %s cmd %p (objProc %p) cl %p %s\n",
               (void*)methodObj, ObjStr(methodObj),
-              (void*)cmd, (cmd != NULL) ? (void*)((Command *)cmd)->objProc : 0,
+              (void*)cmd, (cmd != NULL) ? ((void*)TCL_COMMAND_OBJPROC(cmd) : NULL,
               (void*)class, (class != NULL) ? ClassName(class) : ObjectName(object));
 #endif
 
-      assert((cmd != NULL) ? ((Command *)cmd)->objProc != NULL : 1);
+      assert((cmd != NULL) ? TCL_COMMAND_OBJPROC(cmd) != NULL : 1);
 
     } else if (methodObjTypePtr == Nsf_OT_tclCmdNameType
                && ccCtxPtr != NULL
@@ -16031,7 +16032,7 @@ ObjectDispatch(
         /*fprintf(stderr, "ObjectDispatch lookup for per-object method in obj %p method %s nsPtr %p"
                 " => %p objProc %p\n",
                 (void*)object, methodName, (void*)object->nsPtr, (void*)cmd,
-                (cmd != NULL) ? (void*)((Command *)cmd)->objProc : NULL);*/
+                (cmd != NULL) ? (void*)TCL_COMMAND_OBJPROC(cmd) : NULL);*/
 
         if (cmd != NULL) {
           /*
@@ -16091,10 +16092,10 @@ ObjectDispatch(
 #if defined(METHOD_OBJECT_TRACE)
         fprintf(stderr, "... use internal rep method %p %s cmd %p (objProc %p) cl %p %s\n",
                 (void*)methodObj, ObjStr(methodObj),
-                (void*)cmd, (cmd != NULL) ? (void*)((Command *)cmd)->objProc : NULL,
+                (void*)cmd, (cmd != NULL) ? (void*)TCL_COMMAND_OBJPROC(cmd) : NULL,
                 (void*)class, (class != NULL) ? ClassName(class) : ObjectName(object));
 #endif
-        assert((cmd != NULL) ? ((Command *)cmd)->objProc != NULL : 1);
+        assert((cmd != NULL) ? TCL_COMMAND_OBJPROC(cmd) != NULL : 1);
 
       } else if (methodObjTypePtr == Nsf_OT_tclCmdNameType
                  && ccCtxPtr != NULL
@@ -16109,7 +16110,7 @@ ObjectDispatch(
 #if defined(METHOD_OBJECT_TRACE)
         fprintf(stderr, "... use internal rep ptr2 method %p %s cmd %p (objProc %p) cl %p %s\n",
                 (void*)methodObj, ObjStr(methodObj),
-                (void*)cmd, (cmd != NULL) ? (void*)((Command *)cmd)->objProc : NULL,
+                (void*)cmd, (cmd != NULL) ? (void*)TCL_COMMAND_OBJPROC(cmd) : NULL,
                 (void*)class, (class != NULL) ? ClassName(class) : ObjectName(object));
 #endif
       } else {
@@ -27944,7 +27945,7 @@ NsfDebugShowObj(Tcl_Interp *interp, Tcl_Obj *obj) {
             mcPtr->flags);
     if (cmd != NULL) {
       fprintf(stderr, "... cmd %p flags %.6x\n", (void *)cmd, Tcl_Command_flags(cmd));
-      assert(((Command *)cmd)->objProc != NULL);
+      assert(TCL_COMMAND_OBJPROC(cmd) != NULL);
     }
     assert(currentMethodEpoch >= mcPtr->methodEpoch);
 

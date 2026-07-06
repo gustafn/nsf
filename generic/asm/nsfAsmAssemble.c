@@ -309,11 +309,11 @@ AsmAssemble(ClientData cd, Tcl_Interp *interp, Tcl_Obj *nameObj,
       cmd = Tcl_GetCommandFromObj(interp, argv[1]);
 #if defined(LABEL_THREADING)
       inst = AsmInstructionNew(proc, objProc, cArgs);
-      inst->cmd = ((Command *)cmd)->objProc;
+      inst->cmd = TCL_COMMAND_OBJPROC(cmd);
 #else
-      inst = AsmInstructionNew(proc, ((Command *)cmd)->objProc, cArgs);
+      inst = AsmInstructionNew(proc, TCL_COMMAND_OBJPROC(cmd), cArgs);
 #endif
-      inst->clientData = ((Command *)cmd)->objClientData;
+      inst->clientData = Tcl_Command_objClientData(cmd);
       /* use the assembly word as cmd name; should be ok when we keep assembly around */
       inst->argv[0] = argv[1];
       /*fprintf(stderr, "[%d] %s/%d\n", currentAsmInstruction, Tcl_GetString(argv[1]), 1+((argc-offset)/2));*/
