@@ -36438,10 +36438,11 @@ Nsf_Init(
   }
 
   /*
-   * Create Shadowed Tcl cmds:
+   * Create shadowed Tcl cmds:
    */
   result = NsfShadowTclCommands(interp, SHADOW_LOAD);
   if (unlikely(result != TCL_OK)) {
+    fprintf(stderr, "\n Shadowing Tcl built-in commands failed.\n\n");
     return result;
   }
   /*
