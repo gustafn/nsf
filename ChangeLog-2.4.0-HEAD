@@ -1,3 +1,166 @@
+2026-07-14  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	Release work:
+
+	* doc/*.man: Regenerate documentation: man & asciidocs
+	[cd3c413a]
+
+	* Bump version numbers: 2.5.0
+	[9d412404, 5b3e9937]
+
+	* appveyor.yml: Adding 9.1b0 to Appveyor build matrix
+	[76c7126b]
+
+	* build.yml: Updating build arrays
+	[7055bde6]
+
+2026-07-09  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* nsfShadow.c, nsf.c, interp.test: Introduced in Nov '25, safe
+	interps in 9.* are no longer equipped ::tcl::unsupported::*
+	commands. This caused an unwanted interaction, as NSF shadows
+	::tcl::unsupported::disassemble unconditionally. This was fixed by
+	disabling shadowing of this command except for PRE9 builts.
+	[a0623ece]
+
+2026-07-06  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	fix: complete Tcl 9.1 command accessor cleanup
+	Replace remaining direct accesses to removed Tcl Command fields with the
+	version-neutral NSF command accessor macros.
+
+	Tcl 9.1 removes the legacy objProc/objClientData fields from struct Command
+	and uses the TIP 627 objProc2/objClientData2 path consistently.  Some remaining
+	debug, assertion, bytecode, and assembler paths still referenced the old fields
+	directly.
+
+	Changes include:
+
+	- Replace remaining Command.objProc assertions and debug output with
+	  TCL_COMMAND_OBJPROC(cmd).
+	- Update assembler instruction generation to store command procs via
+	  TCL_COMMAND_OBJPROC(cmd) and client data via Tcl_Command_objClientData(cmd).
+	- Update bytecode initialization to pass the version-correct object command
+	  client data to TclRegisterUserOpcode().
+	- Keep NSF-owned objProc fields, such as alias/forwarder cached proc pointers,
+	  unchanged.
+	- Ensure resolver lookup only returns TCL_OK when a non-NULL Tcl_Command was
+	  actually resolved.
+
+	This completes the internal Command layout abstraction needed for Tcl 9.1 while
+	preserving the existing Tcl 8.5–9.0 code paths through the compatibility macros.
+	[194481d4]
+
+2026-06-17  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	refactor: decouple handling of TIP629 from unsafe hash lookup idiom in 9.1
+	- Moved NsfFindHashEntry macro in PRE91 gating
+	- Use Tcl_FindHashEntry for Tcl 9.1+ to prevent empty cmd entries
+	- Keep legacy Tcl_CreateHashEntry(..., NULL) lookup for pre-9.1 builds
+	- Move comment to document why the behavior differs across versions
+	[ea05be59]
+
+2026-06-17  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	fix: adapt command internals for Tcl 9.1 object procs
+	- Add Tcl 9.1 compatibility macros for TIP 627 command procedure handling:
+	  use Tcl_ObjCmdProc2, Tcl_CreateObjCommand2, Tcl_NRCreateCommand2,
+	  Tcl_NRCallObjProc2, and TclObjInterpProc2 when available.
+	- Map internal command accessors to the Tcl 9.1 Command layout, where
+	  objProc/objClientData/nreProc are replaced by objProc2/objClientData2/nreProc2.
+	- Replace direct comparisons against TclObjInterpProc with TCL_OBJINTERPPROC
+	  so scripted Tcl procs and scripted NSF methods are detected correctly under
+	  Tcl 9.1.
+	- Replace direct Command.objProc accesses with TCL_COMMAND_OBJPROC(cmd) in
+	  method classification, parameter lookup, debug output, direct dispatch, and
+	  alias handling.
+	- Introduce NsfFindHashEntry() for lookup-only hash-table access, using
+	  Tcl_FindHashEntry() for Tcl 9.1+ to avoid creating empty Tcl command-table
+	  entries.
+	- Update method lookup, precedence-list search, command resolver lookup,
+	  assertion lookup, filter lookup, variable listing, method listing, forward
+	  listing, and pointer lookup paths to avoid accidental empty hash entries.
+	- Preserve and restore the NRE command proc when shadowing Tcl commands, and
+	  clear it while an NSF replacement proc is installed.
+	- Fix Tcl_Size-related debug output formatting in argument parsing and object
+	  tracing.
+	- Temporarily skip the safe-interpreter creation subtest for Tcl 9.1, where
+	  nsf::interp create -safe still needs follow-up work.
+
+	Tcl 9.1 removes the legacy objProc/object-client-data fields from struct
+	Command and uses TIP 627's Tcl_ObjCmdProc2 path consistently. The old NSF
+	shortcuts therefore misclassified scripted methods, created invalid NULL-valued
+	command-table entries during lookups, and could leave stale NRE dispatch state
+	when replacing Tcl commands.
+	[af8933b4]
+
+2026-06-17  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* stubs9.1/nsfDecls.h, stubs9.1/nsfDecls.h, stubs/nsfStubInit.c:
+	Add Tcl 9.1 stub headers and stub vector init; add generated
+	public stub declarations for NSF API (nsfDecls.h); add generated
+	internal stubs hook scaffolding (nsfIntDecls.h); add stub vector
+	initializers and hook wiring (nsfStubInit.c) [ef47e094]
+
+2026-06-16  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	fix: guard mongo client pool push/pop with mutex
+	- Lock poolMutex around mongoc_client_pool_push() in NsfMongoClose
+	- Keep poolMutex held until after mongoc_client_pool_pop() in NsfMongoConnect
+	- Prevent races on shared mongoClientPool access under USE_CLIENT_POOL
+	[987c69c8]
+
+2026-06-13  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* build.yml: Update build matrix, switch to Tcl's GH mirror to
+	obtain tarballs, fix expression
+
+2026-04-21  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* Makefile.in: Order pkgIndex installation after library install:
+	make install-pkgIndex depend on install-libraries, prevent
+	parallel make install from overwriting the generated top-level
+	pkgIndex.tcl, render parallel installs of NSF more robust:
+	preserve the appended NSF package stanza under parallel installs
+	[f5f68fcd, 8a10a787]
+
+2025-09-11  Hector Romojaro  <hector.romojaro@gmail.com>
+
+        * nsf.c (ExitHandler): Fix memory leak by reworking ExitHandler
+	conditional call to Tcl_Release(interp) This fix reworks the
+	previous change to avoid Tcl_AsyncDelete errors while keeping the
+	memory consumption low, by calling Tcl_Release(interp) only from
+	the thread that owns "interp", instead of only when executed on
+	the main thread. [3fb596eb]
+
+2025-06-26  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+        * build.yml: Updated build matrix (GH) compiler versions to reduce
+	number of failures on github.com/nm-wu/nsf [5e6e6afa]
+
+        * tcl.m4: Updated to track upstream [7886f92d]
+
+2025-06-23  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+        * nsf.c (ExitHandler): Avoid async handler deletion errors by
+	tracking the main thread. This commit introduces a static
+	main_thread_id variable to record the main thread's pthread_t
+	identifier at Nsf_Init time. This allows ExitHandler to
+	conditionally call Tcl_Release(interp) only when executed in the
+	main thread. This change prevents fatal runtime errors such as:
+
+	Fatal: Tcl_AsyncDelete: async handler deleted by the wrong thread
+	The fix
+
+	Applies only when TCL_THREADS is defined and has no impact on
+	single-threaded and non-WIN builds. Many thanks to Oleg Checkulaev
+	for the testing and cleanup [301c760f, f1c20554]
+
+2024-11-05  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+        * nsf.c: Improve comments and debug code to compile cleanly
+        [bf409a2d, 124093bf]
+
 2024-10-08  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
 	* serializer.tcl: Reduce verbosity [2b4b817c]

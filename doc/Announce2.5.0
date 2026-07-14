@@ -17,7 +17,7 @@ bug fixes.  See below for the details.
 
 Diff stats since 2.4.0:
 
-    ...
+    125 files changed, 7867 insertions(+), 5750 deletions(-)
 
 The major changes relative to 2.4.0 are: NSF now compiles and runs
 with Tcl 9 as released (9.0.4 at the time of writing) and Tcl 9.1 (b0
@@ -36,12 +36,36 @@ Further selected changes worth noting:
 - Maintenance & bug fixes:
 
   * Tcl 9: Refcounting
+
   * Tcl 9: file home vs. ~
+
+  * Threaded builds (POSIX, other than WIN native): Interp cleanup on exit is
+    only triggered by the interp-owning thread (i.e., the one
+    registered during Nsf_Init()) to avoid fatal runtime errors and
+    memory leaks (e.g., in NaviServer).
+
+  * Robust parallel package installs (e.g., avoid overwriting of package
+    index files)
 
 - NSF:
 
   * ::nsf::proc now supports "-returns"
+
   * ::nsf::parseargs now honours "required" properly
+
+  * Tcl-compliant command shadowing: Respect that safe interpreters do
+    not feature ::tcl::unsupported commands starting with Tcl 9.*
+
+  * Tcl 9.1 compat reform:
+
+    - Supports the Tcl 9.1 TIP-627-only Command structure
+      (objProc2/objClientData2), with the legacy, deprecated
+      objProc/objClientData removed.
+  
+    - Rework TIP 627 compatibility macros
+
+  * Tcl 9.0 and 9.1 stub headers and stub initialisation
+  
 
 - NX:
 
@@ -58,17 +82,14 @@ Further selected changes worth noting:
      puts [o info consts]
      puts [o info vars]	
 
-- XOTcl:
-
-  * ...
-
 - MongoDB:
 
   * New proc: ::mongo::oid::gettimestamp
+  * Updated build harness
 
 - Documentation:
 
-  * ...
+  * Object: Added fragment about "info const"
 
 The detailed changelog is available at
 https://next-scripting.org/xowiki/download/file/ChangeLog-2.4.0-2.5.0.log
