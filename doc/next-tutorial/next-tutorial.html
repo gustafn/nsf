@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.1.3" />
+<meta name="generator" content="AsciiDoc 10.2.1" />
 <title>Tutorial for the Next Scripting Language</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -1134,7 +1134,7 @@ to understand scripts without much analysis.</p></div>
 Suppose, we want to define "safe stacks" that protect e.g. against
 stack under-runs (a stack under-run happens, when more <code>pop</code> than
 <code>push</code> operations are issued on a stack). Safety checking can be
-implemented mostly independent from the implementation details of the
+implemented mostly independent of the implementation details of the
 stack (usage of internal data structures). There are as well different
 ways of checking the safety. Therefore, we say that safety checking is
 orthogonal to the stack core implementation.</p></div>
@@ -1986,7 +1986,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 used here as well <code>:method helper &#8230;</code>, since the default method
 call-protection is already protected.</p></div>
 <div class="paragraph"><p>The method call-protection of <code>private</code> goes one step further and
-helps to hide implementation details also for implementors of
+helps to hide implementation details also for implementers of
 subclasses. Private methods are a means for avoiding unanticipated name
 clashes. Consider the following example:</p></div>
 <div class="paragraph" id="xmp-private-method"><div class="title">Listing 26: Private Methods</div><p></p></div>
@@ -2662,13 +2662,14 @@ second argument is the default value. See for an example in
 </div>
 <div class="sect3">
 <h4 id="_value_constraints">3.7.4. Value Constraints</h4>
-<div class="paragraph"><p>NX provides value constraints for all kind of parameters. By
-specifying value constraints, a developer can restrict the permissible
-values for a parameter and document the expected values in the source
-code. Value checking in NX is conditional, it can be turned on or off
-in general, or on a per-usage level (more about this later). The same
-mechanisms can be used not only for input value checking, but as well
-for return value checking (we will address this point as well later).</p></div>
+<div class="paragraph"><p>NX provides value constraints for all kind of parameters and for
+return values. By specifying value constraints, a developer can
+restrict the permissible values and document the expected values in
+the source code. Value checking in NX is optional, it can be turned on
+or off in general, or on a per-usage level (more about this
+later). The same mechanisms can be used not only for input value
+checking, but as well for return value checking (we will address this
+point as well later).</p></div>
 <div class="sect4">
 <h5 id="_built_in_value_constraints">Built-in Value Constraints</h5>
 <div class="paragraph"><p>NX comes with a set of built-in value constraints, which can be
@@ -2719,7 +2720,16 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span>  <span class='nx-comment'>#
 </span>  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>method</span> bar {{-x:integer 10} {-verbose:boolean false}} {
     <span class='nx-keyword'>puts</span> <span class='nx-string'>"x=$x verbose=$verbose"</span>
+    <span class='nx-keyword'>return</span> <span class='nx-variable'>$x</span>
   }
+
+  <span class='nx-comment'>#
+</span>  <span class='nx-comment'># Value constraints for return value
+</span>  <span class='nx-comment'>#
+</span>  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>method</span> baz {} -returns integer {
+    <span class='nx-keyword'>return</span> 123
+  }
+
 }
 
 <span class='nx-comment'># The following invocation raises an exception, since the
@@ -3514,7 +3524,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <div id="footer-text">
 Version 2.4.0<br />
 Last updated
- 2022-08-09 15:03:04 CEST
+ 2024-07-11 01:01:21 CEST
 </div>
 </div>
 </body>

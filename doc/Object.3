@@ -2,7 +2,7 @@
 '\" Generated from file 'Object\&.man' by tcllib/doctools with format 'nroff'
 '\" Copyright (c) 2014-19 Stefan Sobernig <stefan\&.sobernig@wu\&.ac\&.at>, Gustaf Neumann <gustaf\&.neumann@wu\&.ac\&.at>; available under the Creative Commons Attribution 3\&.0 Austria license (CC BY 3\&.0 AT)\&.
 '\"
-.TH "nx::Object" 3 2\&.4\&.0 Object "NX API"
+.TH "nx::Object" 3 2\&.5\&.0 Object "NX API"
 .\" The -*- nroff -*- definitions below are for supplemental macros used
 .\" in Tcl/Tk manual entries.
 .\"
@@ -303,6 +303,8 @@ nx::Object \- API reference of the base class in the NX object system
 \fIobj\fR \fBinfo children\fR ?\fB-type\fR \fIclassName\fR? ?\fIpattern\fR?
 .sp
 \fIobj\fR \fBinfo class\fR
+.sp
+\fIobj\fR \fBinfo consts\fR ?\fIpattern\fR?
 .sp
 \fIobj\fR \fBinfo has\fR ?\fBmixin\fR | \fBnamespace\fR | \fBtype\fR? ?\fIarg\fR \&.\&.\&.?
 .sp
@@ -896,6 +898,18 @@ Returns the fully qualified name of the current \fBnx::Class\fR of
 returned class will be different from the \fBnx::Class\fR from which \fIobj\fR was
 originally instantiated using \fBcreate\fR or \fBnew\fR\&.
 .TP
+\fIobj\fR \fBinfo consts\fR ?\fIpattern\fR?
+Returns a list of unmodifiable Tcl variable names created and defined
+for the scope of \fIobj\fR, i\&.e\&., object variables\&.  The command is
+very similar to the \fBinfo vars\fR method,
+but returns variables defined with the Tcl command \fBconst\fR only\&.
+Like for \fBinfo vars\fR rhe result list
+can be filtered via the \fIpattern\fR argument\&.  The \fIpattern\fR
+string can contain special string matching characters
+(see \fBstring match\fR)\&. Since the Tcl command \fBconst\fR was introduced via TIP 677
+(June 23) to Tcl9, the command returns for earlier versions of Tcl the
+empty list\&.
+.TP
 \fIobj\fR \fBinfo has\fR ?\fBmixin\fR | \fBnamespace\fR | \fBtype\fR? ?\fIarg\fR \&.\&.\&.?
 .RS
 .TP
@@ -1138,10 +1152,10 @@ eligible to (re-)define the given variable (e\&.g\&. using \fBobject variable\fR
 .RE
 .TP
 \fIobj\fR \fBinfo vars\fR ?\fIpattern\fR?
-Yields a list of Tcl variable names created and defined for the scope of
-\fIobj\fR, i\&.e\&., object variables\&. The list can be limited to object variables whose names
-match \fIpattern\fR\&. The \fIpattern\fR string can contain special
-matching characters (see \fBstring match\fR)\&.
+Returns a list of Tcl variable names created and defined for the scope
+of \fIobj\fR, i\&.e\&., object variables\&. The result list can be filtered
+via the \fIpattern\fR argument\&. The \fIpattern\fR string can contain
+special string matching characters (see \fBstring match\fR)\&.
 .RE
 .TP
 \fBmethod\fR
