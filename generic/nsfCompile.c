@@ -68,22 +68,22 @@ NsfGetCompEnv(void) {
 
 
 static int initProcNsCompile(Tcl_Interp *interp, Tcl_Parse *parsePtr,
-		  CompileEnv *envPtr) nonnull(1) nonnull(2) nonnull(3);
+                  CompileEnv *envPtr) nonnull(1) nonnull(2) nonnull(3);
 
 static int
 initProcNsCompile(Tcl_Interp *interp, Tcl_Parse *parsePtr,
-		  CompileEnv *envPtr) {
+                  CompileEnv *envPtr) {
 
   assert(interp != NULL);
   assert(parsePtr != NULL);
   assert(envPtr != NULL);
 
   if (parsePtr->numWords != 1) {
-	Tcl_ResetResult(interp);
-	Tcl_AppendToObj(Tcl_GetObjResult(interp),
-	        "wrong # args: should be '::nsf::initProcNS'", TCL_INDEX_NONE);
-	envPtr->maxStackDepth = 0;
-	return TCL_ERROR;
+        Tcl_ResetResult(interp);
+        Tcl_AppendToObj(Tcl_GetObjResult(interp),
+                "wrong # args: should be '::nsf::initProcNS'", TCL_INDEX_NONE);
+        envPtr->maxStackDepth = 0;
+        return TCL_ERROR;
     }
 
   TclEmitOpcode(instructions[INST_INITPROC].bytecode, envPtr);
@@ -93,11 +93,11 @@ initProcNsCompile(Tcl_Interp *interp, Tcl_Parse *parsePtr,
 }
 
 static int nextCompile(Tcl_Interp *interp, Tcl_Parse *parsePtr,
-		  CompileEnv *envPtr) nonnull(1) nonnull(2) nonnull(3);
+                  CompileEnv *envPtr) nonnull(1) nonnull(2) nonnull(3);
 
 static int
 nextCompile(Tcl_Interp *interp, Tcl_Parse *parsePtr,
-		  CompileEnv *envPtr) {
+                  CompileEnv *envPtr) {
 
   assert(interp != NULL);
   assert(parsePtr != NULL);
@@ -113,11 +113,11 @@ nextCompile(Tcl_Interp *interp, Tcl_Parse *parsePtr,
 }
 
 static int selfCompile(Tcl_Interp *interp, Tcl_Parse *parsePtr,
-		  CompileEnv *envPtr) nonnull(1) nonnull(2) nonnull(3);
+                  CompileEnv *envPtr) nonnull(1) nonnull(2) nonnull(3);
 
 static int
 selfCompile(Tcl_Interp *interp, Tcl_Parse *parsePtr,
-		  CompileEnv *envPtr) {
+                  CompileEnv *envPtr) {
 
   assert(interp != NULL);
   assert(parsePtr != NULL);
@@ -133,11 +133,11 @@ selfCompile(Tcl_Interp *interp, Tcl_Parse *parsePtr,
 }
 
 static int selfDispatchCompile(Tcl_Interp *interp, Tcl_Parse *parsePtr,
-		  CompileEnv *envPtr) nonnull(1) nonnull(2) nonnull(3);
+                  CompileEnv *envPtr) nonnull(1) nonnull(2) nonnull(3);
 
 static int
 selfDispatchCompile(Tcl_Interp *interp, Tcl_Parse *parsePtr,
-		  CompileEnv *envPtr) {
+                  CompileEnv *envPtr) {
 
   Tcl_Token *tokenPtr;
   int code, wordIdx;
@@ -148,7 +148,7 @@ selfDispatchCompile(Tcl_Interp *interp, Tcl_Parse *parsePtr,
 
   /*
   fprintf(stderr, "****** selfDispatchCompile words=%d tokens=%d, avail=%d\n",
-	  parsePtr->numWords, parsePtr->numTokens, parsePtr->tokensAvailable);
+          parsePtr->numWords, parsePtr->numTokens, parsePtr->tokensAvailable);
   */
 
   if (parsePtr->numWords > 255) {
@@ -162,25 +162,25 @@ selfDispatchCompile(Tcl_Interp *interp, Tcl_Parse *parsePtr,
 
     /*
     fprintf(stderr, "  %d: %p token type=%d size=%d\n",
-	    wordIdx, tokenPtr, tokenPtr->type, tokenPtr->size );
+            wordIdx, tokenPtr, tokenPtr->type, tokenPtr->size );
     */
     if (tokenPtr->type == TCL_TOKEN_SIMPLE_WORD) {
       TclEmitPush(TclRegisterLiteral(envPtr, tokenPtr->start,
-				     tokenPtr->size, 0), envPtr);
+                                     tokenPtr->size, 0), envPtr);
       envPtr->maxStackDepth = 1;
       /*
       fprintf(stderr, "  %d: simple '%s' components=%d\n",
-	      wordIdx, tokenPtr->start, tokenPtr->numComponents);
+              wordIdx, tokenPtr->start, tokenPtr->numComponents);
       */
     } else {
       /*
       fprintf(stderr, "  %d NOT simple '%s' components=%d\n",
-	      wordIdx, tokenPtr->start, tokenPtr->numComponents);
+              wordIdx, tokenPtr->start, tokenPtr->numComponents);
       */
       code = TclCompileTokens(interp, tokenPtr+1,
-			      tokenPtr->numComponents, envPtr);
+                              tokenPtr->numComponents, envPtr);
       if (code != TCL_OK) {
-	return code;
+        return code;
       }
     }
   }
@@ -199,14 +199,15 @@ void
 NsfBytecodeInit(void) {
   int i;
 
-  for(i=0; i<LAST_INSTRUCTION; i++) {
+  for (i = 0; i < LAST_INSTRUCTION; i++) {
+    Tcl_Command cmd = (Tcl_Command)instructions[i].cmdPtr;
+
     if ((instructions[i].bytecode =
-       TclRegisterUserOpcode(&instructionTable[i],
-			     instructions[i].callProc,
-			     instructions[i].cmdPtr->objClientData))) {
+         TclRegisterUserOpcode(&instructionTable[i],
+                               instructions[i].callProc,
+                               Tcl_Command_objClientData(cmd)))) {
       instructions[i].cmdPtr->compileProc = instructions[i].compileProc;
     }
-
   }
   /*tclTraceCompile = 2;*/
 
