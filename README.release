@@ -162,7 +162,7 @@ Steps for a beta release:
          * configure.ac (NsfVersion, NSF_MAJOR_VERSION, NSF_MINOR_VERSION)
 	 * library/nx/nx.tcl
          * library/nx/pkgIndex.tcl
-	 * library/xotcl/library/xotcl2.tcl
+	 * library/xotcl/library/xotcl2.tcl, ::xotcl::version, ::xotcl::patchlevel
          * win/pkg.vc
 	 * library/serialize/serializer.tcl
 	 * library/mongodb/nx-mongo.tcl

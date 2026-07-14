@@ -13,7 +13,7 @@
 #--------------------------------------------------------------------
 AC_PREREQ([2.71])
 
-define(NsfVersion, 2.4.0)
+define(NsfVersion, 2.5.0)
 AC_INIT([nsf],[NsfVersion],[https://sourceforge.net/p/next-scripting/tickets/])
 
 AC_CONFIG_MACRO_DIR([m4])
@@ -92,7 +92,7 @@ AC_SUBST([subdirs])
 #--------------------------------------------------------------------
 
 NSF_MAJOR_VERSION=2
-NSF_MINOR_VERSION=4
+NSF_MINOR_VERSION=5
 
 NSF_PATCH_LEVEL=$PACKAGE_VERSION
 

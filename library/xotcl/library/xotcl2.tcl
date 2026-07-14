@@ -39,7 +39,7 @@
 #
 
 package require nx
-package provide XOTcl 2.4.0
+package provide XOTcl 2.5.0
 
 #######################################################
 # Classical ::xotcl*
@@ -48,7 +48,7 @@ namespace eval ::xotcl {
   #
   # Set XOTcl version variables
   #
-  set ::xotcl::version 2.3
+  set ::xotcl::version 2.5
   set ::xotcl::patchlevel .0
 
   namespace eval ::nsf {}            ;# make pkg-indexer happy
