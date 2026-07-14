@@ -167,6 +167,8 @@ Steps for a beta release:
 	 * library/serialize/serializer.tcl
 	 * library/mongodb/nx-mongo.tcl
 	 * library/mongodb/configure.ac
+	 * library/mongodb/pkgIndex.tcl
+	 * library/xotcl/library/serialize/Serializer.xotcl
        in SRCDIR and SRCDIR/library/mongodb/
        autoconf
        ./configure ....
