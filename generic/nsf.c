@@ -3970,8 +3970,8 @@ ResolveMethodName(
       }
       parentNsPtr = ensembleObject->nsPtr;
 
-      Tcl_AppendLimitedToObj(methodHandleObj, "::", 2, INT_MAX, NULL);
-      Tcl_AppendLimitedToObj(methodHandleObj, ObjStr(ov[i]), TCL_INDEX_NONE, INT_MAX, NULL);
+      Tcl_AppendLimitedToObj(methodHandleObj, "::", 2, TCL_SIZE_MAX, NULL);
+      Tcl_AppendLimitedToObj(methodHandleObj, ObjStr(ov[i]), TCL_INDEX_NONE, TCL_SIZE_MAX, NULL);
       if (methodNameDs != NULL) {
         Tcl_DStringAppendElement(methodNameDs, ObjStr(ov[i]));
       }
@@ -7672,7 +7672,7 @@ AutonameIncr(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfObject *object,
         buffer[0] = (char)tolower((int)firstChar);
         resultObj = Tcl_NewStringObj(buffer, 1);
         INCR_REF_COUNT2("autoname", resultObj);
-        Tcl_AppendLimitedToObj(resultObj, nextChars, TCL_INDEX_NONE, INT_MAX, NULL);
+        Tcl_AppendLimitedToObj(resultObj, nextChars, TCL_INDEX_NONE, TCL_SIZE_MAX, NULL);
         mustCopy = NSF_FALSE;
       }
     }
@@ -7725,7 +7725,7 @@ AutonameIncr(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfObject *object,
     } else {
       const char *valueString = Tcl_GetString(valueObj);
 
-      Tcl_AppendLimitedToObj(resultObj, valueString, valueObj->length, INT_MAX, NULL);
+      Tcl_AppendLimitedToObj(resultObj, valueString, valueObj->length, TCL_SIZE_MAX, NULL);
     }
   }
 
@@ -13436,15 +13436,15 @@ ParamDefsFormatOption(
   nonnull_assert(firstOption != NULL);
 
   if (!*colonWritten) {
-    Tcl_AppendLimitedToObj(nameStringObj, ":", 1, INT_MAX, NULL);
+    Tcl_AppendLimitedToObj(nameStringObj, ":", 1, TCL_SIZE_MAX, NULL);
     *colonWritten = 1;
   }
   if (*firstOption) {
     *firstOption = 0;
   } else {
-    Tcl_AppendLimitedToObj(nameStringObj, ",", 1, INT_MAX, NULL);
+    Tcl_AppendLimitedToObj(nameStringObj, ",", 1, TCL_SIZE_MAX, NULL);
   }
-  Tcl_AppendLimitedToObj(nameStringObj, option, (TCL_SIZE_T)optionLength, INT_MAX, NULL);
+  Tcl_AppendLimitedToObj(nameStringObj, option, (TCL_SIZE_T)optionLength, TCL_SIZE_MAX, NULL);
 }
 
 /*
@@ -13790,27 +13790,27 @@ NsfParamDefsSyntaxOne(Tcl_Obj *argStringObj, const Nsf_Param *pPtr) {
   nonnull_assert(pPtr != NULL);
 
   if (pPtr->nrArgs > 0 && *pPtr->name == '-') {
-    Tcl_AppendLimitedToObj(argStringObj, pPtr->name, TCL_INDEX_NONE, INT_MAX, NULL);
-    Tcl_AppendLimitedToObj(argStringObj, " ", 1, INT_MAX, NULL);
+    Tcl_AppendLimitedToObj(argStringObj, pPtr->name, TCL_INDEX_NONE, TCL_SIZE_MAX, NULL);
+    Tcl_AppendLimitedToObj(argStringObj, " ", 1, TCL_SIZE_MAX, NULL);
     if ((pPtr->flags & NSF_ARG_IS_ENUMERATION) != 0u) {
-      Tcl_AppendLimitedToObj(argStringObj, ParamGetDomain(pPtr), TCL_INDEX_NONE, INT_MAX, NULL);
+      Tcl_AppendLimitedToObj(argStringObj, ParamGetDomain(pPtr), TCL_INDEX_NONE, TCL_SIZE_MAX, NULL);
       if ((pPtr->flags & NSF_ARG_MULTIVALUED) != 0u)  {
-        Tcl_AppendLimitedToObj(argStringObj, " ...", 4, INT_MAX, NULL);
+        Tcl_AppendLimitedToObj(argStringObj, " ...", 4, TCL_SIZE_MAX, NULL);
       }
     } else {
-      Tcl_AppendLimitedToObj(argStringObj, "/", 1, INT_MAX, NULL);
-      Tcl_AppendLimitedToObj(argStringObj, ParamGetDomain(pPtr), TCL_INDEX_NONE, INT_MAX, NULL);
+      Tcl_AppendLimitedToObj(argStringObj, "/", 1, TCL_SIZE_MAX, NULL);
+      Tcl_AppendLimitedToObj(argStringObj, ParamGetDomain(pPtr), TCL_INDEX_NONE, TCL_SIZE_MAX, NULL);
       if ((pPtr->flags & NSF_ARG_MULTIVALUED) != 0u) {
-        Tcl_AppendLimitedToObj(argStringObj, " ...", 4, INT_MAX, NULL);
+        Tcl_AppendLimitedToObj(argStringObj, " ...", 4, TCL_SIZE_MAX, NULL);
       }
-      Tcl_AppendLimitedToObj(argStringObj, "/", 1, INT_MAX, NULL);
+      Tcl_AppendLimitedToObj(argStringObj, "/", 1, TCL_SIZE_MAX, NULL);
     }
   } else if (*pPtr->name != '-') {
-    Tcl_AppendLimitedToObj(argStringObj, "/", 1, INT_MAX, NULL);
-    Tcl_AppendLimitedToObj(argStringObj, pPtr->name, TCL_INDEX_NONE, INT_MAX, NULL);
-    Tcl_AppendLimitedToObj(argStringObj, "/", 1, INT_MAX, NULL);
+    Tcl_AppendLimitedToObj(argStringObj, "/", 1, TCL_SIZE_MAX, NULL);
+    Tcl_AppendLimitedToObj(argStringObj, pPtr->name, TCL_INDEX_NONE, TCL_SIZE_MAX, NULL);
+    Tcl_AppendLimitedToObj(argStringObj, "/", 1, TCL_SIZE_MAX, NULL);
   } else {
-    Tcl_AppendLimitedToObj(argStringObj, pPtr->name, TCL_INDEX_NONE, INT_MAX, NULL);
+    Tcl_AppendLimitedToObj(argStringObj, pPtr->name, TCL_INDEX_NONE, TCL_SIZE_MAX, NULL);
   }
 }
 
@@ -13974,7 +13974,7 @@ NsfParamDefsSyntax(
         if (formattedObj != NULL) {
           argsResolved = 1;
           if (needSpace != 0) {
-            Tcl_AppendLimitedToObj(argStringObj, " ", 1, INT_MAX, NULL);
+            Tcl_AppendLimitedToObj(argStringObj, " ", 1, TCL_SIZE_MAX, NULL);
           }
           Tcl_AppendObjToObj(argStringObj, formattedObj);
           DECR_REF_COUNT2("paramDefsObj", formattedObj);
@@ -13985,9 +13985,9 @@ NsfParamDefsSyntax(
           continue;
         }
         if (needSpace != 0) {
-          Tcl_AppendLimitedToObj(argStringObj, " ", 1, INT_MAX, NULL);
+          Tcl_AppendLimitedToObj(argStringObj, " ", 1, TCL_SIZE_MAX, NULL);
         }
-        Tcl_AppendLimitedToObj(argStringObj, "?/arg .../?", 11, INT_MAX, NULL);
+        Tcl_AppendLimitedToObj(argStringObj, "?/arg .../?", 11, TCL_SIZE_MAX, NULL);
       }
 
     } else if ((pPtr->flags & NSF_ARG_REQUIRED) != 0u) {
@@ -13995,12 +13995,12 @@ NsfParamDefsSyntax(
         continue;
       }
       if (needSpace != 0) {
-        Tcl_AppendLimitedToObj(argStringObj, " ", 1, INT_MAX, NULL);
+        Tcl_AppendLimitedToObj(argStringObj, " ", 1, TCL_SIZE_MAX, NULL);
       }
 
       if ((pPtr->flags & NSF_ARG_IS_ENUMERATION) != 0u) {
         Tcl_AppendLimitedToObj(argStringObj, Nsf_EnumerationTypeGetDomain(pPtr->converter),
-                               TCL_INDEX_NONE, INT_MAX, NULL);
+                               TCL_INDEX_NONE, TCL_SIZE_MAX, NULL);
       } else {
         NsfParamDefsSyntaxOne(argStringObj, pPtr);
       }
@@ -14010,11 +14010,11 @@ NsfParamDefsSyntax(
         continue;
       }
       if (needSpace != 0) {
-        Tcl_AppendLimitedToObj(argStringObj, " ", 1, INT_MAX, NULL);
+        Tcl_AppendLimitedToObj(argStringObj, " ", 1, TCL_SIZE_MAX, NULL);
       }
-      Tcl_AppendLimitedToObj(argStringObj, "?", 1, INT_MAX, NULL);
+      Tcl_AppendLimitedToObj(argStringObj, "?", 1, TCL_SIZE_MAX, NULL);
       NsfParamDefsSyntaxOne(argStringObj, pPtr);
-      Tcl_AppendLimitedToObj(argStringObj, "?", 1, INT_MAX, NULL);
+      Tcl_AppendLimitedToObj(argStringObj, "?", 1, TCL_SIZE_MAX, NULL);
     }
     needSpace = 1;
   }
@@ -17571,7 +17571,7 @@ ConvertToObjpattern(Tcl_Interp *interp, Tcl_Obj *objPtr, const Nsf_Param *UNUSED
      */
     if (*pattern != ':' && *pattern+1 != ':') {
       patternObj = Tcl_NewStringObj("::", 2);
-      Tcl_AppendLimitedToObj(patternObj, pattern, TCL_INDEX_NONE, INT_MAX, NULL);
+      Tcl_AppendLimitedToObj(patternObj, pattern, TCL_INDEX_NONE, TCL_SIZE_MAX, NULL);
     }
   }
   if (patternObj != NULL) {
@@ -17611,7 +17611,7 @@ ParamCheckObj(const char *start, size_t len) {
 
   nonnull_assert(start != NULL);
 
-  Tcl_AppendLimitedToObj(checker, start, (TCL_SIZE_T)len, INT_MAX, NULL);
+  Tcl_AppendLimitedToObj(checker, start, (TCL_SIZE_T)len, TCL_SIZE_MAX, NULL);
   return checker;
 }
 
@@ -31866,7 +31866,7 @@ ParamSetFromAny2(
   paramWrapperPtr->paramPtr = ParamsNew(1u);
   paramWrapperPtr->refCount = 1;
 
-  Tcl_AppendLimitedToObj(fullParamObj, ObjStr(objPtr), TCL_INDEX_NONE, INT_MAX, NULL);
+  Tcl_AppendLimitedToObj(fullParamObj, ObjStr(objPtr), TCL_INDEX_NONE, TCL_SIZE_MAX, NULL);
   INCR_REF_COUNT(fullParamObj);
 
   result = ParamDefinitionParse(interp, NsfGlobalObjs[NSF_VALUECHECK], fullParamObj,
