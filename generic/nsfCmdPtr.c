@@ -51,7 +51,7 @@ NsfGetClientDataFromCmdPtr(const Tcl_Command cmd) {
   nonnull_assert(cmd != NULL);
 
   /*  
-   * When we activate NS_TCL_HAVE_TIP629 (TIP supporting > 2^31
+   * When we activate NS_TCL_HAVE_TIP626 (TIP supporting > 2^31
    * elements in object vectors), Tcl defines different objProcs
    * (Tcl_ObjCmdProc and Tcl_ObjCmdProc2) where the usage of these
    * depends on a cmdWrapperProc. Unfortunately, the resolving of

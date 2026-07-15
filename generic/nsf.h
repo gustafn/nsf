@@ -84,9 +84,9 @@
 #if 0
 #ifndef NS_TCL_PRE87
 # if TCL_MAJOR_VERSION<=8 && TCL_MINOR_VERSION>=7 && TCL_RELEASE_SERIAL>=6
-#  define NS_TCL_HAVE_TIP629
+#  define NS_TCL_HAVE_TIP626
 # elif (TCL_MAJOR_VERSION>=9)
-#  define NS_TCL_HAVE_TIP629
+#  define NS_TCL_HAVE_TIP626
 /*
 # else
 #  define XSTR(x) STR(x)
@@ -103,7 +103,7 @@
  * tables, since empty entries are treated as existing commands.
  */
 #ifndef PRE91
-# define NS_TCL_HAVE_TIP629
+# define NS_TCL_HAVE_TIP626
 # define NsfFindHashEntry(tablePtr, key) Tcl_FindHashEntry((tablePtr), (key))
 #else
 # define NsfFindHashEntry(tablePtr, key) Tcl_CreateHashEntry((tablePtr), (key), NULL)
@@ -128,7 +128,7 @@ typedef Tcl_Size Nsf_Tcl_Size_t;
 # define TCL_INDEX_NONE -1
 #endif
 
-#ifndef NS_TCL_HAVE_TIP629
+#ifndef NS_TCL_HAVE_TIP626
 # define TCL_OBJC_T           int
 # define TCL_OBJCMDPROC_T     Tcl_ObjCmdProc
 # define TCL_CREATEOBJCOMMAND Tcl_CreateObjCommand
@@ -138,7 +138,8 @@ typedef Tcl_Size Nsf_Tcl_Size_t;
 # define TCL_COMMAND_OBJPROC(cmd) Tcl_Command_objProc(cmd)
 #else
 /*
- * Support for TIP 627
+ * Support for TIPs 626 & 627
+ * https://core.tcl-lang.org/tips/doc/trunk/tip/626.md
  * https://core.tcl-lang.org/tips/doc/trunk/tip/627.md
 */
 # define TCL_OBJC_T           Tcl_Size

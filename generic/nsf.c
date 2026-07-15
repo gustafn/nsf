@@ -2231,7 +2231,7 @@ GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
       Tcl_Obj    **alias_ov;
       /*
        * The "right" type here is TCL_OBJC_T, which can be obtained when we
-       * activate NS_TCL_HAVE_TIP629 (TIP supporting > 2^31 elements in object
+       * activate NS_TCL_HAVE_TIP626 (TIP supporting > 2^31 elements in object
        * vectors). However, Tcl defines different objProcs (Tcl_ObjCmdProc vs
        * Tcl_ObjCmdProc2) whith different client data, which we have not
        * addressed yet (for details, see nsfCmdPtr.c). Note, that in the
