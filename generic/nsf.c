@@ -16912,9 +16912,9 @@ Nsf_ConvertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr,
 
     result = NsfCallCommand(interp, NSF_STRING_IS, 4, objv);
     if (likely(result == TCL_OK)) {
-      int success;
+      TCL_SIZE_T success;
 
-      Tcl_GetIntFromObj(interp, Tcl_GetObjResult(interp), &success);
+      Tcl_GetSizeIntFromObj(interp, Tcl_GetObjResult(interp), &success);
       if (success == 1) {
         *clientData = objPtr;
         /*
@@ -23719,7 +23719,7 @@ ForwardArg(
       }
     } else if (c == '-') {
       const char *firstElementString;
-      int         insertRequired;
+      TCL_SIZE_T  insertRequired;
       bool        done = NSF_FALSE;
 
       /*fprintf(stderr, "process flag '%s'\n", firstActualArgument);*/
@@ -23767,7 +23767,7 @@ ForwardArg(
          * given in the argument list.
          */
         if (nrElements == 2
-            && Tcl_GetIntFromObj(interp, listElements[1], &insertRequired) == TCL_OK
+            && Tcl_GetSizeIntFromObj(interp, listElements[1], &insertRequired) == TCL_OK
             && insertRequired) {
           /*
            * No match, but insert of flag is required.
@@ -26162,7 +26162,7 @@ ListMethod(Tcl_Interp *interp,
     }
   case InfomethodsubcmdExistsIdx:
     {
-      Tcl_SetObjResult(interp, Tcl_NewIntObj((int)(!CmdIsNsfObject(cmd))));
+      Tcl_SetObjResult(interp, Tcl_NewSizeIntObj((int)(!CmdIsNsfObject(cmd))));
       return TCL_OK;
     }
   case InfomethodsubcmdArgsIdx:
@@ -26739,7 +26739,7 @@ ListMethodResolve(Tcl_Interp *interp, InfomethodsubcmdIdx_t subcmd,
                         contextObject, pattern, (fromClassNS == 0));
 
   } else if (subcmd == InfomethodsubcmdExistsIdx) {
-    Tcl_SetObjResult(interp, Tcl_NewIntObj(0));
+    Tcl_SetObjResult(interp, Tcl_NewSizeIntObj(0));
   }
 
   Tcl_DStringFree(dsPtr);
@@ -27908,7 +27908,7 @@ NsfDebugCompileEpoch(Tcl_Interp *interp) {
 
   nonnull_assert(interp != NULL);
 
-  Tcl_SetObjResult(interp, Tcl_NewIntObj((int)(((Interp *)interp)->compileEpoch)));
+  Tcl_SetObjResult(interp, Tcl_NewSizeIntObj((int)(((Interp *)interp)->compileEpoch)));
   return TCL_OK;
 }
 
@@ -28002,9 +28002,9 @@ NsfDebugGetDict(Tcl_Interp *interp, Tcl_Obj *obj) {
   Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("type", TCL_INDEX_NONE));
   Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj(typeString, TCL_INDEX_NONE));
   Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("refcount", TCL_INDEX_NONE));
-  Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewIntObj(obj->refCount));
+  Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewSizeIntObj(obj->refCount));
   Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("length", TCL_INDEX_NONE));
-  Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewIntObj(obj->length));
+  Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewSizeIntObj(obj->length));
   Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("hex", TCL_INDEX_NONE));
 
   if (obj->bytes != NULL) {
@@ -28422,7 +28422,7 @@ NsfConfigureCmd(Tcl_Interp *interp, ConfigureoptionIdx_t option, Tcl_Obj *valueO
           Tcl_ListObjAppendElement(interp, listObj, osPtr->methods[idx]);
           Tcl_ListObjAppendElement(interp, listObj, osPtr->handles[idx]);
           if (osPtr->protected[idx]) {
-            Tcl_ListObjAppendElement(interp, listObj, Tcl_NewIntObj(1));
+            Tcl_ListObjAppendElement(interp, listObj, Tcl_NewSizeIntObj(1));
           }
           Tcl_ListObjAppendElement(interp, systemMethods, listObj);
         } else {
@@ -28439,7 +28439,8 @@ NsfConfigureCmd(Tcl_Interp *interp, ConfigureoptionIdx_t option, Tcl_Obj *valueO
   if (option == ConfigureoptionDebugIdx) {
 
     if (valueObj != NULL) {
-      int level, result = Tcl_GetIntFromObj(interp, valueObj, &level);
+      TCL_SIZE_T level;
+      int result = Tcl_GetSizeIntFromObj(interp, valueObj, &level);
 
       if (unlikely(result != TCL_OK)) {
         return result;
@@ -29714,7 +29715,7 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
 
   if (unlikely(cmd == NULL)) {
     if (methodProperty == MethodpropertyExistsIdx) {
-      Tcl_SetObjResult(interp, Tcl_NewIntObj(0));
+      Tcl_SetObjResult(interp, Tcl_NewSizeIntObj(0));
       return TCL_OK;
     } else {
       return NsfPrintError(interp, "cannot lookup %smethod '%s' for %s",
@@ -29725,7 +29726,7 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
 
   switch (methodProperty) {
   case MethodpropertyExistsIdx:
-    Tcl_SetObjResult(interp, Tcl_NewIntObj(1));
+    Tcl_SetObjResult(interp, Tcl_NewSizeIntObj(1));
     break;
   case MethodpropertyClass_onlyIdx:          ;NSF_FALL_THROUGH; /* fall through */
   case MethodpropertyCall_privateIdx:        ;NSF_FALL_THROUGH; /* fall through */
@@ -31517,7 +31518,7 @@ NsfCurrentCmd(Tcl_Interp *interp, CurrentoptionIdx_t option) {
      * We have an "object", therefore, we are on an NSF-frame/level. In this
      * case, "nsf level" behaves like "info level" (without arguments).
      */
-    Tcl_SetObjResult(interp, Tcl_NewIntObj(Tcl_CallFrame_level(Tcl_Interp_varFramePtr(interp))));
+    Tcl_SetObjResult(interp, Tcl_NewSizeIntObj(Tcl_CallFrame_level(Tcl_Interp_varFramePtr(interp))));
     break;
 
   case CurrentoptionNextmethodIdx: {
@@ -32585,7 +32586,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, TCL_OBJC_T objc, Tcl_
               goto configure_exit;
             }
             if (unlikely(Tcl_ObjSetVar2(interp, NsfGlobalObjs[NSF_ARRAY_INITCMD],
-                                        paramPtr->nameObj, Tcl_NewIntObj(1), TCL_LEAVE_ERR_MSG) == NULL)) {
+                                        paramPtr->nameObj, Tcl_NewSizeIntObj(1), TCL_LEAVE_ERR_MSG) == NULL)) {
               Nsf_PopFrameObj(interp, framePtr);
               goto configure_exit;
             }
@@ -36278,7 +36279,7 @@ Nsf_Init(
    * Type "int" and "wideInt" are a moving target in Tcl 8.7a+.  So, get the
    * type from the Tcl_Obj directly, which will continue to work.
    */
-  tmpObj = Tcl_NewIntObj(0);
+  tmpObj = Tcl_NewSizeIntObj(0);
   Nsf_OT_intType = tmpObj->typePtr;
   Tcl_DecrRefCount(tmpObj);
   assert(Nsf_OT_intType != NULL);

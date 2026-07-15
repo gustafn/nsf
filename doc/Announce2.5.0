@@ -58,15 +58,21 @@ Further selected changes worth noting:
 
   * Tcl 9.1 compat reform:
 
+    - Tcl 9.1 enforces TIP 626 and removes Tcl internal legacy. NSF
+      2.5.0 tracks these changes, as it requires access to Tcl
+      internal structures (Command).
+
     - Supports the Tcl 9.1 TIP-627-only Command structure
       (objProc2/objClientData2), with the legacy, deprecated
       objProc/objClientData removed.
   
-    - Rework TIP 627 compatibility macros
+    - Rework TIP 626 compatibility macros, which still allows to build
+      and use NSF for Tcl 8.5 through 9.1.
 
-  * Tcl 9.0 and 9.1 stub headers and stub initialisation
+  * Tcl 9.1 stub headers and stub initialisation
+
+  * Cont'd Tcl 9 64-bit data reform (TIP 660/ 494): Adopt Tcl_Size & helpers
   
-
 - NX:
 
   * "info consts":

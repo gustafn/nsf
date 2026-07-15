@@ -395,11 +395,11 @@ Nsf_ProfileFilterObjCmd(ClientData cd, Tcl_Interp *interp, TCL_OBJC_T objc, Tcl_
  *----------------------------------------------------------------------
  */
 static int
-GetPair(Tcl_Interp *interp, Tcl_Obj *objPtr, int verbose, Tcl_Obj **nameObjPtr, int *nrArgsPtr)
+GetPair(Tcl_Interp *interp, Tcl_Obj *objPtr, int verbose, Tcl_Obj **nameObjPtr, TCL_SIZE_T *nrArgsPtr)
   nonnull(1) nonnull(2) nonnull(4) nonnull(5);
 
 static int
-GetPair(Tcl_Interp *interp, Tcl_Obj *objPtr, int verbose, Tcl_Obj **nameObjPtr, int *nrArgsPtr) {
+GetPair(Tcl_Interp *interp, Tcl_Obj *objPtr, int verbose, Tcl_Obj **nameObjPtr, TCL_SIZE_T *nrArgsPtr) {
   int        result = TCL_OK;
   TCL_SIZE_T oc;
   Tcl_Obj  **ov;
@@ -413,7 +413,7 @@ GetPair(Tcl_Interp *interp, Tcl_Obj *objPtr, int verbose, Tcl_Obj **nameObjPtr, 
     if (oc == 1) {
       *nameObjPtr = ov[0];
     } else if (oc == 2) {
-      if (Tcl_GetIntFromObj(interp, ov[1], nrArgsPtr) == TCL_OK) {
+      if (Tcl_GetSizeIntFromObj(interp, ov[1], nrArgsPtr) == TCL_OK) {
         *nameObjPtr = ov[0];
       } else {
         if (verbose) {

@@ -124,8 +124,19 @@ typedef Tcl_Size Nsf_Tcl_Size_t;
 
 # define TCL_SIZE_T Nsf_Tcl_Size_t
 
-#ifndef TCL_INDEX_NONE
-# define TCL_INDEX_NONE -1
+//#ifndef TCL_INDEX_NONE
+//# define TCL_INDEX_NONE -1
+//#endif
+
+#ifndef TCL_SIZE_MAX
+# define Tcl_NewSizeIntObj     Tcl_NewIntObj
+# define Tcl_GetSizeIntFromObj Tcl_GetIntFromObj
+
+# define TCL_SIZE_MAX          INT_MAX
+# define TCL_SIZE_MODIFIER     ""
+# define TCL_INDEX_NONE        ((TCL_SIZE_T)-1)
+#else
+# define Tcl_NewSizeIntObj     Tcl_NewWideIntObj
 #endif
 
 #ifndef NS_TCL_HAVE_TIP626
@@ -159,10 +170,6 @@ typedef Tcl_Size Nsf_Tcl_Size_t;
 #  define Tcl_GetChild Tcl_GetSlave
 #  define Tcl_GetParent Tcl_GetMaster
 # endif
-#endif
-
-#ifndef TCL_INDEX_NONE
-# define TCL_INDEX_NONE -1
 #endif
 
 /*

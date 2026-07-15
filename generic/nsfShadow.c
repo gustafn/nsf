@@ -354,7 +354,8 @@ Nsf_InfoFrameObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, TCL_OBJC_
   result = NsfCallCommand(interp, NSF_INFO_FRAME, objc, objv);
 
   if (result == TCL_OK && objc == 2) {
-    int          level, topLevel;
+    TCL_SIZE_T   level;
+    int topLevel;
     unsigned int frameFlags;
     CmdFrame    *framePtr = Tcl_Interp_cmdFramePtr(interp);
     CallFrame   *varFramePtr = Tcl_Interp_varFramePtr(interp);
@@ -363,7 +364,7 @@ Nsf_InfoFrameObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, TCL_OBJC_
     /*
      * Level must be ok, otherwise we would not have a TCL_OK.
      */
-    Tcl_GetIntFromObj(interp, objv[1], &level);
+    Tcl_GetSizeIntFromObj(interp, objv[1], &level);
 
     /* todo: coroutine level messing is missing. Needed? */
     topLevel = (framePtr == NULL) ? 0 :  framePtr->level;
