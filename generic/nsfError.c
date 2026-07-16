@@ -305,7 +305,7 @@ NsfErrInProc(
   const char *cName, *space;
 
   Tcl_DStringInit(&errMsg);
-  Tcl_DStringAppend(&errMsg, "\n    ", TCL_INDEX_NONE);
+  Tcl_DStringAppend(&errMsg, "\n    ", TCL_AUTO_LENGTH);
   if (clName != NULL) {
     cName = ObjStr(clName);
     space = " ";
@@ -313,11 +313,11 @@ NsfErrInProc(
     cName = "";
     space = "";
   }
-  Tcl_DStringAppend(&errMsg, ObjStr(objName), TCL_INDEX_NONE);
-  Tcl_DStringAppend(&errMsg, space, TCL_INDEX_NONE);
-  Tcl_DStringAppend(&errMsg, cName, TCL_INDEX_NONE);
+  Tcl_DStringAppend(&errMsg, ObjStr(objName), TCL_AUTO_LENGTH);
+  Tcl_DStringAppend(&errMsg, space, TCL_AUTO_LENGTH);
+  Tcl_DStringAppend(&errMsg, cName, TCL_AUTO_LENGTH);
   Tcl_DStringAppend(&errMsg, "->", 2);
-  Tcl_DStringAppend(&errMsg, procName, TCL_INDEX_NONE);
+  Tcl_DStringAppend(&errMsg, procName, TCL_AUTO_LENGTH);
   Tcl_AddErrorInfo (interp, Tcl_DStringValue(&errMsg));
   Tcl_DStringFree(&errMsg);
   return TCL_ERROR;
@@ -355,7 +355,7 @@ NsfObjWrongArgs(
 
   Nsf_DStringPrintf(&ds, "%s should be \"", msg);
   if (cmdNameObj != NULL) {
-    Tcl_DStringAppend(&ds, ObjStr(cmdNameObj), TCL_INDEX_NONE);
+    Tcl_DStringAppend(&ds, ObjStr(cmdNameObj), TCL_AUTO_LENGTH);
     need_space = NSF_TRUE;
   }
 
@@ -365,7 +365,7 @@ NsfObjWrongArgs(
     }
 
     INCR_REF_COUNT(methodPathObj);
-    Tcl_DStringAppend(&ds, ObjStr(methodPathObj), TCL_INDEX_NONE);
+    Tcl_DStringAppend(&ds, ObjStr(methodPathObj), TCL_AUTO_LENGTH);
     DECR_REF_COUNT(methodPathObj);
 
     need_space = NSF_TRUE;
@@ -374,7 +374,7 @@ NsfObjWrongArgs(
     if (need_space) {
       Tcl_DStringAppend(&ds, " ", 1);
     }
-    Tcl_DStringAppend(&ds, arglist, TCL_INDEX_NONE);
+    Tcl_DStringAppend(&ds, arglist, TCL_AUTO_LENGTH);
   }
   Tcl_DStringAppend(&ds, "\"", 1);
 
@@ -493,8 +493,8 @@ NsfUnexpectedNonposArgumentError(
     if (pPtr->flags & NSF_ARG_NOCONFIG) {
       continue;
     }
-    Tcl_DStringAppend(dsPtr, pPtr->name, TCL_INDEX_NONE);
-    Tcl_DStringAppend(dsPtr, ", ", TCL_INDEX_NONE);
+    Tcl_DStringAppend(dsPtr, pPtr->name, TCL_AUTO_LENGTH);
+    Tcl_DStringAppend(dsPtr, ", ", TCL_AUTO_LENGTH);
   }
   Tcl_DStringSetLength(dsPtr, Tcl_DStringLength(dsPtr) - 2);
   Tcl_DStringAppend(dsPtr, ";\n", 2);
@@ -599,11 +599,11 @@ NsfObjErrType(
   Tcl_DStringInit(&ds);
   if (errMsgLen > 0) {
     Tcl_DStringAppend(&ds, prevErrMsg, errMsgLen);
-    Tcl_DStringAppend(&ds, " 2nd error: ", TCL_INDEX_NONE);
+    Tcl_DStringAppend(&ds, " 2nd error: ", TCL_AUTO_LENGTH);
   }
 
   if (context != NULL) {
-    Tcl_DStringAppend(&ds, context, TCL_INDEX_NONE);
+    Tcl_DStringAppend(&ds, context, TCL_AUTO_LENGTH);
     Tcl_DStringAppend(&ds, ": ", 2);
   }
 
@@ -611,7 +611,7 @@ NsfObjErrType(
   if (isNamed) {
     Nsf_DStringPrintf(&ds, " for parameter \"%s\"", NsfObjErrType->name);
   } else if (returnValue != 0) {
-    Tcl_DStringAppend(&ds, " as return value", TCL_INDEX_NONE);
+    Tcl_DStringAppend(&ds, " as return value", TCL_AUTO_LENGTH);
   }
 
   Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_DStringValue(&ds), Tcl_DStringLength(&ds)));

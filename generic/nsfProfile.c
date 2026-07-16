@@ -67,9 +67,9 @@ NsfProfileObjectLabel(Tcl_DString *dsPtr, NsfObject *object) {
   nonnull_assert(dsPtr != NULL);
   nonnull_assert(object != NULL);
 
-  Tcl_DStringAppend(dsPtr, ObjectName_(object), TCL_INDEX_NONE);
+  Tcl_DStringAppend(dsPtr, ObjectName_(object), TCL_AUTO_LENGTH);
   Tcl_DStringAppend(dsPtr, " ", 1);
-  Tcl_DStringAppend(dsPtr, ClassName(object->cl), TCL_INDEX_NONE);
+  Tcl_DStringAppend(dsPtr, ClassName(object->cl), TCL_AUTO_LENGTH);
 }
 
 /*
@@ -98,7 +98,7 @@ NsfProfileMethodLabel(Tcl_DString *dsPtr, NsfClass *class, const char *methodNam
   Tcl_DStringAppendElement(dsPtr, methodName);
   if (class != NULL) {
     Tcl_DStringAppend(dsPtr, " ", 1);
-    Tcl_DStringAppend(dsPtr, ObjStr(class->object.cmdName), TCL_INDEX_NONE);
+    Tcl_DStringAppend(dsPtr, ObjStr(class->object.cmdName), TCL_AUTO_LENGTH);
   }
 
 }
@@ -360,10 +360,10 @@ Nsf_ProfileFilterObjCmd(ClientData cd, Tcl_Interp *interp, TCL_OBJC_T objc, Tcl_
     }
 
     Tcl_DStringInit(&ds);
-    Tcl_DStringAppend(&ds, fullMethodName, TCL_INDEX_NONE);
+    Tcl_DStringAppend(&ds, fullMethodName, TCL_AUTO_LENGTH);
     for (i = 1; i<=nrArgs; i++) {
       Tcl_DStringAppend(&ds, " ", 1);
-      Tcl_DStringAppend(&ds, ObjStr(objv[i]), TCL_INDEX_NONE);
+      Tcl_DStringAppend(&ds, ObjStr(objv[i]), TCL_AUTO_LENGTH);
     }
     label = ds.string;
   }
@@ -910,7 +910,7 @@ NsfProfileGetTable(Tcl_Interp *interp, Tcl_HashTable *table) {
     char           *key = Tcl_GetHashKey(table, hPtr);
     Tcl_Obj        *subList = Tcl_NewListObj(0, NULL);
 
-    Tcl_ListObjAppendElement(interp, subList, Tcl_NewStringObj(key, TCL_INDEX_NONE));
+    Tcl_ListObjAppendElement(interp, subList, Tcl_NewStringObj(key, TCL_AUTO_LENGTH));
     Tcl_ListObjAppendElement(interp, subList, Tcl_NewLongObj(value->microSec));
     Tcl_ListObjAppendElement(interp, subList, Tcl_NewLongObj(value->count));
     Tcl_ListObjAppendElement(interp, list, subList);

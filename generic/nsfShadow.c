@@ -290,7 +290,7 @@ Nsf_RenameObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, TCL_OBJC_T o
 
       Tcl_DStringInit(&fqNewName);
       Tcl_DStringAppend(&fqNewName, "::nsf::procs::", 14);
-      Tcl_DStringAppend(&fqNewName, newName, TCL_INDEX_NONE);
+      Tcl_DStringAppend(&fqNewName, newName, TCL_AUTO_LENGTH);
 
       /* fprintf(stderr, "oldName %s newName %s\n", ObjStr(tcd->procName), Tcl_DStringValue(&fqNewName));*/
       result = TclRenameCommand(interp, ObjStr(tcd->procName), Tcl_DStringValue(&fqNewName));
@@ -411,7 +411,7 @@ Nsf_InfoFrameObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, TCL_OBJC_
       Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("method", 6));
       Tcl_ListObjAppendElement(interp, listObj,
                                (cscPtr->cmdPtr != NULL)
-                               ? Tcl_NewStringObj(Tcl_GetCommandName(interp, cscPtr->cmdPtr), TCL_INDEX_NONE)
+                               ? Tcl_NewStringObj(Tcl_GetCommandName(interp, cscPtr->cmdPtr), TCL_AUTO_LENGTH)
                                : NsfGlobalObjs[NSF_EMPTY]);
       Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("frametype", 9));
       if (cscPtr->frameType == NSF_CSC_TYPE_PLAIN) {
@@ -425,7 +425,7 @@ Nsf_InfoFrameObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, TCL_OBJC_
       } else {
         frameType = "unknown";
       }
-      Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj(frameType, TCL_INDEX_NONE));
+      Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj(frameType, TCL_AUTO_LENGTH));
       Tcl_SetObjResult(interp, listObj);
     } else if (frameFlags & (FRAME_IS_NSF_OBJECT)) {
       NsfObject *object = (NsfObject *)Tcl_CallFrame_clientData(varFramePtr);

@@ -135,6 +135,7 @@ typedef Tcl_Size Nsf_Tcl_Size_t;
 # define TCL_SIZE_MAX          INT_MAX
 # define TCL_SIZE_MODIFIER     ""
 # define TCL_INDEX_NONE        ((TCL_SIZE_T)-1)
+# define TCL_AUTO_LENGTH       ((TCL_SIZE_T)-1)
 #else
 # define Tcl_NewSizeIntObj     Tcl_NewWideIntObj
 #endif

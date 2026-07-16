@@ -740,9 +740,9 @@ NsfErrorContext(
   nonnull_assert(context != NULL);
 
   Tcl_DStringInit(dsPtr);
-  Tcl_DStringAppend(dsPtr, "puts stderr \"Error in ", TCL_INDEX_NONE);
-  Tcl_DStringAppend(dsPtr, context, TCL_INDEX_NONE);
-  Tcl_DStringAppend(dsPtr, ":\n$::errorCode $::errorInfo\"", TCL_INDEX_NONE);
+  Tcl_DStringAppend(dsPtr, "puts stderr \"Error in ", TCL_AUTO_LENGTH);
+  Tcl_DStringAppend(dsPtr, context, TCL_AUTO_LENGTH);
+  Tcl_DStringAppend(dsPtr, ":\n$::errorCode $::errorInfo\"", TCL_AUTO_LENGTH);
   Tcl_EvalEx(interp, Tcl_DStringValue(dsPtr), Tcl_DStringLength(dsPtr), 0);
   Tcl_DStringFree(dsPtr);
 }
@@ -1901,11 +1901,11 @@ DStringAppendQualName(Tcl_DString *dsPtr, const Tcl_Namespace *nsPtr, const char
 
   oldLength = Tcl_DStringLength(dsPtr);
 
-  Tcl_DStringAppend(dsPtr, nsPtr->fullName, TCL_INDEX_NONE);
+  Tcl_DStringAppend(dsPtr, nsPtr->fullName, TCL_AUTO_LENGTH);
   if (Tcl_DStringLength(dsPtr) > (oldLength + 2)) {
     Tcl_DStringAppend(dsPtr, "::", 2);
   }
-  Tcl_DStringAppend(dsPtr, name, TCL_INDEX_NONE);
+  Tcl_DStringAppend(dsPtr, name, TCL_AUTO_LENGTH);
   return Tcl_DStringValue(dsPtr);
 }
 
@@ -2046,7 +2046,7 @@ GetObjectFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfObject **objectPtr) {
 
   /*fprintf(stderr, "GetObjectFromObj obj %p %s (type %p) => cmd=%p (refCount %ld)\n",
           (void*)objPtr, ObjStr(objPtr), (void*)objPtr->typePtr,
-          (void*)cmd, (cmd != NULL) ? Tcl_Command_refCount(cmd) : TCL_INDEX_NONE);*/
+          (void*)cmd, (cmd != NULL) ? Tcl_Command_refCount(cmd) : TCL_AUTO_LENGTH);*/
 
   if (cmd != NULL) {
     NsfObject *cmdObject;
@@ -2382,10 +2382,10 @@ IsObjectOfType(
     Tcl_DString ds, *dsPtr = &ds;
 
     DSTRING_INIT(dsPtr);
-    Tcl_DStringAppend(dsPtr, what, TCL_INDEX_NONE);
+    Tcl_DStringAppend(dsPtr, what, TCL_AUTO_LENGTH);
     if (pPtr->converterArg != NULL) {
       Tcl_DStringAppend(dsPtr, " of type ", 9);
-      Tcl_DStringAppend(dsPtr, ObjStr(pPtr->converterArg), TCL_INDEX_NONE);
+      Tcl_DStringAppend(dsPtr, ObjStr(pPtr->converterArg), TCL_AUTO_LENGTH);
     }
     NsfObjErrType(interp, NULL, objPtr, Tcl_DStringValue(dsPtr), (Nsf_Param *)pPtr);
     DSTRING_FREE(dsPtr);
@@ -3934,7 +3934,7 @@ ResolveMethodName(
     INCR_REF_COUNT(methodHandleObj);
 
     if (methodNameDs != NULL) {
-      Tcl_DStringAppend(methodNameDs, Tcl_GetCommandName(interp, cmd), TCL_INDEX_NONE);
+      Tcl_DStringAppend(methodNameDs, Tcl_GetCommandName(interp, cmd), TCL_AUTO_LENGTH);
     }
     parentNsPtr = NULL;
 
@@ -3971,7 +3971,7 @@ ResolveMethodName(
       parentNsPtr = ensembleObject->nsPtr;
 
       Tcl_AppendLimitedToObj(methodHandleObj, "::", 2, TCL_SIZE_MAX, NULL);
-      Tcl_AppendLimitedToObj(methodHandleObj, ObjStr(ov[i]), TCL_INDEX_NONE, TCL_SIZE_MAX, NULL);
+      Tcl_AppendLimitedToObj(methodHandleObj, ObjStr(ov[i]), TCL_AUTO_LENGTH, TCL_SIZE_MAX, NULL);
       if (methodNameDs != NULL) {
         Tcl_DStringAppendElement(methodNameDs, ObjStr(ov[i]));
       }
@@ -5357,7 +5357,7 @@ NsfMethodNamePath(Tcl_Interp *interp,
   }
 
   Tcl_ListObjAppendElement(interp, resultObj,
-                           Tcl_NewStringObj(methodName, TCL_INDEX_NONE));
+                           Tcl_NewStringObj(methodName, TCL_AUTO_LENGTH));
   return resultObj;
 }
 
@@ -5489,7 +5489,7 @@ NsColonVarResolver(Tcl_Interp *interp, const char *varName, Tcl_Namespace *UNUSE
   /*
    * Does the variable exist in the object's namespace?
    */
-  key = Tcl_NewStringObj(varName, TCL_INDEX_NONE);
+  key = Tcl_NewStringObj(varName, TCL_AUTO_LENGTH);
   INCR_REF_COUNT(key);
 
   *varPtr = (Tcl_Var)VarHashCreateVar(varTablePtr, key, NULL);
@@ -5989,7 +5989,7 @@ InterpColonVarResolver(Tcl_Interp *interp, const char *varName, Tcl_Namespace *U
   /*fprintf(stderr, "Object Var Resolver, name=%s, obj %p, nsPtr %p, varTablePtr %p\n",
     varName, (void *)object, (void *)object->nsPtr, (void *)varTablePtr);*/
 
-  keyObj = Tcl_NewStringObj(varName, TCL_INDEX_NONE);
+  keyObj = Tcl_NewStringObj(varName, TCL_AUTO_LENGTH);
   INCR_REF_COUNT(keyObj);
 
   var = (Tcl_Var)VarHashCreateVar(varTablePtr, keyObj, NULL);
@@ -7013,7 +7013,7 @@ NSRequireParentObject(Tcl_Interp *interp, const char *parentName) {
   nonnull_assert(interp != NULL);
   nonnull_assert(parentName != NULL);
 
-  result = NsfCallObjectUnknownHandler(interp, Tcl_NewStringObj(parentName, TCL_INDEX_NONE));
+  result = NsfCallObjectUnknownHandler(interp, Tcl_NewStringObj(parentName, TCL_AUTO_LENGTH));
   if (likely(result == TCL_OK)) {
     NsfObject *parentObj = (NsfObject *)GetObjectFromString(interp, parentName);
 
@@ -7672,7 +7672,7 @@ AutonameIncr(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfObject *object,
         buffer[0] = (char)tolower((int)firstChar);
         resultObj = Tcl_NewStringObj(buffer, 1);
         INCR_REF_COUNT2("autoname", resultObj);
-        Tcl_AppendLimitedToObj(resultObj, nextChars, TCL_INDEX_NONE, TCL_SIZE_MAX, NULL);
+        Tcl_AppendLimitedToObj(resultObj, nextChars, TCL_AUTO_LENGTH, TCL_SIZE_MAX, NULL);
         mustCopy = NSF_FALSE;
       }
     }
@@ -8561,16 +8561,16 @@ AssertionListCheckOption(Tcl_Interp *interp, NsfObject *object) {
   resultObj = Tcl_GetObjResult(interp);
 
   if (opt->checkoptions & CHECK_OBJINVAR) {
-    Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("object-invar", TCL_INDEX_NONE));
+    Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("object-invar", TCL_AUTO_LENGTH));
   }
   if (opt->checkoptions & CHECK_CLINVAR) {
-    Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("class-invar", TCL_INDEX_NONE));
+    Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("class-invar", TCL_AUTO_LENGTH));
   }
   if (opt->checkoptions & CHECK_PRE) {
-    Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("pre", TCL_INDEX_NONE));
+    Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("pre", TCL_AUTO_LENGTH));
   }
   if (opt->checkoptions & CHECK_POST) {
-    Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("post", TCL_INDEX_NONE));
+    Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("post", TCL_AUTO_LENGTH));
   }
 
   return TCL_OK;
@@ -11637,7 +11637,7 @@ FilterInfo(Tcl_Interp *interp, NsfCmdList *f, const char *pattern,
         Tcl_Obj *g = (Tcl_Obj *) f->clientData;
 
         Tcl_ListObjAppendElement(interp, innerList,
-                                 Tcl_NewStringObj(simpleName, TCL_INDEX_NONE));
+                                 Tcl_NewStringObj(simpleName, TCL_AUTO_LENGTH));
         Tcl_ListObjAppendElement(interp, innerList, NsfGlobalObjs[NSF_GUARD_OPTION]);
         Tcl_ListObjAppendElement(interp, innerList, g);
         Tcl_ListObjAppendElement(interp, list, innerList);
@@ -11649,7 +11649,7 @@ FilterInfo(Tcl_Interp *interp, NsfCmdList *f, const char *pattern,
                                    MethodHandleObj((NsfObject *)filterClass,
                                                    !NsfObjectIsClass(&filterClass->object), simpleName));
         } else {
-          Tcl_ListObjAppendElement(interp, list, Tcl_NewStringObj(simpleName, TCL_INDEX_NONE));
+          Tcl_ListObjAppendElement(interp, list, Tcl_NewStringObj(simpleName, TCL_AUTO_LENGTH));
         }
       }
     }
@@ -11983,7 +11983,7 @@ FilterFindReg(Tcl_Interp *interp, NsfObject *object, Tcl_Command cmd) {
     Tcl_ListObjAppendElement(interp, list, NsfGlobalObjs[NSF_OBJECT]);
     Tcl_ListObjAppendElement(interp, list, NsfGlobalObjs[NSF_FILTER]);
     Tcl_ListObjAppendElement(interp, list,
-                             Tcl_NewStringObj(Tcl_GetCommandName(interp, cmd), TCL_INDEX_NONE));
+                             Tcl_NewStringObj(Tcl_GetCommandName(interp, cmd), TCL_AUTO_LENGTH));
     return list;
   }
 
@@ -11997,7 +11997,7 @@ FilterFindReg(Tcl_Interp *interp, NsfObject *object, Tcl_Command cmd) {
         Tcl_ListObjAppendElement(interp, list, pl->cl->object.cmdName);
         Tcl_ListObjAppendElement(interp, list, NsfGlobalObjs[NSF_FILTER]);
         Tcl_ListObjAppendElement(interp, list,
-                                 Tcl_NewStringObj(Tcl_GetCommandName(interp, cmd), TCL_INDEX_NONE));
+                                 Tcl_NewStringObj(Tcl_GetCommandName(interp, cmd), TCL_AUTO_LENGTH));
         return list;
       }
     }
@@ -13519,10 +13519,10 @@ ParamDefsFormat(
         continue;
       }
 
-      nameStringObj = Tcl_NewStringObj(paramsPtr->name, TCL_INDEX_NONE);
+      nameStringObj = Tcl_NewStringObj(paramsPtr->name, TCL_AUTO_LENGTH);
 
       if (paramsPtr->type != NULL) {
-        ParamDefsFormatOption(nameStringObj, paramsPtr->type, TCL_INDEX_NONE, &colonWritten, &first);
+        ParamDefsFormatOption(nameStringObj, paramsPtr->type, TCL_AUTO_LENGTH, &colonWritten, &first);
       } else if (isNonpos && paramsPtr->nrArgs == 0) {
         ParamDefsFormatOption(nameStringObj, "switch", 6, &colonWritten, &first);
       }
@@ -13628,7 +13628,7 @@ ParamDefsList(
       continue;
     }
 
-    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj(paramsPtr->name, TCL_INDEX_NONE));
+    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj(paramsPtr->name, TCL_AUTO_LENGTH));
   }
 
   return listObj;
@@ -13680,7 +13680,7 @@ ParamDefsNames(
       continue;
     }
     Tcl_ListObjAppendElement(interp, listObj, (paramsPtr->nameObj != NULL) ?
-                             paramsPtr->nameObj : Tcl_NewStringObj(paramsPtr->name, TCL_INDEX_NONE));
+                             paramsPtr->nameObj : Tcl_NewStringObj(paramsPtr->name, TCL_AUTO_LENGTH));
   }
 
   return listObj;
@@ -13790,16 +13790,16 @@ NsfParamDefsSyntaxOne(Tcl_Obj *argStringObj, const Nsf_Param *pPtr) {
   nonnull_assert(pPtr != NULL);
 
   if (pPtr->nrArgs > 0 && *pPtr->name == '-') {
-    Tcl_AppendLimitedToObj(argStringObj, pPtr->name, TCL_INDEX_NONE, TCL_SIZE_MAX, NULL);
+    Tcl_AppendLimitedToObj(argStringObj, pPtr->name, TCL_AUTO_LENGTH, TCL_SIZE_MAX, NULL);
     Tcl_AppendLimitedToObj(argStringObj, " ", 1, TCL_SIZE_MAX, NULL);
     if ((pPtr->flags & NSF_ARG_IS_ENUMERATION) != 0u) {
-      Tcl_AppendLimitedToObj(argStringObj, ParamGetDomain(pPtr), TCL_INDEX_NONE, TCL_SIZE_MAX, NULL);
+      Tcl_AppendLimitedToObj(argStringObj, ParamGetDomain(pPtr), TCL_AUTO_LENGTH, TCL_SIZE_MAX, NULL);
       if ((pPtr->flags & NSF_ARG_MULTIVALUED) != 0u)  {
         Tcl_AppendLimitedToObj(argStringObj, " ...", 4, TCL_SIZE_MAX, NULL);
       }
     } else {
       Tcl_AppendLimitedToObj(argStringObj, "/", 1, TCL_SIZE_MAX, NULL);
-      Tcl_AppendLimitedToObj(argStringObj, ParamGetDomain(pPtr), TCL_INDEX_NONE, TCL_SIZE_MAX, NULL);
+      Tcl_AppendLimitedToObj(argStringObj, ParamGetDomain(pPtr), TCL_AUTO_LENGTH, TCL_SIZE_MAX, NULL);
       if ((pPtr->flags & NSF_ARG_MULTIVALUED) != 0u) {
         Tcl_AppendLimitedToObj(argStringObj, " ...", 4, TCL_SIZE_MAX, NULL);
       }
@@ -13807,10 +13807,10 @@ NsfParamDefsSyntaxOne(Tcl_Obj *argStringObj, const Nsf_Param *pPtr) {
     }
   } else if (*pPtr->name != '-') {
     Tcl_AppendLimitedToObj(argStringObj, "/", 1, TCL_SIZE_MAX, NULL);
-    Tcl_AppendLimitedToObj(argStringObj, pPtr->name, TCL_INDEX_NONE, TCL_SIZE_MAX, NULL);
+    Tcl_AppendLimitedToObj(argStringObj, pPtr->name, TCL_AUTO_LENGTH, TCL_SIZE_MAX, NULL);
     Tcl_AppendLimitedToObj(argStringObj, "/", 1, TCL_SIZE_MAX, NULL);
   } else {
-    Tcl_AppendLimitedToObj(argStringObj, pPtr->name, TCL_INDEX_NONE, TCL_SIZE_MAX, NULL);
+    Tcl_AppendLimitedToObj(argStringObj, pPtr->name, TCL_AUTO_LENGTH, TCL_SIZE_MAX, NULL);
   }
 }
 
@@ -14000,7 +14000,7 @@ NsfParamDefsSyntax(
 
       if ((pPtr->flags & NSF_ARG_IS_ENUMERATION) != 0u) {
         Tcl_AppendLimitedToObj(argStringObj, Nsf_EnumerationTypeGetDomain(pPtr->converter),
-                               TCL_INDEX_NONE, TCL_SIZE_MAX, NULL);
+                               TCL_AUTO_LENGTH, TCL_SIZE_MAX, NULL);
       } else {
         NsfParamDefsSyntaxOne(argStringObj, pPtr);
       }
@@ -16554,7 +16554,7 @@ DispatchUnknownMethod(Tcl_Interp *interp, NsfObject *object,
     ALLOC_ON_STACK(Tcl_Obj*, objc+3, tov);
 
     if (callInfoObj == NULL) {
-      callInfoObj = (mustCopy ? Tcl_NewStringObj(methodName, TCL_INDEX_NONE) : methodObj);
+      callInfoObj = (mustCopy ? Tcl_NewStringObj(methodName, TCL_AUTO_LENGTH) : methodObj);
     }
     INCR_REF_COUNT(callInfoObj);
 
@@ -17571,7 +17571,7 @@ ConvertToObjpattern(Tcl_Interp *interp, Tcl_Obj *objPtr, const Nsf_Param *UNUSED
      */
     if (*pattern != ':' && *pattern+1 != ':') {
       patternObj = Tcl_NewStringObj("::", 2);
-      Tcl_AppendLimitedToObj(patternObj, pattern, TCL_INDEX_NONE, TCL_SIZE_MAX, NULL);
+      Tcl_AppendLimitedToObj(patternObj, pattern, TCL_AUTO_LENGTH, TCL_SIZE_MAX, NULL);
     }
   }
   if (patternObj != NULL) {
@@ -17940,7 +17940,7 @@ ParamOptionParse(Tcl_Interp *interp, const char *argString,
       Tcl_DString ds, *dsPtr = &ds;
 
       Tcl_DStringInit(dsPtr);
-      Tcl_DStringAppend(dsPtr, qualifier, TCL_INDEX_NONE);
+      Tcl_DStringAppend(dsPtr, qualifier, TCL_AUTO_LENGTH);
       if (Tcl_DStringLength(dsPtr) > 2) {
         Tcl_DStringAppend(dsPtr, "::", 2);
       }
@@ -18053,7 +18053,7 @@ ParamOptionParse(Tcl_Interp *interp, const char *argString,
         if (paramPtr->converterArg != NULL) {
           DECR_REF_COUNT(paramPtr->converterArg);
         }
-        paramPtr->converterArg = Tcl_NewStringObj(stringTypeOpts[i], TCL_INDEX_NONE);
+        paramPtr->converterArg = Tcl_NewStringObj(stringTypeOpts[i], TCL_AUTO_LENGTH);
         INCR_REF_COUNT(paramPtr->converterArg);
       } else {
 
@@ -18512,7 +18512,7 @@ ParamDefsParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *paramSpecObjs,
            fprintf(stderr, "qual %s\n", qualifier);
            const char *carg = ObjStr(paramPtr->converterArg);
            if (*carg != ':') {
-           Tcl_Obj *qualifiedConverterArg = Tcl_NewStringObj(qualifier, TCL_INDEX_NONE);
+           Tcl_Obj *qualifiedConverterArg = Tcl_NewStringObj(qualifier, TCL_AUTO_LENGTH);
            Tcl_AppendToObj(qualifiedConverterArg, "::", 2);
            Tcl_AppendObjToObj(qualifiedConverterArg, paramPtr->converterArg);
            DECR_REF_COUNT(paramPtr->converterArg);
@@ -18998,9 +18998,9 @@ MakeProc(
 
     for (pPtr = parsedParam.paramDefs->paramsPtr; pPtr->name != NULL; pPtr++) {
       if (*pPtr->name == '-') {
-        Tcl_ListObjAppendElement(interp, argList, Tcl_NewStringObj(pPtr->name+1, TCL_INDEX_NONE));
+        Tcl_ListObjAppendElement(interp, argList, Tcl_NewStringObj(pPtr->name+1, TCL_AUTO_LENGTH));
       } else {
-        Tcl_ListObjAppendElement(interp, argList, Tcl_NewStringObj(pPtr->name, TCL_INDEX_NONE));
+        Tcl_ListObjAppendElement(interp, argList, Tcl_NewStringObj(pPtr->name, TCL_AUTO_LENGTH));
       }
     }
     ov[2] = argList;
@@ -19620,7 +19620,7 @@ NsfProcAdd(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
    * ::nsf::procs::*. First build the fully qualified name procNameObj.
    */
   Tcl_DStringSetLength(dsPtr, 0);
-  Tcl_DStringAppend(dsPtr, "::nsf::procs", TCL_INDEX_NONE);
+  Tcl_DStringAppend(dsPtr, "::nsf::procs", TCL_AUTO_LENGTH);
   DStringAppendQualName(dsPtr, cmdNsPtr, Tcl_GetCommandName(interp, cmd));
   procNameObj = Tcl_NewStringObj(Tcl_DStringValue(dsPtr),
                                  Tcl_DStringLength(dsPtr));
@@ -19667,7 +19667,7 @@ NsfProcAdd(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
 
     for (paramPtr = paramDefs->paramsPtr; paramPtr->name != NULL; paramPtr++) {
       if (*paramPtr->name == '-') {
-        Tcl_Obj *varNameObj = Tcl_NewStringObj(paramPtr->name+1, TCL_INDEX_NONE);
+        Tcl_Obj *varNameObj = Tcl_NewStringObj(paramPtr->name+1, TCL_AUTO_LENGTH);
 
         /*
          * If we have the -ad (for ars digita) flag set, we provide the
@@ -19688,7 +19688,7 @@ NsfProcAdd(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
         }
         Tcl_ListObjAppendElement(interp, argList, varNameObj);
       } else {
-        Tcl_ListObjAppendElement(interp, argList, Tcl_NewStringObj(paramPtr->name, TCL_INDEX_NONE));
+        Tcl_ListObjAppendElement(interp, argList, Tcl_NewStringObj(paramPtr->name, TCL_AUTO_LENGTH));
       }
     }
   }
@@ -20089,7 +20089,7 @@ ForwardProcessOptions(Tcl_Interp *interp, Tcl_Obj *nameObj,
     Tcl_DString ds, *dsPtr = &ds;
     DSTRING_INIT(dsPtr);
     Tcl_DStringAppend(dsPtr, "%1 {", 4);
-    Tcl_DStringAppend(dsPtr, ObjStr(withDefault), TCL_INDEX_NONE);
+    Tcl_DStringAppend(dsPtr, ObjStr(withDefault), TCL_AUTO_LENGTH);
     Tcl_DStringAppend(dsPtr, "}", 1);
     NsfDeprecatedCmd(interp, "forward option", "-default ...", Tcl_DStringValue(dsPtr));
     DSTRING_FREE(dsPtr);
@@ -20253,8 +20253,8 @@ AddSlotObjects(Tcl_Interp *interp, NsfObject *parent, const char *prefix,
     ObjectName(parent), prefix, type, (type != NULL) ? ClassName(type) : "");*/
 
   DSTRING_INIT(dsPtr);
-  Tcl_DStringAppend(dsPtr, ObjectName_(parent), TCL_INDEX_NONE);
-  Tcl_DStringAppend(dsPtr, prefix, TCL_INDEX_NONE);
+  Tcl_DStringAppend(dsPtr, ObjectName_(parent), TCL_AUTO_LENGTH);
+  Tcl_DStringAppend(dsPtr, prefix, TCL_AUTO_LENGTH);
   slotContainerObject = GetObjectFromString(interp, Tcl_DStringValue(dsPtr));
 
   if (slotContainerObject != NULL && slotContainerObject->nsPtr
@@ -21390,7 +21390,7 @@ UnsetInAllNamespaces(
     int         result;
 
     Tcl_DStringInit(dsPtr);
-    Tcl_DStringAppend(dsPtr, "unset ", TCL_INDEX_NONE);
+    Tcl_DStringAppend(dsPtr, "unset ", TCL_AUTO_LENGTH);
     DStringAppendQualName(dsPtr, nsPtr, name);
 
     result = Tcl_Eval(interp, Tcl_DStringValue(dsPtr));
@@ -23420,7 +23420,7 @@ NsfSetterMethod(ClientData clientData, Tcl_Interp *interp, TCL_OBJC_T objc, Tcl_
      */
     if (FOR_COLON_RESOLVER(nameString)) {
       nameString ++;
-      nameObj = Tcl_NewStringObj(nameString, TCL_INDEX_NONE);
+      nameObj = Tcl_NewStringObj(nameString, TCL_AUTO_LENGTH);
       INCR_REF_COUNT(nameObj);
     } else {
       nameObj = objv[0];
@@ -23666,7 +23666,7 @@ ForwardArg(
        * %proc, e.g. for the interceptor slots (such as mixin, ...)
        */
       if (FOR_COLON_RESOLVER(methodName)) {
-        *out = Tcl_NewStringObj(methodName + 1, TCL_INDEX_NONE);
+        *out = Tcl_NewStringObj(methodName + 1, TCL_AUTO_LENGTH);
       } else {
         *out = objv[0];
       }
@@ -23773,7 +23773,7 @@ ForwardArg(
            * No match, but insert of flag is required.
            */
           /*fprintf(stderr, "no match, but insert of %s required\n", firstElementString);*/
-          *out = Tcl_NewStringObj(firstElementString, TCL_INDEX_NONE);
+          *out = Tcl_NewStringObj(firstElementString, TCL_AUTO_LENGTH);
           *outputincr = 1;
 
           AddObjToTclList(interp, freeListObjPtr, *out);
@@ -23807,7 +23807,7 @@ ForwardArg(
         *out = listElements[nrArgs];
       }
     } else if (c == '%') {
-      Tcl_Obj *newarg = Tcl_NewStringObj(ForwardArgString, TCL_INDEX_NONE);
+      Tcl_Obj *newarg = Tcl_NewStringObj(ForwardArgString, TCL_AUTO_LENGTH);
 
       *out = newarg;
       AddObjToTclList(interp, freeListObjPtr, *out);
@@ -23817,7 +23817,7 @@ ForwardArg(
        * Evaluate the given command.
        */
       /*fprintf(stderr, "evaluating '%s'\n", ForwardArgString);*/
-      result = Tcl_EvalEx(interp, ForwardArgString, TCL_INDEX_NONE, 0);
+      result = Tcl_EvalEx(interp, ForwardArgString, TCL_AUTO_LENGTH, 0);
       if (likely(result == TCL_OK)) {
         *out = Tcl_DuplicateObj(Tcl_GetObjResult(interp));
         AddObjToTclList(interp, freeListObjPtr, *out);
@@ -23828,7 +23828,7 @@ ForwardArg(
     if (likely(p == ForwardArgString)) {
       *out = forwardArgObj;
     } else {
-      Tcl_Obj *newarg = Tcl_NewStringObj(ForwardArgString, TCL_INDEX_NONE);
+      Tcl_Obj *newarg = Tcl_NewStringObj(ForwardArgString, TCL_AUTO_LENGTH);
 
       *out = newarg;
       AddObjToTclList(interp, freeListObjPtr, *out);
@@ -24348,7 +24348,7 @@ CallConfigureMethod(Tcl_Interp *interp, NsfObject *object, const char *initStrin
                     const char *methodName,
                     TCL_OBJC_T argc, Tcl_Obj *const argv[]) {
   int result;
-  Tcl_Obj *methodObj = Tcl_NewStringObj(methodName, TCL_INDEX_NONE);
+  Tcl_Obj *methodObj = Tcl_NewStringObj(methodName, TCL_AUTO_LENGTH);
 
   nonnull_assert(interp != NULL);
   nonnull_assert(object != NULL);
@@ -25178,7 +25178,7 @@ ArgumentParse(
                   && strncmp(argumentString, pPtr->name, (size_t)equalOffset) == 0
                   && *(pPtr->name+equalOffset) == '\0') {
 
-                valueObj = Tcl_NewStringObj(valueInArgument+1, TCL_INDEX_NONE);
+                valueObj = Tcl_NewStringObj(valueInArgument+1, TCL_AUTO_LENGTH);
                 /*fprintf(stderr, "... value from argument = %s\n", ObjStr(valueObj));*/
                 NsfFlagObjSet(interp, argumentObj, paramPtr, serial,
                               pPtr, valueObj, NSF_FLAG_CONTAINS_VALUE);
@@ -25539,7 +25539,7 @@ ListVarKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr, const char *pattern) {
   nonnull_assert(interp != NULL);
 
   if (pattern != NULL && NoMetaChars(pattern)) {
-    Tcl_Obj *patternObj = Tcl_NewStringObj(pattern, TCL_INDEX_NONE);
+    Tcl_Obj *patternObj = Tcl_NewStringObj(pattern, TCL_AUTO_LENGTH);
 
     INCR_REF_COUNT(patternObj);
     hPtr = (tablePtr != NULL) ? NsfFindHashEntry(tablePtr, (char *)patternObj) : NULL;
@@ -25669,7 +25669,7 @@ ListProcBody(Tcl_Interp *interp, Proc *procPtr) {
   nonnull_assert(procPtr != NULL);
 
   body = ObjStr(procPtr->bodyPtr);
-  Tcl_SetObjResult(interp, Tcl_NewStringObj(StripBodyPrefix(body), TCL_INDEX_NONE));
+  Tcl_SetObjResult(interp, Tcl_NewStringObj(StripBodyPrefix(body), TCL_AUTO_LENGTH));
   return TCL_OK;
 }
 
@@ -25787,11 +25787,11 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd,  NsfObject *contextObject,
            */
           if (args->defValuePtr != NULL) {
             Tcl_AppendToObj(listObj, "?", 1);
-            Tcl_AppendToObj(listObj, args->name, TCL_INDEX_NONE);
+            Tcl_AppendToObj(listObj, args->name, TCL_AUTO_LENGTH);
             Tcl_AppendToObj(listObj, "?", 1);
           } else {
             Tcl_AppendToObj(listObj, "/", 1);
-            Tcl_AppendToObj(listObj, args->name, TCL_INDEX_NONE);
+            Tcl_AppendToObj(listObj, args->name, TCL_AUTO_LENGTH);
             Tcl_AppendToObj(listObj, "/", 1);
           }
           if (args->nextPtr != NULL) {
@@ -25800,7 +25800,7 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd,  NsfObject *contextObject,
         } else {
           Tcl_Obj *innerListObj = Tcl_NewListObj(0, NULL);
 
-          Tcl_ListObjAppendElement(interp, innerListObj, Tcl_NewStringObj(args->name, TCL_INDEX_NONE));
+          Tcl_ListObjAppendElement(interp, innerListObj, Tcl_NewStringObj(args->name, TCL_AUTO_LENGTH));
           /*
            * Return default just for NSF_PARAMS_PARAMETER.
            */
@@ -25845,7 +25845,7 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd,  NsfObject *contextObject,
       Tcl_SetObjResult(interp, list);
       DECR_REF_COUNT2("paramDefsObj", list);
     } else {
-      Tcl_SetObjResult(interp, Tcl_NewStringObj(methodName, TCL_INDEX_NONE));
+      Tcl_SetObjResult(interp, Tcl_NewStringObj(methodName, TCL_AUTO_LENGTH));
     }
     return TCL_OK;
   }
@@ -25927,15 +25927,15 @@ AppendForwardDefinition(Tcl_Interp *interp, Tcl_Obj *listObj, ForwardCmdClientDa
   nonnull_assert(tcd != NULL);
 
   if (tcd->prefix != NULL) {
-    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-prefix", TCL_INDEX_NONE));
+    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-prefix", TCL_AUTO_LENGTH));
     Tcl_ListObjAppendElement(interp, listObj, tcd->prefix);
   }
   if (tcd->subcommands != NULL) {
-    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-default", TCL_INDEX_NONE));
+    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-default", TCL_AUTO_LENGTH));
     Tcl_ListObjAppendElement(interp, listObj, tcd->subcommands);
   }
   if (tcd->objProc != NULL) {
-    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-earlybinding", TCL_INDEX_NONE));
+    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-earlybinding", TCL_AUTO_LENGTH));
   }
   if (tcd->frame == FrameObjectIdx) {
     Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-frame", 6));
@@ -26000,8 +26000,8 @@ AppendMethodRegistration(Tcl_Interp *interp, Tcl_Obj *listObj, const char *regis
   if (!NsfObjectIsClass(object) || withPer_object) {
     Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("object", 6));
   }
-  Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj(registerCmdName, TCL_INDEX_NONE));
-  Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj(methodName, TCL_INDEX_NONE));
+  Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj(registerCmdName, TCL_AUTO_LENGTH));
+  Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj(methodName, TCL_AUTO_LENGTH));
 
   if (withObjFrame) {
     Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-frame", 6));
@@ -26043,7 +26043,7 @@ AppendReturnsClause(Tcl_Interp *interp, Tcl_Obj *listObj, Tcl_Command cmd) {
   returnsObj = ParamDefsGetReturns(cmd);
   if (returnsObj != NULL) {
     /* TODO: avoid hard-coding the script-level/NX-specific keyword "-returns" */
-    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-returns", TCL_INDEX_NONE));
+    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-returns", TCL_AUTO_LENGTH));
     Tcl_ListObjAppendElement(interp, listObj, returnsObj);
   }
 }
@@ -26279,9 +26279,9 @@ ListMethod(Tcl_Interp *interp,
 
     case InfomethodsubcmdTypeIdx:
       if (regObject != NULL) {
-        Tcl_SetObjResult(interp, Tcl_NewStringObj("scripted", TCL_INDEX_NONE));
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("scripted", TCL_AUTO_LENGTH));
       } else {
-        Tcl_SetObjResult(interp, Tcl_NewStringObj("proc", TCL_INDEX_NONE));
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("proc", TCL_AUTO_LENGTH));
       }
       break;
 
@@ -26319,7 +26319,7 @@ ListMethod(Tcl_Interp *interp,
         } else {
           Tcl_DString ds, *dsPtr = &ds;
 
-          Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("::proc", TCL_INDEX_NONE));
+          Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("::proc", TCL_AUTO_LENGTH));
 
           Tcl_DStringInit(dsPtr);
           DStringAppendQualName(dsPtr, Tcl_Command_nsPtr(cmd), methodName);
@@ -26350,9 +26350,9 @@ ListMethod(Tcl_Interp *interp,
           if (assertions != NULL) {
             NsfProcAssertion *procs = AssertionFindProcs(assertions, methodName);
             if (procs != NULL) {
-              Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("-precondition", TCL_INDEX_NONE));
+              Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("-precondition", TCL_AUTO_LENGTH));
               Tcl_ListObjAppendElement(interp, resultObj, AssertionList(interp, procs->pre));
-              Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("-postcondition", TCL_INDEX_NONE));
+              Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("-postcondition", TCL_AUTO_LENGTH));
               Tcl_ListObjAppendElement(interp, resultObj, AssertionList(interp, procs->post));
             }
           }
@@ -26468,7 +26468,7 @@ ListMethod(Tcl_Interp *interp,
       switch (subcmd) {
 
       case InfomethodsubcmdTypeIdx:
-        Tcl_SetObjResult(interp, Tcl_NewStringObj("nsfproc", TCL_INDEX_NONE));
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("nsfproc", TCL_AUTO_LENGTH));
         break;
 
       case InfomethodsubcmdBodyIdx:
@@ -26480,7 +26480,7 @@ ListMethod(Tcl_Interp *interp,
         Tcl_DStringInit(dsPtr);
         DStringAppendQualName(dsPtr, Tcl_Command_nsPtr(cmd), methodName);
         /* don't hardcode names */
-        Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("::nsf::proc", TCL_INDEX_NONE));
+        Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("::nsf::proc", TCL_AUTO_LENGTH));
         if ((tcd->flags & NSF_PROC_FLAG_AD) != 0) {
           Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("-ad", 3));
         }
@@ -26611,7 +26611,7 @@ ListMethod(Tcl_Interp *interp,
          */
         switch (subcmd) {
         case InfomethodsubcmdTypeIdx:
-          Tcl_SetObjResult(interp, Tcl_NewStringObj("object", TCL_INDEX_NONE));
+          Tcl_SetObjResult(interp, Tcl_NewStringObj("object", TCL_AUTO_LENGTH));
           break;
         case InfomethodsubcmdDefinitionIdx:
           {
@@ -27009,7 +27009,7 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
         TCL_SIZE_T prefixLength = (prefix != NULL) ? Tcl_DStringLength(prefix) : 0;
 
         if (prefixLength != 0) {
-          Tcl_DStringAppend(prefix, key, TCL_INDEX_NONE);
+          Tcl_DStringAppend(prefix, key, TCL_AUTO_LENGTH);
           key = Tcl_DStringValue(prefix);
         }
         if (dups != NULL) {
@@ -27017,10 +27017,10 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
 
           (void)Tcl_CreateHashEntry(dups, key, &new);
           if (new != 0) {
-            Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj(key, TCL_INDEX_NONE));
+            Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj(key, TCL_AUTO_LENGTH));
           }
         } else {
-          Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj(key, TCL_INDEX_NONE));
+          Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj(key, TCL_AUTO_LENGTH));
         }
       }
     }
@@ -27107,13 +27107,13 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
             Tcl_DString ds, *dsPtr = &ds;
 
             DSTRING_INIT(dsPtr);
-            Tcl_DStringAppend(dsPtr, key, TCL_INDEX_NONE);
+            Tcl_DStringAppend(dsPtr, key, TCL_AUTO_LENGTH);
             Tcl_DStringAppend(dsPtr, " ", 1);
             ListMethodKeys(interp, cmdTablePtr, dsPtr, pattern, methodType,
                            withCallprotection, NSF_TRUE, dups, object, withPer_object);
             DSTRING_FREE(dsPtr);
           } else {
-            Tcl_DStringAppend(prefix, key, TCL_INDEX_NONE);
+            Tcl_DStringAppend(prefix, key, TCL_AUTO_LENGTH);
             Tcl_DStringAppend(prefix, " ", 1);
             ListMethodKeys(interp, cmdTablePtr, prefix, pattern, methodType,
                            withCallprotection, NSF_TRUE, dups, object, withPer_object);
@@ -27166,7 +27166,7 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
 
 
       if (prefixLength != 0) {
-        Tcl_DStringAppend(prefix, key, TCL_INDEX_NONE);
+        Tcl_DStringAppend(prefix, key, TCL_AUTO_LENGTH);
         key = Tcl_DStringValue(prefix);
       }
 
@@ -27181,7 +27181,7 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
           continue;
         }
       }
-      Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj(key, TCL_INDEX_NONE));
+      Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj(key, TCL_AUTO_LENGTH));
     }
   }
   /*fprintf(stderr, "listkeys returns '%s'\n", ObjStr(Tcl_GetObjResult(interp)));*/
@@ -27384,7 +27384,7 @@ ListDefinedMethods(Tcl_Interp *interp, NsfObject *object, const char *pattern,
       cmdTablePtr = Tcl_Namespace_cmdTablePtr(nsPtr);
       dsPtr = &ds;
       Tcl_DStringInit(dsPtr);
-      Tcl_DStringAppend(dsPtr, nsPtr->fullName, TCL_INDEX_NONE);
+      Tcl_DStringAppend(dsPtr, nsPtr->fullName, TCL_AUTO_LENGTH);
       if (Tcl_DStringLength(dsPtr) > 2) {
         Tcl_DStringAppend(dsPtr, "::", 2);
       }
@@ -27518,9 +27518,9 @@ AliasIndex(Tcl_Obj *cmdName, const char *methodName, bool withPer_object) {
   nonnull_assert(methodName != NULL);
 
   Tcl_DStringInit(dsPtr);
-  Tcl_DStringAppend(dsPtr,  ObjStr(cmdName), TCL_INDEX_NONE);
+  Tcl_DStringAppend(dsPtr,  ObjStr(cmdName), TCL_AUTO_LENGTH);
   Tcl_DStringAppend(dsPtr,  ",", 1);
-  Tcl_DStringAppend(dsPtr,  methodName, TCL_INDEX_NONE);
+  Tcl_DStringAppend(dsPtr,  methodName, TCL_AUTO_LENGTH);
   if (withPer_object) {
     Tcl_DStringAppend(dsPtr, ",1", 2);
   } else {
@@ -27999,13 +27999,13 @@ NsfDebugGetDict(Tcl_Interp *interp, Tcl_Obj *obj) {
   typeString = (obj->typePtr != NULL) ? obj->typePtr->name : "";
 
   resultObj = Tcl_NewListObj(0, NULL);
-  Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("type", TCL_INDEX_NONE));
-  Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj(typeString, TCL_INDEX_NONE));
-  Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("refcount", TCL_INDEX_NONE));
+  Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("type", TCL_AUTO_LENGTH));
+  Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj(typeString, TCL_AUTO_LENGTH));
+  Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("refcount", TCL_AUTO_LENGTH));
   Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewSizeIntObj(obj->refCount));
-  Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("length", TCL_INDEX_NONE));
+  Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("length", TCL_AUTO_LENGTH));
   Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewSizeIntObj(obj->length));
-  Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("hex", TCL_INDEX_NONE));
+  Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("hex", TCL_AUTO_LENGTH));
 
   if (obj->bytes != NULL) {
     size_t       i, objLength = (size_t)obj->length;
@@ -28018,7 +28018,7 @@ NsfDebugGetDict(Tcl_Interp *interp, Tcl_Obj *obj) {
     if (objLength > NSF_DEBUG_SHOW_BYTES) {
       memmove(buffer, trailer, sizeof(buffer) - strlen(buffer) - 1);
     }
-    Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj(buffer, TCL_INDEX_NONE));
+    Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj(buffer, TCL_AUTO_LENGTH));
 
   } else {
     Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("", 0));
@@ -28415,7 +28415,7 @@ NsfConfigureCmd(Tcl_Interp *interp, ConfigureoptionIdx_t option, Tcl_Obj *valueO
         if (osPtr->methods[idx] == NULL) {
           continue;
         }
-        Tcl_ListObjAppendElement(interp, systemMethods, Tcl_NewStringObj(Nsf_SystemMethodOpts[idx], TCL_INDEX_NONE));
+        Tcl_ListObjAppendElement(interp, systemMethods, Tcl_NewStringObj(Nsf_SystemMethodOpts[idx], TCL_AUTO_LENGTH));
         if (osPtr->handles[idx] || osPtr->protected[idx]) {
           Tcl_Obj *listObj = Tcl_NewListObj(0, NULL);
 
@@ -28640,7 +28640,7 @@ NsfDefinitionNamespaceCmd(Tcl_Interp *interp)
   nonnull_assert(interp != NULL);
 
   nsPtr = CallingNameSpace(interp);
-  Tcl_SetObjResult(interp, Tcl_NewStringObj(nsPtr->fullName, TCL_INDEX_NONE));
+  Tcl_SetObjResult(interp, Tcl_NewStringObj(nsPtr->fullName, TCL_AUTO_LENGTH));
 
   return TCL_OK;
 }
@@ -30461,7 +30461,7 @@ NsfNSCopyVarsCmd(Tcl_Interp *interp, Tcl_Obj *fromNsObj, Tcl_Obj *toNsObj) {
     }
 
     destFullName = toNsPtr->fullName;
-    destFullNameObj = Tcl_NewStringObj(destFullName, TCL_INDEX_NONE);
+    destFullNameObj = Tcl_NewStringObj(destFullName, TCL_AUTO_LENGTH);
     INCR_REF_COUNT(destFullNameObj);
     varTablePtr = Tcl_Namespace_varTablePtr(fromNsPtr);
     Tcl_PushCallFrame(interp, (Tcl_CallFrame *)framePtr, toNsPtr, 0);
@@ -30663,12 +30663,12 @@ NsfParameterInfoCmd(Tcl_Interp *interp, ParametersubcmdIdx_t subcmd, Tcl_Obj *sp
            * The converterArg might contain a class for type checking
            */
           if (paramsPtr->converterArg == NULL) {
-            Tcl_SetObjResult(interp, Tcl_NewStringObj(what, TCL_INDEX_NONE));
+            Tcl_SetObjResult(interp, Tcl_NewStringObj(what, TCL_AUTO_LENGTH));
           } else {
             Tcl_SetObjResult(interp, paramsPtr->converterArg);
           }
         } else {
-          Tcl_SetObjResult(interp, Tcl_NewStringObj(paramsPtr->type, TCL_INDEX_NONE));
+          Tcl_SetObjResult(interp, Tcl_NewStringObj(paramsPtr->type, TCL_AUTO_LENGTH));
         }
       }
     } else {
@@ -31375,7 +31375,7 @@ NsfCurrentCmd(Tcl_Interp *interp, CurrentoptionIdx_t option) {
     cscPtr = CallStackGetTopFrame0(interp);
     if (cscPtr != NULL) {
       const char *procName = Tcl_GetCommandName(interp, cscPtr->cmdPtr);
-      Tcl_SetObjResult(interp, Tcl_NewStringObj(procName, TCL_INDEX_NONE));
+      Tcl_SetObjResult(interp, Tcl_NewStringObj(procName, TCL_AUTO_LENGTH));
     } else {
       /* TODO: Is this, practically, reachable? */
       return NsfPrintError(interp,  "can't find method");
@@ -31440,7 +31440,7 @@ NsfCurrentCmd(Tcl_Interp *interp, CurrentoptionIdx_t option) {
     cscPtr = CallStackFindActiveFilter(interp);
     if (cscPtr != NULL) {
       Tcl_SetObjResult(interp,
-                       Tcl_NewStringObj(MethodName(cscPtr->filterStackEntry->calledProc), TCL_INDEX_NONE));
+                       Tcl_NewStringObj(MethodName(cscPtr->filterStackEntry->calledProc), TCL_AUTO_LENGTH));
     } else {
         NsfShowStack(interp);
 
@@ -31854,7 +31854,7 @@ ParamSetFromAny2(
     register Tcl_Obj *objPtr,         /* The object to convert. */
     const char *qualifier)
 {
-  Tcl_Obj         *fullParamObj = Tcl_NewStringObj(varNamePrefix, TCL_INDEX_NONE);
+  Tcl_Obj         *fullParamObj = Tcl_NewStringObj(varNamePrefix, TCL_AUTO_LENGTH);
   int              result, possibleUnknowns = 0, nrNonposArgs = 0;
   TCL_SIZE_T       plainParams = 0;
   NsfParamWrapper *paramWrapperPtr = NEW(NsfParamWrapper);
@@ -31866,7 +31866,7 @@ ParamSetFromAny2(
   paramWrapperPtr->paramPtr = ParamsNew(1u);
   paramWrapperPtr->refCount = 1;
 
-  Tcl_AppendLimitedToObj(fullParamObj, ObjStr(objPtr), TCL_INDEX_NONE, TCL_SIZE_MAX, NULL);
+  Tcl_AppendLimitedToObj(fullParamObj, ObjStr(objPtr), TCL_AUTO_LENGTH, TCL_SIZE_MAX, NULL);
   INCR_REF_COUNT(fullParamObj);
 
   result = ParamDefinitionParse(interp, NsfGlobalObjs[NSF_VALUECHECK], fullParamObj,
@@ -33983,7 +33983,7 @@ NsfCNewMethod(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *childofObj,
        * Prepend parentName only if it is not "::"
        */
       if (*(parentName + 2) != '\0') {
-        Tcl_DStringAppend(dsPtr, parentName, TCL_INDEX_NONE);
+        Tcl_DStringAppend(dsPtr, parentName, TCL_AUTO_LENGTH);
       }
     } else {
       Tcl_Obj    *tmpName = NameInNamespaceObj(parentName, CallingNameSpace(interp));
@@ -33992,7 +33992,7 @@ NsfCNewMethod(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *childofObj,
       INCR_REF_COUNT(tmpName);
       completedParentName = ObjStr(tmpName);
       if (strcmp(completedParentName, "::")) {
-        Tcl_DStringAppend(dsPtr, ObjStr(tmpName), TCL_INDEX_NONE);
+        Tcl_DStringAppend(dsPtr, ObjStr(tmpName), TCL_AUTO_LENGTH);
       }
       DECR_REF_COUNT(tmpName);
     }
@@ -34666,7 +34666,7 @@ NsfObjInfoNameMethod(Tcl_Interp *interp, NsfObject *object) {
   nonnull_assert(interp != NULL);
   nonnull_assert(object != NULL);
 
-  Tcl_SetObjResult(interp,  Tcl_NewStringObj(Tcl_GetCommandName(interp, object->id), TCL_INDEX_NONE));
+  Tcl_SetObjResult(interp,  Tcl_NewStringObj(Tcl_GetCommandName(interp, object->id), TCL_AUTO_LENGTH));
   return TCL_OK;
 }
 
@@ -34682,7 +34682,7 @@ NsfObjInfoParentMethod(Tcl_Interp *interp, NsfObject *object) {
 
   if (object->id != NULL) {
     Tcl_Namespace *nsPtr = Tcl_Command_nsPtr(object->id);
-    Tcl_SetObjResult(interp, Tcl_NewStringObj((nsPtr != NULL) ? nsPtr->fullName : "", TCL_INDEX_NONE));
+    Tcl_SetObjResult(interp, Tcl_NewStringObj((nsPtr != NULL) ? nsPtr->fullName : "", TCL_AUTO_LENGTH));
   }
   return TCL_OK;
 }
@@ -34923,7 +34923,7 @@ InstancesFromClassList(
       NsfObject *inst = (NsfObject *) Tcl_GetHashKey(tablePtr, hPtr);
 
       if (matchObject != NULL && inst == matchObject) {
-        Tcl_SetStringObj(resultObj, ObjStr(matchObject->cmdName), TCL_INDEX_NONE);
+        Tcl_SetStringObj(resultObj, ObjStr(matchObject->cmdName), TCL_AUTO_LENGTH);
         return resultObj;
       }
       AppendMatchingElement(interp, resultObj, inst->cmdName, pattern);
@@ -36287,7 +36287,7 @@ Nsf_Init(
     mp_int bignumValue;
     Tcl_Obj *bigNumObj;
 
-    tmpObj = Tcl_NewStringObj("10000000000000000000000", TCL_INDEX_NONE);
+    tmpObj = Tcl_NewStringObj("10000000000000000000000", TCL_AUTO_LENGTH);
     Tcl_GetBignumFromObj(NULL, tmpObj, &bignumValue);
     Nsf_OT_bignumType =  tmpObj->typePtr;
     assert(Nsf_OT_bignumType != NULL);
@@ -36416,7 +36416,7 @@ Nsf_Init(
   NsfGlobalObjs = NEW_ARRAY(Tcl_Obj*, nr_elements(NsfGlobalStrings));
 
   for (i = 0; i < nr_elements(NsfGlobalStrings); i++) {
-    NsfGlobalObjs[i] = Tcl_NewStringObj(NsfGlobalStrings[i], TCL_INDEX_NONE);
+    NsfGlobalObjs[i] = Tcl_NewStringObj(NsfGlobalStrings[i], TCL_AUTO_LENGTH);
     INCR_REF_COUNT(NsfGlobalObjs[i]);
   }
 
@@ -36502,7 +36502,7 @@ Nsf_Init(
       static char reportingCmd[] =
         "puts stderr \"Error in predefined code\n\
          $::errorInfo\"";
-      Tcl_EvalEx(interp, reportingCmd, TCL_INDEX_NONE, 0);
+      Tcl_EvalEx(interp, reportingCmd, TCL_AUTO_LENGTH, 0);
       return TCL_ERROR;
     }
   }
@@ -36522,7 +36522,7 @@ Nsf_Init(
    * Obtain type for parsed var name.
    */
   if (Nsf_OT_parsedVarNameType == NULL) {
-    Tcl_Obj *varNameObj = Tcl_NewStringObj("::nsf::version", TCL_INDEX_NONE);
+    Tcl_Obj *varNameObj = Tcl_NewStringObj("::nsf::version", TCL_AUTO_LENGTH);
     Var *arrayPtr;
 
     INCR_REF_COUNT(varNameObj);
