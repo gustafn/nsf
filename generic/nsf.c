@@ -1763,7 +1763,7 @@ ObjTrace(const char *string, NsfObject *object) {
   nonnull_assert(string != NULL);
   nonnull_assert(object != NULL);
 
-  fprintf(stderr, "--- %s Tcl %p %s (%ld %p) nsf %p (%d) %s \n", string,
+  fprintf(stderr, "--- %s Tcl %p %s (%ld %p) nsf %p ( %" TCL_SIZE_MODIFIER "d) %s \n", string,
           (void *)object->cmdName, ObjTypeStr(object->cmdName),
           (long)(object->cmdName->refCount), object->cmdName->internalRep.twoPtrValue.ptr1,
           (void *)object, object->refCount, ObjectName(object));
@@ -1948,7 +1948,7 @@ NsfCleanupObject_(NsfObject *object) {
 
     MEM_COUNT_FREE("NsfObject/NsfClass", object);
 #if defined(NSFOBJ_TRACE)
-    fprintf(stderr, "CKFREE Object %p refCount=%d\n", (void *)object, object->refCount);
+    fprintf(stderr, "CKFREE Object %p refCount= %" TCL_SIZE_MODIFIER "d\n", (void *)object, object->refCount);
 #endif
 #if !defined(NDEBUG)
     memset(object, 0, sizeof(NsfObject));
@@ -2681,7 +2681,7 @@ static void NsfClassListStats(const char *title, NsfClasses *classList)
 static void
 NsfClassListStats(const char *title, NsfClasses *classListPtr) {
   NsfClass *class;
-  int count = 0;
+  TCL_SIZE_T count = 0;
 
   nonnull_assert(title != NULL);
 
@@ -2690,7 +2690,7 @@ NsfClassListStats(const char *title, NsfClasses *classListPtr) {
     count++;
   }
 
-  fprintf(stderr, "%s class list starting with %s has %d elements\n",
+  fprintf(stderr, "%s class list starting with %s has  %" TCL_SIZE_MODIFIER "d elements\n",
           title, (class != NULL) ? ClassName(class) : "none", count);
 }
 
@@ -5196,7 +5196,7 @@ CompiledColonLocalsLookup(CallFrame *varFramePtr, const char *varName) {
       result = CompiledColonLocalsLookupBuildCache(varFramePtr, varName, nameLength, localNames, ctxPtr);
 
     } else {
-      Nsf_Tcl_Size_t i, j;
+     TCL_SIZE_T i, j;
 
       /*
        * We have a colonLocalVarCache.
@@ -5249,7 +5249,7 @@ CompiledColonLocalsLookup(CallFrame *varFramePtr, const char *varName) {
 
 #if 0
       if (result != NULL) {
-        fprintf(stderr, "... <%s> found -> [%d] %p\n", varName, j, (void *)result);
+        fprintf(stderr, "... <%s> found -> [ %" TCL_SIZE_MODIFIER "d] %p\n", varName, j, (void *)result);
       }
 #endif
     }
@@ -16072,7 +16072,7 @@ ObjectDispatch(
       unsigned int        nsfInstanceMethodEpoch = rst->instanceMethodEpoch;
 
 #if defined(METHOD_OBJECT_TRACE)
-      fprintf(stderr, "... method %p/%ld '%s' type %p %s type? %d context? %d nsfMethodEpoch %d => %d\n",
+      fprintf(stderr, "... method %p/ %" TCL_SIZE_MODIFIER "d '%s' type %p %s type? %d context? %d nsfMethodEpoch %d => %d\n",
               (void*)methodObj, (long)methodObj->refCount, ObjStr(methodObj),
               (void*)methodObjTypePtr, (methodObjTypePtr != NULL) ? methodObjTypePtr->name : "NONE",
               methodObjTypePtr == &NsfInstanceMethodObjType,
@@ -18720,11 +18720,11 @@ ParameterMethodDispatch(
   nonnull_assert(nextObjPtr != NULL);
 
 #if 0
-  {int TCL_OBJC_T;
-  fprintf(stderr, "ParameterMethodDispatch %s flags %06x nrRemainingArgs %d ",
+  {TCL_OBJC_T i;
+  fprintf(stderr, "ParameterMethodDispatch %s flags %06x nrRemainingArgs %" TCL_SIZE_MODIFIER "d",
           paramPtr->name, paramPtr->flags, nrRemainingArgs);
   for(i = 0; i < nrRemainingArgs; i++) {
-    fprintf(stderr, " [%d]=%p %s,", i, &nextObjPtr[i], ObjStr(nextObjPtr[i]));
+    fprintf(stderr, " [%" TCL_SIZE_MODIFIER "d]=%p %s,", i, &nextObjPtr[i], ObjStr(nextObjPtr[i]));
   }
   fprintf(stderr, "\n");
   }
@@ -19776,9 +19776,9 @@ ProcessMethodArguments(ParseContext *pcPtr, Tcl_Interp *interp,
   }
 
 #if 0
-  {int i;
-    fprintf(stderr, "ProcessMethodArguments before ArgumentParse %s (flags %.6x objc %d): ", ObjStr(methodNameObj), processFlags, objc);
-    for(i = 0; i < objc; i++) {fprintf(stderr, " [%d]=%s,", i, ObjStr(objv[i]));}
+  {TCL_SIZE_T i;
+    fprintf(stderr, "ProcessMethodArguments before ArgumentParse %s (flags %.6x objc  %" TCL_SIZE_MODIFIER "d): ", ObjStr(methodNameObj), processFlags, objc);
+    for(i = 0; i < objc; i++) {fprintf(stderr, " [%" TCL_SIZE_MODIFIER "d]=%s,", i, ObjStr(objv[i]));}
     fprintf(stderr, "\n");
 
     Tcl_Obj *listObj = ParamDefsList(interp, paramDefs->paramsPtr, NULL, NULL);
@@ -19804,7 +19804,7 @@ ProcessMethodArguments(ParseContext *pcPtr, Tcl_Interp *interp,
         toArg = pcPtr->objc;
       }
       for (i = fromArg; i < toArg; i++) {
-        fprintf(stderr, "... pcPtr %p [%d] obj %p refCount %ld (%s) flags %.6x & %p\n",
+        fprintf(stderr, "... pcPtr %p [%d] obj %p refCount %" TCL_SIZE_MODIFIER "d (%s) flags %.6x & %p\n",
                 (void*)pcPtr, i,
                 pcPtr->objv[i] ? (void*)pcPtr->objv[i] : NULL,
                 pcPtr->objv[i] ? (long)pcPtr->objv[i]->refCount : -1,
@@ -21827,8 +21827,8 @@ PrimitiveODestroy(ClientData clientData) {
 
 #ifdef OBJDELETION_TRACE
     {Command *cmdPtr = (Command*)object->id;
-      fprintf(stderr, "  physical delete of %p id=%p (cmd->refCount %ld) destroyCalled=%d '%s'\n",
-              (void *)object, (void *)object->id, (long)cmdPtr->refCount,
+      fprintf(stderr, "  physical delete of %p id=%p (cmd->refCount  %" TCL_SIZE_MODIFIER "d) destroyCalled=%d '%s'\n",
+              (void *)object, (void *)object->id, cmdPtr->refCount,
               (object->flags & NSF_DESTROY_CALLED), ObjectName(object));
     }
 #endif
@@ -22733,9 +22733,9 @@ DoObjInitialization(Tcl_Interp *interp, NsfObject *object, TCL_OBJC_T objc, Tcl_
   assert(objc >= 0);
 
 #if 0
-  { int i;
-    fprintf(stderr, "DoObjInitialization objc %d: ", objc);
-    for(i = 0; i < objc; i++) {fprintf(stderr, " [%d]=%s,", i, ObjStr(objv[i]));}
+  { TCL_SIZE_T i;
+    fprintf(stderr, "DoObjInitialization objc %" TCL_SIZE_MODIFIER "d: ", objc);
+    for(i = 0; i < objc; i++) {fprintf(stderr, " [%" TCL_SIZE_MODIFIER "d]=%s,", i, ObjStr(objv[i]));}
     fprintf(stderr, "\n");
   }
 #endif
@@ -24055,7 +24055,7 @@ NsfForwardMethod(ClientData clientData, Tcl_Interp *interp,
       if (objc-inputArg > 0) {
         /*fprintf(stderr, "  copying remaining %d args starting at [%d]\n",
           objc-inputArg, outputArg);*/
-        memcpy(ov+outputArg, objv+inputArg, sizeof(Tcl_Obj *) * ((size_t)objc - (size_t)inputArg));
+        memcpy(ov+outputArg, objv+inputArg, sizeof(Tcl_Obj *) * ((TCL_OBJC_T)objc - (TCL_OBJC_T)inputArg));
       } else {
         /*fprintf(stderr, "  nothing to copy, objc=%d, inputArg=%d\n", objc, inputArg);*/
       }
@@ -24080,7 +24080,7 @@ NsfForwardMethod(ClientData clientData, Tcl_Interp *interp,
 #if 0
       for(j = 0; j < objc; j++) {
         /*fprintf(stderr, "  ov[%d]=%p, objc=%d\n", j, ov[j], objc);*/
-        fprintf(stderr, " o[%d]=%p %s (%d),", j, ov[j], ov[j] ? ObjStr(ov[j]) : "NADA", objvmap[j]);
+        fprintf(stderr, " o[%" TCL_SIZE_MODIFIER "d]=%p %s (%d),", j, ov[j], ov[j] ? ObjStr(ov[j]) : "NADA", objvmap[j]);
       }
       fprintf(stderr, "\n");
 #endif
@@ -24135,7 +24135,7 @@ NsfForwardMethod(ClientData clientData, Tcl_Interp *interp,
 #if 0
       for(j = 0; j < objc; j++) {
         /*fprintf(stderr, "  ov[%d]=%p, objc=%d\n", j, ov[j], objc);*/
-        fprintf(stderr, "  ov[%d]=%p '%s' map=%d\n", j, ov[j], ov[j] ? ObjStr(ov[j]) : "NADA", objvmap[j]);
+        fprintf(stderr, "  ov[%" TCL_SIZE_MODIFIER "d]=%p '%s' map=%d\n", j, ov[j], ov[j] ? ObjStr(ov[j]) : "NADA", objvmap[j]);
       }
 #endif
 
@@ -25011,18 +25011,18 @@ ArgumentParse(
   { const Nsf_Param *pPtr;
     fprintf(stderr, "PARAMETER ");
     for (o = 0, pPtr = paramPtr; pPtr->name != NULL; o++, pPtr++) {
-      fprintf(stderr, "[%d]%s (nrargs %d %s) ", o,
+      fprintf(stderr, "[%" TCL_SIZE_MODIFIER "d]%s (nrargs %d %s) ", o,
               pPtr->name, pPtr->nrArgs,
               (pPtr->flags & NSF_ARG_REQUIRED) != 0u ? "req" : "opt");
     }
     fprintf(stderr, "\n");
-    fprintf(stderr, "BEGIN (%d) [0]%s ", objc, ObjStr(procNameObj));
+    fprintf(stderr, "BEGIN (%" TCL_SIZE_MODIFIER "d) [0]%s ", objc, ObjStr(procNameObj));
     for (o = fromArg; o < objc; o++) {
       Tcl_Obj *obj = objv[o];
       if (obj->bytes == NULL) {
-        fprintf(stderr, "[%d]unk(%s) ", o, obj->typePtr->name);
+        fprintf(stderr, "[%" TCL_SIZE_MODIFIER "d]unk(%s) ", o, obj->typePtr->name);
       } else {
-        fprintf(stderr, "[%d]%s ", o, ObjStr(obj));
+        fprintf(stderr, "[%" TCL_SIZE_MODIFIER "d]%s ", o, ObjStr(obj));
       }
     }
     fprintf(stderr, "\n");
@@ -25037,7 +25037,7 @@ ArgumentParse(
     const char      *valueInArgument = NULL;
 
 #if defined(PARSE_TRACE_FULL)
-    fprintf(stderr, "arg [%d]: %s (param %ld, last %d)\n",
+    fprintf(stderr, "arg [%" TCL_SIZE_MODIFIER "d]: %s (param %ld, last %d)\n",
             o, ObjStr(argumentObj), currentParamPtr - paramPtr, currentParamPtr == lastParamPtr);
 #endif
 
@@ -25366,8 +25366,8 @@ ArgumentParse(
       currentParamPtr ++;
 
 #if defined(PARSE_TRACE_FULL)
-      fprintf(stderr, "... positional arg o %ld objc %ld, nrArgs %d next paramPtr %s\n",
-              (long)o, (long)objc, pPtr->nrArgs, currentParamPtr->name);
+      fprintf(stderr, "... positional arg o %" TCL_SIZE_MODIFIER "d objc %" TCL_SIZE_MODIFIER "d, nrArgs %d next paramPtr %s\n",
+              o, objc, pPtr->nrArgs, currentParamPtr->name);
 #endif
 
       if (unlikely(pPtr->nrArgs == 0)) {
@@ -28799,9 +28799,9 @@ NsfDispatchCmd(Tcl_Interp *interp, NsfObject *object,
   trailingObjc++;
 
 #if 0
-  {int i;
+  {TCL_OBJC_T i;
   fprintf(stderr, "NsfDispatchCmd %s method %s oc %2d", ObjectName(object), ObjStr(commandObj), trailingObjc);
-  for(i = 0; i < trailingObjc; i++) {fprintf(stderr, " [%d]=%s,", i, ObjStr(trailingObjv[i]));}
+  for(i = 0; i < trailingObjc; i++) {fprintf(stderr, " [%%" TCL_SIZE_MODIFIER "d]=%s,", i, ObjStr(trailingObjv[i]));}
   fprintf(stderr, "\n");
   }
 #endif
@@ -31418,7 +31418,7 @@ NsfCurrentCmd(Tcl_Interp *interp, CurrentoptionIdx_t option) {
         nobjc = Tcl_CallFrame_objc(framePtr);
         nobjv = (Tcl_Obj **)Tcl_CallFrame_objv(framePtr);
       }
-      Tcl_SetObjResult(interp, Tcl_NewListObj(nobjc-1, nobjv+1));
+      Tcl_SetObjResult(interp, Tcl_NewListObj((TCL_SIZE_T)nobjc-1, nobjv+1));
     } else {
       return NsfPrintError(interp,  "can't find proc");
     }
@@ -32344,7 +32344,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, TCL_OBJC_T objc, Tcl_
 
 #if 0
   fprintf(stderr, "NsfOConfigureMethod %s.%s flags %.6x oc %2d", ObjectName(object), ObjStr(objv0), object->flags, objc);
-  for(i = 0; i < objc; i++) {fprintf(stderr, " [%d]=%s,", i, ObjStr(objv[i]));}
+  for(i = 0; i < objc; i++) {fprintf(stderr, " [%" TCL_SIZE_MODIFIER "d]=%s,", i, ObjStr(objv[i]));}
   fprintf(stderr, "\n");
 #endif
 
@@ -32431,7 +32431,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, TCL_OBJC_T objc, Tcl_
    */
 
 #if defined(CONFIGURE_ARGS_TRACE)
-  fprintf(stderr, "*** POPULATE OBJ '%s': nr of parsed args %d\n", ObjectName(object), pc.objc);
+  fprintf(stderr, "*** POPULATE OBJ '%s': nr of parsed args %" TCL_SIZE_MODIFIER "d\n", ObjectName(object), pc.objc);
 #endif
   for (i = 1, paramPtr = paramDefs->paramsPtr;
        paramPtr->name != NULL;
@@ -33093,7 +33093,7 @@ NsfOResidualargsMethod(Tcl_Interp *interp, NsfObject *object, TCL_OBJC_T objc, T
 
 #if 0
   fprintf(stderr, "NsfOResidualargsMethod %s %2d ", ObjectName_(object), objc);
-  for(i = 0; i < objc; i++) {fprintf(stderr, " [%d]=%p %s,", i, &objv[i], ObjStr(objv[i]));}
+  for(i = 0; i < objc; i++) {fprintf(stderr, " [%" TCL_SIZE_MODIFIER "d]=%p %s,", i, &objv[i], ObjStr(objv[i]));}
   fprintf(stderr, "\n");
 #endif
 
@@ -33628,9 +33628,9 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *nameObj, TCL_OBJC
 
   nameString = Tcl_GetStringFromObj(nameObj, &nameLength);
 #if 0
-  { int i;
+  { TCL_OBJC_T i;
     fprintf(stderr, "NsfCCreateMethod %s create <%s> oc %d ", ClassName(class), ObjStr(nameObj), objc);
-    for(i = 0; i < objc; i++) {fprintf(stderr, " [%d]=%s,", i, ObjStr(objv[i]));}
+    for(i = 0; i < objc; i++) {fprintf(stderr, " [%" TCL_SIZE_MODIFIER "d]=%s,", i, ObjStr(objv[i]));}
     fprintf(stderr, "\n");
   }
 #endif
@@ -33963,9 +33963,9 @@ NsfCNewMethod(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *childofObj,
   nonnull_assert(class != NULL);
 
 #if 0
-  { int i;
-    fprintf(stderr, "NsfCNewMethod %s withChildof %p oc %d ", ClassName(class), childofObj, trailingObjc);
-    for(i = 0; i < trailingObjc; i++) {fprintf(stderr, " [%d]=%s,", i, ObjStr(trailingObjv[i]));}
+  {  TCL_OBJC_T i;
+    fprintf(stderr, "NsfCNewMethod %s withChildof %p oc %" TCL_SIZE_MODIFIER "d ", ClassName(class), childofObj, trailingObjc);
+    for(i = 0; i < trailingObjc; i++) {fprintf(stderr, " [ %" TCL_SIZE_MODIFIER "d]=%s,", i, ObjStr(trailingObjv[i]));}
     fprintf(stderr, "\n");
   }
 #endif
@@ -34775,7 +34775,6 @@ NsfObjInfoVarsMethod(Tcl_Interp *interp, NsfObject *object, const char *pattern)
         Tcl_ListObjAppendElement(interp, okList, element);
       } else {
         /*fprintf(stderr, "must ignore '%s' %d\n", ObjStr(element), i);*/
-        /*Tcl_ListObjReplace(interp, varList, i, 1, 0, NULL);*/
       }
     }
   }
@@ -35465,10 +35464,10 @@ FinalObjectDeletion(
 #if defined(NSF_DEVELOPMENT_TEST)
   if (unlikely(object->refCount != 1)) {
     if (object->refCount > 1) {
-      NsfLog(interp, NSF_LOG_WARN,  "RefCount for obj %p %d (name %s) > 1",
+      NsfLog(interp, NSF_LOG_WARN,  "RefCount for obj %p %" TCL_SIZE_MODIFIER "d (name %s) > 1",
              (void *)object, object->refCount, ObjectName_(object));
     } else {
-      NsfLog(interp, NSF_LOG_WARN,  "Refcount for obj %p %d > 1",
+      NsfLog(interp, NSF_LOG_WARN,  "Refcount for obj %p  %" TCL_SIZE_MODIFIER "d > 1",
              (void *)object, object->refCount);
     }
     /*object->refCount = 1;*/
