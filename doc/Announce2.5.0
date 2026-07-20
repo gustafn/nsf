@@ -17,7 +17,7 @@ bug fixes.  See below for the details.
 
 Diff stats since 2.4.0:
 
-    125 files changed, 7867 insertions(+), 5750 deletions(-)
+  125 files changed, 8274 insertions(+), 5957 deletions(-)
 
 The major changes relative to 2.4.0 are: NSF now compiles and runs
 with Tcl 9 as released (9.0.4 at the time of writing) and Tcl 9.1 (b0
