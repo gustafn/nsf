@@ -17003,15 +17003,17 @@ Nsf_ConvertToBoolean(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr
  *----------------------------------------------------------------------
  * Nsf_ConvertToInt32 --
  *
- *      Nsf_TypeConverter setting the client data (passed to C functions) to the
- *      internal representation of an integer. This converter checks the passed
- *      value via Tcl_GetIntFromObj().
+ *      Nsf_TypeConverter setting the client data (passed to C functions) to
+ *      the internal representation of an integer in the range [INT_MIN,
+ *      UINT_MAX]. This converter checks the passed value via
+ *      Tcl_GetSizeIntFromObj().
  *
  * Results:
  *      Tcl result code, *clientData and **outObjPtr
  *
  * Side effects:
- *      None.
+ *      If objPtr is not already internally a Tcl_Size, a
+ *      conversion will will free any old internal representation
  *
  *----------------------------------------------------------------------
  */
@@ -17022,18 +17024,21 @@ int Nsf_ConvertToInt32(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pP
 int
 Nsf_ConvertToInt32(Tcl_Interp *interp, Tcl_Obj *objPtr,  const Nsf_Param *pPtr,
                    ClientData *clientData, Tcl_Obj **UNUSED(outObjPtr)) {
-  int result, i;
+  int result;
+  TCL_SIZE_T i;
 
   nonnull_assert(interp != NULL);
   nonnull_assert(objPtr != NULL);
   nonnull_assert(pPtr != NULL);
   nonnull_assert(clientData != NULL);
 
-  result = Tcl_GetIntFromObj(interp, objPtr, &i);
-
-  if (likely(result == TCL_OK)) {
+  result = Tcl_GetSizeIntFromObj(interp, objPtr, &i);
+  if (likely(result == TCL_OK) && (
+          (sizeof(int) == sizeof(TCL_SIZE_T)) ||
+          ((i >= INT_MIN) && (i <= UINT_MAX)))) {
     *clientData = (ClientData)INT2PTR(i);
   } else {
+    result = TCL_ERROR;
     Tcl_ResetResult(interp);
     NsfObjErrType(interp, NULL, objPtr, "int32", (Nsf_Param *)pPtr);
   }
