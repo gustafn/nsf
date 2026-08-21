@@ -1,15 +1,15 @@
 /*
- *      nsf.c --
+ * nsf.c --
  *
  *      Basic Machinery of the Next Scripting Framework, a Tcl-based framework
  *      for supporting language-oriented programming.  For details, see
  *      https://next-scripting.org/.
  *
- * Copyright (C) 1999-2024 Gustaf Neumann (a) (b)
+ * Copyright (C) 1999-2026 Gustaf Neumann (a) (b)
  * Copyright (C) 1999-2007 Uwe Zdun (a) (b)
  * Copyright (C) 2007-2008 Martin Matuska (b)
- * Copyright (C) 2010-2019 Stefan Sobernig (b)
- *
+ * Copyright (C) 2010-2019, 2024, 2026 Stefan Sobernig (b)
+ * Copyright (C) 2025 Héctor Romojaro (b)
  *
  * (a) University of Essen
  *     Specification of Software Systems

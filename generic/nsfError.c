@@ -3,9 +3,9 @@
  *
  *      Error reporting functions for the Next Scripting Framework.
  *
- * Copyright (C) 1999-2018 Gustaf Neumann (a, b)
+ * Copyright (C) 1999-2026 Gustaf Neumann (a, b)
  * Copyright (C) 1999-2007 Uwe Zdun (a, b)
- * Copyright (C) 2011-2016 Stefan Sobernig (b)
+ * Copyright (C) 2011-2026 Stefan Sobernig (b)
  *
  * (a) University of Essen
  *      Specification of Software Systems

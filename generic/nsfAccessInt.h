@@ -2,7 +2,7 @@
  * Macros to abstract access to Tcl internals where possible.
  * This file is part of the Next Scripting Framework
  *
- * Copyright (C) 2010-2014 Gustaf Neumann
+ * Copyright (C) 2010-2026 Gustaf Neumann
  *
  * Vienna University of Economics and Business
  * Institute of Information Systems and New Media

@@ -3,7 +3,7 @@
  *
  *      Tcl_Obj types provided by the Next Scripting Framework.
  *
- * Copyright (C) 1999-2017 Gustaf Neumann
+ * Copyright (C) 1999-2024 Gustaf Neumann
  * Copyright (C) 2016 Stefan Sobernig
  *
  * Vienna University of Economics and Business

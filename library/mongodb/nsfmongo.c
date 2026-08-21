@@ -11,7 +11,7 @@
  *
  * -gustaf neumann    March 27, 2011
  *
- * Copyright (C) 2011-2021 Gustaf Neumann
+ * Copyright (C) 2011-2021, 2023, 2026 Gustaf Neumann
  */
 #include <stdlib.h>
 #include <stdio.h>

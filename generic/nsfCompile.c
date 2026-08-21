@@ -7,7 +7,7 @@
  *      for naming changes etc., but requires more work to be revived. The
  *      code is currently deactivated.
  *
- * Copyright (C) 2005-2015 Gustaf Neumann
+ * Copyright (C) 2005-2026 Gustaf Neumann
  *
  * Vienna University of Economics and Business
  * Institute of Information Systems and New Media

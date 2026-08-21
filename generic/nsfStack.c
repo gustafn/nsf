@@ -3,7 +3,7 @@
  *
  *      Stack handling functions of the Next Scripting Framework.
  *
- * Copyright (C) 2010-2017 Gustaf Neumann
+ * Copyright (C) 2010-2026 Gustaf Neumann
  * Copyright (C) 2011-2017 Stefan Sobernig
  *
  * Vienna University of Economics and Business

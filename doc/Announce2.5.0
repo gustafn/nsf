@@ -10,7 +10,7 @@ improvements include script-level enhancements ("const" support, and a
 completed proc-argument processor) plus memory/thread-safety fixes.
 
 Special thanks are due to the following adopters and supporters (in
-alphabetical order): Jan Nijtmans, Oleg Checkulaev, Hector Romojaro,
+alphabetical order): Jan Nijtmans, Oleg Checkulaev, Héctor Romojaro,
 Antonio Pisano, and Maksym Zinchenko.
 
 With this release, NSF and its predecessors have been available and

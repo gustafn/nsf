@@ -4,8 +4,8 @@
  *      API support for shadowing (overloading) and accessing C-implemented
  *      Tcl obj-commands.
  *
- * Copyright (C) 1999-2017 Gustaf Neumann
- * Copyright (C) 2019      Stefan Sobernig
+ * Copyright (C) 1999-2026 Gustaf Neumann
+ * Copyright (C) 2019, 2026 Stefan Sobernig
  *
  * Vienna University of Economics and Business
  * Institute of Information Systems and New Media

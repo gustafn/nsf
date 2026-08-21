@@ -6,7 +6,7 @@
 # 	Scripting Framework (NSF) library. This script is sourced by
 # 	the C-code generator gentclAPI.tcl in the same directory.
 #
-# Copyright (C) 2009-2017 Gustaf Neumann
+# Copyright (C) 2009-2026 Gustaf Neumann
 # 
 # Vienna University of Economics and Business
 # Institute of Information Systems and New Media
