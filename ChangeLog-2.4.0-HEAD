@@ -1,6 +1,37 @@
-2026-07-14  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+2026-07-21  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-	Release work:
+	* nsf.c (Nsf_ConvertToInt32): Rewritten to use Tcl_GetSizeIntFromObj
+	[10963b4c]
+
+2026-07-20  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* Announce2.5.0: Adding stats [7f7cdaf8]
+
+2026-07-17  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* nsf.c, nsfError.c, nsfShadow.c, nsfProfile.c: Use TCL_AUTO_LENGTH instead of TCL_INDEX_NONE for clarity
+	[15a6a9b2]
+
+2026-07-16  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* nsf.c: Applied TCL_SIZE_MODIFIER as well as some missing TCL_SIZE_T/ T_SIZE_OBJC
+	[8335e141]
+
+	* nsf.c: TIP 494 reform INT_MAX -> TCL_SIZE_MAX
+	[f281a7dc]
+
+	* nsf.c, nsf.h: Provide for more TIP 494 compat macros and apply them throughout NSF's core
+	[c9d8e13c]
+
+2026-07-15  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* nsf.h, nsfCmdPtr.c: Rename macro to match correct TIP number: 629 -> 626
+	[616b7999]
+
+	* Adding to release documents
+	[f03382d3]
+
+2026-07-14  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
 	* doc/*.man: Regenerate documentation: man & asciidocs
 	[cd3c413a]
@@ -25,14 +56,16 @@
 
 2026-07-06  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	fix: complete Tcl 9.1 command accessor cleanup
-	Replace remaining direct accesses to removed Tcl Command fields with the
-	version-neutral NSF command accessor macros.
+	* asmAssembleTemplate.c, nsfAsmAssemble.c, nsf.c, nsfCompile.c:
+	Completed Tcl 9.1 command-accessor cleanup. Replace remaining
+	direct accesses to legacy Tcl Command fields using the
+	version-neutral NSF command-accessor macros [194481d4].
 
-	Tcl 9.1 removes the legacy objProc/objClientData fields from struct Command
-	and uses the TIP 627 objProc2/objClientData2 path consistently.  Some remaining
-	debug, assertion, bytecode, and assembler paths still referenced the old fields
-	directly.
+	Background: Tcl 9.1 removes the legacy objProc/objClientData
+	fields from struct Command and uses the TIP 627
+	objProc2/objClientData2 path consistently.  Some remaining debug,
+	assertion, bytecode, and assembler paths still referenced the old
+	fields directly.
 
 	Changes include:
 
@@ -47,22 +80,22 @@
 	- Ensure resolver lookup only returns TCL_OK when a non-NULL Tcl_Command was
 	  actually resolved.
 
-	This completes the internal Command layout abstraction needed for Tcl 9.1 while
-	preserving the existing Tcl 8.5–9.0 code paths through the compatibility macros.
-	[194481d4]
+	This completes the internal Command layout abstraction needed for
+	Tcl 9.1 while preserving the existing Tcl 8.5–9.0 code paths via
+	compatibility macros.
 
 2026-06-17  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	refactor: decouple handling of TIP629 from unsafe hash lookup idiom in 9.1
+	* nsf.h: Continued Tcl 9.1 compat reform [ea05be59]:
+	- decouple handling of TIP 626 from unsafe hash lookup idiom in 9.1
 	- Moved NsfFindHashEntry macro in PRE91 gating
 	- Use Tcl_FindHashEntry for Tcl 9.1+ to prevent empty cmd entries
 	- Keep legacy Tcl_CreateHashEntry(..., NULL) lookup for pre-9.1 builds
 	- Move comment to document why the behavior differs across versions
-	[ea05be59]
 
 2026-06-17  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	fix: adapt command internals for Tcl 9.1 object procs
+	* nsf.c, nsf.h, nsfAPI.h, nsfAccessInt.h, nsfInt.h, nsfPointer.c, nsfShadow.c, nsfStack.c, interp.test, object-system.test:
 	- Add Tcl 9.1 compatibility macros for TIP 627 command procedure handling:
 	  use Tcl_ObjCmdProc2, Tcl_CreateObjCommand2, Tcl_NRCreateCommand2,
 	  Tcl_NRCallObjProc2, and TclObjInterpProc2 when available.
@@ -75,7 +108,7 @@
 	  method classification, parameter lookup, debug output, direct dispatch, and
 	  alias handling.
 	- Introduce NsfFindHashEntry() for lookup-only hash-table access, using
-	  Tcl_FindHashEntry() for Tcl 9.1+ to avoid creating empty Tcl command-table
+	  Tcl_FindHashEntry() for Tcl 9.1+ to avoid creating an empty Tcl command-table
 	  entries.
 	- Update method lookup, precedence-list search, command resolver lookup,
 	  assertion lookup, filter lookup, variable listing, method listing, forward
@@ -87,12 +120,11 @@
 	- Temporarily skip the safe-interpreter creation subtest for Tcl 9.1, where
 	  nsf::interp create -safe still needs follow-up work.
 
-	Tcl 9.1 removes the legacy objProc/object-client-data fields from struct
+	Tcl 9.1 removes the legacy objProc/object-client-data fields from the struct
 	Command and uses TIP 627's Tcl_ObjCmdProc2 path consistently. The old NSF
 	shortcuts therefore misclassified scripted methods, created invalid NULL-valued
 	command-table entries during lookups, and could leave stale NRE dispatch state
-	when replacing Tcl commands.
-	[af8933b4]
+	when replacing Tcl commands. [af8933b4]
 
 2026-06-17  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
@@ -290,12 +322,12 @@
 
 2024-06-26  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	* nsf.c, nsf.h: Fix for transitional bug due to NS_TCL_HAVE_TIP629
-	Deactivating NS_TCL_HAVE_TIP629, since this needs more work to
+	* nsf.c, nsf.h: Fix for transitional bug due to NS_TCL_HAVE_TIP626
+	Deactivating NS_TCL_HAVE_TIP626, since this needs more work to
 	deal with the two different types of commands (before and after
 	the TIP) [19220221]
 
-	   * When we activate NS_TCL_HAVE_TIP629 (TIP supporting > 2^31
+	   * When we activate NS_TCL_HAVE_TIP626 (TIP supporting > 2^31
 	   * elements in object vectors), Tcl defines different objProcs
 	   * (Tcl_ObjCmdProc and Tcl_ObjCmdProc2) where the usage of these
 	   * depends on a cmdWrapperProc. Unfortunately, the resolving of
@@ -305,7 +337,7 @@
 
 2024-06-19  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	removed debugging output for NS_TCL_HAVE_TIP629
+	removed debugging output for NS_TCL_HAVE_TIP626
 	[6a3286e8]
 
 2024-06-19  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
@@ -363,10 +395,10 @@
 	* langRef.xotcl: Fix typo [c5416441]
 
 	* testo.xotcl: Tcl 9 reform: TIP 673 removed "trace variable",
-	which was deprecated since the release of Tcl 8.4. However, since
-	Tcl does not warn about deprecations, so it was not detected until
-	TIP #673 removed the command for Tcl9. [c2980f95] Whitespace
-	changes [5f06502c]
+	which was deprecated since the release of Tcl 8.4. However,
+	since Tcl does not warn about deprecations, so it was not
+	detected until TIP #673 removed the command for
+	Tcl9. Whitespace changes [5f06502c, c2980f95]
 
 2023-11-30  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
@@ -466,8 +498,8 @@
 
 2023-04-16  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-	* nsf.h: Tcl 9 reform: Deactivate support of TIP 629 for the time being When
-	NS_TCL_HAVE_TIP629 (TIP supporting > 2^31 elements in object
+	* nsf.h: Tcl 9 reform: Deactivate support of TIP 626 for the time being When
+	NS_TCL_HAVE_TIP626 (TIP supporting > 2^31 elements in object
 	vectors) is activated, Tcl defines different objProcs
 	(Tcl_ObjCmdProc and Tcl_ObjCmdProc2) for the old and new API,
 	where the usage of these depends on a

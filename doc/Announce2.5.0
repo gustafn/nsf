@@ -1,101 +1,172 @@
 Dear Community,
 
 We are pleased to announce the availability of the Next Scripting
-Framework (NSF) 2.5.0. This release provides NSF, NX, and XOTcl support
-for Tcl 9 (9.0 and 9.1 lines). The release also marks the 25th anniversary of
-XOTcl, the predecessor of NX and one of the parents of TclOO. In May
-1999, the first paper on XOTcl was presented at the 5th USENIX
-Conference on Object-Oriented Technologies and Systems (COOTS '99):
+Framework (NSF) 2.5.0. This release completes support for Tcl 9 (9.0
+and 9.1 lines) in NSF, NX, and XOTcl 2. In short, this release
+delivers Tcl 9.1 compatibility work and hashtable lookup correctness
+(TIPs: 626, 627, 494). This way, NSF/NX/XOTcl can be used with Tcl
+8.5, Tcl 8.6, and Tcl 9 on Linux, Windows, and macOS. Additional
+improvements include script-level enhancements ("const" support, and a
+completed proc-argument processor) plus memory/thread-safety fixes.
+
+Special thanks are due to the following adopters and supporters (in
+alphabetical order): Jan Nijtmans, Oleg Checkulaev, Hector Romojaro,
+Antonio Pisano, and Maksym Zinchenko.
+
+With this release, NSF and its predecessors have been available and
+supported for more than 27 years. In May 1999, the first paper on
+XOTcl was presented at the 5th USENIX Conference on Object-Oriented
+Technologies and Systems (COOTS '99):
 
    Gustaf Neumann & Uwe Zdun: Filters as a Language Support for Design
    Patterns in Object-Oriented Scripting Languages, in: Proc. of
    COOTS'99, San Diego, California, USA, May, 1999, URL:
    https://www.usenix.org/legacy/events/coots99/full_papers/neumann/neumann.pdf
 
-Further changes are mostly perfective improvements in terms of
-bug fixes.  See below for the details.
+This release was announced by a talk given at the 10th OpenACS
+conference and the 22nd European Tcl/Tk Users Meeting in July 2026,
+Vienna, Austria:
+
+  https://openacs.km.at/evaluate/org/129998253/conferencenews/
 
 Diff stats since 2.4.0:
 
-  125 files changed, 8274 insertions(+), 5957 deletions(-)
+  217 files changed, 31608 insertions(+), 22761 deletions(-)
 
-The major changes relative to 2.4.0 are: NSF now compiles and runs
-with Tcl 9 as released (9.0.4 at the time of writing) and Tcl 9.1 (b0
-as released, b1 at the time of writing). This way, NSF/NX/XOTcl can be
-used with the Tcl 8.5, Tcl 8.6, and Tcl 9 on Linux, Windows, and
-macOS.  One can see the results of the compilations and test runs on
+The main changes are:
 
-    https://github.com/nm-wu/nsf/actions
-    https://ci.appveyor.com/project/mrcalvin/nsf-2ylk0/history
+- Tcl 9.1 compatibility (stubs and TIP 626/627 Command layout): Tcl 9.1
+  removed the legacy objProc/objClientData fields from the Command
+  struct, replacing them with objProc2/objClientData2. NSF added a set
+  of version-neutral accessor macros (TCL_COMMAND_OBJPROC, etc.) and
+  supporting CPP machinery. Stub headers and stub vector
+  initialisation for 9.1 were also added.
 
-Hint: As for Tcl 8.5, NSF is only tested with (unreleased) Tcl 8.5
-revisions taken from `core-8-5-branch` at https://core.tcl-lang.org/tcl/.
+  Important: NSF, as a Tcl extension, built against 9.1+ will not be
+  loadable into Tcl 9.0.  The Application Binary Interface (ABI)
+  compatibility rule that later versions with the same major number
+  (the "9" in "9.1") are compatible with earlier versions (9.0) is
+  violated. You will have to compile NSF against each major (and for
+  9.0 also minor) version of Tcl that you wish to support and ship all
+  version-specific builts. For 9.1+, the former rule might be obeyed
+  again.
 
-Further selected changes worth noting:
+  Background:
 
-- Maintenance & bug fixes:
+  https://core.tcl-lang.org/tips/doc/trunk/tip/626.md
+  https://core.tcl-lang.org/tips/doc/trunk/tip/627.md
 
-  * Tcl 9: Refcounting
+- TIP 494 size-type reform: This completes support for 64-bit-sized
+  collections in the NSF codebase.  Adoption of the Tcl 9's size types
+  throughout NSF's core: replacing INT_MAX by TCL_SIZE_MAX, applying
+  TCL_SIZE_MODIFIER and Tcl_Size types rewriting. The latter includes
+  the use of Tcl_Size aware Tcl API functions, e.g.,
+  Tcl_GetSizeIntFromObj in Nsf_ConvertToInt32.
 
-  * Tcl 9: file home vs. ~
+  Background:
 
-  * Threaded builds (POSIX, other than WIN native): Interp cleanup on exit is
-    only triggered by the interp-owning thread (i.e., the one
-    registered during Nsf_Init()) to avoid fatal runtime errors and
-    memory leaks (e.g., in NaviServer).
+  https://core.tcl-lang.org/tips/doc/trunk/tip/494.md
+  https://core.tcl-lang.org/tips/doc/trunk/tip/660.md
+
+- Hashtable-lookup version-agnostic idiom: Introduced
+  NsfFindHashEntry() to do lookup-only access using Tcl_FindHashEntry
+  on 9.1+ instead of Tcl_CreateHashEntry(..., NULL), preventing
+  accidental creation of empty command-table entries when using
+  Tcl_CreateHashEntry() in modern Tcl (post TIP 626). Applied across
+  method lookup, precedence lists, resolvers, filter/variable/forward
+  listings, etc.
+
+- Notable changes to the Tcl/scripting tier (as opposed to the NSF/C
+  core):
+
+  * nx::Object "info consts" (nx.tcl): New introspection method that
+    lists only unmodifiable (constant) variables, similar to "info vars"
+    but restricted to constants created via the Tcl 9 "const" command.
+
+  * "nsf::proc" return-value checkers (nsf.c + tests): You can now
+    write "nsf::proc ... -returns <spec> ..." and introspect it
+    with "nsf::cmd::info returns". The underlying Tcl "string is" checker
+    was also fixed so it no longer clobbers the result when used as a
+    return-value checker (save/restore of the original result).
+
+  * "nsf::parseargs": Now actually honours "required" flags
+    instead of silently accepting an empty argument list. Better error
+    handling for malformed parameter specs. Stray spaces like in
+    ":property {fiscalyear:integer, required}" now raise a proper
+    error.
+
+  * Script-level refinements to NX and XOtcl 2 object systems (nx.tcl,
+    xotcl.tcl):
+
+    Delete on a single-valued property/variable now errors out
+    (matching expectations), with tests added documenting per-slot
+    accessor behavior
+    
+    "defineIncrementalOperations" rewritten to avoid repetitive
+    computations and to handle user-provided incremental
+    slot operations (esp. value=/delete) correctly
+
+    "info" introspection for object parameters now returns "switch" correctly
+
+    Fixed a small leak of NsfMethodContext under Tcl 9 (NOTE: only a
+    symptomatic fix inside the NX object system)
+
+    Tcl 9 "trace variable removal" (testo.xotcl) — trace variable
+    (deprecated since 8.4) was removed by TIP 673 in Tcl 9; tests
+    updated accordingly.
+
+  * File encoding (Script.xotcl): Switched to UTF-8 for robustness
+    across Tcl 9 variants (e.g. TIP 657).
+
+  * Serializer verbosity (serializer.tcl): Reduced log noise
+
+  * MongoDB:
+
+    New proc: "::mongo::oid::gettimestamp"
+
+    Updated build harness
+
+- Bug fixes & hardening (selection):
+
+  * Thread-safe exit handling (POSIX, other than WIN native):
+    ExitHandler reworked to call Tcl_Release(interp) only from the
+    interp-owning thread (i.e., the one registered during Nsf_Init()),
+    avoiding "Tcl_AsyncDelete: async handler deleted by the wrong
+    thread" crashes and a memory leak.
+
+  * Safe-interp shadowing: stopped unconditionally shadowing
+    "::tcl::unsupported::disassemble" on Tcl 9.* (where safe interps no
+    longer ship "::tcl::unsupported::*").
+
+  * Simplified memory management: Removed the "canFree" flag from the
+    "nsfParam" struct, in favour of pure refcounts, fixing a memory leak
+    on Tcl_DupInternalRep.
+
+  * MongoDB client pool: guarded "mongoc_client_pool_push/pop" with a
+    mutex to prevent races.
+
+  * nx.tcl: Fixed invalid parameter specs (e.g. stray space in ":property
+    {fiscalyear:integer, required}"), and handling of leading "~" in file
+    paths under Tcl 9.
 
   * Robust parallel package installs (e.g., avoid overwriting of package
     index files)
 
-- NSF:
-
-  * ::nsf::proc now supports "-returns"
-
-  * ::nsf::parseargs now honours "required" properly
-
-  * Tcl-compliant command shadowing: Respect that safe interpreters do
-    not feature ::tcl::unsupported commands starting with Tcl 9.*
-
-  * Tcl 9.1 compat reform:
-
-    - Tcl 9.1 enforces TIP 626 and removes Tcl internal legacy. NSF
-      2.5.0 tracks these changes, as it requires access to Tcl
-      internal structures (Command).
-
-    - Supports the Tcl 9.1 TIP-627-only Command structure
-      (objProc2/objClientData2), with the legacy, deprecated
-      objProc/objClientData removed.
-  
-    - Rework TIP 626 compatibility macros, which still allows to build
-      and use NSF for Tcl 8.5 through 9.1.
-
-  * Tcl 9.1 stub headers and stub initialisation
-
-  * Cont'd Tcl 9 64-bit data reform (TIP 660/ 494): Adopt Tcl_Size & helpers
-  
-- NX:
-
-  * "info consts":
-
-    nx::Object create o {
-	      #
-	      # Create a "const" instance variable
-	      #
-	      const :x 1
-	      set :y 2
-	      # ...
-     }
-     puts [o info consts]
-     puts [o info vars]	
-
-- MongoDB:
-
-  * New proc: ::mongo::oid::gettimestamp
-  * Updated build harness
-
 - Documentation:
 
-  * Object: Added fragment about "info const"
+  * Object.man: Added fragment about "info const"
+
+- NSF now compiles and runs with Tcl 9 as released (9.0.4 at the time
+  of writing) and Tcl 9.1 (b0 as released, b1 at the time of
+  writing). One can see the results of the compilations and test runs
+  on:
+
+    https://github.com/nm-wu/nsf/actions
+    https://ci.appveyor.com/project/mrcalvin/nsf-2ylk0/history
+
+  Important: As for Tcl 8.5, NSF is only tested with (unreleased) Tcl
+  8.5 revisions taken from `core-8-5-branch` at
+  https://core.tcl-lang.org/tcl/.
 
 The detailed changelog is available at
 https://next-scripting.org/xowiki/download/file/ChangeLog-2.4.0-2.5.0.log
