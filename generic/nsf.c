@@ -1318,6 +1318,15 @@ NsfCallMethodWithArgs(Tcl_Interp *interp, Nsf_Object *object, Tcl_Obj *methodObj
 
 /*
  * Support for variable hash tables
+ *
+  *
+ * VarHashCreateVar returns the variable associated with key, or NULL
+ * when the hash entry cannot be obtained. Callers must check the result
+ * before dereferencing it.
+ *
+ * VarHashTableCreate allocates and initializes a variable hash table.
+ * Tcl's allocator terminates on allocation failure, so this function
+ * does not return NULL.
  */
 static NSF_INLINE Var *VarHashCreateVar(TclVarHashTable *tablePtr, const Tcl_Obj *key, int *newPtr)
   nonnull(1) nonnull(2);
@@ -5659,11 +5668,19 @@ CompiledColonVarFetch(Tcl_Interp *interp, Tcl_ResolvedVarInfo *vinfoPtr) {
     }
     assert(varTablePtr != NULL);
 
-    resVarInfo->lastObject = object;
 #if defined(VAR_RESOLVER_TRACE)
     fprintf(stderr, "Fetch var %s in object %s\n", TclGetString(resVarInfo->nameObj), ObjectName(object));
 #endif
-    resVarInfo->var = var = (Tcl_Var) VarHashCreateVar(varTablePtr, resVarInfo->nameObj, &new);
+    var = (Tcl_Var) VarHashCreateVar(varTablePtr, resVarInfo->nameObj, &new);
+
+    if (unlikely(var == NULL)) {
+      resVarInfo->var = NULL;
+      resVarInfo->lastObject = NULL;
+      return NULL;
+    }
+
+    resVarInfo->var = var;
+    resVarInfo->lastObject = object;
     /*
      * Increment the reference counter to avoid ckfree() of the variable
      * in Tcl's FreeVarEntry(); for cleanup, we provide our own
@@ -6017,7 +6034,7 @@ InterpColonVarResolver(Tcl_Interp *interp, const char *varName, Tcl_Namespace *U
   *varPtr = var;
   DECR_REF_COUNT(keyObj);
 
-  return TCL_OK;
+  return likely(var != NULL) ? TCL_OK : TCL_ERROR;
 }
 
 /*********************************************************
@@ -23129,6 +23146,10 @@ ImportInstVarIntoCurrentScope(Tcl_Interp *interp, const char *cmdName, NsfObject
         Tcl_CallFrame_varTablePtr(varFramePtr) = varTablePtr = VarHashTableCreate();
       }
       varPtr = VarHashCreateVar(varTablePtr, newName, &new);
+
+      if (unlikely(varPtr == NULL)) {
+        return NsfPrintError(interp, "could not create local variable '%s'", ObjStr(newName));
+      }
     }
 
     /*
