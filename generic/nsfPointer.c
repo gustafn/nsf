@@ -69,21 +69,16 @@ Nsf_PointerAdd(Tcl_Interp *interp, char *buffer, size_t size, const char *typeNa
 
   counterPtr = Nsf_PointerTypeLookup(typeName);
   if (counterPtr != NULL) {
-    Tcl_DString    ds, *dsPtr = &ds;
     Tcl_HashEntry *hPtr;
     int            isNew;
 
-    Tcl_DStringInit(dsPtr);
-    Tcl_DStringAppend(dsPtr, typeName, TCL_INDEX_NONE);
-    Tcl_DStringAppend(dsPtr, ":%d", 3);
     NsfMutexLock(&pointerMutex);
-    snprintf(buffer, size, Tcl_DStringValue(dsPtr), (*counterPtr)++);
+    snprintf(buffer, size, "%s:%d", typeName, (*counterPtr)++);
     hPtr = Tcl_CreateHashEntry(pointerHashTablePtr, buffer, &isNew);
     NsfMutexUnlock(&pointerMutex);
     Tcl_SetHashValue(hPtr, valuePtr);
     /*fprintf(stderr, "Nsf_PointerAdd key '%s' prefix '%s' => %p value %p\n", buffer, typeName, hPtr, valuePtr);*/
 
-    Tcl_DStringFree(dsPtr);
   } else {
     return NsfPrintError(interp, "no type converter for %s registered", typeName);
   }

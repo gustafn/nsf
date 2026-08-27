@@ -1245,7 +1245,9 @@ CallMethod(ClientData clientData, Tcl_Interp *interp, Tcl_Obj *methodObj,
   tov[1] = methodObj;
 
   if (likely(objc > 2)) {
-    memcpy(tov+2, objv, sizeof(Tcl_Obj *) * ((size_t)objc - 2u));
+    const size_t argCount = (size_t)(objc - 2);
+
+    memcpy(tov + 2, objv, sizeof(*tov) * argCount);
   }
 
   /*fprintf(stderr, "%%%% CallMethod cmdName=%s, method=%s, objc=%d\n",
@@ -7434,7 +7436,7 @@ CanRedefineCmd(
     Tcl_Obj *bootstrapObj = Tcl_GetVar2Ex(interp, "::nsf::bootstrap", NULL, TCL_GLOBAL_ONLY);
 
     if (bootstrapObj == NULL) {
-      result = NsfPrintError(interp, "refuse to overwrite protected method '%s'; "
+      result = NsfPrintError(interp, "refuse to overwrite protected method '%s' of object '%s'; "
                              "derive e.g. a subclass!", methodName, ObjectName_(object));
     } else {
       result = TCL_OK;
@@ -8931,7 +8933,7 @@ AssertionSetCheckOptions(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *arg) {
     }
   }
   if (opt->checkoptions == CHECK_NONE && ocArgs > 0) {
-    return NsfPrintError(interp, "unknown check option in command '%s' check %s, ",
+    return NsfPrintError(interp, "unknown check option in command '%s' check %s, "
                          "valid: all pre post object-invar class-invar",
                          ObjectName_(object), ObjStr(arg));
   }
@@ -16458,12 +16460,12 @@ in case the object system has it
  *
  *----------------------------------------------------------------------
  */
-static int DispatchInitMethod(Tcl_Interp *interp, NsfObject *object,
+static int DispatchInitMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *arg1,
                    TCL_OBJC_T objc, Tcl_Obj *const objv[], unsigned int flags)
   nonnull(1) nonnull(2);
 
 static int
-DispatchInitMethod(Tcl_Interp *interp, NsfObject *object,
+DispatchInitMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *arg1,
                    TCL_OBJC_T objc, Tcl_Obj *const objv[], unsigned int flags) {
   int result;
   Tcl_Obj *methodObj;
@@ -16491,8 +16493,10 @@ DispatchInitMethod(Tcl_Interp *interp, NsfObject *object,
        */
       result = TCL_OK;
     } else {
-      result = CallMethod(object, interp, methodObj, objc+2, objv,
-                          flags|NSF_CM_IGNORE_PERMISSIONS|NSF_CSC_IMMEDIATE);
+      result = NsfCallMethodWithArgs(
+          interp, (Nsf_Object *)object, methodObj,
+          arg1, objc, objv,
+          flags | NSF_CM_IGNORE_PERMISSIONS | NSF_CSC_IMMEDIATE);
     }
 
   } else {
@@ -18139,7 +18143,7 @@ ParamDefinitionParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, uns
       result = NsfPrintError(interp,
                              "wrong # of elements in parameter definition "
                              "of method '%s'. "
-                             "Should be a list of 1 or 2 elements, but got: '$s'",
+                             "Should be a list of 1 or 2 elements, but got: '%s'",
                              ObjStr(procNameObj), ObjStr(paramPtr->paramObj));
     } else {
       result = NsfPrintError(interp,
@@ -18856,7 +18860,11 @@ ParameterMethodDispatch(
      * time.
      */
     if (*initString == *methodString && strcmp(initString, methodString) == 0) {
-      result = DispatchInitMethod(interp, object, (TCL_OBJC_T)oc, &ov0, 0u);
+      result = DispatchInitMethod(interp, object,
+                                  oc > 0 ? ov0 : NULL,
+                                  (TCL_OBJC_T)oc,
+                                  oc > 1 ? ovPtr : NULL,
+                                  0u);
     } else {
 
       /*fprintf(stderr, "... call alias %s with methodObj %s.%s oc %d, nrArgs %d '%s'\n",
@@ -22785,7 +22793,7 @@ DoObjInitialization(Tcl_Interp *interp, NsfObject *object, TCL_OBJC_T objc, Tcl_
      * Call constructor when needed
      */
     if ((object->flags & (NSF_INIT_CALLED|NSF_DESTROY_CALLED)) == 0u) {
-      result = DispatchInitMethod(interp, object, 0, NULL, 0u);
+      result = DispatchInitMethod(interp, object, NULL, 0, NULL, 0u);
     }
 
     if (likely(result == TCL_OK)) {
@@ -24058,9 +24066,11 @@ NsfForwardMethod(ClientData clientData, Tcl_Interp *interp,
         objc, tcd->nr_subcommands, objc+ 2            );*/
 
       if (objc-inputArg > 0) {
+        const size_t remaining = (size_t)(objc - inputArg);
+
         /*fprintf(stderr, "  copying remaining %d args starting at [%d]\n",
           objc-inputArg, outputArg);*/
-        memcpy(ov+outputArg, objv+inputArg, sizeof(Tcl_Obj *) * ((TCL_OBJC_T)objc - (TCL_OBJC_T)inputArg));
+        memcpy(ov + outputArg, objv + inputArg, sizeof(*ov) * remaining);
       } else {
         /*fprintf(stderr, "  nothing to copy, objc=%d, inputArg=%d\n", objc, inputArg);*/
       }
@@ -28013,15 +28023,15 @@ NsfDebugGetDict(Tcl_Interp *interp, Tcl_Obj *obj) {
   Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("hex", TCL_AUTO_LENGTH));
 
   if (obj->bytes != NULL) {
-    size_t       i, objLength = (size_t)obj->length;
-    char         trailer[3] = "...";
-    char         buffer[NSF_DEBUG_SHOW_BYTES*2u + sizeof(trailer) + 1u];
+    static const char trailer[] = "...";
+    size_t            i, objLength = (size_t)obj->length;
+    char              buffer[NSF_DEBUG_SHOW_BYTES * 2u + sizeof(trailer)];
 
     for (i = 0; i < NSF_DEBUG_SHOW_BYTES && i < objLength; i++) {
       snprintf(buffer + i*2, sizeof(buffer) - (i+1)*2, "%.2x", (unsigned)(*((obj->bytes)+i) & 0xff));
     }
     if (objLength > NSF_DEBUG_SHOW_BYTES) {
-      memmove(buffer, trailer, sizeof(buffer) - strlen(buffer) - 1);
+      memcpy(buffer, trailer, sizeof(trailer) - 1u);
     }
     Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj(buffer, TCL_AUTO_LENGTH));
 
@@ -28800,6 +28810,7 @@ NsfDispatchCmd(Tcl_Interp *interp, NsfObject *object,
    */
   assert(objv[0] == commandObj);
   assert(ISOBJ_(commandObj));
+  (void)commandObj;
 
   trailingObjc++;
 
@@ -30238,7 +30249,7 @@ NsfObjectSystemCreateCmd(Tcl_Interp *interp, Tcl_Obj *rootClassObj, Tcl_Obj *roo
           return NsfPrintError(interp, "invalid system method '%s'", ObjStr(ov[i]));
         } else if (arg_oc < 1 || arg_oc > 3) {
           ObjectSystemFree(interp, osPtr);
-          return NsfPrintError(interp, "invalid system method argument '%s'", ObjStr(ov[i]), ObjStr(arg));
+          return NsfPrintError(interp, "invalid system method '%s' argument '%s'", ObjStr(ov[i]), ObjStr(arg));
         }
         /*fprintf(stderr, "NsfCreateObjectSystemCmd [%d] = %p %s (max %d, given %d)\n",
           idx, ov[i+1], ObjStr(ov[i+1]), NSF_s_set_idx, oc);*/
@@ -33184,7 +33195,11 @@ NsfOResidualargsMethod(Tcl_Interp *interp, NsfObject *object, TCL_OBJC_T objc, T
   /*
    * Call init with residual args in case it was not called yet.
    */
-  result = DispatchInitMethod(interp, object, (TCL_OBJC_T)normalArgs, objv+1, 0u);
+  result = DispatchInitMethod(interp, object,
+                              normalArgs > 0 ? objv[1] : NULL,
+                              (TCL_OBJC_T)normalArgs,
+                              normalArgs > 1 ? objv + 2 : NULL,
+                              0u);
 
   if (likely(result == TCL_OK)) {
     /*

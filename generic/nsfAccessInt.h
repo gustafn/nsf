@@ -108,7 +108,22 @@
 #define TclIsCompiledLocalArgument(compiledLocalPtr)  ((compiledLocalPtr)->flags & VAR_ARGUMENT)
 #define TclIsCompiledLocalTemporary(compiledLocalPtr) ((compiledLocalPtr)->flags & VAR_TEMPORARY)
 
-#define TclVarHashGetValue(hPtr)	((Var *) ((char *)(hPtr) - offsetof(VarInHash, entry)))
+/*
+ * Recover the enclosing VarInHash from its embedded hash entry.
+ * Tcl's variable hash-table allocator guarantees the required alignment.
+ * this is better then the previous definition
+ *    #define TclVarHashGetValue(hPtr)	((Var *) ((char *)(hPtr) - offsetof(VarInHash, entry)))
+ * which leads to compiler warning of unaligned access due to the definition of offsetof
+ */
+static NSF_INLINE Var *
+TclVarHashGetValue(const Tcl_HashEntry *hPtr)
+{
+  const char *base =
+    (const char *)hPtr - offsetof(VarInHash, entry);
+  VarInHash *varInHashPtr = (VarInHash *)(void *)base;
+
+  return &varInHashPtr->var;
+}
 #define TclVarHashGetKey(varPtr)	(((VarInHash *)(varPtr))->entry.key.objPtr)
 #define TclVarHashTablePtr(varTablePtr)		&(varTablePtr)->table
 #define TclVarValue(type, varPtr, field)	(type *)(varPtr)->value.field

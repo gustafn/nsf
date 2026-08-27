@@ -1127,11 +1127,33 @@ EXTERN void NsfCleanupObject_(NsfObject *object) nonnull(1);
  *  Internally used API functions
  *
  */
+#ifndef USE_NSF_STUBS
+EXTERN void NsfDStringVPrintf(
+    Tcl_DString *dsPtr,
+    const char *fmt,
+    va_list argPtr
+) NSF_attribute_format((printf,2,0));
+
+EXTERN int NsfPrintError(
+    Tcl_Interp *interp,
+    const char *fmt,
+    ...
+) NSF_attribute_format((printf,2,3));
+
+EXTERN void Nsf_DStringPrintf(
+    Tcl_DString *dsPtr,
+    const char *fmt,
+    ...
+) NSF_attribute_format((printf,2,3));
+#endif /* !USE_NSF_STUBS */
+
 #if defined(NRE)
 # if defined(PRE9)
 #  include "stubs8.6/nsfIntDecls.h"
-# else
+# elif defined(PRE91)
 #  include "stubs9.0/nsfIntDecls.h"
+# else
+#  include "stubs9.1/nsfIntDecls.h"
 # endif
 #else
 # include "stubs8.5/nsfIntDecls.h"

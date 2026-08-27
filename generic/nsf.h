@@ -613,8 +613,10 @@ EXTERN int  Nsf_CmdDefinitionRegister(Tcl_Interp *interp, Nsf_methodDefinition *
 #if defined(NRE)
 # if defined(PRE9)
 #  include "stubs8.6/nsfDecls.h"
-# else
+# elif defined(PRE91)
 #  include "stubs9.0/nsfDecls.h"
+# else
+#  include "stubs9.1/nsfDecls.h"
 # endif
 #else
 # include "stubs8.5/nsfDecls.h"
