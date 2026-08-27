@@ -165,14 +165,92 @@ CFLAGS_OPTIMIZE	= @CFLAGS_OPTIMIZE@
 CFLAGS_WARNING		= @CFLAGS_WARNING@
 CFLAGS_DEFAULT		= @CFLAGS_DEFAULT@
 CFLAGS_DEFAULT		= -DNDEBUG
-# useful for debugging:
-#CFLAGS_DEFAULT	= -pedantic -g -std=c99 -DTCL_NO_DEPRECATED -Wconversion -Wsign-conversion -Wfloat-conversion -Wsign-compare
-CFLAGS_CONVERSION= -Wconversion -Wsign-conversion -Wsign-compare
-CFLAGS_DEFINITION= -Wwrite-strings -Wextra -Wdeclaration-after-statement -Wendif-labels -Wshadow -Wmissing-prototypes -Wstrict-prototypes -Wpacked -Wno-redundant-decls -Wno-zero-length-array
-# -Wredundant-decls is currently not possible due to stubs interface
-# -Wzero-length-array is currently not possible due to TCLFLEXARRAY in Tcl 8.6.11
-CFLAGS_TIDY      = -Wmissing-braces -Wmissing-declarations -Wundef -Wunreachable-code -Wswitch-enum -Wpointer-arith -Wold-style-definition -Wmissing-format-attribute -Wformat-security
-#CFLAGS_DEFAULT	= -pedantic -g -std=c99 -DTCL_NO_DEPRECATED $(CFLAGS_CONVERSION) $(CFLAGS_DEFINITION) $(CFLAGS_TIDY)
+
+# Detect the compiler kind and version.  IS_GCC and IS_CLANG are mutually
+# exclusive since Clang identifies itself explicitly in its version string.
+CC_VERSION := $(shell $(CC) --version 2>/dev/null | head -1)
+IS_CLANG  := $(shell echo '$(CC_VERSION)' | grep -i -c clang)
+IS_GCC    := $(shell echo '$(CC_VERSION)' | grep -i -c gcc)
+GCC_VER   := $(shell $(CC) -dumpfullversion -dumpversion 2>/dev/null)
+GCC_MAJOR := $(word 1,$(subst ., ,$(GCC_VER)))
+
+# Numeric comparison helpers for compiler major versions.
+lt = $(shell test '$(1)' -lt '$(2)' 2>/dev/null && echo 1 || echo 0)
+ge = $(shell test '$(1)' -ge '$(2)' 2>/dev/null && echo 1 || echo 0)
+
+# Defaults are filled only for compilers new enough to support the complete
+# warning sets.  Callers can override each group on the make command line.
+CFLAGS_CONVERSION_DEFAULT :=
+CFLAGS_FORMAT_DEFAULT     :=
+CFLAGS_DEFINITION_DEFAULT :=
+CFLAGS_TIDY_DEFAULT       :=
+
+ifeq ($(IS_GCC),1)
+  ifeq ($(call lt,$(GCC_MAJOR),7),0)
+    CFLAGS_CONVERSION_DEFAULT = -Wconversion -Wsign-conversion -Wbad-function-cast -Wcast-align
+    CFLAGS_FORMAT_DEFAULT     = -Wmissing-format-attribute -Wformat-security -Wformat=2
+    CFLAGS_DEFINITION_DEFAULT = -Wwrite-strings -Wdeclaration-after-statement -Wmissing-prototypes -Wmissing-declarations
+    CFLAGS_TIDY_DEFAULT       = -Wno-missing-braces -Wundef -Wunreachable-code \
+				-Wswitch-enum -Wold-style-definition \
+				-Wnull-dereference -Wdouble-promotion -Wvla $(CFLAGS_FORMAT_DEFAULT)
+  endif
+else ifeq ($(IS_CLANG),1)
+  # Apple Clang and upstream Clang use several different version formats.
+  CLANG_MAJOR := $(shell printf '%s\n' '$(CC_VERSION)' | \
+	sed -n 's/.*based on LLVM \([0-9][0-9]*\)\..*/\1/p; \
+		s/.*clang version \([0-9][0-9]*\)\..*/\1/p; \
+		s/.*LLVM version \([0-9][0-9]*\)\..*/\1/p; \
+		s/.*clang-\([0-9][0-9]*\)\..*/\1/p' | \
+	head -n 1)
+
+  ifneq ($(CLANG_MAJOR),)
+    ifeq ($(call lt,$(CLANG_MAJOR),4),0)
+      CFLAGS_CONVERSION_DEFAULT = -Wconversion -Wsign-conversion -Wbad-function-cast -Wcast-align
+      CFLAGS_FORMAT_DEFAULT     = -Wmissing-format-attribute -Wformat-security -Wformat=2
+      CFLAGS_DEFINITION_DEFAULT = -Wwrite-strings -Wdeclaration-after-statement -Wmissing-prototypes -Wmissing-declarations
+      CFLAGS_TIDY_DEFAULT       = -Wno-missing-braces -Wundef -Wunreachable-code \
+				  -Wswitch-enum -Wold-style-definition -Wtautological-compare \
+				  -Wnull-dereference -Wdouble-promotion -Wvla $(CFLAGS_FORMAT_DEFAULT)
+    endif
+  endif
+endif
+
+CFLAGS_CONVERSION ?= $(CFLAGS_CONVERSION_DEFAULT)
+CFLAGS_FORMAT     ?= $(CFLAGS_FORMAT_DEFAULT)
+CFLAGS_DEFINITION ?= $(CFLAGS_DEFINITION_DEFAULT)
+CFLAGS_TIDY       ?= $(CFLAGS_TIDY_DEFAULT)
+
+# Add a flag only when the selected compiler accepts it.
+# Usage: $(call cc-supports,<flag>)
+cc-supports = $(shell \
+	printf 'int main(void){return 0;}\n' | \
+	$(CC) $(1) -Werror -x c - -c -o /dev/null >/dev/null 2>&1 && \
+	echo '$(1)')
+
+CFLAGS_COMPILER :=
+ifeq ($(IS_GCC),1)
+  CFLAGS_COMPILER += -Wlogical-op -Wclobbered -Wtrampolines
+  ifeq ($(call ge,$(GCC_MAJOR),7),1)
+    CFLAGS_COMPILER += -Wduplicated-cond -Wduplicated-branches \
+	-Wformat-overflow=2 -Wformat-truncation=2 -Wrestrict \
+	-Wimplicit-fallthrough=3
+  endif
+  ifeq ($(call ge,$(GCC_MAJOR),8),1)
+    CFLAGS_COMPILER += $(call cc-supports,-Wstringop-truncation)
+  endif
+  ifeq ($(call ge,$(GCC_MAJOR),11),1)
+    CFLAGS_COMPILER += $(call cc-supports,-Wstringop-overread)
+  endif
+endif
+
+ifeq ($(IS_CLANG),1)
+  CFLAGS_COMPILER += $(call cc-supports,-Wshorten-64-to-32) \
+	$(call cc-supports,-Wcomma) \
+	$(call cc-supports,-Wnewline-eof)
+endif
+
+CFLAGS_WARNING += -pedantic -Wextra $(CFLAGS_CONVERSION) \
+	$(CFLAGS_DEFINITION) $(CFLAGS_TIDY) $(CFLAGS_COMPILER)
 CLEANFILES	= @CLEANFILES@
 EXEEXT		= @EXEEXT@
 LDFLAGS_DEFAULT	= @LDFLAGS_DEFAULT@
