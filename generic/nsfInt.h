@@ -184,6 +184,16 @@ typedef int bool;
 #define nonnull_assert(assertion) assert((assertion))
 
 /*
+ * Enforce a non-null internal invariant in all build configurations.
+ */
+#define NSF_NONNULL_OR_PANIC(ptr, msg)              \
+  do {                                              \
+    if (unlikely((ptr) == NULL)) {                  \
+      Tcl_Panic("%s", (msg));                       \
+    }                                               \
+  } while (0)
+
+/*
  * Try to use gcc __attribute__ "unused" and mangle the name, so the
  * attribute could not be used, if declared as unused.
  */

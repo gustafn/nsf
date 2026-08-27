@@ -8105,7 +8105,7 @@ static void CmdListDeleteCmdListEntry(NsfCmdList *del, NsfFreeCmdListClientData 
 static void
 CmdListDeleteCmdListEntry(NsfCmdList *del, NsfFreeCmdListClientData *freeFct) {
 
-  nonnull_assert(del != NULL);
+  NSF_NONNULL_OR_PANIC(del, "CmdListDeleteCmdListEntry called with NULL entry");
 
   if (unlikely(freeFct != NULL)) {
     (*freeFct)(del);
@@ -10622,7 +10622,8 @@ MixinSearchProc(
       }
 
       class1 = NsfGetClassFromCmdPtr(cmdList->cmdPtr);
-      assert(class1 != NULL);
+      NSF_NONNULL_OR_PANIC(class1, "mixin command does not reference an NSF class");
+
       lastCmdPtr = cmdList->cmdPtr;
 
       if (class1 == *classPtr) {
@@ -10676,7 +10677,8 @@ MixinSearchProc(
         continue;
       }
       class = NsfGetClassFromCmdPtr(cmdList->cmdPtr);
-      assert(class != NULL);
+      NSF_NONNULL_OR_PANIC(class, "mixin command does not reference an NSF class");
+
       /*
         fprintf(stderr, "+++ MixinSearch %s->%s in %p cmdPtr %p clientData %p\n",
         ObjectName(object), methodName, cmdList,
@@ -14809,7 +14811,8 @@ ObjectCmdMethodDispatch(
     /*fprintf(stderr, "call next instead of unknown %s.%s \n",
       ObjectName(cscPtr->self), methodName);*/
 
-    assert(cscPtr1 != NULL);
+    NSF_NONNULL_OR_PANIC(cscPtr1, "ensemble dispatch has no active call-stack frame");
+
     if ((cscPtr1->frameType & NSF_CSC_TYPE_ENSEMBLE)) {
       /*
        * We are in an ensemble method. The next works here not on the
@@ -14818,7 +14821,8 @@ ObjectCmdMethodDispatch(
        * that.
        */
       cscPtr1 = CallStackFindEnsembleCsc(framePtr1, &framePtr1);
-      assert(cscPtr1 != NULL);
+
+      NSF_NONNULL_OR_PANIC(cscPtr1, "ensemble dispatch cannot find its enclosing frame");
     }
 
     /*
@@ -20688,7 +20692,9 @@ NextGetArguments(
      * that.
      */
     cscPtr = CallStackFindEnsembleCsc(framePtr, &framePtr);
-    assert(cscPtr != NULL);
+
+    NSF_NONNULL_OR_PANIC(cscPtr, "NextGetArguments could not find ensemble invocation frame");
+
     inEnsemble = NSF_TRUE;
     *methodNamePtr = MethodName(cscPtr->objv[0]);
   } else {
@@ -21260,6 +21266,8 @@ FindNextMethod(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
     methodName = Tcl_GetCommandName(interp, cscPtr->cmdPtr);
     if (isEnsemble) {
       NsfCallStackContent *cscPtr1 = CallStackFindEnsembleCsc(framePtr, &framePtr);
+
+      NSF_NONNULL_OR_PANIC(cscPtr1, "next-method lookup has no call-stack context");
 
       lookupMethodName = MethodName(cscPtr1->objv[0]);
     } else {
@@ -26813,7 +26821,7 @@ MethodSourceMatches(DefinitionsourceIdx_t withSource, NsfClass *class, NsfObject
      * If the method is object specific, it can't be from a baseclass and must
      * be application specific.
      */
-    assert(object != NULL);
+    NSF_NONNULL_OR_PANIC(object, "MethodSourceMatches requires an object when class is NULL");
     result = (withSource == DefinitionsourceApplicationIdx && !IsBaseClass(object));
 
   } else {
@@ -27715,7 +27723,8 @@ AliasDeleteObjectReference(Tcl_Interp *interp, Tcl_Command cmd) {
 
   nonnull_assert(interp != NULL);
   nonnull_assert(cmd != NULL);
-  nonnull_assert(referencedObject != NULL);
+
+  NSF_NONNULL_OR_PANIC(referencedObject, "object alias does not reference an NSF object");
 
   /*fprintf(stderr, "AliasDeleteObjectReference on %p obj %p\n", cmd, referencedObject);*/
   if (referencedObject->refCount > 0
@@ -31537,7 +31546,7 @@ NsfCurrentCmd(Tcl_Interp *interp, CurrentoptionIdx_t option) {
 
     cscPtr = CallStackGetTopFrame(interp, &framePtr);
 
-    if ((cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) != 0u) {
+    if (cscPtr != NULL && (cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) != 0u) {
       (void)CallStackFindEnsembleCsc(framePtr, &framePtr);
     }
 
