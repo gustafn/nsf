@@ -14717,6 +14717,8 @@ ObjectCmdMethodDispatch(
 
         /* Alternatively: (void)NsfCallStackFindLastInvocation(interp, 0, &framePtr1); */
         (void)CallStackGetTopFrame(interp, &framePtr0);
+        NSF_NONNULL_OR_PANIC(framePtr0, "protected ensemble dispatch has no active call frame");
+
         (void)CallStackFindEnsembleCsc(framePtr0, &framePtr1);
         /* NsfShowStack(interp);
            fprintf(stderr, "framePtr %p\n", (void *)framePtr1);*/
