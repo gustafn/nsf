@@ -96,9 +96,9 @@ EXTERN int		Nsf_UnsetVar2(struct Nsf_Object *object,
 				const char *name2, unsigned int flags);
 /* 11 */
 EXTERN void		NsfDStringVPrintf(Tcl_DString *dsPtr,
-				const char *fmt, va_list argPtr);
+				const char *fmt, va_list argPtr) NSF_attribute_format((printf, 2, 0));
 /* 12 */
-EXTERN int		NsfPrintError(Tcl_Interp *interp, const char *fmt, ...);
+EXTERN int		NsfPrintError(Tcl_Interp *interp, const char *fmt, ...) NSF_attribute_format((printf, 2, 3));
 /* 13 */
 EXTERN int		NsfErrInProc(Tcl_Interp *interp, Tcl_Obj *objName,
 				Tcl_Obj *clName, const char *procName);
@@ -157,7 +157,7 @@ EXTERN int		Nsf_ArgumentParse(Tcl_Interp *interp,
 				Nsf_ParseContext *pcPtr);
 /* 26 */
 EXTERN void		NsfLog(Tcl_Interp *interp, int requiredLevel,
-				const char *fmt, ...);
+				const char *fmt, ...) NSF_attribute_format((printf, 3, 4));
 /* 27 */
 EXTERN int		Nsf_PointerAdd(Tcl_Interp *interp, char *buffer,
 				size_t size, const char *typeName,
@@ -213,7 +213,7 @@ EXTERN int		NsfArgumentError(Tcl_Interp *interp,
 				Tcl_Obj *cmdNameObj, Tcl_Obj *methodPathObj);
 /* 41 */
 EXTERN void		Nsf_DStringPrintf(Tcl_DString *dsPtr,
-				const char *fmt, ...);
+				const char *fmt, ...) NSF_attribute_format((printf, 2, 3));
 
 typedef struct {
     const struct NsfIntStubs *nsfIntStubs;
@@ -234,8 +234,8 @@ typedef struct NsfStubs {
     Tcl_Obj * (*nsf_ObjSetVar2) (struct Nsf_Object *object, Tcl_Interp *interp, Tcl_Obj *name1, Tcl_Obj *name2, Tcl_Obj *valueObj, unsigned int flags); /* 8 */
     Tcl_Obj * (*nsf_ObjGetVar2) (struct Nsf_Object *object, Tcl_Interp *interp, Tcl_Obj *name1, Tcl_Obj *name2, unsigned int flags); /* 9 */
     int (*nsf_UnsetVar2) (struct Nsf_Object *object, Tcl_Interp *interp, const char *name1, const char *name2, unsigned int flags); /* 10 */
-    void (*nsfDStringVPrintf) (Tcl_DString *dsPtr, const char *fmt, va_list argPtr); /* 11 */
-    int (*nsfPrintError) (Tcl_Interp *interp, const char *fmt, ...); /* 12 */
+    void (*nsfDStringVPrintf) (Tcl_DString *dsPtr, const char *fmt, va_list argPtr) NSF_attribute_format((printf, 2, 0)); /* 11 */
+    int (*nsfPrintError) (Tcl_Interp *interp, const char *fmt, ...) NSF_attribute_format((printf, 2, 3)); /* 12 */
     int (*nsfErrInProc) (Tcl_Interp *interp, Tcl_Obj *objName, Tcl_Obj *clName, const char *procName); /* 13 */
     int (*nsfObjErrType) (Tcl_Interp *interp, const char *context, Tcl_Obj *value, const char *type, Nsf_Param const *NsfObjErrType); /* 14 */
     void (*nsfStackDump) (Tcl_Interp *interp); /* 15 */
@@ -249,7 +249,7 @@ typedef struct NsfStubs {
     int (*nsfAddClassMethod) (Tcl_Interp *interp, struct Nsf_Class *class, const char *methodName, TCL_OBJCMDPROC_T *proc, ClientData clientData, Tcl_CmdDeleteProc *dp, unsigned int flags); /* 23 */
     int (*nsfCreate) (Tcl_Interp *interp, Nsf_Class *class, Tcl_Obj *nameObj, TCL_OBJC_T objc, Tcl_Obj *const objv[]); /* 24 */
     int (*nsf_ArgumentParse) (Tcl_Interp *interp, TCL_OBJC_T objc, Tcl_Obj *const objv[], Nsf_Object *object, Tcl_Obj *procNameObj, Nsf_Param const *paramPtr, TCL_OBJC_T nrParams, int serial, unsigned int processFlags, Nsf_ParseContext *pcPtr); /* 25 */
-    void (*nsfLog) (Tcl_Interp *interp, int requiredLevel, const char *fmt, ...); /* 26 */
+    void (*nsfLog) (Tcl_Interp *interp, int requiredLevel, const char *fmt, ...) NSF_attribute_format((printf, 3, 4)); /* 26 */
     int (*nsf_PointerAdd) (Tcl_Interp *interp, char *buffer, size_t size, const char *typeName, void *valuePtr); /* 27 */
     int (*nsf_PointerDelete) (const char *key, void *valuePtr, int free); /* 28 */
     int (*nsf_PointerTypeRegister) (Tcl_Interp *interp, const char*typeName, int *counterPtr); /* 29 */
@@ -264,7 +264,7 @@ typedef struct NsfStubs {
     int (*nsf_EnumerationTypeRegister) (Tcl_Interp *interp, Nsf_EnumeratorConverterEntry *typeRecords); /* 38 */
     int (*nsf_CmdDefinitionRegister) (Tcl_Interp *interp, Nsf_methodDefinition *definitionRecords); /* 39 */
     int (*nsfArgumentError) (Tcl_Interp *interp, const char *errorMsg, Nsf_Param const *paramPtr, Tcl_Obj *cmdNameObj, Tcl_Obj *methodPathObj); /* 40 */
-    void (*nsf_DStringPrintf) (Tcl_DString *dsPtr, const char *fmt, ...); /* 41 */
+    void (*nsf_DStringPrintf) (Tcl_DString *dsPtr, const char *fmt, ...) NSF_attribute_format((printf, 2, 3)); /* 41 */
 } NsfStubs;
 
 extern const NsfStubs *nsfStubsPtr;

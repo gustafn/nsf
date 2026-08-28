@@ -918,7 +918,7 @@ TCL_SRC_DIR_85 ?= /usr/local/src/tcl8.5.19
 TCL_SRC_DIR_86 ?= /usr/local/src/tcl8.6.8
 TCL_SRC_DIR_87 ?= /usr/local/src/core-8-branch
 TCL_SRC_DIR_90 ?= /usr/local/src/tcl9.0.2
-TCL_SRC_DIR_91 ?= /usr/local/src/core-9-branch
+TCL_SRC_DIR_91 ?= /usr/local/src/tcl9.1b1
 
 genstubs: $(src_generic_dir)/nsf.decls
 	mkdir -p $(src_generic_dir)/stubs8.5
@@ -941,6 +941,12 @@ genstubs: $(src_generic_dir)/nsf.decls
 	tclsh9.1 $(TCL_SRC_DIR_91)/tools/genStubs.tcl \
 		$(src_generic_dir)/stubs9.1 \
 		$(src_generic_dir)/nsf.decls $(src_generic_dir)/nsfInt.decls
+	$(TCLSH) $(src_app_dir_native)/utils/add-format-attributes.tcl \
+		$(src_generic_dir)/stubs8.5/nsfDecls.h \
+		$(src_generic_dir)/stubs8.6/nsfDecls.h \
+		$(src_generic_dir)/stubs8.7/nsfDecls.h \
+		$(src_generic_dir)/stubs9.0/nsfDecls.h \
+		$(src_generic_dir)/stubs9.1/nsfDecls.h
 
 getstubs:
 	$(TCLSH) $(src_app_dir_native)/utils/getstubs.tcl $(src_generic_dir)
