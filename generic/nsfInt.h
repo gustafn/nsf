@@ -158,6 +158,14 @@ typedef int bool;
 # include <tclCompile.h>
 #endif
 
+#if defined(__GNUC__) || defined(__clang__)
+# define NSF_UNREACHABLE() __builtin_unreachable()
+#elif defined(_MSC_VER)
+# define NSF_UNREACHABLE() __assume(0)
+#else
+# define NSF_UNREACHABLE() ((void)0)
+#endif
+
 #if NSF__GNUC_PREREQ(2, 95)
 /* Use gcc branch prediction hint to minimize cost of e.g. DTrace
  * ENABLED checks.
@@ -190,6 +198,7 @@ typedef int bool;
   do {                                              \
     if (unlikely((ptr) == NULL)) {                  \
       Tcl_Panic("%s", (msg));                       \
+      NSF_UNREACHABLE();                            \
     }                                               \
   } while (0)
 

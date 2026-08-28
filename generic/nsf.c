@@ -8105,8 +8105,6 @@ static void CmdListDeleteCmdListEntry(NsfCmdList *del, NsfFreeCmdListClientData 
 static void
 CmdListDeleteCmdListEntry(NsfCmdList *del, NsfFreeCmdListClientData *freeFct) {
 
-  NSF_NONNULL_OR_PANIC(del, "CmdListDeleteCmdListEntry called with NULL entry");
-
   if (unlikely(freeFct != NULL)) {
     (*freeFct)(del);
   }
@@ -8188,6 +8186,8 @@ CmdListRemoveDeleted(NsfCmdList **cmdList, NsfFreeCmdListClientData *freeFct) {
       del = f;
       f = f->nextPtr;
       del = CmdListRemoveFromList(cmdList, del);
+
+      NSF_NONNULL_OR_PANIC(del,"failed to remove command-list entry selected for deletion");
       CmdListDeleteCmdListEntry(del, freeFct);
     } else
       f = f->nextPtr;
@@ -10106,6 +10106,8 @@ RemoveFromClassMixinsOf(Tcl_Command cmd, NsfCmdList *cmdList) {
         /* fprintf(stderr, "Removing class %s from isClassMixinOf of class %s\n",
            ClassName(cl), ObjStr(NsfGetClassFromCmdPtr(cmdList->cmdPtr)->object.cmdName)); */
         del = CmdListRemoveFromList(&nclopt->isClassMixinOf, del);
+
+        NSF_NONNULL_OR_PANIC(del,"failed to remove command-list entry selected for deletion");
         CmdListDeleteCmdListEntry(del, GuardDel);
       }
     }
@@ -10149,6 +10151,8 @@ RemoveFromObjectMixinsOf(Tcl_Command cmd, NsfCmdList *cmdList) {
         /* fprintf(stderr, "Removing object %s from isObjectMixinOf of Class %s\n",
            ObjectName(object), ObjStr(NsfGetClassFromCmdPtr(cmdList->cmdPtr)->object.cmdName)); */
         del = CmdListRemoveFromList(&clopt->isObjectMixinOf, del);
+
+        NSF_NONNULL_OR_PANIC(del,"failed to remove command-list entry selected for deletion");
         CmdListDeleteCmdListEntry(del, GuardDel);
       }
     } /* else fprintf(stderr, "CleanupDestroyObject %s: NULL pointer in mixins!\n", ObjectName(object)); */
@@ -10192,6 +10196,8 @@ RemoveFromClassmixins(Tcl_Command cmd, NsfCmdList *cmdList) {
         /* fprintf(stderr, "Removing class %s from mixins of object %s\n",
            ClassName(class), ObjStr(NsfGetObjectFromCmdPtr(cmdList->cmdPtr)->cmdName)); */
         del = CmdListRemoveFromList(&clopt->classMixins, del);
+
+        NSF_NONNULL_OR_PANIC(del,"failed to remove command-list entry selected for deletion");
         CmdListDeleteCmdListEntry(del, GuardDel);
         if (class->object.mixinOrder != NULL) {
           MixinResetOrder(&class->object);
@@ -10237,6 +10243,8 @@ RemoveFromObjectMixins(Tcl_Command cmd, NsfCmdList *cmdList) {
         /* fprintf(stderr, "Removing class %s from mixins of object %s\n",
            ClassName(del->clorobj), ObjStr(NsfGetObjectFromCmdPtr(cmdList->cmdPtr)->cmdName)); */
         del = CmdListRemoveFromList(&objopt->objMixins, del);
+
+        NSF_NONNULL_OR_PANIC(del,"failed to remove command-list entry selected for deletion");
         CmdListDeleteCmdListEntry(del, GuardDel);
         if (object->mixinOrder != NULL) {
           MixinResetOrder(object);
@@ -31250,6 +31258,8 @@ NsfRelationSetCmd(Tcl_Interp *interp, NsfObject *object, RelationtypeIdx_t type,
               /* fprintf(stderr, "Removing object %s from isObjectMixinOf of class %s\n",
                  ObjectName(object), ObjStr(NsfGetClassFromCmdPtr(cmdlist->cmdPtr)->object.cmdName)); */
               del = CmdListRemoveFromList(&clopt->isObjectMixinOf, del);
+
+              NSF_NONNULL_OR_PANIC(del,"failed to remove command-list entry selected for deletion");
               CmdListDeleteCmdListEntry(del, GuardDel);
             }
           }
