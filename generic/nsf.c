@@ -28494,8 +28494,7 @@ NsfConfigureCmd(Tcl_Interp *interp, ConfigureoptionIdx_t option, Tcl_Obj *valueO
   if (option == ConfigureoptionDebugIdx) {
 
     if (valueObj != NULL) {
-      TCL_SIZE_T level;
-      int result = Tcl_GetSizeIntFromObj(interp, valueObj, &level);
+      int level, result = Tcl_GetSizeIntFromObj(interp, valueObj, &level);
 
       if (unlikely(result != TCL_OK)) {
         return result;
@@ -31643,7 +31642,7 @@ NsfVarExistsCmd(Tcl_Interp *interp, int withArray, NsfObject *object, const char
   if (unlikely(CheckVarName(interp, varName) != TCL_OK)) {
     return TCL_ERROR;
   }
-  Tcl_SetIntObj(Tcl_GetObjResult(interp), VarExists(interp, object, varName, NULL, flags));
+  Tcl_SetBooleanObj(Tcl_GetObjResult(interp), VarExists(interp, object, varName, NULL, flags));
 
   return TCL_OK;
 }
@@ -32993,9 +32992,9 @@ NsfOExistsMethod(Tcl_Interp *interp, NsfObject *object, const char *varName) {
   nonnull_assert(object != NULL);
   nonnull_assert(varName != NULL);
 
-  Tcl_SetIntObj(Tcl_GetObjResult(interp),
-                VarExists(interp, object, varName, NULL,
-                          NSF_VAR_TRIGGER_TRACE|NSF_VAR_REQUIRE_DEFINED));
+  Tcl_SetBooleanObj(Tcl_GetObjResult(interp),
+                    VarExists(interp, object, varName, NULL,
+                              NSF_VAR_TRIGGER_TRACE|NSF_VAR_REQUIRE_DEFINED));
   return TCL_OK;
 }
 

@@ -227,9 +227,13 @@ NsfProfileDebugExit(Tcl_Interp *interp, NsfObject *object, NsfClass *class, cons
 
   if (startSec != 0 || startUsec != 0) {
     struct Tcl_Time trt;
+    Tcl_WideInt     elapsed;
 
     Tcl_GetTime(&trt);
-    Nsf_DStringPrintf(dsPtr, " %ld ", (trt.sec - startSec) * 1000000 + (trt.usec - startUsec));
+    elapsed = (Tcl_WideInt)(trt.sec - startSec) * 1000000
+      + (Tcl_WideInt)(trt.usec - startUsec);
+
+    Nsf_DStringPrintf(dsPtr, " %" TCL_LL_MODIFIER "d ", elapsed);
   } else {
     Tcl_DStringAppend(dsPtr, " {}", 3);
   }
