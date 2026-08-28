@@ -28494,7 +28494,8 @@ NsfConfigureCmd(Tcl_Interp *interp, ConfigureoptionIdx_t option, Tcl_Obj *valueO
   if (option == ConfigureoptionDebugIdx) {
 
     if (valueObj != NULL) {
-      int level, result = Tcl_GetSizeIntFromObj(interp, valueObj, &level);
+      int level;
+      int result = Tcl_GetIntFromObj(interp, valueObj, &level);
 
       if (unlikely(result != TCL_OK)) {
         return result;
