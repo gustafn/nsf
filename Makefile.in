@@ -911,12 +911,14 @@ nsfStubLib.$(OBJEXT): $(src_generic_dir)/nsfStubLib.c $(PKG_HEADERS)
 nsfUtil.$(OBJEXT): $(src_generic_dir)/nsfUtil.c $(PKG_HEADERS)
 
 #
-# Target to regenerate header files and stub files from the *.decls tables.
-#
+# Target to regenerate header files and stub files from the *.decls tables.n
+# (Just for core developers, generated files are distributed)
 
-TCL_SRC_DIR_85=/usr/local/src/tcl8.5.19
-TCL_SRC_DIR_86=/usr/local/src/tcl8.6.8
-TCL_SRC_DIR_87=/usr/local/src/core-8-branch
+TCL_SRC_DIR_85 ?= /usr/local/src/tcl8.5.19
+TCL_SRC_DIR_86 ?= /usr/local/src/tcl8.6.8
+TCL_SRC_DIR_87 ?= /usr/local/src/core-8-branch
+TCL_SRC_DIR_90 ?= /usr/local/src/tcl9.0.2
+TCL_SRC_DIR_91 ?= /usr/local/src/core-9-branch
 
 genstubs: $(src_generic_dir)/nsf.decls
 	mkdir -p $(src_generic_dir)/stubs8.5
@@ -930,6 +932,14 @@ genstubs: $(src_generic_dir)/nsf.decls
 	mkdir -p $(src_generic_dir)/stubs8.7
 	tclsh8.7 $(TCL_SRC_DIR_87)/tools/genStubs.tcl \
 		$(src_generic_dir)/stubs8.7 \
+		$(src_generic_dir)/nsf.decls $(src_generic_dir)/nsfInt.decls
+	mkdir -p $(src_generic_dir)/stubs9.0
+	tclsh9.0 $(TCL_SRC_DIR_90)/tools/genStubs.tcl \
+		$(src_generic_dir)/stubs9.0 \
+		$(src_generic_dir)/nsf.decls $(src_generic_dir)/nsfInt.decls
+	mkdir -p $(src_generic_dir)/stubs9.1
+	tclsh9.1 $(TCL_SRC_DIR_91)/tools/genStubs.tcl \
+		$(src_generic_dir)/stubs9.1 \
 		$(src_generic_dir)/nsf.decls $(src_generic_dir)/nsfInt.decls
 
 getstubs:
