@@ -31,7 +31,7 @@ Vienna, Austria:
 
 Diff stats since 2.4.0:
 
-  217 files changed, 31608 insertions(+), 22761 deletions(-)
+  128 files changed, 8944 insertions(+), 6117 deletions(-)
 
 The main changes are:
 
@@ -120,12 +120,12 @@ The main changes are:
 
   * Serializer verbosity (serializer.tcl): Reduced log noise
 
-  * MongoDB:
+-  MongoDB:
 
     New proc: "::mongo::oid::gettimestamp"
 
     Updated build harness
-
+  
 - Bug fixes & hardening (selection):
 
   * Thread-safe exit handling (POSIX, other than WIN native):
@@ -151,6 +151,13 @@ The main changes are:
 
   * Robust parallel package installs (e.g., avoid overwriting of package
     index files)
+
+  * The NSF/C core and build system includes new compile-time checks
+    on, for example, reachability and NULL pointers. Checks were
+    promoted to all builds and not only the debug ones. The make-based
+    build system auto-tunes the strictness and warnings flags based on
+    the detected compiler chain. Groups of warnings (conversion,
+    format, definition, and tidy) are overridable.
 
 - Documentation:
 
