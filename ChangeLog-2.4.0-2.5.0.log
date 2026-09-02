@@ -1,3 +1,82 @@
+2026-08-28  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* nsf.c (NsfConfigureCmd): Debug level with Tcl_GetIntFromObj [865abffa]
+
+	* nsfProfile.c, nsf.c (NsfConfigureCmd, NsfProfileDebugExit):
+	Return proper booleans and widen profile elapsed time [52b275ce]
+
+	- Use Tcl_SetBooleanObj() for VarExists-based commands/methods
+	- Avoid truncation/overflow in profile timing by computing elapsed as Tcl_WideInt
+	- Print elapsed with TCL_LL_MODIFIER for portable wide-int formatting
+	- Minor cleanup: collapse debug level decl/init in NsfConfigureCmd()
+
+	* add-format-attributes.tcl, stubs*/nsfDecls.h: Annotate generated
+	stubs with printf format attributes [b0580f43]
+
+	- Add add-format-attributes.tcl to post-process nsfDecls.h files
+	- Hook script into genstubs for stubs 8.5–9.1 and keep it idempotent
+	- Apply NSF_attribute_format() to printf-like APIs and stub-table members
+	- Update default Tcl 9.1 source path to tcl9.1b1
+
+	* nsf.c (ObjectCmdMethodDispatch): Panic on missing call frame in
+	protected ensemble dispatch [e1716e3a]
+
+	- Add non-null assertion for `framePtr0` after `CallStackGetTopFrame()`
+	- Provide clearer failure mode/message when dispatch occurs without an active frame
+
+	* Makefile.in: Add Tcl 9.x stub generation and configurable src dirs [e5244963]
+
+	- Switch TCL_SRC_DIR_85/86/87 to `?=` so callers can override defaults
+	- Add TCL_SRC_DIR_90 and TCL_SRC_DIR_91 for Tcl 9.0 and 9.1 sources
+	- Extend `genstubs` target to generate stubs for Tcl 9.0 (tclsh9.0) and 9.1 (tclsh9.1)
+
+	* nsfInt.h, nsf.c (CmdListDeleteCmdListEntry, CmdListRemoveDeleted, RemoveFromClassMixinsOf, RemoveFromObjectMixinsOf, RemoveFromObjectMixins, RemoveFromClassmixins, RemoveFromObjectMixins, NsfRelationSetCmd):
+	Harden cmdlist deletion path and mark panic as unreachable
+	[e3e33dd5]
+
+	- Remove redundant NULL check in CmdListDeleteCmdListEntry()
+	- Add NSF_NONNULL_OR_PANIC() after CmdListRemoveFromList() at all callsites
+	  to catch unexpected failures when removing selected deletion entries
+	- Introduce NSF_UNREACHABLE() and use it after Tcl_Panic to aid optimizer and
+	  silence static-analysis false positives
+
+2026-08-27  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	* Makefile.in: Panic on broken internal non-null invariants [7a923d1c]
+
+	- Add NSF_NONNULL_OR_PANIC() macro to enforce non-null invariants in all builds
+	- Replace debug-only assert/nonnull_assert checks with Tcl_Panic + context messages
+	- Guard ensemble frameType access against NULL cscPtr in NsfCurrentCmd to avoid crash paths
+	* nsf.c (NsfCallMethodWithArgs, VarHashCreateVar, ImportInstVarIntoCurrentScope): Handle VarHashCreateVar failure in colon var resolver [08d61134]
+
+	- Document VarHashCreateVar/VarHashTableCreate semantics and caller contract
+	- Add NULL checks after VarHashCreateVar to avoid deref/crash in fetch/import
+	- Return TCL_ERROR from InterpColonVarResolver when variable creation fails
+	- Side effect: missing local/instance variable now yields explicit error path
+
+	* nsf.c (NsfObjInfoHasMixinMethod, NsfObjInfoHasTypeMethod): Normalize boolean conversion for Tcl_SetBooleanObj [d068b949]
+
+	- Replace cast-to-int with explicit ternary in mixin/type checks
+	- Avoid relying on non-0 integer semantics from HasMixin/IsSubType
+
+	* nsf.c, nsf.h, nsfAccessInt.h, nsfInt.h, nsfPointer.c: Fix strict
+	compiler warnings and argument handling [b3442c15]
+
+	Fix init dispatch argument splitting, format-string mismatches, pointer
+	formatting, copy-size conversions, and variable hash access. Add Tcl 9.1
+	stub declarations and improve protected-method diagnostics.
+
+	* Makefile.in: Add compiler-specific warning detection [0a4a8a29]
+
+	Detect GCC and Clang versions and enable extended warning sets only for
+	sufficiently recent compilers. Probe less portable compiler-specific
+	flags before adding them, and allow users to override the computed
+	conversion, format, definition, and tidy warning groups.
+
+2026-08-21  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* Adjust author dates in COPYRIGHTs and various source files [309ac77c]
+
 2026-07-21  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
 	* nsf.c (Nsf_ConvertToInt32): Rewritten to use Tcl_GetSizeIntFromObj
