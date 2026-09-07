@@ -40,21 +40,10 @@ and to compile the MongoDB driver for NX.
 
 ````
       cd /usr/local/src
-      wget https://github.com/mongodb/mongo-c-driver/releases/download/1.22.0/mongo-c-driver-1.22.0.tar.gz
-      tar zxvf mongo-c-driver-1.22.0.tar.gz
+      wget https://github.com/mongodb/mongo-c-driver/releases/download/1.30.8/mongo-c-driver-1.30.8.tar.gz
+      tar zxvf mongo-c-driver-1.30.8.tar.gz
       rm -rf mongo-c-driver
-      ln -sf mongo-c-driver-1.22.0 mongo-c-driver
-      cd mongo-c-driver
-      cmake .
-      make
-      sudo make install
-````
-
-  Alternatively, one can get the newest version from git
-
-````
-      cd /usr/local/src
-      git clone https://github.com/mongodb/mongo-c-driver
+      ln -sf mongo-c-driver-1.30.8 mongo-c-driver
       cd mongo-c-driver
       cmake .
       make
@@ -66,11 +55,6 @@ and to compile the MongoDB driver for NX.
 
   If configure complains about not finding bson, you might have to do
       export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
-
-  Note: Version 1.5.1 of the c-driver leads on macOS to a crash on
-  exit, when configured SASL support (from mac ports) and the flag
-  "--disable-automatic-init-and-cleanup" is missing.
-
 
 ## Compiling the MongoDB NSF Binding: ##
 

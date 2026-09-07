@@ -139,6 +139,9 @@ puts stderr RESULT=[::mongo::collection::query $mongoColl {}]
 
 
 puts stderr "\nProject members"
+
+puts >>>[llength [::mongo::collection::query $mongoColl \
+                      {projects string nsf}]]
 ? {
   llength [::mongo::collection::query $mongoColl \
                {projects string nsf} \
