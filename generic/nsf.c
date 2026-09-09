@@ -14709,7 +14709,7 @@ ObjectCmdMethodDispatch(
       subMethodCmd = NULL;
     } else if (unlikely((cmdFlags & NSF_CMD_CALL_PROTECTED_METHOD) != 0u)) {
       const NsfObject *lastSelf;
-      Tcl_CallFrame   *framePtr0;
+      Tcl_CallFrame   *framePtr0 = NULL;
       bool             withinEnsemble = ((cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) != 0u);
 
       if (withinEnsemble) {
@@ -29467,6 +29467,7 @@ NsfMethodAssertionCmd(Tcl_Interp *interp, NsfObject *object, AssertionsubcmdIdx_
         Tcl_SetObjResult(interp, AssertionList(interp, class->opt->assertions->invariants));
       }
     }
+    break;
 
   case AssertionsubcmdNULL:
     /*
@@ -33143,7 +33144,7 @@ NsfOResidualargsMethod(Tcl_Interp *interp, NsfObject *object, TCL_OBJC_T objc, T
   int          result = TCL_OK;
   TCL_SIZE_T   i, start = 1, argc = 0, nextArgc = 0, normalArgs;
   dashArgType  isdasharg = NO_DASH;
-  const char  *methodName, *nextMethodName = NULL, *initString = NULL;
+  const char  *methodName = NULL, *nextMethodName = NULL, *initString = NULL;
   Tcl_Obj    **argv = NULL, **nextArgv = NULL;
 
   nonnull_assert(interp != NULL);
@@ -34368,7 +34369,7 @@ objectInfoMethod lookupfilter NsfObjInfoLookupFilterMethod {
 */
 static int
 NsfObjInfoLookupFilterMethod(Tcl_Interp *interp, NsfObject *object, const char *filter) {
-  const char *filterName;
+  const char *filterName = NULL;
   NsfCmdList *cmdList;
   NsfClass *fcl;
 

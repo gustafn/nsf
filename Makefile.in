@@ -246,7 +246,10 @@ endif
 ifeq ($(IS_CLANG),1)
   CFLAGS_COMPILER += $(call cc-supports,-Wshorten-64-to-32) \
 	$(call cc-supports,-Wcomma) \
-	$(call cc-supports,-Wnewline-eof)
+	$(call cc-supports,-Wnewline-eof) \
+	$(call cc-supports,-Wconditional-uninitialized) \
+	$(call cc-supports,-Wimplicit-fallthrough) \
+	$(call cc-supports,-Wswitch-enum)
 endif
 
 CFLAGS_WARNING += -pedantic -Wextra $(CFLAGS_CONVERSION) \
@@ -254,7 +257,7 @@ CFLAGS_WARNING += -pedantic -Wextra $(CFLAGS_CONVERSION) \
 CLEANFILES	= @CLEANFILES@
 EXEEXT		= @EXEEXT@
 LDFLAGS_DEFAULT	= @LDFLAGS_DEFAULT@
-MAKE_LIB		= @MAKE_LIB@
+MAKE_LIB	= @MAKE_LIB@
 MAKE_SHARED_LIB	= @MAKE_SHARED_LIB@
 MAKE_STATIC_LIB	= @MAKE_STATIC_LIB@
 MAKE_STUB_LIB	= @MAKE_STUB_LIB@
