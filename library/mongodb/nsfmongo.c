@@ -621,9 +621,9 @@ NsfMongoJsonGenerate(Tcl_Interp *interp, Tcl_Obj *listObj)
   if (result == TCL_OK) {
     char     *jsonString;
 
-    jsonString = bson_as_json(listPtr, &length);
+    jsonString = bson_as_canonical_extended_json(listPtr, &length);
     if (jsonString != NULL) {
-      Tcl_SetObjResult(interp, Tcl_NewStringObj(jsonString, (int)length));
+      Tcl_SetObjResult(interp, Tcl_NewStringObj(jsonString, (TCL_SIZE_T)length));
       bson_free(jsonString);
     } else {
       result = NsfPrintError(interp, "invalid bson string: %s", ObjStr(listObj));
