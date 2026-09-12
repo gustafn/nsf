@@ -1,15 +1,13 @@
-
-
 # Interface between MongoDB and the Next Scripting Framework #
 
-This is an client interface to MongoDB based on NSF (Next Scripting
+This is a client interface to MongoDB based on NSF (Next Scripting
 Framework).
 
 This implementation provides a low-level interface based on tagged
 elements to force / preserve the datatypes of MongoDB when converting
 into and from Tcl.
 
-This code serves as well as an example how to use the source-code generator
+This code also serves as an example of how to use the source-code generator
 of NSF to generate a C-level programming interface.
 
 Gustaf Neumann    March 2011
@@ -26,7 +24,7 @@ with:
 
 - Tcl 8.6.18 and 9.0.4
 - MongoDB 8.0.28 (released in July 2026)
-- mongodb-c-driver 1.30.8 (released April 2026)
+- mongo-c-driver 1.30.8 (released April 2026)
 - libbson 1.30.8 (released April 2026)
 
 Important: The tested MongoDB C client library is the latest
@@ -35,7 +33,7 @@ end-of-life. The 2.* mainline has not been integrated or
 tested. However, the tested version is compatible with MongoDB
 versions 4 through 8.
 
-Follow the following steps to get MongoDB up and running
+Follow these steps to get MongoDB up and running
 and to compile the MongoDB driver for NSF/NX.
 
 
@@ -118,7 +116,7 @@ In order to run the NSF sample script, perform the following steps
 ````
 
 The script tests the low-level interface (nsf::mongo) and the
-high-level one (nx::mongo), with each exercising a few insert, query
+high-level one (nx::mongo),  each exercising a few insert, query
 and delete statements.
 
 After running this script, you should check the content using the
@@ -143,7 +141,7 @@ MongoDB shell:
    > quit()
 ````
 
-## Testing the object oriented mapping between NX and MongoDB: ##
+## Testing the object-oriented mapping between NX and MongoDB: ##
 
 Test the basic mapping and the OO query methods:
 
