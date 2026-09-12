@@ -1,3 +1,20 @@
+2026-09-12  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* nsf-gridfs.test: Make test script location independent
+	[403470bf]
+
+	* README.md: Update instructions regarding MongoDB NSF binding
+	[86e2295f,4dbd4d8b]
+
+2026-09-11  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* nsfmongo.c (NsfMongoJsonGenerate): Replace deprecated BSON function bson_as_json()
+	[3115c207]
+
+	* nsfmongo.c: Tcl-9 compat reform, adopt TCL_SIZE_T to avoid
+	stack corruption (bewetween two int variables) in at least one function
+	(NsfMongoCollectionQuery) [c162436e]
+
 2026-08-28  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
 	* nsf.c (NsfConfigureCmd): Debug level with Tcl_GetIntFromObj [865abffa]
