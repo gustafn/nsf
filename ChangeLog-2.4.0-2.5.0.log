@@ -1,3 +1,8 @@
+2026-09-15  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	* nsf.h: Fix name of function-like macro that, otherwise reported
+	undefined in non-CLANG environments [548bba10]
+
 2026-09-15  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
 	* Announce2.5.0: Refresh 2.5.0 announcement highlights and compatibility notes [19156f3c, 5624b78e]
