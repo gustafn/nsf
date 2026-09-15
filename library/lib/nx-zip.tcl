@@ -122,7 +122,6 @@ namespace eval ::nx::zip {
           #
           set channel [ns_connchan detach]
         }
-        set channel [ns_connchan detach]
         set :writer [list ns_connchan write -buffered $channel]
         ns_connchan write -buffered $channel $header
         :writeToStream $channel
